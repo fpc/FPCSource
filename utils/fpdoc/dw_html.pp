@@ -383,11 +383,11 @@ begin
       while AElement.Name[i] <> ')' do
       begin
         if AElement.Name[i] = ',' then
-	begin
-	  s := s + '-';
-	  Inc(i);
-	end else
-	  s := s + AElement.Name[i];
+        begin
+          s := s + '-';
+          Inc(i);
+        end else
+          s := s + AElement.Name[i];
         Inc(i);
       end;
       Result := Result + LowerCase(s) + '-' + LowerCase(Copy(AElement.Name,
@@ -752,7 +752,7 @@ begin
           CreatePath(Filename);
           WriteHTMLFile(PageDoc, Filename);
         except
-	  on E: Exception do
+          on E: Exception do
             DoLog(SErrCouldNotCreateFile, [FileName, e.Message]);
         end;
       finally
@@ -1903,9 +1903,9 @@ begin
       AppendNbSp(CodeEl, NestingLevel * 2 + 4);
       for j := 0 to CurVariant.Values.Count - 1 do
       begin
-	if j > 0 then
-	  AppendSym(CodeEl, ', ');
-	AppendPasSHFragment(CodeEl, TPasElement(CurVariant.Values[j]).GetDeclaration(true), 0);
+        if j > 0 then
+          AppendSym(CodeEl, ', ');
+        AppendPasSHFragment(CodeEl, TPasElement(CurVariant.Values[j]).GetDeclaration(true), 0);
       end;
       AppendSym(CodeEl, ': (');
       AppendType(CodeEl, TableEl, CurVariant.Members, True, NestingLevel + 3);
@@ -2314,8 +2314,7 @@ begin
   end;
 end;
 
-	procedure THTMLWriter.CreateIndexPage(L : TStringList);
-
+procedure THTMLWriter.CreateIndexPage(L : TStringList);
 Var
   Lists  : Array['A'..'Z'] of TStringList;
   LOther : TStringList;
