@@ -505,6 +505,7 @@ end;
 {$endif}
 
 
+{$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -548,6 +549,7 @@ asm
   // Jump without a link, so freemem directly returns to our caller
   b       FPC_FREEMEM_X
 end;
+{$endif not darwin}
 
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
@@ -613,6 +615,8 @@ asm
 {$endif}
 end;
 
+
+{$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
 
 Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
@@ -635,6 +639,7 @@ asm
   bge     InterLockedIncrement
   // Freepascal will generate a proper return here, save some cachespace
 end;
+{$endif not darwin}
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
