@@ -1030,16 +1030,15 @@ function WideCharToString(S : PWideChar) : UnicodeString;
 {$define FPC_HAS_STRING_LEN_TO_WIDECHAR}
 function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   var
-    temp:widestring;
+    temp: widestring;
+    Len: SizeInt;
   begin
      widestringmanager.Ansi2WideMoveProc(PChar(Src),StringCodePage(Src),temp,Length(Src));
-     if Length(temp)<DestSize then
-       move(temp[1],Dest^,Length(temp)*SizeOf(WideChar))
-     else
-       move(temp[1],Dest^,(DestSize-1)*SizeOf(WideChar));
-
-     Dest[DestSize-1]:=#0;
-
+     Len:=Length(temp);
+     if DestSize<=Len then
+       Len:=Destsize-1;
+     move(temp[1],Dest^,Len*SizeOf(WideChar));
+     Dest[Len]:=#0;
      result:=Dest;
   end;
 {$endif FPC_HAS_STRING_LEN_TO_WIDECHAR}

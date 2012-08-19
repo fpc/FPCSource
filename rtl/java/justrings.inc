@@ -592,15 +592,16 @@ end;
 {$define FPC_HAS_STRING_LEN_TO_WIDECHAR}
 function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   var
-    temp:widestring;
+    temp: widestring;
+    Len: SizeInt;
   begin
     temp:=src;
-     if Length(temp)<DestSize then
-       JLString(temp).getChars(0,length(temp),TJCharArray(Dest),0)
-     else
-       JLString(temp).getChars(0,DestSize-1,TJCharArray(Dest),0);
-     Dest[DestSize-1]:=#0;
-     result:=Dest;
+    Len:=Length(temp);
+    if DestSize<=Len then
+      Len:=Destsize-1;
+    JLString(temp).getChars(0,Len,TJCharArray(Dest),0);
+    Dest[Len]:=#0;
+    result:=Dest;
   end;
 
 
