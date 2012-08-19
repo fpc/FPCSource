@@ -245,6 +245,7 @@ function ParseSource(AEngine: TPasTreeContainer;
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 Function IsModifier(S : String; Out Pm : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
+Function TokenToAssignKind( tk : TToken) : TAssignKind;
 
 implementation
 
@@ -327,6 +328,20 @@ begin
     end;
 end;
 
+Function TokenToAssignKind( tk : TToken) : TAssignKind;
+
+begin
+  case tk of
+    tkAssign         : Result:=akDefault;
+    tkAssignPlus     : Result:=akAdd;
+    tkAssignMinus    : Result:=akMinus;
+    tkAssignMul      : Result:=akMul;
+    tkAssignDivision : Result:=akDivision;
+  else
+    Raise Exception.CreateFmt('Not an assignment token : %s',[TokenInfos[tk]]);
+  end;
+end;
+
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
   UseStreams  : Boolean = False): TPasModule;
@@ -353,6 +368,10 @@ var
       case s[2] of
         'd': // -d define
           Scanner.AddDefine(UpperCase(Copy(s, 3, Length(s))));
+        'S': // -d define
+          case S[3] of
+            'c' :Scanner.Options:=Scanner.Options+[c_assignments];
+          end;
         'F': // -F
           if (length(s)>2) and (s[3] = 'i') then // -Fi include path
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
@@ -2974,7 +2993,7 @@ var
   left: TPasExpr;
   right: TPasExpr;
   el : TPasImplElement;
-
+  ak : TAssignKind;
 begin
   NewImplElement:=nil;
   CurBlock := Parent;
@@ -3305,14 +3324,20 @@ begin
     else
       left:=DoParseExpression(nil);
       case CurToken of
-        tkAssign:
+        tkAssign,
+        tkAssignPlus,
+        tkAssignMinus,
+        tkAssignMul,
+        tkAssignDivision:
         begin
           // assign statement
+          Ak:=TokenToAssignKind(CurToken);
           NextToken;
           right:=DoParseExpression(nil); // this may solve TPasImplWhileDo.AddElement BUG
           el:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
           TPasImplAssign(el).left:=Left;
           TPasImplAssign(el).right:=Right;
+          TPasImplAssign(el).Kind:=ak;
           CurBlock.AddElement(el);
           CmdElem:=TPasImplAssign(el);
           UngetToken;

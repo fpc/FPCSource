@@ -76,6 +76,10 @@ type
     tkGreaterEqualThan,      // '>='
     tkPower,                 // '**'
     tkSymmetricalDifference, // '><'
+    tkAssignPlus,            // +=
+    tkAssignMinus,           // -=
+    tkAssignMul,             // *=
+    tkAssignDivision,        // /=
     // Reserved words
     tkabsolute,
     tkand,
@@ -288,7 +292,7 @@ type
 
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
-  TPOption = (po_delphi);
+  TPOption = (po_delphi,po_cassignments);
   TPOptions = set of TPOption;
 
   { TPascalScanner }
@@ -402,6 +406,10 @@ const
     '>=',
     '**',
     '><',
+    '+=',
+    '-=',
+    '*=',
+    '/=',
     // Reserved words
     'absolute',
     'and',
@@ -1368,13 +1376,30 @@ begin
         begin
           Inc(TokenStr);
           Result := tkPower;
-        end else
-          Result := tkMul;
+        end else if not (po_cassignments in options) then
+          Result := tkMul
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignMul;
+            end;
+          end
       end;
     '+':
       begin
         Inc(TokenStr);
-        Result := tkPlus;
+        if not (po_cassignments in options) then
+          Result := tkPlus
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignPlus;
+            end;
+          end
       end;
     ',':
       begin
@@ -1384,7 +1409,16 @@ begin
     '-':
       begin
         Inc(TokenStr);
-        Result := tkMinus;
+        if not (po_cassignments in options) then
+          Result := tkMinus
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignMinus;
+            end;
+          end
       end;
     '.':
       begin
@@ -1412,8 +1446,16 @@ begin
             Move(TokenStart^, FCurTokenString[1], SectionLength);
           Result := tkComment;
           //WriteLn('Einzeiliger Kommentar: "', CurTokenString, '"');
-        end else
-          Result := tkDivision;
+        end else if not (po_cassignments in options) then
+          Result := tkDivision
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignDivision;
+            end;
+          end
       end;
     '0'..'9':
       begin
