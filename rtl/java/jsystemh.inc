@@ -597,7 +597,11 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:
 {$ELSE}
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
+
+Function Get_pc_addr : Pointer;
+
 (*
+procedure get_caller_stackinfo(var framebp,addr : pointer);
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
 *)
@@ -684,7 +688,7 @@ Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifndef JVM}
-Procedure Dump_Stack(var f : text;bp:pointer);
+Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
