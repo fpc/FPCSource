@@ -256,7 +256,16 @@ function radtocycle(rad : float) : float;inline;
 function tan(x : float) : float;
 function cotan(x : float) : float;
 function cot(x : float) : float; inline;
-procedure sincos(theta : float;out sinus,cosinus : float);
+{$ifdef FPC_HAS_TYPE_SINGLE}
+procedure sincos(theta : single;out sinus,cosinus : single);
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+procedure sincos(theta : double;out sinus,cosinus : double);
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure sincos(theta : extended;out sinus,cosinus : extended);
+{$endif}
+
 
 function secant(x : float) : float; inline;
 function cosecant(x : float) : float; inline;
@@ -682,11 +691,31 @@ end;
 
 
 {$ifndef FPC_MATH_HAS_SINCOS}
-procedure sincos(theta : float;out sinus,cosinus : float);
+{$ifdef FPC_HAS_TYPE_SINGLE}
+procedure sincos(theta : single;out sinus,cosinus : single);
   begin
     sinus:=sin(theta);
     cosinus:=cos(theta);
   end;
+{$endif}
+
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+procedure sincos(theta : double;out sinus,cosinus : double);
+  begin
+    sinus:=sin(theta);
+    cosinus:=cos(theta);
+  end;
+{$endif}
+
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure sincos(theta : extended;out sinus,cosinus : extended);
+  begin
+    sinus:=sin(theta);
+    cosinus:=cos(theta);
+  end;
+{$endif}
 {$endif FPC_MATH_HAS_SINCOS}
 
 

@@ -24,12 +24,32 @@ function arctan2(y,x : float) : float;assembler;
 
 
 {$define FPC_MATH_HAS_SINCOS}
-procedure sincos(theta : float;out sinus,cosinus : float);assembler;
+procedure sincos(theta : extended;out sinus,cosinus : extended);assembler;
   asm
     fldt theta
     fsincos
     fstpt (%edx)
     fstpt (%eax)
+    fwait
+  end;
+
+
+procedure sincos(theta : double;out sinus,cosinus : double);assembler;
+  asm
+    fldl theta
+    fsincos
+    fstpl (%edx)
+    fstpl (%eax)
+    fwait
+  end;
+
+
+procedure sincos(theta : single;out sinus,cosinus : single);assembler;
+  asm
+    flds theta
+    fsincos
+    fstps (%edx)
+    fstps (%eax)
     fwait
   end;
 
