@@ -3130,11 +3130,11 @@ begin
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
 
-  { force fpu emulation on arm/wince, arm/gba, arm/embedded, arm/nds and
-    arm/darwin if fpu type not explicitly set }
+  { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
+    if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-         system_m68k_linux,system_arm_nds,system_arm_embedded,system_arm_darwin])
+         system_m68k_linux,system_arm_nds,system_arm_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
@@ -3170,13 +3170,16 @@ begin
 {$endif arm}
 
 {$ifdef arm}
-{ set default cpu type to ARMv6 for Darwin unless specified otherwise }
+{ set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
+  to VFPv2 }
 if (target_info.system=system_arm_darwin) then
   begin
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv6;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv6;
+    if not option.FPUSetExplicitly then
+      init_settings.fputype:=fpu_vfpv2;
   end;
 
 { set default cpu type to ARMv7 for ARMHF unless specified otherwise }
