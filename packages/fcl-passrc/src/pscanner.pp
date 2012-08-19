@@ -215,7 +215,7 @@ type
 
   TStringStreamLineReader = class(TStreamLineReader)
   Public
-    constructor Create(const AFilename: string; Const ASource: String);
+    constructor Create( const AFilename: string; Const ASource: String);
   end;
 
   { TMacroReader }
@@ -483,7 +483,7 @@ const
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
-function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
+function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 implementation
 
@@ -551,7 +551,7 @@ begin
   Result:=-1;
 end;
 
-function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
+function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 Var
   I : Integer;
@@ -1249,7 +1249,7 @@ var
   TokenStart, CurPos: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-  Directive, Param, MN, MV: string;
+  Directive, Param : string;
 begin
   if TokenStr = nil then
     if not FetchLine then

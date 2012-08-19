@@ -661,10 +661,14 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
   public
+    IndexExpr,
+    DefaultExpr : TPasExpr;
     Args: TFPList;        // List of TPasArgument objects
-    IndexValue, ReadAccessorName, WriteAccessorName,ImplementsName,
-      StoredAccessorName, DefaultValue: string;
+    ReadAccessorName, WriteAccessorName,ImplementsName,
+      StoredAccessorName: string;
     IsDefault, IsNodefault: Boolean;
+    Function IndexValue : String;
+    Function DefaultValue : string;
   end;
 
   { TPasProcedureBase }
@@ -1344,7 +1348,6 @@ end;
 
 procedure TPasElement.ProcessHints(const ASemiColonPrefix: boolean; var AResult: string);
 var
-  h: TPasMemberHint;
   S : String;
 begin
   if Hints <> [] then
@@ -1767,6 +1770,8 @@ begin
   for i := 0 to Args.Count - 1 do
     TPasArgument(Args[i]).Release;
   Args.Free;
+  FreeAndNil(DefaultExpr);
+  FreeAndNil(IndexExpr);
   inherited Destroy;
 end;
 
@@ -2440,10 +2445,6 @@ function TPasVariable.GetDeclaration (full : boolean) : string;
 Const
  Seps : Array[Boolean] of Char = ('=',':');
 
-Var
-  H : TPasMemberHint;
-  B : Boolean;
-
 begin
   If Assigned(VarType) then
     begin
@@ -2510,6 +2511,22 @@ begin
   If IsDefault then
     Result:=Result+'; default';
   ProcessHints(True, Result);
+end;
+
+function TPasProperty.IndexValue: String;
+begin
+  If Assigned(IndexExpr) then
+    Result:=IndexExpr.GetDeclaration(true)
+  else
+    Result:='';
+end;
+
+function TPasProperty.DefaultValue: string;
+begin
+  If Assigned(DefaultExpr) then
+    Result:=DefaultExpr.GetDeclaration(true)
+  else
+    Result:='';
 end;
 
 Procedure TPasProcedure.GetModifiers(List : TStrings);
