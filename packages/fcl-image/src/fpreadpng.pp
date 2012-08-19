@@ -404,22 +404,21 @@ function TFPReaderPNG.CalcColor: TColorData;
 var cd : longword;
     r : word;
     b : byte;
+    tmp : pbytearray;
 begin
   if UsingBitGroup = 0 then
     begin
     Databytes := 0;
     if Header.BitDepth = 16 then
       begin
-      r := 1;
-      while (r < ByteWidth) do
-        begin
-        b := FCurrentLine^[Dataindex+r];
-        FCurrentLine^[Dataindex+r] := FCurrentLine^[Dataindex+r-1];
-        FCurrentLine^[Dataindex+r-1] := b;
-        inc (r,2);
-        end;
-      end;
-    move (FCurrentLine^[DataIndex], Databytes, bytewidth);
+       getmem(tmp, bytewidth);
+       fillchar(tmp^, bytewidth, 0);
+       for r:=0 to bytewidth-2 do
+        tmp^[r+1]:=FCurrentLine^[Dataindex+r];
+       move (tmp^[0], Databytes, bytewidth);
+       freemem(tmp);
+      end
+    else move (FCurrentLine^[DataIndex], Databytes, bytewidth);
     {$IFDEF ENDIAN_BIG}
     Databytes:=swap(Databytes);
     {$ENDIF}
