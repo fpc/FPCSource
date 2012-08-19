@@ -424,7 +424,8 @@ implementation
                   is_chararray(def) or
                   is_widechararray(def) or
                   is_open_chararray(def) or
-                  is_open_widechararray(def);
+                  is_open_widechararray(def) or
+                  (def=java_jlstring);
       end;
 
     function is_enum(def : tdef) : boolean;
