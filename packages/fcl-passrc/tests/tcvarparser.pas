@@ -5,7 +5,7 @@ unit tcvarparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser,
+  Classes, SysUtils, fpcunit, pastree, pscanner,
   tcbaseparser, testregistry;
 
 Type

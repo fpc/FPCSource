@@ -5,7 +5,7 @@ unit tctypeparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser,
+  Classes, SysUtils, fpcunit, pastree, pscanner, pparser,
   tcbaseparser, testregistry;
 
 type
@@ -475,8 +475,6 @@ end;
 
 procedure TTestProcedureTypeParser.DoTestProcedureArrayOfConst(
   CC: TCallingConvention; const AHint: String);
-Var
-  A : TPasArgument;
 
 begin
   ParseType('procedure(A : Array of const)',CC,TPasProcedureType,AHint);

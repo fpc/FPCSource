@@ -5,7 +5,7 @@ unit tcbaseparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser, testregistry;
+  Classes, SysUtils, fpcunit, pastree, pscanner, pparser, testregistry;
 
 Type
   { TTestEngine }
@@ -65,6 +65,9 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TArgumentAccess); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TVariableModifier); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TVariableModifiers); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberVisibility); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifier); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
@@ -309,28 +312,28 @@ Var
   E: TPasExportSymbol;
 
 begin
-  AssertNotNull('Have export symbols list',PasLibrary.LibrarySection.ExportSymbols);
+  AssertNotNull(Msg+'Have export symbols list',PasLibrary.LibrarySection.ExportSymbols);
   if AIndex>=PasLibrary.LibrarySection.ExportSymbols.Count then
-    Fail(Format('%d not a valid export list symbol',[AIndex]));
-  AssertNotNull('Have export symbol',PasLibrary.LibrarySection.ExportSymbols[Aindex]);
-  AssertEquals('Correct export symbol class',TPasExportSymbol,TObject(PasLibrary.LibrarySection.ExportSymbols[Aindex]).ClassType);
+    Fail(Format(Msg+'%d not a valid export list symbol',[AIndex]));
+  AssertNotNull(Msg+'Have export symbol',PasLibrary.LibrarySection.ExportSymbols[Aindex]);
+  AssertEquals(Msg+'Correct export symbol class',TPasExportSymbol,TObject(PasLibrary.LibrarySection.ExportSymbols[Aindex]).ClassType);
   E:=TPasExportSymbol(PasLibrary.LibrarySection.ExportSymbols[Aindex]);
-  AssertEquals('Correct export symbol name',AName,E.Name);
+  AssertEquals(Msg+'Correct export symbol name',AName,E.Name);
   if (AExportName='') then
-    AssertNull('No export name',E.ExportName)
+    AssertNull(Msg+'No export name',E.ExportName)
   else
     begin
-    AssertNotNull('Export name symbol',E.ExportName);
-    AssertEquals('TPrimitiveExpr',TPrimitiveExpr,E.ExportName.CLassType);
-    AssertEquals('Correct export symbol export name ',''''+AExportName+'''',TPrimitiveExpr(E.ExportName).Value);
+    AssertNotNull(Msg+'Export name symbol',E.ExportName);
+    AssertEquals(Msg+'TPrimitiveExpr',TPrimitiveExpr,E.ExportName.CLassType);
+    AssertEquals(Msg+'Correct export symbol export name ',''''+AExportName+'''',TPrimitiveExpr(E.ExportName).Value);
     end;
   If AExportIndex=-1 then
-    AssertNull('No export name',E.ExportIndex)
+    AssertNull(Msg+'No export name',E.ExportIndex)
   else
     begin
-    AssertNotNull('Export name symbol',E.ExportIndex);
-    AssertEquals('TPrimitiveExpr',TPrimitiveExpr,E.ExportIndex.CLassType);
-    AssertEquals('Correct export symbol export index',IntToStr(AExportindex),TPrimitiveExpr(E.ExportIndex).Value);
+    AssertNotNull(Msg+'Export name symbol',E.ExportIndex);
+    AssertEquals(Msg+'TPrimitiveExpr',TPrimitiveExpr,E.ExportIndex.CLassType);
+    AssertEquals(Msg+'Correct export symbol export index',IntToStr(AExportindex),TPrimitiveExpr(E.ExportIndex).Value);
     end;
 end;
 
@@ -378,6 +381,7 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
    M : TVariableModifier;
 
  begin
+   Result:='';
    For M:=Low(TVariableModifier) to High(TVariableModifier) do
      if M in S then
        begin
@@ -389,6 +393,41 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
 
 begin
   AssertEquals(Msg,Sn(AExpected),Sn(AActual));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TPasMemberVisibility);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TPasMemberVisibility),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TPasMemberVisibility),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TProcedureModifier);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TProcedureModifier),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TProcedureModifier),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TProcedureModifiers);
+
+  Function Sn (S : TProcedureModifiers) : String;
+
+  Var
+    m : TProcedureModifier;
+  begin
+    Result:='';
+    For M:=Low(TProcedureModifier) to High(TProcedureModifier) do
+      If (m in S) then
+        begin
+        If (Result<>'') then
+           Result:=Result+',';
+        Result:=Result+GetEnumName(TypeInfo(TProcedureModifier),Ord(m))
+        end;
+  end;
+begin
+  AssertEquals(Msg,Sn(AExpected),SN(AActual));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);
