@@ -32,6 +32,10 @@ Type
     Procedure TestEmptyStatements;
     Procedure TestBlock;
     Procedure TestAssignment;
+    Procedure TestAssignmentAdd;
+    Procedure TestAssignmentMinus;
+    Procedure TestAssignmentMul;
+    Procedure TestAssignmentDivision;
     Procedure TestCall;
     Procedure TestCallQualified;
     Procedure TestCallQualified2;
@@ -213,6 +217,72 @@ begin
   AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
   AssertEquals('Assignment statement',TPasImplAssign,Statement.ClassType);
   A:=Statement as TPasImplAssign;
+  AssertEquals('Normal assignment',akDefault,A.Kind);
+  AssertExpression('Right side is constant',A.Right,pekNumber,'1');
+  AssertExpression('Left side is variable',A.Left,pekIdent,'a');
+end;
+
+procedure TTestStatementParser.TestAssignmentAdd;
+
+Var
+  A : TPasImplAssign;
+
+begin
+  Parser.Scanner.Options:=[po_cassignments];
+  DeclareVar('integer');
+  TestStatement(['a+=1;']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Assignment statement',TPasImplAssign,Statement.ClassType);
+  A:=Statement as TPasImplAssign;
+  AssertEquals('Add assignment',akAdd,A.Kind);
+  AssertExpression('Right side is constant',A.Right,pekNumber,'1');
+  AssertExpression('Left side is variable',A.Left,pekIdent,'a');
+end;
+
+procedure TTestStatementParser.TestAssignmentMinus;
+Var
+  A : TPasImplAssign;
+
+begin
+  Parser.Scanner.Options:=[po_cassignments];
+  DeclareVar('integer');
+  TestStatement(['a-=1;']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Assignment statement',TPasImplAssign,Statement.ClassType);
+  A:=Statement as TPasImplAssign;
+  AssertEquals('Minus assignment',akMinus,A.Kind);
+  AssertExpression('Right side is constant',A.Right,pekNumber,'1');
+  AssertExpression('Left side is variable',A.Left,pekIdent,'a');
+end;
+
+procedure TTestStatementParser.TestAssignmentMul;
+Var
+  A : TPasImplAssign;
+
+begin
+  Parser.Scanner.Options:=[po_cassignments];
+  DeclareVar('integer');
+  TestStatement(['a*=1;']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Assignment statement',TPasImplAssign,Statement.ClassType);
+  A:=Statement as TPasImplAssign;
+  AssertEquals('Mul assignment',akMul,A.Kind);
+  AssertExpression('Right side is constant',A.Right,pekNumber,'1');
+  AssertExpression('Left side is variable',A.Left,pekIdent,'a');
+end;
+
+procedure TTestStatementParser.TestAssignmentDivision;
+Var
+  A : TPasImplAssign;
+
+begin
+  Parser.Scanner.Options:=[po_cassignments];
+  DeclareVar('integer');
+  TestStatement(['a/=1;']);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Assignment statement',TPasImplAssign,Statement.ClassType);
+  A:=Statement as TPasImplAssign;
+  AssertEquals('Division assignment',akDivision,A.Kind);
   AssertExpression('Right side is constant',A.Right,pekNumber,'1');
   AssertExpression('Left side is variable',A.Left,pekIdent,'a');
 end;

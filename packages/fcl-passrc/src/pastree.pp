@@ -492,7 +492,7 @@ type
     Members: TFPList;     // array of TPasVariable elements
     VariantName: string;
     VariantType: TPasType;
-    Variants: TFPList;	// array of TPasVariant elements, may be nil!
+    Variants: TFPList;  // array of TPasVariant elements, may be nil!
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
   end;

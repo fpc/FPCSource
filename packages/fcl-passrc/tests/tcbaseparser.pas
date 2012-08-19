@@ -68,6 +68,7 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberVisibility); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifier); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
@@ -428,6 +429,13 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
   end;
 begin
   AssertEquals(Msg,Sn(AExpected),SN(AActual));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TAssignKind);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TAssignKind),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TAssignKind),Ord(AActual)));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);
