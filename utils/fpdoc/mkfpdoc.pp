@@ -186,16 +186,18 @@ var
   i,j: Integer;
   Engine : TFPDocEngine;
   Cmd,Arg : String;
+  WriterClass: TFPDocWriterClass;
 
 begin
   FCurPackage:=APackage;
   Engine:=TFPDocEngine.Create;
   try
+    WriterClass:=GetWriterClass(Options.Backend);
     For J:=0 to Apackage.Imports.Count-1 do
       begin
       Arg:=Apackage.Imports[j];
-      i := Pos(',', Arg);
-      Engine.ReadContentFile(Copy(Arg,1,i-1),Copy(Arg,i+1,Length(Arg)));
+      WriterClass.SplitImport(Arg,Cmd);
+      Engine.ReadContentFile(Arg, Cmd);
       end;
     for i := 0 to APackage.Descriptions.Count - 1 do
       Engine.AddDocFile(APackage.Descriptions[i],Options.donttrim);
