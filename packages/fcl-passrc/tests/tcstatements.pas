@@ -144,7 +144,7 @@ begin
   ParseModule;
   AssertEquals('Have program',TPasProgram,Module.ClassType);
   AssertNotNull('Have program section',PasProgram.ProgramSection);
-  AssertNotNull('Have program section',PasProgram.InitializationSection);
+  AssertNotNull('Have initialization section',PasProgram.InitializationSection);
   if (PasProgram.InitializationSection.Elements.Count>0) then
     if TObject(PasProgram.InitializationSection.Elements[0]) is TPasImplBlock then
       FStatement:=TPasImplBlock(PasProgram.InitializationSection.Elements[0]);

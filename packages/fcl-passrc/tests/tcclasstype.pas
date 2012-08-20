@@ -21,10 +21,11 @@ type
     FStarted: Boolean;
     function GetF1: TPasVariable;
     function GetM(AIndex : Integer): TPasElement;
-    function GetM1: TPasProcedure;
+    function GetMM(AIndex : Integer): TPasProcedure;
     function GetMF1: TPasFunction;
     function GetP1: TPasProperty;
     function GetP2: TPasProperty;
+    function GetT(AIndex : Integer) : TPasType;
   protected
     Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
     Procedure StartVisibility(A : TPasMemberVisibility);
@@ -42,10 +43,14 @@ type
     Property Members[AIndex : Integer] : TPasElement Read GetM;
     Property Member1 : TPasElement Read FMember1;
     Property Field1 : TPasVariable Read GetF1;
-    Property Method1 : TPasProcedure Read GetM1;
+    Property Method1 : TPasProcedure Index 0 Read GetMM;
+    Property Method2 : TPasProcedure Index 1 Read GetMM;
+    Property Method3 : TPasProcedure index 2 Read GetMM;
     Property FunctionMethod1 : TPasFunction Read GetMF1;
     Property Property1 : TPasProperty Read GetP1;
     Property Property2 : TPasProperty Read GetP2;
+    Property Type1 : TPasType Index 0 Read GetT;
+    Property Type2 : TPasType Index 1 Read GetT;
   published
     procedure TestEmpty;
     procedure TestEmptyDeprecated;
@@ -54,10 +59,13 @@ type
     Procedure TestOneInterface;
     Procedure TestTwoInterfaces;
     Procedure TestOneField;
+    Procedure TestOneVarField;
+    Procedure TestOneClassField;
     Procedure TestOneFieldVisibility;
     Procedure TestOneFieldDeprecated;
     Procedure TestTwoFields;
     Procedure TestTwoFieldsB;
+    Procedure TestTwoVarFieldsB;
     Procedure TestTwoFieldsVisibility;
     procedure TestHintFieldDeprecated;
     procedure TestHintFieldPlatform;
@@ -100,6 +108,8 @@ type
     Procedure TestPropertyImplementsFullyQualifiedName;
     Procedure TestPropertyReadFromRecordField;
     procedure TestPropertyReadWriteFromRecordField;
+    Procedure TestLocalSimpleType;
+    Procedure TestLocalSimpleTypes;
   end;
 
 implementation
@@ -117,11 +127,11 @@ begin
   Result:=TPasElement(TheClass.Members[AIndex])
 end;
 
-function TTestClassType.GetM1: TPasProcedure;
+function TTestClassType.GetMM(AIndex : integer): TPasProcedure;
 begin
-  AssertNotNull('Have 1 member',Member1);
-  AssertEquals('Member 1 is method',TPasProcedure,Member1.ClassType);
-  Result:=TPasProcedure(Member1);
+  AssertNotNull('Have member '+IntToStr(AIndex),Members[AIndex]);
+  AssertEquals('Member is method '+IntToStr(AIndex),TPasProcedure,Members[Aindex].ClassType);
+  Result:=TPasProcedure(Members[Aindex]);
 end;
 
 function TTestClassType.GetMF1: TPasFunction;
@@ -143,6 +153,14 @@ begin
   AssertNotNull('Have 2 members',Members[1]);
   AssertEquals('Member 1 is property',TPasProperty,Members[1].ClassType);
   Result:=TPasProperty(Members[1]);
+end;
+
+function TTestClassType.GetT(Aindex :integer): TPasType;
+begin
+  AssertNotNull('Have member '+IntToStr(AIndex),Members[AIndex]);
+  if not (Members[AIndex] is TPasType) then
+    Fail('Member '+IntToStr(AIndex)+' is not a type');
+  Result:=TPasType(Members[AIndex]);
 end;
 
 function TTestClassType.GetF1: TPasVariable;
@@ -325,6 +343,30 @@ begin
   AssertVisibility;
 end;
 
+procedure TTestClassType.TestOneVarField;
+begin
+  StartVisibility(visPublished);
+  FDecl.Add('var');
+  AddMember('a : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('a');
+  AssertVisibility(visPublished);
+end;
+
+procedure TTestClassType.TestOneClassField;
+begin
+  StartVisibility(visPublished);
+  FDecl.Add('class var');
+  AddMember('a : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('a');
+  AssertVisibility(visPublished);
+  if not (vmClass in Field1.VarModifiers) then
+     Fail('Field is not a class field');
+end;
+
 procedure TTestClassType.TestOneFieldVisibility;
 begin
   StartVisibility(visPublished);
@@ -372,6 +414,22 @@ begin
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
   AssertVisibility(visDefault,Members[1]);
+end;
+
+procedure TTestClassType.TestTwoVarFieldsB;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('a,b : integer');
+  ParseClass;
+  AssertEquals('2 members',2,TheClass.members.Count);
+  AssertNotNull('Have field',Field1);
+  AssertMemberName('a');
+  AssertVisibility(vispublic);
+  AssertNotNull('Have field',Members[1]);
+  AssertMemberName('b',Members[1]);
+  AssertMemberType(TPasVariable,Members[1]);
+  AssertVisibility(visPublic,Members[1]);
 end;
 
 procedure TTestClassType.TestTwoFieldsVisibility;
@@ -983,6 +1041,41 @@ begin
   AssertNull('No Index expression',Property1.IndexExpr);
   AssertNull('No default expression',Property1.DefaultExpr);
   Assertequals('Default value','',Property1.DefaultValue);
+end;
+
+procedure TTestClassType.TestLocalSimpleType;
+begin
+  StartVisibility(visPublic);
+  FDecl.add('Type');
+  AddMember('TDirection = (left,right)');
+  AddMember('Procedure Something');
+  ParseClass;
+  AssertEquals('Local Enumeration type',TPasEnumType, Type1.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Type1.Visibility);
+  AssertEquals('Type name','TDirection', Type1.Name);
+  AssertSame('Type parent is class',TheClass, Type1.Parent);
+  AssertNotNull('Member 2 is procedure',Method2);
+  AssertEquals('method name','Something', Method2.Name);
+end;
+
+procedure TTestClassType.TestLocalSimpleTypes;
+begin
+  StartVisibility(visPublic);
+  FDecl.add('Type');
+  AddMember('TDirection = (left,right)');
+  AddMember('TVerticalDirection = (up,down)');
+  AddMember('Procedure Something');
+  ParseClass;
+  AssertEquals('Local Enumeration type',TPasEnumType, Type1.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Type1.Visibility);
+  AssertEquals('Type name','TDirection', Type1.Name);
+  AssertSame('Type parent is class',TheClass, Type1.Parent);
+  AssertEquals('Local Enumeration type',TPasEnumType, Type2.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Type2.Visibility);
+  AssertEquals('Type name','TVerticalDirection', Type2.Name);
+  AssertSame('Type parent is class',TheClass, Type2.Parent);
+  AssertNotNull('Member 2 is procedure',Method3);
+  AssertEquals('method name','Something', Method3.Name);
 end;
 
 initialization

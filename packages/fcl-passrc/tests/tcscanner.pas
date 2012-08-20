@@ -663,7 +663,7 @@ end;
 
 procedure TTestScanner.TestAssignDivision;
 begin
-  TestTokens([tkDivision,tkEqual],'*=');
+  TestTokens([tkDivision,tkEqual],'/=');
   FScanner.Options:=[po_cassignments];
   TestToken(tkAssignDivision,'/=');
 end;

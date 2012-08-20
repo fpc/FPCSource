@@ -135,6 +135,7 @@ type
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
+    procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
     function LogEvent(E : TPParserLogEvent) : Boolean; inline;
@@ -144,7 +145,7 @@ type
     procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
     function GetProcedureClass(ProcType : TProcType): TPTreeElement;
-    procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility);
+    procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility; IsClassField : Boolean);
     procedure ParseClassMembers(AType: TPasClassType);
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
     procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
@@ -160,7 +161,7 @@ type
     Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
     Function IsCurTokenHint: Boolean; overload;
     Function TokenIsCallingConvention(S : String; out CC : TCallingConvention) : Boolean; virtual;
-    Function TokenIsProcedureModifier(S : String; Out Pm : TProcedureModifier) : Boolean; virtual;
+    Function TokenIsProcedureModifier(Parent : TPasElement; S : String; Out Pm : TProcedureModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
     function ParseParams(AParent : TPasElement;paramskind: TPasExprKind): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
@@ -308,7 +309,7 @@ Const
   ModifierNames : Array[TProcedureModifier] of string
                 = ('virtual', 'dynamic','abstract', 'override',
                    'exported', 'overload', 'message', 'reintroduce',
-                   'static','inline','assembler','varargs',
+                   'static','inline','assembler','varargs', 'public',
                    'compilerproc','external','forward');
 
 Var
@@ -368,19 +369,16 @@ var
       case s[2] of
         'd': // -d define
           Scanner.AddDefine(UpperCase(Copy(s, 3, Length(s))));
-        'S': // -d define
-          case S[3] of
-            'c' :Scanner.Options:=Scanner.Options+[c_assignments];
-          end;
         'F': // -F
           if (length(s)>2) and (s[3] = 'i') then // -Fi include path
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
         'I': // -I include path
           FileResolver.AddIncludePath(Copy(s, 3, Length(s)));
         'S': // -S mode
-          if  (length(s)>2) and (s[3]='d') then
-            begin // -Sd mode delphi
-              Parser.Options:=Parser.Options+[po_delphi];
+          if  (length(s)>2) then
+            case S[3] of
+              'c' : Scanner.Options:=Scanner.Options+[po_cassignments];
+              'd' : Parser.Options:=Parser.Options+[po_delphi];
             end;
       end;
     end else
@@ -658,9 +656,15 @@ begin
   Result:=IsCallingConvention(S,CC);
 end;
 
-function TPasParser.TokenIsProcedureModifier(S: String; out Pm: TProcedureModifier): Boolean;
+function TPasParser.TokenIsProcedureModifier(Parent : TPasElement; S: String; out Pm: TProcedureModifier): Boolean;
 begin
   Result:=IsModifier(S,PM);
+  if result and (pm=pmPublic)then
+    begin
+    While (Parent<>Nil) and Not (Parent is TPasClassType) do
+     Parent:=Parent.Parent;
+    Result:=Not Assigned(Parent);
+    end;
 end;
 
 
@@ -1142,11 +1146,13 @@ begin
     tkfalse, tktrue:    x:=TBoolConstExpr.Create(Aparent,pekBoolConst, CurToken=tktrue);
     tknil:              x:=TNilExpr.Create(Aparent);
     tkSquaredBraceOpen: x:=ParseParams(AParent,pekSet);
-    tkinherited: begin
+    tkinherited:
+      begin
       //inherited; inherited function
       x:=TInheritedExpr.Create(AParent);
       NextToken;
-      if (length(CurTokenText)>0) and (CurTokenText[1] in ['A'..'_']) then begin
+      if (CurToken=tkIdentifier) then
+        begin
         b:=TBinaryExpr.Create(AParent,x, DoParseExpression(AParent), eopNone);
         if not Assigned(b.right) then
           begin
@@ -1155,9 +1161,10 @@ begin
           end;
         x:=b;
         UngetToken;
-      end
-       else UngetToken;
-    end;
+        end
+      else
+        UngetToken;
+      end;
     tkself: begin
       //x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText); //function(self);
       x:=TSelfExpr.Create(AParent);
@@ -2231,7 +2238,7 @@ begin
   if Result then
     begin
     NextToken;
-    Value := DoParseExpression(Parent);
+    Value := DoParseConstValueExpression(Parent);
 //    NextToken;
     end;
   if (CurToken=tkAbsolute) then
@@ -2548,7 +2555,7 @@ Var
 begin
   if parent is TPasProcedure then
     TPasProcedure(Parent).AddModifier(pm);
-  if pm=pmExternal then
+  if (pm=pmExternal) then
     begin
     NextToken;
     if CurToken in [tkString,tkIdentifier] then
@@ -2569,6 +2576,23 @@ begin
       end
     else
       UngetToken;
+    end
+  else if (pm = pmPublic) then
+    begin
+    NextToken;
+    { Should be token Name,
+      if not we're in a class and the public section starts }
+    If (Uppercase(CurTokenString)<>'NAME') then
+      begin
+      UngetToken;
+      UngetToken;
+      exit;
+      end
+    else
+      begin
+      NextToken;  // Should be export name string.
+      ExpectToken(tkSemicolon);
+      end;
     end
   else if pm=pmForward then
     begin
@@ -2643,7 +2667,6 @@ begin
         TPasFunctionType(Element).ResultEl.ResultType := ParseType(Parent)
       else
         ParseType(nil);
-      Writeln('Function : ',TokenInfos[Curtoken],' ',CurtokenString);
       end;
     ptOperator:
       begin
@@ -2699,38 +2722,22 @@ begin
         Element.CallingConvention:=Cc;
       ExpectToken(tkSemicolon);
       end
-    else if TokenIsProcedureModifier(CurTokenString,pm) then
+    else if TokenIsProcedureModifier(Parent,CurTokenString,pm) then
       HandleProcedureModifier(Parent,Pm)
-    else if (CurToken = tkIdentifier) or (CurToken=tklibrary) then // library is a token and a directive.
+    else if (CurToken=tklibrary) then // library is a token and a directive.
       begin
       Tok:=UpperCase(CurTokenString);
-      if DoCheckHint then
-        begin
-        consumesemi;
-        end
-      else if (tok = 'PUBLIC') then
-        begin
-        NextToken;
-        { Should be token Name,
-          if not we're in a class and the public section starts }
-        If (Uppercase(CurTokenString)<>'NAME') then
-          begin
-          UngetToken;
-          UngetToken;
-          Break;
-          end
-        else
-          begin
-          NextToken;  // Should be export name string.
-          ExpectToken(tkSemicolon);
-          end;
-        end
+      NextToken;
+      If (tok<>'NAME') then
+        Element.Hints:=Element.Hints+[hLibrary]
       else
         begin
-        UnGetToken;
-        Break;
-        end
+        NextToken;  // Should be export name string.
+        ExpectToken(tkSemicolon);
+        end;
       end
+    else if DoCheckHint then
+      consumesemi
     else if (CurToken = tkSquaredBraceOpen) then
       begin
       repeat
@@ -2742,11 +2749,12 @@ begin
     if Done then
       begin
       NextToken;
-      Done:=Not (IsCurtokenHint or IsModifier(CurtokenString,Pm) or TokenisCallingConvention(CurTokenString,cc));
+      Done:=Not ((Curtoken=tkSquaredBraceOpen) or TokenIsProcedureModifier(Parent,CurtokenString,Pm) or IscurtokenHint() or TokenisCallingConvention(CurTokenString,cc));
+//      DumpCurToken('Done '+IntToStr(Ord(Done)));
       UngetToken;
       end;
+//    Writeln('Done: ',TokenInfos[Curtoken],' ',CurtokenString);
   Until Done;
-// Writeln('End: ',TokenInfos[Curtoken],' ',CurtokenString);
   if DoCheckHint then  // deprecated,platform,experimental,library, unimplemented etc
     ConsumeSemi;
   if (ProcType = ptOperator) and (Parent is TPasProcedure) then
@@ -3484,7 +3492,7 @@ end;
 
 procedure TPasParser.DumpCurToken(Const Msg : String);
 begin
-  Writeln(Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'"');
+  Writeln(Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'"',Scanner.CurFilename,'(',Scanner.CurRow,',',SCanner.CurColumn,') : ',Scanner.CurLine);
   Flush(output)
 end;
 
@@ -3606,7 +3614,7 @@ begin
     AType.Members.Add(Proc);
 end;
 
-procedure TPasParser.ParseClassFields(AType: TPasClassType; Const AVisibility : TPasMemberVisibility);
+procedure TPasParser.ParseClassFields(AType: TPasClassType; Const AVisibility : TPasMemberVisibility; IsClassField : Boolean);
 
 Var
   VarList: TFPList;
@@ -3621,11 +3629,32 @@ begin
       begin
       Element := TPasElement(VarList[i]);
       Element.Visibility := AVisibility;
+      if IsClassField and (Element is TPasVariable) then
+        TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmClass];
       AType.Members.Add(Element);
       end;
   finally
     VarList.Free;
   end;
+end;
+
+procedure TPasParser.ParseClassLocalTypes(AType: TPasClassType; AVisibility : TPasMemberVisibility);
+
+Var
+  T : TPasType;
+  Done : Boolean;
+begin
+//  Writeln('Parsing local types');
+  Repeat
+    T:=ParseTypeDecl(AType);
+    T.Visibility:=AVisibility;
+    AType.Members.Add(t);
+//    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
+    NextToken;
+    Done:=Curtoken<>tkIdentifier;
+    if Done then
+      UngetToken;
+  Until Done;
 end;
 
 procedure TPasParser.ParseClassMembers(AType: TPasClassType);
@@ -3638,13 +3667,18 @@ begin
   while (CurToken<>tkEnd) do
     begin
     case CurToken of
+      tkType:
+        begin
+        ExpectToken(tkIdentifier);
+        ParseClassLocalTypes(AType,CurVisibility);
+        end;
       tkVar,
       tkIdentifier:
         begin
         if CurToken=tkVar then
           ExpectToken(tkIdentifier);
         if Not CheckVisibility(CurtokenString,CurVisibility) then
-          ParseClassFields(AType,CurVisibility);
+          ParseClassFields(AType,CurVisibility,false);
         end;
       tkProcedure,tkFunction,tkConstructor,tkDestructor:
         ProcessMethod(AType,False,CurVisibility);
@@ -3656,7 +3690,7 @@ begin
          else if CurToken = tkVar then
            begin
            ExpectToken(tkIdentifier);
-           ParseClassFields(AType,CurVisibility);
+           ParseClassFields(AType,CurVisibility,true);
            end
          else if CurToken=tkProperty then
            begin

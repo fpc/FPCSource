@@ -192,6 +192,7 @@ type
   { TInheritedExpr }
 
   TInheritedExpr = class(TPasExpr)
+  Public
     constructor Create(AParent : TPasElement); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
@@ -492,7 +493,7 @@ type
     Members: TFPList;     // array of TPasVariable elements
     VariantName: string;
     VariantType: TPasType;
-    Variants: TFPList;  // array of TPasVariant elements, may be nil!
+    Variants: TFPList;	// array of TPasVariant elements, may be nil!
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
   end;
@@ -616,7 +617,7 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass);
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -692,7 +693,7 @@ type
 
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExported, pmOverload, pmMessage, pmReintroduce,
-                        pmStatic,pmInline,pmAssembler,pmVarargs,
+                        pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
                         pmCompilerProc,pmExternal,pmForward);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtInteger,pmtString);
@@ -1023,11 +1024,12 @@ type
   end;
 
   { TPasImplAssign }
-
+  TAssignKind = (akDefault,akAdd,akMinus,akMul,akDivision);
   TPasImplAssign = class (TPasImplStatement)
   public
     left  : TPasExpr;
     right : TPasExpr;
+    Kind : TAssignKind;
     Destructor Destroy; override;
   end;
 
@@ -1136,6 +1138,7 @@ const
   cCallingConventions : array[TCallingConvention] of string =
       ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall');
 
+
 implementation
 
 uses SysUtils;
@@ -1203,7 +1206,6 @@ begin
     Result:=Result+' name '+ExportName.GetDeclaration(Full)
   else if (ExportIndex<>Nil) then
     Result:=Result+' index '+ExportIndex.GetDeclaration(Full);
-
 end;
 
 { TPasUnresolvedUnitRef }
@@ -3225,7 +3227,7 @@ end;
 
 { TInheritedExpr }
 
-Function TInheritedExpr.GetDeclaration(Full :Boolean):AnsiString;
+function TInheritedExpr.GetDeclaration(full: Boolean): string;
 begin
   Result:='Inherited';
 end;
@@ -3290,6 +3292,7 @@ constructor TInheritedExpr.Create(AParent : TPasElement);
 begin
   inherited Create(AParent,pekInherited, eopNone);
 end;
+
 
 { TSelfExpr }
 

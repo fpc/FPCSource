@@ -2328,6 +2328,7 @@ packages/fcl-passrc/src/pscanner.pp svneol=native#text/plain
 packages/fcl-passrc/src/readme.txt svneol=native#text/plain
 packages/fcl-passrc/tests/tcbaseparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcclasstype.pas svneol=native#text/plain
+packages/fcl-passrc/tests/tcexprparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcmoduleparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tconstparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcscanner.pas svneol=native#text/plain
