@@ -15,7 +15,9 @@
 
 {$ifdef FPC_CURRENCY_IS_INT64}
     function trunc(c : currency) : int64;
+{$ifndef FPUNONE}
     function round(c : currency) : int64;
+{$endif FPUNONE}
 {$ifndef cpujvm}
     function trunc(c : comp) : int64;
     function round(c : comp) : int64;
