@@ -19,6 +19,7 @@ type
     FParent : String;
     FEnded,
     FStarted: Boolean;
+    function GetC(AIndex: Integer): TPasConst;
     function GetF1: TPasVariable;
     function GetM(AIndex : Integer): TPasElement;
     function GetMM(AIndex : Integer): TPasProcedure;
@@ -51,6 +52,8 @@ type
     Property Property2 : TPasProperty Read GetP2;
     Property Type1 : TPasType Index 0 Read GetT;
     Property Type2 : TPasType Index 1 Read GetT;
+    Property Const1 : TPasConst Index 0 Read GetC;
+    Property Const2 : TPasConst Index 1 Read GetC;
   published
     procedure TestEmpty;
     procedure TestEmptyDeprecated;
@@ -85,6 +88,8 @@ type
     procedure TestMethodReintroduce;
     procedure TestMethodInline;
     Procedure TestMethodVisibility;
+    Procedure TestMethodSVisibility;
+    Procedure TestMethodOverloadVisibility;
     Procedure TestMethodHint;
     Procedure TestMethodVirtualHint;
     Procedure Test2Methods;
@@ -110,6 +115,8 @@ type
     procedure TestPropertyReadWriteFromRecordField;
     Procedure TestLocalSimpleType;
     Procedure TestLocalSimpleTypes;
+    Procedure TestLocalSimpleConst;
+    Procedure TestLocalSimpleConsts;
   end;
 
 implementation
@@ -168,6 +175,14 @@ begin
   AssertNotNull('Have 1 member',Member1);
   AssertEquals('Member 1 is field',TPasVariable,Member1.ClassType);
   Result:=TPasVariable(Member1);
+end;
+
+function TTestClassType.GetC(AIndex: Integer): TPasConst;
+begin
+  AssertNotNull('Have member '+IntToStr(AIndex),Members[AIndex]);
+  if not (Members[AIndex] is TPasConst) then
+    Fail('Member '+IntToStr(AIndex)+' is not a const');
+  Result:=TPasConst(Members[AIndex]);
 end;
 
 procedure TTestClassType.StartClass(AParent: String = 'TObject'; InterfaceList: String = '');
@@ -649,6 +664,35 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
+procedure TTestClassType.TestMethodSVisibility;
+begin
+  AddMember('Procedure DoSomething(A : Integer)');
+  StartVisibility(visPublic);
+  AddMember('Procedure DoSomethingB(A : Integer)');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('First Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+  AssertNotNull('Have method 2',Method2);
+  AssertEquals('Second Default visibility',visPublic,Method2.Visibility);
+  AssertNotNull('Method proc type',Method2.ProcType);
+  AssertMemberName('DoSomethingB',Method2);
+  AssertEquals('1 argument',1,Method2.ProcType.Args.Count) ;
+  AssertEquals('Argument name','A',TPasVariable(Method2.ProcType.Args[0]).Name);
+end;
+
+procedure TTestClassType.TestMethodOverloadVisibility;
+begin
+  AddMember('Procedure DoSomething(A : Integer)');
+  StartVisibility(visPublic);
+  AddMember('Procedure DoSomething(A : String)');
+  ParseClass;
+  AssertNotNull('Have member 1',Member1);
+  AssertEquals('Overload',TPasOverloadedProc,Member1.ClassType);
+  AssertEquals('Default visibility',visDefault,Member1.Visibility);
+end;
+
 procedure TTestClassType.TestMethodHint;
 begin
   AddMember('Procedure DoSomething(A : Integer) deprecated');
@@ -1075,6 +1119,46 @@ begin
   AssertEquals('Type name','TVerticalDirection', Type2.Name);
   AssertSame('Type parent is class',TheClass, Type2.Parent);
   AssertNotNull('Member 2 is procedure',Method3);
+  AssertEquals('method name','Something', Method3.Name);
+end;
+
+procedure TTestClassType.TestLocalSimpleConst;
+begin
+  StartVisibility(visPublic);
+  FDecl.add('Const');
+  AddMember(' A = 23');
+  AddMember('Procedure Something');
+  ParseClass;
+  AssertEquals('Local const value',TPasConst, Const1.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Const1.Visibility);
+  AssertEquals('Const name','A', Const1.Name);
+  AssertExpression('Const value',Const1.Expr,pekNUmber,'23');
+  AssertSame('Const parent is class',TheClass, Const1.Parent);
+  AssertNotNull('Member 2 is procedure',Method2);
+  AssertEquals('method name','Something', Method2.Name);
+end;
+
+procedure TTestClassType.TestLocalSimpleConsts;
+begin
+  StartVisibility(visPublic);
+  FDecl.add('Const');
+  AddMember(' A = 23');
+  AddMember(' B = 45');
+  AddMember('Procedure Something');
+  ParseClass;
+  // Const A
+  AssertEquals('Local const value',TPasConst, Const1.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Const1.Visibility);
+  AssertEquals('Const name','A', Const1.Name);
+  AssertExpression('Const value',Const1.Expr,pekNUmber,'23');
+  AssertSame('Type parent is class',TheClass, Const1.Parent);
+  // Const B
+  AssertEquals('Local const value',TPasConst, Const2.ClassType);
+  AssertEquals('Visibility is correct',VisPublic, Const2.Visibility);
+  AssertEquals('Const name','B', Const2.Name);
+  AssertExpression('Const value',Const2.Expr,pekNUmber,'45');
+  AssertSame('Type parent is class',TheClass, Const2.Parent);
+  AssertNotNull('Member 3 is procedure',Method3);
   AssertEquals('method name','Something', Method3.Name);
 end;
 

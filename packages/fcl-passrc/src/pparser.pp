@@ -135,6 +135,7 @@ type
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
+    procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
@@ -1531,6 +1532,7 @@ begin
       else
         begin
         Result:=TPasOverloadedProc.Create(AName, OldMember.Parent);
+        Result.Visibility:=OldMember.Visibility;
         Result.Overloads.Add(OldMember);
         AList[i] := Result;
         end;
@@ -3657,6 +3659,25 @@ begin
   Until Done;
 end;
 
+procedure TPasParser.ParseClassLocalConsts(AType: TPasClassType; AVisibility : TPasMemberVisibility);
+
+Var
+  C : TPasConst;
+  Done : Boolean;
+begin
+//  Writeln('Parsing local consts');
+  Repeat
+    C:=ParseConstDecl(AType);
+    C.Visibility:=AVisibility;
+    AType.Members.Add(C);
+//    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
+    NextToken;
+    Done:=Curtoken<>tkIdentifier;
+    if Done then
+      UngetToken;
+  Until Done;
+end;
+
 procedure TPasParser.ParseClassMembers(AType: TPasClassType);
 
 Var
@@ -3671,6 +3692,11 @@ begin
         begin
         ExpectToken(tkIdentifier);
         ParseClassLocalTypes(AType,CurVisibility);
+        end;
+      tkConst:
+        begin
+        ExpectToken(tkIdentifier);
+        ParseClassLocalConsts(AType,CurVisibility);
         end;
       tkVar,
       tkIdentifier:
