@@ -108,11 +108,15 @@ unit cpupara;
               case def.typ of
                 recorddef :
                   begin
-                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
-                      For stdcall we follow delphi instead of GCC }
-                    if (calloption in [pocall_cdecl,pocall_cppdecl]) and
-                       (def.size>0) and
-                       (def.size<=8) then
+                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG up to 8 bytes in registers.
+
+                      For stdcall and register we follow delphi instead of GCC which returns
+                      only records of a size of 1,2 or 4 bytes in FUNCTION_RETURN_REG }
+                    if ((calloption in [pocall_stdcall,pocall_register]) and
+                        (def.size in [1,2,4])) or
+                       ((calloption in [pocall_cdecl,pocall_cppdecl]) and
+                        (def.size>0) and
+                        (def.size<=8)) then
                      begin
                        result:=false;
                        exit;
