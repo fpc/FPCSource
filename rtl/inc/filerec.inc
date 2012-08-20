@@ -21,7 +21,11 @@
 }
 
 const
+{$ifdef CPUAVR}
+  filerecnamelength = 15;
+{$else CPUAVR}
   filerecnamelength = 255;
+{$endif CPUAVR}
 type
  { using packed makes the compiler to generate ugly code on some CPUs, further
     using packed causes the compiler to handle arrays of text wrongly, see  see tw0754 e.g. on arm  }

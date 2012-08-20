@@ -2466,15 +2466,15 @@ implementation
             savesize:=332;
         end;
 {$endif cpu32bitaddr}
-{$ifdef cpu8bitaddr}
+{$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            savesize:=127;
+            savesize:=96;
           ft_typed,
           ft_untyped :
-            savesize:=127;
+            savesize:=76;
         end;
-{$endif cpu8bitaddr}
+{$endif cpu16bitaddr}
       end;
 
 

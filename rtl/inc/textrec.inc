@@ -20,8 +20,13 @@
 }
 
 const
+{$ifdef CPUAVR}
+  TextRecNameLength = 16;
+  TextRecBufSize    = 16;
+{$else CPUAVR}
   TextRecNameLength = 256;
   TextRecBufSize    = 256;
+{$endif CPUAVR}
 type
   TLineEndStr = string [3];
   TextBuf = array[0..TextRecBufSize-1] of char;
