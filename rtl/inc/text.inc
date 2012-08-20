@@ -1496,7 +1496,7 @@ end;
 Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; compilerproc;
 var
   hs   : String;
-  code : longint;
+  code : ValSInt;
 Begin
   l:=0;
   If not CheckRead(f) then
@@ -1526,7 +1526,7 @@ End;
 Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
   hs   : String;
-  code : longint;
+  code : ValSInt;
 Begin
   u:=0;
   If not CheckRead(f) then
@@ -1599,7 +1599,7 @@ end;
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; compilerproc;
 var
   hs : string;
-  code : Word;
+  code : ValSInt;
 begin
 {$ifdef FPUNONE}
   v:=0;
