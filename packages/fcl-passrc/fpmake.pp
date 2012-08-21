@@ -29,11 +29,8 @@ begin
 
     T:=P.Targets.AddUnit('pastree.pp');
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('paswrite.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('pastree');
-        end;
+    T:=P.Targets.AddUnit('pscanner.pp');
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pparser.pp');
       with T.Dependencies do
         begin
@@ -41,8 +38,20 @@ begin
           AddUnit('pscanner');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('pscanner.pp');
+    T:=P.Targets.AddUnit('pastounittest.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pparser');
+          AddUnit('pastree');
+          AddUnit('pscanner');
+        end;
     T.ResourceStrings := True;
+
+    T:=P.Targets.AddUnit('paswrite.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
