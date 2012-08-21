@@ -485,10 +485,13 @@ implementation
             { unsigned 64 bit division must be done via a helper }
             if op=OP_DIV then
               internalerror(2010120530);
-            { not = xor -1 }
+            { not = xor 1 for boolean, xor -1 for the rest}
             if op=OP_NOT then
               begin
-                a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                if not is_pasbool(size) then
+                  a_load_const_stack(list,s64inttype,-1,R_INTREGISTER)
+                else
+                  a_load_const_stack(list,s64inttype,1,R_INTREGISTER);
                 op:=OP_XOR;
               end;
             if TOpCG2LAsmOp[op]=A_None then
@@ -1995,7 +1998,7 @@ implementation
             a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
         end;
       { Conversions between 32 and 64 bit types have been completely handled
-        above. We still may have to truncare or sign extend in case the
+        above. We still may have to truncate or sign extend in case the
         destination type is smaller that the source type, or has a different
         sign. In case the destination is a widechar and the source is not, we
         also have to insert a conversion to widechar.
