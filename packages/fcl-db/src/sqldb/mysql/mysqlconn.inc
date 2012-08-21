@@ -143,6 +143,9 @@ Type
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
   end;
 
 
@@ -1178,6 +1181,21 @@ end;
 class function TMySQLConnectionDef.Description: String;
 begin
   Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
+end;
+
+class function TMySQLConnectionDef.DefaultLibraryName: String;
+begin
+  Result:=mysqlvlib;
+end;
+
+class function TMySQLConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=@initialisemysql;
+end;
+
+class function TMySQLConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=@ReleaseMySQL;
 end;
 
 {$IfDef mysql55}

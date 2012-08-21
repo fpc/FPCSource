@@ -118,6 +118,9 @@ type
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
   end;
                   
 implementation
@@ -1431,6 +1434,24 @@ end;
 class function TIBConnectionDef.Description: String;
 begin
   Result:='Connect to Firebird/Interbase directly via the client library';
+end;
+
+class function TIBConnectionDef.DefaultLibraryName: String;
+begin
+  If UseEmbeddedFirebird then
+    Result:=fbembedlib
+  else
+    Result:=fbclib
+end;
+
+class function TIBConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=@InitialiseIBase60;
+end;
+
+class function TIBConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=@ReleaseIBase60
 end;
 
 initialization

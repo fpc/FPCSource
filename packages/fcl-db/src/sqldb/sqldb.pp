@@ -474,11 +474,15 @@ type
   TSQLConnectionClass = Class of TSQLConnection;
 
   { TConnectionDef }
-
+  TLibraryLoadFunction = Function (Const S : ShortString) : Integer;
+  TLibraryUnLoadFunction = Procedure;
   TConnectionDef = Class(TPersistent)
     Class Function TypeName : String; virtual;
     Class Function ConnectionClass : TSQLConnectionClass; virtual;
     Class Function Description : String; virtual;
+    Class Function DefaultLibraryName : String; virtual;
+    Class Function LoadFunction : TLibraryLoadFunction; virtual;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; virtual;
     Procedure ApplyParams(Params : TStrings; AConnection : TSQLConnection); virtual;
   end;
   TConnectionDefClass = class of TConnectionDef;
@@ -2221,6 +2225,21 @@ end;
 class function TConnectionDef.Description: String;
 begin
   Result:='';
+end;
+
+class function TConnectionDef.DefaultLibraryName: String;
+begin
+  Result:='';
+end;
+
+class function TConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=Nil;
+end;
+
+class function TConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=Nil;
 end;
 
 procedure TConnectionDef.ApplyParams(Params: TStrings;
