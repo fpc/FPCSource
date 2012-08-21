@@ -248,6 +248,7 @@ compiler/jvm/rjvmsri.inc svneol=native#text/plain
 compiler/jvm/rjvmstd.inc svneol=native#text/plain
 compiler/jvm/rjvmsup.inc svneol=native#text/plain
 compiler/jvm/tgcpu.pas svneol=native#text/plain
+compiler/ldscript.pas svneol=native#text/plain
 compiler/link.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
 compiler/m68k/ag68kgas.pas svneol=native#text/plain

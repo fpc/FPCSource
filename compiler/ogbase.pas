@@ -373,16 +373,31 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
+      TlibKind = (lkArchive,lkObject,lkGroup);
+
       TStaticLibrary = class(TObject)
       private
         FName : TCmdStr;
-        FArReader : TObjectReader;
+        FPayload : TObject;                 { lkArchive: TObjectReader }
+                                            { lkObject:  TObjData      }
+                                            { lkGroup:   TFPObjectList }
         FObjInputClass : TObjInputClass;
+        FKind: TlibKind;
+        FAsNeeded : Boolean;
+        function GetArReader:TObjectReader;
+        function GetGroupMembers:TFPObjectList;
+        function GetObjData:TObjData;
       public
         constructor create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+        constructor create_object(AObjData:TObjData);
+        constructor create_group;
         destructor  destroy;override;
-        property ArReader:TObjectReader read FArReader;
+        property ArReader:TObjectReader read GetArReader;
         property ObjInputClass:TObjInputClass read FObjInputClass;
+        property GroupMembers:TFPObjectList read GetGroupMembers;
+        property ObjData:TObjData read GetObjData;
+        property AsNeeded:Boolean read FAsNeeded write FAsNeeded;
+        property Kind:TLibKind read FKind;
       end;
 
       TImportLibrary = class(TFPHashObject)
@@ -1488,17 +1503,55 @@ implementation
     constructor TStaticLibrary.create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
       begin
         FName:=AName;
-        FArReader:=AReader;
+        FPayload:=AReader;
         FObjInputClass:=AObjInputClass;
+        FKind:=lkArchive;
+      end;
+
+
+    constructor TStaticLibrary.create_object(AObjData:TObjData);
+      begin
+        FPayload:=AObjData;
+        FKind:=lkObject;
+      end;
+
+
+    constructor TStaticLibrary.create_group;
+      begin
+        FPayload:=TFPObjectList.Create(true);
+        FKind:=lkGroup;
       end;
 
 
     destructor TStaticLibrary.destroy;
       begin
-        ArReader.Free;
+        FPayload.Free;
         inherited destroy;
       end;
 
+
+    function TStaticLibrary.GetArReader: TObjectReader;
+      begin
+        if (FKind<>lkArchive) then
+          InternalError(2012071501);
+        result:=TObjectReader(FPayload);
+      end;
+
+
+    function TStaticLibrary.GetGroupMembers: TFPObjectList;
+      begin
+        if (FKind<>lkGroup) then
+          InternalError(2012071502);
+        result:=TFPObjectList(FPayload);
+      end;
+
+
+    function TStaticLibrary.GetObjData: TObjData;
+      begin
+        if (FKind<>lkObject) then
+          InternalError(2012071503);
+        result:=TObjData(FPayload);
+      end;
 
 {****************************************************************************
                                 TImportLibrary
@@ -2121,11 +2174,9 @@ implementation
         exesym    : TExeSymbol;
         objsym,
         commonsym : TObjSymbol;
-        objinput : TObjInput;
-        StaticLibrary : TStaticLibrary;
         firstarchive,
         firstcommon : boolean;
-        i,j       : longint;
+        i         : longint;
         VTEntryList,
         VTInheritList : TFPObjectList;
 
@@ -2206,6 +2257,77 @@ implementation
             end;
         end;
 
+        procedure LoadLibrary(lib:TStaticLibrary);
+          var
+            j,k,oldcount: longint;
+            members: TFPObjectList;
+            exesym: TExeSymbol;
+            objinput: TObjInput;
+          begin
+            case lib.Kind of
+              lkArchive:
+                begin
+                  { Process list of Unresolved External symbols, we need
+                    to use a while loop because the list can be extended when
+                    we load members from the library. }
+                  j:=0;
+                  while (j<UnresolvedExeSymbols.count) do
+                    begin
+                      exesym:=TExeSymbol(UnresolvedExeSymbols[j]);
+                      { Check first if the symbol is still undefined }
+                      if (exesym.State=symstate_undefined) and (exesym.ObjSymbol.bind<>AB_WEAK_EXTERNAL) then
+                        begin
+                          if lib.ArReader.OpenFile(exesym.name) then
+                            begin
+                              if assigned(exemap) then
+                                begin
+                                  if firstarchive then
+                                    begin
+                                      exemap.Add('');
+                                      exemap.Add('Archive member included because of file (symbol)');
+                                      exemap.Add('');
+                                      firstarchive:=false;
+                                    end;
+                                  exemap.Add(lib.ArReader.FileName+' - '+
+                                    {exesym.ObjSymbol.ObjSection.FullName+}
+                                    '('+exesym.Name+')');
+                                end;
+                              objinput:=lib.ObjInputClass.Create;
+                              objdata:=objinput.newObjData(lib.ArReader.FileName);
+                              objinput.ReadObjData(lib.ArReader,objdata);
+                              objinput.free;
+                              AddObjData(objdata);
+                              LoadObjDataSymbols(objdata);
+                              lib.ArReader.CloseFile;
+                            end;
+                         end;
+                      inc(j);
+                    end;
+                end;
+
+              lkGroup:
+                begin
+                  { repeatedly process members of the group until no new
+                    unresolved symbols appear }
+                  members:=lib.GroupMembers;
+                  repeat
+                    oldcount:=UnresolvedExeSymbols.count;
+                    for k:=0 to members.Count-1 do
+                      LoadLibrary(TStaticLibrary(members[k]));
+                  until UnresolvedExeSymbols.count=oldcount;
+                end;
+              lkObject:
+                { TODO: ownership of objdata }
+                //if lib.objdata.is_dynamic then
+                  Load_DynamicObject(lib.objdata);
+                {else
+                  begin
+                    AddObjData(lib.objdata);
+                    LoadObjDataSymbols(lib.objdata);
+                  end;}
+            end;
+          end;
+
       begin
         VTEntryList:=TFPObjectList.Create(false);
         VTInheritList:=TFPObjectList.Create(false);
@@ -2229,45 +2351,8 @@ implementation
         { Step 2, Find unresolved symbols in the libraries }
         firstarchive:=true;
         for i:=0 to StaticLibraryList.Count-1 do
-          begin
-            StaticLibrary:=TStaticLibrary(StaticLibraryList[i]);
-            { Process list of Unresolved External symbols, we need
-              to use a while loop because the list can be extended when
-              we load members from the library. }
-            j:=0;
-            while (j<UnresolvedExeSymbols.count) do
-              begin
-                exesym:=TExeSymbol(UnresolvedExeSymbols[j]);
-                { Check first if the symbol is still undefined }
-                if exesym.State=symstate_undefined then
-                  begin
-                    if StaticLibrary.ArReader.OpenFile(exesym.name) then
-                      begin
-                        if assigned(exemap) then
-                          begin
-                            if firstarchive then
-                              begin
-                                exemap.Add('');
-                                exemap.Add('Archive member included because of file (symbol)');
-                                exemap.Add('');
-                                firstarchive:=false;
-                              end;
-                            exemap.Add(StaticLibrary.ArReader.FileName+' - '+
-                              {exesym.ObjSymbol.ObjSection.FullName+}
-                              '('+exesym.Name+')');
-                          end;
-                        objinput:=StaticLibrary.ObjInputClass.Create;
-                        objdata:=objinput.newObjData(StaticLibrary.ArReader.FileName);
-                        objinput.ReadObjData(StaticLibrary.ArReader,objdata);
-                        objinput.free;
-                        AddObjData(objdata);
-                        LoadObjDataSymbols(objdata);
-                        StaticLibrary.ArReader.CloseFile;
-                      end;
-                   end;
-                inc(j);
-              end;
-          end;
+          LoadLibrary(TStaticLibrary(StaticLibraryList[i]));
+
         PackUnresolvedExeSymbols('after static libraries');
 
         { Step 3, handle symbols provided in script }
