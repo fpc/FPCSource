@@ -1236,8 +1236,8 @@ implementation
 
             { Allocate space in temp/registers for parast and localst }
             current_filepos:=entrypos;
-            gen_alloc_symtable(aktproccode,procdef.parast);
-            gen_alloc_symtable(aktproccode,procdef.localst);
+            gen_alloc_symtable(aktproccode,procdef,procdef.parast);
+            gen_alloc_symtable(aktproccode,procdef,procdef.localst);
 
             { Store temp offset for information about 'real' temps }
             tempstart:=tg.lasttemp;

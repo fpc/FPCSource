@@ -2292,7 +2292,7 @@ cg_d_autoinlining=06055_DL_Auto inlining: $1
 #
 # Assembler reader
 #
-# 07110 is the last used one
+# 07116 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2560,7 +2560,13 @@ asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure asse
 % Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
 % blocks of regular procedures.
 asmr_e_unsupported_directive=07115_E_Directive "$1" is not supported for the current target
-
+asmr_e_complex_function_result_location=07116_E_This function's result location cannot be encoded directly in a single operand when "nostackframe" is used
+% Functions declared with the \var{nostackframe} modifier do not have a stack frame, and hence
+% do not have a local variable to hold the temporary function result.  Accesses to the function
+% result in such routines directly go to the registers or memory location that will be used
+% to return their result to the caller.  In some cases this result may be spread over multiple
+% registers, in which case it is not possible to access the location via its symbolic name.
+% You have to directly use the appropriate register names in this case.
 
 #
 # Assembler/binary writers

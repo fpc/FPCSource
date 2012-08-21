@@ -4383,9 +4383,10 @@ implementation
          (
           (po_assembler in current_procinfo.procdef.procoptions) and
           (not(assigned(current_procinfo.procdef.funcretsym)) or
-           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0))
+           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0) or
+           (po_nostackframe in current_procinfo.procdef.procoptions))
          ) then
-         exit;
+        exit;
 
       funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
 

@@ -137,7 +137,7 @@ interface
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
+    procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
     procedure location_free(list: TAsmList; const location : TLocation);
@@ -1381,7 +1381,7 @@ implementation
                                Const Data
 ****************************************************************************}
 
-    procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
+    procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
 
         procedure setlocalloc(vs:tabstractnormalvarsym);
         begin
@@ -1473,7 +1473,20 @@ implementation
                 begin
                   vs:=tabstractnormalvarsym(sym);
                   vs.initialloc.size:=def_cgsize(vs.vardef);
-                  if (m_delphi in current_settings.modeswitches) and
+                  if ([po_assembler,po_nostackframe] * current_procinfo.procdef.procoptions = [po_assembler,po_nostackframe]) and
+                     (vo_is_funcret in vs.varoptions) then
+                    begin
+                      paramanager.create_funcretloc_info(pd,calleeside);
+                      if assigned(pd.funcretloc[calleeside].location^.next) then
+                        begin
+                          { can't replace references to "result" with a complex
+                            location expression inside assembler code }
+                          location_reset(vs.initialloc,LOC_INVALID,OS_NO);
+                        end
+                      else
+                        pd.funcretloc[calleeside].get_location(vs.initialloc);
+                    end
+                  else if (m_delphi in current_settings.modeswitches) and
                      (po_assembler in current_procinfo.procdef.procoptions) and
                      (vo_is_funcret in vs.varoptions) and
                      (vs.refs=0) then
