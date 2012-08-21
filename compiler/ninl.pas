@@ -1360,9 +1360,9 @@ implementation
         { code is not a 32bit parameter (we already checked whether the }
         { the code para, if specified, was an orddef)                   }
         if not assigned(codepara) or
-           (codepara.resultdef.size<>sinttype.size) then
+           (codepara.resultdef.size<>ptrsinttype.size) then
           begin
-            tempcode := ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+            tempcode := ctempcreatenode.create(ptrsinttype,ptrsinttype.size,tt_persistent,false);
             addstatement(newstatement,tempcode);
             { set the resultdef of the temp (needed to be able to get }
             { the resultdef of the tempref used in the new code para) }
@@ -1379,13 +1379,13 @@ implementation
             { we need its resultdef later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resultdef).ordtype = torddef(sinttype).ordtype) then
+        else if (torddef(codepara.resultdef).ordtype = torddef(ptrsinttype).ordtype) then
           { because code is a var parameter, it must match types exactly    }
           { however, since it will return values in [0..255], both longints }
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create_internal(codepara.left,sinttype);
+            codepara.left := ctypeconvnode.create_internal(codepara.left,ptrsinttype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
