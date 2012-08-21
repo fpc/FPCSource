@@ -1596,7 +1596,8 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-Function InitialiseMysql(Const LibraryName : String; argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(Const LibraryName : String) : Integer;
+Function InitialiseMysql(Const LibraryName : String; argc: cint; argv:PPchar = Nil; groups:PPchar = nil) : Integer;
 Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Procedure ReleaseMysql;
 
@@ -1745,10 +1746,20 @@ Function InitialiseMysql(argc: cint; argv: PPchar; groups: PPchar) : Integer;
 
 begin
   Result := 0;
-  If (TryInitialiseMysql(mysqlvlib,argc,argv,groups) = 0) and
-     (TryInitialiseMysql(mysqllib,argc,argv,groups) = 0) then
+  if (RefCount<>0) then
+    // pretend to load whatever is already loaded, so we do not get a library name conflict.
+    Inc(RefCount)
+  else
+    If (TryInitialiseMysql(mysqllib,argc,argv,groups)=0)
+       and (TryInitialiseMysql(mysqlvlib,argc,argv,groups)=0) then
       Raise EInOutError.CreateFmt(SErrDefaultsFailed,[mysqlvlib,mysqllib]);
   Result := RefCount;
+end;
+
+Function InitialiseMysql(Const LibraryName: String) : Integer;
+
+begin
+  Result:=InitialiseMySQL(LibraryName,-1,Nil,Nil);
 end;
 
 Function InitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups:PPchar) : Integer;
