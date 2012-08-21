@@ -30,6 +30,7 @@ resourcestring
   SParserErrorAtToken = '%s at token "%s" in file %s at line %d column %d';
   SParserUngetTokenError = 'Internal error: Cannot unget more tokens, history buffer is full';
   SParserExpectTokenError = 'Expected "%s"';
+  SParserForwardNotInterface = 'The use of a FORWARD procedure modifier is not allowed in the interface';
   SParserExpectVisibility = 'Expected visibility specifier';
   SParserStrangeVisibility = 'Strange strict visibility encountered : "%s"';
   SParserExpectToken2Error = 'Expected "%s" or "%s"';
@@ -306,12 +307,6 @@ end;
 
 Function IsModifier(S : String; Out Pm : TProcedureModifier) : Boolean;
 
-Const
-  ModifierNames : Array[TProcedureModifier] of string
-                = ('virtual', 'dynamic','abstract', 'override',
-                   'exported', 'overload', 'message', 'reintroduce',
-                   'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward');
 
 Var
   P : TProcedureModifier;
@@ -660,7 +655,7 @@ end;
 function TPasParser.TokenIsProcedureModifier(Parent : TPasElement; S: String; out Pm: TProcedureModifier): Boolean;
 begin
   Result:=IsModifier(S,PM);
-  if result and (pm=pmPublic)then
+  if result and (pm in [pmPublic,pmForward]) then
     begin
     While (Parent<>Nil) and Not (Parent is TPasClassType) do
      Parent:=Parent.Parent;
@@ -2553,26 +2548,42 @@ procedure TPasParser.HandleProcedureModifier(Parent: TPasElement;pm : TProcedure
 
 Var
   Tok : String;
+  P : TPasProcedure;
+  E : TPasExpr;
 
 begin
   if parent is TPasProcedure then
-    TPasProcedure(Parent).AddModifier(pm);
+    P:=TPasProcedure(Parent);
+  if Assigned(P) then
+    P.AddModifier(pm);
   if (pm=pmExternal) then
     begin
     NextToken;
     if CurToken in [tkString,tkIdentifier] then
       begin
-      NextToken;
+      // extrenal libname
+      // external libname name XYZ
+      // external name XYZ
+      Tok:=UpperCase(CurTokenString);
+      if Not ((curtoken=tkIdentifier) and (Tok='NAME')) then
+        begin
+        E:=DoParseExpression(Parent);
+        if Assigned(P) then
+          P.LibraryExpr:=E;
+        end;
       if CurToken=tkSemicolon then
         UnGetToken
       else
         begin
         Tok:=UpperCase(CurTokenString);
-        if Tok='NAME' then
+        if ((curtoken=tkIdentifier) and (Tok='NAME')) then
           begin
           NextToken;
           if not (CurToken in [tkString,tkIdentifier]) then
             ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkString]]));
+          E:=DoParseExpression(Parent);
+          if Assigned(P) then
+            P.LibrarySymbolName:=E;
           end;
         end;
       end
@@ -2593,13 +2604,20 @@ begin
     else
       begin
       NextToken;  // Should be export name string.
-      ExpectToken(tkSemicolon);
+      if not (CurToken in [tkString,tkIdentifier]) then
+        ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkString]]));
+      E:=DoParseExpression(Parent);
+      if parent is TPasProcedure then
+        TPasProcedure(Parent).PublicName:=E;
+      if (CurToken <> tkSemicolon) then
+        ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
       end;
     end
-  else if pm=pmForward then
+  else if (pm=pmForward) then
     begin
     if (Parent.Parent is TInterfaceSection) then
        begin
+       ParseExc(SParserForwardNotInterface);
        UngetToken;
        end;
     end

@@ -92,6 +92,8 @@ type
     Procedure TestMethodOverloadVisibility;
     Procedure TestMethodHint;
     Procedure TestMethodVirtualHint;
+    Procedure TestIntegerMessageMethod;
+    Procedure TestStringMessageMethod;
     Procedure Test2Methods;
     Procedure Test2MethodsDifferentVisibility;
     Procedure TestPropertyRedeclare;
@@ -715,6 +717,28 @@ begin
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
   AssertEquals('virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestIntegerMessageMethod;
+begin
+  AddMember('Procedure DoSomething(A : Integer) message 123');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+  AssertEquals('Message name','123',Method1.MessageName);
+end;
+
+procedure TTestClassType.TestStringMessageMethod;
+begin
+  AddMember('Procedure DoSomething(A : Integer) message ''aha''');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+  AssertEquals('Message name','''aha''',Method1.MessageName);
 end;
 
 procedure TTestClassType.Test2Methods;

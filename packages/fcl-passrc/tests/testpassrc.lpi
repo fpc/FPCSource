@@ -37,7 +37,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -88,6 +88,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcexprparser"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="tcprocfunc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcprocfunc"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

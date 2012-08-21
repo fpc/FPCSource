@@ -40,6 +40,7 @@ Type
     FIsUnit : Boolean;
     FImplementation : Boolean;
     FEndSource: Boolean;
+    FUseImplementation: Boolean;
     function GetPL: TPasLibrary;
     function GetPP: TPasProgram;
   protected
@@ -70,6 +71,7 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifier); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureMessageType); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
@@ -82,7 +84,7 @@ Type
     Property Definition : TPasElement Read FDefinition Write FDefinition;
     // If set, Will be freed in teardown
     Property ParseResult : TPasElement Read FParseResult Write FParseResult;
-
+    Property UseImplementation : Boolean Read FUseImplementation Write FUseImplementation;
   end;
 
 implementation
@@ -232,9 +234,18 @@ procedure TTestParser.StartImplementation;
 begin
   if Not FImplementation then
     begin
-    Add('');
-    Add('Implementation');
-    Add('');
+    if UseImplementation then
+      begin
+      FSource.Insert(0,'');
+      FSource.Insert(0,'Implementation');
+      FSource.Insert(0,'');
+      end
+    else
+      begin
+      Add('');
+      Add('Implementation');
+      Add('');
+      end;
     FImplementation:=True;
     end;
 end;
@@ -269,14 +280,20 @@ end;
 
 procedure TTestParser.ParseDeclarations;
 begin
+  if UseImplementation then
+    StartImplementation;
   FSource.Insert(0,'');
   FSource.Insert(0,'interface');
   FSource.Insert(0,'');
   FSource.Insert(0,'unit afile;');
-  StartImplementation;
+  if Not UseImplementation then
+    StartImplementation;
   EndSource;
   ParseModule;
-  FDeclarations:=Module.InterfaceSection;
+  if UseImplementation then
+    FDeclarations:=Module.ImplementationSection
+  else
+    FDeclarations:=Module.InterfaceSection;
 end;
 
 procedure TTestParser.ParseModule;
@@ -444,6 +461,13 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TAssignKind),Ord(AExpected)),
                    GetEnumName(TypeInfo(TAssignKind),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TProcedureMessageType);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TProcedureMessageType),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TProcedureMessageType),Ord(AActual)));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);

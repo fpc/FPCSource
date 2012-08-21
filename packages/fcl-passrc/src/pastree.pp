@@ -692,11 +692,11 @@ type
   end;
 
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
-                        pmExported, pmOverload, pmMessage, pmReintroduce,
+                        pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
                         pmCompilerProc,pmExternal,pmForward);
   TProcedureModifiers = Set of TProcedureModifier;
-  TProcedureMessageType = (pmtInteger,pmtString);
+  TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
   TProcedureBody = class;
 
@@ -705,6 +705,7 @@ type
     FModifiers : TProcedureModifiers;
     FMessageName : String;
     FMessageType : TProcedureMessageType;
+    FPublicName: String;
     function GetCallingConvention: TCallingConvention;
     procedure SetCallingConvention(AValue: TCallingConvention);
   public
@@ -716,6 +717,9 @@ type
   public
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
+    PublicName,
+    LibrarySymbolName,
+    LibraryExpr : TPasExpr;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -735,10 +739,13 @@ type
   end;
 
   TPasFunction = class(TPasProcedure)
+  private
+    function GetFT: TPasFunctionType;
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
     function GetDeclaration (full : boolean) : string; override;
+    Property FuncType : TPasFunctionType Read GetFT;
   end;
 
   { TPasOperator }
@@ -1138,6 +1145,11 @@ const
   cCallingConventions : array[TCallingConvention] of string =
       ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall');
 
+  ModifierNames : Array[TProcedureModifier] of string
+                = ('virtual', 'dynamic','abstract', 'override',
+                   'export', 'overload', 'message', 'reintroduce',
+                   'static','inline','assembler','varargs', 'public',
+                   'compilerproc','external','forward');
 
 implementation
 
@@ -1317,6 +1329,12 @@ function TPasConst.ElementTypeName: string; begin Result := SPasTreeConst end;
 function TPasProperty.ElementTypeName: string; begin Result := SPasTreeProperty end;
 function TPasOverloadedProc.ElementTypeName: string; begin Result := SPasTreeOverloadedProcedure end;
 function TPasProcedure.ElementTypeName: string; begin Result := SPasTreeProcedure end;
+
+function TPasFunction.GetFT: TPasFunctionType;
+begin
+  Result:=ProcType as TPasFunctionType;
+end;
+
 function TPasFunction.ElementTypeName: string; begin Result := SPasTreeFunction end;
 function TPasClassProcedure.ElementTypeName: string; begin Result := SPasTreeClassProcedure; end;
 function TPasClassFunction.ElementTypeName: string; begin Result := SPasTreeClassFunction; end;
@@ -1821,6 +1839,9 @@ begin
     ProcType.Release;
   if Assigned(Body) then
     Body.Release;
+  FreeAndNil(PublicName);
+  FreeAndNil(LibraryExpr);
+  FreeAndNil(LibrarySymbolName);
   inherited Destroy;
 end;
 
@@ -2579,7 +2600,7 @@ end;
 
 Function TPasProcedure.IsExported : Boolean;
 begin
-  Result:=pmExported in FModifiers;
+  Result:=pmExport in FModifiers;
 end;
 
 function TPasProcedure.IsExternal: Boolean;

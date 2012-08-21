@@ -2333,6 +2333,7 @@ packages/fcl-passrc/tests/tcclasstype.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcexprparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcmoduleparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tconstparser.pas svneol=native#text/plain
+packages/fcl-passrc/tests/tcprocfunc.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcscanner.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcstatements.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tctypeparser.pas svneol=native#text/plain

@@ -1157,7 +1157,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
           begin
            pv:=TPasVariant(prct.Variants[i]);
            write(s1,pv.Name);
-           for k:=0 to pv.Values.Count-1 do write(pv.Values[k]);
+           for k:=0 to pv.Values.Count-1 do write(TPasElement(pv.Values[k]).GetDeclaration(true));
            write(': (');
            if GetVariantRecord(TPasElement(pv.Members),j+1) then
              writeln(s1,');')
@@ -1245,7 +1245,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
           begin
            pv:=TPasVariant(prct.Variants[i]);
            write(s2,pv.Name);
-           for k:=0 to pv.Values.Count-1 do write(pv.Values[k]);
+           for k:=0 to pv.Values.Count-1 do write(TPasElement(pv.Values[k]).GetDeclaration(true));
            write(': (');
            if GetVariantRecord(TPasElement(pv.Members),j+2) then
              writeln(s2,');')
