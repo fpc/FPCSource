@@ -3766,8 +3766,7 @@ implementation
                       { variable would be passed by value normally, or if   }
                       { there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
-                        (not pushconstaddr or
-                         (paracomplexity > 1)))) and
+                        (not pushconstaddr))) and
                      { however, if we pass a global variable, an object field or}
                      { an expression containing a pointer dereference as        }
                      { parameter, this value could be modified in other ways as }
