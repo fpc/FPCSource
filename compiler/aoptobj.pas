@@ -80,7 +80,7 @@ Unit AoptObj;
         Procedure Clear;
         { update the info with the pairegalloc objects coming after
           p                                                         }
-        Procedure Update(p: Tai);
+        procedure Update(p: Tai; IgnoreNewAllocs: Boolean=false);
         { is Reg currently in use }
         Function IsUsed(Reg: TRegister): Boolean;
         { get all the currently used registers }
@@ -357,7 +357,7 @@ Unit AoptObj;
     {
       updates UsedRegs with the RegAlloc Information coming after P
     }
-    Procedure TUsedRegs.Update(p: Tai);
+    Procedure TUsedRegs.Update(p: Tai;IgnoreNewAllocs : Boolean = false);
       Begin
         { this code is normally not used because updating the register allocation information is done in
           TAOptObj.UpdateUsedRegs for speed reasons }
@@ -376,7 +376,8 @@ Unit AoptObj;
                 begin
                   case tai_regalloc(p).ratype of
                     ra_alloc :
-                      Include(UsedRegs, getsupreg(tai_regalloc(p).reg));
+                      if not(IgnoreNewAllocs) then
+                        Include(UsedRegs, getsupreg(tai_regalloc(p).reg));
                     ra_dealloc :
                       Exclude(UsedRegs, getsupreg(tai_regalloc(p).reg));
                   end;
