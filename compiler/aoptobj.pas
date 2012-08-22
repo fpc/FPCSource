@@ -1021,7 +1021,9 @@ Unit AoptObj;
           If Assigned(StartPai) And
              (StartPai.typ = ait_regAlloc) Then
             Begin
-              if (tai_regalloc(StartPai).ratype=ra_alloc) and (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
+              if (tai_regalloc(StartPai).ratype=ra_alloc) and
+                (getregtype(tai_regalloc(StartPai).Reg) = getregtype(Reg)) and
+                (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
                begin
                  Result:=tai_regalloc(StartPai);
                  exit;
