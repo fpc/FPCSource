@@ -855,6 +855,7 @@ unit cgcpu;
                     end
                   else
                     list.concat(taicpu.op_reg_reg_reg_reg(asmop,dst,overflowreg,src2,src1));
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   if op=OP_IMUL then
                     begin
                       shifterop_reset(so);
@@ -1365,6 +1366,7 @@ unit cgcpu;
         tmpreg : tregister;
         b : byte;
       begin
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         if is_shifter_const(a,b) then
           list.concat(taicpu.op_reg_const(A_CMP,reg,a))
         { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
@@ -1378,6 +1380,7 @@ unit cgcpu;
             list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
           end;
         a_jmp_cond(list,cmp_op,l);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -1388,8 +1391,10 @@ unit cgcpu;
 
     procedure tcgarm.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(A_CMP,reg2,reg1));
         a_jmp_cond(list,cmp_op,l);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2246,6 +2251,7 @@ unit cgcpu;
               hflags:=ovloc.resflags;
               inverse_flags(hflags);
               cg.a_jmp_flags(list,hflags,hl);
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200409281);
@@ -3373,6 +3379,7 @@ unit cgcpu;
                         end
                       else
                         list.concat(taicpu.op_reg_reg_reg_reg(asmop,dst,overflowreg,src2,src1));
+                      a_reg_alloc(list,NR_DEFAULTFLAGS);
                       if op=OP_IMUL then
                         begin
                            shifterop_reset(so);

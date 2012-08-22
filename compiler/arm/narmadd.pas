@@ -295,11 +295,13 @@ interface
         case nodetype of
           equaln:
             begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
               location.resflags:=F_EQ;
             end;
           unequaln:
             begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
               location.resflags:=F_NE;
             end;
@@ -313,6 +315,7 @@ interface
                 swapleftright;
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
               location.resflags:=F_EQ;
             end;
@@ -352,6 +355,7 @@ interface
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
           end
         else
@@ -364,6 +368,7 @@ interface
               begin
                 location_reset(location,LOC_FLAGS,OS_NO);
                 location.resflags:=getresflags(unsigned);
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 if current_settings.cputype in cpu_thumb2 then
                   begin
@@ -379,6 +384,7 @@ interface
             { operation requiring proper N, Z and V flags ? }
               begin
                 location_reset(location,LOC_JUMP,OS_NO);
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 { the jump the sequence is a little bit hairy }
                 case nodetype of
@@ -388,6 +394,7 @@ interface
                         { cheat a little bit for the negative test }
                         toggleflag(nf_swapped);
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrFalseLabel);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         toggleflag(nf_swapped);
                      end;
                    lten,gten:
@@ -404,14 +411,17 @@ interface
                         else
                           nodetype:=ltn;
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         nodetype:=oldnodetype;
                      end;
                 end;
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
                 { the comparisaion of the low dword have to be
                    always unsigned!                            }
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               end;
           end;
       end;
@@ -448,7 +458,7 @@ interface
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
-
+        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if right.location.loc = LOC_CONSTANT then
           begin
              if is_shifter_const(right.location.value,b) then

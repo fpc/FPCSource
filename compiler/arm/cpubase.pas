@@ -291,6 +291,9 @@ unit cpubase;
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
+      NR_DEFAULTFLAGS = NR_CPSR_C;
+      RS_DEFAULTFLAGS = RS_CPSR_C;
+
       { Low part of 64bit return value }
       function NR_FUNCTION_RESULT64_LOW_REG: tregister;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       function RS_FUNCTION_RESULT64_LOW_REG: shortint;{$ifdef USEINLINE}inline;{$endif USEINLINE}

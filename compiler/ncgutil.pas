@@ -337,6 +337,7 @@ implementation
                      LOC_FLAGS :
                        begin
                          cg.a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
 {$endif cpuflags}

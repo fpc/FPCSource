@@ -3405,7 +3405,10 @@ implementation
       case l.loc of
 {$ifdef cpuflags}
         LOC_FLAGS :
-          g_flags2reg(list,dst_size,l.resflags,hregister);
+          begin
+            g_flags2reg(list,dst_size,l.resflags,hregister);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+          end;
 {$endif cpuflags}
         LOC_JUMP :
           begin
@@ -3582,6 +3585,7 @@ implementation
                    LOC_FLAGS :
                      begin
                        a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                       a_reg_dealloc(list,NR_DEFAULTFLAGS);
                        a_jmp_always(list,current_procinfo.CurrFalseLabel);
                      end;
 {$endif cpuflags}

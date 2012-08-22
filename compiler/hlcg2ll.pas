@@ -1012,7 +1012,10 @@ implementation
             case l.loc of
 {$ifdef cpuflags}
               LOC_FLAGS :
-                cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+                begin
+                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                end;
 {$endif cpuflags}
               LOC_JUMP :
                 begin
@@ -1101,7 +1104,10 @@ implementation
           case l.loc of
 {$ifdef cpuflags}
             LOC_FLAGS :
-              cg.g_flags2reg(list,dst_cgsize,l.resflags,hregister);
+              begin
+                cg.g_flags2reg(list,dst_cgsize,l.resflags,hregister);
+                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              end;
 {$endif cpuflags}
             LOC_JUMP :
               begin
