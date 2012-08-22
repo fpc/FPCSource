@@ -282,6 +282,10 @@ Implementation
       if MatchInstruction(movp, A_MOV, [taicpu(p).condition], [PF_None]) and
          (taicpu(movp).ops=2) and {We can't optimize if there is a shiftop}
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
+         { don't mess with moves to pc }
+         (taicpu(movp).oper[0]^.reg<>NR_PC) and
+         { don't mess with moves to lr }
+         (taicpu(movp).oper[0]^.reg<>NR_R14) and
          {There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same}
          not (
            (taicpu(p).opcode in [A_MLA, A_MUL]) and
