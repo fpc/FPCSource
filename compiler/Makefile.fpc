@@ -490,6 +490,12 @@ regdatsp : sparc/spreg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkspreg.pp
         cd sparc && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT)
 
+regdatavr : avr/avrreg.dat
+            $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkavrreg.pp
+        cd avr && ..$(PATHSEP)utils$(PATHSEP)mkavrreg$(SRCEXEEXT)
+
+
+
 # revision.inc rule
 revision.inc :
 ifneq ($(REVSTR),)
