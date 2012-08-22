@@ -644,6 +644,7 @@ interface
        tai_regalloc = class(tai)
           reg     : tregister;
           ratype  : TRegAllocType;
+          { tells BuildLabelTableAndFixRegAlloc that the deallocation should be kept }
           keep    : boolean;
           { reg(de)alloc belongs to this instruction, this
             is only used for automatic inserted (de)alloc for
@@ -2103,6 +2104,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getdata(reg,sizeof(Tregister));
         ratype:=tregalloctype(ppufile.getbyte);
+        keep:=boolean(ppufile.getbyte);
       end;
 
 
@@ -2111,6 +2113,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putdata(reg,sizeof(Tregister));
         ppufile.putbyte(byte(ratype));
+        ppufile.putbyte(byte(keep));
       end;
 
 
