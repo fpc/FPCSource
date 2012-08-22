@@ -972,7 +972,6 @@ begin
       UngetToken;
       Result:=ParseRangeType(Parent,TypeName,Full);
     end;
-    DumpCurToken('Done');
     if CH then
       CheckHint(Result,True);
   Except

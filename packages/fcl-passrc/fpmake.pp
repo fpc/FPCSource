@@ -46,6 +46,14 @@ begin
           AddUnit('pscanner');
         end;
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('passrcutil.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pparser');
+          AddUnit('pastree');
+          AddUnit('pscanner');
+        end;
+    T.ResourceStrings := False;
 
     T:=P.Targets.AddUnit('paswrite.pp');
       with T.Dependencies do
