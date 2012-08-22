@@ -300,10 +300,23 @@ Implementation
           if assigned(dealloc) then
             begin
               asml.insertbefore(tai_comment.Create(strpnew('Peephole '+optimizer+' removed superfluous mov')), movp);
+
+              { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
+                and remove it if possible }
+              GetLastInstruction(p,hp1);
+              asml.Remove(dealloc);
+              alloc:=FindRegAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
+              if assigned(alloc) then
+                begin
+                  asml.Remove(alloc);
+                  alloc.free;
+                  dealloc.free;
+                end
+              else
+                asml.InsertAfter(dealloc,p);
+
               taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
               asml.remove(movp);
-              asml.Remove(dealloc);
-              asml.InsertAfter(dealloc,p);
               movp.free;
             end;
         end;
