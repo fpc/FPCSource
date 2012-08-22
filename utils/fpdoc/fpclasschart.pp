@@ -33,10 +33,6 @@ resourcestring
   SMergedFile = 'Merged %d classes from file %s.';
   SClassesAdded = 'Added %d classes from %d files.';
 
-Const
-  RootNames : Array[TPasObjKind] of string
-            = ('Objects', 'Classes', 'Interfaces','Generics','Specializations');
-
 type
 
   { TClassTreeEngine }
@@ -622,7 +618,7 @@ begin
   XML:=TXMLDocument.Create;
   Try
     //XML.
-    XML.AppendChild(XML.CreateElement(RootNames[AObjectKind]));
+    XML.AppendChild(XML.CreateElement(ObjKindNames[AObjectKind]));
     For I:=0 to MergeFiles.Count-1 do
       begin
       XMl2:=TXMLDocument.Create;
