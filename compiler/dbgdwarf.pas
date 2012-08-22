@@ -2327,10 +2327,24 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-              templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
               dreg:=dwarf_reg(sym.localloc.register);
-              templist.concat(tai_const.create_uleb128bit(dreg));
-              blocksize:=1+Lengthuleb128(dreg);
+              if (sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                 (sym.typ=paravarsym) and
+                  paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
+                  not(vo_has_local_copy in sym.varoptions) and
+                  not is_open_string(sym.vardef) then
+                begin
+                  templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
+                  templist.concat(tai_const.create_uleb128bit(dreg));
+                  templist.concat(tai_const.create_uleb128bit(0));
+                  blocksize:=1+Lengthuleb128(dreg)+Lengthuleb128(0);
+                end
+              else
+                begin
+                  templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+                  templist.concat(tai_const.create_uleb128bit(dreg));
+                  blocksize:=1+Lengthuleb128(dreg);
+                end;
             end;
           else
             begin
