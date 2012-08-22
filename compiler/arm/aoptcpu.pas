@@ -277,7 +277,9 @@ Implementation
 
   procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     var
-      TmpUsedRegs: TAllUsedRegs;
+      alloc,
+      dealloc : tai_regalloc;
+      hp1 : tai;
     begin
       if MatchInstruction(movp, A_MOV, [taicpu(p).condition], [PF_None]) and
          (taicpu(movp).ops=2) and {We can't optimize if there is a shiftop}
@@ -294,16 +296,16 @@ Implementation
            (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg)
          ) then
         begin
-          CopyUsedRegs(TmpUsedRegs);
-          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-          if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,movp,TmpUsedRegs)) then
+          dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
+          if assigned(dealloc) then
             begin
               asml.insertbefore(tai_comment.Create(strpnew('Peephole '+optimizer+' removed superfluous mov')), movp);
               taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
               asml.remove(movp);
+              asml.Remove(dealloc);
+              asml.InsertAfter(dealloc,p);
               movp.free;
             end;
-          ReleaseUsedRegs(TmpUsedRegs);
         end;
     end;
 
