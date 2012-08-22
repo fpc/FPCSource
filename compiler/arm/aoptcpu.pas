@@ -252,7 +252,7 @@ Implementation
   function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
     var AllUsedRegs: TAllUsedRegs): Boolean;
     begin
-      AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
+      AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
       RegUsedAfterInstruction :=
         AllUsedRegs[getregtype(reg)].IsUsed(reg) and
         not(regLoadedWithNewValue(reg,p)) and
