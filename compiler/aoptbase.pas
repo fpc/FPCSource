@@ -89,6 +89,8 @@ unit aoptbase;
         { create a paicpu Object that loads the contents of reg1 into reg2 }
         Function a_load_reg_reg(reg1, reg2: TRegister): taicpu; Virtual; Abstract;
 
+        { returns true if reg is used by any instruction between p1 and p2 }
+        Function RegUsedBetween(reg: TRegister; p1, p2: tai): Boolean;
     end;
 
     function labelCanBeSkipped(p: tai_label): boolean;
@@ -239,6 +241,18 @@ unit aoptbase;
           GetLastInstruction := True;
         End;
   End;
+
+
+  Function TAOptBase.RegUsedBetween(reg : TRegister;p1,p2 : tai) : Boolean;
+  Begin
+    Result:=false;
+    while assigned(p1) and assigned(p2) and GetNextInstruction(p1,p1) and (p1<>p2) do
+      if RegInInstruction(reg,p1) then
+        begin
+          Result:=true;
+          exit;
+        end;
+  end;
 
 
   { ******************* Processor dependent stuff *************************** }
