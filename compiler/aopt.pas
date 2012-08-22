@@ -185,7 +185,7 @@ Unit aopt;
                         ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                         hp1 := p;
                         hp2 := nil;
-                        While Not(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next))) And
+                        While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
                               GetNextInstruction(hp1, hp1) And
                               RegInInstruction(tai_regalloc(p).Reg, hp1) Do
                           hp2 := hp1;
@@ -210,7 +210,7 @@ Unit aopt;
                             p := hp1;
                           End
                         { merge allocations/deallocations }
-                        else if findregalloc(tai_regalloc(p).reg, tai(p.next))
+                        else if assigned(findregalloc(tai_regalloc(p).reg, tai(p.next)))
                           and getnextinstruction(p,hp1) and
                           { don't merge deallocations/allocation which mark a new use of register, this
                             enables more possibilities for the peephole optimizer }

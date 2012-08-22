@@ -289,10 +289,18 @@ Unit AoptObj;
         { returns true if the operands o1 and o2 are completely equal }
         Function OpsEqual(const o1,o2:toper): Boolean;
 
-        { Returns true if a ait_alloc object for Reg is found in the block
+        { Returns the next ait_alloc object with ratype ra_dealloc for
+          Reg is found in the block
           of Tai's starting with StartPai and ending with the next "real"
-          instruction                                                      }
-        Function FindRegAlloc(Reg: TRegister; StartPai: Tai): Boolean;
+          instruction. If none is found, it returns
+          nil                                                                        }
+        Function FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+
+        { Returns the next ait_alloc object with ratype ra_dealloc
+          for Reg which is found in the block of Tai's starting with StartPai
+          and ending with the next "real" instruction. If none is found, it returns
+          nil                                                                        }
+        Function FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
 
         { reg used after p? }
         function RegUsedAfterInstruction(reg: Tregister; p: tai; var AllUsedRegs: TAllUsedRegs): Boolean;
@@ -1000,9 +1008,10 @@ Unit AoptObj;
           OpsEqual := False;
       End;
 
-      Function TAOptObj.FindRegAlloc(Reg: TRegister; StartPai: Tai): Boolean;
+
+      Function TAOptObj.FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
       Begin
-        FindRegAlloc:=False;
+        Result:=nil;
         Repeat
           While Assigned(StartPai) And
                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
@@ -1014,7 +1023,7 @@ Unit AoptObj;
             Begin
               if (tai_regalloc(StartPai).ratype=ra_alloc) and (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
                begin
-                 FindRegAlloc:=true;
+                 Result:=tai_regalloc(StartPai);
                  exit;
                end;
               StartPai := Tai(StartPai.Next);
@@ -1023,6 +1032,33 @@ Unit AoptObj;
             exit;
         Until false;
       End;
+
+
+      function TAOptObj.FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      Begin
+         Result:=nil;
+         Repeat
+           While Assigned(StartPai) And
+                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
+                  ((StartPai.typ = ait_label) and
+                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
+             StartPai := Tai(StartPai.Next);
+           If Assigned(StartPai) And
+              (StartPai.typ = ait_regAlloc) Then
+             Begin
+               if (tai_regalloc(StartPai).ratype=ra_dealloc) and
+                 (getregtype(tai_regalloc(StartPai).Reg) = getregtype(Reg)) and
+                 (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
+                begin
+                  Result:=tai_regalloc(StartPai);
+                  exit;
+                end;
+               StartPai := Tai(StartPai.Next);
+             End
+           else
+             exit;
+         Until false;
+       End;
 
 
       function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;
@@ -1204,7 +1240,10 @@ Unit AoptObj;
               InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
 {$endif DEBUG_OPTALLOC}
             if PeepHoleOptPass1Cpu(p) then
-              continue;
+              begin
+                UpdateUsedRegs(p);
+                continue;
+              end;
             case p.Typ Of
               ait_instruction:
                 begin
