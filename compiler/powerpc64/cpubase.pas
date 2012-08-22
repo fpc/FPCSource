@@ -332,6 +332,9 @@ const
   NR_FPU_RESULT_REG = NR_F1;
   NR_MM_RESULT_REG = NR_M0;
 
+  NR_DEFAULTFLAGS = NR_CR;
+  RS_DEFAULTFLAGS = RS_CR;
+
   {*****************************************************************************
                          GCC /ABI linking information
   *****************************************************************************}

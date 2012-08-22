@@ -262,6 +262,9 @@ unit cpubase;
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
+      NR_DEFAULTFLAGS = NR_SREG;
+      RS_DEFAULTFLAGS = RS_SREG;
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}

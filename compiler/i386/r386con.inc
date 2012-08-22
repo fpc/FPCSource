@@ -31,6 +31,7 @@ NR_ES = tregister($05000003);
 NR_SS = tregister($05000004);
 NR_FS = tregister($05000005);
 NR_GS = tregister($05000006);
+NR_FLAGS = tregister($05000007);
 NR_DR0 = tregister($05000007);
 NR_DR1 = tregister($05000008);
 NR_DR2 = tregister($05000009);

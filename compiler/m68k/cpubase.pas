@@ -289,6 +289,9 @@ unit cpubase;
       {# Floating point results will be placed into this register }
       NR_FPU_RESULT_REG = NR_FP0;
 
+      NR_DEFAULTFLAGS = NR_SR;
+      RS_DEFAULTFLAGS = RS_SR;
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}

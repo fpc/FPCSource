@@ -85,6 +85,7 @@ NR_ES,$05000003,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
 NR_SS,$05000004,ss,%ss,ss,ss,-1,-1,-1,OT_REG_DESS,2
 NR_FS,$05000005,fs,%fs,fs,fs,-1,-1,-1,OT_REG_FSGS,4
 NR_GS,$05000006,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
+NR_FLAGS,$05000007,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
 
 NR_DR0,$05000007,dr0,%dr0,dr0,dr0,-1,-1,-1,OT_REG_DREG,0
 NR_DR1,$05000008,dr1,%dr1,dr1,dr1,-1,-1,-1,OT_REG_DREG,1
