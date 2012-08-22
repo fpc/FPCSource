@@ -41,6 +41,8 @@ uses Dynlibs,ctypes;
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
     fbembedlib = 'fbembed.dll';
+    libfc  = fbclib;
+    libem  = fbembedlib;
 {$ENDIF}
 
 type
