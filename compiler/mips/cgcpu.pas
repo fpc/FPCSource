@@ -1391,7 +1391,7 @@ begin
   fmask:=0;
   nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
   lastfpuoffset:=LocalSize;
-  for reg := RS_F0 to RS_F30 do { to check: what if F30 is double? }
+  for reg := RS_F0 to RS_F31 do { to check: what if F30 is double? }
     begin
       if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
         begin
@@ -1403,6 +1403,13 @@ begin
             helplist.concat(tai_comment.Create(strpnew(std_regname(newreg(R_FPUREGISTER,reg,R_SUBFS))+' register saved.')));
           helplist.concat(taicpu.op_reg_ref(A_SWC1,newreg(R_FPUREGISTER,reg,R_SUBFS),href));
           inc(nextoffset,4);
+          { IEEE Double values are stored in floating point
+            register pairs f2X/f2X+1,
+            as the f2X+1 register is not correctly marked as used for now,
+            we simply assume it is also used if f2X is used 
+            Should be fixed by a proper inclusion of f2X+1 into used_in_proc }
+          if (ord(reg)-ord(RS_F0)) mod 2 = 0 then
+            include(rg[R_FPUREGISTER].used_in_proc,succ(reg));
         end;
     end;
 
@@ -1610,7 +1617,7 @@ begin
        href.base:=NR_STACK_POINTER_REG;
 
        nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
-       for reg := RS_F0 to RS_F30 do
+       for reg := RS_F0 to RS_F31 do
          begin
            if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
              begin
