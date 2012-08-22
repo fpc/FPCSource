@@ -50,6 +50,8 @@ resourcestring
   SPasTreeInterfaceType = 'interface';
   SPasTreeGenericType = 'generic class';
   SPasTreeSpecializedType = 'specialized class type';
+  SPasClassHelperType = 'Class helper type';
+  SPasRecordHelperType = 'Record helper type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -499,7 +501,8 @@ type
   end;
 
   TPasGenericTemplateType = Class(TPasElement);
-  TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize);
+  TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize,
+                 okClassHelper,okRecordHelper);
 
   { TPasClassType }
 
@@ -512,16 +515,17 @@ type
     PackMode : TPackMode;
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
+    HelperForType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsForward : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
+    GUIDExpr : TPasExpr;
     Members: TFPList;     // array of TPasElement objects
-    InterfaceGUID : string; // 15/06/07 - Inoussa
-
     ClassVars: TFPList;   // class vars
     Modifiers: TStringList;
     Interfaces : TFPList;
     GenericTemplateTypes : TFPList;
     Function IsPacked : Boolean;
+    Function InterfaceGUID : string;
   end;
 
 
@@ -705,7 +709,6 @@ type
     FModifiers : TProcedureModifiers;
     FMessageName : String;
     FMessageType : TProcedureMessageType;
-    FPublicName: String;
     function GetCallingConvention: TCallingConvention;
     procedure SetCallingConvention(AValue: TCallingConvention);
   public
@@ -1014,7 +1017,7 @@ type
   end;
 
   { TPasImplForLoop }
-
+  TLoopType = (ltNormal,ltDown,ltIn);
   TPasImplForLoop = class(TPasImplStatement)
   public
     destructor Destroy; override;
@@ -1024,8 +1027,9 @@ type
     StartExpr : TPasExpr;
     EndExpr : TPasExpr;
     VariableName : String;
-    Down: boolean; // downto
+    LoopType : TLoopType;
     Body: TPasImplElement;
+    Function Down: boolean; // downto, backward compatibility
     Function StartValue : String;
     Function EndValue: string;
   end;
@@ -1128,7 +1132,7 @@ const
     'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface','class','class');
+    'object', 'class', 'interface','class','class','class helper','record helper');
   
   OpcodeStrings : Array[TExprOpCode] of string = 
        ('','+','-','*','/','div','mod','**',
@@ -1354,7 +1358,17 @@ begin
     okInterface: Result := SPasTreeInterfaceType;
     okGeneric : Result := SPasTreeGenericType;
     okSpecialize : Result := SPasTreeSpecializedType;
+    okClassHelper : Result:=SPasClassHelperType;
+    okRecordHelper : Result:=SPasRecordHelperType;
   end;
+end;
+
+function TPasClassType.InterfaceGUID: string;
+begin
+  If Assigned(GUIDExpr) then
+    Result:=GUIDExpr.GetDeclaration(True)
+  else
+    Result:=''
 end;
 
 function TPasClassType.IsPacked: Boolean;
@@ -1687,6 +1701,9 @@ begin
   Members.Free;
   if Assigned(AncestorType) then
     AncestorType.Release;
+  if Assigned(HelperForType) then
+    HelperForType.Release;
+  FreeAndNil(GUIDExpr);
   Modifiers.Free;
   ClassVars.Free;
   Interfaces.Free;
@@ -1964,6 +1981,11 @@ begin
     raise Exception.Create('TPasImplForLoop.AddElement body already set - please report this bug');
 end;
 
+function TPasImplForLoop.Down: boolean;
+begin
+  Result:=(LoopType=ltDown);
+end;
+
 function TPasImplForLoop.StartValue: String;
 begin
   If Assigned(StartExpr) then
@@ -2071,7 +2093,8 @@ begin
   Result.VariableName := AVarName;
   Result.StartExpr := AStartValue;
   Result.EndExpr := AEndValue;
-  Result.Down := ADownTo;
+  if ADownto then
+    Result.Looptype := ltDown;
   AddElement(Result);
 end;
 

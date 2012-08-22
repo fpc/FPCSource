@@ -57,6 +57,7 @@ Type
     procedure TestRepeatBlockNosemicolon;
     Procedure TestRepeatNested;
     Procedure TestFor;
+    Procedure TestForIn;
     Procedure TestForExpr;
     Procedure TestForBlock;
     procedure TestDowntoBlock;
@@ -607,9 +608,27 @@ begin
   TestStatement(['For a:=1 to 10 do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
   AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
+  AssertNull('Empty body',F.Body);
+end;
+
+procedure TTestStatementParser.TestForIn;
+
+Var
+  F : TPasImplForLoop;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['For a in SomeSet Do',';']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Loop type',ltIn,F.Looptype);
+  AssertEquals('In loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
+  AssertNull('Loop type',F.EndExpr);
   AssertNull('Empty body',F.Body);
 end;
 

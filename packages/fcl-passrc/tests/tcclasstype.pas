@@ -29,6 +29,9 @@ type
     function GetT(AIndex : Integer) : TPasType;
   protected
     Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
+    Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
+    Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = '');
+    Procedure StartRecordHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartVisibility(A : TPasMemberVisibility);
     Procedure EndClass(AEnd : String = 'end');
     Procedure AddMember(S : String);
@@ -36,6 +39,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure DefaultMethod;
+    Procedure AssertParserError(Const Msg : String);
     Procedure AssertVisibility(V : TPasMemberVisibility = visDefault; Member : TPasElement = Nil);
     procedure AssertMemberType(AType : TClass; Member : TPaselement = Nil);
     procedure AssertMemberName(AName : string; Member : TPaselement = Nil);
@@ -119,6 +123,21 @@ type
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
     Procedure TestLocalSimpleConsts;
+    procedure TestClassHelperEmpty;
+    procedure TestClassHelperParentedEmpty;
+    procedure TestClassHelperOneMethod;
+    procedure TestInterfaceEmpty;
+    procedure TestInterfaceParentedEmpty;
+    procedure TestInterfaceOneMethod;
+    procedure TestInterfaceNoConstructor;
+    procedure TestInterfaceNoDestructor;
+    procedure TestInterfaceNoFields;
+    procedure TestInterfaceUUID;
+    procedure TestInterfaceUUIDParentedEmpty;
+    procedure TestInterfaceUUIDOneMethod;
+    procedure TestRecordHelperEmpty;
+    procedure TestRecordHelperParentedEmpty;
+    procedure TestRecordHelperOneMethod;
   end;
 
 implementation
@@ -205,6 +224,52 @@ begin
   FParent:=AParent;
 end;
 
+procedure TTestClassType.StartClassHelper(ForType: String; AParent: String);
+Var
+  S : String;
+begin
+  FStarted:=True;
+  S:='TMyClass = Class Helper';
+  if (AParent<>'') then
+    begin
+    S:=S+'('+AParent;
+    S:=S+')';
+    end;
+  S:=S+' for '+ForType;
+  FDecl.Add(S);
+  FParent:=AParent;
+end;
+
+procedure TTestClassType.StartInterface(AParent: String; UUID: String);
+Var
+  S : String;
+begin
+  FStarted:=True;
+  S:='TMyClass = Interface';
+  if (AParent<>'') then
+    S:=S+' ('+AParent+')';
+  if (UUID<>'') then
+    S:=S+' ['''+UUID+''']';
+  FDecl.Add(S);
+  FParent:=AParent;
+end;
+
+procedure TTestClassType.StartRecordHelper(ForType: String; AParent: String);
+Var
+  S : String;
+begin
+  FStarted:=True;
+  S:='TMyClass = Record Helper';
+  if (AParent<>'') then
+    begin
+    S:=S+'('+AParent;
+    S:=S+')';
+    end;
+  S:=S+' for '+ForType;
+  FDecl.Add(S);
+  FParent:=AParent;
+end;
+
 procedure TTestClassType.StartVisibility(A: TPasMemberVisibility);
 begin
   if not FStarted then
@@ -242,8 +307,12 @@ begin
      begin
      AssertNotNull('Have parent class',TheClass.AncestorType);
      AssertEquals('Parent class',TPasUnresolvedTypeRef,TheClass.AncestorType.ClassType);
-     AssertEquals('Parent class name','TObject',TPasUnresolvedTypeRef(TheClass.AncestorType).Name);
+     AssertEquals('Parent class name',FParent,TPasUnresolvedTypeRef(TheClass.AncestorType).Name);
      end;
+  if (TheClass.ObjKind<>okInterface) then
+    AssertNull('No interface, No GUID',TheClass.GUIDExpr);
+  if (Not (TheClass.ObjKind in [okClassHelper,okRecordHelper])) then
+    AssertNull('No helperfortype if not helper',TheClass.HelperForType);
   if TheClass.Members.Count>0 then
     FMember1:=TObject(TheClass.Members[0]) as TPaselement;
 end;
@@ -572,6 +641,11 @@ begin
     AssertMemberName('DoSomething');
   AssertEquals('1 argument',1,Method1.ProcType.Args.Count) ;
   AssertEquals('Argument name','A',TPasVariable(Method1.ProcType.Args[0]).Name);
+end;
+
+procedure TTestClassType.AssertParserError(Const Msg : String);
+begin
+  AssertException(Msg,EParserError,@ParseClass)
 end;
 
 procedure TTestClassType.TestMethodOneArg;
@@ -1184,6 +1258,171 @@ begin
   AssertSame('Type parent is class',TheClass, Const2.Parent);
   AssertNotNull('Member 3 is procedure',Method3);
   AssertEquals('method name','Something', Method3.Name);
+end;
+
+procedure TTestClassType.TestClassHelperEmpty;
+begin
+  StartClassHelper('TOriginal','');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is class helper',okClassHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.CLassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  AssertEquals('No members',0,TheClass.Members.Count);
+end;
+
+procedure TTestClassType.TestClassHelperParentedEmpty;
+begin
+  StartClassHelper('TOriginal','TOtherHelper');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is class helper',okClassHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.CLassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  AssertEquals('No members',0,TheClass.Members.Count);
+end;
+
+procedure TTestClassType.TestClassHelperOneMethod;
+begin
+  StartClassHelper('TOriginal','');
+  AddMember('Procedure DoSomething(A : Integer)');
+  ParseClass;
+  AssertEquals('Is class helper',okClassHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.CLassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestInterfaceEmpty;
+begin
+  StartInterface('','');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestInterfaceParentedEmpty;
+begin
+  StartInterface('IInterface','');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestInterfaceOneMethod;
+begin
+  StartInterface('IInterface','');
+  AddMember('Procedure DoSomething(A : Integer)');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestInterfaceNoConstructor;
+begin
+  StartInterface('','');
+  AddMember('Constructor DoSomething(A : Integer)');
+  AssertParserError('No constructor in interface');
+end;
+
+procedure TTestClassType.TestInterfaceNoDestructor;
+begin
+  StartInterface('','');
+  AddMember('Destructor DoSomething(A : Integer)');
+  AssertParserError('No destructor in interface');
+end;
+
+procedure TTestClassType.TestInterfaceNoFields;
+begin
+  StartInterface('','');
+  AddMember('AField : Integer');
+  AssertParserError('No fields in interface');
+end;
+
+procedure TTestClassType.TestInterfaceUUID;
+begin
+  StartInterface('','123');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertExpression('UUID',TheClass.GUIDExpr,pekString,'''123''');
+end;
+
+procedure TTestClassType.TestInterfaceUUIDParentedEmpty;
+begin
+  StartInterface('IInterface','123');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertExpression('UUID',TheClass.GUIDExpr,pekString,'''123''');
+end;
+
+procedure TTestClassType.TestInterfaceUUIDOneMethod;
+begin
+  StartInterface('IInterface','123');
+  AddMember('Procedure DoSomething(A : Integer)');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+  AssertExpression('UUID',TheClass.GUIDExpr,pekString,'''123''');
+end;
+
+procedure TTestClassType.TestRecordHelperEmpty;
+begin
+  StartRecordHelper('TOriginal','');
+  ParseClass;
+  AssertEquals('Is Record helper',okRecordHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.ClassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  AssertEquals('No members',0,TheClass.Members.Count);
+end;
+
+procedure TTestClassType.TestRecordHelperParentedEmpty;
+begin
+  StartRecordHelper('TOriginal','TOtherHelper');
+  ParseClass;
+  AssertEquals('Is Record helper',okRecordHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.ClassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  AssertEquals('No members',0,TheClass.Members.Count);
+end;
+
+procedure TTestClassType.TestRecordHelperOneMethod;
+begin
+  StartRecordHelper('TOriginal','');
+  AddMember('Procedure DoSomething(A : Integer)');
+  ParseClass;
+  AssertEquals('Is Record helper',okRecordHelper,TheClass.ObjKind);
+  AssertNotNull('Have helper original',TheClass.HelperForType);
+  AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.ClassType);
+  AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('No modifiers',[],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
 initialization

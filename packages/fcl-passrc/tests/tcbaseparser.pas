@@ -61,6 +61,8 @@ Type
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AValue : String) : TPrimitiveExpr;
     Procedure AssertExportSymbol(Const Msg: String; AIndex : Integer; AName,AExportName : String; AExportIndex : Integer = -1);
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasExprKind); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TLoopType); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasObjKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TexprOpcode); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberHint); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TCallingConvention); overload;
@@ -361,6 +363,20 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TPasExprKind),Ord(AExpected)),
                    GetEnumName(TypeInfo(TPasExprKind),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TLoopType);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TLoopType),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TLoopType),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TPasObjKind);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TexprOpcode),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TexprOpcode),Ord(AActual)));
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,

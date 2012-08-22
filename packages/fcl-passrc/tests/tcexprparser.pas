@@ -5,7 +5,7 @@ unit tcexprparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, tcbaseparser, pastree;
+  Classes, SysUtils, fpcunit,  testregistry, tcbaseparser, pastree;
 
 type
 
@@ -782,28 +782,23 @@ begin
 end;
 
 procedure TTestExpressions.TestPrimitiveSelf;
-Var
-  S : TSelfExpr;
+
 begin
   DeclareVar('pointer','a');
   ParseExpression('Self');
-  S:=TSelfExpr(AssertExpression('Inherited expr',theExpr,pekSelf,TSelfExpr));
+  AssertExpression('Inherited expr',theExpr,pekSelf,TSelfExpr);
 end;
 
 procedure TTestExpressions.TestInherited;
 
-Var
-  I: TInheritedExpr;
 begin
   DeclareVar('pointer','a');
   ParseExpression('inherited');
-  I:=TInheritedExpr(AssertExpression('Inherited expr',theExpr,pekInherited,TInheritedExpr));
+  AssertExpression('Inherited expr',theExpr,pekInherited,TInheritedExpr);
 end;
 
 procedure TTestExpressions.TestInheritedFunction;
 
-Var
-  I: TInheritedExpr;
 begin
   DeclareVar('pointer','a');
   ParseExpression('inherited myfunction');

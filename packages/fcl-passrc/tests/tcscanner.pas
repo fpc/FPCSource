@@ -135,6 +135,7 @@ type
     procedure TestFunction;
     procedure TestGeneric;
     procedure TestGoto;
+    Procedure TestHelper;
     procedure TestIf;
     procedure TestImplementation;
     procedure TestIn;
@@ -890,6 +891,11 @@ procedure TTestScanner.TestGoto;
 
 begin
   TestToken(tkgoto,'goto');
+end;
+
+procedure TTestScanner.TestHelper;
+begin
+  TestToken(tkHelper,'helper');
 end;
 
 
