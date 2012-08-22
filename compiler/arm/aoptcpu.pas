@@ -286,6 +286,8 @@ Implementation
          (taicpu(movp).oper[0]^.reg<>NR_PC) and
          { don't mess with moves to lr }
          (taicpu(movp).oper[0]^.reg<>NR_R14) and
+         { the destination register of the mov might not be used beween p and movp }
+         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
          {There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same}
          not (
            (taicpu(p).opcode in [A_MLA, A_MUL]) and
@@ -488,7 +490,7 @@ Implementation
                         * ldr+mov have the same conditions
                         * mov does not set flags
                     }
-                    if (taicpu(p).oppostfix<>PF_D) and GetNextInstruction(p, hp1) then
+                    if (taicpu(p).oppostfix<>PF_D) and GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
                       RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr');
                   end;
                 A_MOV:
@@ -865,7 +867,7 @@ Implementation
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
                     }
                     if (taicpu(p).opcode = A_MOV) and 
-                        GetNextInstruction(p, hp1) then
+                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
                       RemoveSuperfluousMove(p, hp1, 'MovMov2Mov');
                   end;
                 A_ADD,
@@ -910,7 +912,7 @@ Implementation
                       to
                       add reg2, ...
                     }
-                    if GetNextInstruction(p, hp1) then
+                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
                       RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
                   end;
                 A_CMP:
