@@ -25,6 +25,8 @@
 }
 unit cpubase;
 
+{$define USEINLINE}
+
 {$i fpcdefs.inc}
 
   interface
