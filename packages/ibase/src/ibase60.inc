@@ -22,9 +22,9 @@ uses Dynlibs,ctypes;
     gdslib = 'libgds.'+sharedsuffix; // Needs completion ?
     libfc  = 'libfbclient.'+sharedsuffix;
     libem  = 'libfbembed.'+sharedsuffix;
-    v2  = {$ifndef darwin}'.2'{$endif};
-    v21 = {$ifndef darwin}'.2.1'{$endif};
-    v25 = {$ifndef darwin}'.2.5'{$endif};
+    v2  = {$ifndef darwin}'.2'{$else}''{$endif};
+    v21 = {$ifndef darwin}'.2.1'{$else}''{$endif};
+    v25 = {$ifndef darwin}'.2.5'{$else}''{$endif};
     fbclib2      = libfc+v2;
     fbembedlib2  = libem+v2;
     fbclib21     = libfc+v21;
