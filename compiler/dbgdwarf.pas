@@ -2336,8 +2336,8 @@ implementation
                 begin
                   templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
                   templist.concat(tai_const.create_uleb128bit(dreg));
-                  templist.concat(tai_const.create_uleb128bit(0));
-                  blocksize:=1+Lengthuleb128(dreg)+Lengthuleb128(0);
+                  templist.concat(tai_const.create_sleb128bit(0));
+                  blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(0);
                 end
               else
                 begin
