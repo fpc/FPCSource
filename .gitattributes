@@ -511,6 +511,7 @@ compiler/ppcgen/rgcpu.pas svneol=native#text/plain
 compiler/ppcmips.lpi svneol=native#text/plain
 compiler/ppcmipsel.lpi svneol=native#text/plain
 compiler/ppcppc.lpi svneol=native#text/plain
+compiler/ppcppc64.lpi svneol=native#text/plain
 compiler/ppcsparc.lpi svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
 compiler/ppu.pas svneol=native#text/plain
