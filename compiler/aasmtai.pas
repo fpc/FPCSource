@@ -644,6 +644,7 @@ interface
        tai_regalloc = class(tai)
           reg     : tregister;
           ratype  : TRegAllocType;
+          keep    : boolean;
           { reg(de)alloc belongs to this instruction, this
             is only used for automatic inserted (de)alloc for
             imaginary register and required for spilling code }

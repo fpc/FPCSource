@@ -25,6 +25,8 @@ Unit aopt;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_OPTALLOC}
+
   Interface
 
     Uses
@@ -195,13 +197,14 @@ Unit aopt;
 {$endif DEBUG_OPTALLOC}
                             AsmL.Remove(p);
                             InsertLLItem(hp2, tai(hp2.Next), p);
+                            tai_regalloc(p).keep:=true;
 {$ifdef DEBUG_OPTALLOC}
                             AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg)+' here')),hp2);
 {$endif DEBUG_OPTALLOC}
                             p := hp1;
                           End
                         else if findregalloc(tai_regalloc(p).reg, tai(p.next))
-                          and getnextinstruction(p,hp1) then
+                          and getnextinstruction(p,hp1) and not(tai_regalloc(p).keep) then
                           begin
                             hp1 := tai(p.previous);
 {$ifdef DEBUG_OPTALLOC}
