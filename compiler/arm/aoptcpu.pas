@@ -40,6 +40,12 @@ Type
     procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
+    { gets the next tai object after current that contains info relevant
+      to the optimizer in p1 which used the given register or does a 
+      change in program flow.
+      If there is none, it returns false and
+      sets p1 to nil                                                     }
+    Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
   End;
 
   TCpuPreRegallocScheduler = class(TAsmScheduler)
@@ -256,6 +262,18 @@ Implementation
           not(regLoadedWithNewValue(reg,p))
         );
     end;
+
+
+  function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
+    var Next: tai; reg: TRegister): Boolean;
+    begin
+      Next:=Current;
+      repeat
+        Result:=GetNextInstruction(Next,Next);
+      until not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
+        (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
+    end;
+
 
   procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     var
