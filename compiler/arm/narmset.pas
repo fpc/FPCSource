@@ -91,8 +91,9 @@ implementation
         if left.location.loc=LOC_CONSTANT then
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
-             right.resultdef, right.resultdef, true);
+              right.resultdef, right.resultdef, true);
 
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,right.location.register,1 shl (left.location.value-setbase)));
           end
         else
@@ -110,6 +111,7 @@ implementation
             shifterop_reset(so);
             so.rs:=left.location.register;
             so.shiftmode:=SM_LSL;
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_TST,right.location.register,hregister,so));
           end;
       end;

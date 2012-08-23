@@ -351,8 +351,10 @@ implementation
         hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
         current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
+        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
       end;
 
 begin

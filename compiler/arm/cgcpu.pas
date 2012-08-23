@@ -715,9 +715,12 @@ unit cgcpu;
                    ));
                 end
               else}
-              list.concat(setoppostfix(
-                  taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
-              ));
+                begin
+                  if cgsetflags or setflags then
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  list.concat(setoppostfix(
+                    taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
+                end;
               if (cgsetflags or setflags) and (size in [OS_8,OS_16,OS_32]) then
                 begin
                   ovloc.loc:=LOC_FLAGS;
@@ -888,9 +891,12 @@ unit cgcpu;
                 end;
             end;
           else
-            list.concat(setoppostfix(
-                taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
-              ));
+            begin
+              if cgsetflags or setflags then
+                a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(setoppostfix(
+                taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
+            end;
         end;
         maybeadjustresult(list,op,size,dst);
       end;
@@ -2013,9 +2019,11 @@ unit cgcpu;
           dstref.offset:=size;
           r:=getintregister(list,size2opsize[size]);
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
+          a_reg_alloc(list,NR_DEFAULTFLAGS);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
           a_jmp_flags(list,F_NE,l);
+          a_reg_dealloc(list,NR_DEFAULTFLAGS);
           srcref.offset:=1;
           dstref.offset:=1;
           case count mod size of
@@ -2718,8 +2726,10 @@ unit cgcpu;
         case op of
           OP_NEG:
             begin
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSB,regdst.reglo,regsrc.reglo,0),PF_S));
               list.concat(taicpu.op_reg_reg_const(A_RSC,regdst.reghi,regsrc.reghi,0));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           OP_NOT:
             begin
@@ -2791,11 +2801,15 @@ unit cgcpu;
               OP_ADD:
                 begin
                   if is_shifter_const(lo(value),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                    end
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
                       cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
@@ -2811,11 +2825,15 @@ unit cgcpu;
               OP_SUB:
                 begin
                   if is_shifter_const(lo(value),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                    end
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
                       cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
@@ -2854,11 +2872,15 @@ unit cgcpu;
               OP_ADD:
                 begin
                   if is_shifter_const(aint(lo(value)),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
+                    end
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
                       cg.a_load_const_reg(list,OS_32,aint(lo(value)),tmpreg);
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
@@ -2874,11 +2896,15 @@ unit cgcpu;
               OP_SUB:
                 begin
                   if is_shifter_const(aint(lo(value)),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
+                    end
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
                       cg.a_load_const_reg(list,OS_32,aint(lo(value)),tmpreg);
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
@@ -2911,11 +2937,13 @@ unit cgcpu;
             case op of
               OP_ADD:
                 begin
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo),PF_S));
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi),PF_S));
                 end;
               OP_SUB:
                 begin
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo),PF_S));
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi),PF_S));
                 end;
@@ -2944,13 +2972,17 @@ unit cgcpu;
                 end;
               OP_ADD:
                 begin
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo),PF_S));
                   list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
+                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               OP_SUB:
                 begin
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo),PF_S));
                   list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi));
+                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               else
                 internalerror(2003083101);
@@ -3271,13 +3303,18 @@ unit cgcpu;
                 begin
                   tmpreg:=getintregister(list,size);
                   a_load_const_reg(list, size, a, tmpreg);
-                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src,tmpreg),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
-                   ));
+                  if cgsetflags or setflags then
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  list.concat(setoppostfix(
+                    taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src,tmpreg),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
                 end
               else
-              list.concat(setoppostfix(
-                  taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
-              ));
+                begin
+                  if cgsetflags or setflags then
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  list.concat(setoppostfix(
+                    taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
+                end;
               if (cgsetflags or setflags) and (size in [OS_8,OS_16,OS_32]) then
                 begin
                   ovloc.loc:=LOC_FLAGS;
@@ -3412,9 +3449,12 @@ unit cgcpu;
                    end;
               end;
            else
-              list.concat(setoppostfix(
-                   taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmopThumb2[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
-                ));
+             begin
+               if cgsetflags or setflags then
+                 a_reg_alloc(list,NR_DEFAULTFLAGS);
+               list.concat(setoppostfix(
+                 taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmopThumb2[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
+             end;
         end;
         maybeadjustresult(list,op,size,dst);
       end;
@@ -3810,10 +3850,12 @@ unit cgcpu;
         case op of
           OP_NEG:
             begin
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSB,regdst.reglo,regsrc.reglo,0),PF_S));
               tmpreg:=cg.getintregister(list,OS_32);
               list.concat(taicpu.op_reg_const(A_MOV,tmpreg,0));
               list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,tmpreg,regsrc.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             inherited a_op64_reg_reg(list, op, size, regsrc, regdst);

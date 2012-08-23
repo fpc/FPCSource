@@ -189,6 +189,7 @@ implementation
                           begin
                             hregister:=location.register;
                             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,location.register,hregister),PF_S));
                           end;
                       end;

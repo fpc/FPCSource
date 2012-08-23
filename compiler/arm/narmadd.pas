@@ -345,6 +345,7 @@ interface
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,right.location.register64.reglo,right.location.register64.reghi),PF_S));
           end
         else if (nodetype in [equaln,unequaln]) and

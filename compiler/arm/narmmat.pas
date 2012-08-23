@@ -121,6 +121,9 @@ implementation
            else if (tordconstnode(right).value = int64(-1)) then
              begin
                // note: only in the signed case possible..., may overflow
+               if cs_check_overflow in current_settings.localswitches then
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVN,
                  resultreg,numerator),toppostfix(ord(cs_check_overflow in current_settings.localswitches)*ord(PF_S))));
              end
@@ -408,6 +411,9 @@ implementation
         begin
           shifterop_reset(so);
           shiftval2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+
+          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
           {Do we shift more than 32 bits?}
           emit_instr(setoppostfix(taicpu.op_reg_reg_const(A_RSB, shiftval2, shiftval, 32), PF_S));
 
@@ -423,6 +429,8 @@ implementation
           if shiftright then so.shiftmode:=SM_LSL else so.shiftmode:=SM_LSR;
           so.rs:=shiftval2;
           emit_instr(setcondition(taicpu.op_reg_reg_reg_shifterop(A_ORR, reg2, reg2, reg1, so), C_PL));
+
+          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
           {Final adjustments}
           if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
@@ -455,16 +463,20 @@ implementation
               if nodetype=shln then
                 begin
                   {Shift left by one by 2 simple 32bit additions}
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   emit_instr(setoppostfix(taicpu.op_reg_reg_reg(A_ADD, hreg64lo, hreg64lo, hreg64lo), PF_S));
                   emit_instr(taicpu.op_reg_reg_reg(A_ADC, hreg64hi, hreg64hi, hreg64hi));
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end
               else
                 begin
                   {Shift right by first shifting hi by one and then using RRX (rotate right extended), which rotates through the carry}
                   shifterop_reset(so); so.shiftmode:=SM_LSR; so.shiftimm:=1;
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   emit_instr(setoppostfix(taicpu.op_reg_reg_shifterop(A_MOV, hreg64hi, hreg64hi, so), PF_S));
                   so.shiftmode:=SM_RRX; so.shiftimm:=0; {RRX does NOT have a shift amount}
                   emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, hreg64lo, hreg64lo, so));
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end
             {A 32bit shift just replaces a register and clears the other}
             else if v = 32 then
