@@ -63,6 +63,7 @@ implementation
 
       ,ogcoff
       ,ogelf
+      ,cpuelf
 
 {**************************************
         Assembler Readers

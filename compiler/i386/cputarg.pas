@@ -101,6 +101,7 @@ implementation
       ,ogcoff
       ,ogelf
       ,ogmacho
+      ,cpuelf
 
 {**************************************
         Assembler Readers
