@@ -184,12 +184,17 @@ implementation
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
+        retdef : tdef;
       begin
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           begin
             { Return is passed as var parameter,
               in this case we use the first register R4 for it }
-            if ret_in_param(result.def,p.proccalloption) then
+            if assigned(forcetempdef) then
+              retdef:=forcetempdef
+            else
+              retdef:=p.returndef;
+            if ret_in_param(retdef,p.proccalloption) then
               begin
                 if intparareg=0 then
                   inc(intparareg);
@@ -213,9 +218,10 @@ implementation
                   end
                 else
                   begin
-                    getIntParaLoc(p.proccalloption,1,result.def,result);
+                    getIntParaLoc(p.proccalloption,1,retdef,result);
                   end;
-                result.def:=getpointerdef(result.def);
+                // This is now done in set_common_funcretloc_info already  
+                // result.def:=getpointerdef(result.def);
               end;
             exit;
           end;
