@@ -965,7 +965,7 @@ Implementation
                         asml.remove(hp1);
                         hp1.free;
                       end;
-                   {
+                    {
                       change
                       add/sub reg2,reg1,const1
                       str/ldr reg3,[reg2,const2]
