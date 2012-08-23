@@ -1003,8 +1003,9 @@ Implementation
                            )
                           ) do
                           begin
-                            { reg2 might not be changed inbetween }
-                            if RegModifiedBetween(taicpu(p).oper[0]^.reg,p,hp1) then
+                            { neither reg1 nor reg2 might be changed inbetween }
+                            if RegModifiedBetween(taicpu(p).oper[0]^.reg,p,hp1) or
+                              RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1) then
                               break;
                             { reg2 must be either overwritten by the ldr or it is deallocated afterwards }
                             if ((taicpu(hp1).opcode=A_LDR) and (taicpu(p).oper[0]^.reg=taicpu(hp1).oper[0]^.reg)) or
