@@ -382,8 +382,19 @@ Implementation
                 (taicpu(hp2).condition in [C_EQ,C_NE])) and
                assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
-               taicpu(p).oppostfix:=PF_S;
                asml.insertbefore(tai_comment.Create(strpnew('Peephole OpCmp2OpS done')), p);
+
+               taicpu(p).oppostfix:=PF_S;
+
+               { move flag allocation if possible }
+               GetLastInstruction(hp1, hp2);
+               hp2:=FindRegAlloc(NR_DEFAULTFLAGS,tai(hp2.Next));
+               if assigned(hp2) then
+                 begin
+                   asml.Remove(hp2);
+                   asml.insertbefore(hp2, p);
+                 end;
+
                asml.remove(hp1);
                hp1.free;
              end
