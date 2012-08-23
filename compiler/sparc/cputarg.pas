@@ -52,6 +52,16 @@ implementation
 
       ,CpuGas
 
+    { Sparc elf generator is not ready yet }
+    {$ifndef TEST_AGSPARC_ELF}
+      {$define NOAGSPARC_ELF}
+    {$endif TEST_AGSPARC_ELF}
+    { To be removed once implemented. PM }
+    {$ifndef NOAGSPARC_ELF}
+      ,ogelf
+      ,cpuelf
+    {$endif}
+
 {**************************************
         Assembler Readers
 **************************************}
