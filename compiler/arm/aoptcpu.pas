@@ -983,6 +983,8 @@ Implementation
                           (MatchInstruction(hp1, A_LDR, [C_None], []) or
                            MatchInstruction(hp1, A_STR, [C_None], [])) and
                           (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
+                          { don't optimize if the register is stored/overwritten }
+                          (taicpu(hp1).oper[0]^.reg<>taicpu(p).oper[1]^.reg) and
                           (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
                           (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
                           { new offset must be valid: either in the range of 8 or 12 bit, depend on the
