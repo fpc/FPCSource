@@ -386,16 +386,14 @@ Implementation
               (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
               (taicpu(hp1).oper[1]^.val = 0) and
               GetNextInstruction(hp1, hp2) and
-              (tai(hp2).typ = ait_instruction) and
               { be careful here, following instructions could use other flags
                 however after a jump fpc never depends on the value of flags }
-              (taicpu(hp2).opcode = A_B) and
               { All above instructions set Z and N according to the following
                 Z := result = 0;
                 N := result[31];
                 EQ = Z=1; NE = Z=0;
                 MI = N=1; PL = N=0; }
-              (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL]) and
+              MatchInstruction(hp2, A_B, [C_EQ,C_NE,C_MI,C_PL], []) and
               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
                DebugMsg('Peephole OpCmp2OpS done', p);
