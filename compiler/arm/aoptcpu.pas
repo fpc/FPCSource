@@ -979,8 +979,9 @@ Implementation
                       begin
                         hp1:=p;
                         while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) and
-                          (MatchInstruction(hp1, A_LDR, [taicpu(p).condition], []) or
-                           MatchInstruction(hp1, A_STR, [taicpu(p).condition], [])) and
+                          { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
+                          (MatchInstruction(hp1, A_LDR, [C_None], []) or
+                           MatchInstruction(hp1, A_STR, [C_None], [])) and
                           (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
                           (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
                           (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
