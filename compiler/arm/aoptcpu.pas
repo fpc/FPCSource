@@ -26,6 +26,7 @@ Unit aoptcpu;
 {$i fpcdefs.inc}
 
 {$define DEBUG_PREREGSCHEDULER}
+{$define DEBUG_AOPTCPU}
 
 Interface
 
@@ -46,6 +47,9 @@ Type
       If there is none, it returns false and
       sets p1 to nil                                                     }
     Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
+
+    { outputs a debug message into the assembler file }
+    procedure DebugMsg(const s: string; p: tai);
   End;
 
   TCpuPreRegallocScheduler = class(TAsmScheduler)
@@ -249,6 +253,7 @@ Implementation
       end;
   end;
 
+
   function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
     var AllUsedRegs: TAllUsedRegs): Boolean;
     begin
@@ -274,6 +279,16 @@ Implementation
         (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
     end;
 
+{$ifdef DEBUG_AOPTCPU}
+  procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
 
   procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     var
@@ -299,7 +314,7 @@ Implementation
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
             begin
-              asml.insertbefore(tai_comment.Create(strpnew('Peephole '+optimizer+' removed superfluous mov')), movp);
+              DebugMsg('Peephole '+optimizer+' removed superfluous mov', movp);
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
                 and remove it if possible }
@@ -383,7 +398,7 @@ Implementation
               (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL]) and
               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
-               asml.insertbefore(tai_comment.Create(strpnew('Peephole OpCmp2OpS done')), p);
+               DebugMsg('Peephole OpCmp2OpS done', p);
 
                taicpu(p).oppostfix:=PF_S;
 
@@ -419,7 +434,7 @@ Implementation
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                           begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov 1 done')), hp1);
+                            DebugMsg('Peephole StrLdr2StrMov 1 done', hp1);
                             asml.remove(hp1);
                             hp1.free;                            
                           end
@@ -428,7 +443,7 @@ Implementation
                             taicpu(hp1).opcode:=A_MOV;
                             taicpu(hp1).oppostfix:=PF_None;
                             taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov 2 done')), hp1);
+                            DebugMsg('Peephole StrLdr2StrMov 2 done', hp1);
                           end;
                         result := true;
                       end
@@ -454,7 +469,7 @@ Implementation
                       (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
                       AlignedToQWord(taicpu(p).oper[1]^.ref^) then
                       begin
-                        asml.insertbefore(tai_comment.Create(strpnew('Peephole StrStr2Strd done')), p);
+                        DebugMsg('Peephole StrStr2Strd done', p);
                         taicpu(p).oppostfix:=PF_D;
                         asml.remove(hp1);
                         hp1.free;
@@ -484,13 +499,13 @@ Implementation
                           begin
                             if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                               begin
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2Ldr done')), hp1);
+                                DebugMsg('Peephole LdrLdr2Ldr done', hp1);
                                 asml.remove(hp1);
                                 hp1.free;
                               end
                             else
                               begin
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2LdrMov done')), hp1);
+                                DebugMsg('Peephole LdrLdr2LdrMov done', hp1);
                                 taicpu(hp1).opcode:=A_MOV;
                                 taicpu(hp1).oppostfix:=PF_None;
                                 taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
@@ -515,7 +530,7 @@ Implementation
                           (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
                           AlignedToQWord(taicpu(p).oper[1]^.ref^) then
                           begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2Ldrd done')), p);
+                            DebugMsg('Peephole LdrLdr2Ldrd done', p);
                             taicpu(p).oppostfix:=PF_D;
                             asml.remove(hp1);
                             hp1.free;
@@ -577,7 +592,7 @@ Implementation
                             UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
                             if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp2,TmpUsedRegs)) then
                               begin
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole optimizer removed superfluous 16 Bit zero extension')), hp1);
+                                DebugMsg('Peephole optimizer removed superfluous 16 Bit zero extension', hp1);
                                 taicpu(hp2).loadreg(0,taicpu(p).oper[1]^.reg);
                                 asml.remove(p);
                                 asml.remove(hp1);
@@ -616,7 +631,7 @@ Implementation
                                 else
                                   internalerror(2008072803);
                               end;
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift 1 done')), p);
+                            DebugMsg('Peephole ShiftShift2Shift 1 done', p);
                             asml.remove(hp1);
                             hp1.free;
                             result := true;
@@ -649,7 +664,7 @@ Implementation
                               (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(hp2).oper[2]^.shifterop^.shiftimm) then
                               begin
                                 dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 1 done')), p);
+                                DebugMsg('Peephole ShiftShiftShift2ShiftShift 1 done', p);
                                 asml.remove(hp2);
                                 hp2.free;
                                 result := true;
@@ -675,7 +690,7 @@ Implementation
                               begin
                                 dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(p).oper[2]^.shifterop^.shiftimm);
                                 taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 2 done')), p);
+                                DebugMsg('Peephole ShiftShiftShift2ShiftShift 2 done', p);
                                 asml.remove(p);
                                 p.free;
                                 p:=hp2;
@@ -719,7 +734,7 @@ Implementation
                        }
                        ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
                       begin
-                        asml.insertbefore(tai_comment.Create(strpnew('Peephole LsrAnd2Lsr done')), hp1);
+                        DebugMsg('Peephole LsrAnd2Lsr done', hp1);
                         asml.remove(hp1);
                         hp1.free;
                       end;
@@ -752,7 +767,7 @@ Implementation
                                 MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
                                 MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) do
                             begin
-                              asml.insertbefore(tai_comment.Create(strpnew('Peephole MovStrMov done')), hp2);
+                              DebugMsg('Peephole MovStrMov done', hp2);
                               GetNextInstruction(hp2,hp1);
                               asml.remove(hp2);
                               hp2.free;
@@ -770,7 +785,7 @@ Implementation
                                 { don't remove the first mov if the second is a mov rX,rX }
                                 not(MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^)) do
                             begin
-                              asml.insertbefore(tai_comment.Create(strpnew('Peephole MovMov done')), p);
+                              DebugMsg('Peephole MovMov done', p);
                               asml.remove(p);
                               p.free;
                               p:=hp1;
@@ -813,7 +828,7 @@ Implementation
                           }
                           if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                             begin
-                              asml.insertbefore(tai_comment.Create(strpnew('Peephole RedundantMovProcess done')), hp1);
+                              DebugMsg('Peephole RedundantMovProcess done', hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
                               if p<>hp1 then
                               begin
@@ -901,7 +916,7 @@ Implementation
                                 hp1.free;
                                 p:=hp2;
                                 GetNextInstruction(p,hp1);
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole FoldShiftProcess done')), p);
+                                DebugMsg('Peephole FoldShiftProcess done', p);
                                 break;
                               end;
                         ReleaseUsedRegs(TmpUsedRegs);
@@ -944,7 +959,7 @@ Implementation
                        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                        (taicpu(hp1).oper[2]^.typ = top_const) then
                       begin
-                        asml.insertbefore(tai_comment.Create(strpnew('Peephole AndAnd2And done')), p);
+                        DebugMsg('Peephole AndAnd2And done', p);
                         taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
                         taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
                         asml.remove(hp1);
@@ -994,7 +1009,7 @@ Implementation
                               begin
                                 { remember last instruction }
                                 hp2:=hp1;
-                                asml.insertbefore(tai_comment.Create(strpnew('Peephole Add/SubLdr2Ldr done')), p);
+                                DebugMsg('Peephole Add/SubLdr2Ldr done', p);
                                 hp1:=p;
                                 { fix all ldr/str }
                                 while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) do
@@ -1424,7 +1439,7 @@ Implementation
 
               asml.Remove(hp1);
 {$ifdef DEBUG_PREREGSCHEDULER}
-              asml.InsertBefore(tai_comment.Create(strpnew('Rescheduled')),hp2);
+              asml.insertbefore(tai_comment.Create(strpnew('Rescheduled')),hp2);
 {$endif DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(hp1,hp2);
               asml.InsertListBefore(hp2,list);
