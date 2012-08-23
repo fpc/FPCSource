@@ -115,6 +115,7 @@ type
 
 
   TExprKind = (ek_Normal, ek_PropertyIndex);
+  TIndentAction = (iaNone,iaIndent,iaUndent);
 
   { TPasParser }
 
@@ -134,8 +135,9 @@ type
     FTokenStringBuffer: array[0..1] of String;
     FTokenBufferIndex: Integer; // current index in FTokenBuffer
     FTokenBufferSize: Integer; // maximum valid index in FTokenBuffer
+    FDumpIndent : String;
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
-    procedure DumpCurToken(Const Msg : String);
+    procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
@@ -1187,7 +1189,8 @@ begin
       //x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText); //function(self);
       x:=TSelfExpr.Create(AParent);
       NextToken;
-      if CurToken = tkDot then begin // self.Write(EscapeText(AText));
+      if CurToken = tkDot then
+        begin // self.Write(EscapeText(AText));
         optk:=CurToken;
         NextToken;
         b:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(optk));
@@ -1196,9 +1199,9 @@ begin
           B.Free;
           Exit; // error
           end;
-        x:=b;
-      end
-       else UngetToken;
+         x:=b;
+        end;
+      UngetToken;
     end;
     tkAt: begin
       // P:=@function;
@@ -1280,6 +1283,8 @@ end;
 function TPasParser.OpLevel(t: TToken): Integer;
 begin
   case t of
+  //  tkDot:
+  //    Result:=5;
     tknot,tkAt:
       Result:=4;
     tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower :
@@ -1305,7 +1310,7 @@ var
   
 const
   PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
-  BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod, tkDotDot,
+  BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,  tkDotDot,
                tkand, tkShl,tkShr, tkas, tkPower,
                tkPlus, tkMinus, tkor, tkxor, tkSymmetricalDifference,
                tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan,
@@ -1350,6 +1355,7 @@ const
   end;
 
 begin
+  //DumpCurToken('Entry',iaIndent);
   Result:=nil;
   expstack := TFPList.Create;
   opstack := TFPList.Create;
@@ -1358,7 +1364,7 @@ begin
       NotBinary:=True;
       pcount:=0;
       if not Assigned(InitExpr) then
-      begin
+        begin
         // the first part of the expression has been parsed externally.
         // this is used by Constant Expresion parser (CEP) parsing only,
         // whenever it makes a false assuming on constant expression type.
@@ -1372,13 +1378,15 @@ begin
         //
         // quite ugly. type information is required for CEP to work clean
 
-        while CurToken in PrefixSym do begin
+        while CurToken in PrefixSym do
+          begin
           PushOper(CurToken);
           inc(pcount);
           NextToken;
-        end;
+          end;
 
-        if CurToken = tkBraceOpen then begin
+        if (CurToken = tkBraceOpen) then
+          begin
           NextToken;
           x:=DoParseExpression(AParent);
           if CurToken<>tkBraceClose then
@@ -1387,21 +1395,27 @@ begin
             Exit;
             end;
           NextToken;
+          //     DumpCurToken('Here 1');
+               // for the expression like  (TObject(m)).Free;
+               if (x<>Nil) and (CurToken=tkDot) then
+                 begin
+                 NextToken;
+          //       DumpCurToken('Here 2');
+                 x:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
+          //       DumpCurToken('Here 3');
+                 end;
 
-          // for the expression like  (TObject(m)).Free;
-          if CurToken = tkDot then begin
-            NextToken;
-            x:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
-          end;
-
-        end else begin
+          end
+        else
+          begin
           x:=ParseExpIdent(AParent);
-        end;
-
-        if not Assigned(x) then Exit;
+          end;
+        if not Assigned(x) then
+          Exit;
         expstack.Add(x);
 
-        for i:=1 to pcount do begin
+        for i:=1 to pcount do
+          begin
           tempop:=PopOper;
           x:=popexp;
           if (tempop=tkMinus) and (X.Kind=pekRange) then
@@ -1409,16 +1423,17 @@ begin
             TBinaryExpr(x).Left:=TUnaryExpr.Create(x, TBinaryExpr(X).left, eopSubtract);
             expstack.Add(x);
             end
-           else
+          else
             expstack.Add( TUnaryExpr.Create(AParent, x, TokenToExprOp(tempop) ));
-        end;
-
-      end else
-      begin
+          end;
+        end
+      else
+        begin
         expstack.Add(InitExpr);
         InitExpr:=nil;
-      end;
-      if (CurToken in BinaryOP) then begin
+        end;
+      if (CurToken in BinaryOP) then
+        begin
         // Adjusting order of the operations
         NotBinary:=False;
         tempop:=PeekOper;
@@ -1428,8 +1443,8 @@ begin
         end;
         PushOper(CurToken);
         NextToken;
-      end;
-
+        end;
+     // Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
     until NotBinary or isEndOfExp;
 
     if not NotBinary then ParseExc(SParserExpectedIdentifier);
@@ -1440,6 +1455,10 @@ begin
     if expstack.Count=1 then Result:=TPasExpr(expstack[0]);
 
   finally
+    {if Not Assigned(Result) then
+      DumpCurToken('Exiting (no result)',iaUndent)
+    else
+      DumpCurtoken('Exiting (Result: "'+Result.GetDeclaration(true)+'") ',iaUndent);}
     if not Assigned(Result) then begin
       // expression error!
       for i:=0 to expstack.Count-1 do
@@ -3340,6 +3359,8 @@ begin
           NextToken;
           TPasImplRaise(el).ExceptAddr:=DoParseExpression(el);
           end;
+        if Curtoken in [tkSemicolon,tkEnd] then
+          UngetToken
         end;
       end;
     tkend:
@@ -3547,10 +3568,14 @@ begin
   Until Done;
 end;
 
-procedure TPasParser.DumpCurToken(Const Msg : String);
+procedure TPasParser.DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
 begin
-  Writeln(Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'"',Scanner.CurFilename,'(',Scanner.CurRow,',',SCanner.CurColumn,') : ',Scanner.CurLine);
-  Flush(output)
+  if IndentAction=iaUndent then
+    FDumpIndent:=copy(FDumpIndent,1,Length(FDumpIndent)-2);
+  Writeln(FDumpIndent,Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'", Position: ',Scanner.CurFilename,'(',Scanner.CurRow,',',SCanner.CurColumn,') : ',Scanner.CurLine);
+  if IndentAction=iaIndent then
+    FDumpIndent:=FDumpIndent+'  ';
+  Flush(output);
 end;
 
 // Starts on first token after Record or (. Ends on AEndToken

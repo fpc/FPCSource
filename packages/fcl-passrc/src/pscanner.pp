@@ -905,7 +905,10 @@ end;
 
 procedure TBaseFileResolver.AddIncludePath(const APath: string);
 begin
-  FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
+  if (APath='') then
+    FIncludePaths.Add('./')
+  else
+    FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
 end;
 
 { ---------------------------------------------------------------------

@@ -104,6 +104,10 @@ begin
 end;
 
 procedure TPasSrcAnalysis.CheckParser;
+
+Var
+  D : String;
+
 begin
   If (FParser<>Nil) then
     exit;
@@ -115,11 +119,16 @@ begin
       end
     else
       FResolver:=TFileResolver.Create;
-    FResolver.BaseDirectory:=ExtractFilePath(Filename);
+    D:=ExtractFilePath(FileName);
+    If (D='') then
+      D:='.';
+    FResolver.BaseDirectory:=D;
+    FResolver.AddIncludePath(D);
     FScanner:=TPascalScanner.Create(FResolver);
     FScanner.OpenFile(FileName);
     FContainer:=TSrcContainer.Create;
     FParser:=TPasParser.Create(FScanner,FResolver,FContainer);
+    FScanner.AddDefine('FPC');
   except
     FreeParser;
     Raise;

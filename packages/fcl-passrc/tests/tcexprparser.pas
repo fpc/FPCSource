@@ -118,6 +118,8 @@ type
     Procedure TestPrecedencePlusMod;
     Procedure TestPrecedenceMultiplyDiv;
     Procedure TestPrecedenceDivMultiply;
+    Procedure TestTypeCast;
+    Procedure TestCreate;
   end;
 
 implementation
@@ -458,6 +460,18 @@ procedure TTestExpressions.TestPrecedenceDivMultiply;
 begin
   ParseExpression('1 div 2 * 3');
   AssertLeftPrecedence(1,eopDiv,2,eopMultiply,3);
+end;
+
+procedure TTestExpressions.TestTypeCast;
+begin
+  DeclareVar('TSDOBaseDataObjectClass');
+  ParseExpression('TSDOBaseDataObjectClass(Self.ClassType).Create');
+end;
+
+procedure TTestExpressions.TestCreate;
+begin
+  DeclareVar('ESDOSerializationException');
+  ParseExpression('ESDOSerializationException.CreateFmt(SERR_InvalidDataTypeInContext,[IntToStr(Ord(AOwner^.DataType))])');
 end;
 
 
