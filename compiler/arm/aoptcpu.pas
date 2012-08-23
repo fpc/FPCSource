@@ -361,7 +361,7 @@ Implementation
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
             if ((taicpu(p).opcode in [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,
-                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_UMULL,A_UMULAL])
+                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_UMULL,A_UMLAL])
                ) and
               (taicpu(p).oppostfix = PF_None) and
               (taicpu(p).condition = C_None) and
