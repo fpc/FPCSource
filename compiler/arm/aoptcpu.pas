@@ -360,10 +360,8 @@ Implementation
             }
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
-            if ((taicpu(p).opcode in [A_ADC,A_ADD,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND]) or
-                 { those two values are > 255 so check separately }
-                 (taicpu(p).opcode=A_UDIV) or
-                 (taicpu(p).opcode=A_SDIV)
+            if ((taicpu(p).opcode in [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,
+                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_UMULL,A_UMULAL])
                ) and
               (taicpu(p).oppostfix = PF_None) and
               (taicpu(p).condition = C_None) and
@@ -377,7 +375,7 @@ Implementation
               { be careful here, following instructions could use other flags
                 however after a jump fpc never depends on the value of flags }
               (taicpu(hp2).opcode = A_B) and
-              (((taicpu(p).opcode in [A_ADC,A_ADD,A_SUB]) and
+              (((taicpu(p).opcode in [A_ADC,A_ADD,A_SBC,A_SUB]) and
                 (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL])) or
                 (taicpu(hp2).condition in [C_EQ,C_NE])) and
                assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
