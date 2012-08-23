@@ -7,7 +7,7 @@ name=pas2fpm
 version=2.7.1
 
 [require]
-packages=fcl-passrc
+packages=fcl-passrc fcl-base
 
 [target]
 programs=pas2fpm
