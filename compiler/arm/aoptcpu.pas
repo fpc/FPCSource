@@ -987,13 +987,13 @@ Implementation
                           { new offset must be valid: either in the range of 8 or 12 bit, depend on the
                             ldr postfix }
                           (((taicpu(p).opcode=A_ADD) and
-                            (((taicpu(hp1).oppostfix=PF_None) and
+                            (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
                               (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<4096)) or
                              (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<256)
                             )
                            ) or
                            ((taicpu(p).opcode=A_SUB) and
-                             (((taicpu(hp1).oppostfix=PF_None) and
+                             (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
                                (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<4096)) or
                               (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<256)
                              )
