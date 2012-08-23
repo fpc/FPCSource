@@ -71,7 +71,7 @@ implementation
                                TElfAssemblerSparc
 ****************************************************************************}
 
-  constructor TElfAssembleri386.create(smart:boolean);
+  constructor TElfAssemblerSparc.create(smart:boolean);
     begin
       inherited Create(smart);
       CObjOutput:=TElfObjOutputSparc;
@@ -89,7 +89,8 @@ implementation
          idtxt  : 'ELF';
          asmbin : '';
          asmcmd : '';
-         supported_targets : [];
+         supported_targets : [system_sparc_linux, system_sparc_solaris,
+                              system_sparc_embedded];
 //            flags : [af_outputbinary,af_smartlink_sections];
          flags : [af_outputbinary,af_supports_dwarf];
          labelprefix : '.L';
