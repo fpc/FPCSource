@@ -1220,7 +1220,8 @@ implementation
                      else
                       { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
-                         (tpointerdef(def_to).pointeddef.typ=forwarddef) then
+                         ((tpointerdef(def_to).pointeddef.typ=forwarddef) or
+                          (tpointerdef(def_from).pointeddef.typ=forwarddef)) then
                        begin
                          if (def_from.typesym=def_to.typesym) or
                             (fromtreetype=niln) then
@@ -1559,7 +1560,9 @@ implementation
              begin
                { similar to pointerdef wrt forwards }
                if assigned(def_to.typesym) and
-                  (tclassrefdef(def_to).pointeddef.typ=forwarddef) then
+                  (tclassrefdef(def_to).pointeddef.typ=forwarddef) or
+                  ((def_from.typ=classrefdef) and
+                   (tclassrefdef(def_from).pointeddef.typ=forwarddef)) then
                  begin
                    if (def_from.typesym=def_to.typesym) or
                       (fromtreetype=niln) then
