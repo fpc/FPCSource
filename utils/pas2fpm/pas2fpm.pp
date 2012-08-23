@@ -17,8 +17,7 @@ type
     procedure AddLine(const ALine: String);
     function CheckParams : boolean;
     procedure CreateSources;
-    function GetUnitProps(const FN: String; out Res: Boolean; U: TStrings
-      ): Boolean;
+    function GetUnitProps(const FN: String; out Res: Boolean; U: TStrings; Out Err : string): Boolean;
     procedure WriteProgEnd;
     procedure WriteProgStart;
     procedure WriteSources;
@@ -26,6 +25,8 @@ type
     FFiles,
     FSrc,
     FUnits: TStrings;
+    InterfaceUnitsOnly : Boolean;
+    FPackageName : string;
     FOutputFile : string;
     procedure DoRun; override;
   public
@@ -37,6 +38,24 @@ type
 { TPas2FPMakeApp }
 
 Function TPas2FPMakeApp.CheckParams : Boolean;
+
+  Procedure AddFileMask(S : String);
+
+  Var
+    Info : TSearchRec;
+    D : String;
+
+  begin
+    D:=ExtractFilePath(S);
+    If FindFirst(S,0,Info)=0 then
+      try
+        Repeat
+          FFiles.Add(D+Info.Name);
+        until (FindNext(Info)<>0);
+      finally
+        FindClose(Info);
+      end;
+  end;
 
 Var
   I : Integer;
@@ -52,12 +71,28 @@ begin
       begin
       if S[1]<>'-' then
         begin
-        FFiles.Add(S);
-        FUnits.Add(ChangeFileExt(ExtractFileName(S),''));
+        If (Pos('?',S)<>0) or (Pos('*',S)<>0) then
+          AddFileMask(S)
+        else if comparetext(ChangeFileExt(extractfilename(s),''),'fpmake')<>0 then
+          begin
+          FFiles.Add(S);
+          FUnits.Add(ChangeFileExt(ExtractFileName(S),''));
+          end;
         end
       else
         begin
-        If (s='-o') then
+        If (s='o') then
+          begin
+          inc(I);
+          FoutputFile:=ParamStr(i);
+          end
+        else If (s='-i') then
+          InterfaceUnitsOnly:=True
+        else if (s='-p') then
+          begin
+          Inc(i);
+          FPackageName:=ParamStr(i);
+          end
         else
           begin
           Result:=False;
@@ -76,7 +111,7 @@ begin
   FSrc.Add(ALine);
 end;
 
-Function TPas2FPMakeApp.GetUnitProps(Const FN : String; Out Res : Boolean; U : TStrings) : Boolean;
+Function TPas2FPMakeApp.GetUnitProps(Const FN : String; Out Res : Boolean; U : TStrings; Out Err : string) : Boolean;
 
 Var
   I : Integer;
@@ -89,7 +124,10 @@ begin
     try
       A.FileName:=FN;
       Res:=A.HasResourcestrings;
-      A.GetUsedUnits(U);
+      if InterfaceUnitsOnly then
+        A.GetInterfaceUnits(U)
+      else
+        A.GetUsedUnits(U);
       For I:=U.Count-1 downto 0 do
         if FUnits.IndexOf(U[i])=-1 then
           U.Delete(i);
@@ -98,8 +136,11 @@ begin
     end;
     Result:=True;
   except
+    On E : Exception do
+      Err:=E.Message;
     // Ignore
   end;
+
 end;
 
 procedure TPas2FPMakeApp.WriteProgStart;
@@ -115,6 +156,7 @@ begin
   AddLine('begin');
   AddLine('  With Installer do');
   AddLine('    begin');
+  AddLine('    P:=AddPackage('''+FPackageName+''');');
   AddLine('    P.Version:=''0.0'';');
 //  AddLine('    P.Dependencies.Add('fcl-base');
   AddLine('    P.Author := ''Your name'';');
@@ -139,7 +181,7 @@ procedure TPas2FPMakeApp.CreateSources;
 Var
   I,j : Integer;
   U : TStrings;
-  FN : String;
+  FN,Err : String;
   R : Boolean;
 
 begin
@@ -149,8 +191,8 @@ begin
     FN:=FFiles[i];
     AddLine('    T:=P.Targets.AddUnit('''+FN+''');');
     U:=TStringList.Create;
-    if not GetUnitProps(Fn,R,U) then
-      AddLine('    // Failed to analyse unit '+FN)
+    if not GetUnitProps(Fn,R,U,Err) then
+      AddLine('    // Failed to analyse unit "'+Fn+'". Error: "'+Err+'"')
     else
       begin
       if R then
@@ -210,6 +252,7 @@ begin
   FFiles:=TStringList.Create;
   FSrc:=TStringList.Create;
   FUnits:=TStringList.Create;
+  FPackageName:='Your package name here';
 end;
 
 destructor TPas2FPMakeApp.Destroy;
@@ -223,7 +266,12 @@ end;
 procedure TPas2FPMakeApp.WriteHelp;
 begin
   { add your help code here }
-  writeln('Usage: ',ExeName,' [-h] [-o outputfile] file1 .. filen');
+  writeln('Usage: ',ExeName,' [options] file1 .. filen');
+  Writeln('Where [options] is one or more of');
+  Writeln(' -h               This help');
+  Writeln(' -p packagename   Set package name');
+  Writeln(' -i               Use interface units only for checking dependencies');
+  Writeln(' -o outputfile    Set output filename (default is standard output)');
 end;
 
 var
