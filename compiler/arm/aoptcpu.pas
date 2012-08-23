@@ -950,6 +950,71 @@ Implementation
                         asml.remove(hp1);
                         hp1.free;
                       end;
+                   {
+                      change
+                      add/sub reg2,reg1,const1
+                      str/ldr reg3,[reg2,const2]
+                      dealloc reg2
+                      to
+                      str/ldr reg3,[reg1,const2+/-const1]
+                    }
+                    if (taicpu(p).opcode in [A_ADD,A_SUB]) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_const) then
+                      begin
+                        hp1:=p;
+                        while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) and
+                          (MatchInstruction(hp1, A_LDR, [taicpu(p).condition], [PF_None]) or
+                           MatchInstruction(hp1, A_STR, [taicpu(p).condition], [PF_None])) and
+                          (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
+                          (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
+                          (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                          { new offset must be valid: either in the range of 8 or 12 bit, depend on the
+                            ldr postfix }
+                          (((taicpu(p).opcode=A_ADD) and
+                            (((taicpu(hp1).oppostfix=PF_None) and
+                              (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<4096)) or
+                             (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<256)
+                            )
+                           ) or
+                           ((taicpu(p).opcode=A_SUB) and
+                             (((taicpu(hp1).oppostfix=PF_None) and
+                               (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<4096)) or
+                              (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<256)
+                             )
+                           )
+                          ) do
+                          begin
+                            { reg2 might not be changed inbetween }
+                            if RegModifiedBetween(taicpu(p).oper[0]^.reg,p,hp1) then
+                              break;
+                            { reg2 must be either overwritten by the ldr or it is deallocated afterwards }
+                            if ((taicpu(hp1).opcode=A_LDR) and (taicpu(p).oper[0]^.reg=taicpu(hp1).oper[0]^.reg)) or
+                              assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) then
+                              begin
+                                { remember last instruction }
+                                hp2:=hp1;
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole Add/SubLdr2Ldr done')), p);
+                                hp1:=p;
+                                { fix all ldr/str }
+                                while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) do
+                                  begin
+                                    taicpu(hp1).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
+                                    if taicpu(p).opcode=A_ADD then
+                                      inc(taicpu(hp1).oper[1]^.ref^.offset,taicpu(p).oper[2]^.val)
+                                    else
+                                      dec(taicpu(hp1).oper[1]^.ref^.offset,taicpu(p).oper[2]^.val);
+                                    if hp1=hp2 then
+                                      break;
+                                  end;
+                                GetNextInstruction(p,hp1);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp1;
+                                break;
+                              end;
+                          end;
+                      end;
                     {
                       change
                       add reg1, ...
