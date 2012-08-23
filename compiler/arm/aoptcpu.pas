@@ -351,7 +351,6 @@ Implementation
       case p.typ of
         ait_instruction:
           begin
-            (* optimization proved not to be safe, see tw4768.pp
             {
               change
               <op> reg,x,y
@@ -361,27 +360,34 @@ Implementation
             }
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
-            if (taicpu(p).opcode in [A_ADC,A_ADD,A_SUB {A_UDIV,A_SDIV,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND}]) and
+            if ((taicpu(p).opcode in [A_ADC,A_ADD,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND]) or
+                 { those two values are > 255 so check separately }
+                 (taicpu(p).opcode=A_UDIV) or
+                 (taicpu(p).opcode=A_SDIV)
+               ) and
               (taicpu(p).oppostfix = PF_None) and
               (taicpu(p).condition = C_None) and
               GetNextInstruction(p, hp1) and
               MatchInstruction(hp1, A_CMP, [C_None], [PF_None]) and
               (taicpu(hp1).oper[1]^.typ = top_const) and
               (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
-              (taicpu(hp1).oper[1]^.val = 0) { and
+              (taicpu(hp1).oper[1]^.val = 0) and
               GetNextInstruction(hp1, hp2) and
               (tai(hp2).typ = ait_instruction) and
-              // be careful here, following instructions could use other flags
-              // however after a jump fpc never depends on the value of flags
+              { be careful here, following instructions could use other flags
+                however after a jump fpc never depends on the value of flags }
               (taicpu(hp2).opcode = A_B) and
-              (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL])} then
+              (((taicpu(p).opcode in [A_ADC,A_ADD,A_SUB]) and
+                (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL])) or
+                (taicpu(hp2).condition in [C_EQ,C_NE])) and
+               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
                taicpu(p).oppostfix:=PF_S;
+               asml.insertbefore(tai_comment.Create(strpnew('Peephole OpCmp2OpS done')), p);
                asml.remove(hp1);
                hp1.free;
              end
            else
-           *)
               case taicpu(p).opcode of
                 A_STR:
                   begin
