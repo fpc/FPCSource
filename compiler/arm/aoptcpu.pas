@@ -361,7 +361,7 @@ Implementation
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
             if ((taicpu(p).opcode in [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,
-                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_UMULL,A_UMLAL])
+                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_MLA])
                ) and
               (taicpu(p).oppostfix = PF_None) and
               (taicpu(p).condition = C_None) and
@@ -375,10 +375,13 @@ Implementation
               { be careful here, following instructions could use other flags
                 however after a jump fpc never depends on the value of flags }
               (taicpu(hp2).opcode = A_B) and
-              (((taicpu(p).opcode in [A_ADC,A_ADD,A_SBC,A_SUB]) and
-                (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL])) or
-                (taicpu(hp2).condition in [C_EQ,C_NE])) and
-               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
+              { All above instructions set Z and N according to the following
+                Z := result = 0;
+                N := result[31];
+                EQ = Z=1; NE = Z=0;
+                MI = N=1; PL = N=0; }
+              (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL]) and
+              assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
                asml.insertbefore(tai_comment.Create(strpnew('Peephole OpCmp2OpS done')), p);
 
