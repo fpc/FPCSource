@@ -378,6 +378,15 @@ Implementation
          MatchInstruction(hp1, A_SUB, [C_None], [PF_None])) and
         (taicpu(hp1).oper[0]^.reg=p.oper[1]^.ref^.base) and
         (taicpu(hp1).oper[1]^.reg=p.oper[1]^.ref^.base) and
+        (
+         (taicpu(hp1).oper[2]^.typ=top_reg) or
+         { valid offset? }
+         ((taicpu(hp1).oper[2]^.typ=top_const) and
+          ((abs(taicpu(hp1).oper[2]^.val)<256) or
+           ((abs(taicpu(hp1).oper[2]^.val)<4096) and (p.oppostfix in [PF_None,PF_B]))
+          )
+         )
+        ) and
         { don't apply the optimization if the base register is loaded }
         (p.oper[0]^.reg<>p.oper[1]^.ref^.base) and
         not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
