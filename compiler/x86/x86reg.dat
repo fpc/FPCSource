@@ -77,8 +77,8 @@ NR_R15W,$0103000f,r15w,%r15w,r15w,r15w,-1,-1,15,OT_REG16,7,64
 NR_R15D,$0104000f,r15d,%r15d,r15d,r15d,-1,-1,15,OT_REG32,7,64
 
 ; EIP is needed for DWARF call frame info return address (RA)
-NR_RIP,$05000000,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
-NR_EIP,$05000000,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
+NR_RIP,$05050000,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
+NR_EIP,$05040000,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
 NR_CS,$05000001,cs,%cs,cs,cs,-1,-1,-1,OT_REG_CS,1
 NR_DS,$05000002,ds,%ds,ds,ds,-1,-1,-1,OT_REG_DESS,3
 NR_ES,$05000003,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
