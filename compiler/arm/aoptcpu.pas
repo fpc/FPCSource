@@ -380,7 +380,10 @@ Implementation
         (taicpu(hp1).oper[1]^.reg=p.oper[1]^.ref^.base) and
         { don't apply the optimization if the base register is loaded }
         (p.oper[0]^.reg<>p.oper[1]^.ref^.base) and
-        not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) then
+        not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
+        { don't apply the optimization if the (new) index register is loaded }
+        (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
+        not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
@@ -393,7 +396,7 @@ Implementation
             end
           else
             begin
-              p.oper[1]^.ref^.index:=taicpu(hp1).oper[1]^.reg;
+              p.oper[1]^.ref^.index:=taicpu(hp1).oper[2]^.reg;
               if taicpu(hp1).opcode=A_ADD then
                 p.oper[1]^.ref^.signindex:=1
               else
