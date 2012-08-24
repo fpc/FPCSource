@@ -9,6 +9,10 @@ program ValidateStrToInt;
 {$ifdef cpuarm}
   {$define slowcpu}
 {$endif}
+{$ifdef cpumips}
+  {$define slowcpu}
+{$endif}
+
 
 uses
   SysUtils;
