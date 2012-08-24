@@ -839,6 +839,7 @@ implementation
       var
         oldtypesym : tsym;
       begin
+        tobjectdef(def).symtable.symList.ForEachCall(@field_write_defs,list);
         { classes require special code to write the record and the invisible pointer }
         if is_class(def) then
           begin
@@ -1080,7 +1081,6 @@ implementation
                     for i:=0 to anc.ImplementedInterfaces.Count-1 do
                       appenddef(list,TImplementedInterface(anc.ImplementedInterfaces[i]).IntfDef);
                 end;
-              tobjectdef(def).symtable.symList.ForEachCall(@field_write_defs,list);
             end;
         end;
       end;
