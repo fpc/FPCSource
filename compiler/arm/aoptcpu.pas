@@ -99,6 +99,15 @@ Implementation
         (r1.shiftmode = r2.shiftmode);
     end;
 
+  function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((op = []) or (taicpu(instr).opcode in op)) and
+      ((cond = []) or (taicpu(instr).condition in cond)) and
+      ((postfix = []) or (taicpu(instr).oppostfix in postfix));
+  end;
+
   function MatchInstruction(const instr: tai; const op: TAsmOp; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
   begin
     result :=
@@ -372,10 +381,8 @@ Implementation
         (p.oper[1]^.ref^.index=NR_NO) and
         (p.oper[1]^.ref^.offset=0) and
         GetNextInstructionUsingReg(p, hp1, p.oper[1]^.ref^.base) and
-        (hp1.typ=ait_instruction) and
         { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
-        (MatchInstruction(hp1, A_ADD, [C_None], [PF_None]) or
-         MatchInstruction(hp1, A_SUB, [C_None], [PF_None])) and
+        MatchInstruction(hp1, [A_ADD, A_SUB], [C_None], [PF_None]) and
         (taicpu(hp1).oper[0]^.reg=p.oper[1]^.ref^.base) and
         (taicpu(hp1).oper[1]^.reg=p.oper[1]^.ref^.base) and
         (
@@ -444,11 +451,8 @@ Implementation
             }
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
-            if ((taicpu(p).opcode in [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,
-                                      A_ORR,A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_MLA])
-               ) and
-              (taicpu(p).oppostfix = PF_None) and
-              (taicpu(p).condition = C_None) and
+            if MatchInstruction(p, [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND,
+                                 A_RSB,A_RSC,A_SBC,A_MLA], [C_None], [PF_None]) and
               GetNextInstruction(p, hp1) and
               MatchInstruction(hp1, A_CMP, [C_None], [PF_None]) and
               (taicpu(hp1).oper[1]^.typ = top_const) and
@@ -879,12 +883,11 @@ Implementation
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstruction(p, hp1) and
-                       (tai(hp1).typ = ait_instruction) and
-                       (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
-                                               A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN]) and
+                       MatchInstruction(hp1, [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
+                                              A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
+                                        [C_NONE, taicpu(hp1).condition], []) and
                        {MOV and MVN might only have 2 ops}
                        (taicpu(hp1).ops = 3) and
-                       (taicpu(hp1).condition in [C_NONE, taicpu(hp1).condition]) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp1).oper[1]^.typ = top_reg) and
                        (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop]) then
@@ -923,14 +926,12 @@ Implementation
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstruction(p, hp1) and
-                       (tai(hp1).typ = ait_instruction) and
+                       MatchInstruction(hp1, [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
+                                              A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
+                                              A_CMP, A_CMN],
+                                        [taicpu(p).condition], [PF_None]) and
                        (taicpu(hp1).ops >= 2) and {Currently we can't fold into another shifterop}
                        (taicpu(hp1).oper[taicpu(hp1).ops-1]^.typ = top_reg) and
-                       (taicpu(hp1).oppostfix = PF_NONE) and
-                       (taicpu(hp1).condition = taicpu(p).condition) and
-                       (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
-                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
-                                               A_CMP, A_CMN]) and
                        (
                          {Only ONE of the two src operands is allowed to match}
                          MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-2]^) xor
@@ -1050,8 +1051,7 @@ Implementation
                         hp1:=p;
                         while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) and
                           { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
-                          (MatchInstruction(hp1, A_LDR, [C_None], []) or
-                           MatchInstruction(hp1, A_STR, [C_None], [])) and
+                          MatchInstruction(hp1, [A_LDR, A_STR], [C_None], []) and
                           (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
                           { don't optimize if the register is stored/overwritten }
                           (taicpu(hp1).oper[0]^.reg<>taicpu(p).oper[1]^.reg) and
