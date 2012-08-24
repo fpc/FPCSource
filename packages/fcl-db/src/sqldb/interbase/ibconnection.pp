@@ -128,6 +128,10 @@ implementation
 uses
   strutils, FmtBCD;
 
+const
+  SQL_BOOLEAN_INTERBASE = 590;
+  SQL_BOOLEAN_FIREBIRD = 32764;
+
 type
   TTm = packed record
     tm_sec : longint;
@@ -474,7 +478,7 @@ begin
       end;
     SQL_BLOB :
       begin
-        if SQLSubType = 1 then
+        if SQLSubType = isc_blob_text then
            TrType := ftMemo
         else
            TrType := ftBlob;
@@ -490,6 +494,8 @@ begin
         TrType := ftFloat;
     SQL_FLOAT :
         TrType := ftFloat;
+    SQL_BOOLEAN_INTERBASE, SQL_BOOLEAN_FIREBIRD :
+        TrType := ftBoolean;
     else
         TrType := ftUnknown;
   end;
@@ -850,7 +856,7 @@ begin
               i := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
-        SQL_SHORT :
+        SQL_SHORT, SQL_BOOLEAN_INTERBASE :
           begin
             if VSQLVar^.sqlscale = 0 then
               si := AParams[ParNr].AsSmallint
@@ -898,6 +904,8 @@ begin
           end;
         SQL_DOUBLE, SQL_FLOAT:
           SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
+        SQL_BOOLEAN_FIREBIRD:
+          PByte(VSQLVar^.SQLData)^ := Byte(AParams[ParNr].AsBoolean);
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
@@ -909,7 +917,7 @@ end;
 function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
-  x          : integer;
+  VSQLVar    : PXSQLVAR;
   VarcharLen : word;
   CurrBuff     : pchar;
   c            : currency;
@@ -928,21 +936,21 @@ begin
     begin
     {$push}
     {$R-}
-    x := FieldBinding[FieldDef.FieldNo-1];
+    VSQLVar := @SQLDA^.SQLVar[ FieldBinding[FieldDef.FieldNo-1] ];
 
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
     // shoudn't do that. ;) (The same is done in PQConnection)
 
-    // if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
+    // if VSQLVar^.AliasName <> FieldDef.Name then
     // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
-    if assigned(SQLDA^.SQLVar[x].SQLInd) and (SQLDA^.SQLVar[x].SQLInd^ = -1) then
+    if assigned(VSQLVar^.SQLInd) and (VSQLVar^.SQLInd^ = -1) then
       result := false
     else
       begin
 
-      with SQLDA^.SQLVar[x] do
+      with VSQLVar^ do
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
@@ -958,13 +966,13 @@ begin
       case FieldDef.DataType of
         ftBCD :
           begin
-            case SQLDA^.SQLVar[x].SQLLen of
-              2 : c := PSmallint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
-              4 : c := PLongint(CurrBuff)^  / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
+            case VSQLVar^.SQLLen of
+              2 : c := PSmallint(CurrBuff)^ / IntPower10(-VSQLVar^.SQLScale);
+              4 : c := PLongint(CurrBuff)^  / IntPower10(-VSQLVar^.SQLScale);
               8 : if Dialect < 3 then
                     c := PDouble(CurrBuff)^
                   else
-                    c := PLargeint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
+                    c := PLargeint(CurrBuff)^ / IntPower10(-VSQLVar^.SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
@@ -972,13 +980,13 @@ begin
           end;
         ftFMTBcd :
           begin
-            case SQLDA^.SQLVar[x].SQLLen of
-              2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
-              4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -SQLDA^.SQLVar[x].SQLScale);
+            case VSQLVar^.SQLLen of
+              2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
+              4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -VSQLVar^.SQLScale);
               8 : if Dialect < 3 then
                     AFmtBcd := PDouble(CurrBuff)^
                   else
-                    AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
+                    AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -VSQLVar^.SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
@@ -987,34 +995,40 @@ begin
         ftInteger :
           begin
             FillByte(buffer^,sizeof(Longint),0);
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VSQLVar^.SQLLen);
           end;
         ftLargeint :
           begin
             FillByte(buffer^,sizeof(LargeInt),0);
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VSQLVar^.SQLLen);
           end;
         ftSmallint :
           begin
             FillByte(buffer^,sizeof(Smallint),0);
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VSQLVar^.SQLLen);
           end;
         ftDate, ftTime, ftDateTime:
-          GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
+          GetDateTime(CurrBuff, Buffer, VSQLVar^.SQLType);
         ftString, ftFixedChar  :
           begin
             Move(CurrBuff^, Buffer^, VarCharLen);
             PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
-          GetFloat(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLLen);
+          GetFloat(CurrBuff, Buffer, VSQLVar^.SQLLen);
         ftBlob,
         ftMemo :
           begin  // load the BlobIb in field's buffer
             FillByte(buffer^,sizeof(TBufBlobField),0);
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VSQLVar^.SQLLen);
           end;
-
+        ftBoolean :
+          begin
+            case VSQLVar^.SQLLen of
+              1: PWordBool(Buffer)^ := PByte(CurrBuff)^ <> 0; // Firebird
+              2: PWordBool(Buffer)^ := PSmallint(CurrBuff)^ <> 0; // Interbase
+            end;
+          end
         else
           begin
             result := false;
