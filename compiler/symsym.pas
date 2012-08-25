@@ -191,6 +191,7 @@ interface
           inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
+          function globalasmsym: boolean;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -1549,6 +1550,18 @@ implementation
          fillchar(localloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          ppufile.getderef(defaultconstsymderef);
+      end;
+
+    function tabstractnormalvarsym.globalasmsym: boolean;
+      begin
+        result:=
+          (owner.symtabletype=globalsymtable) or
+          (create_smartlink and
+           not(tf_smartlink_sections in target_info.flags)) or
+          DLLSource or
+          (assigned(current_procinfo) and
+           (po_inline in current_procinfo.procdef.procoptions)) or
+          (vo_is_public in varoptions);
       end;
 
 

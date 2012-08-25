@@ -499,12 +499,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      if (sym.owner.symtabletype=globalsymtable) or
-         create_smartlink or
-         DLLSource or
-         (assigned(current_procinfo) and
-          (po_inline in current_procinfo.procdef.procoptions)) or
-         (vo_is_public in sym.varoptions) then
+      if sym.globalasmsym then
         begin
           { on AIX/stabx, we cannot generate debug information that encodes
             the address of a global symbol, you need a symbol with the same

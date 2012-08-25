@@ -137,11 +137,7 @@ implementation
               new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
             else
               new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
-            if (sym.owner.symtabletype=globalsymtable) or
-               create_smartlink or
-               (assigned(current_procinfo) and
-                (po_inline in current_procinfo.procdef.procoptions)) or
-               DLLSource then
+            if sym.globalasmsym then
               begin
                 { see same code in ncgutil.insertbssdata }
                 if (target_dbg.id=dbg_stabx) and
