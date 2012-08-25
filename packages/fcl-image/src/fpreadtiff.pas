@@ -2181,6 +2181,8 @@ var
     p: PByte;
   begin
     //WriteLn('AddStringToTable Code=',Code,' FCFCode=',AddFirstCharFromCode,' TableCount=',TableCount,' TableCapacity=',TableCapacity);
+    if TableCount=4096-259 then
+      Error('LZW too many codes');
     // grow table
     if TableCount>=TableCapacity then begin
       TableCapacity:=TableCapacity*2+128;
@@ -2223,7 +2225,6 @@ var
     inc(TableCount);
     case TableCount+259 of
     512,1024,2048: inc(CurBitLength);
-    4096: Error('LZW too many codes');
     end;
   end;
 
