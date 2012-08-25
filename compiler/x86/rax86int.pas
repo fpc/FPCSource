@@ -1626,6 +1626,14 @@ Unit Rax86int;
               begin
                 case oper.opr.typ of
                   OPR_REFERENCE :
+{$ifndef x86_64}
+                    { this is for the i386 scenario where you have
+                        <load got into ebx>
+                        mov eax, [ebx].offset globalvar
+
+                      x86-64 uses RIP-based addresses (both for GOT and non-GOT
+                      relative accesses)
+                    }
                     if (actasmtoken=AS_OFFSET) and
                        (cs_create_pic in current_settings.moduleswitches) then
                       begin
@@ -1634,6 +1642,7 @@ Unit Rax86int;
                         BuildOperand(oper,false);
                       end
                     else
+{$endif x86_64}
                       inc(oper.opr.ref.offset,BuildRefConstExpression);
                   OPR_LOCAL :
                     inc(oper.opr.localsymofs,BuildConstExpression);
