@@ -745,6 +745,9 @@ const
   asmr_e_seh_in_pure_asm_only=07114;
   asmr_e_unsupported_directive=07115;
   asmr_e_complex_function_result_location=07116;
+  asmr_e_wrong_gotpcrel_intel_syntax=07117;
+  asmr_e_no_gotpcrel_support=07118;
+  asmr_w_global_access_without_got=07119;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -947,9 +950,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 66296;
+  MsgTxtSize = 66541;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,323,120,87,56,117,26,202,63,
+    26,92,323,120,87,56,120,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

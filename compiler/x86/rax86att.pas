@@ -326,15 +326,6 @@ Implementation
 {$endif i386}
                     begin
                       oper.opr.ref.refaddr:=addr_pic;
-{$ifdef x86_64}
-                      { local symbols don't have to
-                        be accessed via the GOT
-                      }
-                      if (actasmpattern='GOTPCREL') and
-                         assigned(oper.opr.ref.symbol) and
-                         (oper.opr.ref.symbol.bind=AB_LOCAL) then
-			Message(asmr_w_useless_got_for_local);
-{$endif x86_64}
                       consume(AS_ID);
                     end
                   else

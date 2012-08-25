@@ -44,7 +44,7 @@ Unit Rax86int;
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
-      AS_AND,AS_OR,AS_XOR);
+      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL);
 
     type
        tx86intreader = class(tasmreader)
@@ -103,7 +103,7 @@ Unit Rax86int;
        firstdirective = AS_ALIGN;
        lastdirective  = AS_END;
        firstoperator  = AS_BYTE;
-       lastoperator   = AS_XOR;
+       lastoperator   = AS___GOTPCREL;
 
        _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
@@ -116,7 +116,7 @@ Unit Rax86int;
        _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
         'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','NEAR','FAR','HIGH',
         'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
-        'OR','XOR');
+        'OR','XOR','WRT','GOTPCREL');
 
       token2str : array[tasmtoken] of string[10] = (
         '','Label','LLabel','String','Integer',
@@ -126,7 +126,7 @@ Unit Rax86int;
         '','','','','','END',
         '','','','','','','','','',
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
-        'and','or','xor'
+        'and','or','xor','wrt','..gotpcrel'
       );
 
     var
@@ -591,8 +591,26 @@ Unit Rax86int;
 
              '.' :
                begin
-                 actasmtoken:=AS_DOT;
                  c:=current_scanner.asmgetchar;
+{$ifdef x86_64}
+                 if c='.' then
+                   begin
+                     actasmpattern:='..';
+                     c:=current_scanner.asmgetchar;
+                     repeat
+                       actasmpattern:=actasmpattern+c;
+                       c:=current_scanner.asmgetchar;
+                     until not(c in ['A'..'Z','a'..'z','0'..'9','_']);
+                     if upper(actasmpattern)<>'..GOTPCREL' then
+                       begin
+                         actasmtoken:=AS_ID;
+                         consume(AS___GOTPCREL);
+                       end;
+                     actasmtoken:=AS___GOTPCREL
+                   end
+                 else
+{$endif x86_64}
+                   actasmtoken:=AS_DOT;
                  exit;
                end;
 
@@ -1239,7 +1257,30 @@ Unit Rax86int;
                      begin
                        { force OPR_LOCAL to be a reference }
                        if oper.opr.typ=OPR_LOCAL then
-                         oper.opr.localforceref:=true;
+                         oper.opr.localforceref:=true
+                       else
+                         begin
+{$ifdef x86_64}
+                           if actasmtoken=AS_WRT then
+                             begin
+                               if (oper.opr.typ=OPR_REFERENCE) then
+                                 begin
+                                   Consume(AS_WRT);
+                                   Consume(AS___GOTPCREL);
+                                   if (oper.opr.ref.base<>NR_NO) or
+                                      (oper.opr.ref.index<>NR_NO) or
+                                      (oper.opr.ref.offset<>0) then
+                                     Message(asmr_e_wrong_gotpcrel_intel_syntax);
+                                   if tf_no_pic_supported in target_info.flags then
+                                     Message(asmr_e_no_gotpcrel_support);
+                                   oper.opr.ref.refaddr:=addr_pic;
+                                   oper.opr.ref.base:=NR_RIP;
+                                 end
+                               else
+                                 message(asmr_e_invalid_reference_syntax);
+                             end;
+{$endif x86_64}
+                         end;
                      end
                    else
                      Message1(sym_e_unknown_id,tempstr);
@@ -1410,7 +1451,15 @@ Unit Rax86int;
                            end;
                        end
                       else
-                       oper.opr.ref.base:=hreg;
+                        begin
+                          oper.opr.ref.base:=hreg;
+{$ifdef x86_64}
+                          { non-GOT based RIP-relative accesses are also position-independent }
+                          if (oper.opr.ref.base=NR_RIP) and
+                             (oper.opr.ref.refaddr<>addr_pic) then
+                            oper.opr.ref.refaddr:=addr_pic_no_got;
+{$endif x86_64}
+                        end;
                     end;
                 end;
                 GotPlus:=false;

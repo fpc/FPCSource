@@ -236,16 +236,32 @@ begin
         end;
       if (cs_create_pic in current_settings.moduleswitches) and
          assigned(opr.ref.symbol) and
-         not assigned(opr.ref.relsymbol) and
-         not(opr.ref.refaddr in [addr_pic,addr_pic_no_got]) then
+         not assigned(opr.ref.relsymbol) then
         begin
-          if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
+          if not(opr.ref.refaddr in [addr_pic,addr_pic_no_got]) then
             begin
-              message(asmr_e_need_pic_ref);
-              result:=false;
+              if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
+                begin
+                  message(asmr_e_need_pic_ref);
+                  result:=false;
+                end
+              else
+                opr.ref.refaddr:=addr_pic;
             end
           else
-            opr.ref.refaddr:=addr_pic;
+            begin
+{$ifdef x86_64}
+              { should probably be extended to i386, but there the situation
+                is more complex and ELF-style PIC still need to be
+                tested/debugged }
+              if (opr.ref.symbol.bind in [AB_LOCAL,AB_PRIVATE_EXTERN]) and
+                 (opr.ref.refaddr=addr_pic) then
+                message(asmr_w_useless_got_for_local)
+              else if (opr.ref.symbol.bind in [AB_GLOBAL,AB_EXTERNAL,AB_COMMON,AB_WEAK_EXTERNAL]) and
+                 (opr.ref.refaddr=addr_pic_no_got) then
+                message(asmr_w_global_access_without_got);
+{$endif x86_64}
+            end;
         end;
     end;
 end;

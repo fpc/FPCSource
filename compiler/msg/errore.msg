@@ -2292,7 +2292,7 @@ cg_d_autoinlining=06055_DL_Auto inlining: $1
 #
 # Assembler reader
 #
-# 07116 is the last used one
+# 07120 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2567,6 +2567,15 @@ asmr_e_complex_function_result_location=07116_E_This function's result location 
 % to return their result to the caller.  In some cases this result may be spread over multiple
 % registers, in which case it is not possible to access the location via its symbolic name.
 % You have to directly use the appropriate register names in this case.
+asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL references in Intel assembler syntax cannot contain a base or index register, and their offset must 0.
+% The syntax for a gotpcrel PIC memory expression in Intel assembler syntax is
+% \verb*[global_symbol wrt ..gotpcrel]*
+asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL relocations
+% Not all targets support position-independent code using a global offset table.
+% Use a different way to access symbols in a position-indepent way in these cases.
+asmr_w_global_access_without_got=07119_W_Exported/global symbols should accessed via the GOT
+% Global symbols (symbols from the unit interface, or defined in a program
+% or library) should be accessed via the GOT when generating position-indepent code.
 
 #
 # Assembler/binary writers
