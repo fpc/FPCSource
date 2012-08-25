@@ -6,7 +6,7 @@
 {$asmmode intel}
 
 var
-  val: qword;
+  val: qword; public;
 
 Function Test: QWord; Assembler; NoStackFrame;
 Asm
