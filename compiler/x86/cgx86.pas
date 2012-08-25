@@ -508,7 +508,9 @@ unit cgx86;
                else
                  begin
                    include(current_procinfo.flags,pi_needs_got);
-                   hreg:=current_procinfo.got;
+                   { make a copy of the got register, hreg can get modified }
+                   hreg:=cg.getaddressregister(list);
+                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,hreg);
                    ref.relsymbol:=current_procinfo.CurrGOTLabel;
                  end;
                add_hreg:=true
