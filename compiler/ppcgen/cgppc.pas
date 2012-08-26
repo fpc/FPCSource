@@ -1028,7 +1028,8 @@ unit cgppc;
             else
               begin
                 include(current_procinfo.flags,pi_needs_got);
-                tmpreg := current_procinfo.got;
+                tmpreg := getaddressregister(list);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,tmpreg);
                 if assigned(ref.relsymbol) then
                   internalerror(2007093501);
                 ref.relsymbol := current_procinfo.CurrGOTLabel;
