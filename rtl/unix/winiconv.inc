@@ -655,8 +655,10 @@ begin
   SetCodePage(cpname,$ffff,false);
 
   { simple linear scan, not a common operation and hence not worth
-    building a separate array for }
-  for i:=low(win2iconv_arr) to high(win2iconv_arr) do
+    building a separate array for -- start from index 1 rather than
+    0, because 0 = fake "code page 0" that maps to UTF-8 as default
+  }
+  for i:=low(win2iconv_arr)+1 to high(win2iconv_arr) do
     if win2iconv_arr[i].name=cpname then
       begin
         result:=win2iconv_arr[i].cp;
