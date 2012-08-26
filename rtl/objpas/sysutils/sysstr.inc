@@ -2064,7 +2064,11 @@ Var
                       Inc(Fmt);
                       End;
                     End;
-                  End;
+                  End
+                Else
+                  { just e/E without subsequent +/- -> not exponential format,
+                    but we have to simply print e/E literally }
+                  ExpFmt:=0;
                 End
               Else
                 Inc(Fmt);
