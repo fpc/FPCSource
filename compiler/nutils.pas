@@ -137,12 +137,12 @@ implementation
       begin
         result:=res;
         case n.nodetype of
-        asn:
-          if assigned(tasnode(n).call) then
-            begin
-              result := foreachnode(procmethod,tasnode(n).call,f,arg);
-              exit
-            end;
+          asn:
+            if assigned(tasnode(n).call) then
+              begin
+                result := foreachnode(procmethod,tasnode(n).call,f,arg);
+                exit
+              end;
           calln:
             begin
               result := foreachnode(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;

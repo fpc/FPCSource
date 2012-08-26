@@ -535,14 +535,14 @@ implementation
               t:=Cordconstnode.create(1,pasbool8type,true)
             else
               t:=Cordconstnode.create(0,pasbool8type,true);
-              { don't do this optimization, if the variable expression might
-                have a side effect }
-              if (is_constintnode(left) and might_have_sideeffects(right)) or
-                (is_constintnode(right) and might_have_sideeffects(left)) then
-                t.free
-              else
-                result:=t;
-              exit;
+            { don't do this optimization, if the variable expression might
+              have a side effect }
+            if (is_constintnode(left) and might_have_sideeffects(right)) or
+              (is_constintnode(right) and might_have_sideeffects(left)) then
+              t.free
+            else
+              result:=t;
+            exit;
           end;
 
         { Add,Sub,Mul with constant 0, 1 or -1?  }
