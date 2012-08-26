@@ -84,7 +84,7 @@ end;
 }
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
 asm
   movs r0,r0
   beq .Lg_a_null
@@ -94,7 +94,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
 asm
   movs r0,r0
   beq .Lgnf_null
