@@ -244,7 +244,15 @@ interface
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
          cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,
-         cs_opt_reorder_fields,cs_opt_fastmath
+         cs_opt_reorder_fields,cs_opt_fastmath,
+         { Allow removing expressions whose result is not used, even when this
+           can change program behaviour (range check errors disappear,
+           access violations due to invalid pointer derefences disappear, ...).
+           Note: it does not (and must not) remove expressions that have
+             explicit side-effects, only implicit side-effects (like the ones
+             mentioned before) can disappear.
+         }
+         cs_opt_dead_values
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -269,7 +277,7 @@ interface
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH'
+         'ORDERFIELDS','FASTMATH','DEADVALUES'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -287,7 +295,7 @@ interface
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
-       genericlevel4optimizerswitches = [cs_opt_reorder_fields];
+       genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values];
 
        { whole program optimizations whose information generation requires
          information from all loaded units

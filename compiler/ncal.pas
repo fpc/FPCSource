@@ -3717,7 +3717,10 @@ implementation
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            if (para.parasym.typ = paravarsym) and (para.parasym.refs>0) then
+            if (para.parasym.typ = paravarsym) and
+               ((para.parasym.refs>0) or
+                not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                might_have_sideeffects(para.left)) then
               begin
                 { must take copy of para.left, because if it contains a       }
                 { temprefn pointing to a copied temp (e.g. methodpointer),    }
