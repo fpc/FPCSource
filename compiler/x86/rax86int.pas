@@ -1296,6 +1296,7 @@ Unit Rax86int;
                         OPR_REFERENCE :
                           inc(oper.opr.ref.offset,l);
                       end;
+                      oper.SetSize(k,false);
                     end;
                    if GotOffset then
                     begin
