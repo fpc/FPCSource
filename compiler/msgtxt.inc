@@ -1340,7 +1340,7 @@ const msgtxt : array[0..000277,1..240] of char=(
   '**2O1_Level 1 opt','imizations (quick and debugger friendly)'#010+
   '**2O2_Level 2 optimizations (-O1 + quick optimizations)'#010+
   '**2O3_Level 3 optimizations (-O2 + slow optimizations)'#010+
-  '**2O3_Level 4 optimizations (-O3 + optimizations which might have unex'+
+  '**2O4_Level 4 optimizations (-O3 + optimizations which might have unex'+
   'pected side effect','s)'#010+
   '**2Oa<x>=<y>_Set alignment'#010+
   '**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible '+
