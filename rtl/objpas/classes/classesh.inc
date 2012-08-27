@@ -147,6 +147,51 @@ type
   EInvalidOperation = class(Exception);
   TExceptionClass = Class of Exception;
 
+{ ---------------------------------------------------------------------
+  Free Pascal Observer support
+  ---------------------------------------------------------------------}
+
+
+Const
+  BaseGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
+  BaseGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
+
+  GUIDObserved : TGUID = BaseGUIDObserved;
+  GUIDObserver : TGUID = BaseGUIDObserver;
+
+  // String is needed for testing
+  SGUIDObserver = BaseGUIDObserver;
+  SGUIDObserved = BaseGUIDObserved;
+
+
+
+Type
+  // Notification operations :
+  // Observer has changed, is freed, item added to/deleted from list, custom event.
+  TFPObservedOperation = (ooChanged,ooFree,ooAddItem,ooDeleteItem,ooCustom);
+{$INTERFACES CORBA}
+
+  { IFPObserved }
+
+  IFPObserved = Interface [BaseGUIDObserved]
+    // attach a new observer
+    Procedure FPOAttachObserver(AObserver : TObject);
+    // Detach an observer
+    Procedure FPODetachObserver(AObserver : TObject);
+    // Notify all observers of a change.
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
+  end;
+
+  { IFPObserver }
+
+  IFPObserver = Interface  [BaseGUIDObserver]
+    // Called by observed when observers are notified.
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+  end;
+{$INTERFACES COM}
+
+  EObserver = Class(Exception);
+
 { Forward class declarations }
 
   TStream = class;
@@ -269,9 +314,10 @@ type
     property Current: Pointer read GetCurrent;
   end;
 
-  TList = class(TObject)
+  TList = class(TObject,IFPObserved)
   private
     FList: TFPList;
+    FObservers : TFPList;
     procedure CopyMove (aList : TList);
     procedure MergeMove (aList : TList);
     procedure DoCopy(ListA, ListB : TList);
@@ -293,6 +339,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
     Procedure AddList(AList : TList);
     function Add(Item: Pointer): Integer;
     procedure Clear; virtual;
@@ -390,14 +439,19 @@ type
 
 {$M+}
 
-  TPersistent = class(TObject)
+  TPersistent = class(TObject,IFPObserved)
   private
+    FObservers : TFPList;
     procedure AssignError(Source: TPersistent);
   protected
     procedure AssignTo(Dest: TPersistent); virtual;
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
   public
+    Destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
     function  GetNamePath: string; virtual; {dynamic;}
   end;
