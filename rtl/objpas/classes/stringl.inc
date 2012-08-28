@@ -551,7 +551,7 @@ end;
 Procedure TStrings.SetUpdateState(Updating: Boolean);
 
 begin
-  FPONotifyObservers(Self,ooChanged,Nil);
+  FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 
@@ -1034,7 +1034,7 @@ begin
    begin
    If Assigned(FOnChange) then
      FOnchange(Self);
-   FPONotifyObservers(Self,ooChanged,Nil);
+   FPONotifyObservers(Self,ooChange,Nil);
    end;
 end;
 

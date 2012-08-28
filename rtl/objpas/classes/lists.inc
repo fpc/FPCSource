@@ -750,7 +750,7 @@ end;
 procedure TList.Exchange(Index1, Index2: Integer);
 begin
   FList.Exchange(Index1, Index2);
-  FPONotifyObservers(Self,ooChanged,Nil);
+  FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 function TList.Expand: TList;

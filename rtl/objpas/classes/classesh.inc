@@ -168,7 +168,7 @@ Const
 Type
   // Notification operations :
   // Observer has changed, is freed, item added to/deleted from list, custom event.
-  TFPObservedOperation = (ooChanged,ooFree,ooAddItem,ooDeleteItem,ooCustom);
+  TFPObservedOperation = (ooChange,ooFree,ooAddItem,ooDeleteItem,ooCustom);
 {$INTERFACES CORBA}
 
   { IFPObserved }

@@ -288,7 +288,7 @@ end;
 
 procedure TCollection.Update(Item: TCollectionItem);
 begin
-  FPONotifyObservers(Self,ooChanged,Pointer(Item));
+  FPONotifyObservers(Self,ooChange,Pointer(Item));
 end;
 
 
@@ -419,7 +419,7 @@ procedure TCollection.Exchange(Const Index1, index2: integer);
 
 begin
   FItems.Exchange(Index1,Index2);
-  FPONotifyObservers(Self,ooChanged,Nil);
+  FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 
