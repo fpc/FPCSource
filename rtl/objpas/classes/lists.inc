@@ -609,7 +609,7 @@ begin
    if Assigned(FObservers) then
      Case ACtion of
        lnAdded     : FPONotifyObservers(Self,ooAddItem,Ptr);
-       lnExtracted : FPONotifyObservers(Self,ooCustom,Ptr);
+       lnExtracted : FPONotifyObservers(Self,ooDeleteItem,Ptr);
        lnDeleted   : FPONotifyObservers(Self,ooDeleteItem,Ptr);
      end;
 end;

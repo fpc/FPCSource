@@ -399,7 +399,7 @@ begin
   if Assigned(FObservers) then
     Case Action of
       cnAdded      : FPONotifyObservers(Self,ooAddItem,Pointer(Item));
-      cnExtracting : FPONotifyObservers(Self,ooCustom,Pointer(Item));
+      cnExtracting : FPONotifyObservers(Self,ooDeleteItem,Pointer(Item));
       cnDeleting   : FPONotifyObservers(Self,ooDeleteItem,Pointer(Item));
     end;
 end;
