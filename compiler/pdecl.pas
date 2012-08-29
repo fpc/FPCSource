@@ -35,7 +35,7 @@ interface
       { pass_1 }
       node;
 
-    function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
+    function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
     procedure const_dec;
     procedure consts_dec(in_structure, allow_typed_const: boolean);
@@ -76,7 +76,7 @@ implementation
        ;
 
 
-    function readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
+    function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
       var
         hp : tconstsym;
         p : tnode;
@@ -92,6 +92,7 @@ implementation
          internalerror(9584582);
         hp:=nil;
         p:=comp_expr(true,false);
+        nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
         case p.nodetype of
@@ -194,6 +195,7 @@ implementation
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
+         nodetype : tnodetype;
          old_block_type : tblock_type;
          skipequal : boolean;
          tclist : tasmlist;
@@ -210,7 +212,7 @@ implementation
              _EQ:
                 begin
                    consume(_EQ);
-                   sym:=readconstant(orgname,filepos);
+                   sym:=readconstant(orgname,filepos,nodetype);
                    { Support hint directives }
                    dummysymoptions:=[];
                    deprecatedmsg:=nil;

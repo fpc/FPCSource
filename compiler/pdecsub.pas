@@ -256,7 +256,7 @@ implementation
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
-               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
+               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
                block_type:=bt;
                if assigned(defaultvalue) then
                  begin
@@ -264,12 +264,6 @@ implementation
                    pd.parast.insert(defaultvalue);
                    { check whether the default value is of the correct
                      type }
-                   if defaultvalue.consttyp in [conststring,constwstring] then
-                     nodetype:=stringconstn
-                   else if defaultvalue.consttyp=constnil then
-                     nodetype:=niln
-                   else
-                     nodetype:=nothingn;
                    if compare_defs_ext(defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
                      MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
                  end;
