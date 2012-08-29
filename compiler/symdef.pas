@@ -242,9 +242,10 @@ interface
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
          ImplementsGetter :  tsym;
+         ImplementsGetterDeref : tderef;
          ImplementsField : tsym;
          constructor create(aintf: tobjectdef);
-         constructor create_deref(d:tderef);
+         constructor create_deref(intfd,getterd:tderef);
          destructor  destroy; override;
          function  getcopy:TImplementedInterface;
          procedure buildderef;
@@ -5189,7 +5190,7 @@ implementation
       var
          i,
          implintfcount : longint;
-         d : tderef;
+         d, getterd : tderef;
          ImplIntf : TImplementedInterface;
          vmtentry : pvmtentry;
       begin
@@ -5240,8 +5241,10 @@ implementation
              for i:=0 to implintfcount-1 do
                begin
                  ppufile.getderef(d);
-                 ImplIntf:=TImplementedInterface.Create_deref(d);
+                 ppufile.getderef(getterd);
+                 ImplIntf:=TImplementedInterface.Create_deref(d,getterd);
                  ImplIntf.IOffset:=ppufile.getlongint;
+                 byte(ImplIntf.IType):=ppufile.getbyte;
                  ImplementedInterfaces.Add(ImplIntf);
                end;
            end
@@ -5425,7 +5428,9 @@ implementation
                begin
                  ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
                  ppufile.putderef(ImplIntf.intfdefderef);
+                 ppufile.putderef(ImplIntf.ImplementsGetterDeref);
                  ppufile.putlongint(ImplIntf.Ioffset);
+                 ppufile.putbyte(byte(ImplIntf.IType));
                end;
            end;
 
@@ -6275,11 +6280,12 @@ implementation
       end;
 
 
-    constructor TImplementedInterface.create_deref(d:tderef);
+    constructor TImplementedInterface.create_deref(intfd,getterd:tderef);
       begin
         inherited create;
         intfdef:=nil;
-        intfdefderef:=d;
+        intfdefderef:=intfd;
+        ImplementsGetterDeref:=getterd;
         IOffset:=-1;
         IType:=etStandard;
         NameMappings:=nil;
@@ -6314,12 +6320,14 @@ implementation
     procedure TImplementedInterface.buildderef;
       begin
         intfdefderef.build(intfdef);
+        ImplementsGetterDeref.build(ImplementsGetter);
       end;
 
 
     procedure TImplementedInterface.deref;
       begin
         intfdef:=tobjectdef(intfdefderef.resolve);
+        ImplementsGetter:=tsym(ImplementsGetterDeref.resolve);
       end;
 
 
