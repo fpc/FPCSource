@@ -204,7 +204,7 @@ begin
         buf[bufsize]:='"';
         inc(bufsize);
       end;
-     if i<argc then
+     if i<argc-1 then
       buf[bufsize]:=' '
      else
       buf[bufsize]:=#0;
