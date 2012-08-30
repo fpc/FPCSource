@@ -495,12 +495,10 @@ unit cgx86;
           begin
             if assigned(ref.symbol) and
                not(assigned(ref.relsymbol)) and
-               ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+               ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN]) or
                 (cs_create_pic in current_settings.moduleswitches)) then
              begin
-               if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
-                  ((cs_create_pic in current_settings.moduleswitches) and
-                   (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
+               if ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN] then
                  begin
                    hreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                    ref.symbol:=nil;
