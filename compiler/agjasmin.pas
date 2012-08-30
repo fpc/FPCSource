@@ -890,7 +890,7 @@ implementation
                 odt_javaclass:
                   kindname:='class static ';
                 odt_interfacejava:
-                  kindname:='interface ';
+                  kindname:='interface static abstract ';
                 else
                   internalerror(2011021702);
               end;
