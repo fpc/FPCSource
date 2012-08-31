@@ -224,10 +224,14 @@ Type
   TNamedCollection = Class(TCollection)
   private
     FUniqueNames: Boolean;
+  private
+    function GetItem(Index: Integer): TNamedItem;
+    procedure SetItem(Index: Integer; AValue: TNamedItem);
   Public
     Function IndexOfName(const AName : String) : Integer;
     Function ItemByName(const AName : String) : TNamedItem;
     Property UniqueNames : Boolean Read FUniqueNames;
+    property Items[Index: Integer]: TNamedItem read GetItem write SetItem;
   end;
 
   { TNamedItemList }
@@ -424,6 +428,38 @@ Type
     Property Version : String Read GetVersion Write SetVersion;
     Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
+
+  { TPackageVariant }
+
+  TPackageVariant = class(TNamedItem)
+  private
+    FOptions: TStrings;
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+    property Options: TStrings read FOptions;
+  end;
+
+  { TPackageVariants }
+
+  TPackageVariants = class(TNamedCollection)
+  private
+    FActivePackageVariantName: string;
+    FDefaultPackageVariantName: string;
+    FName: string;
+    function GetActivePackageVariant: TPackageVariant;
+    function GetDefaultPackageVariant: TPackageVariant;
+    procedure SetActivePackageVariantName(AValue: string);
+    procedure SetDefaultPackageVariantName(AValue: string);
+  public
+    function Add(AName: String): TPackageVariant; overload; virtual;
+    property Name: string read FName write FName;
+    property DefaultPackageVariant: TPackageVariant read GetDefaultPackageVariant;
+    property ActivePackageVariant: TPackageVariant read GetActivePackageVariant;
+    property DefaultPackageVariantName: string read FDefaultPackageVariantName write SetDefaultPackageVariantName;
+    property ActivePackageVariantName: string read FActivePackageVariantName write SetActivePackageVariantName;
+  end;
+
 
   TDependencies = Class(TConditionalStrings)
     function GetDependency(Index : Integer): TDependency;
@@ -660,6 +696,8 @@ Type
     FDescriptionFile : String;
     FDescription : String;
     FInstalledChecksum : Cardinal;
+    FUnitsOutputDir: String;
+    FPackageUnitInstallDir: String;
     // Cached directory of installed packages
     FUnitDir : String;
     // Used by buildunits
@@ -671,6 +709,7 @@ Type
     FDictionary : TDictionary;
     // Is set when all sourcefiles are found
     FAllFilesResolved: boolean;
+    FPackageVariants: TFPList;
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
@@ -689,6 +728,10 @@ Type
     destructor destroy; override;
     Function HaveOptions : Boolean;
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Function  GetUnitConfigOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Procedure SetUnitsOutputDir(AValue: string);
+    Function  GetPackageUnitInstallDir(ACPU:TCPU; AOS : TOS):String;
+    Procedure SetPackageUnitInstallDir(AValue: string);
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS); virtual;
@@ -696,6 +739,9 @@ Type
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
+    function  AddPackageVariant(AName: string; ARecompileWhenNoMatch: boolean): TPackageVariants;
+    procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
+    procedure SetDefaultPackageVariant;
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
     Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
@@ -1042,6 +1088,7 @@ Type
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
     FFPMakeOptionsString: string;
+    FPackageVariantSettings: TStrings;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -1226,6 +1273,7 @@ ResourceString
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
+  SErrBuildOptNotExist  = 'There are no build options with the name "%s"';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1367,6 +1415,7 @@ Const
   KeyAddIn    = 'FPMakeAddIn';
   KeySourcePath = 'SourcePath';
   KeyFPMakeOptions = 'FPMakeOptions';
+  KeyPackageVar = 'PackageVariant_';
 
 {****************************************************************************
                                 Helpers
@@ -2120,6 +2169,57 @@ begin
   Move(Buf,Result[1],Count);
 end;
 
+constructor TPackageVariant.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FOptions := TStringList.Create;
+end;
+
+destructor TPackageVariant.Destroy;
+begin
+  FOptions.Free;
+  inherited Destroy;
+end;
+
+{ TPackageVariants }
+
+procedure TPackageVariants.SetDefaultPackageVariantName(AValue: string);
+begin
+  if FDefaultPackageVariantName=AValue then Exit;
+  if not assigned(ItemByName(avalue)) then
+    raise exception.CreateFmt(SErrBuildOptNotExist,[AValue]);
+  FDefaultPackageVariantName:=AValue;
+end;
+
+function TPackageVariants.GetActivePackageVariant: TPackageVariant;
+begin
+  result := ItemByName(ActivePackageVariantName) as TPackageVariant;
+end;
+
+function TPackageVariants.GetDefaultPackageVariant: TPackageVariant;
+begin
+  result := ItemByName(DefaultPackageVariantName) as TPackageVariant;
+end;
+
+procedure TPackageVariants.SetActivePackageVariantName(AValue: string);
+begin
+  if FActivePackageVariantName=AValue then Exit;
+  if not assigned(ItemByName(avalue)) then
+    raise exception.CreateFmt(SErrBuildOptNotExist,[AValue]);
+  FActivePackageVariantName:=AValue;
+end;
+
+function TPackageVariants.Add(AName: String): TPackageVariant;
+begin
+  result := self.add as TPackageVariant;
+  result.Name := AName;
+  if FDefaultPackageVariantName='' then
+    begin
+    FDefaultPackageVariantName:=AName;
+    FActivePackageVariantName:=AName;
+    end;
+end;
+
 {$endif HAS_UNIT_PROCESS}
 
 { TConditionalDestStrings }
@@ -2262,6 +2362,16 @@ end;
 {****************************************************************************
                                 TNamedCollection
 ****************************************************************************}
+
+function TNamedCollection.GetItem(Index: Integer): TNamedItem;
+begin
+  result := TNamedItem(inherited getItem(index));
+end;
+
+procedure TNamedCollection.SetItem(Index: Integer; AValue: TNamedItem);
+begin
+  inherited SetItem(Index, AValue);
+end;
 
 function TNamedCollection.IndexOfName(const AName: String): Integer;
 
@@ -2636,6 +2746,8 @@ begin
   FExamplePath:=TConditionalStrings.Create(TConditionalString);
   FTestPath:=TConditionalStrings.Create(TConditionalString);
   FCommands:=TCommands.Create(TCommand);
+  FUnitsOutputDir:='units'+PathDelim+'$(target)'+PathDelim;
+  FPackageVariants:=TFPList.Create;
   FCPUs:=AllCPUs;
   FOSes:=AllOSes;
   FInstalledChecksum:=$ffffffff;
@@ -2661,6 +2773,7 @@ begin
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
+  FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
 
@@ -2681,7 +2794,33 @@ end;
 
 Function TPackage.GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
 begin
-  Result:='units'+PathDelim+MakeTargetString(ACPU,AOS);
+  result:=FixPath(GlobalDictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
+begin
+  result:=FixPath(GlobalDictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+procedure TPackage.SetUnitsOutputDir(AValue: string);
+begin
+  if AValue<>'' then
+    FUnitsOutputDir:=IncludeTrailingPathDelimiter(AValue)
+  else
+    FUnitsOutputDir:='';
+end;
+
+function TPackage.GetPackageUnitInstallDir(ACPU: TCPU; AOS: TOS): String;
+begin
+  result:=FixPath(GlobalDictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+procedure TPackage.SetPackageUnitInstallDir(AValue: string);
+begin
+  if AValue<>'' then
+    FPackageUnitInstallDir:=IncludeTrailingPathDelimiter(AValue)
+  else
+    FPackageUnitInstallDir:='';
 end;
 
 
@@ -2923,6 +3062,41 @@ begin
     end;
 end;
 
+function TPackage.AddPackageVariant(AName: string; ARecompileWhenNoMatch: boolean): TPackageVariants;
+begin
+  result := TPackageVariants.Create(TPackageVariant);
+  result.Name:=AName;
+  FPackageVariants.Add(result);
+end;
+
+procedure TPackage.ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
+var
+  i: integer;
+  PackageVariants: TPackageVariants;
+begin
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+    ACompilerOptions.AddStrings(PackageVariants.ActivePackageVariant.Options);
+    end;
+end;
+
+procedure TPackage.SetDefaultPackageVariant;
+var
+  i: integer;
+  PackageVariants: TPackageVariants;
+begin
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+    if Installer.FPackageVariantSettings.Values[PackageVariants.Name]<>'' then
+      PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name];
+    GlobalDictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
+    SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
+    SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
+    end;
+end;
+
 
 procedure TPackage.LoadUnitConfigFromFile(Const AFileName: String);
 var
@@ -2933,6 +3107,9 @@ var
   DepChecksum : Cardinal;
   DepName : String;
   D : TDependency;
+  PackageVariantsStr: string;
+  PackageVarName: string;
+  pv: TPackageVariants;
 begin
   L:=TStringList.Create;
   Try
@@ -2964,6 +3141,33 @@ begin
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
         IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
+
+        i := 1;
+        repeat
+        PackageVariantsStr:=Values[KeyPackageVar+inttostr(i)];
+        if PackageVariantsStr<>'' then
+          begin
+            k := pos(':',PackageVariantsStr);
+            if k > 0 then
+              begin
+                PackageVarName:=copy(PackageVariantsStr,1,k-1);
+                PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
+                pv := AddPackageVariant(PackageVarName, false);
+
+                k := pos(',',PackageVariantsStr);
+                while k>0 do
+                  begin
+                    PackageVarName:=copy(PackageVariantsStr,1,k-1);
+                    PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
+                    pv.Add(PackageVarName);
+                    k := pos(',',PackageVariantsStr);
+                  end;
+                pv.Add(PackageVariantsStr);
+              end;
+          end;
+        inc(i);
+        until PackageVariantsStr='';
+
       end;
   Finally
     L.Free;
@@ -2973,9 +3177,11 @@ end;
 procedure TPackage.SaveUnitConfigToStringList(const AStringList: TStrings; ACPU: TCPU; AOS: TOS);
 Var
   Deps : String;
-  i : integer;
+  i,j : integer;
   D : TDependency;
   p : TPackage;
+  PackageVariants : TPackageVariants;
+  PackageVariantsStr: string;
 begin
   with AStringList do
     begin
@@ -3011,6 +3217,15 @@ begin
         Values[KeyAddIn]:='Y'
       else
         Values[KeyAddIn]:='N';
+      for i := 0 to FPackageVariants.Count-1 do
+        begin
+          PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+          PackageVariantsStr:=PackageVariants.Name+':'+PackageVariants.DefaultPackageVariantName;
+          for j := 0 to PackageVariants.Count-1 do
+            if not sametext(PackageVariants.Items[j].Name, PackageVariants.DefaultPackageVariantName) then
+              PackageVariantsStr:=PackageVariantsStr+','+PackageVariants.Items[j].Name;
+          values[KeyPackageVar+inttostr(i+1)] := PackageVariantsStr;
+        end;
     end;
 end;
 
@@ -3545,6 +3760,7 @@ end;
 
 constructor TCustomInstaller.Create(AOwner: TComponent);
 begin
+  FPackageVariantSettings := TStringList.Create;
   GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
   GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
@@ -3560,6 +3776,7 @@ begin
   FreePackages;
   FreeAndNil(Defaults);
   FreeAndNil(GlobalDictionary);
+  FreeAndNil(FPackageVariantSettings);
   inherited destroy;
 end;
 
@@ -3626,6 +3843,28 @@ procedure TCustomInstaller.AnalyzeOptions;
     O:=Paramstr(Index);
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
     if AddToOptionString and Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
+  end;
+
+  Function CheckBuildOptionSetValue(Index: Integer): boolean;
+  var
+    O : String;
+    BuildModeName: string;
+    P: integer;
+  begin
+    O:=Paramstr(Index);
+    result := O[1]='+';
+    if result then
+      begin
+      P:=Pos('=',Paramstr(Index));
+      If (P=0) then
+        Error(SErrNeedArgument,[Index,O])
+      else
+        begin
+        BuildModeName:=copy(o,2,P-2);
+        Delete(O,1,P);
+        FPackageVariantSettings.Values[BuildModeName] := O;
+        end;
+      end;
   end;
 
   Function CheckCustomOption(Index : Integer; out CustOptName: string): Boolean;
@@ -3783,7 +4022,7 @@ begin
         CustomFpMakeCommandlineValues := TStringList.Create;
       CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I)
       end
-    else if not Defaults.IgnoreInvalidOptions then
+    else if (not CheckBuildOptionSetValue(I)) and (not Defaults.IgnoreInvalidOptions) then
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
       end;
@@ -4678,13 +4917,13 @@ begin
       if (APackage.UnitDir='') and
          (Defaults.LocalUnitDir<>'') then
         begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name;
+          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
           if not SysDirectoryExists(APackage.UnitDir) then
             APackage.UnitDir:='';
         end;
       if APackage.UnitDir='' then
         begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name;
+          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
           if not SysDirectoryExists(APackage.UnitDir) then
             APackage.UnitDir:=DirNotFound;
         end;
@@ -4846,6 +5085,9 @@ begin
   // Custom Options
   If (Defaults.HaveOptions) then
     Args.AddStrings(Defaults.Options);
+
+  APackage.ApplyPackageVariantToCompilerOptions(Args);
+
   If (APackage.HaveOptions) then
     Args.AddStrings(APackage.Options);
   If (ATarget.HaveOptions) then
@@ -5241,6 +5483,8 @@ begin
         begin
           Log(vlDebug, Format(SDbgLoading, [F]));
           Result.LoadUnitConfigFromFile(F);
+          result.SetDefaultPackageVariant;
+          result.UnitDir:=result.UnitDir+Result.GetPackageUnitInstallDir(Defaults.CPU, Defaults.OS);
         end;
       // Check recursive implicit dependencies
       CompileDependencies(Result);
@@ -5456,6 +5700,7 @@ begin
 
   GPathPrefix:=APackage.Directory;
   Try
+    APackage.SetDefaultPackageVariant;
     CreateOutputDir(APackage);
     APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
     APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
@@ -5517,7 +5762,7 @@ begin
 
     if RegenerateUnitconfigFile then
       begin
-        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
+        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
         Log(vlInfo, Format(SDbgGenerating, [UC]));
         APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
       end;
@@ -5694,19 +5939,21 @@ begin
     B:=false;
     GlobalDictionary.AddVariable('PackageName',APackage.Name);
     GlobalDictionary.AddVariable('unitinstalldir',Defaults.UnitInstallDir);
+    GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
 
     D:=IncludeTrailingPathDelimiter(Defaults.BaseInstallDir);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
     if InstallPackageFiles(APackage,[],D) then
       B:=true;
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
     if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
     //  B:=true;
     // Unit (dependency) configuration if there were units installed
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
     if B then
       InstallUnitConfigFile(APackage,D);
     // Programs
