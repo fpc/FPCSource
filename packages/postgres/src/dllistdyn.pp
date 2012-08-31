@@ -14,15 +14,6 @@ uses
 
 {$PACKRECORDS C}
 
-{$IFDEF Unix}
-  const
-    pqlib = 'libpq.'+sharedsuffix;
-{$ENDIF}
-{$IFDEF Windows}
-  const
-    pqlib = 'libpq.dll';
-{$ENDIF}
-
 {$i dllisttypes.inc}
 
 var
@@ -43,7 +34,7 @@ var
 { Macro translated }
 Function  DLE_VAL(elem : PDlelem) : pointer;
 
-Procedure InitialiseDllist(libpath:string=pqlib);
+Procedure InitialiseDllist(libpath:string);
 Procedure ReleaseDllist;
 
 var DllistLibraryHandle : TLibHandle;
@@ -52,7 +43,7 @@ implementation
 
 var RefCount : integer;
 
-Procedure InitialiseDllist(libpath:string=pqlib);
+Procedure InitialiseDllist(libpath:string);
 
 begin
   inc(RefCount);
