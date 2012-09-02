@@ -106,6 +106,14 @@ uses
       procedure gen_entry_code(list: TAsmList); override;
       procedure gen_exit_code(list: TAsmList); override;
 
+      { unimplemented/unnecessary routines }
+      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
+      procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle); override;
+      procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+      procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
+      procedure g_local_unwind(list: TAsmList; l: TAsmLabel); override;
+
       { JVM-specific routines }
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
@@ -1741,6 +1749,36 @@ implementation
   procedure thlcgjvm.gen_exit_code(list: TAsmList);
     begin
       { nothing }
+    end;
+
+  procedure thlcgjvm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister);
+    begin
+      internalerror(2012090201);
+    end;
+
+  procedure thlcgjvm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012090202);
+    end;
+
+  procedure thlcgjvm.g_stackpointer_alloc(list: TAsmList; size: longint);
+    begin
+      internalerror(2012090203);
+    end;
+
+  procedure thlcgjvm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    begin
+      internalerror(2012090204);
+    end;
+
+  procedure thlcgjvm.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
+    begin
+      internalerror(2012090205);
+    end;
+
+  procedure thlcgjvm.g_local_unwind(list: TAsmList; l: TAsmLabel);
+    begin
+      internalerror(2012090206);
     end;
 
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
