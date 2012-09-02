@@ -47,7 +47,11 @@ Type
      (fpu_none,
 //      fpu_soft,  { generic }
       fpu_sse64,
-      fpu_sse3
+      fpu_sse3,
+      fpu_ssse3,
+      fpu_sse41,
+      fpu_sse42,
+      fpu_avx
      );
 
 Const
@@ -78,7 +82,11 @@ Const
    fputypestr : array[tfputype] of string[6] = ('',
 //     'SOFT',
      'SSE64',
-     'SSE3'
+     'SSE3',
+     'SSSE3',
+     'SSE41',
+     'SSE42',
+     'AVX'
    );
 
    sse_singlescalar : set of tfputype = [fpu_sse64,fpu_sse3];
