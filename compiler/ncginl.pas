@@ -58,6 +58,7 @@ interface
           procedure second_new; virtual;
           procedure second_setlength; virtual; abstract;
           procedure second_box; virtual; abstract;
+          procedure second_popcnt; virtual;
        end;
 
 implementation
@@ -177,6 +178,8 @@ implementation
                second_setlength;
             in_box_x:
                second_box;
+            in_popcnt_x:
+               second_popcnt;
             else internalerror(9);
          end;
       end;
@@ -734,6 +737,12 @@ implementation
       end;
 
 
+    procedure tcginlinenode.second_popcnt;
+      begin
+        internalerror(2012082601);
+      end;
+
+
 begin
    cinlinenode:=tcginlinenode;
-end.
+end.  s

@@ -5,7 +5,7 @@ var
   i : integer;
   d : dword;
   li : longint;
-  q : qword
+  q : qword;
   i64 : int64;
 
 begin
@@ -23,6 +23,9 @@ begin
   if popcnt(b)<>1 then
     halt(1);
 
+  writeln('popcnt(<byte>); passed');
+
+{
   si:=$54;
   if popcnt(si)<>3 then
     halt(1);
@@ -34,6 +37,7 @@ begin
   si:=$20;
   if popcnt(si)<>1 then
     halt(1);
+}
 
   { 16 Bit }
 
@@ -49,6 +53,9 @@ begin
   if popcnt(w)<>2 then
     halt(1);
 
+  writeln('popcnt(<word>); passed');
+
+{
   i:=$5454;
   if popcnt(i)<>6 then
     halt(1);
@@ -60,11 +67,12 @@ begin
   i:=$2020;
   if popcnt(i)<>2 then
     halt(1);
+}
 
   { 32 Bit }
 
   d:=$a4a4a4a4;
-  if popcnt(w)<>12 then
+  if popcnt(d)<>12 then
     halt(1);
 
   d:=$0;
@@ -75,6 +83,9 @@ begin
   if popcnt(d)<>4 then
     halt(1);
 
+  writeln('popcnt(<dword>); passed');
+
+{
   li:=$54545454;
   if popcnt(li)<>12 then
     halt(1);
@@ -86,11 +97,11 @@ begin
   li:=$20402080;
   if popcnt(li)<>4 then
     halt(1);
-
+}
 
   { 64 Bit }
 
-  q:=$a4a4a4a4a4a4a4a4;
+  q:=qword($a4a4a4a4a4a4a4a4);
   if popcnt(q)<>24 then
     halt(1);
 
@@ -102,6 +113,13 @@ begin
   if popcnt(q)<>8 then
     halt(1);
 
+  q:=qword($a4a4a4a400000000);
+  if popcnt(q)<>12 then
+    halt(1);
+
+  writeln('popcnt(<qword>); passed');
+
+{
   i64:=$5454545454545454;
   if popcnt(i64)<>24 then
     halt(1);
@@ -113,7 +131,7 @@ begin
   i64:=$2040208020402080;
   if popcnt(li)<>8 then
     halt(1);
-
+}
 
   writeln('ok');
 end.

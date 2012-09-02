@@ -2444,3 +2444,13 @@ function BsrQWord(Const AValue : QWord): cardinal;
   end;
 {$endif}
 {$endif}
+
+{$ifndef FPC_HAS_INTERNAL_POPCNT_QWORD}
+{$ifndef FPC_SYSTEM_HAS_POPCNT_QWORD}
+function PopCnt(Const AValue : QWord): QWord;
+  begin
+    Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
+  end;
+{$endif}
+{$endif}
+

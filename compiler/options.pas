@@ -2781,6 +2781,11 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_BSX');
 {$endif}
 
+{ inline bsf/bsr implementation }
+{$if defined(x86) or defined(x86_64)}
+  def_system_macro('FPC_HAS_INTERNAL_POPCNT');
+{$endif}
+
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
