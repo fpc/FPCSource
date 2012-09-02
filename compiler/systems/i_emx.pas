@@ -98,6 +98,7 @@ unit i_emx;
               );
             first_parm_offset : 8;
             stacksize    : 256*1024;
+            stackalign   : 4;
             abi          : abi_default;
           );
 

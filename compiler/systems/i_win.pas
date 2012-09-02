@@ -92,6 +92,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 16*1024*1024;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -158,6 +159,7 @@ unit i_win;
               );
             first_parm_offset : 16;
             stacksize    : 16*1024*1024;
+            stackalign   : 16;
             abi          : abi_default;
           );
 
@@ -222,6 +224,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -286,6 +289,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 

@@ -89,6 +89,7 @@ unit i_sunos;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -155,6 +156,7 @@ unit i_sunos;
               );
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -220,6 +222,7 @@ unit i_sunos;
               );
             first_parm_offset : 92;
             stacksize    : 262144;
+            stackalign   : 8;
             abi          : abi_default;
           );
 

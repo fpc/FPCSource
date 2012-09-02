@@ -117,6 +117,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -182,6 +183,7 @@ unit i_bsd;
               );
             first_parm_offset : 16;
             stacksize    : 256*1024;
+            stackalign   : 16;
             abi          : abi_default;
           );
 
@@ -244,6 +246,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -305,6 +308,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -369,6 +373,7 @@ unit i_bsd;
               );
             first_parm_offset : 16;
             stacksize    : 256*1024;
+            stackalign   : 16;
             abi          : abi_default;
           );
 
@@ -430,6 +435,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -491,6 +497,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 16;
             { abi_powerpc_sysv doesn't work yet }
             abi : abi_powerpc_aix;
           );
@@ -556,6 +563,7 @@ unit i_bsd;
               );
             first_parm_offset : 16;
             stacksize    : 256*1024;
+            stackalign   : 16;
             abi          : abi_default;
           );
 
@@ -617,6 +625,7 @@ unit i_bsd;
               );
             first_parm_offset : 24;
             stacksize   : 262144;
+            stackalign   : 16;
             abi : abi_powerpc_aix;
           );
 
@@ -680,6 +689,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 16;
             abi         : abi_default;
           );
 
@@ -743,6 +753,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            stackalign   : 16;
             abi         : abi_default;
           );
 
@@ -806,6 +817,7 @@ unit i_bsd;
               );
             first_parm_offset : 48;
             stacksize   : 262144;
+            stackalign   : 16;
             abi : abi_powerpc_aix;
           );
 
@@ -869,6 +881,7 @@ unit i_bsd;
               );
             first_parm_offset : 16;
             stacksize   : 262144;
+            stackalign   : 16;
             abi : abi_default;
           );
 
@@ -931,6 +944,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi : abi_default
           );
 

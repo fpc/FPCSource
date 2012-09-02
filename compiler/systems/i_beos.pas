@@ -98,6 +98,7 @@ unit i_beos;
               so i use this new value.  
             }
             stacksize    : 16 * 1024 * 1024;
+            stackalign   : 4;
             abi : abi_default
           );
 

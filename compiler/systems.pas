@@ -207,6 +207,8 @@ interface
           }
           first_parm_offset : longint;
           stacksize    : longint;
+          { stack alignment }
+          stackalign   : byte;
           abi          : tabi;
        end;
 

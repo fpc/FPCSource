@@ -87,6 +87,7 @@ unit i_embed;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -149,6 +150,7 @@ unit i_embed;
               );
             first_parm_offset : 0;
             stacksize    : 1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -211,6 +213,7 @@ unit i_embed;
               );
             first_parm_offset : 8;
             stacksize    : 4096;
+            stackalign   : 4;
             abi : abi_default
           );
 

@@ -73,9 +73,9 @@ unit i_atari;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
-            stackalignment : 2;
             maxCrecordalignment : 4;
             stacksize    : 8192;
+            stackalign   : 2;
             DllScanSupported:false;
             use_function_relative_addresses : false
           );

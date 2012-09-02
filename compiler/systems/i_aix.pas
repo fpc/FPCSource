@@ -88,6 +88,7 @@ unit i_aix;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_aix;
           );
 
@@ -150,6 +151,7 @@ unit i_aix;
               );
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_aix
           );
 

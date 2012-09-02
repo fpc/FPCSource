@@ -93,6 +93,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -156,6 +157,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -218,6 +220,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -280,6 +283,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_sysv;
           );
 
@@ -342,6 +346,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_sysv
           );
 
@@ -404,6 +409,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;  { ??? }
             abi : abi_default
           );
 
@@ -467,6 +473,7 @@ unit i_linux;
               );
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -531,6 +538,7 @@ unit i_linux;
               );
             first_parm_offset : 92;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 
@@ -595,6 +603,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_eabihf
           );
 {$else FPC_ARMHF}
@@ -659,6 +668,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_eabi
           );
 {$else FPC_ARMEL}
@@ -723,6 +733,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 {$else FPC_ARMEB}
@@ -786,6 +797,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 {$endif FPC_ARMEB}
@@ -853,6 +865,7 @@ unit i_linux;
               );
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 
@@ -917,6 +930,7 @@ unit i_linux;
               );
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 

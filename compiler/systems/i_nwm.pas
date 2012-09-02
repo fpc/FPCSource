@@ -87,6 +87,7 @@ unit i_nwm;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
+            stackalign   : 4;
             abi : abi_default
           );
 
