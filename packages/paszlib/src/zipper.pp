@@ -306,6 +306,7 @@ Type
     FZipping    : Boolean;
     FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
+    FFileComment: String;
     FFiles      : TStrings;
     FInMemSize  : Integer;
     FOutStream  : TStream;
@@ -349,6 +350,7 @@ Type
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
     Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
     Property FileName : String Read FFileName Write SetFileName;
+    Property FileComment: String Read FFileComment Write FFileComment;
     // Deprecated. Use Entries.AddFileEntry(FileName) or Entries.AddFileEntries(List) instead.
     Property Files : TStrings Read FFiles; deprecated;
     Property InMemSize : Integer Read FInMemSize Write FInMemSize;
@@ -1359,8 +1361,10 @@ Begin
      Total_Entries := ACount;
      Central_Dir_Size := FOutStream.Size-CenDirPos;
      Start_Disk_Offset := CenDirPos;
-     ZipFile_Comment_Length := 0;
+     ZipFile_Comment_Length := Length(FFileComment);
      FOutStream.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapECD{$ENDIF}(EndHdr), SizeOf(EndHdr));
+     if Length(FFileComment) > 0 then
+       FOutStream.WriteBuffer(FFileComment[1],Length(FFileComment));
      end;
 end;
 
