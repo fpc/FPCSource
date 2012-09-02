@@ -312,17 +312,6 @@ interface
        systems_interrupt_table = [{system_arm_embedded}];
        {$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
-       { all systems for which istack must be at a 16 byte boundary
-         when calling a function }
-       systems_need_16_byte_stack_alignment = [
-      	system_i386_darwin,
-      	system_i386_iphonesim,
-        system_x86_64_darwin,
-        system_x86_64_win64,
-        system_x86_64_linux,
-        system_x86_64_freebsd,
-        system_x86_64_solaris];
-
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
          system_jvm_java32,

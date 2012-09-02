@@ -303,13 +303,13 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+                if (target_info.stackalign>4) and
                    ((stacksize <> 0) or
                     (pi_do_call in current_procinfo.flags) or
                     { can't detect if a call in this case -> use nostackframe }
                     { if you (think you) know what you are doing              }
                     (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),16) - sizeof(aint);
+                  stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
                 if (stacksize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
@@ -321,7 +321,7 @@ unit cgcpu;
         { return from proc }
         if (po_interrupt in current_procinfo.procdef.procoptions) and
            { this messes up stack alignment }
-           not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+           (target_info.stackalign=4) then
           begin
             if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
                (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then

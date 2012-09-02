@@ -76,9 +76,11 @@ unit cpupi;
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+        if target_info.stackalign<=4 then
           result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,4))
         else
+          { aligned during stack frame allocation, because also depends number
+            of saved registers }
           result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;
 

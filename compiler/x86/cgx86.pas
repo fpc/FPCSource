@@ -2216,13 +2216,13 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.system in systems_need_16_byte_stack_alignment) and
+               ((target_info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if (target_info.system in systems_need_16_byte_stack_alignment) then
-                  localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
+                if target_info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
