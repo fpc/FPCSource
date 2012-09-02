@@ -67,7 +67,11 @@ unit tgobj;
           templist      : ptemprecord;
           { Offsets of the first/last temp }
           firsttemp,
-          lasttemp      : longint;
+          lasttemp,
+          { Offset of temp base register relative to guaranteed stack alignment
+            (note: currently only behaves as expected if it's a power of 2,
+               and if all requested alignments are also a power of 2) }
+          alignmismatch: longint;
           direction : shortint;
           constructor create;virtual;reintroduce;
           {# Clear and free the complete linked list of temporary memory
@@ -80,6 +84,7 @@ unit tgobj;
              @param(l start offset where temps will start in stack)
           }
           procedure setfirsttemp(l : longint); virtual;
+          procedure setalignmentmismatch(l : longint); virtual;
 
           { version of gettemp that is compatible with hlcg-based targets;
             always use in common code, only use gettemp in cgobj and
@@ -206,6 +211,7 @@ implementation
         tempfreelist:=nil;
         firsttemp:=0;
         lasttemp:=0;
+        alignmismatch:=0;
       end;
 
 
@@ -224,12 +230,19 @@ implementation
       end;
 
 
+    procedure ttgobj.setalignmentmismatch(l: longint);
+      begin
+        alignmismatch:=l*direction;
+      end;
+
+
     function ttgobj.AllocTemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
       var
          tl,htl,
          bestslot,bestprev,
          hprev,hp : ptemprecord;
          freetype : ttemptype;
+         adjustedpos : longint;
          bestatend,
          fitatbegin,
          fitatend : boolean;
@@ -270,11 +283,12 @@ implementation
                   - share the same type
                   - contain enough space
                   - has a correct alignment }
+               adjustedpos:=hp^.pos+alignmismatch;
                if (hp^.temptype=freetype) and
                   (hp^.def=def) and
                   (hp^.size>=size) and
-                  ((hp^.pos=align(hp^.pos,alignment)) or
-                   (hp^.pos+hp^.size-size = align(hp^.pos+hp^.size-size,alignment))) then
+                  ((adjustedpos=align(adjustedpos,alignment)) or
+                   (adjustedpos+hp^.size-size = align(adjustedpos+hp^.size-size,alignment))) then
                 begin
                   { Slot is the same size then leave immediatly }
                   if (hp^.size=size) then
@@ -293,25 +307,25 @@ implementation
                      { still suffices. And we pick the block which will     }
                      { have the best alignmenment after this new block is   }
                      { substracted from it.                                 }
-                     fitatend:=(hp^.pos+hp^.size-size)=align(hp^.pos+hp^.size-size,alignment);
-                     fitatbegin:=hp^.pos=align(hp^.pos,alignment);
+                     fitatend:=(adjustedpos+hp^.size-size)=align(adjustedpos+hp^.size-size,alignment);
+                     fitatbegin:=adjustedpos=align(adjustedpos,alignment);
                      if assigned(bestslot) then
                        begin
                          fitatend:=fitatend and
                            ((not bestatend and
                              (direction=-1)) or
                             (bestatend and
-                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(hp^.pos+hp^.size-size),current_settings.alignment.localalignmax)));
+                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(adjustedpos+hp^.size-size),current_settings.alignment.localalignmax)));
                          fitatbegin:=fitatbegin and
                            (not bestatend or
                             (direction=1)) and
-                           isbetteralignedthan(abs(hp^.pos+size),abs(bestslot^.pos+size),current_settings.alignment.localalignmax);
+                           isbetteralignedthan(abs(adjustedpos+size),abs(bestslot^.pos+size),current_settings.alignment.localalignmax);
                        end;
                      if fitatend and
                         fitatbegin then
-                       if isbetteralignedthan(abs(hp^.pos+hp^.size-size),abs(hp^.pos+size),current_settings.alignment.localalignmax) then
+                       if isbetteralignedthan(abs(adjustedpos+hp^.size-size),abs(adjustedpos+size),current_settings.alignment.localalignmax) then
                          fitatbegin:=false
-                       else if isbetteralignedthan(abs(hp^.pos+size),abs(hp^.pos+hp^.size-size),current_settings.alignment.localalignmax) then
+                       else if isbetteralignedthan(abs(adjustedpos+size),abs(adjustedpos+hp^.size-size),current_settings.alignment.localalignmax) then
                          fitatend:=false
                        else if (direction=1) then
                          fitatend:=false
@@ -392,13 +406,13 @@ implementation
             { Extend the temp }
             if direction=-1 then
               begin
-                 lasttemp:=(-align(-lasttemp,alignment))-size;
-                 tl^.pos:=lasttemp;
+                lasttemp:=(-align(-lasttemp-alignmismatch,alignment))-size-alignmismatch;
+                tl^.pos:=lasttemp;
               end
             else
               begin
-                 tl^.pos:=align(lasttemp,alignment);
-                 lasttemp:=tl^.pos+size;
+                tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
+                lasttemp:=tl^.pos+size;
               end;
 
             tl^.size:=size;

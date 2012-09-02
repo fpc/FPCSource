@@ -64,6 +64,10 @@ unit cpupi;
             if not(po_assembler in procdef.procoptions) and
                (tg.direction > 0) then
               tg.setfirsttemp(tg.direction*maxpushedparasize);
+            if (tg.direction < 0) and
+               not(po_nostackframe in procdef.procoptions) then
+              { compensate for the return address and the "pushl %ebp" }
+              tg.setalignmentmismatch(sizeof(pint)*2);
           end;
       end;
 
