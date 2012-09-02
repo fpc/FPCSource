@@ -1013,5 +1013,5 @@ begin
 end;
 
 {include hand-optimized assembler division code}
-{$i divide.inc}
+{ $i divide.inc}
 
