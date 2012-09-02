@@ -11128,6 +11128,7 @@ tests/test/tpointermath1.pp svneol=native#text/pascal
 tests/test/tpointermath2.pp svneol=native#text/pascal
 tests/test/tpointermath3.pp svneol=native#text/pascal
 tests/test/tpoll.pp svneol=native#text/plain
+tests/test/tpopcnt1.pp svneol=native#text/pascal
 tests/test/tprec1.pp svneol=native#text/plain
 tests/test/tprec10.pp svneol=native#text/plain
 tests/test/tprec11.pp svneol=native#text/plain
