@@ -55,7 +55,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 cpu mmx
+CPU_UNITS=cpu mmx
 endif
 
 ifeq ($(ARCH),x86_64)
