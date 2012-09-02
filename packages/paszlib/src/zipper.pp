@@ -136,6 +136,7 @@ Type
     Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord); virtual;
     Procedure Compress; Virtual; Abstract;
     Class Function ZipID : Word; virtual; Abstract;
+    Class Function ZipVersionReqd: Word; virtual; Abstract;
     Property BufferSize : LongWord read FBufferSize;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
@@ -226,6 +227,7 @@ Type
     Destructor Destroy; override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
+    Class Function ZipVersionReqd : Word; override;
   end;
 
   { TDeflater }
@@ -237,6 +239,7 @@ Type
     Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord);override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
+    Class Function ZipVersionReqd : Word; override;
     Property CompressionLevel : TCompressionlevel Read FCompressionLevel Write FCompressionLevel;
   end;
 
@@ -319,7 +322,7 @@ Type
   Protected
     Procedure CloseInput(Item : TZipFileEntry);
     Procedure StartZipFile(Item : TZipFileEntry);
-    Function  UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord;AMethod : Word) : Boolean;
+    Function  UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord;AMethod : Word; AZipVersionReqd : Word) : Boolean;
     Procedure BuildZipDirectory;
     Procedure DoEndOfFile;
     Procedure ZipOneFile(Item : TZipFileEntry); virtual;
@@ -716,6 +719,11 @@ begin
   Result:=8;
 end;
 
+class function TDeflater.ZipVersionReqd: Word;
+begin
+  Result:=20;
+end;
+
 { ---------------------------------------------------------------------
     TInflater
   ---------------------------------------------------------------------}
@@ -851,6 +859,11 @@ end;
 class function TShrinker.ZipID: Word;
 begin
   Result:=1;
+end;
+
+class function TShrinker.ZipVersionReqd: Word;
+begin
+  Result:=10;
 end;
 
 
@@ -1251,7 +1264,7 @@ Begin
 End;
 
 
-Function TZipper.UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord; AMethod : Word) : Boolean;
+Function TZipper.UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord; AMethod : Word; AZipVersionReqd : Word) : Boolean;
 var
   ZFileName  : ShortString;
 Begin
@@ -1259,14 +1272,19 @@ Begin
   With LocalHdr do
     begin
     FileName_Length := Length(ZFileName);
-    Compressed_Size := FZip.Size;
     Crc32 := ACRC;
-    Compress_method:=AMethod;
     Result:=Not (Compressed_Size >= Uncompressed_Size);
     If Not Result then
       begin                     { No...                          }
       Compress_Method := 0;                  { ...change stowage type      }
       Compressed_Size := Uncompressed_Size;  { ...update compressed size   }
+      end
+    else
+      begin
+      Compress_method:=AMethod;
+      Compressed_Size := FZip.Size;
+      if AZipVersionReqd > Extract_Version_Reqd then
+        Extract_Version_Reqd := AZipVersionReqd;
       end;
     end;
   FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapLFH{$ENDIF}(LocalHdr),SizeOf(LocalHdr));
@@ -1356,6 +1374,7 @@ Procedure TZipper.ZipOneFile(Item : TZipFileEntry);
 Var
   CRC : LongWord;
   ZMethod : Word;
+  ZVersionReqd : Word;
   ZipStream : TStream;
   TmpFileName : String;
 
@@ -1378,10 +1397,11 @@ Begin
           Compress;
           CRC:=Crc32Val;
           ZMethod:=ZipID;
+          ZVersionReqd:=ZipVersionReqd;
         Finally
           Free;
         end;
-      If UpdateZipHeader(Item,ZipStream,CRC,ZMethod) then
+      If UpdateZipHeader(Item,ZipStream,CRC,ZMethod,ZVersionReqd) then
         // Compressed file smaller than original file.
         FOutStream.CopyFrom(ZipStream,0)
       else
