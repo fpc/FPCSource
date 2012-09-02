@@ -172,9 +172,17 @@ implementation
            end;
        end;
 
+
      function tx86inlinenode.first_popcnt: tnode;
        begin
-        Result:=inherited first_popcnt;
+         Result:=nil;
+         if (current_settings.fputype<fpu_sse42)
+{$ifdef i386}
+           or is_64bit(left.resultdef) then
+{$endif i386}
+           Result:=inherited first_popcnt
+         else
+           expectloc:=LOC_REGISTER;
        end;
 
 
