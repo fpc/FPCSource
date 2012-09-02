@@ -860,41 +860,10 @@ function BsfQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$
 function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_QWORD}
 
-{$ifdef FPC_HAS_INTERNAL_POPCNT}
-{$if defined(cpui386) or defined(cpux86_64)}
-{$define FPC_HAS_INTERNAL_POPCNT_BYTE}
-{$define FPC_HAS_INTERNAL_POPCNT_WORD}
-{$define FPC_HAS_INTERNAL_POPCNT_DWORD}
-{$endif}
-{$if defined(cpux86_64)}
-{$define FPC_HAS_INTERNAL_POPCNT_QWORD}
-{$endif}
-{$endif}
-
-
-{$ifdef FPC_HAS_INTERNAL_POPCNT_BYTE}
 function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];
-{$else}
-function PopCnt(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif FPC_HAS_INTERNAL_POPCNT_BYTE}
-
-{$ifdef FPC_HAS_INTERNAL_POPCNT_WORD}
 function PopCnt(Const AValue: Word): Word;[internproc:fpc_in_popcnt_x];
-{$else}
-function PopCnt(Const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif FPC_HAS_INTERNAL_POPCNT_WORD}
-
-{$ifdef FPC_HAS_INTERNAL_POPCNT_DWORD}
 function PopCnt(Const AValue : DWord): DWord;[internproc:fpc_in_popcnt_x];
-{$else}
-function PopCnt(Const AValue : DWord): DWord;
-{$endif FPC_HAS_INTERNAL_POPCNT_DWORD}
-
-{$ifdef FPC_HAS_INTERNAL_POPCNT_QWORD}
 function PopCnt(Const AValue : QWord): QWord;[internproc:fpc_in_popcnt_x];
-{$else}
-function PopCnt(Const AValue : QWord): QWord;
-{$endif FPC_HAS_INTERNAL_POPCNT_QWORD}
 
 {$ifndef FPUNONE}
 { float math routines }

@@ -502,6 +502,13 @@ function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
 function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
+
+function fpc_popcnt_byte(AValue : Byte): Byte;compilerproc;
+function fpc_popcnt_word(AValue : Word): Word;compilerproc;
+function fpc_popcnt_dword(AValue : DWord): DWord;compilerproc;
+function fpc_popcnt_qword(Const AValue : QWord): QWord;compilerproc;
+
+
 {$ifndef FPUNONE}
 function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
 function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}

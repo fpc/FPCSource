@@ -78,6 +78,7 @@ interface
           function first_unbox: tnode; virtual; abstract;
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
+          function first_popcnt: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -3475,9 +3476,10 @@ implementation
          in_sar_x,
          in_sar_x_y,
          in_bsf_x,
-         in_bsr_x,
-         in_popcnt_x:
+         in_bsr_x:
            expectloc:=LOC_REGISTER;
+         in_popcnt_x:
+           result:=first_popcnt;
          in_new_x:
            result:=first_new;
          in_box_x:
@@ -3824,6 +3826,23 @@ implementation
             ccallnode.createintern('fpc_assert',paras),nil);
          tcallparanode(left).left:=nil;
          tcallparanode(left).right:=nil;
+       end;
+
+
+     function tinlinenode.first_popcnt: tnode;
+       var
+         suffix : string;
+       begin
+         case torddef(left.resultdef).ordtype of
+           u8bit: suffix:='byte';
+           u16bit: suffix:='word';
+           u32bit: suffix:='dword';
+           u64bit: suffix:='qword';
+         else
+           internalerror(2012082601);
+         end;
+         result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
+         left:=nil;
        end;
 
 

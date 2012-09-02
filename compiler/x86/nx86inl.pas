@@ -44,6 +44,7 @@ interface
           function first_sin_real: tnode; override;
           function first_round_real: tnode; override;
           function first_trunc_real: tnode; override;
+          function first_popcnt: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -169,6 +170,11 @@ implementation
                expectloc:=LOC_REFERENCE;
              result:=nil;
            end;
+       end;
+
+     function tx86inlinenode.first_popcnt: tnode;
+       begin
+        Result:=inherited first_popcnt;
        end;
 
 

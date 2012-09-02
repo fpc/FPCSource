@@ -2445,12 +2445,47 @@ function BsrQWord(Const AValue : QWord): cardinal;
 {$endif}
 {$endif}
 
-{$ifndef FPC_HAS_INTERNAL_POPCNT_QWORD}
+const
+  PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
+
+function fpc_PopCnt_byte(AValue : Byte): Byte;[Public,Alias:'FPC_POPCNT_BYTE'];compilerproc;
+  var
+    i : SizeInt;
+  begin
+    Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
+  end;
+
+
+function fpc_PopCnt_word(AValue : Word): Word;[Public,Alias:'FPC_POPCNT_WORD'];compilerproc;
+  var
+    i : SizeInt;
+  begin
+    Result:=0;
+    for i:=0 to 3 do
+      begin
+        inc(Result,PopCntData[AValue and $f]);
+        AValue:=AValue shr 4;
+      end;
+  end;
+
+
+function fpc_PopCnt_dword(AValue : DWord): DWord;[Public,Alias:'FPC_POPCNT_DWORD'];compilerproc;
+  var
+    i : SizeInt;
+  begin
+    Result:=0;
+    for i:=0 to 7 do
+      begin
+        inc(Result,PopCntData[AValue and $f]);
+        AValue:=AValue shr 4;
+      end;
+  end;
+
+
 {$ifndef FPC_SYSTEM_HAS_POPCNT_QWORD}
-function PopCnt(Const AValue : QWord): QWord;
+function fpc_PopCnt_qword(Const AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD'];compilerproc;
   begin
     Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
   end;
-{$endif}
 {$endif}
 
