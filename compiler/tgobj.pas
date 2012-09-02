@@ -252,6 +252,7 @@ implementation
          bestslot:=nil;
          tl:=nil;
          bestatend:=false;
+         current_procinfo.updatestackalignment(alignment);
 
          if size=0 then
           begin

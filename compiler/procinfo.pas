@@ -56,6 +56,8 @@ unit procinfo;
        private
           { list to store the procinfo's of the nested procedures }
           nestedprocs : tlinkedlist;
+          { required alignment for this stackframe }
+          fstackalignment : longint;
           procedure addnestedproc(child: tprocinfo);
        public
           { pointer to parent in nested procedures }
@@ -159,6 +161,12 @@ unit procinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
+
+          { Get the required alignment for the current stack frame }
+          property stackalignment: longint read fstackalignment;
+          { Update the resuired alignment for the current stack frame based
+            on the current value and the new required alignment }
+          procedure updatestackalignment(alignment: longint);
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -185,6 +193,7 @@ implementation
         parent:=aparent;
         procdef:=nil;
         para_stack_size:=0;
+        fstackalignment:=target_info.stackalign;
         flags:=[];
         init_framepointer;
         framepointer:=NR_FRAME_POINTER_REG;
@@ -232,6 +241,11 @@ implementation
         if nestedprocs=nil then
           nestedprocs:=TLinkedList.Create;
         nestedprocs.insert(child);
+      end;
+
+    procedure tprocinfo.updatestackalignment(alignment: longint);
+      begin
+        fstackalignment:=max(fstackalignment,alignment);
       end;
 
     function tprocinfo.get_first_nestedproc: tprocinfo;
