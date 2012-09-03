@@ -506,7 +506,7 @@ function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
 function fpc_popcnt_byte(AValue : Byte): Byte;compilerproc;
 function fpc_popcnt_word(AValue : Word): Word;compilerproc;
 function fpc_popcnt_dword(AValue : DWord): DWord;compilerproc;
-function fpc_popcnt_qword(Const AValue : QWord): QWord;compilerproc;
+function fpc_popcnt_qword(AValue : QWord): QWord;compilerproc;
 
 
 {$ifndef FPUNONE}
