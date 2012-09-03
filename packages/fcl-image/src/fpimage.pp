@@ -343,6 +343,202 @@ function CreateWebSafePalette : TFPPalette;
 function CreateGrayScalePalette : TFPPalette;
 function CreateVGAPalette : TFPPalette;
 
+Type
+  TFPCompactImgDesc = record
+    Gray: boolean; // true = red=green=blue, false: a RGB image
+    Depth: word; // 8 or 16 bit
+    HasAlpha: boolean; // has alpha channel
+  end;
+
+  { TFPCompactImgBase }
+
+  TFPCompactImgBase = class(TFPCustomImage)
+  private
+    FDesc: TFPCompactImgDesc;
+  public
+    property Desc: TFPCompactImgDesc read FDesc;
+  end;
+  TFPCompactImgBaseClass = class of TFPCompactImgBase;
+
+  { TFPCompactImgGray16Bit }
+
+  TFPCompactImgGray16Bit = class(TFPCompactImgBase)
+  protected
+    FData: PWord;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  TFPCompactImgGrayAlpha16BitValue = packed record
+    g,a: word;
+  end;
+  PFPCompactImgGrayAlpha16BitValue = ^TFPCompactImgGrayAlpha16BitValue;
+
+  { TFPCompactImgGrayAlpha16Bit }
+
+  TFPCompactImgGrayAlpha16Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPCompactImgGrayAlpha16BitValue;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  { TFPCompactImgGray8Bit }
+
+  TFPCompactImgGray8Bit = class(TFPCompactImgBase)
+  protected
+    FData: PByte;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  TFPCompactImgGrayAlpha8BitValue = packed record
+    g,a: byte;
+  end;
+  PFPCompactImgGrayAlpha8BitValue = ^TFPCompactImgGrayAlpha8BitValue;
+
+  { TFPCompactImgGrayAlpha8Bit }
+
+  TFPCompactImgGrayAlpha8Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPCompactImgGrayAlpha8BitValue;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  TFPCompactImgRGBA8BitValue = packed record
+    r,g,b,a: byte;
+  end;
+  PFPCompactImgRGBA8BitValue = ^TFPCompactImgRGBA8BitValue;
+
+  { TFPCompactImgRGBA8Bit }
+
+  TFPCompactImgRGBA8Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPCompactImgRGBA8BitValue;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  TFPCompactImgRGB8BitValue = packed record
+    r,g,b: byte;
+  end;
+  PFPCompactImgRGB8BitValue = ^TFPCompactImgRGB8BitValue;
+
+  { TFPCompactImgRGB8Bit }
+
+  TFPCompactImgRGB8Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPCompactImgRGB8BitValue;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  TFPCompactImgRGB16BitValue = packed record
+    r,g,b: word;
+  end;
+  PFPCompactImgRGB16BitValue = ^TFPCompactImgRGB16BitValue;
+
+  { TFPCompactImgRGB16Bit }
+
+  TFPCompactImgRGB16Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPCompactImgRGB16BitValue;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+  { TFPCompactImgRGBA16Bit }
+
+  TFPCompactImgRGBA16Bit = class(TFPCompactImgBase)
+  protected
+    FData: PFPColor;
+    function GetInternalColor(x, y: integer): TFPColor; override;
+    function GetInternalPixel({%H-}x, {%H-}y: integer): integer; override;
+    procedure SetInternalColor (x, y: integer; const Value: TFPColor); override;
+    procedure SetInternalPixel({%H-}x, {%H-}y: integer; {%H-}Value: integer); override;
+  public
+    constructor Create(AWidth, AHeight: integer); override;
+    destructor Destroy; override;
+    procedure SetSize(AWidth, AHeight: integer); override;
+  end;
+
+{ Create a descriptor to select a CompactImg class }
+function GetFPCompactImgDesc(Gray: boolean; Depth: word; HasAlpha: boolean): TFPCompactImgDesc;
+
+{ Returns a CompactImg class that fits the descriptor }
+function GetFPCompactImgClass(const Desc: TFPCompactImgDesc): TFPCompactImgBaseClass;
+
+{ Create a CompactImg with the descriptor }
+function CreateFPCompactImg(const Desc: TFPCompactImgDesc; Width, Height: integer): TFPCustomImage;
+
+{ Create a CompactImg with the same features as Img.
+If Img is a TFPCompactImgBaseClass it will create that.
+Otherwise it returns a CompactImg that fits the Img using GetMinimumPTDesc. }
+function CreateCompatibleFPCompactImg(Img: TFPCustomImage; Width, Height: integer
+): TFPCustomImage;
+
+{ As CreateCompatibleFPCompactImg, but the image has always an alpha channel. }
+function CreateCompatibleFPCompactImgWithAlpha(Img: TFPCustomImage;
+Width, Height: integer): TFPCustomImage;
+
+{ Returns the smallest descriptor that allows to store the Img.
+It returns HasAlpha=false if all pixel are opaque.
+It returns Gray=true if all red=green=blue.
+It returns Depth=8 if all lo byte equals the hi byte or all lo bytes are 0.
+To ignore rounding errors you can pass a FuzzyDepth. For example a FuzzyDepth
+of 3 ignores the lower 3 bits when comparing.  }
+function GetMinimumPTDesc(Img: TFPCustomImage; FuzzyDepth: word = 4): TFPCompactImgDesc;
+
+{ Create a smaller CompactImg with the same information as Img.
+Pass FreeImg=true to call Img.Free }
+function GetMinimumFPCompactImg(Img: TFPCustomImage; FreeImg: boolean;
+FuzzyDepth: word = 4): TFPCustomImage;
+
+
+
 implementation
 
 procedure FPImgError (Fmt:TErrorTextIndices; data : array of const);
@@ -359,6 +555,7 @@ end;
 {$i FPHandler.inc}
 {$i FPPalette.inc}
 {$i FPColCnv.inc}
+{$i fpcompactimg.inc}
 
 function FPColor (r,g,b:word) : TFPColor;
 begin

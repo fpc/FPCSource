@@ -449,6 +449,7 @@ begin
   // signature for PNG
   TheStream.writeBuffer(Signature,sizeof(Signature));
   // Determine all settings for filling the header
+  fillchar(fheader,sizeof(fheader),#0);
   DetermineHeader (FHeader);
   // write the header chunk
   SetChunkLength (13);   // (sizeof(FHeader)); gives 14 and is wrong !!

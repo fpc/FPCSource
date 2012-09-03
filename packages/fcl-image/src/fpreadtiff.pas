@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2008 by the Free Pascal development team
+    Copyright (c) 2012 by the Free Pascal development team
 
     Tiff reader for fpImage.
 
@@ -13,23 +13,26 @@
 
  **********************************************************************
 
-  Working:
-    Grayscale 8,16bit (optional alpha),
-    RGB 8,16bit (optional alpha),
-    Orientation,
-    skipping Thumbnail to read first image,
-    compression: packbits, LZW
-    endian
+ Working:
+   Grayscale 8,16bit (optional alpha),
+   RGB 8,16bit (optional alpha),
+   Orientation,
+   skipping Thumbnail to read first image,
+   compression: packbits, LZW, deflate
+   endian
+   multiple images
+   strips and tiles
 
-  ToDo:
-    Compression: deflate, jpeg, ...
-    Planar
-    ColorMap
-    multiple images
-    separate mask
-    pages
-    fillorder - not needed by baseline tiff reader
-    bigtiff 64bit offsets
+ ToDo:
+   Compression: jpeg, ...
+   PlanarConfiguration 2
+   ColorMap
+   separate mask
+   fillorder - not needed by baseline tiff reader
+   bigtiff 64bit offsets
+   XMP tag 700
+   ICC profile tag 34675
+   orientation with rotation
 }
 unit FPReadTiff;
 
@@ -40,21 +43,29 @@ unit FPReadTiff;
 interface
 
 uses
-  Math, Classes, SysUtils, FPimage, ctypes, FPTiffCmn;
+  Math, Classes, SysUtils, ctypes, zinflate, zbase, FPimage, FPTiffCmn;
 
 type
   TFPReaderTiff = class;
 
   TTiffCreateCompatibleImgEvent = procedure(Sender: TFPReaderTiff;
-                                        var NewImage: TFPCustomImage) of object;
+                                            ImgFileDir: TTiffIFD) of object;
+
+  TTiffCheckIFDOrder = (
+    tcioSmart,
+    tcioAlways,
+    tcioNever
+    );
 
   { TFPReaderTiff }
 
   TFPReaderTiff = class(TFPCustomImageReader)
   private
+    FCheckIFDOrder: TTiffCheckIFDOrder;
+    FFirstIFDStart: DWord;
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
     FReverserEndian: boolean;
-    IDF: TTiffIDF;
+    IFD: TTiffIFD;
     {$ifdef FPC_Debug_Image}
     FDebug: boolean;
     {$endif}
@@ -62,10 +73,11 @@ type
     FReverseEndian: Boolean;
     fStartPos: int64;
     s: TStream;
+    function GetImages(Index: integer): TTiffIFD;
     procedure TiffError(Msg: string);
     procedure SetStreamPos(p: DWord);
-    function ReadTiffHeader(QuickTest: boolean; out IFD: DWord): boolean; // returns IFD: offset to first IFD
-    function ReadIFD(Start: dword): DWord;// Image File Directory
+    function ReadTiffHeader(QuickTest: boolean; out IFDStart: DWord): boolean; // returns IFD: offset to first IFD
+    function ReadIFD(Start: DWord): DWord;// Image File Directory
     procedure ReadDirectoryEntry(var EntryTag: Word);
     function ReadEntryUnsigned: DWord;
     function ReadEntrySigned: Cint32;
@@ -81,22 +93,31 @@ type
                                     out Buffer: PDWord; out Count: DWord);
     procedure ReadShortValues(StreamPos: DWord;
                               out Buffer: PWord; out Count: DWord);
-    procedure ReadImage(Index: integer);
+    procedure ReadImageProperties(
+      out RedBits, GreenBits, BlueBits, GrayBits, AlphaBits: Word;
+      out ExtraSamples: PWord; out ExtraSampleCnt: DWord;
+      out SampleBits: PWord; out SampleBitsPerPixel: DWord);
     procedure ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
       Predictor: word; var LastValue: word; out Value: Word); inline;
     function FixEndian(w: Word): Word; inline;
     function FixEndian(d: DWord): DWord; inline;
-    procedure DecompressPackBits(var Buffer: Pointer; var Count: PtrInt);
-    procedure DecompressLZW(var Buffer: Pointer; var Count: PtrInt);
+    procedure SetFPImgExtras(CurImg: TFPCustomImage);
+    procedure DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
+    procedure DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
+    procedure DecodeDeflate(var Buffer: Pointer; var Count: PtrInt; ExpectedCount: PtrInt);
   protected
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
+    procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
   public
-    FirstImg: TTiffIDF;
+    ImageList: TFPList; // list of TTiffIFD
     constructor Create; override;
     destructor Destroy; override;
     procedure Clear;
-    procedure LoadFromStream(aStream: TStream);
+    procedure LoadFromStream(aStream: TStream; AutoClear: boolean = true);
+    procedure LoadHeaderFromStream(aStream: TStream);
+    procedure LoadIFDsFromStream; // requires LoadHeaderFromStream, creates Images
+    procedure LoadImageFromStream(Index: integer); // requires LoadIFDsFromStream
     {$ifdef FPC_Debug_Image}
     property Debug: boolean read FDebug write FDebug;
     {$endif}
@@ -105,16 +126,234 @@ type
     property TheStream: TStream read s;
     property OnCreateImage: TTiffCreateCompatibleImgEvent read FOnCreateImage
                                                           write FOnCreateImage;
+    property CheckIFDOrder: TTiffCheckIFDOrder read FCheckIFDOrder write FCheckIFDOrder;
+    function FirstImg: TTiffIFD;
+    function GetBiggestImage: TTiffIFD;
+    function ImageCount: integer;
+    property Images[Index: integer]: TTiffIFD read GetImages; default;
+    property FirstIFDStart: DWord read FFirstIFDStart;
   end;
 
+procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt;
+  out NewBuffer: Pointer; out NewCount: PtrInt);
+procedure DecompressLZW(Buffer: Pointer; Count: PtrInt;
+  out NewBuffer: PByte; out NewCount: PtrInt);
+function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
+  out Decompressed: PByte; var DecompressedCount: cardinal;
+  ErrorMsg: PAnsiString = nil): boolean;
+
 implementation
+
+function CMYKToFPColor(C,M,Y,K: Word): TFPColor;
+var R, G, B : LongWord;
+begin
+   R := $ffff - ((LongWord(C)*($ffff-LongWord(K))) shr 16) - LongWord(K) ;
+   G := $ffff - ((LongWord(M)*($ffff-LongWord(K))) shr 16) - LongWord(K) ;
+   B := $ffff - ((LongWord(Y)*($ffff-LongWord(K))) shr 16) - LongWord(K) ;
+   Result := FPColor(R and $ffff,G and $ffff,B and $ffff);
+end ;
 
 procedure TFPReaderTiff.TiffError(Msg: string);
 begin
   Msg:=Msg+' at position '+IntToStr(s.Position);
   if fStartPos>0 then
-    Msg:=Msg+'(TiffPosition='+IntToStr(fStartPos)+')';
+    Msg:=Msg+' (TiffPosition='+IntToStr(fStartPos)+')';
   raise Exception.Create(Msg);
+end;
+
+function TFPReaderTiff.GetImages(Index: integer): TTiffIFD;
+begin
+  Result:=TTiffIFD(ImageList[Index]);
+end;
+
+procedure TFPReaderTiff.ReadImageProperties(out RedBits, GreenBits, BlueBits,
+  GrayBits, AlphaBits: Word; out ExtraSamples: PWord; out
+  ExtraSampleCnt: DWord; out SampleBits: PWord; out SampleBitsPerPixel: DWord);
+var
+  BytesPerPixel: Word;
+  SampleCnt: DWord;
+  i: Integer;
+begin
+  ReadShortValues(IFD.BitsPerSample, SampleBits, SampleCnt);
+  if SampleCnt<>IFD.SamplesPerPixel then
+    TiffError('Samples='+IntToStr(SampleCnt)+' <> SamplesPerPixel='+IntToStr(IFD
+      .SamplesPerPixel));
+  if IFD.ExtraSamples>0 then
+    ReadShortValues(IFD.ExtraSamples, ExtraSamples, ExtraSampleCnt);
+  if ExtraSampleCnt>=SampleCnt then
+    TiffError('Samples='+IntToStr(SampleCnt)+' ExtraSampleCnt='+IntToStr(
+      ExtraSampleCnt));
+
+  case IFD.PhotoMetricInterpretation of
+  0, 1: if SampleCnt-ExtraSampleCnt<>1 then
+    TiffError('gray images expect one sample per pixel, but found '+IntToStr(
+      SampleCnt));
+  2: if SampleCnt-ExtraSampleCnt<>3 then
+    TiffError('rgb images expect three samples per pixel, but found '+IntToStr(
+      SampleCnt));
+  3: if SampleCnt-ExtraSampleCnt<>1 then
+    TiffError('palette images expect one sample per pixel, but found '+IntToStr(
+      SampleCnt));
+  4: if SampleCnt-ExtraSampleCnt<>1 then
+    TiffError('mask images expect one sample per pixel, but found '+IntToStr(
+      SampleCnt));
+  5: if SampleCnt-ExtraSampleCnt<>4 then
+    TiffError('cmyk images expect four samples per pixel, but found '+IntToStr(
+      SampleCnt));
+  end;
+
+  GrayBits:=0;
+  RedBits:=0;
+  GreenBits:=0;
+  BlueBits:=0;
+  AlphaBits:=0;
+  BytesPerPixel:=0;
+  SampleBitsPerPixel:=0;
+  for i:=0 to SampleCnt-1 do begin
+    if SampleBits[i]>64 then
+      TiffError('Samples bigger than 64 bit not supported');
+    if not (SampleBits[i] in [8, 16]) then
+      TiffError('Only samples of 8 and 16 bit are supported');
+    inc(SampleBitsPerPixel, SampleBits[i]);
+  end;
+  case IFD.PhotoMetricInterpretation of
+  0, 1:
+    begin
+      GrayBits:=SampleBits[0];
+      IFD.GrayBits:=GrayBits;
+      for i:=0 to ExtraSampleCnt-1 do begin
+        if ExtraSamples[i] in [1, 2] then begin
+          AlphaBits:=SampleBits[1+i];
+          IFD.AlphaBits:=AlphaBits;
+        end;
+      end;
+      if not (GrayBits in [8, 16]) then
+        TiffError('gray image only supported with gray BitsPerSample 8 or 16');
+      if not (AlphaBits in [0, 8, 16]) then
+        TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
+    end;
+  2:
+    begin
+      RedBits:=SampleBits[0];
+      GreenBits:=SampleBits[1];
+      BlueBits:=SampleBits[2];
+      IFD.RedBits:=RedBits;
+      IFD.GreenBits:=GreenBits;
+      IFD.BlueBits:=BlueBits;
+      IFD.AlphaBits:=0;
+      for i:=0 to ExtraSampleCnt-1 do begin
+        //writeln('  ',i,'/',ExtraSampleCnt,' Type=',ExtraSamples[i],' Count=',SampleBits[3+i]);
+        if ExtraSamples[i] in [1, 2] then begin
+          AlphaBits:=SampleBits[3+i];
+          IFD.AlphaBits:=AlphaBits;
+        end;
+      end;
+      if not (RedBits in [8, 16]) then
+        TiffError('RGB image only supported with red BitsPerSample 8 or 16');
+      if not (GreenBits in [8, 16]) then
+        TiffError('RGB image only supported with green BitsPerSample 8 or 16');
+      if not (BlueBits in [8, 16]) then
+        TiffError('RGB image only supported with blue BitsPerSample 8 or 16');
+      if not (AlphaBits in [0, 8, 16]) then
+        TiffError('RGB image only supported with alpha BitsPerSample 8 or 16');
+    end;
+  5:
+    begin
+      RedBits:=SampleBits[0];
+      GreenBits:=SampleBits[1];
+      BlueBits:=SampleBits[2];
+      GrayBits:=SampleBits[3];
+      IFD.RedBits:=RedBits;
+      IFD.GreenBits:=GreenBits;
+      IFD.BlueBits:=BlueBits;
+      IFD.GrayBits:=GrayBits;
+      IFD.AlphaBits:=0;
+      for i:=0 to ExtraSampleCnt-1 do begin
+        if ExtraSamples[i] in [1, 2] then begin
+          AlphaBits:=SampleBits[4+i];
+          IFD.AlphaBits:=AlphaBits;
+        end;
+      end;
+      if not (RedBits in [8, 16]) then
+        TiffError('CMYK image only supported with cyan BitsPerSample 8 or 16');
+      if not (GreenBits in [8, 16]) then
+        TiffError('CMYK image only supported with magenta BitsPerSample 8 or 16'
+          );
+      if not (BlueBits in [8, 16]) then
+        TiffError('CMYK image only supported with yellow BitsPerSample 8 or 16'
+          );
+      if not (GrayBits in [8, 16]) then
+        TiffError('CMYK image only supported with black BitsPerSample 8 or 16');
+      if not (AlphaBits in [0, 8, 16]) then
+        TiffError('CMYK image only supported with alpha BitsPerSample 8 or 16');
+    end;
+  end;
+  BytesPerPixel:=(GrayBits+RedBits+GreenBits+BlueBits+AlphaBits) div 8;
+  IFD.BytesPerPixel:=BytesPerPixel;
+  {$ifdef FPC_Debug_Image}
+  if Debug then
+    writeln('BytesPerPixel=', BytesPerPixel);
+  {$endif}
+
+  if not (IFD.FillOrder in [0, 1]) then
+    TiffError('FillOrder unsupported: '+IntToStr(IFD.FillOrder));
+end;
+
+procedure TFPReaderTiff.SetFPImgExtras(CurImg: TFPCustomImage);
+begin
+  ClearTiffExtras(CurImg);
+  // set Tiff extra attributes
+  CurImg.Extra[TiffPhotoMetric]:=IntToStr(IFD.PhotoMetricInterpretation);
+  //writeln('TFPReaderTiff.SetFPImgExtras PhotoMetric=',CurImg.Extra[TiffPhotoMetric]);
+  if IFD.Artist<>'' then
+    CurImg.Extra[TiffArtist]:=IFD.Artist;
+  if IFD.Copyright<>'' then
+    CurImg.Extra[TiffCopyright]:=IFD.Copyright;
+  if IFD.DocumentName<>'' then
+    CurImg.Extra[TiffDocumentName]:=IFD.DocumentName;
+  if IFD.DateAndTime<>'' then
+    CurImg.Extra[TiffDateTime]:=IFD.DateAndTime;
+  if IFD.HostComputer<>'' then
+    CurImg.Extra[TiffHostComputer]:=IFD.HostComputer;
+  if IFD.ImageDescription<>'' then
+    CurImg.Extra[TiffImageDescription]:=IFD.ImageDescription;
+  if IFD.Make_ScannerManufacturer<>'' then
+    CurImg.Extra[TiffMake_ScannerManufacturer]:=IFD.Make_ScannerManufacturer;
+  if IFD.Model_Scanner<>'' then
+    CurImg.Extra[TiffModel_Scanner]:=IFD.Model_Scanner;
+  if IFD.Software<>'' then
+    CurImg.Extra[TiffSoftware]:=IFD.Software;
+  if not (IFD.Orientation in [1..8]) then
+    IFD.Orientation:=1;
+  CurImg.Extra[TiffOrientation]:=IntToStr(IFD.Orientation);
+  if IFD.ResolutionUnit<>0 then
+    CurImg.Extra[TiffResolutionUnit]:=IntToStr(IFD.ResolutionUnit);
+  if (IFD.XResolution.Numerator<>0) or (IFD.XResolution.Denominator<>0) then
+    CurImg.Extra[TiffXResolution]:=TiffRationalToStr(IFD.XResolution);
+  if (IFD.YResolution.Numerator<>0) or (IFD.YResolution.Denominator<>0) then
+    CurImg.Extra[TiffYResolution]:=TiffRationalToStr(IFD.YResolution);
+  CurImg.Extra[TiffRedBits]:=IntToStr(IFD.RedBits);
+  CurImg.Extra[TiffGreenBits]:=IntToStr(IFD.GreenBits);
+  CurImg.Extra[TiffBlueBits]:=IntToStr(IFD.BlueBits);
+  CurImg.Extra[TiffGrayBits]:=IntToStr(IFD.GrayBits);
+  CurImg.Extra[TiffAlphaBits]:=IntToStr(IFD.AlphaBits);
+  if IFD.PageCount>0 then begin
+    CurImg.Extra[TiffPageNumber]:=IntToStr(IFD.PageNumber);
+    CurImg.Extra[TiffPageCount]:=IntToStr(IFD.PageCount);
+  end;
+  if IFD.PageName<>'' then
+    CurImg.Extra[TiffPageName]:=IFD.PageName;
+  if IFD.ImageIsThumbNail then
+    CurImg.Extra[TiffIsThumbnail]:='1';
+  if IFD.ImageIsMask then
+    CurImg.Extra[TiffIsMask]:='1';
+  if IFD.Compression<>TiffCompressionNone then
+    CurImg.Extra[TiffCompression]:=IntToStr(IFD.Compression);
+
+  {$ifdef FPC_Debug_Image}
+  if Debug then
+    WriteTiffExtras('SetFPImgExtras', CurImg);
+  {$endif}
 end;
 
 procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
@@ -152,29 +391,94 @@ begin
   s.Position:=NewPosition;
 end;
 
-procedure TFPReaderTiff.LoadFromStream(aStream: TStream);
+procedure TFPReaderTiff.LoadFromStream(aStream: TStream; AutoClear: boolean);
 var
-  IFDStart: LongWord;
+  IFDStart: DWord;
   i: Integer;
   aContinue: Boolean;
 begin
-  Clear;
+  if AutoClear then
+    Clear;
   aContinue:=true;
   Progress(psStarting, 0, False, Rect(0,0,0,0), '', aContinue);
   if not aContinue then exit;
-  s:=aStream;
-  fStartPos:=s.Position;
-  ReadTiffHeader(false,IFDStart);
-  i:=0;
-  while IFDStart>0 do begin
-    IFDStart:=ReadIFD(IFDStart);
-    ReadImage(i);
-    inc(i);
+  LoadHeaderFromStream(aStream);
+  try
+    IFDStart:=FirstIFDStart;
+    i:=0;
+    while IFDStart>0 do begin
+      if i=ImageCount then
+        ImageList.Add(TTiffIFD.Create);
+      IFD:=Images[i];
+      IFDStart:=ReadIFD(IFDStart);
+      LoadImageFromStream(i);
+      inc(i);
+    end;
+  finally
+    IFD:=nil;
   end;
   Progress(psEnding, 100, False, Rect(0,0,0,0), '', aContinue);
 end;
 
-function TFPReaderTiff.ReadTiffHeader(QuickTest: boolean; out IFD: DWord): boolean;
+procedure TFPReaderTiff.LoadHeaderFromStream(aStream: TStream);
+begin
+  FFirstIFDStart:=0;
+  s:=aStream;
+  fStartPos:=s.Position;
+  ReadTiffHeader(false,FFirstIFDStart);
+end;
+
+procedure TFPReaderTiff.LoadIFDsFromStream;
+var
+  i: Integer;
+  IFDStart: DWord;
+begin
+  try
+    IFDStart:=FirstIFDStart;
+    i:=0;
+    while IFDStart>0 do begin
+      if ImageCount=i then
+        ImageList.Add(TTiffIFD.Create);
+      IFD:=Images[i];
+      IFDStart:=ReadIFD(IFDStart);
+      inc(i);
+    end;
+  finally
+    IFD:=nil;
+  end;
+end;
+
+function TFPReaderTiff.FirstImg: TTiffIFD;
+begin
+  Result:=nil;
+  if (ImageList=nil) or (ImageList.Count=0) then exit;
+  Result:=TTiffIFD(ImageList[0]);
+end;
+
+function TFPReaderTiff.GetBiggestImage: TTiffIFD;
+var
+  Size: Int64;
+  Img: TTiffIFD;
+  CurSize: int64;
+  i: Integer;
+begin
+  Result:=nil;
+  Size:=0;
+  for i:=0 to ImageCount-1 do begin
+    Img:=Images[i];
+    CurSize:=Int64(Img.ImageWidth)*Img.ImageHeight;
+    if CurSize<Size then continue;
+    Size:=CurSize;
+    Result:=Img;
+  end;
+end;
+
+function TFPReaderTiff.ImageCount: integer;
+begin
+  Result:=ImageList.Count;
+end;
+
+function TFPReaderTiff.ReadTiffHeader(QuickTest: boolean; out IFDStart: DWord): boolean;
 var
   ByteOrder: String;
   BigEndian: Boolean;
@@ -193,7 +497,7 @@ begin
     exit
   else
     TiffError('expected II or MM');
-  FReverseEndian:={$IFDEF FPC_BIG_ENDIAN}not{$ENDIF} BigEndian;
+  FReverseEndian:={$ifdef FPC_BIG_ENDIAN}not{$endif} BigEndian;
   {$ifdef FPC_Debug_Image}
   if Debug then
     writeln('TFPReaderTiff.ReadTiffHeader Endian Big=',BigEndian,' ReverseEndian=',FReverseEndian);
@@ -206,21 +510,26 @@ begin
     else
       TiffError('expected 42, because of its deep philosophical impact, but found '+IntToStr(FortyTwo));
   end;
-  // read offset to first IDF
-  IFD:=ReadDWord;
+  // read offset to first IFD
+  IFDStart:=ReadDWord;
   //debugln(['TForm1.ReadTiffHeader IFD=',IFD]);
   Result:=true;
 end;
 
-function TFPReaderTiff.ReadIFD(Start: dword): DWord;
+function TFPReaderTiff.ReadIFD(Start: DWord): DWord;
 var
   Count: Word;
   i: Integer;
   EntryTag: Word;
   p: Int64;
 begin
+  {$ifdef FPC_Debug_Image}
+  if Debug then
+    writeln('ReadIFD Start=',Start);
+  {$endif}
   Result:=0;
   SetStreamPos(Start);
+  IFD.IFDStart:=Start;
   Count:=ReadWord;
   EntryTag:=0;
   p:=s.Position;
@@ -231,136 +540,162 @@ begin
   end;
   // read start of next IFD
   Result:=ReadDWord;
+  IFD.IFDNext:=Result;
   if (Result<>0) and (Result<Start) then begin
     // backward jump: check for loops
     if fIFDStarts=nil then
       fIFDStarts:=TFPList.Create
-    else if fIFDStarts.IndexOf(Pointer(PtrUInt(Result)))>0 then
+    else if fIFDStarts.IndexOf({%H-}Pointer(PtrUInt(Result)))>0 then
       TiffError('endless loop in Image File Descriptors');
-    fIFDStarts.Add(Pointer(PtrUInt(Result)));
+    fIFDStarts.Add({%H-}Pointer(PtrUInt(Result)));
   end;
 end;
 
 procedure TFPReaderTiff.ReadDirectoryEntry(var EntryTag: Word);
 var
   EntryType: Word;
-  EntryCount: LongWord;
-  EntryStart: LongWord;
+  EntryCount: DWord;
+  EntryStart: DWord;
   NewEntryTag: Word;
-  UValue: LongWord;
+  UValue: DWord;
   SValue: integer;
   WordBuffer: PWord;
   Count: DWord;
   i: Integer;
+
+  function GetPos: DWord;
+  begin
+     Result:=DWord(s.Position-fStartPos-2)
+  end;
+
 begin
   NewEntryTag:=ReadWord;
-  if NewEntryTag<EntryTag then
-    TiffError('Tags must be in ascending order');
+  if (NewEntryTag<EntryTag) then begin
+    // the TIFF specification insists on ordered entry tags in each IFD
+    // This allows to spot damaged files.
+    // But some programs like 'GraphicConverter' do not order the extension tags
+    // properly.
+    {$ifdef FPC_Debug_Image}
+    if Debug then
+      writeln('WARNING: Tags must be in ascending order: Last='+IntToStr(EntryTag)+' Next='+IntToStr(NewEntryTag));
+    {$endif}
+    case CheckIFDOrder of
+    tcioAlways: TiffError('Tags must be in ascending order: Last='+IntToStr(EntryTag)+' Next='+IntToStr(NewEntryTag));
+    tcioSmart:
+      if NewEntryTag<30000 then
+        TiffError('Tags must be in ascending order: Last='+IntToStr(EntryTag)+' Next='+IntToStr(NewEntryTag));
+    end;
+  end;
   EntryTag:=NewEntryTag;
   case EntryTag of
   254:
     begin
       // NewSubFileType
       UValue:=ReadEntryUnsigned;
-      IDF.ImageIsThumbNail:=UValue and 1<>0;
-      IDF.ImageIsPage:=UValue and 2<>0;
-      IDF.ImageIsMask:=UValue and 4<>0;
+      IFD.ImageIsThumbNail:=UValue and 1<>0;
+      IFD.ImageIsPage:=UValue and 2<>0;
+      IFD.ImageIsMask:=UValue and 4<>0;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry NewSubFileType ThumbNail=',IDF.ImageIsThumbNail,' Page=',IDF.ImageIsPage,' Mask=',IDF.ImageIsMask);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 254: NewSubFileType ThumbNail=',IFD.ImageIsThumbNail,' Page=',IFD.ImageIsPage,' Mask=',IFD.ImageIsMask);
       {$endif}
     end;
   255:
     begin
       // SubFileType (deprecated)
       UValue:=ReadEntryUnsigned;
-      IDF.ImageIsThumbNail:=false;
-      IDF.ImageIsPage:=false;
-      IDF.ImageIsMask:=false;
+      IFD.ImageIsThumbNail:=false;
+      IFD.ImageIsPage:=false;
+      IFD.ImageIsMask:=false;
       case UValue of
       1: ;
-      2: IDF.ImageIsThumbNail:=true;
-      3: IDF.ImageIsPage:=true;
+      2: IFD.ImageIsThumbNail:=true;
+      3: IFD.ImageIsPage:=true;
       else
         TiffError('SubFileType expected, but found '+IntToStr(UValue));
       end;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry SubFileType ThumbNail=',IDF.ImageIsThumbNail,' Page=',IDF.ImageIsPage,' Mask=',IDF.ImageIsMask);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 255: SubFileType ThumbNail=',IFD.ImageIsThumbNail,' Page=',IFD.ImageIsPage,' Mask=',IFD.ImageIsMask);
       {$endif}
     end;
   256:
     begin
       // fImageWidth
-      IDF.ImageWidth:=ReadEntryUnsigned;
+      IFD.ImageWidth:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry ImageWidth=',IDF.ImageWidth);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 256: ImageWidth=',IFD.ImageWidth);
       {$endif}
     end;
   257:
     begin
       // ImageLength
-      IDF.ImageHeight:=ReadEntryUnsigned;
+      IFD.ImageHeight:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry ImageHeight=',IDF.ImageHeight);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 257: ImageHeight=',IFD.ImageHeight);
       {$endif}
     end;
   258:
     begin
       // BitsPerSample
-      IDF.BitsPerSample:=DWord(s.Position-fStartPos-2);
-      ReadShortValues(IDF.BitsPerSample,WordBuffer,Count);
+      IFD.BitsPerSample:=GetPos;
+      ReadShortValues(IFD.BitsPerSample,WordBuffer,Count);
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry BitsPerSample: ');
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 258: BitsPerSample: ');
         for i:=0 to Count-1 do
           write(IntToStr(WordBuffer[i]),' ');
         writeln;
       end;
       {$endif}
       try
-        SetLength(IDF.BitsPerSampleArray,Count);
+        SetLength(IFD.BitsPerSampleArray,Count);
         for i:=0 to Count-1 do
-          IDF.BitsPerSampleArray[i]:=WordBuffer[i];
+          IFD.BitsPerSampleArray[i]:=WordBuffer[i];
       finally
         ReAllocMem(WordBuffer,0);
       end;
     end;
   259:
     begin
-      // fCompression
+      // Compression
       UValue:=ReadEntryUnsigned;
       case UValue of
-      1: ; { No fCompression, but pack data into bytes as tightly as possible,
-           leaving no unused bits (except at the end of a row). The component
-           values are stored as an array of type BYTE. Each scan line (row)
-           is padded to the next BYTE boundary. }
-      2: ; { CCITT Group 3 1-Dimensional Modified Huffman run length encoding. }
-      5: ; { LZW }
-      7: ; { JPEG }
-      32946: ; { Deflate }
-      32773: ; { PackBits fCompression, a simple byte-oriented run length scheme.
-               See the PackBits section for details. Data fCompression applies
-               only to raster image data. All other TIFF fields are unaffected. }
+      TiffCompressionNone,
+      TiffCompressionCCITTRLE,
+      TiffCompressionCCITTFAX3,
+      TiffCompressionCCITTFAX4,
+      TiffCompressionLZW,
+      TiffCompressionOldJPEG,
+      TiffCompressionJPEG,
+      TiffCompressionDeflateAdobe,
+      TiffCompressionJBIGBW,
+      TiffCompressionJBIGCol,
+      TiffCompressionNeXT,
+      TiffCompressionCCITTRLEW,
+      TiffCompressionPackBits,
+      TiffCompressionThunderScan,
+      TiffCompressionIT8CTPAD,
+      TiffCompressionIT8LW,
+      TiffCompressionIT8MP,
+      TiffCompressionIT8BL,
+      TiffCompressionPixarFilm,
+      TiffCompressionPixarLog,
+      TiffCompressionDeflateZLib,
+      TiffCompressionDCS,
+      TiffCompressionJBIG,
+      TiffCompressionSGILog,
+      TiffCompressionSGILog24,
+      TiffCompressionJPEG2000: ;
       else
         TiffError('expected Compression, but found '+IntToStr(UValue));
       end;
-      IDF.Compression:=UValue;
+      IFD.Compression:=UValue;
       {$ifdef FPC_Debug_Image}
-      if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry Compression=',IntToStr(IDF.Compression),'=');
-        case IDF.Compression of
-        1: write('no compression');
-        2: write('CCITT Group 3 1-Dimensional Modified Huffman run length encoding');
-        5: write('LZW');
-        7: write('JPEG');
-        32946: write('Deflate');
-        32773: write('PackBits');
-        end;
-        writeln;
-      end;
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 259: Compression=',IntToStr(IFD.Compression),'=',TiffCompressionName(IFD.Compression));
       {$endif}
     end;
   262:
@@ -377,11 +712,11 @@ begin
       else
         TiffError('expected PhotometricInterpretation, but found '+IntToStr(UValue));
       end;
-      IDF.PhotoMetricInterpretation:=UValue;
+      IFD.PhotoMetricInterpretation:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry PhotometricInterpretation=');
-        case IDF.PhotoMetricInterpretation of
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 262: PhotometricInterpretation=');
+        case IFD.PhotoMetricInterpretation of
         0: write('0=bilevel grayscale 0 is white');
         1: write('1=bilevel grayscale 0 is black');
         2: write('2=RGB 0,0,0 is black');
@@ -395,37 +730,37 @@ begin
     end;
   263:
     begin
-      // Treshholding
+      // Tresholding
       UValue:=ReadEntryUnsigned;
       case UValue of
       1: ; // no dithering or halftoning was applied
       2: ; // an ordered dithering or halftoning was applied
       3: ; // a randomized dithering or halftoning was applied
       else
-        TiffError('expected Treshholding, but found '+IntToStr(UValue));
+        TiffError('expected Tresholding, but found '+IntToStr(UValue));
       end;
-      IDF.Treshholding:=UValue;
+      IFD.Tresholding:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Treshholding=',IDF.Treshholding);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 263: Tresholding=',IFD.Tresholding);
       {$endif}
     end;
   264:
     begin
       // CellWidth
-      IDF.CellWidth:=ReadEntryUnsigned;
+      IFD.CellWidth:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry CellWidth=',IDF.CellWidth);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 264: CellWidth=',IFD.CellWidth);
       {$endif}
     end;
   265:
     begin
       // CellLength
-      IDF.CellLength:=ReadEntryUnsigned;
+      IFD.CellLength:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry CellLength=',IDF.CellLength);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 265: CellLength=',IFD.CellLength);
       {$endif}
     end;
   266:
@@ -433,15 +768,15 @@ begin
       // FillOrder
       UValue:=ReadEntryUnsigned;
       case UValue of
-      1: IDF.FillOrder:=1; // left to right = high to low
-      2: IDF.FillOrder:=2; // left to right = low to high
+      1: IFD.FillOrder:=1; // left to right = high to low
+      2: IFD.FillOrder:=2; // left to right = low to high
       else
         TiffError('expected FillOrder, but found '+IntToStr(UValue));
       end;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry FillOrder=',IntToStr(IDF.FillOrder),'=');
-        case IDF.FillOrder of
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 266: FillOrder=',IntToStr(IFD.FillOrder),'=');
+        case IFD.FillOrder of
         1: write('left to right = high to low');
         2: write('left to right = low to high');
         end;
@@ -452,46 +787,46 @@ begin
   269:
     begin
       // DocumentName
-      IDF.DocumentName:=ReadEntryString;
+      IFD.DocumentName:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry DocumentName=',IDF.DocumentName);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 269: DocumentName=',IFD.DocumentName);
       {$endif}
     end;
   270:
     begin
       // ImageDescription
-      IDF.ImageDescription:=ReadEntryString;
+      IFD.ImageDescription:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry ImageDescription=',IDF.ImageDescription);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 270: ImageDescription=',IFD.ImageDescription);
       {$endif}
     end;
   271:
     begin
       // Make - scanner manufacturer
-      IDF.Make_ScannerManufacturer:=ReadEntryString;
+      IFD.Make_ScannerManufacturer:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Make_ScannerManufacturer=',IDF.Make_ScannerManufacturer);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 271: Make_ScannerManufacturer=',IFD.Make_ScannerManufacturer);
       {$endif}
     end;
   272:
     begin
       // Model - scanner model
-      IDF.Model_Scanner:=ReadEntryString;
+      IFD.Model_Scanner:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Model_Scanner=',IDF.Model_Scanner);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 272: Model_Scanner=',IFD.Model_Scanner);
       {$endif}
     end;
   273:
     begin
       // StripOffsets
-      IDF.StripOffsets:=DWord(s.Position-fStartPos-2);
+      IFD.StripOffsets:=GetPos;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry StripOffsets=',IDF.StripOffsets);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 273: StripOffsets=',IFD.StripOffsets);
       {$endif}
     end;
   274:
@@ -510,11 +845,11 @@ begin
       else
         TiffError('expected Orientation, but found '+IntToStr(UValue));
       end;
-      IDF.Orientation:=UValue;
+      IFD.Orientation:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry Orientation=',IntToStr(IDF.Orientation),'=');
-        case IDF.Orientation of
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 274: Orientation=',IntToStr(IFD.Orientation),'=');
+        case IFD.Orientation of
         1: write('0,0 is left, top');
         2: write('0,0 is right, top');
         3: write('0,0 is right, bottom');
@@ -531,10 +866,10 @@ begin
   277:
     begin
       // SamplesPerPixel
-      IDF.SamplesPerPixel:=ReadEntryUnsigned;
+      IFD.SamplesPerPixel:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry SamplesPerPixel=',IDF.SamplesPerPixel);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 277: SamplesPerPixel=',IFD.SamplesPerPixel);
       {$endif}
     end;
   278:
@@ -543,45 +878,53 @@ begin
       UValue:=ReadEntryUnsigned;
       if UValue=0 then
         TiffError('expected RowsPerStrip, but found '+IntToStr(UValue));
-      IDF.RowsPerStrip:=UValue;
+      IFD.RowsPerStrip:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry RowsPerStrip=',IDF.RowsPerStrip);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 278: RowsPerStrip=',IFD.RowsPerStrip);
       {$endif}
     end;
   279:
     begin
       // StripByteCounts
-      IDF.StripByteCounts:=DWord(s.Position-fStartPos-2);
+      IFD.StripByteCounts:=GetPos;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry StripByteCounts=',IDF.StripByteCounts);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 279: StripByteCounts=',IFD.StripByteCounts);
       {$endif}
     end;
   280:
     begin
       // MinSampleValue
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 280: skipping MinSampleValue');
+      {$endif}
     end;
   281:
     begin
       // MaxSampleValue
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 281: skipping MaxSampleValue');
+      {$endif}
     end;
   282:
     begin
       // XResolution
-      IDF.XResolution:=ReadEntryRational;
+      IFD.XResolution:=ReadEntryRational;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry XResolution=',IDF.XResolution.Numerator,',',IDF.XResolution.Denominator);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 282: XResolution=',IFD.XResolution.Numerator,',',IFD.XResolution.Denominator);
       {$endif}
     end;
   283:
     begin
       // YResolution
-      IDF.YResolution:=ReadEntryRational;
+      IFD.YResolution:=ReadEntryRational;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry YResolution=',IDF.YResolution.Numerator,',',IDF.YResolution.Denominator);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 283: YResolution=',IFD.YResolution.Numerator,',',IFD.YResolution.Denominator);
       {$endif}
     end;
   284:
@@ -594,10 +937,10 @@ begin
       else
         TiffError('expected PlanarConfiguration, but found '+IntToStr(SValue));
       end;
-      IDF.PlanarConfiguration:=SValue;
+      IFD.PlanarConfiguration:=SValue;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry PlanarConfiguration=');
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 284: PlanarConfiguration=');
         case SValue of
         1: write('chunky format');
         2: write('planar format');
@@ -606,41 +949,66 @@ begin
       end;
       {$endif}
     end;
+  285:
+    begin
+      // PageName
+      IFD.PageName:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 285: PageName="'+IFD.PageName+'"');
+      {$endif}
+    end;
   288:
     begin
       // FreeOffsets
       // The free bytes in a tiff file are described with FreeByteCount and FreeOffsets
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 288: skipping FreeOffsets');
+      {$endif}
     end;
   289:
     begin
       // FreeByteCount
       // The free bytes in a tiff file are described with FreeByteCount and FreeOffsets
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 289: skipping FreeByteCount');
+      {$endif}
     end;
   290:
     begin
       // GrayResponseUnit
       // precision of GrayResponseCurve
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 290: skipping GrayResponseUnit');
+      {$endif}
     end;
   291:
     begin
       // GrayResponseCurve
       // the optical density for each possible pixel value
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 291: skipping GrayResponseCurve');
+      {$endif}
     end;
   296:
     begin
       // fResolutionUnit
       UValue:=ReadEntryUnsigned;
       case UValue of
-      1: IDF.ResolutionUnit:=1; // none
-      2: IDF.ResolutionUnit:=2; // inch
-      3: IDF.ResolutionUnit:=3; // centimeter
+      1: IFD.ResolutionUnit:=1; // none
+      2: IFD.ResolutionUnit:=2; // inch
+      3: IFD.ResolutionUnit:=3; // centimeter
       else
         TiffError('expected ResolutionUnit, but found '+IntToStr(UValue));
       end;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        write('TFPReaderTiff.ReadDirectoryEntry ResolutionUnit=');
-        case IDF.ResolutionUnit of
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 296: ResolutionUnit=');
+        case IFD.ResolutionUnit of
         1: write('none');
         2: write('inch');
         3: write('centimeter');
@@ -649,40 +1017,74 @@ begin
       end;
       {$endif}
     end;
+  297:
+    begin
+      // page number (starting at 0) and total number of pages
+      UValue:=GetPos;
+      ReadShortValues(UValue,WordBuffer,Count);
+      try
+        if Count<>2 then begin
+          {$ifdef FPC_Debug_Image}
+          if Debug then begin
+            write('TFPReaderTiff.ReadDirectoryEntry Tag 297: PageNumber/Count: ');
+            for i:=0 to Count-1 do
+              write(IntToStr(WordBuffer[i]),' ');
+            writeln;
+          end;
+          {$endif}
+          TiffError('PageNumber Count=2 expected, but found '+IntToStr(Count));
+        end;
+        IFD.PageNumber:=WordBuffer[0];
+        IFD.PageCount:=WordBuffer[1];
+        if IFD.PageNumber>=IFD.PageCount then begin
+          // broken order => repair
+          UValue:=IFD.PageNumber;
+          IFD.PageNumber:=IFD.PageCount;
+          IFD.PageCount:=UValue;
+        end;
+      finally
+        ReAllocMem(WordBuffer,0);
+      end;
+      {$ifdef FPC_Debug_Image}
+      if Debug then begin
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 297: PageNumber=',IFD.PageNumber,'/',IFD.PageCount);
+      end;
+      {$endif}
+    end;
   305:
     begin
       // Software
-      IDF.Software:=ReadEntryString;
+      IFD.Software:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Software="',IDF.Software,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 305: Software="',IFD.Software,'"');
       {$endif}
     end;
   306:
     begin
       // DateAndTime
-      IDF.DateAndTime:=ReadEntryString;
+      IFD.DateAndTime:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry DateAndTime="',IDF.DateAndTime,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 306: DateAndTime="',IFD.DateAndTime,'"');
       {$endif}
     end;
   315:
     begin
       // Artist
-      IDF.Artist:=ReadEntryString;
+      IFD.Artist:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Artist="',IDF.Artist,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 315: Artist="',IFD.Artist,'"');
       {$endif}
     end;
   316:
     begin
       // HostComputer
-      IDF.HostComputer:=ReadEntryString;
+      IFD.HostComputer:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry HostComputer="',IDF.HostComputer,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 316: HostComputer="',IFD.HostComputer,'"');
       {$endif}
     end;
   317:
@@ -694,20 +1096,64 @@ begin
       2: ;
       else TiffError('expected Predictor, but found '+IntToStr(UValue));
       end;
-      IDF.Predictor:=UValue;
+      IFD.Predictor:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Predictor="',IDF.Predictor,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 317: Predictor="',IFD.Predictor,'"');
       {$endif}
     end;
   320:
     begin
       // ColorMap: N = 3*2^BitsPerSample
-      IDF.ColorMap:=DWord(s.Position-fStartPos-2);
+      IFD.ColorMap:=GetPos;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry ColorMap');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 320: skipping ColorMap');
       {$endif}
+    end;
+  322:
+    begin
+      // TileWidth
+      IFD.TileWidth:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 322: TileWidth=',IFD.TileWidth);
+      {$endif}
+      if IFD.TileWidth=0 then
+        TiffError('TileWidth=0');
+    end;
+  323:
+    begin
+      // TileLength = TileHeight
+      IFD.TileLength:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 323: TileLength=',IFD.TileLength);
+      {$endif}
+      if IFD.TileLength=0 then
+        TiffError('TileLength=0');
+    end;
+  324:
+    begin
+      // TileOffsets
+      IFD.TileOffsets:=GetPos;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 324: TileOffsets=',IFD.TileOffsets);
+      {$endif}
+      if IFD.TileOffsets=0 then
+        TiffError('TileOffsets=0');
+    end;
+  325:
+    begin
+      // TileByteCounts
+      IFD.TileByteCounts:=GetPos;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 325: TileByteCounts=',IFD.TileByteCounts);
+      {$endif}
+      if IFD.TileByteCounts=0 then
+        TiffError('TileByteCounts=0');
     end;
   338:
     begin
@@ -716,11 +1162,11 @@ begin
       // 0=unspecified
       // 1=alpha (premultiplied)
       // 2=alpha (unassociated)
-      IDF.ExtraSamples:=DWord(s.Position-fStartPos-2);
+      IFD.ExtraSamples:=GetPos;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
-        ReadShortValues(IDF.ExtraSamples,WordBuffer,Count);
-        write('TFPReaderTiff.ReadDirectoryEntry ExtraSamples: ');
+        ReadShortValues(IFD.ExtraSamples,WordBuffer,Count);
+        write('TFPReaderTiff.ReadDirectoryEntry Tag 338: ExtraSamples: ');
         for i:=0 to Count-1 do
           write(IntToStr(WordBuffer[i]),' ');
         writeln;
@@ -728,13 +1174,135 @@ begin
       end;
       {$endif}
     end;
+  347:
+    begin
+      // ToDo: JPEGTables
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 347: skipping JPEG Tables');
+      {$endif}
+    end;
+  512:
+    begin
+      // ToDo: JPEGProc
+      // short
+      // 1 = baseline sequential
+      // 14 = lossless process with Huffman encoding
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 512: skipping JPEGProc');
+      {$endif}
+    end;
+  513:
+    begin
+      // ToDo: JPEGInterchangeFormat
+      // long
+      // non zero: start of start of image SOI marker
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 513: skipping JPEGInterchangeFormat');
+      {$endif}
+    end;
+  514:
+    begin
+      // ToDo: JPEGInterchangeFormatLength
+      // long
+      // length in bytes of 513
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 514: skipping JPEGInterchangeFormatLength');
+      {$endif}
+    end;
+  515:
+    begin
+      // ToDo: JPEGRestartInterval
+      // short
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 515: skipping JPEGRestartInterval');
+      {$endif}
+    end;
+  517:
+    begin
+      // ToDo: JPEGLosslessPredictor
+      // short
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 517: skipping JPEGLosslessPredictor');
+      {$endif}
+    end;
+  518:
+    begin
+      // ToDo: JPEGPointTransforms
+      // short
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 518: skipping JPEGPointTransforms');
+      {$endif}
+    end;
+  519:
+    begin
+      // ToDo: JPEGQTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 519: skipping JPEGQTables');
+      {$endif}
+    end;
+  520:
+    begin
+      // ToDo: JPEGDCTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 520: skipping JPEGDCTables');
+      {$endif}
+    end;
+  521:
+    begin
+      // ToDo: JPEGACTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 521: skipping JPEGACTables');
+      {$endif}
+    end;
+  530:
+    begin
+      // ToDo: YCbCrSubSampling alias ChromaSubSampling
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 530: skipping YCbCrSubSampling alias ChromaSubSampling');
+      {$endif}
+    end;
+  700:
+    begin
+      // ToDo: XMP
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 700: skipping XMP');
+      {$endif}
+    end;
   33432:
     begin
       // Copyright
-      IDF.Copyright:=ReadEntryString;
+      IFD.Copyright:=ReadEntryString;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Copyright="',IDF.Copyright,'"');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 33432: Copyright="',IFD.Copyright,'"');
+      {$endif}
+    end;
+  34675:
+    begin
+      // ToDo: ICC Profile
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 34675: skipping ICC profile');
       {$endif}
     end;
   else
@@ -742,6 +1310,7 @@ begin
       EntryType:=ReadWord;
       EntryCount:=ReadDWord;
       EntryStart:=ReadDWord;
+      if (EntryType=0) and (EntryCount=0) and (EntryStart=0) then ;
       {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Tag=',EntryTag,' Type=',EntryType,' Count=',EntryCount,' ValuesStart=',EntryStart);
@@ -988,291 +1557,232 @@ begin
   end;
 end;
 
-procedure TFPReaderTiff.ReadImage(Index: integer);
+procedure TFPReaderTiff.LoadImageFromStream(Index: integer);
 var
-  StripCount: DWord;
-  StripOffsets: PDWord;
-  StripByteCounts: PDWord;
-  StripIndex: Dword;
-  SOCount: DWord;
-  SBCCount: DWord;
+  ChunkOffsets: PDWord;
+  ChunkByteCounts: PDWord;
+  Chunk: PByte;
+  ChunkCount: DWord;
+  ChunkIndex: Dword;
+  CurCount: DWord;
   CurOffset: DWord;
   CurByteCnt: PtrInt;
-  Strip: PByte;
   Run: PByte;
-  y: DWord;
-  y2: DWord;
-  x: DWord;
-  dx: LongInt;
-  dy: LongInt;
-  SampleCnt: DWord;
+  x, y, cx, cy, dx, dy, sx: integer;
   SampleBits: PWord;
-  ExtraSampleCnt: DWord;
+  SampleBitsPerPixel: DWord;
   ExtraSamples: PWord;
-  GrayValue, LastGrayValue: Word;
-  RedValue, LastRedValue: Word;
-  GreenValue, LastGreenValue: Word;
-  BlueValue, LastBlueValue: Word;
-  AlphaValue, LastAlphaValue: Word;
+  ExtraSampleCnt: DWord;
+  GrayBits, GrayValue, LastGrayValue: Word;
+  RedBits, RedValue, LastRedValue: Word;
+  GreenBits, GreenValue, LastGreenValue: Word;
+  BlueBits, BlueValue, LastBlueValue: Word;
+  AlphaBits, AlphaValue, LastAlphaValue: Word;
   Col: TFPColor;
   i: Integer;
-  CurImg: TFPCustomImage;
-  GrayBits: Word;
-  RedBits: Word;
-  GreenBits: Word;
-  BlueBits: Word;
-  AlphaBits: Word;
-  BytesPerPixel: Integer;
-  StripBitsPerPixel: DWord;
+  CurFPImg: TFPCustomImage;
   aContinue: Boolean;
-  ExpectedStripLength: PtrInt;
+  ExpectedChunkLength: PtrInt;
+  ChunkType: TTiffChunkType;
+  TilesAcross, TilesDown: DWord;
+  ChunkLeft, ChunkTop, ChunkWidth, ChunkHeight: DWord;
+  CurImg: TTiffIFD;
+  ChunkBytesPerLine: DWord;
 begin
-  CurImg:=nil;
   {$ifdef FPC_Debug_Image}
   if Debug then
-    writeln('TFPReaderTiff.ReadImage Index=',Index);
+    writeln('TFPReaderTiff.LoadImageFromStream Index=',Index);
   {$endif}
-  if IDF.PhotoMetricInterpretation=High(IDF.PhotoMetricInterpretation) then
+  IFD:=Images[Index];
+
+  if IFD.PhotoMetricInterpretation=High(IFD.PhotoMetricInterpretation) then
     TiffError('missing PhotometricInterpretation');
-  if IDF.RowsPerStrip=0 then
-    TiffError('missing RowsPerStrip');
-  if IDF.BitsPerSample=0 then
+  if IFD.BitsPerSample=0 then
     TiffError('missing BitsPerSample');
-  if (IDF.ImageWidth=0) or (IDF.ImageHeight=0) then begin
-    exit;
+  if IFD.TileWidth>0 then begin
+    ChunkType:=tctTile;
+    if IFD.TileLength=0 then
+      TiffError('missing TileLength');
+    if IFD.TileOffsets=0 then
+      TiffError('missing TileOffsets');
+    if IFD.TileByteCounts=0 then
+      TiffError('missing TileByteCounts');
+  end else begin
+    ChunkType:=tctStrip;
+    if IFD.RowsPerStrip=0 then
+      TiffError('missing RowsPerStrip');
+    if IFD.StripOffsets=0 then
+      TiffError('missing StripOffsets');
+    if IFD.StripByteCounts=0 then
+      TiffError('missing StripByteCounts');
   end;
 
-  if (Index>0) and (not FirstImg.ImageIsThumbNail) then begin
-    // Image already read
+  if (IFD.ImageWidth=0) or (IFD.ImageHeight=0) then
     exit;
-  end;
+
+  if Index=ImageCount then
+    ImageList.Add(TTiffIFD.Create);
+  CurImg:=Images[Index];
+
   {$ifdef FPC_Debug_Image}
   if Debug then
-    writeln('TFPReaderTiff.ReadImage reading ...');
+    writeln('TFPReaderTiff.LoadImageFromStream reading ...');
   {$endif}
 
-  StripCount:=((IDF.ImageHeight-1) div IDF.RowsPerStrip)+1;
-  StripOffsets:=nil;
-  StripByteCounts:=nil;
-  Strip:=nil;
+  ChunkOffsets:=nil;
+  ChunkByteCounts:=nil;
+  Chunk:=nil;
   ExtraSamples:=nil;
   SampleBits:=nil;
   ExtraSampleCnt:=0;
   try
-    ReadShortOrLongValues(IDF.StripOffsets,StripOffsets,SOCount);
-    if SOCount<>StripCount then
-      TiffError('number of StripCounts is wrong');
-    ReadShortOrLongValues(IDF.StripByteCounts,StripByteCounts,SBCCount);
-    if SBCCount<>StripCount then
-      TiffError('number of StripByteCounts is wrong');
-
-    ReadShortValues(IDF.BitsPerSample,SampleBits,SampleCnt);
-    if SampleCnt<>IDF.SamplesPerPixel then
-      TiffError('Samples='+IntToStr(SampleCnt)+' <> SamplesPerPixel='+IntToStr(IDF.SamplesPerPixel));
-    if IDF.ExtraSamples>0 then
-      ReadShortValues(IDF.ExtraSamples,ExtraSamples,ExtraSampleCnt);
-    if ExtraSampleCnt>=SampleCnt then
-      TiffError('Samples='+IntToStr(SampleCnt)+' ExtraSampleCnt='+IntToStr(ExtraSampleCnt));
-
-    case IDF.PhotoMetricInterpretation of
-    0,1: if SampleCnt-ExtraSampleCnt<>1 then
-      TiffError('gray images expect one sample per pixel, but found '+IntToStr(SampleCnt));
-    2: if SampleCnt-ExtraSampleCnt<>3 then
-      TiffError('rgb images expect three samples per pixel, but found '+IntToStr(SampleCnt));
-    3: if SampleCnt-ExtraSampleCnt<>1 then
-      TiffError('palette images expect one sample per pixel, but found '+IntToStr(SampleCnt));
-    4: if SampleCnt-ExtraSampleCnt<>1 then
-      TiffError('mask images expect one sample per pixel, but found '+IntToStr(SampleCnt));
-    5: if SampleCnt-ExtraSampleCnt<>4 then
-      TiffError('cmyk images expect four samples per pixel, but found '+IntToStr(SampleCnt));
+    // read chunk starts and sizes
+    if ChunkType=tctTile then begin
+      TilesAcross:=(IFD.ImageWidth+IFD.TileWidth-1) div IFD.TileWidth;
+      TilesDown:=(IFD.ImageHeight+IFD.TileLength-1) div IFD.TileLength;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.LoadImageFromStream TilesAcross=',TilesAcross,' TilesDown=',TilesDown);
+      {$endif}
+      ChunkCount := TilesAcross * TilesDown;
+      ReadShortOrLongValues(IFD.TileOffsets,ChunkOffsets,CurCount);
+      if CurCount<>ChunkCount then
+        TiffError('number of TileCounts is wrong');
+      ReadShortOrLongValues(IFD.TileByteCounts,ChunkByteCounts,CurCount);
+      if CurCount<>ChunkCount then
+        TiffError('number of TileByteCounts is wrong');
+    end else begin
+      ChunkCount:=((IFD.ImageHeight-1) div IFD.RowsPerStrip)+1;
+      ReadShortOrLongValues(IFD.StripOffsets,ChunkOffsets,CurCount);
+      if CurCount<>ChunkCount then
+        TiffError('number of StripCounts is wrong');
+      ReadShortOrLongValues(IFD.StripByteCounts,ChunkByteCounts,CurCount);
+      if CurCount<>ChunkCount then
+        TiffError('number of StripByteCounts is wrong');
     end;
 
-    GrayBits:=0;
-    RedBits:=0;
-    GreenBits:=0;
-    BlueBits:=0;
-    AlphaBits:=0;
-    BytesPerPixel:=0;
-    StripBitsPerPixel:=0;
-    for i:=0 to SampleCnt-1 do begin
-      if SampleBits[i]>64 then
-        TiffError('Samples bigger than 64 bit not supported');
-      if SampleBits[i] and 7<>0 then
-        TiffError('Only samples of 8 and 16 bit supported');
-      inc(StripBitsPerPixel,SampleBits[i]);
-    end;
-    case IDF.PhotoMetricInterpretation of
-    0,1:
-      begin
-        GrayBits:=SampleBits[0];
-        IDF.GrayBits:=GrayBits;
-        for i:=0 to ExtraSampleCnt-1 do
-          if ExtraSamples[i]=2 then begin
-            AlphaBits:=SampleBits[1+i];
-            IDF.AlphaBits:=AlphaBits;
-          end;
-        if not (GrayBits in [8,16]) then
-          TiffError('gray image only supported with gray BitsPerSample 8 or 16');
-        if not (AlphaBits in [0,8,16]) then
-          TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
-      end;
-    2:
-      begin
-        RedBits:=SampleBits[0];
-        GreenBits:=SampleBits[1];
-        BlueBits:=SampleBits[2];
-        IDF.RedBits:=RedBits;
-        IDF.GreenBits:=GreenBits;
-        IDF.BlueBits:=BlueBits;
-        for i:=0 to ExtraSampleCnt-1 do
-          if ExtraSamples[i]=2 then begin
-            AlphaBits:=SampleBits[3+i];
-            IDF.AlphaBits:=AlphaBits;
-          end;
-        if not (RedBits in [8,16]) then
-          TiffError('RGB image only supported with red BitsPerSample 8 or 16');
-        if not (GreenBits in [8,16]) then
-          TiffError('RGB image only supported with green BitsPerSample 8 or 16');
-        if not (BlueBits in [8,16]) then
-          TiffError('RGB image only supported with blue BitsPerSample 8 or 16');
-        if not (AlphaBits in [0,8,16]) then
-          TiffError('RGB image only supported with alpha BitsPerSample 8 or 16');
-      end;
-    5:
-      begin
-        RedBits:=SampleBits[0];
-        GreenBits:=SampleBits[1];
-        BlueBits:=SampleBits[2];
-        GrayBits:=SampleBits[3];
-        IDF.RedBits:=RedBits;
-        IDF.GreenBits:=GreenBits;
-        IDF.BlueBits:=BlueBits;
-        IDF.GrayBits:=GrayBits;
-        for i:=0 to ExtraSampleCnt-1 do
-          if ExtraSamples[i]=2 then begin
-            AlphaBits:=SampleBits[4+i];
-            IDF.AlphaBits:=AlphaBits;
-          end;
-        if not (RedBits in [8,16]) then
-          TiffError('CMYK image only supported with cyan BitsPerSample 8 or 16');
-        if not (GreenBits in [8,16]) then
-          TiffError('CMYK image only supported with magenta BitsPerSample 8 or 16');
-        if not (BlueBits in [8,16]) then
-          TiffError('CMYK image only supported with yellow BitsPerSample 8 or 16');
-        if not (GrayBits in [8,16]) then
-          TiffError('CMYK image only supported with black BitsPerSample 8 or 16');
-        if not (AlphaBits in [0,8,16]) then
-          TiffError('CMYK image only supported with alpha BitsPerSample 8 or 16');
-      end;
-    end;
-    BytesPerPixel:=(GrayBits+RedBits+GreenBits+BlueBits+AlphaBits) div 8;
-    IDF.BytesPerPixel:=BytesPerPixel;
+    // read image structure
+    ReadImageProperties(RedBits, GreenBits, BlueBits, GrayBits, AlphaBits,
+      ExtraSamples, ExtraSampleCnt, SampleBits, SampleBitsPerPixel);
+    CurImg.Assign(IFD);
 
-    if not (IDF.FillOrder in [0,1]) then
-      TiffError('FillOrder unsupported: '+IntToStr(IDF.FillOrder));
+    // create FPimage
+    DoCreateImage(CurImg);
+    CurFPImg:=CurImg.Img;
+    if CurFPImg=nil then exit;
 
-    for StripIndex:=0 to SampleCnt-1 do begin
-      if not (SampleBits[StripIndex] in [8,16]) then
-        TiffError('SampleBits unsupported: '+IntToStr(SampleBits[StripIndex]));
+    SetFPImgExtras(CurFPImg);
+
+    case IFD.Orientation of
+    0,1..4: CurFPImg.SetSize(IFD.ImageWidth,IFD.ImageHeight);
+    5..8: CurFPImg.SetSize(IFD.ImageHeight,IFD.ImageWidth);
     end;
 
-    // get image
-    FirstImg.Assign(IDF);
-    CurImg:=FirstImg.Img;
-    if Assigned(OnCreateImage) then begin
-      OnCreateImage(Self,CurImg);
-      FirstImg.Img:=CurImg;
-    end;
-    if CurImg=nil then exit;
+    {$ifdef FPC_Debug_Image}
+    if Debug then
+      writeln('TFPReaderTiff.LoadImageFromStream SampleBitsPerPixel=',SampleBitsPerPixel);
+    {$endif}
 
-    ClearTiffExtras(CurImg);
-    // set Tiff extra attributes
-    CurImg.Extra[TiffPhotoMetric]:=IntToStr(IDF.PhotoMetricInterpretation);
-    //writeln('TFPReaderTiff.ReadImage PhotoMetric=',CurImg.Extra[TiffPhotoMetric]);
-    if IDF.Artist<>'' then
-      CurImg.Extra[TiffArtist]:=IDF.Artist;
-    if IDF.Copyright<>'' then
-      CurImg.Extra[TiffCopyright]:=IDF.Copyright;
-    if IDF.DocumentName<>'' then
-      CurImg.Extra[TiffDocumentName]:=IDF.DocumentName;
-    if IDF.DateAndTime<>'' then
-      CurImg.Extra[TiffDateTime]:=IDF.DateAndTime;
-    if IDF.ImageDescription<>'' then
-      CurImg.Extra[TiffImageDescription]:=IDF.ImageDescription;
-    if not (IDF.Orientation in [1..8]) then
-      IDF.Orientation:=1;
-    CurImg.Extra[TiffOrientation]:=IntToStr(IDF.Orientation);
-    if IDF.ResolutionUnit<>0 then
-      CurImg.Extra[TiffResolutionUnit]:=IntToStr(IDF.ResolutionUnit);
-    if (IDF.XResolution.Numerator<>0) or (IDF.XResolution.Denominator<>0) then
-      CurImg.Extra[TiffXResolution]:=TiffRationalToStr(IDF.XResolution);
-    if (IDF.YResolution.Numerator<>0) or (IDF.YResolution.Denominator<>0) then
-      CurImg.Extra[TiffYResolution]:=TiffRationalToStr(IDF.YResolution);
-    CurImg.Extra[TiffRedBits]:=IntToStr(IDF.RedBits);
-    CurImg.Extra[TiffGreenBits]:=IntToStr(IDF.GreenBits);
-    CurImg.Extra[TiffBlueBits]:=IntToStr(IDF.BlueBits);
-    CurImg.Extra[TiffGrayBits]:=IntToStr(IDF.GrayBits);
-    CurImg.Extra[TiffAlphaBits]:=IntToStr(IDF.AlphaBits);
-    //WriteTiffExtras('ReadImage',CurImg);
-
-    case IDF.Orientation of
-    0,1..4: CurImg.SetSize(IDF.ImageWidth,IDF.ImageHeight);
-    5..8: CurImg.SetSize(IDF.ImageHeight,IDF.ImageWidth);
-    end;
-
-
-    y:=0;
-    for StripIndex:=0 to StripCount-1 do begin
-      // progress
-      aContinue:=true;
-      Progress(psRunning, 0, false, Rect(0,0,0,0), '', aContinue);
-      if not aContinue then break;
-
-      CurOffset:=StripOffsets[StripIndex];
-      CurByteCnt:=StripByteCounts[StripIndex];
-      //writeln('TFPReaderTiff.ReadImage CurOffset=',CurOffset,' CurByteCnt=',CurByteCnt);
+    // read chunks
+    for ChunkIndex:=0 to ChunkCount-1 do begin
+      CurOffset:=ChunkOffsets[ChunkIndex];
+      CurByteCnt:=ChunkByteCounts[ChunkIndex];
+      //writeln('TFPReaderTiff.LoadImageFromStream CurOffset=',CurOffset,' CurByteCnt=',CurByteCnt);
       if CurByteCnt<=0 then continue;
-      ReAllocMem(Strip,CurByteCnt);
+      ReAllocMem(Chunk,CurByteCnt);
       SetStreamPos(CurOffset);
-      s.Read(Strip^,CurByteCnt);
+      s.Read(Chunk^,CurByteCnt);
 
       // decompress
-      case IDF.Compression of
-      1: ; // not compressed
-      2: DecompressPackBits(Strip,CurByteCnt); // packbits
-      5: DecompressLZW(Strip,CurByteCnt); // LZW
+      if ChunkType=tctTile then
+        ExpectedChunkLength:=(SampleBitsPerPixel*IFD.TileWidth+7) div 8*IFD.TileLength
       else
-        TiffError('compression '+IntToStr(IDF.Compression)+' not supported yet');
+        ExpectedChunkLength:=((SampleBitsPerPixel*IFD.ImageWidth+7) div 8)*IFD.RowsPerStrip;
+      case IFD.Compression of
+      TiffCompressionNone: ;
+      TiffCompressionPackBits: DecodePackBits(Chunk,CurByteCnt);
+      TiffCompressionLZW: DecodeLZW(Chunk,CurByteCnt);
+      TiffCompressionDeflateAdobe,
+      TiffCompressionDeflateZLib: DecodeDeflate(Chunk,CurByteCnt,ExpectedChunkLength);
+      else
+        TiffError('compression '+TiffCompressionName(IFD.Compression)+' not supported yet');
       end;
       if CurByteCnt<=0 then continue;
-      ExpectedStripLength:=(StripBitsPerPixel*IDF.ImageWidth+7) div 8;
-      ExpectedStripLength:=ExpectedStripLength*Min(IDF.RowsPerStrip,IDF.ImageHeight-y);
-      // writeln('TFPReaderTiff.ReadImage StripBitsPerPixel=',StripBitsPerPixel,' IDF.ImageWidth=',IDF.ImageWidth,' IDF.ImageHeight=',IDF.ImageHeight,' y=',y,' IDF.RowsPerStrip=',IDF.RowsPerStrip,' ExpectedStripLength=',ExpectedStripLength,' CurByteCnt=',CurByteCnt);
-      if CurByteCnt<ExpectedStripLength then
-        TiffError('TFPReaderTiff.ReadImage Strip too short ByteCnt='+IntToStr(CurByteCnt)+' y='+IntToStr(y)+' expected='+IntToStr(ExpectedStripLength));
 
-      Run:=Strip;
-      dx:=0;
-      dy:=0;
-      for y2:=0 to IDF.RowsPerStrip-1 do begin
-        if y>=IDF.ImageHeight then break;
-        //writeln('TFPReaderTiff.ReadImage y=',y,' IDF.ImageWidth=',IDF.ImageWidth);
+      // compute current chunk area
+      if ChunkType=tctTile then begin
+        ChunkLeft:=(ChunkIndex mod TilesAcross)*IFD.TileWidth;
+        ChunkTop:=(ChunkIndex div TilesAcross)*IFD.TileLength;
+        ChunkWidth:=Min(IFD.TileWidth,IFD.ImageWidth-ChunkLeft);
+        ChunkHeight:=Min(IFD.TileLength,IFD.ImageHeight-ChunkTop);
+        ChunkBytesPerLine:=(SampleBitsPerPixel*ChunkWidth+7) div 8;
+        ExpectedChunkLength:=ChunkBytesPerLine*ChunkHeight;
+        if CurByteCnt<ExpectedChunkLength then begin
+          //writeln('TFPReaderTiff.LoadImageFromStream SampleBitsPerPixel=',SampleBitsPerPixel,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' y=',y,' IFD.TileWidth=',IFD.TileWidth,' IFD.TileLength=',IFD.TileLength,' ExpectedChunkLength=',ExpectedChunkLength,' CurByteCnt=',CurByteCnt);
+          TiffError('TFPReaderTiff.LoadImageFromStream Tile too short ByteCnt='+IntToStr(CurByteCnt)+' ChunkWidth='+IntToStr(ChunkWidth)+' ChunkHeight='+IntToStr(ChunkHeight)+' expected='+IntToStr(ExpectedChunkLength));
+        end else if CurByteCnt>ExpectedChunkLength then begin
+          // boundary tiles have padding
+          ChunkBytesPerLine:=(SampleBitsPerPixel*IFD.TileWidth+7) div 8;
+        end;
+      end else begin
+        ChunkLeft:=0;
+        ChunkTop:=IFD.RowsPerStrip*ChunkIndex;
+        ChunkWidth:=IFD.ImageWidth;
+        ChunkHeight:=Min(IFD.RowsPerStrip,IFD.ImageHeight-ChunkTop);
+        ChunkBytesPerLine:=(SampleBitsPerPixel*ChunkWidth+7) div 8;
+        ExpectedChunkLength:=ChunkBytesPerLine*ChunkHeight;
+        //writeln('TFPReaderTiff.LoadImageFromStream SampleBitsPerPixel=',SampleBitsPerPixel,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' y=',y,' IFD.RowsPerStrip=',IFD.RowsPerStrip,' ExpectedChunkLength=',ExpectedChunkLength,' CurByteCnt=',CurByteCnt);
+        if CurByteCnt<ExpectedChunkLength then
+          TiffError('TFPReaderTiff.LoadImageFromStream Strip too short ByteCnt='+IntToStr(CurByteCnt)+' ChunkWidth='+IntToStr(ChunkWidth)+' ChunkHeight='+IntToStr(ChunkHeight)+' expected='+IntToStr(ExpectedChunkLength));
+      end;
+
+      // progress
+      aContinue:=true;
+      Progress(psRunning, 0, false, Rect(0,0,IFD.ImageWidth,ChunkTop), '', aContinue);
+      if not aContinue then break;
+
+      // Orientation
+      if IFD.Orientation in [1..4] then begin
+        x:=ChunkLeft; y:=ChunkTop;
+        case IFD.Orientation of
+        1: begin dx:=1; dy:=1; end;// 0,0 is left, top
+        2: begin x:=IFD.ImageWidth-x-1; dx:=-1; dy:=1; end;// 0,0 is right, top
+        3: begin x:=IFD.ImageWidth-x-1; dx:=-1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is right, bottom
+        4: begin dx:=1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is left, bottom
+        end;
+      end else begin
+        // rotated
+        x:=ChunkTop; y:=ChunkLeft;
+        case IFD.Orientation of
+        5: begin dx:=1; dy:=1; end;// 0,0 is top, left (rotated)
+        6: begin dx:=1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is top, right (rotated)
+        7: begin x:=IFD.ImageHeight-x-1; dx:=-1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is bottom, right (rotated)
+        8: begin x:=IFD.ImageHeight-x-1; dx:=-1; dy:=1; end;// 0,0 is bottom, left (rotated)
+        end;
+      end;
+
+      //writeln('TFPReaderTiff.LoadImageFromStream Chunk ',ChunkIndex,' ChunkLeft=',ChunkLeft,' ChunkTop=',ChunkTop,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' ChunkWidth=',ChunkWidth,' ChunkHeight=',ChunkHeight,' PaddingRight=',PaddingRight);
+      sx:=x;
+      for cy:=0 to ChunkHeight-1 do begin
+        //writeln('TFPReaderTiff.LoadImageFromStream y=',y);
+        Run:=Chunk+ChunkBytesPerLine*cy;
         LastRedValue:=0;
         LastGreenValue:=0;
         LastBlueValue:=0;
         LastGrayValue:=0;
         LastAlphaValue:=0;
-        for x:=0 to IDF.ImageWidth-1 do begin
-          case IDF.PhotoMetricInterpretation of
+        x:=sx;
+        for cx:=0 to ChunkWidth-1 do begin
+          case IFD.PhotoMetricInterpretation of
           0,1:
             begin
-              ReadImgValue(GrayBits,Run,x,IDF.Predictor,LastGrayValue,GrayValue);
-              if IDF.PhotoMetricInterpretation=0 then
+              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
+              if IFD.PhotoMetricInterpretation=0 then
                 GrayValue:=$ffff-GrayValue;
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i]=2 then begin
-                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
+                if ExtraSamples[i] in [1,2] then begin
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1282,13 +1792,13 @@ begin
 
           2: // RGB(A)
             begin
-              ReadImgValue(RedBits,Run,x,IDF.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,x,IDF.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,x,IDF.Predictor,LastBlueValue,BlueValue);
+              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i]=2 then begin
-                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
+                if ExtraSamples[i] in [1,2] then begin
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1298,53 +1808,42 @@ begin
 
           5: // CMYK plus optional alpha
             begin
-              ReadImgValue(RedBits,Run,x,IDF.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,x,IDF.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,x,IDF.Predictor,LastBlueValue,BlueValue);
-              ReadImgValue(GrayBits,Run,x,IDF.Predictor,LastGrayValue,GrayValue);
+              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
+              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i]=2 then begin
-                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
+                if ExtraSamples[i] in [1,2] then begin
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
               end;
               // CMYK to RGB
-              RedValue:=Max(0,integer($ffff)-RedValue-GrayBits);
-              GreenValue:=Max(0,integer($ffff)-GreenValue-GrayBits);
-              BlueValue:=Max(0,integer($ffff)-BlueValue-GrayBits);
-              // set color
-              Col:=FPColor(RedValue,GreenValue,BlueValue,AlphaValue);
+              Col:=CMYKToFPColor(RedValue,GreenValue,BlueValue,GrayValue);
             end;
 
           else
-            TiffError('PhotometricInterpretation='+IntToStr(IDF.PhotoMetricInterpretation)+' not supported');
+            TiffError('PhotometricInterpretation='+IntToStr(IFD.PhotoMetricInterpretation)+' not supported');
           end;
 
-          // Orientation
-          case IDF.Orientation of
-          1: begin dx:=x; dy:=y; end;// 0,0 is left, top
-          2: begin dx:=IDF.ImageWidth-x-1; dy:=y; end;// 0,0 is right, top
-          3: begin dx:=IDF.ImageWidth-x-1; dy:=IDF.ImageHeight-y-1; end;// 0,0 is right, bottom
-          4: begin dx:=x; dy:=IDF.ImageHeight-y; end;// 0,0 is left, bottom
-          5: begin dx:=y; dy:=x; end;// 0,0 is top, left (rotated)
-          6: begin dx:=IDF.ImageHeight-y-1; dy:=x; end;// 0,0 is top, right (rotated)
-          7: begin dx:=IDF.ImageHeight-y-1; dy:=IDF.ImageWidth-x-1; end;// 0,0 is bottom, right (rotated)
-          8: begin dx:=y; dy:=IDF.ImageWidth-x-1; end;// 0,0 is bottom, left (rotated)
-          end;
-          CurImg.Colors[dx,dy]:=Col;
+          CurFPImg.Colors[x,y]:=Col;
+          // next column
+          inc(x,dx);
         end;
-        inc(y);
+
+        // next line
+        inc(y,dy);
       end;
+      // next chunk
     end;
   finally
     ReAllocMem(ExtraSamples,0);
     ReAllocMem(SampleBits,0);
-    ReAllocMem(StripOffsets,0);
-    ReAllocMem(StripByteCounts,0);
-    ReAllocMem(Strip,0);
-    FirstImg.Assign(IDF);
+    ReAllocMem(ChunkOffsets,0);
+    ReAllocMem(ChunkByteCounts,0);
+    ReAllocMem(Chunk,0);
   end;
 end;
 
@@ -1365,74 +1864,205 @@ begin
           or (Result shr 24);
 end;
 
-procedure TFPReaderTiff.DecompressPackBits(var Buffer: Pointer; var Count: PtrInt
-  );
+procedure TFPReaderTiff.DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
 var
-  p: Pcint8;
-  n: cint8;
-  NewBuffer: Pcint8;
-  SrcStep: PtrInt;
-  NewCount: Integer;
-  i: PtrInt;
-  d: pcint8;
-  j: ShortInt;
+  NewBuffer: Pointer;
+  NewCount: PtrInt;
 begin
-  // compute NewCount
-  NewCount:=0;
-  p:=Pcint8(Buffer);
-  i:=Count;
-  while i>0 do begin
-    n:=p^;
-    case n of
-    0..127:   begin inc(NewCount,n+1);  SrcStep:=n+2; end; // copy the next n+1 bytes
-    -127..-1: begin inc(NewCount,-n+1); SrcStep:=2;   end; // copy the next byte n+1 times
-    else SrcStep:=1; // noop
-    end;
-    inc(p,SrcStep);
-    dec(i,SrcStep);
-  end;
-
-  // decompress
-  if NewCount=0 then begin
-    NewBuffer:=nil;
-  end else begin
-    GetMem(NewBuffer,NewCount);
-    i:=Count;
-    p:=Pcint8(Buffer);
-    d:=Pcint8(NewBuffer);
-    while i>0 do begin
-      n:=p^;
-      case n of
-      0..127:
-        begin
-          // copy the next n+1 bytes
-          inc(NewCount,n+1);  SrcStep:=n+2;
-          System.Move(p[1],d^,n+1);
-          inc(d,n+1);
-        end;
-      -127..-1:
-        begin
-          // copy the next byte n+1 times
-          inc(NewCount,-n+1); SrcStep:=2;
-          j:=-n;
-          n:=p[1];
-          while j>=0 do begin
-            d[j]:=n;
-            dec(j);
-          end;
-        end;
-      else SrcStep:=1; // noop
-      end;
-      inc(p,SrcStep);
-      dec(i,SrcStep);
-    end;
-  end;
+  DecompressPackBits(Buffer,Count,NewBuffer,NewCount);
   FreeMem(Buffer);
   Buffer:=NewBuffer;
   Count:=NewCount;
 end;
 
-procedure TFPReaderTiff.DecompressLZW(var Buffer: Pointer; var Count: PtrInt);
+procedure TFPReaderTiff.DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
+var
+  NewBuffer: Pointer;
+  NewCount: PtrInt;
+begin
+  DecompressLZW(Buffer,Count,NewBuffer,NewCount);
+  FreeMem(Buffer);
+  Buffer:=NewBuffer;
+  Count:=NewCount;
+end;
+
+procedure TFPReaderTiff.DecodeDeflate(var Buffer: Pointer; var Count: PtrInt;
+  ExpectedCount: PtrInt);
+var
+  NewBuffer: PByte;
+  NewCount: cardinal;
+  ErrorMsg: String;
+begin
+  ErrorMsg:='';
+  NewBuffer:=nil;
+  try
+    NewCount:=ExpectedCount;
+    if not DecompressDeflate(Buffer,Count,NewBuffer,NewCount,@ErrorMsg) then
+      TiffError(ErrorMsg);
+    FreeMem(Buffer);
+    Buffer:=NewBuffer;
+    Count:=NewCount;
+    NewBuffer:=nil;
+  finally
+    ReAllocMem(NewBuffer,0);
+  end;
+end;
+
+procedure TFPReaderTiff.InternalRead(Str: TStream; AnImage: TFPCustomImage);
+// read the biggest image
+var
+  Img: TTiffIFD;
+  aContinue: Boolean;
+  BestSize: PtrInt;
+  NewSize: PtrInt;
+  Best: integer;
+  CurImg: TTiffIFD;
+  i: Integer;
+begin
+  Clear;
+  // read header
+  aContinue:=true;
+  Progress(psStarting, 0, False, Rect(0,0,0,0), '', aContinue);
+  if not aContinue then exit;
+  LoadHeaderFromStream(Str);
+  LoadIFDsFromStream;
+  // find the biggest image
+  BestSize:=-1;
+  Best:=-1;
+  for i:=0 to ImageCount-1 do begin
+    CurImg:=Images[i];
+    NewSize:=Int64(CurImg.ImageWidth)*CurImg.ImageHeight;
+    if (NewSize<BestSize) then continue;
+    BestSize:=NewSize;
+    Best:=i;
+  end;
+  Progress(psRunning, 0, False, Rect(0,0,0,0), '', aContinue);
+  // read image
+  if Best>=0 then begin
+    Img:=Images[Best];
+    Img.Img:=AnImage;
+    LoadImageFromStream(Best);
+  end;
+  // end
+  Progress(psEnding, 100, False, Rect(0,0,0,0), '', aContinue);
+end;
+
+function TFPReaderTiff.InternalCheck(Str: TStream): boolean;
+var
+  IFDStart: DWord;
+begin
+  try
+    s:=Str;
+    fStartPos:=s.Position;
+    Result:=ReadTiffHeader(true,IFDStart) and (IFDStart<>0);
+    s.Position:=fStartPos;
+  except
+    Result:=false;
+  end;
+end;
+
+procedure TFPReaderTiff.DoCreateImage(ImgFileDir: TTiffIFD);
+begin
+  if Assigned(OnCreateImage) then
+    OnCreateImage(Self,ImgFileDir);
+end;
+
+constructor TFPReaderTiff.Create;
+begin
+  ImageList:=TFPList.Create;
+end;
+
+destructor TFPReaderTiff.Destroy;
+begin
+  Clear;
+  FreeAndNil(ImageList);
+  inherited Destroy;
+end;
+
+procedure TFPReaderTiff.Clear;
+var
+  i: Integer;
+  Img: TTiffIFD;
+begin
+  for i:=ImageCount-1 downto 0 do begin
+    Img:=Images[i];
+    ImageList.Delete(i);
+    if IFD=Img then IFD:=nil;
+    Img.Free;
+  end;
+  FReverseEndian:=false;
+  FreeAndNil(fIFDStarts);
+end;
+
+procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt; out
+  NewBuffer: Pointer; out NewCount: PtrInt);
+{ Algorithm:
+    while not got the expected number of bytes
+      read one byte n
+      if n in 0..127 copy the next n+1 bytes
+      else if n in -127..-1 then copy the next byte 1-n times
+      else continue
+    end
+}
+var
+  p: Pcint8;
+  n: cint8;
+  d: pcint8;
+  i,j: integer;
+  EndP: Pcint8;
+begin
+  // compute NewCount
+  NewCount:=0;
+  NewBuffer:=nil;
+  if Count=0 then exit;
+  p:=Pcint8(Buffer);
+  EndP:=p+Count;
+  while p<EndP do begin
+    n:=p^;
+    case n of
+    0..127:   begin inc(NewCount,n+1);  inc(p,n+2); end; // copy the next n+1 bytes
+    -127..-1: begin inc(NewCount,1-n); inc(p,2);   end; // copy the next byte 1-n times
+    else inc(p); // noop
+    end;
+  end;
+
+  // decompress
+  if NewCount=0 then exit;
+  GetMem(NewBuffer,NewCount);
+  p:=Pcint8(Buffer);
+  d:=Pcint8(NewBuffer);
+  while p<EndP do begin
+    n:=p^;
+    case n of
+    0..127:
+      begin
+        // copy the next n+1 bytes
+        i:=n+1;
+        inc(NewCount,i);
+        inc(p);
+        System.Move(p,d^,i);
+        inc(p,i);
+        inc(d,i);
+      end;
+    -127..-1:
+      begin
+        // copy the next byte 1-n times
+        i:=1-n;
+        inc(NewCount,i);
+        inc(p);
+        n:=p^;
+        for j:=0 to i-1 do
+          d[j]:=n;
+        inc(d,i);
+        inc(p);
+      end;
+    else inc(p); // noop
+    end;
+  end;
+end;
+
+procedure DecompressLZW(Buffer: Pointer; Count: PtrInt; out NewBuffer: PByte;
+  out NewCount: PtrInt);
 type
   TLZWString = packed record
     Count: integer;
@@ -1443,8 +2073,6 @@ const
   ClearCode = 256; // clear table, start with 9bit codes
   EoiCode = 257; // end of input
 var
-  NewBuffer: PByte;
-  NewCount: PtrInt;
   NewCapacity: PtrInt;
   SrcPos: PtrInt;
   SrcPosBit: integer;
@@ -1454,6 +2082,11 @@ var
   TableCapacity: integer;
   TableCount: integer;
   OldCode: Word;
+
+  procedure Error(const Msg: string);
+  begin
+    raise Exception.Create(Msg);
+  end;
 
   function GetNextCode: Word;
   var
@@ -1465,7 +2098,7 @@ var
     // read two or three bytes
     if CurBitLength+SrcPosBit>16 then begin
       // read from three bytes
-      if SrcPos+3>Count then TiffError('LZW stream overrun');
+      if SrcPos+3>Count then Error('LZW stream overrun');
       v:=PByte(Buffer)[SrcPos];
       inc(SrcPos);
       v:=(v shl 8)+PByte(Buffer)[SrcPos];
@@ -1474,7 +2107,7 @@ var
       v:=v shr (24-CurBitLength-SrcPosBit);
     end else begin
       // read from two bytes
-      if SrcPos+2>Count then TiffError('LZW stream overrun');
+      if SrcPos+2>Count then Error('LZW stream overrun');
       v:=PByte(Buffer)[SrcPos];
       inc(SrcPos);
       v:=(v shl 8)+PByte(Buffer)[SrcPos];
@@ -1512,7 +2145,7 @@ var
     s: TLZWString;
     b: byte;
   begin
-    //WriteLn('WriteStringFromCode Code=',Code,' AddFirstChar=',AddFirstChar,' x=',(NewCount div 4) mod IDF.ImageWidth,' y=',(NewCount div 4) div IDF.ImageWidth,' PixelByte=',NewCount mod 4);
+    //WriteLn('WriteStringFromCode Code=',Code,' AddFirstChar=',AddFirstChar,' x=',(NewCount div 4) mod IFD.ImageWidth,' y=',(NewCount div 4) div IFD.ImageWidth,' PixelByte=',NewCount mod 4);
     if Code<256 then begin
       // write byte
       b:=Code;
@@ -1521,10 +2154,10 @@ var
     end else if Code>=258 then begin
       // write string
       if Code-258>=TableCount then
-        TiffError('LZW code out of bounds');
+        Error('LZW code out of bounds');
       s:=Table[Code-258];
     end else
-      TiffError('LZW code out of bounds');
+      Error('LZW code out of bounds');
     if NewCount+s.Count+1>NewCapacity then begin
       NewCapacity:=NewCapacity*2+8;
       ReAllocMem(NewBuffer,NewCapacity);
@@ -1562,10 +2195,10 @@ var
     end else if Code>=258 then begin
       // normal string
       if Code-258>=TableCount then
-        TiffError('LZW code out of bounds');
+        Error('LZW code out of bounds');
       s1:=Table[Code-258];
     end else
-      TiffError('LZW code out of bounds');
+      Error('LZW code out of bounds');
     // find string 2
     if AddFirstCharFromCode<256 then begin
       // string is byte
@@ -1575,7 +2208,7 @@ var
     end else begin
       // normal string
       if AddFirstCharFromCode-258>=TableCount then
-        TiffError('LZW code out of bounds');
+        Error('LZW code out of bounds');
       s2:=Table[AddFirstCharFromCode-258];
     end;
     // set new table entry
@@ -1590,19 +2223,19 @@ var
     inc(TableCount);
     case TableCount+259 of
     512,1024,2048: inc(CurBitLength);
-    4096: TiffError('LZW too many codes');
+    4096: Error('LZW too many codes');
     end;
   end;
 
 begin
+  NewBuffer:=nil;
+  NewCount:=0;
   if Count=0 then exit;
-  //WriteLn('TFPReaderTiff.DecompressLZW START Count=',Count);
+  //WriteLn('DecompressLZW START Count=',Count);
   //for SrcPos:=0 to 19 do
   //  write(HexStr(PByte(Buffer)[SrcPos],2));
   //writeln();
 
-  NewBuffer:=nil;
-  NewCount:=0;
   NewCapacity:=Count*2;
   ReAllocMem(NewBuffer,NewCapacity);
 
@@ -1615,15 +2248,15 @@ begin
   try
     repeat
       Code:=GetNextCode;
-      //WriteLn('TFPReaderTiff.DecompressLZW Code=',Code);
+      //WriteLn('DecompressLZW Code=',Code);
       if Code=EoiCode then break;
       if Code=ClearCode then begin
         InitializeTable;
         Code:=GetNextCode;
-        //WriteLn('TFPReaderTiff.DecompressLZW after clear Code=',Code);
+        //WriteLn('DecompressLZW after clear Code=',Code);
         if Code=EoiCode then break;
         if Code=ClearCode then
-          TiffError('LZW code out of bounds');
+          Error('LZW code out of bounds');
         WriteStringFromCode(Code);
         OldCode:=Code;
       end else begin
@@ -1636,7 +2269,7 @@ begin
           AddStringToTable(OldCode,OldCode);
           OldCode:=Code;
         end else
-          TiffError('LZW code out of bounds');
+          Error('LZW code out of bounds');
       end;
     until false;
   finally
@@ -1645,56 +2278,83 @@ begin
   end;
 
   ReAllocMem(NewBuffer,NewCount);
-  FreeMem(Buffer);
-  Buffer:=NewBuffer;
-  Count:=NewCount;
 end;
 
-procedure TFPReaderTiff.InternalRead(Str: TStream; AnImage: TFPCustomImage);
-begin
-  FirstImg.Img:=AnImage;
-  try
-    LoadFromStream(Str);
-  finally
-    FirstImg.Img:=nil;
-  end;
-end;
-
-function TFPReaderTiff.InternalCheck(Str: TStream): boolean;
+function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
+  out Decompressed: PByte; var DecompressedCount: cardinal;
+  ErrorMsg: PAnsiString = nil): boolean;
 var
-  IFD: DWord;
+  stream : z_stream;
+  err : integer;
 begin
-  try
-    s:=Str;
-    fStartPos:=s.Position;
-    Result:=ReadTiffHeader(true,IFD) and (IFD<>0);
-    s.Position:=fStartPos;
-  except
-    Result:=false;
+  Result:=false;
+  //writeln('DecompressDeflate START');
+  Decompressed:=nil;
+  if CompressedCount=0 then begin
+    DecompressedCount:=0;
+    exit;
   end;
+
+  err := inflateInit(stream{%H-});
+  if err <> Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='inflateInit failed';
+    exit;
+  end;
+
+  // set input = compressed data
+  stream.avail_in := CompressedCount;
+  stream.next_in  := Compressed;
+
+  // set output = decompressed data
+  if DecompressedCount=0 then
+    DecompressedCount:=CompressedCount;
+  Getmem(Decompressed,DecompressedCount);
+  stream.avail_out := DecompressedCount;
+  stream.next_out := Decompressed;
+
+  // Finish the stream
+  while TRUE do begin
+    //writeln('run: total_in=',stream.total_in,' avail_in=',stream.avail_in,' total_out=',stream.total_out,' avail_out=',stream.avail_out);
+    if (stream.avail_out=0) then begin
+      // need more space
+      if DecompressedCount<128 then
+        DecompressedCount:=DecompressedCount+128
+      else if DecompressedCount>High(DecompressedCount)-1024 then begin
+        if ErrorMsg<>nil then
+          ErrorMsg^:='inflate decompression failed, because not enough space';
+        exit;
+      end else
+        DecompressedCount:=DecompressedCount*2;
+      ReAllocMem(Decompressed,DecompressedCount);
+      stream.next_out:=Decompressed+stream.total_out;
+      stream.avail_out:=DecompressedCount-stream.total_out;
+    end;
+    err := inflate(stream, Z_NO_FLUSH);
+    if err = Z_STREAM_END then
+      break;
+    if err<>Z_OK then begin
+      if ErrorMsg<>nil then
+        ErrorMsg^:='inflate finish failed';
+      exit;
+    end;
+  end;
+
+  //writeln('decompressed: total_in=',stream.total_in,' total_out=',stream.total_out);
+  DecompressedCount:=stream.total_out;
+  ReAllocMem(Decompressed,DecompressedCount);
+
+  err := inflateEnd(stream);
+  if err<>Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='inflateEnd failed';
+    exit;
+  end;
+  Result:=true;
 end;
 
-constructor TFPReaderTiff.Create;
-begin
-  IDF:=TTiffIDF.Create;
-  FirstImg:=TTiffIDF.Create;
-end;
-
-destructor TFPReaderTiff.Destroy;
-begin
-  Clear;
-  FreeAndNil(FirstImg);
-  FreeAndNil(IDF);
-  inherited Destroy;
-end;
-
-procedure TFPReaderTiff.Clear;
-begin
-  IDF.Clear;
-  FirstImg.Clear;
-  FReverseEndian:=false;
-  FreeAndNil(fIFDStarts);
-end;
-
+initialization
+  if ImageHandlers.ImageReader[TiffHandlerName]=nil then
+    ImageHandlers.RegisterImageReader (TiffHandlerName, 'tif;tiff', TFPReaderTiff);
 end.
 

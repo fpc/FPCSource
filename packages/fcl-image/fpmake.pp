@@ -86,6 +86,7 @@ begin
           AddInclude('fphandler.inc');
           AddInclude('fppalette.inc');
           AddInclude('fpcolcnv.inc');
+          AddInclude('fpcompactimg.inc');
         end;
     T:=P.Targets.AddUnit('fpimgcanv.pp');
       with T.Dependencies do
@@ -259,7 +260,10 @@ begin
           AddUnit('fpcanvas');
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
-
+    T:=P.Targets.AddUnit('fpimggauss.pp');
+    With T.Dependencies do
+      AddUnit('fpimage'); 
+                  
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
     T:=P.Targets.AddExampleProgram('imgconv.pp');
