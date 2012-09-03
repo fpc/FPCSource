@@ -665,7 +665,9 @@ unit cgcpu;
         bitsset : byte;
         negative : boolean;
         first : boolean;
+        b,
         cycles : byte;
+        maxeffort : byte;
       begin
         result:=true;
         cycles:=0;
@@ -676,6 +678,28 @@ unit cgcpu;
           inc(cycles);
         multiplier:=dword(abs(a));
         bitsset:=popcnt(multiplier and $fffffffe);
+
+        { heuristics to estimate how much instructions are reasonable to replace the mul,
+          this is currently based on XScale timings }
+        { in the simplest case, we need a mov to load the constant and a mul to carry out the
+          actual multiplication, this requires min. 1+4 cycles
+
+          because the first shift imm. might cause a stall and because we need more instructions
+          when replacing the mul we generate max. 3 instructions to replace this mul }
+        maxeffort:=3;
+
+        { if the constant is not a shifter op, we need either some mov/mvn/bic/or sequence or
+          a ldr, so generating one more operation to replace this is beneficial }
+        if not(is_shifter_const(dword(a),b)) and not(is_shifter_const(not(dword(a)),b)) then
+          inc(maxeffort);
+
+        { if the upper 5 bits are all set or clear, mul is one cycle faster }
+        if ((dword(a) and $f8000000)=0) or ((dword(a) and $f8000000)=$f8000000) then
+          dec(maxeffort);
+
+        { if the upper 17 bits are all set or clear, mul is another cycle faster }
+        if ((dword(a) and $ffff8000)=0) or ((dword(a) and $ffff8000)=$ffff8000) then
+          dec(maxeffort);
 
         { most simple cases }
         if a=1 then
@@ -690,8 +714,8 @@ unit cgcpu;
           however, the least significant bit is for free, it can be hidden in the initial
           instruction
         }
-        else if (bitsset+cycles<=3) and
-          (bitsset>popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)) then
+        else if (bitsset+cycles<=maxeffort) and
+          (bitsset<=popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)) then
           begin
             first:=true;
             while multiplier<>0 do
@@ -714,7 +738,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,0));
           end
         { subtract from the next greater power of two? }
-        else if popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)+cycles<=3 then
+        else if popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)+cycles+1<=maxeffort then
           begin
             first:=true;
             while multiplier<>0 do
