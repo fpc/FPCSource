@@ -83,6 +83,7 @@ interface
       private
         intparareg,
         intparasize : longint;
+        can_use_float : boolean;
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
 
@@ -159,7 +160,7 @@ implementation
         case def.typ of
           recorddef:
             { According to 032 ABI we should have }
-            result:=false; 
+            result:=false;
           arraydef:
             result:=true; {(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                             is_open_array(def) or
@@ -220,7 +221,7 @@ implementation
                   begin
                     getIntParaLoc(p.proccalloption,1,retdef,result);
                   end;
-                // This is now done in set_common_funcretloc_info already  
+                // This is now done in set_common_funcretloc_info already
                 // result.def:=getpointerdef(result.def);
               end;
             exit;
@@ -279,15 +280,13 @@ implementation
         hp           : tparavarsym;
         paracgsize   : tcgsize;
         paralen      : longint;
-	paradef      : tdef;
-	fpparareg    : integer;
-	can_use_float : boolean;
-	reg           : tsuperregister;
-	alignment     : longint;
-	tmp	      : longint;
+    paradef      : tdef;
+    fpparareg    : integer;
+    reg           : tsuperregister;
+    alignment     : longint;
+    tmp          : longint;
       begin
         fpparareg := 0;
-	can_use_float := true;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
@@ -315,12 +314,11 @@ implementation
               begin
                 paracgsize := def_cgsize(paradef);
                 { for things like formaldef }
-				if (paracgsize=OS_NO) and (paradef.typ <> recorddef) then
+                if (paracgsize=OS_NO) and (paradef.typ <> recorddef) then
                   begin
                     paracgsize:=OS_ADDR;
                     paradef:=voidpointertype;
                   end;
-
                 if not is_special_array(paradef) then
                   paralen := paradef.size
                 else
@@ -328,33 +326,33 @@ implementation
               end;
 
             if (paracgsize in [OS_64, OS_S64, OS_F64]) or (hp.vardef.alignment = 8) then
-	      alignment := 8
+              alignment := 8
             else
-	      alignment := 4;
+              alignment := 4;
             hp.paraloc[side].reset;
             hp.paraloc[side].Alignment:=alignment;
-			if paracgsize=OS_NO then
-			  begin
-			    paracgsize:=OS_32;
-				paralen:=align(paralen,4);
-			  end
+            if paracgsize=OS_NO then
+              begin
+                paracgsize:=OS_32;
+                paralen:=align(paralen,4);
+              end
             else
               paralen:=tcgsize2size[paracgsize];
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].def:=paradef;
-	    { check the alignment, mips O32ABI require a nature alignment  }
+            { check the alignment, mips O32ABI require a nature alignment  }
             tmp := align(intparasize, alignment) - intparasize;
-	    while tmp > 0 do
+            while tmp > 0 do
               begin
                 inc(intparareg);
                 inc(intparasize,4);
                 dec(tmp,4);
               end;
 
-	    { any non-float args will disable the use the floating regs }
-	    { up to two fp args }
-	    if (not(paracgsize in [OS_F32, OS_F64])) or (fpparareg = 2) then
+            { any non-float args will disable the use the floating regs }
+            { up to two fp args }
+            if (not(paracgsize in [OS_F32, OS_F64])) or (fpparareg = 2) then
               can_use_float := false;
 
             while paralen>0 do
@@ -416,7 +414,7 @@ implementation
                         if (paraloc^.size = OS_F64) then
                           begin
                             paraloc^.register:=newreg(R_FPUREGISTER, reg, R_SUBFD);
-			    inc(fpparareg);
+                            inc(fpparareg);
                             inc(intparareg);
                             inc(intparareg);
                             inc(intparasize,8);
@@ -424,7 +422,7 @@ implementation
                         else
                           begin
                             paraloc^.register:=newreg(R_FPUREGISTER, reg, R_SUBFS);
-			    inc(fpparareg);
+                            inc(fpparareg);
                             inc(intparareg);
                             inc(intparasize,sizeof(aint));
                           end;
@@ -463,6 +461,14 @@ implementation
                 else
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
+                    { Force size to multiple of 4 for records passed by value,
+                      to obtain correct memory layout for big endian }
+                    if (paradef.typ = recorddef) and 
+                       (tcgsize2size[paraloc^.size] < tcgsize2size[OS_32]) then
+                      begin
+                        inc(paralen,tcgsize2size[OS_32]-tcgsize2size[paraloc^.size]);
+                        paraloc^.size := OS_32;
+                      end;
                     if side=callerside then
                       begin
                         paraloc^.reference.index := NR_STACK_POINTER_REG;
@@ -488,9 +494,9 @@ implementation
         { O32 ABI reqires at least 16 bytes }
         if (intparasize < 16) then
           intparasize := 16;
-		{ Increase maxpushparasize, but only if not examining itself }
-        //if assigned(current_procinfo) and (side=callerside) and 
-		//   (current_procinfo.procdef <> p) then
+        { Increase maxpushparasize, but only if not examining itself }
+        //if assigned(current_procinfo) and (side=callerside) and
+        //   (current_procinfo.procdef <> p) then
         //  begin
         //    TMIPSProcinfo(current_procinfo).allocate_push_parasize(intparasize);
         //  end;
@@ -501,11 +507,16 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
+        can_use_float := true;
         { Create Function result paraloc }
         create_funcretloc_info(p,callerside);
         { calculate the registers for the normal parameters }
         create_paraloc_info_intern(p,callerside,p.paras);
         { append the varargs }
+        can_use_float := false;
+        { restore correct intparasize value }
+        if intparareg < 4 then
+          intparasize:=intparareg * 4;
         create_paraloc_info_intern(p,callerside,varargspara);
         { We need to return the size allocated on the stack }
         result:=intparasize;
@@ -517,6 +528,7 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
+        can_use_float := true;
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
         create_paraloc_info_intern(p,side,p.paras);
