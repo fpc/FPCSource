@@ -682,8 +682,8 @@ Var
 begin
   CRC32Val:=$FFFFFFFF;
   Buf:=GetMem(FBufferSize);
-  if FOnPercent = 0 then 
-    FOnPercent := 1; 
+  if FOnPercent = 0 then
+    FOnPercent := 1;
   OnBytes:=Round((FInFile.Size * FOnPercent) / 100);
   BytesNow:=0; NextMark := OnBytes;
   FSize:=FInfile.Size;
@@ -705,7 +705,7 @@ begin
             if (FSize>0) and assigned(FOnProgress) Then
               FOnProgress(self,100 * ( BytesNow / FSize));
             inc(NextMark,OnBytes);
-          end;   
+          end;
       Until (Count=0);
     Finally
       C.Free;
@@ -1594,8 +1594,8 @@ Begin
     as directory separator. We don't want that behaviour
     here, since 'abc\' is a valid file name under Unix.
 	
-	(mantis 15836) On the other hand, many archives on 
-	 windows have '/' as pathseparator, even Windows 
+	(mantis 15836) On the other hand, many archives on
+	 windows have '/' as pathseparator, even Windows
 	 generated .odt files. So we disable this for windows.
   }
   OldDirectorySeparators:=AllowDirectorySeparators;
@@ -1606,7 +1606,7 @@ Begin
   OutStream:=Nil;
   If Assigned(FOnCreateStream) then
     FOnCreateStream(Self, OutStream, Item);
-  // If FOnCreateStream didn't create one, we create one now.  
+  // If FOnCreateStream didn't create one, we create one now.
   If (OutStream=Nil) then
     Begin
     if (Path<>'') then
@@ -1738,7 +1738,7 @@ end;
 Procedure TUnZipper.ReadZipDirectory;
 
 Var
-  i,
+  i : LongInt;
   EndHdrPos,
   CenDirPos : Int64;
   NewNode   : TFullZipFileEntry;
@@ -2150,7 +2150,7 @@ Procedure TZipFileEntries.AddFileEntries(Const List : TStrings);
 
 Var
   I : integer;
-  
+
 begin
   For I:=0 to List.Count-1 do
     AddFileEntry(List[i]);
