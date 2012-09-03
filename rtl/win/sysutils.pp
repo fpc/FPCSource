@@ -30,7 +30,7 @@ uses
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_CREATEGUID}
-
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -587,6 +587,25 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetLocalTimeOffset: Integer;
+
+var 
+  TZInfo: TTimeZoneInformation;
+
+begin
+   case GetTimeZoneInformation(TZInfo) of
+     TIME_ZONE_ID_UNKNOWN:
+       Result := TZInfo.Bias;
+     TIME_ZONE_ID_STANDARD:
+       Result := TZInfo.Bias + TZInfo.StandardBias;
+     TIME_ZONE_ID_DAYLIGHT:
+       Result := TZInfo.Bias + TZInfo.DaylightBias;
+     else
+       Result := 0;
+   end;
+end; 
+ 
+                                                                    
 
 {****************************************************************************
                               Misc Functions

@@ -294,7 +294,9 @@ type
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
-    Function  GetTempUploadFileName : String; virtual;
+    Function RequestUploadDir : String; virtual;
+    Function  GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
+    Procedure DeleteTempUploadedFiles; virtual;
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
@@ -955,18 +957,8 @@ begin
 end;
 
 destructor TRequest.destroy;
-var
-  i: Integer;
-  s: String;
 begin
-  //delete all temporary uploaded files created for this request if there is any
-  i := FFiles.Count;
-  if i > 0 then for i := i - 1 downto 0 do
-    begin
-    s := FFiles[i].LocalFileName;
-    if FileExists(s) then DeleteFile(s);
-    end;
-  //
+  DeleteTempUploadedFiles;
   FreeAndNil(FFiles);
   inherited destroy;
 end;
@@ -1195,18 +1187,36 @@ begin
 {$ifdef CGIDEBUG}SendMethodExit('ProcessQueryString');{$endif CGIDEBUG}
 end;
 
-function TRequest.GetTempUploadFileName: String;
+Function TRequest.RequestUploadDir : String;
 
 begin
-//Result:=GetTempFileName('/tmp/','CGI') {Hard coded path no good for all OS-es}
-{
-GetTempDir returns the OS temporary directory if possible, or from the
-environment variable TEMP . For CGI programs you need to pass global environment
- variables, it is not automatic. For example in the Apache httpd.conf with a
-"PassEnv TEMP" or "SetEnv TEMP /pathtotmpdir" line so the web server passes this
- global environment variable to the CGI programs' local environment variables.
-}
-  Result := GetTempFileName(GetTempDir, 'CGI');
+  Result:='';
+end;
+
+Function TRequest.GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
+
+Var
+  D : String;
+
+begin
+  D:=RequestUploadDir;
+  if (D='') then
+    D:=GetTempDir; // Note that this may require a TEMP environment variable to be set by the webserver.
+  Result:=GetTempFileName(D, 'CGI');
+end;
+
+Procedure TRequest.DeleteTempUploadedFiles;
+var
+  i: Integer;
+  s: String;
+begin
+  //delete all temporary uploaded files created for this request if there is any
+  i := FFiles.Count;
+  if i > 0 then for i := i - 1 downto 0 do
+    begin
+    s := FFiles[i].LocalFileName;
+    if FileExists(s) then DeleteFile(s);
+    end;
 end;
 
 procedure TRequest.InitRequestVars;
@@ -1360,10 +1370,10 @@ begin
         else
           begin
           FI.DLen:=J;
-          FF:=GetTempUploadFileName;
+          FF:=GetTempUploadFileName(FI.name,FI.FileName,J);
           F:=TFileStream.Create(FF,fmCreate);
           Try
-            F.Write(FI.Data[1],Length(FI.Data));
+            F.Write(FI.Data[1],J);
           finally
             F.Free;
           end;

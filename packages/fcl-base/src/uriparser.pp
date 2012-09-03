@@ -37,8 +37,8 @@ type
   end;
 
 function EncodeURI(const URI: TURI): String;
-function ParseURI(const URI: String):  TURI; overload;
-function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI; overload;
+function ParseURI(const URI: String; Decode : Boolean = True):  TURI; overload;
+function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word; Decode : Boolean = True):  TURI; overload;
 
 function ResolveRelativeURI(const BaseUri, RelUri: WideString;
   out ResultUri: WideString): Boolean; overload;
@@ -125,9 +125,9 @@ begin
     Result := Result + '#' + Escape(URI.Bookmark, ValidPathChars);
 end;
 
-function ParseURI(const URI: String):  TURI;
+function ParseURI(const URI: String; Decode : Boolean = True):  TURI;
 begin
-  Result := ParseURI(URI, '', 0);
+  Result := ParseURI(URI, '', 0, Decode);
 end;
 
 function HexValue(c: Char): Integer;
@@ -166,7 +166,7 @@ begin
   SetLength(Result, RealLength);
 end;
 
-function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
+function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
 var
   s, Authority: String;
   i: Integer;
@@ -194,7 +194,9 @@ begin
   i := LastDelimiter('#', s);
   if i > 0 then
   begin
-    Result.Bookmark := Unescape(Copy(s, i + 1, MaxInt));
+    Result.Bookmark := Copy(s, i + 1, MaxInt);
+    if Decode then
+      Result.Bookmark:=Unescape(Result.Bookmark);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -203,7 +205,9 @@ begin
   i := LastDelimiter('?', s);
   if i > 0 then
   begin
-    Result.Params := Unescape(Copy(s, i + 1, MaxInt));
+    Result.Params := Copy(s, i + 1, MaxInt);
+    if Decode then
+      Result.Params:=Unescape(Result.Params);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -230,7 +234,9 @@ begin
   for i := Length(s) downto 1 do
     if s[i] = '/' then
     begin
-      Result.Document := Unescape(Copy(s, i + 1, Length(s)));
+      Result.Document :=Copy(s, i + 1, Length(s));
+      if Decode then
+        Result.Document:=Unescape(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := Copy(s, 1, i)
       else
@@ -240,7 +246,9 @@ begin
       break
     else if i = 1 then
     begin
-      Result.Document := Unescape(s);
+      Result.Document :=s;
+      if Decode then
+        Result.Document:=Unescape(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := ''
       else
@@ -250,7 +258,9 @@ begin
 
   // Everything left is a path
 
-  Result.Path := Unescape(s);
+  Result.Path := s;
+  if Decode then
+    Result.Path:=Unescape(Result.Path);
 
   // Extract the port number
 

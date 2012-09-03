@@ -1394,3 +1394,10 @@ begin
   DateTime:=tmp;
 end;
 
+{$IFNDEF HAS_LOCALTIMEZONEOFFSET}
+Function GetLocalTimeOffset : Integer;
+
+begin
+  Result:=0;
+end;
+{$ENDIF}
