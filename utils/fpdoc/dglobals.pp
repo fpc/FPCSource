@@ -82,6 +82,7 @@ resourcestring
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
   SDocDateGenerated          = 'Documentation generated on: %s';
+  SDocNotes                  = 'Notes';
   
   // Topics
   SDocRelatedTopics = 'Related topics';
@@ -109,6 +110,7 @@ resourcestring
   SHTMLHtmlSearch = 'Add search page with given name to the menu bar';
   SHTMLIndexColcount = 'Use N columns in the identifier index pages';
   SHTMLImageUrl = 'Prefix image URLs with url';
+  SHTMLDisableMenuBrackets = 'Disable ''['' and '']'' characters around menu items at the top of the page. Useful for custom css';
     
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';
@@ -172,6 +174,7 @@ resourcestring
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
   SSeeURL                     = '(See %s)';      // For linear text writers.
+  SParsingUsedUnit            = 'Parsing used unit "%s" with commandLine "%s"';
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
@@ -238,6 +241,7 @@ type
     FErrorsDoc: TDOMElement;
     FSeeAlso: TDOMElement;
     FFirstExample: TDOMElement;
+    FNotes : TDomElement;
     FLink: String;
     FTopicNode : Boolean;
     FRefCount : Integer;
@@ -262,6 +266,7 @@ type
     Property Version : TDomElement Read FVersion;
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
+    property Notes : TDOMElement read FNotes;
     property Link: String read FLink;
     Property TopicNode : Boolean Read FTopicNode;
     Property RefCount : Integer Read FRefCount;
@@ -272,11 +277,13 @@ type
   // The main FPDoc engine
   TFPDocLogLevel = (dleWarnNoNode);
   TFPDocLogLevels = set of TFPDocLogLevel;
+  TOnParseUnitEvent = Procedure (Sender : TObject; Const AUnitName : String; Out AInputFile,OSTarget,CPUTarget : String) of  Object;
 
   { TFPDocEngine }
   TFPDocEngine = class(TPasTreeContainer)
   private
     FDocLogLevels: TFPDocLogLevels;
+    FOnParseUnit: TOnParseUnitEvent;
   protected
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
@@ -285,6 +292,7 @@ type
     FPackages: TFPList;                   // List of TFPPackage objects
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
+    function ParseUsedUnit(AName, AInputLine,AOSTarget,ACPUTarget: String): TPasModule; virtual;
     Function LogEvent(E : TFPDocLogLevel) : Boolean;
     Procedure DoLog(Const Msg : String);overload;
     Procedure DoLog(Const Fmt : String; Args : Array of const);overload;
@@ -328,6 +336,7 @@ type
     property RootLinkNode: TLinkNode read FRootLinkNode;
     property RootDocNode: TDocNode read FRootDocNode;
     Property DocLogLevels : TFPDocLogLevels Read FDocLogLevels Write FDocLogLevels;
+    Property OnParseUnit : TOnParseUnitEvent Read FOnParseUnit Write FOnParseUnit;
   end;
 
 
@@ -1168,6 +1177,8 @@ function TFPDocEngine.FindModule(const AName: String): TPasModule;
 
 var
   i: Integer;
+  AInPutLine,OSTarget,CPUTarget : String;
+
 begin
   Result := FindInPackage(Package);
   if not Assigned(Result) then
@@ -1179,6 +1190,29 @@ begin
       if Assigned(Result) then
         exit;
     end;
+  if Not Assigned(Result) and Assigned(FOnParseUnit) then
+    begin
+    FOnParseUnit(Self,AName,AInputLine,OSTarget,CPUTarget);
+    If (AInPutLine<>'') then
+      Result:=ParseUsedUnit(AName,AInputLine,OSTarget,CPUTarget);
+    end;
+end;
+
+Function TFPDocEngine.ParseUsedUnit(AName,AInputLine,AOSTarget,ACPUTarget : String) : TPasModule;
+
+Var
+  M : TPasModule;
+
+begin
+  DoLog(SParsingUsedUnit,[AName,AInputLine]);
+  M:=CurModule;
+  CurModule:=Nil;
+  try
+    ParseSource(Self,AInputLine,AOSTarget,ACPUTarget,True);
+    Result:=CurModule;
+  finally
+    CurModule:=M;
+  end;
 end;
 
 procedure TFPDocEngine.AddLink(const APathName, ALinkTo: String);
@@ -1336,7 +1370,9 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false
           Result.FSeeAlso := TDOMElement(Subnode)
         else if (Subnode.NodeName = 'example') and
           not Assigned(Result.FirstExample) then
-          Result.FFirstExample := TDOMElement(Subnode);
+          Result.FFirstExample := TDOMElement(Subnode)
+        else if (Subnode.NodeName = 'notes') then
+          Result.FNotes := TDOMElement(Subnode);
       end;
       Subnode := Subnode.NextSibling;
     end;

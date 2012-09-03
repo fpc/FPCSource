@@ -87,6 +87,7 @@ type
     tkcase,
     tkclass,
     tkconst,
+    tkconstref,
     tkconstructor,
     tkdestructor,
     tkdiv,
@@ -345,6 +346,8 @@ type
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
+    Procedure AddDefine(S : String);
+    Procedure RemoveDefine(S : String);
 
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
@@ -410,6 +413,7 @@ const
     'case',
     'class',
     'const',
+    'constref',
     'constructor',
     'destructor',
     'div',
@@ -1184,10 +1188,7 @@ begin
   Param := UpperCase(Param);
   Index:=Pos(':=',Param);
   If (Index=0) then
-    begin
-    if Defines.IndexOf(Param) < 0 then
-      Defines.Add(Param);
-    end
+    AddDefine(Param)
   else
     begin
     MV:=Trim(Param);
@@ -1208,9 +1209,9 @@ Var
 
 begin
   Param := UpperCase(Param);
-  Index := Defines.IndexOf(Param);
-  if Index >= 0 then
-    Defines.Delete(Index)
+  Index:=FDefines.IndexOf(Param);
+  If (Index<0) then
+    RemoveDefine(Param)
   else
     begin
     Index := FMacros.IndexOf(Param);
@@ -1784,6 +1785,24 @@ procedure TPascalScanner.SetOptions(AValue: TPOptions);
 begin
   if FOptions=AValue then Exit;
   FOptions:=AValue;
+end;
+
+Procedure TPascalScanner.AddDefine(S : String);
+
+begin
+  If FDefines.IndexOf(S)=-1 then
+    FDefines.Add(S);
+end;
+
+Procedure TPascalScanner.RemoveDefine(S : String);
+
+Var
+  I : Integer;
+
+begin
+  I:=FDefines.IndexOf(S);
+  if (I<>-1) then
+    FDefines.Delete(I);
 end;
 
 end.

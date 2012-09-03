@@ -91,7 +91,6 @@ Type
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
-    Class Function FileNameExtension : String; override;
     // Description node conversion. Overrides for TFPDocWriter.
     procedure DescrBeginBold; override;
     procedure DescrEndBold; override;
@@ -139,6 +138,8 @@ Type
     procedure DescrEndTableCell; override;
     // TFPDocWriter class methods
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
+  public
+    Class Function FileNameExtension : String; override;
     Class procedure Usage(List: TStrings); override;
   end;
 

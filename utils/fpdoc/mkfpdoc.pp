@@ -5,7 +5,7 @@ unit mkfpdoc;
 interface
 
 uses
-  Classes, SysUtils, dglobals, fpdocxmlopts, dwriter, pscanner, pparser, fpdocproj;
+  Classes, SysUtils, dglobals, DOM, fpdocxmlopts, dwriter, pscanner, pparser, fpdocproj;
 
 const
   DefOSTarget    = {$I %FPCTARGETOS%};
@@ -19,6 +19,8 @@ Type
 
   TFPDocCreator = Class(TComponent)
   Private
+    FCurPackage : TFPDocPackage;
+    FProcessedUnits : TStrings;
     FOnLog: TPasParserLogHandler;
     FPParserLogEvents: TPParserLogEvents;
     FProject : TFPDocProject;
@@ -27,6 +29,8 @@ Type
     function GetOptions: TEngineOptions;
     function GetPackages: TFPDocPackages;
   Protected
+    Procedure DoBeforeEmitNote(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean); virtual;
+    procedure HandleOnParseUnit(Sender: TObject; const AUnitName: String; out AInputFile, OSTarget, CPUTarget: String);
     procedure SetVerbose(AValue: Boolean); virtual;
     Procedure DoLog(Const Msg : String);
     procedure DoLog(Const Fmt : String; Args : Array of Const);
@@ -45,10 +49,10 @@ Type
     // Easy access
     Property Options : TEngineOptions Read GetOptions;
     Property Packages : TFPDocPackages Read GetPackages;
-
   end;
 
 implementation
+
 
 { TFPDocCreator }
 
@@ -79,6 +83,36 @@ begin
   DoLog(Format(Fmt,Args));
 end;
 
+procedure TFPDocCreator.HandleOnParseUnit(Sender: TObject;
+  const AUnitName: String; out AInputFile, OSTarget, CPUTarget: String);
+
+Var
+  I : Integer;
+  S,un,opts : String;
+
+begin
+  AInputFile:='';
+  OSTarget:='';
+  CPUTarget:='';
+  if Assigned(FCurPackage) then
+    begin
+    I:=0;
+    While (AInputFIle='') and (I<FCurPackage.Inputs.Count) do
+       begin
+       S:=FCurPackage.Inputs[i];
+       SplitInputFIleOption(S,UN,Opts);
+       if CompareText(ChangeFileExt(ExtractFileName(Un),''),AUnitName)=0 then
+         begin
+         AInputFile:=S;
+         OSTarget:=FProject.Options.OSTarget;
+         CPUTarget:=FProject.Options.CPUTarget;
+         FProcessedUnits.Add(UN);
+         end;
+       Inc(I);
+       end;
+   end;
+end;
+
 function TFPDocCreator.GetOptions: TEngineOptions;
 begin
   Result:=FProject.Options;
@@ -89,6 +123,12 @@ begin
   Result:=FProject.Packages;
 end;
 
+procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
+  var EmitNote: Boolean);
+begin
+  EmitNote:=True;
+end;
+
 constructor TFPDocCreator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -96,10 +136,12 @@ begin
   FProject.Options.StopOnParseError:=False;
   FProject.Options.CPUTarget:=DefCPUTarget;
   FProject.Options.OSTarget:=DefOSTarget;
+  FProcessedUnits:=TStringList.Create;
 end;
 
 destructor TFPDocCreator.Destroy;
 begin
+  FreeAndNil(FProcessedUnits);
   FreeAndNil(FProject);
   inherited Destroy;
 end;
@@ -120,6 +162,8 @@ begin
       If FVerbose then
         DoLog('Writing documentation');
       OnLog:=Self.OnLog;
+      BeforeEmitNote:=@self.DoBeforeEmitNote;
+      EmitNotes:=Options.EmitNotes;
       If Options.BackendOptions.Count>0 then
         for I:=0 to ((Options.BackendOptions.Count-1) div 2) do
           begin
@@ -144,6 +188,7 @@ var
   Cmd,Arg : String;
 
 begin
+  FCurPackage:=APackage;
   Engine:=TFPDocEngine.Create;
   try
     For J:=0 to Apackage.Imports.Count-1 do
@@ -161,11 +206,17 @@ begin
     Engine.ParserLogEvents:=Self.ParserLogEvents;
     Engine.HideProtected:=Options.HideProtected;
     Engine.HidePrivate:=Not Options.ShowPrivate;
+    Engine.OnParseUnit:=@HandleOnParseUnit;
     if Length(Options.Language) > 0 then
       TranslateDocStrings(Options.Language);
     for i := 0 to APackage.Inputs.Count - 1 do
       try
-        ParseSource(Engine, APackage.Inputs[i], Options.OSTarget, Options.CPUTarget);
+        SplitInputFileOption(APackage.Inputs[i],Cmd,Arg);
+        if FProcessedUnits.IndexOf(Cmd)=-1 then
+          begin
+          FProcessedUnits.Add(Cmd);
+          ParseSource(Engine, APackage.Inputs[i], Options.OSTarget, Options.CPUTarget);
+          end;
       except
         on e: EParserError do
           If Options.StopOnParseError then
@@ -177,6 +228,7 @@ begin
       CreateOutput(APackage,Engine);
   finally
     FreeAndNil(Engine);
+    FCurPackage:=Nil;
   end;
 end;
 

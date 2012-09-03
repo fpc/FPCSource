@@ -16,6 +16,9 @@
 program FPDoc;
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   SysUtils, Classes, Gettext, custapp,
   dGlobals,  // GLobal definitions, constants.
   dwriter,   // TFPDocWriter definition.
@@ -309,6 +312,8 @@ begin
       FCreator.Verbose:=true
     else if (Cmd = '-n') or (Cmd = '--dry-run') then
       FDryRun:=True
+    else if (Cmd = '-t') or (Cmd = '--emit-notes') then
+      FCreator.Options.EmitNotes := True
     else if Cmd = '--content' then
       SelectedPackage.ContentFile := Arg
     else if Cmd = '--import' then
