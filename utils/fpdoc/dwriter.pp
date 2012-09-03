@@ -45,7 +45,7 @@ resourcestring
 
   SErrDescrTagUnknown = 'Warning: Unknown tag "%s" in description';
   SErrUnknownEntityReference = 'Warning: Unknown entity reference "&%s;" found';
-  SErrUnknownLinkID = 'Warning: Target ID of <link> is unknown: "%s"';
+  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s" is unknown: "%s"';
   SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
   SErrUnknownLink = 'Could not resolve link to "%s"';
   SErralreadyRegistered = 'Class for output format "%s" already registered';
@@ -63,6 +63,8 @@ type
     Destructor Destroy; override;
   end;
 
+  TWriterLogEvent = Procedure(Sender : TObject; Const Msg : String) of object;
+
   { TFPDocWriter }
 
   TFPDocWriter = class
@@ -74,6 +76,8 @@ type
     procedure ConvertURL(AContext: TPasElement; El: TDOMElement);
     
   protected
+    Procedure DoLog(Const Msg : String);
+    Procedure DoLog(Const Fmt : String; Args : Array of const);
     procedure Warning(AContext: TPasElement; const AMsg: String);
     procedure Warning(AContext: TPasElement; const AMsg: String;
       const Args: array of const);
@@ -370,7 +374,7 @@ end;
 Procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); 
 
 begin
-  system.writeln(ClassName,': No support for images yet: ',AFileName,' (caption: "',ACaption,'")');
+  DoLog('%s : No support for images yet: %s (caption: "%s")',[ClassName,AFileName,ACaption]);
 end;
 
 { ---------------------------------------------------------------------
@@ -388,9 +392,9 @@ end;
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String);
 begin
   if (AContext<>nil) then
-    WriteLn('[', AContext.PathName, '] ', AMsg)
+    DoLog('[%s] %s',[AContext.PathName,AMsg])
   else
-    WriteLn('[<no context>] ', AMsg);
+    DoLog('[<no context>] %s', [AMsg]);
 end;
 
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String;
@@ -610,6 +614,17 @@ begin
   else
     DescrWriteText(El['href']);
   DescrEndURL;
+end;
+
+procedure TFPDocWriter.DoLog(const Msg: String);
+begin
+  If Assigned(FEngine.OnLog) then
+    FEngine.OnLog(Self,Msg);
+end;
+
+procedure TFPDocWriter.DoLog(const Fmt: String; Args: array of const);
+begin
+  DoLog(Format(Fmt,Args));
 end;
 
 function TFPDocWriter.ConvertExtShort(AContext: TPasElement;

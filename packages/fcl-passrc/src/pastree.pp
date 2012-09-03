@@ -42,9 +42,12 @@ resourcestring
   SPasTreeEnumType = 'enumeration type';
   SPasTreeSetType = 'set type';
   SPasTreeRecordType = 'record type';
+  SPasStringType = 'string type';
   SPasTreeObjectType = 'object';
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
+  SPasTreeGenericType = 'generic class';
+  SPasTreeSpecializedType = 'specialized class type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -83,6 +86,7 @@ type
     visStrictPrivate, visStrictProtected);
 
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
+  TPackMode = (pmNone,pmPacked,pmBitPacked);
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
   TPasMemberHint = (hDeprecated,hLibrary,hPlatform,hExperimental,hUnimplemented);
@@ -94,6 +98,7 @@ type
 
   TPasElement = class(TPasElementBase)
   private
+    FData: TObject;
     FRefCount: LongWord;
     FName: string;
     FParent: TPasElement;
@@ -112,12 +117,14 @@ type
     function PathName: string;          // = Module.Name + FullName
     function GetModule: TPasModule;
     function ElementTypeName: string; virtual;
+    Function HintsString : String;
     function GetDeclaration(full : Boolean) : string; virtual;
     procedure Accept(Visitor: TPassTreeVisitor); override;
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
+    Property CustomData : TObject Read FData Write FData;
   end;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
@@ -238,7 +245,7 @@ type
     function ElementTypeName: string; override;
   public
     Declarations, ResStrings, Types, Consts, Classes,
-    Functions, Variables, Properties: TList;
+    Functions, Variables, Properties: TFPList;
   end;
 
   { TPasSection }
@@ -249,7 +256,7 @@ type
     destructor Destroy; override;
     procedure AddUnitToUsesList(const AUnitName: string);
   public
-    UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
+    UsesList: TFPList;            // TPasUnresolvedTypeRef or TPasModule elements
   end;
 
   { TInterfaceSection }
@@ -296,17 +303,18 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
   public
-    Modules: TList;     // List of TPasModule objects
+    Modules: TFPList;     // List of TPasModule objects
   end;
 
   { TPasResString }
 
   TPasResString = class(TPasElement)
   public
+    Destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean) : string; Override;
   public
-    Value: string;
+    Expr: TPasExpr;
   end;
 
   { TPasType }
@@ -361,7 +369,10 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
   public
-    RangeStart, RangeEnd: string;
+    RangeExpr : TBinaryExpr;
+    Destructor Destroy; override;
+    Function RangeStart : String;
+    Function RangeEnd : String;
   end;
 
   { TPasArrayType }
@@ -373,8 +384,9 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     IndexRange : string;
-    IsPacked : Boolean;          // 12/04/04 - Dave - Added
+    PackMode : TPackMode;
     ElType: TPasType;
+    Function IsPacked : Boolean;
   end;
 
   { TPasFileType }
@@ -394,8 +406,8 @@ type
   public
     function ElementTypeName: string; override;
   public
-    IsValueUsed: Boolean;
-    Value: Integer;
+//    IsValueUsed: Boolean;
+//    Value: Integer;
     AssignedValue : string;
   end;
 
@@ -409,7 +421,7 @@ type
     function GetDeclaration(full : boolean) : string; override;
     Procedure GetEnumNames(Names : TStrings);
   public
-    Values: TList;      // List of TPasEnumValue objects
+    Values: TFPList;      // List of TPasEnumValue objects
   end;
 
   { TPasSetType }
@@ -445,16 +457,17 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
   public
-    IsPacked: Boolean;
-    IsBitPacked : Boolean;
-    Members: TList;     // array of TPasVariable elements
+    PackMode : TPackMode;
+    Members: TFPList;     // array of TPasVariable elements
     VariantName: string;
     VariantType: TPasType;
-    Variants: TList;	// array of TPasVariant elements, may be nil!
+    Variants: TFPList;	// array of TPasVariant elements, may be nil!
+    Function IsPacked: Boolean;
+    Function IsBitPacked : Boolean;
   end;
 
-
-  TPasObjKind = (okObject, okClass, okInterface);
+  TPasGenericTemplateType = Class(TPasElement);
+  TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize);
 
   { TPasClassType }
 
@@ -464,18 +477,22 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
   public
+    PackMode : TPackMode;
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
-    IsPacked: Boolean;        // 12/04/04 - Dave - Added
     IsForward : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
-    Members: TList;     // array of TPasElement objects
+    Members: TFPList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
 
-    ClassVars: TList;   // class vars
+    ClassVars: TFPList;   // class vars
     Modifiers: TStringList;
-    Interfaces : TList;
+    Interfaces : TFPList;
+    GenericTemplateTypes : TFPList;
+    Function IsPacked : Boolean;
   end;
+
+
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
 
@@ -505,7 +522,8 @@ type
     function CreateArgument(const AName, AUnresolvedTypeName: string):TPasArgument;
   public
     IsOfObject: Boolean;
-    Args: TList;        // List of TPasArgument objects
+    Args: TFPList;        // List of TPasArgument objects
+    CallingConvention : TCallingConvention;
   end;
 
   { TPasResultElement }
@@ -537,12 +555,19 @@ type
     function ElementTypeName: string; override;
   end;
 
+  { TPasStringType }
+
+  TPasStringType = class(TPasUnresolvedTypeRef)
+  public
+    LengthExpr : String;
+    function ElementTypeName: string; override;
+  end;
+
   { TPasTypeRef }
 
   TPasTypeRef = class(TPasUnresolvedTypeRef)
   public
   public
-    // function GetDeclaration(full : Boolean): string; override;
     RefType: TPasType;
   end;
 
@@ -578,7 +603,7 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
   public
-    Args: TList;        // List of TPasArgument objects
+    Args: TFPList;        // List of TPasArgument objects
     IndexValue, ReadAccessorName, WriteAccessorName,ImplementsName,
       StoredAccessorName, DefaultValue: string;
     IsDefault, IsNodefault: Boolean;
@@ -600,13 +625,13 @@ type
     function ElementTypeName: string; override;
     function TypeName: string; override;
   public
-    Overloads: TList;           // List of TPasProcedure nodes
+    Overloads: TFPList;           // List of TPasProcedure nodes
   end;
 
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExported, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs,
-                        pmCompilerProc,pmExternal,pmExtdecl,pmForward);
+                        pmCompilerProc,pmExternal,pmForward);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtInteger,pmtString);
                         
@@ -614,10 +639,11 @@ type
 
   TPasProcedure = class(TPasProcedureBase)
   Private
-    FCallingConvention : TCallingConvention;
     FModifiers : TProcedureModifiers;
     FMessageName : String;
     FMessageType : TProcedureMessageType;
+    function GetCallingConvention: TCallingConvention;
+    procedure SetCallingConvention(AValue: TCallingConvention);
   public
     destructor Destroy; override;
     function ElementTypeName: string; override;
@@ -640,7 +666,7 @@ type
     Function IsStatic : Boolean;
     Function IsForward: Boolean;
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
-    Property CallingConvention : TCallingConvention Read FCallingConvention Write FCallingConvention;
+    Property CallingConvention : TCallingConvention Read GetCallingConvention Write SetCallingConvention;
     Property MessageName : String Read FMessageName Write FMessageName;
     property MessageType : TProcedureMessageType Read FMessageType Write FMessageType;
   end;
@@ -702,7 +728,7 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
-    Labels: TList;
+    Labels: TFPList;
     Body: TPasImplBlock;
   end;
 
@@ -716,7 +742,7 @@ type
     function TypeName: string; virtual;
   public
     ProcType: TPasProcedureType;
-    Locals: TList;
+    Locals: TFPList;
     Body: TPasImplBlock;
   end;
 
@@ -808,7 +834,7 @@ type
     function AddSimple(exp: TPasExpr): TPasImplSimple;
     function CloseOnSemicolon: boolean; virtual;
   public
-    Elements: TList;    // TPasImplElement objects
+    Elements: TFPList;    // TPasImplElement objects
   end;
 
   { TPasImplStatement }
@@ -1012,7 +1038,7 @@ const
     'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface');
+    'object', 'class', 'interface','class','class');
   
   OpcodeStrings : Array[TExprOpCode] of string = 
        ('','+','-','*','/','div','mod','**',
@@ -1026,10 +1052,15 @@ const
 
   cPasMemberHint : array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
+  cCallingConventions : array[TCallingConvention] of string =
+      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall');
 
 implementation
 
 uses SysUtils;
+
+{ TPasStringType }
+
 
 {$IFNDEF FPC}
   const
@@ -1039,6 +1070,23 @@ uses SysUtils;
 { Parse tree element type name functions }
 
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
+
+function TPasElement.HintsString: String;
+
+Var
+  H : TPasmemberHint;
+
+begin
+  Result:='';
+  For H := Low(TPasmemberHint) to High(TPasMemberHint) do
+    if H in Hints then
+      begin
+      If (Result<>'') then
+        Result:=Result+'; ';
+      Result:=Result+cPasMemberHint[h];
+      end;
+end;
+
 function TPasDeclarations.ElementTypeName: string; begin Result := SPasTreeSection end;
 function TPasModule.ElementTypeName: string; begin Result := SPasTreeModule end;
 function TPasPackage.ElementTypeName: string; begin Result := SPasTreePackage end;
@@ -1074,6 +1122,7 @@ function TPasDestructor.ElementTypeName: string; begin Result := SPasTreeDestruc
 function TPasProcedureImpl.ElementTypeName: string; begin Result := SPasTreeProcedureImpl end;
 function TPasConstructorImpl.ElementTypeName: string; begin Result := SPasTreeConstructorImpl end;
 function TPasDestructorImpl.ElementTypeName: string; begin Result := SPasTreeDestructorImpl end;
+function TPasStringType.ElementTypeName: string; begin Result:=SPasStringType;end;
 
 function TPasClassType.ElementTypeName: string;
 begin
@@ -1081,7 +1130,14 @@ begin
     okObject: Result := SPasTreeObjectType;
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
+    okGeneric : Result := SPasTreeGenericType;
+    okSpecialize : Result := SPasTreeSpecializedType;
   end;
+end;
+
+function TPasClassType.IsPacked: Boolean;
+begin
+  Result:=PackMode<>pmNone;
 end;
 
 
@@ -1091,17 +1147,18 @@ end;
 procedure TPasElement.ProcessHints(const ASemiColonPrefix: boolean; var AResult: string);
 var
   h: TPasMemberHint;
+  S : String;
 begin
   if Hints <> [] then
-  begin
+    begin
     if ASemiColonPrefix then
       AResult := AResult + ';';
-    for h := Low(TPasMemberHint) to High(TPasMemberHint) do
-    begin
-      if h in Hints then
-        AResult := AResult + ' ' + cPasMemberHint[h] + ';'
+    S:=HintsString;
+    if (S<>'') then
+      AResult:=AResult+' '+S;
+    if ASemiColonPrefix then
+      AResult:=AResult+';';
     end;
-  end;
 end;
 
 constructor TPasElement.Create(const AName: string; AParent: TPasElement);
@@ -1132,7 +1189,7 @@ begin
   p := Parent;
   while Assigned(p) and not p.InheritsFrom(TPasDeclarations) do
   begin
-    if (p.ClassType <> TPasOverloadedProc) and (Length(p.Name) > 0) then
+    if (not (p is TPasOverloadedProc)) and (Length(p.Name) > 0) then
       if Length(Result) > 0 then
         Result := p.Name + '.' + Result
       else
@@ -1149,7 +1206,7 @@ begin
   p := Parent;
   while Assigned(p) do
   begin
-    if (p.ClassType <> TPasOverloadedProc) and (Length(p.Name) > 0) then
+    if (Not (p is TPasOverloadedProc)) and (Length(p.Name) > 0) then
       if Length(Result) > 0 then
         Result := p.Name + '.' + Result
       else
@@ -1160,12 +1217,12 @@ end;
 
 function TPasElement.GetModule: TPasModule;
 begin
-  if ClassType = TPasPackage then
+  if self is  TPasPackage then
     Result := nil
   else
   begin
     Result := TPasModule(Self);
-    while Assigned(Result) and not (Result.ClassType = TPasModule) do
+    while Assigned(Result) and not (Result is TPasModule) do
       Result := TPasModule(Result.Parent);
   end;
 end;
@@ -1187,14 +1244,14 @@ end;
 constructor TPasDeclarations.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Declarations := TList.Create;
-  ResStrings := TList.Create;
-  Types := TList.Create;
-  Consts := TList.Create;
-  Classes := TList.Create;
-  Functions := TList.Create;
-  Variables := TList.Create;
-  Properties := TList.Create;
+  Declarations := TFPList.Create;
+  ResStrings := TFPList.Create;
+  Types := TFPList.Create;
+  Consts := TFPList.Create;
+  Classes := TFPList.Create;
+  Functions := TFPList.Create;
+  Variables := TFPList.Create;
+  Properties := TFPList.Create;
 end;
 
 destructor TPasDeclarations.Destroy;
@@ -1231,7 +1288,7 @@ begin
     inherited Create('#' + AName, AParent)
   else
     inherited Create(AName, AParent);
-  Modules := TList.Create;
+  Modules := TFPList.Create;
 end;
 
 destructor TPasPackage.Destroy;
@@ -1279,7 +1336,7 @@ end;
 constructor TPasEnumType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Values := TList.Create;
+  Values := TFPList.Create;
 end;
 
 destructor TPasEnumType.Destroy;
@@ -1332,7 +1389,7 @@ end;
 constructor TPasRecordType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Members := TList.Create;
+  Members := TFPList.Create;
 end;
 
 destructor TPasRecordType.Destroy;
@@ -1360,12 +1417,14 @@ end;
 constructor TPasClassType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  IsPacked := False;                     // 12/04/04 - Dave - Added
+  PackMode:=pmNone;                     // 12/04/04 - Dave - Added
   IsShortDefinition := False;
-  Members := TList.Create;
+  Members := TFPList.Create;
   Modifiers := TStringList.Create;
-  ClassVars := TList.Create;
-  Interfaces:= TList.Create;
+  ClassVars := TFPList.Create;
+  Interfaces:= TFPList.Create;
+  GenericTemplateTypes:=TFPList.Create;
+
 end;
 
 destructor TPasClassType.Destroy;
@@ -1380,6 +1439,9 @@ begin
   Modifiers.Free;
   ClassVars.Free;
   Interfaces.Free;
+  for i := 0 to GenericTemplateTypes.Count - 1 do
+    TPasElement(GenericTemplateTypes[i]).Release;
+  GenericTemplateTypes.Free;
   inherited Destroy;
 end;
 
@@ -1395,7 +1457,7 @@ end;
 constructor TPasProcedureType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Args := TList.Create;
+  Args := TFPList.Create;
 end;
 
 destructor TPasProcedureType.Destroy;
@@ -1465,7 +1527,7 @@ end;
 constructor TPasProperty.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Args := TList.Create;
+  Args := TFPList.Create;
 end;
 
 destructor TPasProperty.Destroy;
@@ -1482,7 +1544,7 @@ end;
 constructor TPasOverloadedProc.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Overloads := TList.Create;
+  Overloads := TFPList.Create;
 end;
 
 destructor TPasOverloadedProc.Destroy;
@@ -1503,6 +1565,18 @@ begin
     SetLength(Result, 0);
 end;
 
+function TPasProcedure.GetCallingConvention: TCallingConvention;
+begin
+  Result:=ccDefault;
+  if Assigned(ProcType) then
+    Result:=ProcType.CallingConvention;
+end;
+
+procedure TPasProcedure.SetCallingConvention(AValue: TCallingConvention);
+begin
+  if Assigned(ProcType) then
+    ProcType.CallingConvention:=AValue;
+end;
 
 destructor TPasProcedure.Destroy;
 begin
@@ -1521,7 +1595,7 @@ end;
 constructor TPasProcedureImpl.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Locals := TList.Create;
+  Locals := TFPList.Create;
 end;
 
 destructor TPasProcedureImpl.Destroy;
@@ -1617,7 +1691,7 @@ end;
 constructor TPasImplBlock.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Elements := TList.Create;
+  Elements := TFPList.Create;
 end;
 
 destructor TPasImplBlock.Destroy;
@@ -1777,37 +1851,75 @@ end;
 
 function TPasResString.GetDeclaration (full : boolean) : string;
 begin
-  Result:=Value;
+  Result:=Expr.GetDeclaration(true);
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+destructor TPasResString.Destroy;
+begin
+  If Assigned(Expr) then
+    Expr.Release;
+  inherited Destroy;
 end;
 
 function TPasPointerType.GetDeclaration (full : boolean) : string;
 begin
   Result:='^'+DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasAliasType.GetDeclaration (full : boolean) : string;
 begin
   Result:=DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasClassOfType.GetDeclaration (full : boolean) : string;
 begin
   Result:='Class of '+DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasRangeType.GetDeclaration (full : boolean) : string;
 begin
   Result:=RangeStart+'..'+RangeEnd;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+destructor TPasRangeType.Destroy;
+begin
+  FreeAndNil(RangeExpr);
+  inherited Destroy;
+end;
+
+function TPasRangeType.RangeStart: String;
+begin
+  Result:=RangeExpr.Left.GetDeclaration(False);
+end;
+
+function TPasRangeType.RangeEnd: String;
+begin
+  Result:=RangeExpr.Right.GetDeclaration(False);
 end;
 
 function TPasArrayType.GetDeclaration (full : boolean) : string;
@@ -1823,7 +1935,15 @@ begin
   else
     Result:=Result+'const';
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+function TPasArrayType.IsPacked: Boolean;
+begin
+  Result:=PackMode=pmPacked;
 end;
 
 function TPasFileType.GetDeclaration (full : boolean) : string;
@@ -1832,7 +1952,10 @@ begin
   If Assigned(Eltype) then
     Result:=Result+' of '+ElType.Name;
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 Function IndentStrings(S : TStrings; indent : Integer) : string;
@@ -1876,6 +1999,8 @@ begin
       Result:=IndentStrings(S,Length(Name)+4)
     else
       Result:=IndentStrings(S,1);
+    if Full then
+      ProcessHints(False,Result);
   finally
     S.Free;
   end;
@@ -1888,7 +2013,7 @@ Var
   i : Integer;
 
 begin
-  If EnumType is TPasEnumType then
+  If (EnumType is TPasEnumType) and (EnumType.Name='') then
     begin
     S:=TStringList.Create;
     Try
@@ -1910,6 +2035,8 @@ begin
     If Full then
       Result:=Name+' = '+Result;
     end;
+  If Full then
+    ProcessHints(False,Result);
 end;
 
 function TPasRecordType.GetDeclaration (full : boolean) : string;
@@ -1954,6 +2081,16 @@ begin
     S.free;
     T.free;
   end;
+end;
+
+function TPasRecordType.IsPacked: Boolean;
+begin
+  Result:=(PackMode <> pmNone);
+end;
+
+function TPasRecordType.IsBitPacked: Boolean;
+begin
+  Result:=(PackMode=pmBitPacked)
 end;
 
 procedure TPasProcedureType.GetArguments(List : TStrings);
@@ -2037,6 +2174,9 @@ function TPasVariable.GetDeclaration (full : boolean) : string;
 Const
  Seps : Array[Boolean] of Char = ('=',':');
 
+Var
+  H : TPasMemberHint;
+  B : Boolean;
 begin
   if (Value = '') and Assigned(Expr) then
     Value := Expr.GetDeclaration(full);
@@ -2053,7 +2193,10 @@ begin
   else
     Result:=Value;
   If Full then
+    begin
     Result:=Name+' '+Seps[Assigned(VarType)]+' '+Result;
+    Result:=Result+HintsString;
+    end;
 end;
 
 function TPasProperty.GetDeclaration (full : boolean) : string;
@@ -2315,7 +2458,7 @@ end;
 constructor TPasSection.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  UsesList := TList.Create;
+  UsesList := TFPList.Create;
 end;
 
 destructor TPasSection.Destroy;
@@ -2339,7 +2482,7 @@ end;
 constructor TProcedureBody.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Labels:=TList.Create;
+  Labels:=TFPList.Create;
 end;
 
 destructor TProcedureBody.Destroy;

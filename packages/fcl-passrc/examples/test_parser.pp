@@ -107,7 +107,7 @@
 
     TPasPackage = class(TPasElement)
       |
-    Modules: TList;
+    Modules: TFPList;
 
     TPasModule = class(TPasElement)
       |-InterfaceSection: TInterfaceSection;
@@ -115,27 +115,27 @@
       |
       |-ImplementationSection: TImplementationSection;
       |  |-Declarations -> full declaration, unit and program
-      |     |-Functions: TList;
+      |     |-Functions: TFPList;
       |        |-TPasFunction = class(TPasProcedureBase)
       |           |-Body: TProcedureBody;
       |              |-Declarations -> declaration and sub function
       |              |-Body: TPasImplBlock; -> procedure block
       |
       |-InitializationSection: TInitializationSection;
-      |  |-TPasImplBlock.Elements: TList; -> main block
+      |  |-TPasImplBlock.Elements: TFPList; -> main block
       |
       |-FinalizationSection: TFinalizationSection;
-         |-TPasImplBlock.Elements: TList; -> unit only
+         |-TPasImplBlock.Elements: TFPList; -> unit only
 
     Declarations = class(TPasElement)
-      |-Declarations: TList; -> the following are all in here
-      |-ResStrings: TList;
-      |-Types: TList;
-      |-Consts: TList;
-      |-Classes: TList;
-      |-Functions: TList;
-      |-Variables: TList;
-      |-Properties: TList;
+      |-Declarations: TFPList; -> the following are all in here
+      |-ResStrings: TFPList;
+      |-Types: TFPList;
+      |-Consts: TFPList;
+      |-Classes: TFPList;
+      |-Functions: TFPList;
+      |-Variables: TFPList;
+      |-Properties: TFPList;
     }
 
 
@@ -859,7 +859,7 @@ procedure GetTPasVar(lpv:TPasVariable; lindent:integer; NoLF:boolean);//BUG stri
   
 //write out a list of variables only
 //more compact than the output of seperate calls of GetTPasVar
-procedure GetPasVariables(vl:TList; lindent:integer; NoLF,NoSEM:boolean);
+procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
    var v,i,j:integer;
        s,s1:string;
        prct:TPasRecordType;
@@ -1021,6 +1021,96 @@ procedure GetPasVariables(vl:TList; lindent:integer; NoLF,NoSEM:boolean);
     if not NoLF then writeln;
   end;  
   
+function GetTPasArgumentAccess(acc:TArgumentAccess):String;
+
+begin
+  Result:='';
+  case acc of
+    //argDefault:Result:='default'; //normal proccall is default
+    argConst:Result:='const';
+    argVar:Result:='var';
+    argOut:Result:='out';
+  end;
+end;
+
+procedure GetTPasProcedureType(lppt:TPasProcedureType; indent:integer);
+
+Var
+  l : integer;
+  lpa:TPasArgument;
+  samevar:array of integer;//same index same type
+  aktaa:TArgumentAccess;
+  svi:integer;
+  same:boolean;
+  aktname,tmpname:String;
+
+begin
+  if assigned(lppt.Args) and (lppt.Args.Count > 0) then
+    begin
+    write('(');
+    if lppt.Args.Count > 0 then
+     begin
+      //produce more compact output than the commented block below
+      //>find same declaration
+      //look ahead what is the same
+      SetLength(samevar,lppt.Args.Count);
+      svi:=0;
+      aktname:='';
+      for l:=0 to lppt.Args.Count-1 do
+       begin
+        same:=true;
+        tmpname:='';
+        lpa:=TPasArgument(lppt.Args.Items[l]);
+        if assigned(lpa.ArgType) then
+         begin
+          if lpa.ArgType is TPasArrayType then
+           begin
+             if assigned(TPasArrayType(lpa.ArgType).ElType) then tmpname:=TPasArrayType(lpa.ArgType).ElType.Name;
+           end
+            else tmpname:=TPasType(lpa.ArgType).Name;
+         end;
+        if l=0 then begin aktaa:=lpa.Access; aktname:=tmpname; end;
+        if lpa.Access <> aktaa then begin same:=false; aktaa:=lpa.Access; end;//access type
+        if (tmpname = '')or(tmpname <> aktname) then begin same:=false; aktname:=tmpname; end;//type name
+        if lpa.Value <> '' then same:=false;//var=value
+        if not same then inc(svi);
+        samevar[l]:=svi;
+       end;
+     //find same declaration<
+     svi:=-1;
+     same:=false;
+     for l:=0 to lppt.Args.Count-1 do
+      begin
+       lpa:=TPasArgument(lppt.Args.Items[l]);
+       if svi <> samevar[l] then
+        begin
+         svi:=samevar[l];
+         if lpa.Access <> argDefault then write(GetTPasArgumentAccess(lpa.Access),' ');
+         write(lpa.Name);//variblenname
+        end
+          else write(lpa.Name);
+       if (l < lppt.Args.Count-1)and(samevar[l+1]=svi) then write(',')
+        else
+         begin
+          if assigned(lpa.ArgType) then
+           begin
+            write(': ');
+            if lpa.ArgType is TPasArrayType then
+             GetTPasArrayType(TPasArrayType(lpa.ArgType))
+              else write(TPasType(lpa.ArgType).Name);
+           end;
+          if lpa.Value <> '' then write('=',lpa.Value);
+          if l< lppt.Args.Count-1 then write('; ');
+        end;
+      end;
+    write(')');
+    end;
+    end;
+  if (lppt is TPasFunctionType) then
+      write(': ',TPasFunctionType(lppt).ResultEl.ResultType.Name);
+  if lppt.IsOfObject then
+    write(' of Object');
+end;
 
 procedure GetTypes(pe:TPasElement; lindent:integer);
   var i,j,k:integer;
@@ -1110,7 +1200,12 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    end
   else if pe is TPasProcedureType then
    begin
-    writeln('procedure');
+   if pe is TPasFunctionType then
+     Write('function ')
+   else
+     Write('procedure ');
+   GetTPasProcedureType(TPasProcedureType(pe), lindent);
+   Writeln(';');
    end
   else if pe is TPasPointerType then
    begin
@@ -1166,27 +1261,29 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
     writeln('set of ',pst.EnumType.Name,';');
    end
   else if pe is TPasClassOfType then writeln('Class of ',TPasClassOfType(pe).DestType.Name,';')
+  else if pe is tPasAliasType then
+    begin
+    pe:=tPasAliasType(PE).DestType;
+    write(PE.name);
+    if pe is tPasStringType then
+      begin
+      if (TPasStringType(PE).LengthExpr<>'') then
+        Write('[',TPasStringType(PE).LengthExpr,']');
+      end;
+    Writeln(';');
+    end
+  else if pe is tPasUnresolvedTypeRef then writeln(TPasUnresolvedTypeRef(PE).name,';')
   else
    begin
     
     writeln('{ Unknown TYPE(s): ');
-    writeln(s,pe.Name);
+    writeln(s,pe.Name,' ',pe.classname);
     writeln('}');
     writeln;
    end;
  end;
 
 
- function GetTPasArgumentAccess(acc:TArgumentAccess):String;
-  begin
-   Result:='';
-   case acc of
-     //argDefault:Result:='default'; //normal proccall is default
-     argConst:Result:='const';
-     argVar:Result:='var';
-     argOut:Result:='out';
-   end;
-  end;
 
  procedure GetTCallingConvention(cc:TCallingConvention);  //TODO: test it
   begin
@@ -1213,14 +1310,8 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
   procedure GetTPasProcedure(lpp:TPasProcedure; indent:integer);
    var l:integer;
        lppt:TPasProcedureType;
-       lpa:TPasArgument;
        s:String;
        
-       same:boolean;
-       samevar:array of integer;//same index same type
-       aktaa:TArgumentAccess;
-       aktname,tmpname:String;
-       svi:integer;
 
   begin
    if not Assigned(lpp) then exit;
@@ -1237,93 +1328,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if assigned(lpp.ProcType) then
     begin
      lppt:=lpp.ProcType;
-     if assigned(lppt.Args) and (lppt.Args.Count > 0) then
-      begin
-       write('(');
-       if lppt.Args.Count > 0 then 
-        begin
-         //produce more compact output than the commented block below
-         //>find same declaration
-         //look ahead what is the same
-         SetLength(samevar,lppt.Args.Count);
-         svi:=0;
-         aktname:='';
-         for l:=0 to lppt.Args.Count-1 do
-          begin
-           same:=true;
-           tmpname:='';
-           lpa:=TPasArgument(lppt.Args.Items[l]);
-           if assigned(lpa.ArgType) then
-            begin
-             if lpa.ArgType is TPasArrayType then
-              begin
-                if assigned(TPasArrayType(lpa.ArgType).ElType) then tmpname:=TPasArrayType(lpa.ArgType).ElType.Name;
-              end
-               else tmpname:=TPasType(lpa.ArgType).Name;
-            end;
-           if l=0 then begin aktaa:=lpa.Access; aktname:=tmpname; end;   
-           if lpa.Access <> aktaa then begin same:=false; aktaa:=lpa.Access; end;//access type 
-           if (tmpname = '')or(tmpname <> aktname) then begin same:=false; aktname:=tmpname; end;//type name
-           if lpa.Value <> '' then same:=false;//var=value
-           if not same then inc(svi); 
-           samevar[l]:=svi;
-          end; 
-        //find same declaration<  
-        svi:=-1;
-        same:=false;
-        for l:=0 to lppt.Args.Count-1 do
-         begin
-          lpa:=TPasArgument(lppt.Args.Items[l]);
-          if svi <> samevar[l] then
-           begin
-            svi:=samevar[l];
-            if lpa.Access <> argDefault then write(GetTPasArgumentAccess(lpa.Access),' '); 
-            write(lpa.Name);//variblenname
-           end
-             else write(lpa.Name); 
-          if (l < lppt.Args.Count-1)and(samevar[l+1]=svi) then write(',')
-           else
-            begin
-             if assigned(lpa.ArgType) then
-              begin
-               write(': ');
-               if lpa.ArgType is TPasArrayType then
-                GetTPasArrayType(TPasArrayType(lpa.ArgType))
-                 else write(TPasType(lpa.ArgType).Name);
-              end;
-             if lpa.Value <> '' then write('=',lpa.Value);
-             if l< lppt.Args.Count-1 then write('; ');
-           end;    
-         end; 
-       {//simple version duplicates declarations of same type
-        for l:=0 to lppt.Args.Count-1 do
-        begin
-         lpa:=TPasArgument(lppt.Args.Items[l]);
-          if lpa.Access <> argDefault then write(GetTPasArgumentAccess(lpa.Access),' '); 
-         write(lpa.Name);//variblenname
-         if assigned(lpa.ArgType) then
-          begin
-           //if TPasType(lpa.ArgType).ElementTypeName <>'unresolved type reference' then
-           //,TPasType(lpa.ArgType).Name,' ');
-           //,TPasType(lpa.ArgType).FullName,TPasType(lpa.ArgType).ElementTypeName)
-           // PParser 2099: ArgType := nil; if IsUntyped then => Arg.ArgType := ArgType;
-           //     else write(':? ');
-           write(': ');
-           if lpa.ArgType is TPasArrayType then
-            begin
-             GetTPasArrayType(TPasArrayType(lpa.ArgType));
-            end
-             else  write(TPasType(lpa.ArgType).Name);
-          end;
-         if lpa.Value <> '' then write('=',lpa.Value);
-         if l< lppt.Args.Count-1 then write('; ');
-        end;}
-        end;
-       write(')');
-      end;
-     if lppt.IsOfObject then write(' of Object'); 
-     if (TPasElement(lpp) is TPasFunction)or(TPasElement(lpp) is TPasClassFunction) then 
-         write(': ',TPasFunctionType(lpp.ProcType).ResultEl.ResultType.Name);
+     GetTPasProcedureType(lppt,Indent);
     end;
    //writeln(';');
    WriteFmt(false,'',true);
@@ -1425,7 +1430,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
        lpp:TPasProperty;
        lpa:TPasArgument;
        vis:TPasMemberVisibility;
-       vars:TList;
+       vars:TFPList;
        IsVar:boolean;
 
   procedure PrintVars;
@@ -1439,32 +1444,63 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if assigned(pc) then
     begin
      s:=GetIndent(indent);
-     write(s,pc.Name,'=');
+     if (pc.ObjKind=okGeneric) then
+       begin
+       write(s,'generic ',pc.Name);
+       for l:=0 to pc.GenericTemplateTypes.Count-1 do
+          begin
+          if l=0 then
+           Write('<')
+          else
+           Write(',');
+          Write(TPasGenericTemplateType(pc.GenericTemplateTypes[l]).Name);
+          end;
+       Write('> = ');
+       end
+     else
+       write(s,pc.Name,' = ');
      if pc.IsPacked then write('packed ');
      case pc.ObjKind of
       okObject:write('Object');
       okClass:write('Class');
       okInterface:write('Interface');
+      okGeneric:write('class');
+      okspecialize : write('specialize');
      end;
      if assigned(pc.AncestorType) and (pc.AncestorType.ElementTypeName <> '') then
-        write('(',pc.AncestorType.Name,')');
-
+        begin
+        if pc.ObjKind<>okspecialize then
+          write('(',pc.AncestorType.Name,')')
+        else
+          begin
+          write(' ',pc.AncestorType.Name);
+          for l:=0 to pc.GenericTemplateTypes.Count-1 do
+           begin
+           if l=0 then
+            Write('<')
+           else
+            Write(',');
+           Write(TPasGenericTemplateType(pc.GenericTemplateTypes[l]).Name);
+           end;
+          Write('>');
+          end;
+        end;
      if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(anchestor); is allowed !
       begin
        writeln(';');
        exit;
       end;  
-    //Members: TList;
+    //Members: TFPList;
     //InterfaceGUID: String;
-    //ClassVars: TList; //is this always empty ?
+    //ClassVars: TFPList; //is this always empty ?
     //Modifiers: TStringList;
-    //Interfaces: TList;
+    //Interfaces: TFPList;
       s1:=GetIndent(indent+1);
       s2:=GetIndent(indent+2);
       if pc.Members.Count > 0 then
        begin
         writeln;
-        vars:=TList.Create;
+        vars:=TFPList.Create;
         IsVar:=false;
         for j:=0 to pc.Members.Count-1 do
          begin
@@ -1562,6 +1598,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
          vars.free;
        end
         else  writeln;//(';'); //x=class(y);
+
      writeln(s,'end;');
     end;
   end;
@@ -1574,7 +1611,7 @@ procedure GetDecls(Decl:TPasDeclarations; indent:integer);
      ps:TPasSection;
      s:string;
      x:(None,ResStrings,Types,Consts,Classes,Functions,Variables,Properties);
-     l:TList;
+     l:TFPList;
 
   procedure PrintVars;
    begin
@@ -1586,7 +1623,7 @@ begin
  x:=None;
  if assigned(Decl)then
   begin
-   l:=TList.Create;
+   l:=TFPList.Create;
    pe:=TPasElement(Decl);
    if pe is TPasSection then
     begin
@@ -1882,7 +1919,6 @@ begin
           raise;
        end;
     end;
-
    if M is TPasProgram then
     begin
      writeln('Program ',M.Name,';');

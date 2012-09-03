@@ -13,7 +13,6 @@
       <Title Value="FPDoc Documentation generator"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -41,7 +40,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="fpdoc.pp"/>
         <IsPartOfProject Value="True"/>
@@ -60,7 +59,7 @@
       <Unit3>
         <Filename Value="dw_html.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_html"/>
+        <UnitName Value="dw_HTML"/>
       </Unit3>
       <Unit4>
         <Filename Value="dw_ipflin.pas"/>
@@ -70,7 +69,7 @@
       <Unit5>
         <Filename Value="dw_latex.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_latex"/>
+        <UnitName Value="dw_LaTeX"/>
       </Unit5>
       <Unit6>
         <Filename Value="dwlinear.pp"/>
@@ -80,7 +79,7 @@
       <Unit7>
         <Filename Value="dw_linrtf.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_linrtf"/>
+        <UnitName Value="dw_LinRTF"/>
       </Unit7>
       <Unit8>
         <Filename Value="dw_man.pp"/>
@@ -90,7 +89,7 @@
       <Unit9>
         <Filename Value="dwriter.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dwriter"/>
+        <UnitName Value="dWriter"/>
       </Unit9>
       <Unit10>
         <Filename Value="dw_txt.pp"/>
@@ -100,7 +99,7 @@
       <Unit11>
         <Filename Value="dw_xml.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_xml"/>
+        <UnitName Value="dw_XML"/>
       </Unit11>
       <Unit12>
         <Filename Value="fpdocproj.pas"/>
@@ -112,10 +111,15 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="fpdocxmlopts"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="mkfpdoc.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mkfpdoc"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <Target>
       <Filename Value="fpdoc"/>
     </Target>

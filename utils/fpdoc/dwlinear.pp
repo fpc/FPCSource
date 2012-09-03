@@ -34,7 +34,7 @@ Type
     // Auxiliary routines
     procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
     procedure DescrEndURL; override;
-    procedure SortElementList(List : TList);
+    procedure SortElementList(List : TFPList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
     procedure StartChapter(ChapterName : String; ChapterLabel : String); virtual;
@@ -877,10 +877,12 @@ begin
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);
       If TypeDecl is TPasEnumType then
-        begin
-        WriteENumElements(TypeDecl as TPasEnumType);
-        end;
-      WriteDescr(TypeDecl);
+        WriteENumElements(TypeDecl as TPasEnumType)
+      else If (TypeDecl is TPasSetType)
+              and (TPasSetType(TypeDecl).EnumType is TPasEnumType)
+              and (TPasSetType(TypeDecl).EnumType.Name='') then
+        WriteENumElements(TPasSetType(TypeDecl).EnumType as TPasEnumType);
+      WriteDescr(TypeDecl,DocNode);
       If Assigned(DocNode) and Assigned(DocNode.Version) then
         begin
         Writeln(Format('%s : ',[SDocVersion]));
@@ -1152,7 +1154,7 @@ begin
   Result:=CompareText(TPasElement(P1).Name,TPasElement(P2).Name);
 end;
 
-procedure TLinearWriter.SortElementList(List : TList);
+procedure TLinearWriter.SortElementList(List : TFPList);
 
 begin
   List.Sort(@CompareElements);
@@ -1227,7 +1229,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     Engine.AddLink(AElement.PathName, GetLabel(AElement));
   end;
 
-  procedure AddList(AElement: TPasElement; AList: TList);
+  procedure AddList(AElement: TPasElement; AList: TFPList);
   var
     i: Integer;
   begin

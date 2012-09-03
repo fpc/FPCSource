@@ -16,7 +16,7 @@
 program FPDoc;
 
 uses
-  SysUtils, Classes, Gettext, DOM, XMLWrite, PasTree, PParser, custapp,
+  SysUtils, Classes, Gettext, custapp,
   dGlobals,  // GLobal definitions, constants.
   dwriter,   // TFPDocWriter definition.
   dwlinear,  // Linear (abstract) writer
@@ -27,13 +27,8 @@ uses
   dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
   dw_linrtf, // linear RTF writer
-  dw_txt, fpdocproj, fpdocxmlopts;    // TXT writer
+  dw_txt, fpdocproj, mkfpdoc;    // TXT writer
 
-const
-  DefOSTarget    = {$I %FPCTARGETOS%};
-  DefCPUTarget   = {$I %FPCTARGETCPU%};
-  DefFPCVersion  = {$I %FPCVERSION%};
-  DefFPCDate     = {$I %FPCDATE%};
 
 Type
 
@@ -41,14 +36,16 @@ Type
 
   TFPDocAplication = Class(TCustomApplication)
   private
-    FProject : TFPDocProject;
-    FProjectFile : Boolean;
+    FCreator : TFPDocCreator;
     FPackage : TFPDocPackage;
+    FDryRun,
+    FProjectFile : Boolean;
+    FWriteProjectFile : String;
   Protected
+    procedure OutputLog(Sender: TObject; const Msg: String);
     procedure ParseCommandLine;
     procedure Parseoption(const S: String);
     Procedure Usage(AnExitCode : Byte);
-    procedure CreateDocumentation(APackage : TFPDocPackage; Options : TEngineOptions);
     Procedure DoRun; override;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -83,14 +80,21 @@ begin
   Writeln(SUsageOption130);
   Writeln(SUsageOption140);
   Writeln(SUsageOption150);
+  Writeln(SUsageOption155);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
   Writeln(SUsageOption190);
   Writeln(SUsageOption200);
+  Writeln(SUsageOption210);
+  Writeln(SUsageOption220);
+  Writeln(SUsageOption230);
+  Writeln(SUsageOption240);
+  Writeln(SUsageOption250);
+  Writeln(SUsageOption260);
   L:=TStringList.Create;
   Try
-    Backend:=FProject.OPtions.Backend;
+    Backend:=FCreator.OPtions.Backend;
     If (Backend='') then
       begin
       Writeln;
@@ -126,7 +130,7 @@ end;
 destructor TFPDocAplication.Destroy;
 
 begin
-  FreeAndNil(FProject);
+  FreeAndNil(FCreator);
   Inherited;
 end;
 
@@ -140,6 +144,10 @@ begin
     end;
 end;
 
+procedure TFPDocAplication.OutputLog(Sender: TObject; const Msg: String);
+begin
+  Writeln(StdErr,Msg);
+end;
 
 procedure TFPDocAplication.ParseCommandLine;
 
@@ -166,14 +174,14 @@ begin
     s:=ParamStr(I);
     If ProjectOpt(S) then
       ParseOption(s);
-    If (FProject.Packages.Count=1) then
-      FPackage:=FProject.Packages[0]
-    else if (FProject.Options.DefaultPackageName<>'') then
-      Fpackage:=FProject.Packages.FindPackage(FProject.Options.DefaultPackageName);
+    If (FCreator.Packages.Count=1) then
+      FPackage:=FCreator.Packages[0]
+    else if (FCreator.Options.DefaultPackageName<>'') then
+      Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
     end;
-  If FProject.Packages.Count=0 then
+  If FCreator.Project.Packages.Count=0 then
     begin
-    FPackage:=FProject.Packages.Add as  TFPDocPackage;
+    FPackage:=FCreator.Packages.Add as  TFPDocPackage;
     end;
   // Check package
   for i := 1 to ParamCount do
@@ -188,14 +196,37 @@ begin
     If Not (ProjectOpt(s) or PackageOpt(S)) then
       ParseOption(s);
     end;
-  if (FPackage=Nil) or (FPackage.Name='') then
-    begin
-    Writeln(SNeedPackageName);
-    Usage(1);
-    end;
+  SelectedPackage; // Will print error if none available.
 end;
 
 procedure TFPDocAplication.Parseoption(Const S : String);
+
+  procedure AddDirToFileList(List: TStrings; const ADirName, AMask: String);
+
+  Var
+    Info : TSearchRec;
+    D : String;
+
+  begin
+    if (ADirName<>'') and not DirectoryExists(ADirName) then
+       OutputLog(Self,'Directory '+ADirName+' does not exist')
+    else
+      begin
+      if (ADirName='.') or (ADirName='') then
+        D:=''
+      else
+        D:=IncludeTrailingPathDelimiter(ADirName);
+      If (FindFirst(D+AMask,0,Info)=0) then
+        try
+          Repeat
+            If (Info.Attr and faDirectory)=0 then
+              List.Add(D+Info.name);
+          Until FindNext(Info)<>0;
+        finally
+          FindClose(Info);
+        end;
+      end;
+  end;
 
   procedure AddToFileList(List: TStrings; const FileName: String);
   var
@@ -224,15 +255,15 @@ begin
   if (s = '-h') or (s = '--help') then
     Usage(0)
   else if s = '--hide-protected' then
-    FProject.Options.HideProtected := True
+    FCreator.Options.HideProtected := True
   else if s = '--warn-no-node' then
-    FProject.Options.WarnNoNode := True
+    FCreator.Options.WarnNoNode := True
   else if s = '--show-private' then
-    FProject.Options.ShowPrivate := False
+    FCreator.Options.ShowPrivate := False
   else if s = '--stop-on-parser-error' then
-    FProject.Options.StopOnParseError := True
+    FCreator.Options.StopOnParseError := True
   else if s = '--dont-trim' then
-    FProject.Options.donttrim := True
+    FCreator.Options.donttrim := True
   else
     begin
     i := Pos('=', s);
@@ -249,29 +280,35 @@ begin
     if (Cmd = '--project') or (Cmd='-p') then
       begin
       FProjectFile:=True;
-      With TXMLFPDocOptions.Create(self) do
-        try
-          LoadOptionsFromFile(FProject,Arg);
-        finally
-          Free;
-        end;
+      FCreator.LoadProjectFile(Arg);
       end
     else if (Cmd = '--descr') then
       AddToFileList(SelectedPackage.Descriptions, Arg)
+    else if (Cmd = '--descr-dir') then
+      AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
     else if (Cmd = '-f') or (Cmd = '--format') then
       begin
       Arg:=UpperCase(Arg);
       If FindWriterClass(Arg)=-1 then
         WriteLn(StdErr, Format(SCmdLineInvalidFormat, [Arg]))
       else
-        FProject.Options.BackEnd:=Arg;
+        FCreator.Options.BackEnd:=Arg;
       end
     else if (Cmd = '-l') or (Cmd = '--lang') then
-      FProject.Options.Language := Arg
+      FCreator.Options.Language := Arg
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(SelectedPackage.Inputs, Arg)
+    else if (Cmd = '--input-dir') then
+      begin
+      AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pp');
+      AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pas');
+      end
     else if (Cmd = '-o') or (Cmd = '--output') then
       SelectedPackage.Output := Arg
+    else if (Cmd = '-v') or (Cmd = '--verbose') then
+      FCreator.Verbose:=true
+    else if (Cmd = '-n') or (Cmd = '--dry-run') then
+      FDryRun:=True
     else if Cmd = '--content' then
       SelectedPackage.ContentFile := Arg
     else if Cmd = '--import' then
@@ -279,87 +316,27 @@ begin
     else if Cmd = '--package' then
       begin
       If FProjectFile then
-        FPackage:=FProject.Packages.FindPackage(Arg)
+        FPackage:=FCreator.Packages.FindPackage(Arg)
       else
         FPackage.Name:=Arg;
       end
     else if Cmd = '--ostarget' then
-      FProject.Options.OSTarget := Arg
+      FCreator.Options.OSTarget := Arg
     else if Cmd = '--cputarget' then
-      FProject.Options.CPUTarget := Arg
+      FCreator.Options.CPUTarget := Arg
     else if Cmd = '--mo-dir' then
-      FProject.Options.modir := Arg
+      FCreator.Options.modir := Arg
     else if Cmd = '--parse-impl' then
-      FProject.Options.InterfaceOnly:=false
+      FCreator.Options.InterfaceOnly:=false
+    else if Cmd = '--write-project' then
+      FWriteProjectFile:=Arg
     else
       begin
-      FProject.Options.BackendOptions.Add(Cmd);
-      FProject.Options.BackendOptions.Add(Arg);
+      FCreator.Options.BackendOptions.Add(Cmd);
+      FCreator.Options.BackendOptions.Add(Arg);
       end;
     end;
 end;
-
-
-procedure TFPDocAplication.CreateDocumentation(APackage : TFPDocPackage; Options : TEngineOptions);
-
-var
-  i,j: Integer;
-  WriterClass : TFPDocWriterClass;
-  Writer : TFPDocWriter;
-  Engine : TFPDocEngine;
-  Cmd,Arg : String;
-
-begin
-  Engine:=TFPDocEngine.Create;
-  try
-    For J:=0 to Apackage.Imports.Count-1 do
-      begin
-      Arg:=Apackage.Imports[j];
-      i := Pos(',', Arg);
-      Engine.ReadContentFile(Copy(Arg,1,i-1),Copy(Arg,i+1,Length(Arg)));
-      end;
-    for i := 0 to APackage.Descriptions.Count - 1 do
-      Engine.AddDocFile(APackage.Descriptions[i],Options.donttrim);
-    Engine.SetPackageName(APackage.Name);
-    Engine.Output:=APackage.Output;
-    Engine.HideProtected:=Options.HideProtected;
-    Engine.HidePrivate:=Not Options.ShowPrivate;
-    if Length(Options.Language) > 0 then
-      TranslateDocStrings(Options.Language);
-    for i := 0 to Fpackage.Inputs.Count - 1 do
-      try
-        ParseSource(Engine, APackage.Inputs[i], Options.OSTarget, Options.CPUTarget);
-      except
-        on e: EParserError do
-          If Options.StopOnParseError then
-            Raise
-          else
-            WriteLn(StdErr, Format('%s(%d,%d): %s',
-                    [e.Filename, e.Row, e.Column, e.Message]));
-      end;
-    WriterClass:=GetWriterClass(Options.Backend);
-    Writer:=WriterClass.Create(Engine.Package,Engine);
-    With Writer do
-      Try
-        If Options.BackendOptions.Count>0 then
-          for I:=0 to ((Options.BackendOptions.Count-1) div 2) do
-            begin
-            Cmd:=Options.BackendOptions[I*2];
-            Arg:=Options.BackendOptions[I*2+1];
-            If not InterPretOption(Cmd,Arg) then
-              WriteLn(StdErr, Format(SCmdLineInvalidOption,[Cmd+'='+Arg]));
-            end;
-        WriteDoc;
-      Finally
-        Free;
-      end;
-    if Length(FPackage.ContentFile) > 0 then
-      Engine.WriteContentFile(FPackage.ContentFile);
-  finally
-    FreeAndNil(Engine);
-  end;
-end;
-
 
 Procedure TFPDocAplication.DoRun;
 
@@ -374,7 +351,10 @@ begin
   WriteLn(SCopyright);
   WriteLn;
   ParseCommandLine;
-  CreateDocumentation(FPackage,FProject.Options);
+  if (FWriteProjectFile<>'') then
+    FCreator.CreateProjectFile(FWriteProjectFile)
+  else
+    FCreator.CreateDocumentation(FPackage,FDryRun);
   WriteLn(SDone);
   Terminate;
 end;
@@ -383,10 +363,8 @@ constructor TFPDocAplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   StopOnException:=true;
-  FProject:=TFPDOCproject.Create(Nil);
-  FProject.Options.StopOnParseError:=False;
-  FProject.Options.CPUTarget:=DefCPUTarget;
-  FProject.Options.OSTarget:=DefOSTarget;
+  FCreator:=TFPDocCreator.Create(Self);
+  FCreator.OnLog:=@OutputLog;
 end;
 
 begin

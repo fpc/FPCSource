@@ -35,7 +35,7 @@ resourcestring
 
 Const
   RootNames : Array[TPasObjKind] of string
-            = ('Objects', 'Classes', 'Interfaces');
+            = ('Objects', 'Classes', 'Interfaces','Generics','Specializations');
 
 type
 
