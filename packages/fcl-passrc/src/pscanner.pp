@@ -928,6 +928,7 @@ Var
   FN : String;
 
 begin
+  Result:=Nil;
   FN:=FindIncludeFileName(ANAme);
   If (FN<>'') then
     try
@@ -1049,6 +1050,7 @@ begin
         break;
     end; // Case
   end;
+//  Writeln(Result, '(',CurTokenString,')');
 end;
 
 procedure TPascalScanner.Error(const Msg: string);
@@ -1152,7 +1154,7 @@ begin
        param:=copy(param,2,length(param)-2);
     end;
   FCurSourceFile := FileResolver.FindIncludeFile(Param);
-  if not Assigned(CurSourceFile) then
+  if not Assigned(FCurSourceFile) then
     Error(SErrIncludeFileNotFound, [Param]);
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
@@ -1210,7 +1212,7 @@ Var
 begin
   Param := UpperCase(Param);
   Index:=FDefines.IndexOf(Param);
-  If (Index<0) then
+  If (Index>=0) then
     RemoveDefine(Param)
   else
     begin
@@ -1764,7 +1766,10 @@ end;
 
 function TPascalScanner.GetCurColumn: Integer;
 begin
-  Result := TokenStr - PChar(CurLine);
+  If (TokenStr<>Nil) then
+    Result := TokenStr - PChar(CurLine)
+  else
+    Result:=0;
 end;
 
 procedure TPascalScanner.DoLog(const Msg: String;SkipSourceInfo : Boolean = False);

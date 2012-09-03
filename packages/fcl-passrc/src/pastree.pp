@@ -616,6 +616,8 @@ type
   end;
 
   { TPasVariable }
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport);
+  TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
   public
@@ -625,6 +627,8 @@ type
   public
     VarType: TPasType;
     Value: string;
+    VarModifiers : TVariableModifiers;
+    LibraryName,ExportName : string;
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
@@ -2668,6 +2672,8 @@ end;
 destructor TProcedureBody.Destroy;
 begin
   FreeAndNil(Labels);
+  if Assigned(Body) then
+    Body.Release;
   inherited Destroy;
 end;
 
@@ -2684,7 +2690,10 @@ procedure TPasImplWhileDo.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
-    Body:=Element
+    begin
+    Body:=Element;
+    Body.AddRef;
+    end
   else
     raise Exception.Create('TPasImplWhileDo.AddElement body already set - please report this bug');
 end;
@@ -2700,6 +2709,8 @@ end;
 
 procedure TPasImplCaseOf.AddElement(Element: TPasImplElement);
 begin
+  if (ElseBranch<>Nil) and (Element=ElseBranch) then
+    ElseBranch.AddRef;
   inherited AddElement(Element);
 end;
 
@@ -2739,7 +2750,10 @@ procedure TPasImplCaseStatement.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
+    begin
     Body:=Element;
+    Body.AddRef;
+    end
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: string);
@@ -2767,7 +2781,10 @@ procedure TPasImplWithDo.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
+    begin
     Body:=Element;
+    Body.AddRef;
+    end;
 end;
 
 procedure TPasImplWithDo.AddExpression(const Expression: string);
