@@ -178,8 +178,9 @@ implementation
          Result:=nil;
          if (current_settings.fputype<fpu_sse42)
 {$ifdef i386}
-           or is_64bit(left.resultdef) then
+           or is_64bit(left.resultdef)
 {$endif i386}
+           then
            Result:=inherited first_popcnt
          else
            expectloc:=LOC_REGISTER;
