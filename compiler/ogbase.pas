@@ -367,7 +367,7 @@ interface
         SecOptions : TObjSectionOptions;
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
-        procedure AddObjSection(objsec:TObjSection);virtual;
+        procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);virtual;
         property ObjSectionList:TFPObjectList read FObjSectionList;
         property SecSymIdx:longint read FSecSymIdx write FSecSymIdx;
       end;
@@ -1472,16 +1472,19 @@ implementation
       end;
 
 
-    procedure TExeSection.AddObjSection(objsec:TObjSection);
+    procedure TExeSection.AddObjSection(objsec:TObjSection;ignoreprops:boolean);
       begin
         ObjSectionList.Add(objsec);
+        { relate ObjSection to ExeSection, and mark it Used by default }
+        objsec.ExeSection:=self;
+        objsec.Used:=true;
+        if ignoreprops then
+          exit;
         if (SecOptions<>[]) then
           begin
             { Only if the section contains (un)initialized data the
-              data flag must match. This check is not needed if the
-              section is empty for a symbol allocation }
-            if (objsec.size>0) and
-               ((oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions)) then
+              data flag must match. }
+            if ((oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions)) then
               Comment(V_Error,'Incompatible section options');
           end
         else
@@ -1489,10 +1492,7 @@ implementation
             { inherit section options }
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
-        { relate ObjSection to ExeSection, and mark it Used by default }
         SecAlign:=max(objsec.SecAlign,SecAlign);
-        objsec.ExeSection:=self;
-        objsec.Used:=true;
       end;
 
 
@@ -1824,7 +1824,7 @@ implementation
         ObjSection:=internalObjData.findsection('*'+aname);
         if not assigned(ObjSection) then
           internalerror(200603041);
-        CurrExeSec.AddObjSection(ObjSection);
+        CurrExeSec.AddObjSection(ObjSection,True);
       end;
 
     procedure TExeOutput.Order_ProvideSymbol(const aname:string);
@@ -1841,7 +1841,7 @@ implementation
         { Only include this section if it actually resolves
           the symbol }
         if exesym.objsymbol.objsection=objsection then
-          CurrExeSec.AddObjSection(ObjSection);
+          CurrExeSec.AddObjSection(ObjSection,True);
       end;
 
 
