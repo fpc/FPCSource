@@ -10918,6 +10918,7 @@ tests/test/tmsg2.pp svneol=native#text/plain
 tests/test/tmsg3.pp svneol=native#text/plain
 tests/test/tmsg4.pp svneol=native#text/plain
 tests/test/tmt1.pp svneol=native#text/plain
+tests/test/tmul1.pp svneol=native#text/pascal
 tests/test/tnoext1.pp svneol=native#text/plain
 tests/test/tnoext2.pp svneol=native#text/plain
 tests/test/tnoext3.pp svneol=native#text/plain

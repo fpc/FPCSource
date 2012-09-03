@@ -114,7 +114,10 @@ unit cgcpu;
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-      private
+
+        { try to generate optimized 32 Bit multiplication, returns true if successful generated }
+        function try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
+
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
@@ -653,6 +656,100 @@ unit cgcpu;
         end
       end;
 
+
+    function tcgarm.try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
+      var
+        multiplier : dword;
+        power : longint;
+        shifterop : tshifterop;
+        bitsset : byte;
+        negative : boolean;
+        first : boolean;
+        cycles : byte;
+      begin
+        result:=true;
+        cycles:=0;
+        negative:=a<0;
+        shifterop.rs:=NR_NO;
+        shifterop.shiftmode:=SM_LSL;
+        if negative then
+          inc(cycles);
+        multiplier:=dword(abs(a));
+        bitsset:=popcnt(multiplier and $fffffffe);
+
+        { most simple cases }
+        if a=1 then
+          a_load_reg_reg(list,OS_32,OS_32,src,dst)
+        else if a=0 then
+          a_load_const_reg(list,OS_32,0,dst)
+        else if a=-1 then
+          a_op_reg_reg(list,OP_NEG,OS_32,src,dst)
+        { add up ?
+
+          basically, one add is needed for each bit being set in the constant factor
+          however, the least significant bit is for free, it can be hidden in the initial
+          instruction
+        }
+        else if (bitsset+cycles<=3) and
+          (bitsset>popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)) then
+          begin
+            first:=true;
+            while multiplier<>0 do
+              begin
+                shifterop.shiftimm:=BsrDWord(multiplier);
+                if odd(multiplier) then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,src,src,shifterop));
+                    dec(multiplier);
+                  end
+                else
+                  if first then
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,shifterop))
+                  else
+                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,dst,src,shifterop));
+                first:=false;
+                dec(multiplier,1 shl shifterop.shiftimm);
+              end;
+            if negative then
+              list.concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,0));
+          end
+        { subtract from the next greater power of two? }
+        else if popcnt(dword(nextpowerof2(multiplier,power)-multiplier) and $fffffffe)+cycles<=3 then
+          begin
+            first:=true;
+            while multiplier<>0 do
+              begin
+                if first then
+                  begin
+                    multiplier:=(1 shl power)-multiplier;
+                    shifterop.shiftimm:=power;
+                  end
+                else
+                  shifterop.shiftimm:=BsrDWord(multiplier);
+
+                if odd(multiplier) then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,shifterop));
+                    dec(multiplier);
+                  end
+                else
+                  if first then
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,shifterop))
+                  else
+                    begin
+                      list.concat(taicpu.op_reg_reg_reg_shifterop(A_SUB,dst,dst,src,shifterop));
+                      dec(multiplier,1 shl shifterop.shiftimm);
+                    end;
+                first:=false;
+              end;
+            if negative then
+              list.concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,0));
+          end
+        else
+          result:=false;
+      end;
+
+
     procedure tcgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
         shift : byte;
@@ -764,6 +861,10 @@ unit cgcpu;
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
                 list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
+              end
+            else if (op in [OP_MUL,OP_IMUL]) and not(cgsetflags or setflags) and try_optimized_mul32_const_reg_reg(list,a,src,dst) then
+              begin
+                { nothing to do on success }
               end
             { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
               Just using mov x, #0 might allow some easier optimizations down the line. }
