@@ -1320,18 +1320,28 @@ implementation
 
     procedure tcg.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsreg, tosreg: tsubsetregister);
       var
-        tmpreg: tregister;
+        tmpreg, tmpreg2: tregister;
         bitmask: aword;
         stopbit: byte;
       begin
         if (fromsreg.bitlen >= tosreg.bitlen) then
           begin
-            tmpreg := getintregister(list,tosreg.subsetregsize);
-            a_load_reg_reg(list,fromsreg.subsetregsize,tosreg.subsetregsize,fromsreg.subsetreg,tmpreg);
             if (fromsreg.startbit <= tosreg.startbit) then
-              a_op_const_reg(list,OP_SHL,tosreg.subsetregsize,tosreg.startbit-fromsreg.startbit,tmpreg)
+              begin
+                { tosreg may be larger -> use its size to perform the shift }
+                tmpreg:=getintregister(list,tosreg.subsetregsize);
+                a_load_reg_reg(list,fromsreg.subsetregsize,tosreg.subsetregsize,fromsreg.subsetreg,tmpreg);
+                a_op_const_reg(list,OP_SHL,tosreg.subsetregsize,tosreg.startbit-fromsreg.startbit,tmpreg);
+              end
             else
-              a_op_const_reg(list,OP_SHR,tosreg.subsetregsize,fromsreg.startbit-tosreg.startbit,tmpreg);
+              begin
+                { fromsreg may be larger -> use its size to perform the shift }
+                tmpreg:=getintregister(list,fromsreg.subsetregsize);
+                a_op_const_reg_reg(list,OP_SHR,fromsreg.subsetregsize,fromsreg.startbit-tosreg.startbit,fromsreg.subsetreg,tmpreg);
+                tmpreg2:=getintregister(list,tosreg.subsetregsize);
+                a_load_reg_reg(list,fromsreg.subsetregsize,tosreg.subsetregsize,tmpreg,tmpreg2);
+                tmpreg:=tmpreg2;
+              end;
             stopbit := tosreg.startbit + tosreg.bitlen;
             // on x86(64), 1 shl 32(64) = 1 instead of 0
             if (stopbit <> AIntBits) then
