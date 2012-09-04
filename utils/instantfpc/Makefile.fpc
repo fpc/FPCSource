@@ -6,6 +6,9 @@
 name=instantfpc
 version=2.6.1
 
+[install]
+fpcpackage=y
+
 [require]
 packages=fcl-process
 
