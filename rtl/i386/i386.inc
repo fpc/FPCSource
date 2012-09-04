@@ -1557,8 +1557,8 @@ end;
 
 {$endif}
 
-{$ifndef FPC_SYSTEM_HAS_BSX_QWORD}
-{$define FPC_SYSTEM_HAS_BSX_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
+{$define FPC_SYSTEM_HAS_BSF_QWORD}
 
 function BsfQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
@@ -1568,7 +1568,11 @@ asm
      add     $32,%eax
 .L2:
 end;
+{$endif FPC_SYSTEM_HAS_BSF_QWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
+{$define FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
      bsrl    8(%esp),%eax
@@ -1578,5 +1582,4 @@ asm
 .L1: bsrl    4(%esp),%eax
 .L2:
 end;
-
-{$endif}
+{$endif FPC_SYSTEM_HAS_BSR_QWORD}

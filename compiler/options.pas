@@ -2778,7 +2778,8 @@ begin
 
 { inline bsf/bsr implementation }
 {$if defined(x86) or defined(x86_64)}
-  def_system_macro('FPC_HAS_INTERNAL_BSX');
+  def_system_macro('FPC_HAS_INTERNAL_BSF');
+  def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
 
 {$ifdef powerpc64}

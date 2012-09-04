@@ -817,48 +817,72 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerpr
 function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
-{$ifdef FPC_HAS_INTERNAL_BSX}
+{$ifdef FPC_HAS_INTERNAL_BSF}
 {$if defined(cpui386) or defined(cpux86_64)}
-{$define FPC_HAS_INTERNAL_BSX_BYTE}
-{$define FPC_HAS_INTERNAL_BSX_WORD}
-{$define FPC_HAS_INTERNAL_BSX_DWORD}
+{$define FPC_HAS_INTERNAL_BSF_BYTE}
+{$define FPC_HAS_INTERNAL_BSF_WORD}
+{$define FPC_HAS_INTERNAL_BSF_DWORD}
 {$endif}
 {$if defined(cpux86_64)}
-{$define FPC_HAS_INTERNAL_BSX_QWORD}
+{$define FPC_HAS_INTERNAL_BSF_QWORD}
 {$endif}
 {$endif}
 
-{$ifdef FPC_HAS_INTERNAL_BSX_BYTE}
+{$ifdef FPC_HAS_INTERNAL_BSR}
+{$if defined(cpui386) or defined(cpux86_64)}
+{$define FPC_HAS_INTERNAL_BSR_BYTE}
+{$define FPC_HAS_INTERNAL_BSR_WORD}
+{$define FPC_HAS_INTERNAL_BSR_DWORD}
+{$endif}
+{$if defined(cpux86_64)}
+{$define FPC_HAS_INTERNAL_BSR_QWORD}
+{$endif}
+{$endif}
+
+
+{$ifdef FPC_HAS_INTERNAL_BSF_BYTE}
 function BsfByte(Const AValue: Byte): Byte;[internproc:fpc_in_bsf_x];
-function BsrByte(Const AValue: Byte): Byte;[internproc:fpc_in_bsr_x];
 {$else}
 function BsfByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_BYTE}
+{$ifdef FPC_HAS_INTERNAL_BSR_BYTE}
+function BsrByte(Const AValue: Byte): Byte;[internproc:fpc_in_bsr_x];
+{$else}
 function BsrByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif}
+{$endif FPC_HAS_INTERNAL_BSR_BYTE}
 
-{$ifdef FPC_HAS_INTERNAL_BSX_WORD}
+{$ifdef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsf_x];
-function BsrWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
 function BsfWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_WORD}
+{$ifdef FPC_HAS_INTERNAL_BSR_WORD}
+function BsrWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
 function BsrWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif}
+{$endif FPC_HAS_INTERNAL_BSR_WORD}
 
-{$ifdef FPC_HAS_INTERNAL_BSX_DWORD}
+{$ifdef FPC_HAS_INTERNAL_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsf_x];
-function BsrDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
 function BsfDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_DWORD}
+{$ifdef FPC_HAS_INTERNAL_BSR_DWORD}
+function BsrDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
 function BsrDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif FPC_HAS_INTERNAL_BSX_DWORD}
+{$endif FPC_HAS_INTERNAL_BSR_DWORD}
 
-{$ifdef FPC_HAS_INTERNAL_BSX_QWORD}
+{$ifdef FPC_HAS_INTERNAL_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsf_x];
-function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
 function BsfQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
-function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_QWORD}
+{$ifdef FPC_HAS_INTERNAL_BSR_QWORD}
+function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
 function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];
 function PopCnt(Const AValue: Word): Word;[internproc:fpc_in_popcnt_x];

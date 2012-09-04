@@ -2351,8 +2351,8 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,A
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_BYTE}
-{$ifndef FPC_SYSTEM_HAS_BSX_BYTE}
+{$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
+{$ifndef FPC_SYSTEM_HAS_BSF_BYTE}
 function BsfByte(Const AValue: Byte): Byte;
   const bsf8bit: array [Byte] of Byte = (
 	  $ff,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
@@ -2367,7 +2367,11 @@ function BsfByte(Const AValue: Byte): Byte;
   begin
     result:=bsf8bit[AValue];
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_BYTE}
+{$ifndef FPC_SYSTEM_HAS_BSR_BYTE}
 function BsrByte(Const AValue: Byte): Byte;
   const bsr8bit: array [Byte] of Byte = (
     $ff,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -2385,8 +2389,8 @@ function BsrByte(Const AValue: Byte): Byte;
 {$endif}
 {$endif}
 
-{$ifndef FPC_SYSTEM_HAS_BSX_WORD}
-{$ifndef FPC_HAS_INTERNAL_BSX_WORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_WORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): cardinal;
   begin
     if lo(AValue)<>0 then
@@ -2394,7 +2398,11 @@ function BsfWord(Const AValue: Word): cardinal;
     else
       result:=BsfByte(hi(AValue))+8
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_SYSTEM_HAS_BSR_WORD}
+{$ifndef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): cardinal;
   begin
     if hi(AValue)<>0 then
@@ -2405,8 +2413,8 @@ function BsrWord(Const AValue: Word): cardinal;
 {$endif}
 {$endif}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_DWORD}
-{$ifndef FPC_SYSTEM_HAS_BSX_DWORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): cardinal;
 begin
   if lo(AValue)<>0 then
@@ -2414,7 +2422,11 @@ begin
   else
     result:=BsfWord(hi(AValue))+16
 end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
+{$ifndef FPC_SYSTEM_HAS_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): cardinal;
 begin
   if hi(AValue)<>0 then
@@ -2425,8 +2437,8 @@ end;
 {$endif}
 {$endif}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_QWORD}
-{$ifndef FPC_SYSTEM_HAS_BSX_QWORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): cardinal;
   begin
     if lo(AValue) <> 0 then
@@ -2434,7 +2446,11 @@ function BsfQWord(Const AValue : QWord): cardinal;
     else
       result:=BsfDWord(hi(AValue)) + 32
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal;
   begin
     if hi(AValue) <> 0 then
