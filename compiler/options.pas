@@ -2776,12 +2776,6 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_SAR');
 { $endif}
 
-{ inline bsf/bsr implementation }
-{$if defined(x86) or defined(x86_64)}
-  def_system_macro('FPC_HAS_INTERNAL_BSF');
-  def_system_macro('FPC_HAS_INTERNAL_BSR');
-{$endif}
-
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
@@ -3264,6 +3258,20 @@ if (target_info.abi = abi_eabihf) then
     not(cs_fp_emulation in init_settings.moduleswitches) then
     def_system_macro('FPC_DOUBLE_HILO_SWAPPED');
 {$endif ARM}
+
+{ inline bsf/bsr implementation }
+{$if defined(x86) or defined(x86_64)}
+  def_system_macro('FPC_HAS_INTERNAL_BSF');
+  def_system_macro('FPC_HAS_INTERNAL_BSR');
+{$endif}
+{$if defined(arm)}
+  { it is determined during system unit compilation if clz is used for bsf or not,
+    this is not perfect but the current implementation bsf/bsr does not allow another
+    solution }
+  if CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype] then
+    def_system_macro('FPC_HAS_INTERNAL_BSR');
+{$endif}
+
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and

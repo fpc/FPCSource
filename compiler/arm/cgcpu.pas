@@ -1517,8 +1517,15 @@ unit cgcpu;
 
     procedure tcgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
       begin
-        Comment(V_Error,'tcgarm.a_bit_scan_reg_reg method not implemented');
+        if reverse then
+          begin
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
+            list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
+          end
+        else
+          internalerror(201209041);
       end;
+
 
     procedure tcgarm.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
