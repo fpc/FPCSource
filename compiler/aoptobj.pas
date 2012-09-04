@@ -929,7 +929,7 @@ Unit AoptObj;
       Begin
         TempP := hp;
         While Assigned(TempP) and
-             (TempP.typ In SkipInstr + [ait_label]) Do
+             (TempP.typ In SkipInstr + [ait_label,ait_align]) Do
           If (TempP.typ <> ait_Label) Or
              (Tai_label(TempP).labsym <> L)
             Then GetNextInstruction(TempP, TempP)
