@@ -661,7 +661,3 @@ begin
     moveproc:=@move_blended;
 {$endif FPC_SYSTEM_FPC_MOVE}
 end;
-
-{include hand-optimized assembler division code}
-{$i divide.inc}
-
