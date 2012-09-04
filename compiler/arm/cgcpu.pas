@@ -1521,6 +1521,7 @@ unit cgcpu;
           begin
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
             list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
+            list.Concat(taicpu.op_reg_reg_const(A_AND,dst,dst,255));
           end
         else
           internalerror(201209041);
