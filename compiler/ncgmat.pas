@@ -465,7 +465,7 @@ implementation
                 is done since most target cpu which will use this
                 node do not support a shift count in a mem. location (cec)
               }
-              if right.location.loc<>LOC_REGISTER then
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                 begin
                   hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,opdef,right.location,hcountreg);
