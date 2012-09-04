@@ -179,15 +179,15 @@ begin
 end;
 
 
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean);
+Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean; APipeBufferSize : Cardinal);
 
 begin
-  CreatePipeHandles(SI.hStdInput,HI);
+  CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
   DuplicateHandleFP(SI.hStdInput);
-  CreatePipeHandles(HO,Si.hStdOutput);
+  CreatePipeHandles(HO,Si.hStdOutput, APipeBufferSize);
   DuplicateHandleFP(   Si.hStdOutput);
   if CE then begin
-    CreatePipeHandles(HE,SI.hStdError);
+    CreatePipeHandles(HE,SI.hStdError, APipeBufferSize);
     DuplicateHandleFP(   SI.hStdError);
     end
   else
@@ -262,7 +262,7 @@ begin
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
     If poUsePipes in FProcessOptions then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions));
+      CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions), FPipeBufferSize);
     Try
       If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
                    FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,

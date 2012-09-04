@@ -431,12 +431,12 @@ const
   SEM_UNDO = 1 shl 12;
   MAX_SOPS = 5;
 
-  SEM_GETNCNT = 3;   { Return the value of sempid {READ}  }
-  SEM_GETPID  = 4;   { Return the value of semval {READ}  }
-  SEM_GETVAL  = 5;   { Return semvals into arg.array {READ}  }
-  SEM_GETALL  = 6;   { Return the value of semzcnt {READ}  }
-  SEM_GETZCNT = 7;   { Set the value of semval to arg.val {ALTER}  }
-  SEM_SETVAL  = 8;   { Set semvals from arg.array {ALTER}  }
+  SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
+  SEM_GETPID  = 4;   { Return the value of semval (READ)  }
+  SEM_GETVAL  = 5;   { Return semvals into arg.array (READ)  }
+  SEM_GETALL  = 6;   { Return the value of semzcnt (READ)  }
+  SEM_GETZCNT = 7;   { Set the value of semval to arg.val (ALTER)  }
+  SEM_SETVAL  = 8;   { Set semvals from arg.array (ALTER)  }
   SEM_SETALL  = 9;
 
   { Permissions  }

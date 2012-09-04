@@ -19,10 +19,10 @@ uses
 const
  PipeBufSize = 1024;
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : Longint; APipeBufferSize : Cardinal = 1024) : Boolean;
 
 begin
-  CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, PipeBufSize) = 0;
+  CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, APipeBufferSize) = 0;
 end;
 
 Function TInputPipeStream.GetNumBytesAvailable: DWord;

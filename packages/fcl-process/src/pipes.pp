@@ -50,7 +50,7 @@ Type
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : THandle; APipeBufferSize : Cardinal = 1024) : Boolean;
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
                              Var OutPipe : TOutputPipeStream);
 

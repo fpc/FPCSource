@@ -62,10 +62,10 @@ Type
     Function GetOptionValue(Const C: Char; Const S : String) : String;
     Function HasOption(Const S : String) : Boolean;
     Function HasOption(Const C : Char; Const S : String) : Boolean;
-    Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings) : String;
-    Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings) : String;
-    Function CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string) : String;
-    Function CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
+    Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
+    Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; AllErrors : Boolean = False) : String;
+    Function CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string; AllErrors : Boolean = False) : String;
+    Function CheckOptions(Const ShortOptions : String; Const LongOpts : String; AllErrors : Boolean = False) : String;
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
     Procedure Log(EventType : TEventType; const Msg : String);
@@ -390,10 +390,10 @@ begin
 end;
 
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings) : String;
+Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; AllErrors : Boolean = False) : String;
 
 begin
-  Result:=CheckOptions(ShortOptions,LongOpts,Nil,Nil);
+  Result:=CheckOptions(ShortOptions,LongOpts,Nil,Nil,AllErrors);
 end;
 
 ResourceString
@@ -401,7 +401,7 @@ ResourceString
   SErrNoOptionAllowed = 'Option at position %d does not allow an argument: %s';
   SErrOptionNeeded = 'Option at position %d needs an argument : %s';
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings) : String;
+Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
 
 Var
   I,J,L,P : Integer;
@@ -430,6 +430,14 @@ Var
     Result:=(I<>-1);
   end;
 
+  Procedure AddToResult(Const Msg : string);
+  
+  begin
+    If (Result<>'') then
+      Result:=Result+sLineBreak;
+    Result:=Result+Msg;  
+  end;
+
 begin
   If CaseSensitiveOptions then
     SO:=Shortoptions
@@ -437,7 +445,7 @@ begin
     SO:=LowerCase(Shortoptions);
   Result:='';
   I:=1;
-  While (I<=ParamCount) and (Result='') do
+  While (I<=ParamCount) and ((Result='') or AllErrors) do
     begin
     O:=Paramstr(I);
     If (Length(O)=0) or (O[1]<>FOptionChar) then
@@ -448,7 +456,7 @@ begin
     else
       begin
       If (Length(O)<2) then
-        Result:=Format(SErrInvalidOption,[i,O])
+        AddToResult(Format(SErrInvalidOption,[i,O]))
       else
         begin
         HaveArg:=False;
@@ -469,19 +477,19 @@ begin
           If FindLongopt(O) then
             begin
             If HaveArg then
-              Result:=Format(SErrNoOptionAllowed,[I,O])
+              AddToResult(Format(SErrNoOptionAllowed,[I,O]))
             end
           else
             begin // Required argument
             If FindLongOpt(O+':') then
               begin
               If Not HaveArg then
-                Result:=Format(SErrOptionNeeded,[I,O]);
+                AddToResult(Format(SErrOptionNeeded,[I,O]));
               end
             else
               begin // Optional Argument.
               If not FindLongOpt(O+'::') then
-                Result:=Format(SErrInvalidOption,[I,O]);
+                AddToResult(Format(SErrInvalidOption,[I,O]));
               end;
             end;
           end
@@ -494,11 +502,11 @@ begin
             O:=LowerCase(O);
           L:=Length(O);
           J:=2;
-          While (result='') and (J<=L) do
+          While ((Result='') or AllErrors) and (J<=L) do
             begin
             P:=Pos(O[J],ShortOptions);
             If (P=0) or (O[j]=':') then
-              Result:=Format(SErrInvalidOption,[I,O[J]])
+              AddToResult(Format(SErrInvalidOption,[I,O[J]]))
             else
               begin
               If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
@@ -506,7 +514,7 @@ begin
                 // Required argument
                 If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
-                    Result:=Format(SErrOptionNeeded,[I,O[J]]);
+                    AddToResult(Format(SErrOptionNeeded,[I,O[J]]));
                 O:=O[j]; // O is added to arguments.
                 end;
               end;
@@ -518,7 +526,7 @@ begin
             O:=O[Length(O)]; // O is added to arguments !
             end;
           end;
-        If HaveArg and (Result='') then
+        If HaveArg and ((Result='') or AllErrors) then
           If Assigned(Opts) then
             Opts.Add(O+'='+OV);
         end;
@@ -527,7 +535,7 @@ begin
     end;
 end;
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string) : String;
+Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string; AllErrors : Boolean = False) : String;
 
 Var
   L : TStringList;
@@ -538,13 +546,13 @@ begin
   Try
     For I:=0 to High(LongOpts) do
       L.Add(LongOpts[i]);
-    Result:=CheckOptions(ShortOptions,L);
+    Result:=CheckOptions(ShortOptions,L,AllErrors);
   Finally
     L.Free;
   end;
 end;
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
+Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : String; AllErrors : Boolean = False) : String;
 
 Const
   SepChars = ' '#10#13#9;
@@ -569,7 +577,7 @@ begin
         L.Add(Copy(LongOpts,I,(J-I)));
       I:=J+1;
       end;
-    Result:=CheckOptions(Shortoptions,L);
+    Result:=CheckOptions(Shortoptions,L,AllErrors);
   Finally
     L.Free;
   end;
