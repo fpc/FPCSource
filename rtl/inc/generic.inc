@@ -1360,22 +1360,6 @@ end;
 ****************************************************************************}
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
-function count_leading_zeros_32bit(l : longint) : longint;
-  var
-    i : longint;
-  begin
-     for i:=0 to 31 do
-       begin
-          if (l and (longint($80000000) shr i))<>0 then
-            begin
-               result:=i;
-               exit;
-            end;
-       end;
-     result:=i;
-  end;
-
-
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
@@ -1384,24 +1368,26 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
      result:=0;
      if n=0 then
        HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-     lzz:=count_leading_zeros_32bit(z);
-     lzn:=count_leading_zeros_32bit(n);
+     if z=0 then
+       exit;
+     lzz:=BsrDWord(z);
+     lzn:=BsrDWord(n);
      { if the denominator contains less zeros
        then the numerator
-       the d is greater than the n }
-     if lzn<lzz then
+       then d is greater than the n }
+     if lzn>lzz then
        exit;
-     shift:=lzn-lzz;
+     shift:=lzz-lzn;
      n:=n shl shift;
-     repeat
-       if z>=n then
-         begin
-            z:=z-n;
-            result:=result+dword(1 shl shift);
-         end;
-       dec(shift);
-       n:=n shr 1;
-     until shift<0;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+dword(1 shl shift);
+           end;
+         n:=n shr 1;
+       end;
   end;
 {$endif FPC_SYSTEM_HAS_DIV_DWORD}
 
@@ -1411,27 +1397,29 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; co
   var
      shift,lzz,lzn : longint;
   begin
-    result:=0;
-    if n=0 then
-      HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-    lzz:=count_leading_zeros_32bit(z);
-    lzn:=count_leading_zeros_32bit(n);
-    { if the denominator contains less zeros
-      then the numerator
-      the d is greater than the n }
-    if lzn<lzz then
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrDWord(z);
+     lzn:=BsrDWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
       begin
          result:=z;
          exit;
       end;
-    shift:=lzn-lzz;
-    n:=n shl shift;
-    repeat
-      if z>=n then
-        z:=z-n;
-      dec(shift);
-      n:=n shr 1;
-    until shift<0;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
     result:=z;
   end;
 {$endif FPC_SYSTEM_HAS_MOD_DWORD}
