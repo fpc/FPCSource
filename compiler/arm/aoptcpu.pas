@@ -885,7 +885,7 @@ Implementation
                        GetNextInstruction(p, hp1) and
                        MatchInstruction(hp1, [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
                                               A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
-                                        [C_NONE, taicpu(hp1).condition], []) and
+                                        [], []) and
                        {MOV and MVN might only have 2 ops}
                        (taicpu(hp1).ops = 3) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
