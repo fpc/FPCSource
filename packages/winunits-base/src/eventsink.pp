@@ -41,7 +41,9 @@ type
   const IID: TGUID; LocaleID: Integer; Flags: Word;
   Params: TDispParams; VarResult, ExcepInfo, ArgErr: Pointer) of object;
 
- TAbstractEventSink = class(TInterfacedObject, IDispatch)
+ { TAbstractEventSink }
+
+ TAbstractEventSink = class(TObject, IDispatch,IUnknown) // see mantis #22156
  private
   FDispatch: IDispatch;
   FDispIntfIID: TGUID;
@@ -49,7 +51,10 @@ type
   FOwner: TComponent;
  protected
   { IUnknown }
+  frefcount : longint;
   function QueryInterface(constref IID: TGUID; out Obj): HRESULT; stdcall;
+  function _AddRef : longint;stdcall;
+  function _Release : longint;stdcall;
   { IDispatch }
   function GetTypeInfoCount(out Count: Integer): HRESULT; stdcall;
   function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HRESULT; stdcall;
@@ -164,6 +169,20 @@ begin
   Result := S_OK;
  if IsEqualGUID(IID, FDispIntfIID) and GetInterface(IDispatch,Obj) then
   Result := S_OK;
+end;
+
+function TAbstractEventSink._AddRef: longint; stdcall;
+begin
+ frefcount:=frefcount+1;
+  _addref:=frefcount;
+end;
+
+function TAbstractEventSink._Release: longint; stdcall;
+begin
+ frefcount:=frefcount-1;
+ _Release:=frefcount;
+ if frefcount=0 then
+   self.destroy;
 end;
 
 procedure TAbstractEventSink.Connect(AnAppDispatch: IDispatch;

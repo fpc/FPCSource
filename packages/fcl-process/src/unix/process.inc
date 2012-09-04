@@ -52,7 +52,7 @@ begin
       // else pass errorvalue unmodified like shell does, bug #22055
      end
    else
-    FexitCode:=-1; // was 0, better testable for abnormal exit.
+    FexitCode:=cardinal(-1); // was 0, better testable for abnormal exit.
 end;
 
 Type
