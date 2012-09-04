@@ -346,7 +346,7 @@ interface
         function  VTableRef(VTableIdx:Longint):TObjRelocation;
       end;
 
-      TSymbolState = (symstate_undefined,symstate_defined,symstate_common);
+      TSymbolState = (symstate_undefined,symstate_defined,symstate_common,symstate_defweak,symstate_dynamic);
 
       TExeSymbol = class(TFPHashObject)
         ObjSymbol  : TObjSymbol;
@@ -2242,7 +2242,10 @@ implementation
                   end;
                 AB_COMMON :
                   begin
-                    if exesym.State=symstate_undefined then
+                    { A COMMON definition overrides weak one.
+                      Also select the symbol with largest size. }
+                    if (exesym.State in [symstate_undefined,symstate_defweak]) or
+                       ((exesym.State=symstate_common) and (objsym.size>exesym.ObjSymbol.size)) then
                       begin
                         exesym.ObjSymbol:=objsym;
                         exesym.State:=symstate_common;
@@ -2252,6 +2255,23 @@ implementation
                       FProvidedObjSymbols.add(objsym)
                     else
                       CommonObjSymbols.add(objsym);
+                  end;
+                AB_WEAK_EXTERNAL :
+                  begin
+                    if objsym.objsection=nil then          { a weak reference }
+                      begin
+                        ExternalObjSymbols.add(objsym);
+                        if exesym.ObjSymbol=objsym then
+                          UnresolvedExeSymbols.Add(exesym);
+                      end
+                    else                                   { a weak definition }
+                      begin
+                        if exesym.State=symstate_undefined then
+                          begin
+                            exesym.ObjSymbol:=objsym;
+                            exesym.state:=symstate_defweak;
+                          end;
+                      end;
                   end;
               end;
             end;
@@ -2562,7 +2582,8 @@ implementation
         for i:=0 to UnresolvedExeSymbols.count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if exesym.State<>symstate_defined then
+            if (exesym.State<>symstate_defined) and
+               (exesym.objsymbol.bind<>AB_WEAK_EXTERNAL) then
               Comment(V_Error,'Undefined symbol: '+exesym.name);
           end;
 
@@ -2585,7 +2606,7 @@ implementation
         for i:=0 to ExternalObjSymbols.count-1 do
           begin
             objsym:=TObjSymbol(ExternalObjSymbols[i]);
-            if objsym.bind<>AB_EXTERNAL then
+            if not (objsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
               internalerror(200606242);
             UpdateSymbol(objsym);
           end;
@@ -2863,13 +2884,17 @@ implementation
               if objsym.bind<>AB_LOCAL then
                 begin
                   if not(assigned(objsym.exesymbol) and
-                         (objsym.exesymbol.State=symstate_defined)) then
+                         (objsym.exesymbol.State in [symstate_defined,symstate_dynamic,symstate_defweak])) then
                     internalerror(200603063);
                   objsym:=objsym.exesymbol.objsymbol;
                 end;
               if not assigned(objsym.objsection) then
-                internalerror(200603062);
-              refobjsec:=objsym.objsection;
+                begin
+                  objsym.exesymbol.state:=symstate_dynamic;
+                  exit;
+                end
+              else
+                refobjsec:=objsym.objsection;
             end
           else
             if assigned(objreloc.objsection) then
@@ -3045,7 +3070,9 @@ implementation
         for i:=0 to ExeSymbolList.Count-1 do
           begin
             sym:=TExeSymbol(ExeSymbolList[i]);
-            if not sym.ObjSymbol.objsection.Used then
+            { an unresolved weak symbol has objsection=nil }
+            if assigned(sym.ObjSymbol.objsection) and
+              (not sym.ObjSymbol.objsection.Used) then
               ExeSymbolList[i]:=nil;
           end;
         ExeSymbolList.Pack;
