@@ -532,7 +532,7 @@ unit cgcpu;
         branchopcode: tasmop;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if CPUARM_HAS_BLX in cpu_capabilities[current_settings.cputype] then
+        if CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype] then
           branchopcode:=A_BLX
         else
           branchopcode:=A_BL;
