@@ -5877,7 +5877,7 @@ Var
 begin
   List:=TStringList.Create;
   Try
-    List.add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
+    List.add(IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
     CmdCopyFiles(List,Dest);
   Finally
     List.Free;
