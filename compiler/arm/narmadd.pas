@@ -242,6 +242,7 @@ interface
               location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
               location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
 
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
                    left.location.register,right.location.register),
@@ -269,6 +270,7 @@ interface
                 op:=A_FCMPED;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
                 left.location.register,right.location.register));
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_FMSTAT));
             end;
           fpu_soft:
