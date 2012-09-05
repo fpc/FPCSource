@@ -19,12 +19,13 @@
 {****************************************************************************
                            SPARC specific stuff
 ****************************************************************************}
-function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
+function get_fsr : dword;assembler;[public, alias: 'FPC_GETFSR'];
   var
     fsr : dword;
   asm
     st %fsr,fsr
-    ld fsr,%o0
+    ld fsr,%l0
+    st %l0,__result
   end;
 
 
