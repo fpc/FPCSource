@@ -1564,8 +1564,12 @@ function BsfQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
      bsfl    4(%esp),%eax
      jnz     .L2
-.L1: bsfl    8(%esp),%eax
-     add     $32,%eax
+.L1:
+     bsfl    8(%esp),%eax
+     jnz     .L3
+     movl    $223,%eax
+.L3:
+     addl    $32,%eax
 .L2:
 end;
 {$endif FPC_SYSTEM_HAS_BSF_QWORD}
@@ -1579,7 +1583,10 @@ asm
      jz     .L1
      add     $32,%eax
      jmp     .L2
-.L1: bsrl    4(%esp),%eax
+.L1:
+     bsrl    4(%esp),%eax
+     jnz     .L2
+     movl    $255,%eax
 .L2:
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}

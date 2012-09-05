@@ -1628,12 +1628,17 @@ unit cgx86;
      procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
      var
        opsize: topsize;
+       l : TAsmLabel;
      begin
        opsize:=tcgsize2opsize[size];
        if not reverse then
          list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,dst))
        else
          list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,dst));
+       current_asmdata.getjumplabel(l);
+       a_jmp_cond(list,OC_NE,l);
+       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,dst));
+       a_label(list,l);
      end;
 
 {*************** compare instructructions ****************}

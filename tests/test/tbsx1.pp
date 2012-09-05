@@ -23,6 +23,19 @@ begin
       exit(false);
     end;
   end;
+  x8:=0;
+  f:=BsfByte(x8);
+  if (f<>$ff) then
+  begin
+    writeln('BsfByte(',x8,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
+  r:=BsrByte(x8);
+  if r<>$ff then
+  begin
+    writeln('BsrByte(',x8,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
   result:=true;
 end;
 
@@ -46,6 +59,19 @@ begin
       writeln('BsrWord(',x16,') returned ',f,', should be ',i);
       exit(false);
     end;
+  end;
+  x16:=0;
+  f:=BsfDWord(x16);
+  if (f<>$ff) then
+  begin
+    writeln('BsfWord(',x16,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
+  r:=BsrWord(x16);
+  if r<>$ff then
+  begin
+    writeln('BsrWord(',x16,') returned ',f,', should be ',$ff);
+    exit(false);
   end;
   result:=true;
 end;
@@ -71,6 +97,19 @@ begin
       exit(false);
     end;
   end;
+  x32:=0;
+  f:=BsfDWord(x32);
+  if (f<>$ff) then
+  begin
+    writeln('BsfDWord(',x32,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
+  r:=BsrDWord(x32);
+  if r<>$ff then
+  begin
+    writeln('BsrDWord(',x32,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
   result:=true;
 end;
 
@@ -92,6 +131,19 @@ begin
       writeln('BsrQWord(',x64,') returned ',r,', should be ',i);
       exit(false);
     end;
+  end;
+  x64:=0;
+  f:=BsfQWord(x64);
+  if (f<>$ff) then
+  begin
+    writeln('BsfQWord(',x64,') returned ',f,', should be ',$ff);
+    exit(false);
+  end;
+  r:=BsrQWord(x64);
+  if r<>$ff then
+  begin
+    writeln('BsrQWord(',x64,') returned ',f,', should be ',$ff);
+    exit(false);
   end;
   result:=true;
 end;
