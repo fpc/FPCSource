@@ -136,7 +136,7 @@ begin
     if (XTermProgram='') then
       begin
       D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
-      If (D='kde') then
+      If (Pos('kde',D)<>0) then
         begin
         TestTerminal('konsole');
         end
