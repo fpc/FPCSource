@@ -103,7 +103,7 @@ Implementation
   begin
     result :=
       (instr.typ = ait_instruction) and
-      ((op = []) or (taicpu(instr).opcode in op)) and
+      ((op = []) or ((ord(taicpu(instr).opcode)<256) and (taicpu(instr).opcode in op))) and
       ((cond = []) or (taicpu(instr).condition in cond)) and
       ((postfix = []) or (taicpu(instr).oppostfix in postfix));
   end;
