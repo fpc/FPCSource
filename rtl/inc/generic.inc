@@ -2434,7 +2434,7 @@ function BsfQWord(Const AValue : QWord): cardinal;
     result:=$ff;
     if lo(AValue) <> 0 then
       result:=BsfDWord(lo(AValue))
-    else hi(AValue) <> 0 then
+    else if hi(AValue) <> 0 then
       result:=BsfDWord(hi(AValue)) + 32;
   end;
 {$endif}
