@@ -1014,30 +1014,61 @@ Implementation
                 A_MLA,
                 A_MUL:
                   begin
-                    {
-                      change
-                      and reg2,reg1,const1
-                      and reg3,reg2,const2
-                      to
-                      and reg3,reg1,(const1 and const2)
-                    }
+                        {
+                          optimize
+                          and reg2,reg1,const1
+                          ...
+                        }
                     if (taicpu(p).opcode = A_AND) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
-                       (taicpu(p).oper[2]^.typ = top_const) and
-                       GetNextInstruction(p, hp1) and
-                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
-                       { either reg3 and reg2 are equal or reg2 is deallocated after the and }
-                       (MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^.reg) or
-                        assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next)))) and
-                       MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-                       (taicpu(hp1).oper[2]^.typ = top_const) then
+                       (taicpu(p).oper[2]^.typ = top_const) then
                       begin
-                        DebugMsg('Peephole AndAnd2And done', p);
-                        taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                        taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
-                        taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
-                        asml.remove(hp1);
-                        hp1.free;
+                        {
+                          change
+                          and reg2,reg1,const1
+                          and reg3,reg2,const2
+                          to
+                          and reg3,reg1,(const1 and const2)
+                        }
+                        if GetNextInstruction(p, hp1) and
+                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
+                        { either reg3 and reg2 are equal or reg2 is deallocated after the and }
+                        (MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^.reg) or
+                         assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next)))) and
+                        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                        (taicpu(hp1).oper[2]^.typ = top_const) then
+                          begin
+                            DebugMsg('Peephole AndAnd2And done', p);
+                            taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                            taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                            taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
+                            asml.remove(hp1);
+                            hp1.free;
+                          end
+                        {
+                          change
+                          and reg2,reg1,255
+                          strb reg2,[...]
+                          dealloc reg2
+                          to
+                          strb reg1,[...]
+                        }
+                        else if (taicpu(p).oper[2]^.val = 255) and
+                          MatchInstruction(p, A_AND, [C_None], [PF_None]) and
+                          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                          MatchInstruction(hp1, A_STR, [C_None], [PF_B]) and
+                          assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+                          { the reference in strb might not use reg2 }
+                          not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
+                          { reg1 might not be modified inbetween }
+                          not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                          begin
+                            DebugMsg('Peephole AndStrb2Strb done', p);
+                            taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+                            asml.remove(p);
+                            p.free;
+                            p:=hp1;
+                          end;
                       end;
                     {
                       change
