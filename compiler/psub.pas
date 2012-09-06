@@ -886,8 +886,16 @@ implementation
              if not(cs_no_regalloc in current_settings.globalswitches) then
                cg.translate_register(tabstractnormalvarsym(p).localloc.register);
              if cs_asm_source in current_settings.globalswitches then
-               TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                 std_regname(tabstractnormalvarsym(p).localloc.register))))
+               begin
+                 if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
+                   begin
+                     TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                       std_regname(tabstractnormalvarsym(p).localloc.registerhi)+':'+std_regname(tabstractnormalvarsym(p).localloc.register))));
+                   end
+                 else
+                   TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                     std_regname(tabstractnormalvarsym(p).localloc.register))));
+               end;
            end;
       end;
 
