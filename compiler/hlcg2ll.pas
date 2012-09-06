@@ -1357,7 +1357,7 @@ implementation
           begin
 {$ifndef cpu64bitalu}
             { use cg64 only for int64, not for 8 byte records }
-            if is_64bit(vardef) then
+            if (l.size in [OS_64,OS_S64]) and (cgpara.Size in [OS_64,OS_S64]) then
               cg64.a_load64_loc_cgpara(list,l,cgpara)
             else
 {$endif not cpu64bitalu}
