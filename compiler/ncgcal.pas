@@ -889,6 +889,8 @@ implementation
                 watch out with procedure of object) }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
+              else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.register,pvreg)
               else
                 hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
