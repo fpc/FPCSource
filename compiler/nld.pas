@@ -438,7 +438,7 @@ implementation
                    { method pointer or nested proc ? }
                    if assigned(left) then
                      begin
-                        expectloc:=LOC_CREFERENCE;
+                        expectloc:=LOC_CREGISTER;
                         firstpass(left);
                      end;
                 end;

@@ -3137,18 +3137,14 @@ implementation
          if tabstractprocdef(resultdef).is_addressonly then
            expectloc:=LOC_REGISTER
          else
-           begin
-             if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-               CGMessage(parser_e_illegal_expression);
-             expectloc:=left.expectloc;
-           end;
+           expectloc:=left.expectloc;
       end;
 
 
     function ttypeconvnode.first_nil_to_methodprocvar : tnode;
       begin
         first_nil_to_methodprocvar:=nil;
-        expectloc:=LOC_REFERENCE;
+        expectloc:=LOC_REGISTER;
       end;
 
 
