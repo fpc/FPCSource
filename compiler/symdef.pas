@@ -1592,7 +1592,7 @@ implementation
           classrefdef:
             is_intregable:=true;
           procvardef :
-            is_intregable:=tprocvardef(self).is_addressonly;
+            is_intregable:=tprocvardef(self).is_addressonly or (po_methodpointer in tprocvardef(self).procoptions);
           objectdef:
             is_intregable:=(is_implicit_pointer_object_type(self)) and not needs_inittable;
           setdef:

@@ -280,6 +280,9 @@ interface
     { # returns whether def is a type parameter of a generic }
     function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { returns true of def is a methodpointer }
+    function is_methodpointer(def : tdef) : boolean;
+
 implementation
 
     uses
@@ -1192,4 +1195,11 @@ implementation
       begin
         result:=(def.typ=undefineddef);
       end;
+
+
+    function is_methodpointer(def: tdef): boolean;
+      begin
+        result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
 end.

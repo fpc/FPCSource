@@ -902,7 +902,8 @@ implementation
                  (is_64bit(vardef) or
                   { in case of fpu emulation, or abi's that pass fpu values
                     via integer registers }
-                  (vardef.typ=floatdef)) then
+                  (vardef.typ=floatdef) or
+                   is_methodpointer(vardef)) then
                 begin
                   case paraloc^.loc of
                     LOC_REGISTER:
