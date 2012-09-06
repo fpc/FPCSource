@@ -484,7 +484,10 @@ implementation
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
         if (target_info.system in (systems_linux + systems_bsd)) and
-           (cs_create_smart in current_settings.moduleswitches) and
+           { the next condition was
+             (cs_create_smart in current_settings.moduleswitches) and
+             but if we create_smartlink_sections, this is useless }
+           (create_smartlink_library) and
            (alt = alt_dbgline) then
           l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
         else
