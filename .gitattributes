@@ -10251,6 +10251,7 @@ tests/test/jvm/tvalc.pp svneol=native#text/plain
 tests/test/jvm/tvarpara.pp svneol=native#text/plain
 tests/test/jvm/tvirtclmeth.pp svneol=native#text/plain
 tests/test/jvm/tw20212.pp svneol=native#text/plain
+tests/test/jvm/tw22807.pp -text svneol=native#text/plain
 tests/test/jvm/twith.pp svneol=native#text/plain
 tests/test/jvm/uenum.pp svneol=native#text/plain
 tests/test/jvm/unsupported.pp svneol=native#text/plain
