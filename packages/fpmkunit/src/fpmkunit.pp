@@ -5229,8 +5229,12 @@ begin
   if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
     Exit;
 
+  // Files which should not be compiled on this target can not trigger a compile.
+  if not TargetOK(ATarget) then
+    Exit;
+
   // Check output file
-  if not result and TargetOK(ATarget) then
+  if not result then
     begin
       if ATarget.TargetType in ProgramTargets then
         OD:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)
