@@ -294,7 +294,7 @@ begin
       location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
       if (is_cbool(resultdef)) then
        { reglo is either 0 or -1 -> reghi has to become the same }
-      	cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
        else
        { unsigned }
          cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);

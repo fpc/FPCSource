@@ -49,8 +49,8 @@ begin
   pass_1 := inherited pass_1;
   if assigned(current_procinfo) and
      assigned(procdefinition) and
-	 (procdefinition.proccalloption=pocall_cdecl) then
-	include(current_procinfo.flags,pi_needs_got);
+     (procdefinition.proccalloption=pocall_cdecl) then
+    include(current_procinfo.flags,pi_needs_got);
 end;
 
 procedure tMIPSELcallnode.extra_call_code;

@@ -81,8 +81,8 @@ implementation
         { for testing }
         needs_frame_pointer := true;//false;
         computed_local_size:=-1;
-		{ pi_needs_got is not yet set correctly 
-		  so include it always if creating PIC code }
+        { pi_needs_got is not yet set correctly 
+          so include it always if creating PIC code }
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
             include(flags, pi_needs_got);
