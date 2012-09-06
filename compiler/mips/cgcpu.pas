@@ -1439,15 +1439,15 @@ begin
             framesave:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
           else if (reg=RS_R31) then
             ra_save:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
-    	  else if (reg=RS_GP) and
+          else if (reg=RS_GP) and
                   (cs_create_pic in current_settings.moduleswitches) and
                   (pi_needs_got in current_procinfo.flags) then
-    		gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
+            gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
           else
             begin
               if cs_asm_source in current_settings.globalswitches then
                 helplist.concat(tai_comment.Create(strpnew(
-    			  std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
+                  std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
               helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
             end;
           inc(nextoffset,4);
@@ -1470,15 +1470,15 @@ begin
     begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
       if cs_asm_source in current_settings.globalswitches then
-    	begin
+        begin
           list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size')));
           list.concat(tai_comment.Create(strpnew(' 0-'+
-    			   tostr(TMIPSProcInfo(current_procinfo).maxpushedparasize)+' for called function parameters')));
+                   tostr(TMIPSProcInfo(current_procinfo).maxpushedparasize)+' for called function parameters')));
           list.concat(tai_comment.Create(strpnew('Register save area at '+
-    			   tostr(TMIPSProcInfo(current_procinfo).intregstart))));
+                   tostr(TMIPSProcInfo(current_procinfo).intregstart))));
           list.concat(tai_comment.Create(strpnew('FPU register save area at '+
-    			   tostr(TMIPSProcInfo(current_procinfo).floatregstart))));
-    	end;
+                   tostr(TMIPSProcInfo(current_procinfo).floatregstart))));
+        end;
       list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
       if cs_asm_source in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('RA register saved.')));
@@ -1514,9 +1514,9 @@ begin
             NR_STACK_POINTER_REG,NR_R9));
         end;
       { The instructions before are macros that can extend to multiple instructions,
-    	the settings of R9 to -LocalSize surely does,
-    	but the saving of RA and FP also might, and might
-    	even use AT register, which is why we use R9 instead of AT here for -LocalSize }
+        the settings of R9 to -LocalSize surely does,
+        but the saving of RA and FP also might, and might
+        even use AT register, which is why we use R9 instead of AT here for -LocalSize }
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
   if assigned(gp_save) then
