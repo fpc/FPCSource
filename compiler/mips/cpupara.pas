@@ -32,6 +32,8 @@ interface
 
     const
       MIPS_MAX_OFFSET = 20;
+
+      { The value below is OK for O32 and N32 calling conventions }
       MIPS_MAX_REGISTERS_USED_IN_CALL = 6;
 
       { All ABI seem to start with $4 i.e. $a0 }
@@ -53,10 +55,10 @@ interface
 
       { Set O32 ABI as default }
     const
-      mips_nb_used_registers = MIPS_NB_REGISTERS_USED_IN_CALL_O32;
+      mips_nb_used_registers  : longint = MIPS_NB_REGISTERS_USED_IN_CALL_O32;
 
       { Might need to be changed if we support N64 ABI later }
-      mips_sizeof_register_param = 4;
+      mips_sizeof_register_param : longint = 4;
 
     type
       tparasupregs = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of tsuperregister;
@@ -66,6 +68,7 @@ interface
       tparasupregsoffset = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of longint;
 
     const
+
       parasupregs : tparasupregs = (RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9);
 
     type
@@ -369,7 +372,7 @@ implementation
                 if vo_is_funcret in hp.varoptions then
                   begin
                     { This should be the first parameter }
-                    if assigned(current_procinfo) then
+                    if (side=calleeside) and assigned(current_procinfo) then
                       begin
                         TMIPSProcInfo(current_procinfo).register_used[0]:=true;
                         TMIPSProcInfo(current_procinfo).register_name[0]:='result';
@@ -429,7 +432,7 @@ implementation
                       end
                     else { not can use float }
                      begin
-                       if assigned(current_procinfo) then
+                       if (side=calleeside) and assigned(current_procinfo) then
                          begin
                            TMIPSProcInfo(current_procinfo).register_used[intparareg]:=true;
                            TMIPSProcInfo(current_procinfo).register_name[intparareg]:=hp.prettyname;
