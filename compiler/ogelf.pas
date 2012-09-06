@@ -120,6 +120,7 @@ implementation
       EM_SPARC      = 2;
       EM_386        = 3;
       EM_M68K       = 4;
+      EM_MIPS       = 8;
       EM_PPC        = 20;
       EM_ARM        = 40;
       EM_X86_64     = 62;
@@ -136,6 +137,12 @@ implementation
 {$ifdef powerpc}
       ELFMACHINE = EM_PPC;
 {$endif powerpc}
+{$ifdef powerpc64}
+      ELFMACHINE = EM_PPC; // TODO
+{$endif}
+{$ifdef mips}
+      ELFMACHINE = EM_MIPS;
+{$endif}
 {$ifdef arm}
       ELFMACHINE = EM_ARM;
 {$endif arm}
@@ -159,10 +166,22 @@ implementation
       SHT_REL      = 9;
       SHT_SHLIB    = 10;
       SHT_DYNSYM   = 11;
+      SHT_INIT_ARRAY = 14;
+      SHT_FINI_ARRAY = 15;
+      SHT_PREINIT_ARRAY = 16;
+      SHT_GROUP    = 17;
+      SHT_SYMTAB_SHNDX = 18;
 
       SHF_WRITE     = 1;
       SHF_ALLOC     = 2;
       SHF_EXECINSTR = 4;
+      SHF_MERGE     = 16;
+      SHF_STRINGS   = 32;
+      SHF_INFO_LINK = 64;
+      SHF_LINK_ORDER = 128;
+      SHF_OS_NONCONFORMING = 256;
+      SHF_GROUP     = 512;
+      SHF_TLS       = 1024;
 
       STB_LOCAL   = 0;
       STB_GLOBAL  = 1;
@@ -185,6 +204,7 @@ implementation
       PT_NOTE     = 4;
       PT_SHLIB    = 5;
       PT_PHDR     = 6;
+      PT_TLS      = 7;
       PT_LOOS     = $60000000;
       PT_HIOS     = $6FFFFFFF;
       PT_LOPROC   = $70000000;
@@ -988,7 +1008,7 @@ implementation
         dyn:=(aKind=esk_dyn);
         create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],sizeof(pint),sizeof(TElfSymbol));
         fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],1,0);
-        fstrsec.writestr(#0);
+        fstrsec.writezeros(1);
         writezeros(sizeof(TElfSymbol));
         symidx:=1;
         shinfo:=1;
@@ -1015,12 +1035,8 @@ implementation
         elfsym:TElfSymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
-        { symbolname, write the #0 separate to overcome 255+1 char not possible }
         if nameidx=0 then
-          begin
-            elfsym.st_name:=fstrsec.writestr(objsym.name);
-            fstrsec.writestr(#0);
-          end
+          elfsym.st_name:=fstrsec.writestr(objsym.name)
         else
           elfsym.st_name:=nameidx;
         elfsym.st_size:=objsym.size;
@@ -1033,7 +1049,7 @@ implementation
             end;
           AB_COMMON :
             begin
-              elfsym.st_value:=$10;            { ?? should not be hardcoded }
+              elfsym.st_value:=var_align(objsym.size);
               elfsym.st_info:=STB_GLOBAL shl 4;
               elfsym.st_shndx:=SHN_COMMON;
             end;
@@ -1182,7 +1198,7 @@ implementation
 
     procedure TElfObjectOutput.section_write_sh_string(p:TObject;arg:pointer);
       begin
-        TElfObjSection(p).shstridx:=shstrtabsect.writestr(TObjSection(p).name+#0);
+        TElfObjSection(p).shstridx:=shstrtabsect.writestr(TObjSection(p).name);
       end;
 
 
@@ -1190,7 +1206,7 @@ implementation
       begin
         with data do
          begin
-           shstrtabsect.writestr(#0);
+           shstrtabsect.writezeros(1);
            ObjSectionList.ForEachCall(@section_write_sh_string,nil);
          end;
       end;
@@ -1254,7 +1270,6 @@ implementation
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { insert filename as first in strtab }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
-           symtabsect.fstrsec.writestr(#0);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }

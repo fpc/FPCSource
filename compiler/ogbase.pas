@@ -207,8 +207,11 @@ interface
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:aword):aword;
+       { writes string plus zero byte }
        function  writestr(const s:string):aword;
        function  WriteZeros(l:longword):aword;
+       { writes content of s without null termination }
+       function  WriteBytes(const s:string):aword;
        procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);virtual;
        function  setmempos(mpos:qword):qword;
        procedure setDatapos(var dpos:aword);
@@ -707,6 +710,16 @@ implementation
 
 
     function TObjSection.writestr(const s:string):aword;
+      var
+        b: byte;
+      begin
+        result:=Write(s[1],length(s));
+        b:=0;
+        Write(b,1);
+      end;
+
+
+    function TObjSection.WriteBytes(const s:string):aword;
       begin
         result:=Write(s[1],length(s));
       end;

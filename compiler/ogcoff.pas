@@ -2428,7 +2428,6 @@ const pemagic : array[0..3] of byte = (
           idata2objsection.writereloc_internal(idata5objsection,0,sizeof(longint),RELOC_RVA);
           { idata7 }
           idata7objsection.writestr(basedllname);
-          idata7objsection.writezeros(1);
         end;
 
         procedure EndImport;
@@ -2480,7 +2479,6 @@ const pemagic : array[0..3] of byte = (
                     { index hint, function name, null terminator and align }
                     idata6objsection.write(ordint,2);
                     idata6objsection.writestr(afuncname);
-                    idata6objsection.writezeros(1);
                     idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
                   end;
                 objsec.writereloc_internal(idata6objsection,0,sizeof(longint),RELOC_RVA);
