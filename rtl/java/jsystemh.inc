@@ -354,7 +354,7 @@ function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external
 {$endif}
 
 {$ifdef FPC_HAS_INTERNAL_BSR}
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
 {$define FPC_HAS_INTERNAL_BSR_BYTE}
 {$define FPC_HAS_INTERNAL_BSR_WORD}
 {$define FPC_HAS_INTERNAL_BSR_DWORD}
@@ -408,6 +408,10 @@ function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
+function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];
+function PopCnt(Const AValue: Word): Word;[internproc:fpc_in_popcnt_x];
+function PopCnt(Const AValue : DWord): DWord;[internproc:fpc_in_popcnt_x];
+function PopCnt(Const AValue : QWord): QWord;[internproc:fpc_in_popcnt_x];
 
 {$ifndef FPUNONE}
 { float math routines }
