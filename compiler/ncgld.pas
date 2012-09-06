@@ -459,13 +459,12 @@ implementation
                  if assigned(left) then
                    begin
                      {$if sizeof(pint) = 4}
-                        location_reset_ref(location,LOC_CREFERENCE,OS_64,sizeof(pint));
+                        location_reset(location,LOC_CREGISTER,OS_64);
                      {$else} {$if sizeof(pint) = 8}
-                        location_reset_ref(location,LOC_CREFERENCE,OS_128,sizeof(pint));
+                        location_reset(location,LOC_CREGISTER,OS_128);
                      {$else}
                         internalerror(20020520);
                      {$endif} {$endif}
-                     tg.gethltemp(current_asmdata.CurrAsmList,methodpointertype,methodpointertype.size,tt_normal,location.reference);
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -479,26 +478,21 @@ implementation
                              { this is not possible for objects }
                              if is_object(left.resultdef) then
                                internalerror(200304234);
-                             hregister:=left.location.register;
+                             location.registerhi:=left.location.register;
                           end;
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
                           begin
-                             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                             location.registerhi:=cg.getaddressregister(current_asmdata.CurrAsmList);
                              if not is_object(left.resultdef) then
-                               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister)
+                               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.registerhi)
                              else
-                               cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,hregister);
+                               cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.registerhi);
                              location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
                         else
                           internalerror(200610311);
                      end;
-
-                     { store the class instance or classredef address }
-                     href:=location.reference;
-                     inc(href.offset,sizeof(pint));
-                     cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,href);
 
                      { virtual method ? }
                      if (po_virtualmethod in procdef.procoptions) and
@@ -519,24 +513,23 @@ implementation
                          if (left.resultdef.typ<>classrefdef) then
                            begin
                              { load vmt pointer }
-                             reference_reset_base(href,hregister,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
+                             reference_reset_base(href,location.registerhi,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                              hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                           end;
+                           end
+                         else
+                           hregister:=location.registerhi;
                          { load method address }
                          reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                         { ... and store it }
-                         cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
+                         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
                        end
                      else
                        begin
                          { load address of the function }
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-                         cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
+                         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
                        end;
                    end
                  else
