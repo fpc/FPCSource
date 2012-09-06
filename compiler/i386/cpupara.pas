@@ -127,23 +127,26 @@ unit cpupara;
           system_i386_darwin,
           system_i386_iphonesim :
             begin
-              case def.typ of
-                recorddef :
-                  begin
-                    size := def.size;
-                    if (size > 0) and
-                       (size <= 8) and
-                       { only if size is a power of 2 }
-                       ((size and (size-1)) = 0) then
+              if calloption in cdecl_pocalls then
+                begin
+                  case def.typ of
+                    recorddef :
                       begin
-                        result := false;
+                        size:=def.size;
+                        if (size>0) and
+                           (size<=8) and
+                           { only if size is a power of 2 }
+                           ((size and (size-1)) = 0) then
+                          begin
+                            result:=false;
+                            exit;
+                          end;
+                      end;
+                    procvardef:
+                      begin
+                        result:=false;
                         exit;
                       end;
-                  end;
-                procvardef:
-                  begin
-                    result:=false;
-                    exit;
                   end;
               end;
             end;
