@@ -691,12 +691,12 @@ var
   href: treference;
 begin
   if (cs_create_pic in current_settings.moduleswitches) then
-	begin
-	  reference_reset(href,sizeof(aint));
-	  href.symbol:=current_asmdata.RefAsmSymbol(s);
-	  a_loadaddr_ref_reg(list,href,NR_PIC_FUNC);
-	  list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
-	end
+    begin
+      reference_reset(href,sizeof(aint));
+      href.symbol:=current_asmdata.RefAsmSymbol(s);
+      a_loadaddr_ref_reg(list,href,NR_PIC_FUNC);
+      list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+    end
   else  
     list.concat(taicpu.op_sym(A_JAL,current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
@@ -876,10 +876,10 @@ begin
     tmpref.refaddr := addr_pic;
     if not (pi_needs_got in current_procinfo.flags) then
       internalerror(200501161);
-	if current_procinfo.got=NR_NO then
+    if current_procinfo.got=NR_NO then
       current_procinfo.got:=NR_GP;
     { for addr_pic NR_GP can be implicit or explicit }
-	if (href.refaddr=addr_pic) and (href.base=current_procinfo.got) then
+    if (href.refaddr=addr_pic) and (href.base=current_procinfo.got) then
       href.base:=NR_NO;
     tmpref.base := current_procinfo.got;
     list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
@@ -896,7 +896,7 @@ begin
       else
         href.base  := tmpreg;
     end;
-	if (href.base=NR_NO) and (href.offset=0) then
+    if (href.base=NR_NO) and (href.offset=0) then
       exit;
   end;
 
@@ -1422,7 +1422,7 @@ begin
     include(saveregs,RS_FRAME_POINTER_REG);
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
-	include(saveregs,RS_GP);
+    include(saveregs,RS_GP);
   lastintoffset:=LocalSize;
   framesave:=nil;
   gp_save:=nil;
@@ -1439,15 +1439,15 @@ begin
             framesave:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
           else if (reg=RS_R31) then
             ra_save:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
-		  else if (reg=RS_GP) and
+    	  else if (reg=RS_GP) and
                   (cs_create_pic in current_settings.moduleswitches) and
                   (pi_needs_got in current_procinfo.flags) then
-			gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
+    		gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
           else
             begin
               if cs_asm_source in current_settings.globalswitches then
                 helplist.concat(tai_comment.Create(strpnew(
-				  std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
+    			  std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
               helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
             end;
           inc(nextoffset,4);
@@ -1461,24 +1461,24 @@ begin
   list.concat(Taicpu.op_const_const(A_P_FMASK,Fmask,-(LocalSize-lastfpuoffset)));
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
-	begin
+    begin
       list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
-	end;
+    end;
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
 
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
       if cs_asm_source in current_settings.globalswitches then
-		begin
+    	begin
           list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size')));
           list.concat(tai_comment.Create(strpnew(' 0-'+
-				   tostr(TMIPSProcInfo(current_procinfo).maxpushedparasize)+' for called function parameters')));
+    			   tostr(TMIPSProcInfo(current_procinfo).maxpushedparasize)+' for called function parameters')));
           list.concat(tai_comment.Create(strpnew('Register save area at '+
-				   tostr(TMIPSProcInfo(current_procinfo).intregstart))));
+    			   tostr(TMIPSProcInfo(current_procinfo).intregstart))));
           list.concat(tai_comment.Create(strpnew('FPU register save area at '+
-				   tostr(TMIPSProcInfo(current_procinfo).floatregstart))));
-		end;
+    			   tostr(TMIPSProcInfo(current_procinfo).floatregstart))));
+    	end;
       list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
       if cs_asm_source in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('RA register saved.')));
@@ -1513,20 +1513,20 @@ begin
           list.concat(Taicpu.op_reg_reg_reg(A_SUBU,NR_FRAME_POINTER_REG,
             NR_STACK_POINTER_REG,NR_R9));
         end;
-	  { The instructions before are macros that can extend to multiple instructions,
-		the settings of R9 to -LocalSize surely does,
-		but the saving of RA and FP also might, and might
-		even use AT register, which is why we use R9 instead of AT here for -LocalSize }
+      { The instructions before are macros that can extend to multiple instructions,
+    	the settings of R9 to -LocalSize surely does,
+    	but the saving of RA and FP also might, and might
+    	even use AT register, which is why we use R9 instead of AT here for -LocalSize }
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
   if assigned(gp_save) then
-	begin
+    begin
       if cs_asm_source in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('GOT register saved.')));
       list.concat(Taicpu.op_none(A_P_SET_MACRO));
       list.concat(gp_save);
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
-	end;
+    end;
 
   with TMIPSProcInfo(current_procinfo) do
     begin
@@ -1857,16 +1857,16 @@ procedure TCGMIPS.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labeln
    procedure op_onrvmtmethodaddr;
      var
        href : treference;
-	   reg : tregister;
+       reg : tregister;
      begin
        if (procdef.extnumber=$ffff) then
          Internalerror(200006139);
        { call/jmp  vmtoffs(%eax) ; method offs }
        reference_reset_base(href, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
        if (cs_create_pic in current_settings.moduleswitches) then
-	     reg:=NR_PIC_FUNC
-	   else
-	     reg:=NR_VMT;
+         reg:=NR_PIC_FUNC
+       else
+         reg:=NR_VMT;
        cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, reg);
        list.concat(taicpu.op_reg(A_JR, reg));
      end;
