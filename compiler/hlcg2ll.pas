@@ -1200,11 +1200,15 @@ implementation
         LOC_CREGISTER :
           begin
             tg.gethltemp(list,size,size.size,tt_normal,r);
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+            if l.size in [OS_128,OS_S128] then
+              cg128.a_load128_loc_ref(list,l,r)
+            else
+{$else cpu64bitalu}
             if l.size in [OS_64,OS_S64] then
               cg64.a_load64_loc_ref(list,l,r)
             else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
               a_load_loc_ref(list,size,size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
@@ -1329,10 +1333,8 @@ implementation
     end;
 
   procedure thlcg2ll.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
-{$ifndef cpu64bitalu}
     var
       tmploc: tlocation;
-{$endif not cpu64bitalu}
     begin
       { Handle Floating point types differently
 
@@ -1355,19 +1357,28 @@ implementation
         LOC_REFERENCE,
         LOC_CREFERENCE :
           begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+            { use cg128 only if no "chained" location is used }
+            if (l.size in [OS_128,OS_S128]) and (cgpara.Size in [OS_128,OS_S128]) then
+              cg128.a_load128_loc_cgpara(list,l,cgpara)
+            else
+{$else cpu64bitalu}
             { use cg64 only for int64, not for 8 byte records }
             if (l.size in [OS_64,OS_S64]) and (cgpara.Size in [OS_64,OS_S64]) then
               cg64.a_load64_loc_cgpara(list,l,cgpara)
             else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
               begin
-{$ifndef cpu64bitalu}
+
                 { Only a_load_ref_cgpara supports multiple locations, when the
                   value is still a const or in a register then write it
                   to a reference first. This situation can be triggered
                   by typecasting an int64 constant to a record of 8 bytes }
+{$ifdef cpu64bitalu}
+                if l.size in [OS_128,OS_S128] then
+{$else cpu64bitalu}
                 if l.size in [OS_64,OS_S64] then
+{$endif cpu64bitalu}
                   begin
                     tmploc:=l;
                     location_force_mem(list,tmploc,vardef);
@@ -1379,7 +1390,6 @@ implementation
                       location_freetemp(list,tmploc);
                   end
                 else
-{$endif not cpu64bitalu}
                   a_load_loc_cgpara(list,vardef,l,cgpara);
               end;
           end;

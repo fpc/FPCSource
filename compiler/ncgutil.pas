@@ -1638,9 +1638,7 @@ implementation
       preplaceregrec = ^treplaceregrec;
       treplaceregrec = record
         old, new: tregister;
-{$ifndef cpu64bitalu}
         oldhi, newhi: tregister;
-{$endif not cpu64bitalu}
         ressym: tsym;
         { moved sym }
         sym : tsym;
@@ -1665,7 +1663,15 @@ implementation
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
                 begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                  { it's possible a 128 bit location was shifted and/xor typecasted }
+                  { in a 64 bit value, so only 1 register was left in the location }
+                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_128,OS_S128]) then
+                    if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi = rr^.oldhi) then
+                      tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi := rr^.newhi
+                    else
+                      exit;
+{$else cpu64bitalu}
                   { it's possible a 64 bit location was shifted and/xor typecasted }
                   { in a 32 bit value, so only 1 register was left in the location }
                   if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_64,OS_S64]) then
@@ -1673,7 +1679,7 @@ implementation
                       tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi := rr^.newhi
                     else
                       exit;
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                   tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register := rr^.new;
                   rr^.sym := tabstractnormalvarsym(tloadnode(n).symtableentry);
                   result := fen_norecurse_true;
@@ -1685,7 +1691,15 @@ implementation
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
                 begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                  { it's possible a 128 bit location was shifted and/xor typecasted }
+                  { in a 64 bit value, so only 1 register was left in the location }
+                  if (ttemprefnode(n).tempinfo^.location.size in [OS_128,OS_S128]) then
+                    if (ttemprefnode(n).tempinfo^.location.register128.reghi = rr^.oldhi) then
+                      ttemprefnode(n).tempinfo^.location.register128.reghi := rr^.newhi
+                    else
+                      exit;
+{$else cpu64bitalu}
                   { it's possible a 64 bit location was shifted and/xor typecasted }
                   { in a 32 bit value, so only 1 register was left in the location }
                   if (ttemprefnode(n).tempinfo^.location.size in [OS_64,OS_S64]) then
@@ -1693,7 +1707,7 @@ implementation
                       ttemprefnode(n).tempinfo^.location.register64.reghi := rr^.newhi
                     else
                       exit;
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                   ttemprefnode(n).tempinfo^.location.register := rr^.new;
                   result := fen_norecurse_true;
                 end;
@@ -1725,13 +1739,19 @@ implementation
         rr.old := n.location.register;
         rr.ressym := nil;
         rr.sym := nil;
-      {$ifndef cpu64bitalu}
         rr.oldhi := NR_NO;
-      {$endif not cpu64bitalu}
         case n.location.loc of
           LOC_CREGISTER:
             begin
-      {$ifndef cpu64bitalu}
+      {$ifdef cpu64bitalu}
+              if (n.location.size in [OS_128,OS_S128]) then
+                begin
+                  rr.oldhi := n.location.register128.reghi;
+                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                end
+              else
+      {$else cpu64bitalu}
               if (n.location.size in [OS_64,OS_S64]) then
                 begin
                   rr.oldhi := n.location.register64.reghi;
@@ -1739,7 +1759,7 @@ implementation
                   rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                 end
               else
-      {$endif not cpu64bitalu}
+      {$endif cpu64bitalu}
                 rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
             end;
           LOC_CFPUREGISTER:
@@ -1769,11 +1789,15 @@ implementation
           case n.location.loc of
             LOC_CREGISTER:
               begin
-      {$ifndef cpu64bitalu}
+      {$ifdef cpu64bitalu}
+                if (n.location.size in [OS_128,OS_S128]) then
+                  cg128.a_load128_reg_reg(list,n.location.register128,joinreg128(rr.new,rr.newhi))
+                else
+      {$else cpu64bitalu}
                 if (n.location.size in [OS_64,OS_S64]) then
                   cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
                 else
-      {$endif not cpu64bitalu}
+      {$endif cpu64bitalu}
                   cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
               end;
             LOC_CFPUREGISTER:
@@ -1789,7 +1813,16 @@ implementation
           end;
 
         { now that we've change the loadn/temp, also change the node result location }
-      {$ifndef cpu64bitalu}
+      {$ifdef cpu64bitalu}
+        if (n.location.size in [OS_128,OS_S128]) then
+          begin
+            n.location.register128.reglo := rr.new;
+            n.location.register128.reghi := rr.newhi;
+            if assigned(rr.sym) then
+              list.concat(tai_varloc.create128(rr.sym,rr.new,rr.newhi));
+          end
+        else
+      {$else cpu64bitalu}
         if (n.location.size in [OS_64,OS_S64]) then
           begin
             n.location.register64.reglo := rr.new;
@@ -1798,7 +1831,7 @@ implementation
               list.concat(tai_varloc.create64(rr.sym,rr.new,rr.newhi));
           end
         else
-      {$endif not cpu64bitalu}
+      {$endif cpu64bitalu}
           begin
             n.location.register := rr.new;
             if assigned(rr.sym) then
@@ -1825,14 +1858,21 @@ implementation
                     case localloc.loc of
                       LOC_CREGISTER :
                         if (pi_has_label in current_procinfo.flags) then
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                          if def_cgsize(vardef) in [OS_128,OS_S128] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register128.reglo);
+                              cg.a_reg_sync(list,localloc.register128.reghi);
+                            end
+                          else
+{$else cpu64bitalu}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);
                               cg.a_reg_sync(list,localloc.register64.reghi);
                             end
                           else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                             cg.a_reg_sync(list,localloc.register);
                       LOC_CFPUREGISTER,
                       LOC_CMMREGISTER:

@@ -738,6 +738,9 @@ interface
            varsym : tsym;
            constructor create(sym : tsym;loc : tregister);
            constructor create64(sym : tsym;loc,lochi : tregister);
+{$ifdef cpu64bitalu}
+           constructor create128(sym : tsym;loc,lochi : tregister);
+{$endif cpu64bitalu}
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
            procedure buildderefimpl;override;
@@ -917,7 +920,7 @@ implementation
       end;
 
 
-    constructor tai_varloc.create64(sym: tsym; loc: tregister;lochi : tregister);
+    constructor tai_varloc.create64(sym: tsym; loc, lochi: tregister);
       begin
         inherited Create;
         typ:=ait_varloc;
@@ -925,6 +928,18 @@ implementation
         newlocationhi:=lochi;
         varsym:=sym;
       end;
+
+
+{$ifdef cpu64bitalu}
+    constructor tai_varloc.create128(sym: tsym; loc, lochi: tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        newlocationhi:=lochi;
+        varsym:=sym;
+      end;
+{$endif cpu64bitalu}
 
 
     constructor tai_varloc.ppuload(t: taitype; ppufile: tcompilerppufile);

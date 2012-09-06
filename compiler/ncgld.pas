@@ -842,13 +842,18 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                  if left.location.size in [OS_128,OS_S128] then
+                    cg128.a_load128_reg_loc(current_asmdata.CurrAsmList,
+                      right.location.register128,left.location)
+                  else
+{$else cpu64bitalu}
                   { also OS_F64 in case of mmreg -> intreg }
                   if left.location.size in [OS_64,OS_S64,OS_F64] then
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,
                       right.location.register64,left.location)
                   else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                     hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,
@@ -1274,11 +1279,15 @@ implementation
                      end;
                    else
                      begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                       if hp.left.location.size in [OS_128,OS_S128] then
+                         cg128.a_load128_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
+                       else
+{$else cpu64bitalu}
                        if hp.left.location.size in [OS_64,OS_S64] then
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,eledef,eledef,hp.left.location,href);
                      end;
                  end;

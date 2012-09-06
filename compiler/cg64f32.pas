@@ -61,7 +61,6 @@ unit cg64f32;
         procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);override;
 
 
-
         procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
         procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
         procedure a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);override;
@@ -364,8 +363,6 @@ unit cg64f32;
         inc(tmpsref.ref.offset,4);
         hlcg.a_load_const_subsetref(list,u32inttype,aint(hi(a)),tmpsref);
       end;
-
-
 
 
     procedure tcg64f32.a_load64_subsetref_subsetref(list: TAsmlist; const fromsref, tosref: tsubsetreference);

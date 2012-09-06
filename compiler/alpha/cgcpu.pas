@@ -162,6 +162,7 @@ end;
 procedure create_codegen;
   begin
     cg:=tcgalpha.create;
+    cg128:=tcg128.create;
   end;
 
 end.

@@ -209,6 +209,9 @@ interface
       { A type to store register locations for 64 Bit values. }
 {$ifdef cpu64bitalu}
       tregister64 = tregister;
+      tregister128 = record
+         reglo,reghi : tregister;
+      end;
 {$else cpu64bitalu}
       tregister64 = record
          reglo,reghi : tregister;
@@ -594,6 +597,11 @@ implementation
           OS_NO,OS_8,OS_16,OS_NO,OS_32,OS_NO,OS_NO,OS_NO,OS_64
         );
       begin
+{$ifdef cpu64bitalu}
+        if a=16 then
+          result:=OS_128
+        else
+{$endif cpu64bitalu}
         if a>8 then
           result:=OS_NO
         else

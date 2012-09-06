@@ -363,6 +363,7 @@ unit cgcpu;
     procedure create_codegen;
       begin
         cg:=tcgx86_64.create;
+        cg128:=tcg128.create;
       end;
 
 end.

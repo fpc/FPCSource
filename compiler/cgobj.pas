@@ -458,7 +458,25 @@ unit cgobj;
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
        end;
 
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+    {  This class implements an abstract code generator class
+       for 128 Bit operations, it applies currently only to 64 Bit CPUs and supports only simple operations
+    }
+    tcg128 = class
+        procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
+        procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
+        procedure a_load128_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;
+        procedure a_load128_reg_loc(list : TAsmList;reg : tregister128;const l : tlocation);virtual;
+
+        procedure a_load128_loc_cgpara(list : TAsmList;const l : tlocation;const paraloc : TCGPara);virtual;
+        procedure a_load128_ref_cgpara(list: TAsmList; const r: treference;const paraloc: tcgpara);
+        procedure a_load128_reg_cgpara(list: TAsmList; reg: tregister128;const paraloc: tcgpara);
+    end;
+
+    { Creates a tregister128 record from 2 64 Bit registers. }
+    function joinreg128(reglo,reghi : tregister) : tregister128;
+
+{$else cpu64bitalu}
     {# @abstract(Abstract code generator for 64 Bit operations)
        This class implements an abstract code generator class
        for 64 Bit operations.
@@ -473,7 +491,6 @@ unit cgobj;
         procedure a_load64_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;abstract;
         procedure a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);virtual;abstract;
         procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);virtual;abstract;
-
 
         procedure a_load64_subsetref_reg(list : TAsmList; const sref: tsubsetreference; destreg: tregister64);virtual;abstract;
         procedure a_load64_reg_subsetref(list : TAsmList; fromreg: tregister64; const sref: tsubsetreference);virtual;abstract;
@@ -537,10 +554,13 @@ unit cgobj;
 {$endif cpu64bitalu}
 
     var
-       {# Main code generator class }
+       { Main code generator class }
        cg : tcg;
-{$ifndef cpu64bitalu}
-       {# Code generator class for all operations working with 64-Bit operands }
+{$ifdef cpu64bitalu}
+       { Code generator class for all operations working with 128-Bit operands }
+       cg128 : tcg128;
+{$else cpu64bitalu}
+       { Code generator class for all operations working with 64-Bit operands }
        cg64 : tcg64;
 {$endif cpu64bitalu}
 
@@ -555,7 +575,6 @@ implementation
        verbose,defutil,paramgr,symsym,
        tgobj,cutils,procinfo,
        ncgrtti;
-
 
 {*****************************************************************************
                             basic functionallity
@@ -2508,6 +2527,204 @@ implementation
             internalerror(2006082211);
         end;
       end;
+{$else cpu64bitalu}
+
+    function joinreg128(reglo, reghi: tregister): tregister128;
+      begin
+        result.reglo:=reglo;
+        result.reghi:=reghi;
+      end;
+
+
+    procedure splitparaloc128(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
+      var
+        paraloclo,
+        paralochi : pcgparalocation;
+      begin
+        if not(cgpara.size in [OS_128,OS_S128]) then
+          internalerror(2012090604);
+        if not assigned(cgpara.location) then
+          internalerror(2012090605);
+        { init lo/hi para }
+        cgparahi.reset;
+        if cgpara.size=OS_S128 then
+          cgparahi.size:=OS_S64
+        else
+          cgparahi.size:=OS_64;
+        cgparahi.intsize:=8;
+        cgparahi.alignment:=cgpara.alignment;
+        paralochi:=cgparahi.add_location;
+        cgparalo.reset;
+        cgparalo.size:=OS_64;
+        cgparalo.intsize:=8;
+        cgparalo.alignment:=cgpara.alignment;
+        paraloclo:=cgparalo.add_location;
+        { 2 parameter fields? }
+        if assigned(cgpara.location^.next) then
+          begin
+            { Order for multiple locations is always
+                paraloc^ -> high
+                paraloc^.next -> low }
+            if (target_info.endian=ENDIAN_BIG) then
+              begin
+                { paraloc^ -> high
+                  paraloc^.next -> low }
+                move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
+              end
+            else
+              begin
+                { paraloc^ -> low
+                  paraloc^.next -> high }
+                move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
+              end;
+          end
+        else
+          begin
+            { single parameter, this can only be in memory }
+            if cgpara.location^.loc<>LOC_REFERENCE then
+              internalerror(2012090606);
+            move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+            move(cgpara.location^,paralochi^,sizeof(paralochi^));
+            { for big endian low is at +8, for little endian high }
+            if target_info.endian = endian_big then
+              begin
+                inc(cgparalo.location^.reference.offset,8);
+                cgparalo.alignment:=newalignment(cgparalo.alignment,8);
+              end
+            else
+              begin
+                inc(cgparahi.location^.reference.offset,8);
+                cgparahi.alignment:=newalignment(cgparahi.alignment,8);
+              end;
+          end;
+        { fix size }
+        paraloclo^.size:=cgparalo.size;
+        paraloclo^.next:=nil;
+        paralochi^.size:=cgparahi.size;
+        paralochi^.next:=nil;
+      end;
+
+
+
+
+    procedure tcg128.a_load128_reg_reg(list: TAsmList; regsrc,
+      regdst: tregister128);
+      begin
+        cg.a_load_reg_reg(list,OS_64,OS_64,regsrc.reglo,regdst.reglo);
+        cg.a_load_reg_reg(list,OS_64,OS_64,regsrc.reghi,regdst.reghi);
+      end;
+
+
+    procedure tcg128.a_load128_reg_ref(list: TAsmList; reg: tregister128;
+      const ref: treference);
+      var
+        tmpreg: tregister;
+        tmpref: treference;
+      begin
+        if target_info.endian = endian_big then
+          begin
+            tmpreg:=reg.reglo;
+            reg.reglo:=reg.reghi;
+            reg.reghi:=tmpreg;
+          end;
+        cg.a_load_reg_ref(list,OS_64,OS_64,reg.reglo,ref);
+        tmpref := ref;
+        inc(tmpref.offset,8);
+        cg.a_load_reg_ref(list,OS_64,OS_64,reg.reghi,tmpref);
+      end;
+
+
+    procedure tcg128.a_load128_loc_ref(list: TAsmList; const l: tlocation;
+      const ref: treference);
+      begin
+        case l.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load128_reg_ref(list,l.register128,ref);
+          { not yet implemented:
+          LOC_CONSTANT :
+            a_load128_const_ref(list,l.value128,ref);
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_subsetref_ref(list,l.sref,ref); }
+          else
+            internalerror(201209061);
+        end;
+      end;
+
+
+    procedure tcg128.a_load128_reg_loc(list: TAsmList; reg: tregister128;
+      const l: tlocation);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load128_reg_ref(list,reg,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load128_reg_reg(list,reg,l.register128);
+          { not yet implemented:
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_reg_subsetref(list,reg,l.sref);
+          LOC_MMREGISTER, LOC_CMMREGISTER:
+            a_loadmm_intreg64_reg(list,l.size,reg,l.register); }
+          else
+            internalerror(201209062);
+        end;
+      end;
+
+
+    procedure tcg128.a_load128_loc_cgpara(list: TAsmList; const l: tlocation;
+      const paraloc: TCGPara);
+      begin
+        case l.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            a_load128_reg_cgpara(list,l.register128,paraloc);
+          {not yet implemented:
+          LOC_CONSTANT :
+            a_load128_const_cgpara(list,l.value64,paraloc);
+          }
+          LOC_CREFERENCE,
+          LOC_REFERENCE :
+            a_load128_ref_cgpara(list,l.reference,paraloc);
+          else
+            internalerror(2012090603);
+        end;
+      end;
+
+
+    procedure tcg128.a_load128_reg_cgpara(list : TAsmList;reg : tregister128;const paraloc : tcgpara);
+      var
+        tmplochi,tmploclo: tcgpara;
+      begin
+        tmploclo.init;
+        tmplochi.init;
+        splitparaloc128(paraloc,tmploclo,tmplochi);
+        cg.a_load_reg_cgpara(list,OS_64,reg.reghi,tmplochi);
+        cg.a_load_reg_cgpara(list,OS_64,reg.reglo,tmploclo);
+        tmploclo.done;
+        tmplochi.done;
+      end;
+
+
+    procedure tcg128.a_load128_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
+      var
+        tmprefhi,tmpreflo : treference;
+        tmploclo,tmplochi : tcgpara;
+      begin
+        tmploclo.init;
+        tmplochi.init;
+        splitparaloc128(paraloc,tmploclo,tmplochi);
+        tmprefhi:=r;
+        tmpreflo:=r;
+        if target_info.endian=endian_big then
+          inc(tmpreflo.offset,8)
+        else
+          inc(tmprefhi.offset,8);
+        cg.a_load_ref_cgpara(list,OS_64,tmprefhi,tmplochi);
+        cg.a_load_ref_cgpara(list,OS_64,tmpreflo,tmploclo);
+        tmploclo.done;
+        tmplochi.done;
+      end;
 {$endif cpu64bitalu}
 
     function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
@@ -2523,7 +2740,10 @@ implementation
       begin
         cg.free;
         cg:=nil;
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+        cg128.free;
+        cg128:=nil;
+{$else cpu64bitalu}
         cg64.free;
         cg64:=nil;
 {$endif cpu64bitalu}

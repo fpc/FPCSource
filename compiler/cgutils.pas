@@ -127,7 +127,10 @@ unit cgutils;
                      registeralias : tregister;
 {$endif m68k}
                     );
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                { overlay a 128 Bit register type }
+                2 : (register128 : tregister128);
+{$else cpu64bitalu}
                 { overlay a 64 Bit register type }
                 2 : (register64 : tregister64);
 {$endif cpu64bitalu}
