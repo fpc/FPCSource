@@ -818,6 +818,7 @@ implementation
         penalty,
         lastinspos,
         { increased for every data element > 4 bytes inserted }
+        currentsize,
         extradataoffset,
         limit: longint;
         curop : longint;
@@ -851,8 +852,9 @@ implementation
                           curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
                           if assigned(curdatatai) and
                             { move only if we're at the first reference of a label }
-                            (taicpu(curtai).oper[curop]^.ref^.offset=0) then
+                            not(tai_label(curdatatai).moved) then
                             begin
+                              tai_label(curdatatai).moved:=true;
                               { check if symbol already used. }
                               { if yes, reuse the symbol }
                               hp:=tai(curdatatai.next);

@@ -426,13 +426,13 @@ interface
           procedure derefimpl;override;
        end;
 
-	   tai_ent = class(tai)
-	      Name : string;
+       tai_ent = class(tai)
+          Name : string;
           Constructor Create (const ProcName : String);
        end;
 
        tai_ent_end = class(tai)
-	      Name : string;
+          Name : string;
           Constructor Create (const ProcName : String);
        end;
 
@@ -446,8 +446,13 @@ interface
 
        { Generates an assembler label }
        tai_label = class(tai)
-          is_global : boolean;
           labsym    : tasmlabel;
+          is_global : boolean;
+{$ifdef arm}
+          { set to true when the label has been moved by insertpcrelativedata to the correct location
+            so one label can be used multiple times }
+          moved     : boolean;
+{$endif arm}
           constructor Create(_labsym : tasmlabel);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
