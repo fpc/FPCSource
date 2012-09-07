@@ -2794,12 +2794,12 @@ end;
 
 Function TPackage.GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
 begin
-  result:=FixPath(GlobalDictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
 end;
 
 function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(GlobalDictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
 end;
 
 procedure TPackage.SetUnitsOutputDir(AValue: string);
@@ -3091,7 +3091,7 @@ begin
     PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
     if Installer.FPackageVariantSettings.Values[PackageVariants.Name]<>'' then
       PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name];
-    GlobalDictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
+    Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
     SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
     SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
     end;
