@@ -494,9 +494,6 @@ compiler/powerpc64/rppcsup.inc svneol=native#text/plain
 compiler/pp.lpi svneol=native#text/plain
 compiler/pp.pas svneol=native#text/plain
 compiler/pparautl.pas svneol=native#text/plain
-compiler/ppc.cfg -text
-compiler/ppc.conf -text
-compiler/ppc.dof -text
 compiler/ppc68k.lpi svneol=native#text/plain
 compiler/ppcarm.lpi svneol=native#text/plain
 compiler/ppcavr.lpi svneol=native#text/plain
