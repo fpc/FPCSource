@@ -465,6 +465,7 @@ unit cgobj;
     tcg128 = class
         procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
         procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
+        procedure a_load128_ref_reg(list : TAsmList;const ref : treference;reg : tregister128);virtual;
         procedure a_load128_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;
         procedure a_load128_reg_loc(list : TAsmList;reg : tregister128;const l : tlocation);virtual;
 
@@ -2633,6 +2634,41 @@ implementation
         tmpref := ref;
         inc(tmpref.offset,8);
         cg.a_load_reg_ref(list,OS_64,OS_64,reg.reghi,tmpref);
+      end;
+
+
+    procedure tcg128.a_load128_ref_reg(list: TAsmList; const ref: treference;
+      reg: tregister128);
+      var
+        tmpreg: tregister;
+        tmpref: treference;
+      begin
+        if target_info.endian = endian_big then
+          begin
+            tmpreg := reg.reglo;
+            reg.reglo := reg.reghi;
+            reg.reghi := tmpreg;
+          end;
+        tmpref := ref;
+        if (tmpref.base=reg.reglo) then
+         begin
+           tmpreg:=cg.getaddressregister(list);
+           cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+           tmpref.base:=tmpreg;
+         end
+        else
+         { this works only for the i386, thus the i386 needs to override  }
+         { this method and this method must be replaced by a more generic }
+         { implementation FK                                              }
+         if (tmpref.index=reg.reglo) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
+            tmpref.index:=tmpreg;
+          end;
+        cg.a_load_ref_reg(list,OS_64,OS_64,tmpref,reg.reglo);
+        inc(tmpref.offset,8);
+        cg.a_load_ref_reg(list,OS_64,OS_64,tmpref,reg.reghi);
       end;
 
 

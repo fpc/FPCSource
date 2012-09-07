@@ -205,7 +205,7 @@ implementation
                     if getsupreg(location.register64.reghi)<first_int_imreg then
                       cg.ungetcpuregister(list,location.register64.reghi);
                   end
-{$endif}
+{$endif cpu64bitalu}
                 else
                   if getsupreg(location.register)<first_int_imreg then
                     cg.ungetcpuregister(list,location.register);
@@ -317,7 +317,17 @@ implementation
                        end;
                      LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                         if opsize in [OS_128,OS_S128] then
+                           begin
+                             hlcg.location_force_reg(list,p.location,p.resultdef,hlcg.tcgsize2orddef(opsize),true);
+                             tmpreg:=cg.getintregister(list,OS_64);
+                             cg.a_op_reg_reg_reg(list,OP_OR,OS_64,p.location.register128.reglo,p.location.register128.reghi,tmpreg);
+                             location_reset(p.location,LOC_REGISTER,OS_64);
+                             p.location.register:=tmpreg;
+                             opsize:=OS_64;
+                           end;
+{$else cpu64bitalu}
                          if opsize in [OS_64,OS_S64] then
                            begin
                              hlcg.location_force_reg(list,p.location,p.resultdef,hlcg.tcgsize2orddef(opsize),true);
@@ -327,7 +337,7 @@ implementation
                              p.location.register:=tmpreg;
                              opsize:=OS_32;
                            end;
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                          cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
@@ -614,14 +624,21 @@ implementation
               location_reset(l,LOC_CREGISTER,l.size)
             else
               location_reset(l,LOC_REGISTER,l.size);
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+            if l.size in [OS_128,OS_S128,OS_F128] then
+              begin
+                l.register128.reglo:=cg.getintregister(list,OS_64);
+                l.register128.reghi:=cg.getintregister(list,OS_64);
+              end
+            else
+{$else cpu64bitalu}
             if l.size in [OS_64,OS_S64,OS_F64] then
               begin
                 l.register64.reglo:=cg.getintregister(list,OS_32);
                 l.register64.reghi:=cg.getintregister(list,OS_32);
               end
             else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
               l.register:=cg.getintregister(list,l.size);
           end;
       end;
@@ -773,7 +790,14 @@ implementation
         case loc.loc of
           LOC_CREGISTER:
             begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+              if loc.size in [OS_128,OS_S128] then
+                begin
+                  loc.register128.reglo:=cg.getintregister(list,OS_64);
+                  loc.register128.reghi:=cg.getintregister(list,OS_64);
+                end
+              else
+{$else cpu64bitalu}
               if loc.size in [OS_64,OS_S64] then
                 begin
                   loc.register64.reglo:=cg.getintregister(list,OS_32);
@@ -803,14 +827,21 @@ implementation
           begin
             { Allocate register already, to prevent first allocation to be
               inside a loop }
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+            if sym.initialloc.size in [OS_128,OS_S128] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register128.reglo);
+                cg.a_reg_sync(list,sym.initialloc.register128.reghi);
+              end
+            else
+{$else cpu64bitalu}
             if sym.initialloc.size in [OS_64,OS_S64] then
               begin
                 cg.a_reg_sync(list,sym.initialloc.register64.reglo);
                 cg.a_reg_sync(list,sym.initialloc.register64.reghi);
               end
             else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
              cg.a_reg_sync(list,sym.initialloc.register);
           end;
         sym.localloc:=sym.initialloc;
@@ -897,7 +928,53 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+              if (para.size in [OS_128,OS_S128,OS_F128]) and
+                 ({ in case of fpu emulation, or abi's that pass fpu values
+                    via integer registers }
+                  (vardef.typ=floatdef) or
+                   is_methodpointer(vardef)) then
+                begin
+                  case paraloc^.loc of
+                    LOC_REGISTER:
+                      begin
+                        if not assigned(paraloc^.next) then
+                          internalerror(200410104);
+                        if (target_info.endian=ENDIAN_BIG) then
+                          begin
+                            { paraloc^ -> high
+                              paraloc^.next -> low }
+                            unget_para(paraloc^);
+                            gen_alloc_regloc(list,destloc);
+                            { reg->reg, alignment is irrelevant }
+                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reghi,8);
+                            unget_para(paraloc^.next^);
+                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reglo,8);
+                          end
+                        else
+                          begin
+                            { paraloc^ -> low
+                              paraloc^.next -> high }
+                            unget_para(paraloc^);
+                            gen_alloc_regloc(list,destloc);
+                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reglo,8);
+                            unget_para(paraloc^.next^);
+                            cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reghi,8);
+                          end;
+                      end;
+                    LOC_REFERENCE:
+                      begin
+                        gen_alloc_regloc(list,destloc);
+                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,para.alignment);
+                        cg128.a_load128_ref_reg(list,href,destloc.register128);
+                        unget_para(paraloc^);
+                      end;
+                    else
+                      internalerror(2012090607);
+                  end
+                end
+              else
+{$else cpu64bitalu}
               if (para.size in [OS_64,OS_S64,OS_F64]) and
                  (is_64bit(vardef) or
                   { in case of fpu emulation, or abi's that pass fpu values
@@ -944,7 +1021,7 @@ implementation
                   end
                 end
               else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                 begin
                   if assigned(paraloc^.next) then
                     internalerror(200410105);
@@ -1520,14 +1597,21 @@ implementation
       begin
         case location.loc of
           LOC_CREGISTER:
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+            if location.size in [OS_128,OS_S128] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register128.reglo));
+                rv.intregvars.addnodup(getsupreg(location.register128.reghi));
+              end
+            else
+{$else cpu64bitalu}
             if location.size in [OS_64,OS_S64] then
               begin
                 rv.intregvars.addnodup(getsupreg(location.register64.reglo));
                 rv.intregvars.addnodup(getsupreg(location.register64.reghi));
               end
             else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
               rv.intregvars.addnodup(getsupreg(location.register));
           LOC_CFPUREGISTER:
             rv.fpuregvars.addnodup(getsupreg(location.register));

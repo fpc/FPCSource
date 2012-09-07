@@ -1359,7 +1359,7 @@ implementation
           begin
 {$ifdef cpu64bitalu}
             { use cg128 only if no "chained" location is used }
-            if (l.size in [OS_128,OS_S128]) and (cgpara.Size in [OS_128,OS_S128]) then
+            if is_methodpointer(cgpara.def) and (l.size in [OS_128,OS_S128]) and (cgpara.Size in [OS_128,OS_S128]) then
               cg128.a_load128_loc_cgpara(list,l,cgpara)
             else
 {$else cpu64bitalu}

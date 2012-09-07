@@ -359,7 +359,7 @@ implementation
                 reg_cgsize:=OS_32
             end
           else
-            internalerror(200303181);
+            internalerror(2003031801);
           end;
         end;
 

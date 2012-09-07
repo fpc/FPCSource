@@ -716,11 +716,15 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+                        if left.location.size in [OS_128,OS_S128] then
+                          cg128.a_load128_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register128)
+                        else
+{$else cpu64bitalu}
                         if left.location.size in [OS_64,OS_S64] then
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
