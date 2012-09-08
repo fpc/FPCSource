@@ -44,7 +44,7 @@ type
    pFMTID = pGUID;
 
    { Glue types, should be linked to the proper windows unit types}
-   Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
+   Size_t              = PTRUINT;       {??, probably, like Unix, typecastable to pointer?!?}
    OleChar             = WChar;
    LPOLESTR            = ^OLECHAR;
    POLECHAR            = LPOLESTR;
