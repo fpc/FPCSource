@@ -249,6 +249,7 @@ begin
   {$ifdef UNIX}
   FForkEvent:=nil;
   {$endif UNIX}
+  FPipeBufferSize := 1024;
   FEnvironment:=TStringList.Create;
   FParameters:=TStringList.Create;
 end;

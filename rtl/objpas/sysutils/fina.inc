@@ -156,6 +156,111 @@ end;
 {$endif HASEXPANDUNCFILENAME}
 
 
+function ExpandFileNameCase (const FileName: string; out MatchFound: TFilenameCaseMatch): string;
+var
+  SR: TSearchRec;
+  ItemsFound: byte;
+  FoundPath: string;
+  RestPos: SizeUInt;
+  Root: string;
+
+  procedure TryCase (const Base, Rest: string);
+  var
+    SR: TSearchRec;
+    RC: longint;
+    NextDirPos: SizeUInt;
+    NextPart: string;
+    NextRest: string;
+    SearchBase: string;
+  begin
+    NextDirPos := 1;
+    while (NextDirPos <= Length (Rest)) and
+                       not (Rest [NextDirPos] in (AllowDirectorySeparators)) do
+     Inc (NextDirPos);
+    NextPart := Copy (Rest, 1, Pred (NextDirPos));
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    if (Length (Rest) >= NextDirPos) and
+                           (Rest [NextDirPos] in AllowDirectorySeparators) then
+{$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    while (Length (Rest) >= NextDirPos) and
+                             (Rest [NextDirPos] in AllowDirectorySeparators) do
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+     Inc (NextDirPos);
+    NextRest := Copy (Rest, NextDirPos, Length (Rest) - Pred (NextDirPos));
+    if (Base = '') or (Base [Length (Base)] in AllowDirectorySeparators) then
+     SearchBase := Base
+    else
+     SearchBase := Base + DirectorySeparator;
+    RC := FindFirst (SearchBase + AllFilesMask, faAnyFile, SR);
+    while (RC = 0) and (ItemsFound < 2) do
+     begin
+      if UpCase (NextPart) = UpCase (SR.Name) then
+       begin
+        if Length (NextPart) = Length (Rest) then
+         begin
+          Inc (ItemsFound);
+          if ItemsFound = 1 then
+           FoundPath := SearchBase + SR.Name;
+         end
+        else if SR.Attr and faDirectory = faDirectory then
+         TryCase (SearchBase + SR.Name + DirectorySeparator, NextRest);
+       end;
+      if ItemsFound < 2 then
+       RC := FindNext (SR);
+     end;
+    FindClose (SR);
+  end;
+
+begin
+  Result := ExpandFileName (FileName);
+  if FileName = '' then
+   MatchFound := mkExactMatch
+  else
+   if (FindFirst (FileName, faAnyFile, SR) = 0) or
+(* Special check for a root directory or a directory with a trailing slash *)
+(* which are not found using FindFirst. *)
+                                                DirectoryExists (FileName) then
+    begin
+     MatchFound := mkExactMatch;
+     Result := ExtractFilePath (Result) + SR.Name;
+     FindClose (SR);
+    end
+   else
+    begin
+(* Better close the search handle here before starting the recursive search *)
+     FindClose (SR);
+     MatchFound := mkNone;
+     if FileNameCaseSensitive then
+      begin
+       ItemsFound := 0;
+       FoundPath := '';
+       RestPos := Length (ExtractFileDrive (FileName)) + 1;
+       if (Length (FileName) > RestPos) then
+        begin
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+         if (Length (FileName) >= RestPos) and
+                (FileName [RestPos] in AllowDirectorySeparators) then
+{$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
+         while (Length (FileName) >= RestPos) and
+                  (FileName [RestPos] in AllowDirectorySeparators) do
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+          Inc (RestPos);
+         Root := Copy (FileName, 1, Pred (RestPos));
+         TryCase (Root, Copy (FileName, RestPos, Length (FileName) - Length (Root)));
+         if ItemsFound > 0 then
+          begin
+           Result := ExpandFileName (FoundPath);
+           if ItemsFound = 1 then
+            MatchFound := mkSingleMatch
+           else
+            MatchFound := mkAmbiguous;
+          end;
+        end;
+      end;
+    end;
+end;
+
+
 Const
   MaxDirs = 129;
 
