@@ -449,11 +449,15 @@ Type
   private
     FActivePackageVariantName: string;
     FDefaultPackageVariantName: string;
+    FIsInheritable: boolean;
     FName: string;
+    FOwner: TPersistent;
     function GetActivePackageVariant: TPackageVariant;
     function GetDefaultPackageVariant: TPackageVariant;
     procedure SetActivePackageVariantName(AValue: string);
     procedure SetDefaultPackageVariantName(AValue: string);
+  protected
+    function GetOwner: TPersistent; override;
   public
     function Add(AName: String): TPackageVariant; overload; virtual;
     property Name: string read FName write FName;
@@ -461,6 +465,7 @@ Type
     property ActivePackageVariant: TPackageVariant read GetActivePackageVariant;
     property DefaultPackageVariantName: string read FDefaultPackageVariantName write SetDefaultPackageVariantName;
     property ActivePackageVariantName: string read FActivePackageVariantName write SetActivePackageVariantName;
+    property IsInheritable: boolean read FIsInheritable;
   end;
 
 
@@ -732,6 +737,8 @@ Type
     Function HaveOptions : Boolean;
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
     Function  GetUnitConfigOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Procedure InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
+    Function  GetPackageVariantsByName(AName: string): TPackageVariants;
     Procedure SetUnitsOutputDir(AValue: string);
     Function  GetPackageUnitInstallDir(ACPU:TCPU; AOS : TOS):String;
     Procedure SetPackageUnitInstallDir(AValue: string);
@@ -742,7 +749,7 @@ Type
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
-    function  AddPackageVariant(AName: string; ARecompileWhenNoMatch: boolean): TPackageVariants;
+    function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
     procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
     procedure SetDefaultPackageVariant;
     Property Version : String Read GetVersion Write SetVersion;
@@ -2196,6 +2203,11 @@ begin
   FDefaultPackageVariantName:=AValue;
 end;
 
+function TPackageVariants.GetOwner: TPersistent;
+begin
+  Result:=FOwner;
+end;
+
 function TPackageVariants.GetActivePackageVariant: TPackageVariant;
 begin
   result := ItemByName(ActivePackageVariantName) as TPackageVariant;
@@ -2766,6 +2778,8 @@ end;
 
 
 destructor TPackage.destroy;
+var
+  i: integer;
 begin
   FreeAndNil(FDictionary);
   FreeAndNil(FDependencies);
@@ -2781,6 +2795,11 @@ begin
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    if TPackageVariants(FPackageVariants.Items[i]).Owner=Self then
+      TPackageVariants(FPackageVariants.Items[i]).Free;
+    end;
   FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
@@ -2808,6 +2827,37 @@ end;
 function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
 begin
   result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+procedure TPackage.InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
+var
+  i: integer;
+  APackageVariants: TPackageVariants;
+begin
+  for i := 0 to ADependencyPackage.FPackageVariants.Count-1 do
+    begin
+      APackageVariants := TPackageVariants(ADependencyPackage.FPackageVariants[i]);
+      if APackageVariants.IsInheritable then
+        begin
+        if not assigned(GetPackageVariantsByName(APackageVariants.Name)) then
+          begin
+          FPackageVariants.Add(APackageVariants);
+          end;
+        end;
+    end;
+end;
+
+function TPackage.GetPackageVariantsByName(AName: string): TPackageVariants;
+var
+  i: Integer;
+begin
+  result := nil;
+  for i := 0 to FPackageVariants.Count-1 do
+    if SameText(TPackageVariants(FPackageVariants.Items[i]).Name, AName) then
+      begin
+      result := TPackageVariants(FPackageVariants.Items[i]);
+      break;
+      end;
 end;
 
 procedure TPackage.SetUnitsOutputDir(AValue: string);
@@ -3070,11 +3120,13 @@ begin
     end;
 end;
 
-function TPackage.AddPackageVariant(AName: string; ARecompileWhenNoMatch: boolean): TPackageVariants;
+function TPackage.AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
 begin
   result := TPackageVariants.Create(TPackageVariant);
   result.Name:=AName;
+  result.FIsInheritable:=AIsInheritable;
   FPackageVariants.Add(result);
+  result.FOwner := Self;
 end;
 
 procedure TPackage.ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
@@ -3118,6 +3170,7 @@ var
   PackageVariantsStr: string;
   PackageVarName: string;
   pv: TPackageVariants;
+  AnIsInheritable: boolean;
 begin
   L:=TStringList.Create;
   Try
@@ -3159,8 +3212,15 @@ begin
             if k > 0 then
               begin
                 PackageVarName:=copy(PackageVariantsStr,1,k-1);
+                if PackageVarName[Length(PackageVarName)]='*' then
+                  begin
+                  SetLength(PackageVarName,Length(PackageVarName)-1);
+                  AnIsInheritable:=true;
+                  end
+                else
+                  AnIsInheritable:=false;
                 PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
-                pv := AddPackageVariant(PackageVarName, false);
+                pv := AddPackageVariant(PackageVarName, AnIsInheritable);
 
                 k := pos(',',PackageVariantsStr);
                 while k>0 do
@@ -3228,7 +3288,10 @@ begin
       for i := 0 to FPackageVariants.Count-1 do
         begin
           PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
-          PackageVariantsStr:=PackageVariants.Name+':'+PackageVariants.DefaultPackageVariantName;
+          PackageVariantsStr:=PackageVariants.Name;
+          if PackageVariants.IsInheritable then
+            PackageVariantsStr:=PackageVariantsStr+'*';
+          PackageVariantsStr := PackageVariantsStr +':'+PackageVariants.DefaultPackageVariantName;
           for j := 0 to PackageVariants.Count-1 do
             if not sametext(PackageVariants.Items[j].Name, PackageVariants.DefaultPackageVariantName) then
               PackageVariantsStr:=PackageVariantsStr+','+PackageVariants.Items[j].Name;
@@ -5542,6 +5605,7 @@ begin
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
             Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+          APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
 end;
@@ -5583,6 +5647,7 @@ begin
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
             Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+          APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
 end;
@@ -5712,7 +5777,6 @@ begin
 
   GPathPrefix:=APackage.Directory;
   Try
-    APackage.SetDefaultPackageVariant;
     CreateOutputDir(APackage);
     APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
     APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
@@ -5853,6 +5917,8 @@ begin
       result := False;
       Exit;
     end;
+  APackage.SetDefaultPackageVariant;
+
   ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,True,False);
   If NeedsCompile(APackage) then
     result := True
