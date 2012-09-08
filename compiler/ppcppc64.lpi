@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
-    <Version Value="7"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
@@ -12,9 +12,11 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=".exe"/>
-      <Title Value="pp"/>
+      <Title Value="ppcppc64"/>
     </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
@@ -40,14 +42,14 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="powerpc64\pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="powerpc64\"/>
-      <OtherUnitFiles Value="powerpc64\;ppcgen\;systems\"/>
+      <IncludeFiles Value="powerpc64"/>
+      <OtherUnitFiles Value="powerpc64;ppcgen;systems"/>
       <UnitOutputDirectory Value="powerpc64\lazbuild"/>
     </SearchPaths>
     <Parsing>
@@ -55,13 +57,9 @@
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
         <CPPInline Value="False"/>
+        <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>
@@ -71,8 +69,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-dpowerpc64
-"/>
+      <CustomOptions Value="-dpowerpc64"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
