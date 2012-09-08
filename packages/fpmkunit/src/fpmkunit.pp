@@ -402,8 +402,11 @@ Type
   { TPackageDictionary }
 
   TPackageDictionary = Class(TDictionary)
+  private
+    FMasterDictionary: TDictionary;
   Public
     Function GetValue(const AName,Args : String) : String; override;
+    property MasterDictionary: TDictionary read FMasterDictionary write FMasterDictionary;
   end;
 
 
@@ -988,7 +991,7 @@ Type
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
-    Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
+    Procedure LogSearchPath(APackage: TPackage;const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
@@ -1176,6 +1179,7 @@ Type
 
   TInstallerClass = Class of TCustomInstaller;
   TDictionaryClass = Class of TDictionary;
+  TPackageDictionaryClass = Class of TPackageDictionary;
 
 Type
   TArchiveEvent = Procedure (Const AFileName : String; List : TStrings) of Object;
@@ -1183,7 +1187,7 @@ Type
 
 Var
   DictionaryClass : TDictionaryClass = TDictionary;
-  PackageDictionaryClass : TDictionaryClass = TPackageDictionary;
+  PackageDictionaryClass : TPackageDictionaryClass = TPackageDictionary;
   OnArchiveFiles : TArchiveEvent = Nil;
   ArchiveFilesProc : TArchiveProc = Nil;
 
@@ -1909,15 +1913,16 @@ begin
 end;
 
 
-function AddConditionalStrings(Dest : TStrings; Src : TConditionalStrings;ACPU:TCPU;AOS:TOS; Const APrefix : String='') : Integer ;
+function AddConditionalStrings(APackage: TPackage; Dest : TStrings; Src : TConditionalStrings;ACPU:TCPU;AOS:TOS; Const APrefix : String='') : Integer ;
 Var
   I : Integer;
   C : TConditionalString;
-  D : TDictionary;
+  D : TPackageDictionary;
   S : String;
 begin
   Result:=0;
   D := PackageDictionaryClass.Create(nil);
+  D.MasterDictionary := APackage.Dictionary;
   try
     D.AddVariable('CPU',CPUToString(ACPU));
     D.AddVariable('OS',OSToString(AOS));
@@ -2275,7 +2280,10 @@ begin
   I:=Flist.IndexOf(AName);
   If (I=-1) then
     begin
-      result := GlobalDictionary.GetValue(AName,Args);
+      if assigned(MasterDictionary) then
+        result := MasterDictionary.GetValue(AName,Args)
+      else
+        result := GlobalDictionary.GetValue(AName,Args);
       Exit;
     end;
   O:=Flist.Objects[I];
@@ -2812,7 +2820,7 @@ end;
 
 function TPackage.GetPackageUnitInstallDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(GlobalDictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
 end;
 
 procedure TPackage.SetPackageUnitInstallDir(AValue: string);
@@ -2837,7 +2845,7 @@ Var
 begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
-  AddConditionalStrings(List,CleanFiles,ACPU,AOS);
+  AddConditionalStrings(Self, List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, ACPU, AOS);
 end;
@@ -2850,7 +2858,7 @@ Var
   T : TTarget;
 begin
   if Types=[] then
-    AddConditionalStrings(List,InstallFiles,ACPU,AOS)
+    AddConditionalStrings(Self, List,InstallFiles,ACPU,AOS)
   else
     begin
       OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaults.OS));
@@ -4696,7 +4704,7 @@ begin
 end;
 
 
-Procedure TBuildEngine.LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
+procedure TBuildEngine.LogSearchPath(APackage: TPackage; const ASearchPathName: string; Path: TConditionalStrings; ACPU: TCPU; AOS: TOS);
 var
   S : String;
   I : Integer;
@@ -4710,7 +4718,7 @@ begin
         begin
           if S<>'' then
             S:=S+PathSeparator;
-          S:=S+GlobalDictionary.ReplaceStrings(C.Value)
+          S:=S+APackage.Dictionary.ReplaceStrings(C.Value)
         end;
     end;
   if S<>'' then
@@ -4757,7 +4765,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
   var
     SD,SF  : String;
   begin
-    LogSearchPath('package source',APackage.SourcePath,ACPU,AOS);
+    LogSearchPath(APackage,'package source',APackage.SourcePath,ACPU,AOS);
     SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
     SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
@@ -4782,8 +4790,8 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     D : TDependency;
     j : integer;
   begin
-    LogSearchPath('target include',T.IncludePath,ACPU,AOS);
-    LogSearchPath('package include',APackage.IncludePath,ACPU,AOS);
+    LogSearchPath(APackage,'target include',T.IncludePath,ACPU,AOS);
+    LogSearchPath(APackage,'package include',APackage.IncludePath,ACPU,AOS);
     for j:=0 to T.Dependencies.Count-1 do
       begin
         D:=T.Dependencies[j];
@@ -4827,7 +4835,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
   var
     SD,SF  : String;
   begin
-    LogSearchPath('package example',APackage.ExamplePath,ACPU,AOS);
+    LogSearchPath(APackage,'package example',APackage.ExamplePath,ACPU,AOS);
     SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
     SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
@@ -5058,8 +5066,8 @@ begin
   // Object Path
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
-  AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fo'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
@@ -5068,8 +5076,8 @@ begin
   L.Duplicates:=dupIgnore;
   AddDependencyUnitPaths(L,APackage);
   AddDependencyPaths(L,depUnit,ATarget);
-  AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fu'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
@@ -5077,8 +5085,8 @@ begin
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddDependencyPaths(L,depInclude,ATarget);
-  AddConditionalStrings(L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
