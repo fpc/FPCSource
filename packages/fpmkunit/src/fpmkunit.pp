@@ -209,6 +209,7 @@ Const
   AllMessages = [vlError,vlWarning,vlCommand,vlInfo];
 
 Type
+  TTargets = Class;
   { TNamedItem }
 
   TNamedItem = Class(TCollectionItem)
@@ -437,10 +438,12 @@ Type
   TPackageVariant = class(TNamedItem)
   private
     FOptions: TStrings;
+    FTargets: TTargets;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     property Options: TStrings read FOptions;
+    property Targets: TTargets read FTargets;
   end;
 
   { TPackageVariants }
@@ -534,6 +537,7 @@ Type
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
+    procedure AssignTo(Dest: TPersistent); override;
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
     Function HaveOptions : Boolean;
     procedure SetName(const AValue: String);override;
@@ -2184,12 +2188,14 @@ end;
 constructor TPackageVariant.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
+  FTargets := TTargets.Create(TTarget);
   FOptions := TStringList.Create;
 end;
 
 destructor TPackageVariant.Destroy;
 begin
   FOptions.Free;
+  FTargets.Free;
   inherited Destroy;
 end;
 
@@ -2231,10 +2237,7 @@ begin
   result := self.add as TPackageVariant;
   result.Name := AName;
   if FDefaultPackageVariantName='' then
-    begin
     FDefaultPackageVariantName:=AName;
-    FActivePackageVariantName:=AName;
-    end;
 end;
 
 {$endif HAS_UNIT_PROCESS}
@@ -3143,17 +3146,23 @@ end;
 
 procedure TPackage.SetDefaultPackageVariant;
 var
-  i: integer;
+  i,j: integer;
   PackageVariants: TPackageVariants;
 begin
   for i := 0 to FPackageVariants.Count-1 do
     begin
     PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
     if Installer.FPackageVariantSettings.Values[PackageVariants.Name]<>'' then
-      PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name];
+      PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name]
+    else
+      PackageVariants.ActivePackageVariantName:= PackageVariants.DefaultPackageVariantName;
     Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
     SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
     SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
+    // Do not add targets f the package is inerited
+    if PackageVariants.GetOwner=Self then
+      for j := 0 to PackageVariants.ActivePackageVariant.Targets.count -1 do
+        targets.add.assign(PackageVariants.ActivePackageVariant.Targets.items[j]);
     end;
 end;
 
@@ -6614,6 +6623,42 @@ begin
   FreeAndNil(FCommands);
   FreeAndNil(Foptions);
   inherited Destroy;
+end;
+
+procedure TTarget.AssignTo(Dest: TPersistent);
+var
+  DestTarget: TTarget;
+begin
+  if Dest is TTarget then
+    begin
+    DestTarget := TTarget(Dest);
+    DestTarget.Dependencies.Assign(Dependencies);
+    DestTarget.Commands.Assign(Commands);
+    DestTarget.FTargetState := FTargetState;
+    DestTarget.TargetType := TargetType;
+    DestTarget.CPUs := CPUs;
+    DestTarget.OSes := OSes;
+    DestTarget.Mode := Mode;
+    DestTarget.Options := Options;
+    DestTarget.Name :=  Name;
+    DestTarget.Extension:= Extension;
+    DestTarget.FPCTarget := FPCTarget;
+    DestTarget.FileType := FileType;
+    DestTarget.Directory := Directory;
+    DestTarget.ResourceStrings := ResourceStrings;
+    DestTarget.Install := Install;
+    DestTarget.FTargetSourceFileName := fTargetSourceFileName;
+    DestTarget.ObjectPath.Assign(ObjectPath);
+    DestTarget.UnitPath.Assign(UnitPath);
+    DestTarget.IncludePath.Assign(IncludePath);
+    DestTarget.FXML := FXML;
+    DestTarget.AfterCompile := AfterCompile;
+    DestTarget.BeforeCompile := BeforeCompile;
+    DestTarget.BeforeClean := BeforeCompile;
+    DestTarget.AfterClean := AfterClean;
+    end
+  else
+    inherited AssignTo(Dest);
 end;
 
 function TTarget.GetOptions: TStrings;
