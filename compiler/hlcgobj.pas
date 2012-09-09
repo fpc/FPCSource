@@ -3882,11 +3882,15 @@ implementation
          case tstaticvarsym(p).initialloc.loc of
            LOC_CREGISTER :
              begin
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+               if (tstaticvarsym(p).initialloc.size in [OS_128,OS_S128]) then
+                 cg128.a_load128_const_reg(TAsmList(arg),0,0,tstaticvarsym(p).initialloc.register128)
+               else
+{$else cpu64bitalu}
                if (tstaticvarsym(p).initialloc.size in [OS_64,OS_S64]) then
                  cg64.a_load64_const_reg(TAsmList(arg),0,tstaticvarsym(p).initialloc.register64)
                else
-{$endif not cpu64bitalu}
+{$endif cpu64bitalu}
                  a_load_const_reg(TAsmList(arg),tstaticvarsym(p).vardef,0,
                      tstaticvarsym(p).initialloc.register);
              end;

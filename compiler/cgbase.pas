@@ -283,6 +283,18 @@ interface
        tvarregable2tcgloc : array[tvarregable] of tcgloc = (LOC_VOID,
           LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER,LOC_CREGISTER);
 
+{$ifdef cpu64bitalu}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_128;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S128;
+{$else cpu64bitalu}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_64;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S64;
+{$endif cpu64bitalu}
+
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,

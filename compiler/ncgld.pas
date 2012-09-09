@@ -531,6 +531,15 @@ implementation
                          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
                        end;
+
+                     { to get methodpointers stored correctly, code and self register must be swapped on
+                       big endian targets }
+                     if target_info.endian=endian_big then
+                       begin
+                         hregister:=location.register;
+                         location.register:=location.registerhi;
+                         location.registerhi:=hregister;
+                       end;
                    end
                  else
                    begin

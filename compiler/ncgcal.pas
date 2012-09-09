@@ -890,7 +890,14 @@ implementation
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
               else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.register,pvreg)
+                begin
+                  { in case left is a method pointer and we are on a big endian target, then
+                    the method address is stored in registerhi }
+                  if (target_info.endian=endian_big) and (right.location.size in [OS_PAIR,OS_SPAIR]) then
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.registerhi,pvreg)
+                  else
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.register,pvreg);
+                end
               else
                 hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
