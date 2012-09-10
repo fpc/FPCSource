@@ -47,7 +47,7 @@ unit optcse;
 
     uses
       globtype,globals,
-      cclasses,
+      cutils,cclasses,
       verbose,
       nutils,
       procinfo,
@@ -104,7 +104,36 @@ unit optcse;
         result:=collectnodes(n,arg);
       end;
 
+
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
+
+      { when compiling a tree like
+            and
+            / \
+          and  C
+          / \
+         A   B
+        all expressions of B are available during evaluation of C. However considerung the whole expression,
+        values of B and C might not be available due to short boolean evaluation.
+
+        So recurseintobooleanchain detectes such chained and/or expressions and makes sub-expressions of B
+        available during the evaluation of C
+
+        firstleftend is later used to remove all sub expressions of B and C by storing the expression count
+        in the cse table after handling A
+      }
+      var
+        firstleftend : longint;
+      procedure recurseintobooleanchain(t : tnodetype;n : tnode);
+        begin
+          if (tbinarynode(n).left.nodetype=t) and is_boolean(tbinarynode(n).left.resultdef) then
+            recurseintobooleanchain(t,tbinarynode(n).left)
+          else
+            foreachnodestatic(pm_postprocess,tbinarynode(n).left,@collectnodes2,arg);
+          firstleftend:=min(plists(arg)^.nodelist.count,firstleftend);
+          foreachnodestatic(pm_postprocess,tbinarynode(n).right,@collectnodes2,arg);
+        end;
+
       var
         i,j : longint;
       begin
@@ -193,22 +222,21 @@ unit optcse;
                     break;
                   end;
               end;
-
-            { boolean and/or require a special handling: after evaluating the and/or node,
-              the expressions of the right side might not be available due to short boolean
-              evaluation, so after handling the right side, mark those expressions
-              as unavailable }
-            if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
-              begin
-                foreachnodestatic(pm_postprocess,taddnode(n).left,@collectnodes2,arg);
-                j:=plists(arg)^.nodelist.count;
-                foreachnodestatic(pm_postprocess,taddnode(n).right,@collectnodes2,arg);
-                for i:=j to plists(arg)^.nodelist.count-1 do
-                  DFASetExclude(plists(arg)^.avail,i);
-                result:=fen_norecurse_false;
-              end;
           end;
-      end;
+
+        { boolean and/or require a special handling: after evaluating the and/or node,
+          the expressions of the right side might not be available due to short boolean
+          evaluation, so after handling the right side, mark those expressions
+          as unavailable }
+        if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
+          begin
+            firstleftend:=high(longint);
+            recurseintobooleanchain(n.nodetype,n);
+            for i:=firstleftend to plists(arg)^.nodelist.count-1 do
+              DFASetExclude(plists(arg)^.avail,i);
+            result:=fen_norecurse_false;
+          end;
+       end;
 
 
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
