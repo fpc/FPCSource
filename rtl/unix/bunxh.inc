@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
-    The interface part of the baseunix unit.
+    The interface part of the baseunix unit for syscall based rtls.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -107,7 +107,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name 'FPC_SYSC_MMAP';
     Function  Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 
-    Function  FpGetEnv     (name : pChar): pChar;
+    Function  FpGetEnv (name : pChar): pChar; external name 'FPC_SYSC_FPGETENVPCHAR';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
     function FpGetRLimit(resource:cint;rlim:PRLimit):cint; external name 'FPC_SYSC_GETRLIMIT';

@@ -90,6 +90,7 @@ end;
   {$I syscall.inc}
   {$I sysnr.inc}
   {$I ossysc.inc}
+  {$I syscgen.inc}
 {$endif}
 
 

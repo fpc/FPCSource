@@ -8544,6 +8544,7 @@ rtl/unix/serial.pp svneol=native#text/plain
 rtl/unix/settimeo.inc svneol=native#text/plain
 rtl/unix/sockets.pp svneol=native#text/plain
 rtl/unix/syscall.pp svneol=native#text/plain
+rtl/unix/syscgen.inc svneol=native#text/plain
 rtl/unix/sysdir.inc svneol=native#text/plain
 rtl/unix/sysfile.inc svneol=native#text/plain
 rtl/unix/sysheap.inc svneol=native#text/plain
