@@ -833,7 +833,7 @@ Implementation
                         }
                         if (taicpu(p).oper[1]^.typ = top_const) and
                            (taicpu(hp1).opcode=A_STR) then
-                          while MatchInstruction(hp1, A_STR, [taicpu(p).condition], [PF_None]) and
+                          while MatchInstruction(hp1, A_STR, [taicpu(p).condition], []) and
                                 MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                                 GetNextInstruction(hp1, hp2) and
                                 MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
