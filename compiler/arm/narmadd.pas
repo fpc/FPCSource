@@ -286,39 +286,54 @@ interface
     procedure tarmaddnode.second_cmpsmallset;
       var
         tmpreg : tregister;
+        b: byte;
       begin
         pass_left_right;
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
+        if (not(nf_swapped in flags) and
+            (nodetype = lten)) or
+           ((nf_swapped in flags) and
+            (nodetype = gten)) then
+          swapleftright;
+
+        (* Try to keep right as a constant *)
+        if (right.location.loc <> LOC_CONSTANT) or
+          not(is_shifter_const(right.location.value, b)) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         case nodetype of
-          equaln:
-            begin
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
-              location.resflags:=F_EQ;
-            end;
+          equaln,
           unequaln:
             begin
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
-              location.resflags:=F_NE;
+              if right.location.loc = LOC_CONSTANT then
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
+              else
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+              if nodetype = equaln then
+                location.resflags:=F_EQ
+              else
+                location.resflags:=F_NE;
             end;
           lten,
           gten:
             begin
-              if (not(nf_swapped in flags) and
-                  (nodetype = lten)) or
-                 ((nf_swapped in flags) and
-                  (nodetype = gten)) then
-                swapleftright;
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
+              if right.location.loc = LOC_CONSTANT then
+                begin
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,left.location.register,right.location.value));
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,right.location.value));
+                end
+              else
+                begin
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
+                end;
               location.resflags:=F_EQ;
             end;
           else
