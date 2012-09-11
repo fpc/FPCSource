@@ -202,7 +202,7 @@ implementation
          begin
            if (not needs_finalization) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
-             varregable:=vr_intreg;
+             varregable:=vr_addr;
          end;
       end;
 
