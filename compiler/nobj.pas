@@ -333,22 +333,29 @@ implementation
                           automated header translation tools too complex.
 
                           The same goes for Java. }
-                        if not(oo_is_external in _class.objectoptions) then
-                          if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                          else
-                            MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                        { there may be a lot of these in auto-translated
-                          headers, so only calculate the fulltypename if
-                          the hint will be shown  }
-                        else if CheckVerbosity(V_Hint) then
-                          if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                          else
-                            MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+{$ifndef jvm}
+                        if hasequalpara then
+{$endif}
+                          begin
+                            if not(oo_is_external in _class.objectoptions) then
+                              if not is_objccategory(_class) then
+                                MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                              else
+                                MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            { there may be a lot of these in auto-translated
+                              headers, so only calculate the fulltypename if
+                              the hint will be shown  }
+                            else if CheckVerbosity(V_Hint) then
+                              if not is_objccategory(_class) then
+                                MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                              else
+                                MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+                          end;
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
-                        check_msg_str(vmtpd,pd);
+                        if not is_objc_class_or_protocol(_class) or
+                           hasequalpara then
+                          check_msg_str(vmtpd,pd);
                         if updatevalues then
                           begin
                             { in case of Java, copy the real name from the parent,

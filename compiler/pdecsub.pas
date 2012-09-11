@@ -2259,7 +2259,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERLOAD;
-      pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava];
+      pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava,pd_objcclass,pd_objcprot];
       handler  : @pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
