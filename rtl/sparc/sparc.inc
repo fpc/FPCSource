@@ -87,7 +87,11 @@ function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nos
     { flush register windows, so they are stored in the stack }
     ta      3
     ld [%o0+60],%o0
-    { add 8 to skip jmpl and delay slot }
+    { check if new %o0 register is zero }
+    subcc   %o0,0,%o0
+    be      .Lframezero
+    nop
+    { if not zero, add 8 to skip jmpl and delay slot }
     add %o0,8,%o0
 .Lframezero:
   end;
