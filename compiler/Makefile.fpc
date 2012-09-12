@@ -697,8 +697,10 @@ endif
 cycledep:
         $(MAKE) cycle USEDEPEND=1
 
+# extcycle should still work, but generates
+# lots of warnings, so ALLOW_WARNINGS=1 is required
 extcycle:
-        $(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG"
+        $(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG" ALLOW_WARNINGS=1
 
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
