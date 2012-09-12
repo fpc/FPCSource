@@ -1739,7 +1739,8 @@ implementation
         case n.nodetype of
           loadn:
             begin
-              if (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
+              if tloadnode(n).symtableentry.inheritsfrom(tabstractvarsym) and
+                 (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
                  not assigned(tloadnode(n).left) and
                  ((tloadnode(n).symtableentry <> rr^.ressym) or
                   not(fc_exit in flowcontrol)
