@@ -255,6 +255,11 @@ implementation
                            (
                              is_enum(rd) and
                              (treetyp in (order_theoretic_operators+[addn, subn]))
+                           ) or
+                           (
+                             { for enum definitions, see webtbs/tw22860.pp }
+                             is_integer(rd) and
+                             (treetyp in (order_theoretic_operators+bit_manipulation_operators+arithmetic_operators))
                            )
                          );
               end;
