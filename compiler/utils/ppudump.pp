@@ -492,7 +492,8 @@ type
 const
   symtblopts=ord(high(tsymtableoption))  + 1;
   symtblopt : array[1..symtblopts] of tsymtblopt=(
-     (mask:sto_has_helper;   str:'Has helper')
+     (mask:sto_has_helper;   str:'Has helper'),
+     (mask:sto_has_generic;  str:'Has generic')
   );
 var
   options : tsymtableoptions;

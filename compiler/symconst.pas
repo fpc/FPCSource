@@ -497,7 +497,8 @@ type
 
   { options for symtables }
   tsymtableoption = (
-    sto_has_helper        { contains at least one helper symbol }
+    sto_has_helper,       { contains at least one helper symbol }
+    sto_has_generic       { contains at least one generic symbol }
   );
   tsymtableoptions = set of tsymtableoption;
 

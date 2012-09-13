@@ -53,6 +53,7 @@ interface
        tstoreddef = class(tdef)
        protected
           typesymderef  : tderef;
+          procedure fillgenericparas(symtable:tsymtable);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -61,6 +62,9 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
+          { this list contains references to the symbols that make up the
+            generic parameters; the symbols are not owned by this list }
+          genericparas    : tfphashobjectlist;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -84,6 +88,10 @@ interface
           function is_fpuregable : boolean;
           { generics }
           procedure initgeneric;
+          { this function can be used to determine whether a def is really a
+            generic declaration or just a normal type declared inside another
+            generic }
+          function is_generic:boolean;inline;
        private
           savesize  : asizeuint;
        end;
@@ -1330,6 +1338,23 @@ implementation
                      TDEF (base class for definitions)
 ****************************************************************************}
 
+    procedure tstoreddef.fillgenericparas(symtable: tsymtable);
+      var
+        sym : tsym;
+        i : longint;
+      begin
+        if not assigned(symtable) then
+          internalerror(2012091201);
+        if [df_generic,df_specialization]*defoptions=[] then
+          exit;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            sym:=tsym(symtable.symlist[i]);
+            if sp_generic_para in sym.symoptions then
+              genericparas.Add(sym.name,sym);
+          end;
+      end;
+
     constructor tstoreddef.create(dt:tdeftyp);
       var
         insertstack : psymtablestackitem;
@@ -1341,6 +1366,7 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
+         genericparas:=tfphashobjectlist.create(false);
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1376,6 +1402,7 @@ implementation
             generictokenbuf.free;
             generictokenbuf:=nil;
           end;
+        genericparas.free;
         inherited destroy;
       end;
 
@@ -1386,6 +1413,7 @@ implementation
         buf  : array[0..255] of byte;
       begin
          inherited create(dt);
+         genericparas:=tfphashobjectlist.create(false);
          DefId:=ppufile.getlongint;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
@@ -1624,6 +1652,11 @@ implementation
        if assigned(generictokenbuf) then
          internalerror(200512131);
        generictokenbuf:=tdynamicarray.create(256);
+     end;
+
+   function tstoreddef.is_generic: boolean;
+     begin
+       result:=genericparas.count>0;
      end;
 
 
@@ -2946,6 +2979,7 @@ implementation
         tarraysymtable(symtable).deref;
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
+        fillgenericparas(symtable);
       end;
 
 
@@ -3489,6 +3523,8 @@ implementation
          else
            tstoredsymtable(symtable).deref;
 
+         fillgenericparas(symtable);
+
          { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
@@ -3687,6 +3723,7 @@ implementation
          tparasymtable(parast).deref;
          { recalculated parameters }
          calcparas;
+         fillgenericparas(parast);
       end;
 
 
@@ -5502,6 +5539,7 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         fillgenericparas(symtable);
          if objecttype=odt_helper then
            extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do

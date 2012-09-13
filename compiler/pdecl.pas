@@ -619,6 +619,9 @@ implementation
               { update the definition of the type }
               if assigned(hdef) then
                 begin
+                  if df_generic in hdef.defoptions then
+                    { flag parent symtables that they now contain a generic }
+                    hdef.owner.includeoption(sto_has_generic);
                   if assigned(hdef.typesym) then
                     begin
                       istyperenaming:=true;

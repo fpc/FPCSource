@@ -478,6 +478,11 @@ uses
                 tdef(item).ChangeOwner(specializest);
               end;
 
+            { if a generic was declared during the specialization we need to
+              flag the specialize symtable accordingly }
+            if sto_has_generic in tempst.tableoptions then
+              specializest.includeoption(sto_has_generic);
+
             tempst.free;
 
             specialization_done(state);
