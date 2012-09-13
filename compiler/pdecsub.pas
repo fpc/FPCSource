@@ -1401,10 +1401,13 @@ implementation
                   if is_class(pd.struct) or is_record(pd.struct) then
                     pd.returndef:=pd.struct
                   else
+                    if is_objectpascal_helper(pd.struct) then
+                      pd.returndef:=tobjectdef(pd.struct).extendeddef
+                    else
 {$ifdef CPU64bitaddr}
-                    pd.returndef:=bool64type;
+                      pd.returndef:=bool64type;
 {$else CPU64bitaddr}
-                    pd.returndef:=bool32type;
+                      pd.returndef:=bool32type;
 {$endif CPU64bitaddr}
                 end
               else

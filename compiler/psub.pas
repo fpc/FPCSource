@@ -293,6 +293,7 @@ implementation
         srsym        : tsym;
         para         : tcallparanode;
         newstatement : tstatementnode;
+        def          : tabstractrecorddef;
       begin
         result:=internalstatements(newstatement);
 
@@ -301,10 +302,18 @@ implementation
             { a constructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
-                if is_class(current_structdef) then
+                if is_class(current_structdef) or
+                    (
+                      is_objectpascal_helper(current_structdef) and
+                      is_class(tobjectdef(current_structdef).extendeddef)
+                    ) then
                   begin
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
+                    if is_objectpascal_helper(current_structdef) then
+                      def:=tabstractrecorddef(tobjectdef(current_structdef).extendeddef)
+                    else
+                      def:=current_structdef;
+                    srsym:=search_struct_member(def,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
