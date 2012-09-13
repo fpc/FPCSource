@@ -677,6 +677,7 @@ Type
     FBeforeManifest: TNotifyEvent;
     FBeforeManifestProc: TNotifyProcEvent;
     FBuildMode: TBuildMode;
+    FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
     FSupportBuildModes: TBuildModes;
@@ -770,6 +771,7 @@ Type
     Property IsFPMakeAddIn: boolean read FIsFPMakeAddIn write FIsFPMakeAddIn;
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
+    Property Flags: TStrings read FFlags;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -1427,6 +1429,7 @@ Const
   KeyChecksum = 'Checksum';
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
+  KeyFlags    = 'Flags';
   KeyAddIn    = 'FPMakeAddIn';
   KeySourcePath = 'SourcePath';
   KeyFPMakeOptions = 'FPMakeOptions';
@@ -2774,6 +2777,7 @@ begin
   FCPUs:=AllCPUs;
   FOSes:=AllOSes;
   FInstalledChecksum:=$ffffffff;
+  FFlags := TStringList.Create;
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
   FSupportBuildModes:=[bmBuildUnit, bmOneByOne];
@@ -2798,6 +2802,7 @@ begin
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
+  FreeAndNil(FFlags);
   for i := 0 to FPackageVariants.Count-1 do
     begin
     if TPackageVariants(FPackageVariants.Items[i]).Owner=Self then
@@ -3211,6 +3216,7 @@ begin
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
         IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
+        Flags.DelimitedText:=Values[KeyFlags];
 
         i := 1;
         repeat
@@ -3286,6 +3292,8 @@ begin
             end;
         end;
       Values[KeyDepends]:=Deps;
+      if Flags.Count>0 then
+        Values[KeyFlags]:=Flags.DelimitedText;
       if NeedLibC then
         Values[KeyNeedLibC]:='Y'
       else
