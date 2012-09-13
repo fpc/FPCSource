@@ -55,7 +55,7 @@ asm
 
   movl    %esp,%ebx               { Esp now points to the arguments }
   leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+4 }
-  andl    $0xfffffff8,%esp        { Align stack }
+  andl    $0xfffffff0,%esp        { Align stack to 16 bytes }
 
   {$ifdef FPC_PIC}
         pushl %ebx
@@ -118,7 +118,7 @@ end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
-
+  addl  $12, %esp  { align stack back to 16 bytes }
 .Lhaltproc:
   {$ifdef FPC_PIC}
         call  fpc_geteipasebxlocal

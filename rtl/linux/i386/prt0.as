@@ -45,7 +45,7 @@ _start:
         popl    %ecx                    /* Get argc in ecx */
         movl    %esp,%ebx               /* Esp now points to the arguments */
         leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
-        andl    $0xfffffff8,%esp        /* Align stack */
+        andl    $0xfffffff0,%esp        /* Align stack to 16 bytes */
 
         leal    operatingsystem_parameters,%edi
         stosl   /* Move the environment pointer */
