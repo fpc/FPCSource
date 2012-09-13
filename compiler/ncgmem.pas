@@ -368,7 +368,7 @@ implementation
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
-                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef)
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
                      begin
                        if (left.location.loc = LOC_REGISTER) then
