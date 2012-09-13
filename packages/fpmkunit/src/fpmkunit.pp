@@ -732,9 +732,7 @@ Type
     Procedure SetVersion(const V : string);
   Protected
     procedure SetName(const AValue: String);override;
-    procedure LoadUnitConfigFromFile(Const AFileName: String);
     procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
-    procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     property Dictionary: TDictionary read GetDictionary;
   Public
     constructor Create(ACollection: TCollection); override;
@@ -757,6 +755,8 @@ Type
     function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
     procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
     procedure SetDefaultPackageVariant;
+    procedure LoadUnitConfigFromFile(Const AFileName: String);
+    procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
     Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
