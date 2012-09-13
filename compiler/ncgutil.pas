@@ -2073,7 +2073,11 @@ implementation
               LOC_CONSTANT,
               LOC_CREGISTER,
               LOC_CREFERENCE,
-              LOC_REFERENCE:
+              LOC_REFERENCE,
+              LOC_CSUBSETREG,
+              LOC_SUBSETREG,
+              LOC_CSUBSETREF,
+              LOC_SUBSETREF:
                 begin
                   reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                   { todo: pass actual vmt pointer type to hlcg }
