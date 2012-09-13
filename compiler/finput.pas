@@ -545,7 +545,7 @@ uses
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
 {$ifdef heaptrc}
-         ppheap_register_file(f.name^,current_module.unit_index*100000+f.ref_index);
+         ppheap_register_file(f.path+f.name,current_module.unit_index*100000+f.ref_index);
 {$endif heaptrc}
       end;
 
@@ -642,7 +642,7 @@ uses
            begin
              exefilename:=p+OutputFileName;
              sharedlibfilename:=p+OutputFileName;
-             n:=ChangeFileExt(OutputFileName,''); { for mapfilename and dbgfilename } 
+             n:=ChangeFileExt(OutputFileName,''); { for mapfilename and dbgfilename }
            end
          else
            begin
