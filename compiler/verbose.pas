@@ -519,7 +519,11 @@ implementation
                       status.errorwarning:=false;
                     end
                   else
-                    status.errorwarning:=true;
+                    begin
+                      status.errorwarning:=true;
+                      { Enable writing of warnings, to avoid getting errors without any message }
+                      status.verbosity:=status.verbosity or V_Warning;
+                    end;
                 end;
               'n','N' :
                 begin
@@ -529,7 +533,12 @@ implementation
                       status.errornote:=false;
                     end
                   else
-                    status.errornote:=true;
+                    begin
+                      status.errornote:=true;
+                      { Enable writing of notes, to avoid getting errors without any message }
+                      status.verbosity:=status.verbosity or V_Note;
+                    end;
+                   
                 end;
               'h','H' :
                 begin
@@ -539,7 +548,11 @@ implementation
                       status.errorhint:=false;
                     end
                   else
-                    status.errorhint:=true;
+                    begin
+                      status.errorhint:=true;
+                      { Enable writing of hints, to avoid getting errors without any message }
+                      status.verbosity:=status.verbosity or V_Hint;
+                    end;
                 end;
            end;
          end;
