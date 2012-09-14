@@ -108,7 +108,6 @@ interface
          coffrelocpos : aword;
        public
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-         procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
          procedure writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
@@ -806,12 +805,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
-      begin
-        ObjRelocations.Add(TObjRelocation.createsymbolsize(ofs,p,symsize,reloctype));
-      end;
-
-
     procedure TCoffObjSection.writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);
       begin
         AddSectionReloc(size,aTarget,reltype);
@@ -877,7 +870,7 @@ const pemagic : array[0..3] of byte = (
                 RELOC_RELATIVE  :
                   begin
                     address:=address-objsec.mempos+relocval;
-                    if TCoffObjData(objsec.objdata).win32 then
+                    if win32 then
                       dec(address,objreloc.dataoffset+4);
                   end;
                 RELOC_RVA:
@@ -940,10 +933,10 @@ const pemagic : array[0..3] of byte = (
 {$endif x86_64}
                 RELOC_ABSOLUTE :
                   begin
-                    if oso_common in relocsec.secoptions then
+                    if (not win32) and assigned(objreloc.symbol) and
+                      (objreloc.symbol.bind=AB_COMMON) then
                       begin
-                        if (not win32) then
-                          dec(address,objreloc.orgsize);
+                        dec(address,objreloc.symbol.size);
                       end
                     else
                       begin
@@ -1584,7 +1577,7 @@ const pemagic : array[0..3] of byte = (
 
            p:=FSymTbl^[rel.sym];
            if assigned(p) then
-             s.addsymsizereloc(rel.address-s.mempos,p,p.size,rel_type)
+             s.addsymreloc(rel.address-s.mempos,p,rel_type)
            else
             begin
               InputError('Failed reading coff file, can''t resolve symbol of relocation');

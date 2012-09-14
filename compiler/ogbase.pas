@@ -126,8 +126,8 @@ interface
        oso_executable,
        { Never discard section }
        oso_keep,
-       { Special common symbols }
-       oso_common,
+       { Procedure Linkage Table specific treatment }
+       oso_plt,
        { Contains debug info and can be stripped }
        oso_debug,
        { Contains only strings }
@@ -178,7 +178,6 @@ interface
         typ        : TObjRelocationType;
         size       : byte;
         constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
-        constructor CreateSymbolSize(ADataOffset:aword;s:TObjSymbol;Aorgsize:aword;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
      end;
 
@@ -441,6 +440,7 @@ interface
         FExternalObjSymbols,
         FCommonObjSymbols   : TFPObjectList;
         FProvidedObjSymbols : TFPObjectList;
+        FIndirectObjSymbols : TFPObjectList;
         FEntryName          : string;
         FExeVTableList     : TFPObjectList;
         { Objects }
@@ -524,6 +524,7 @@ interface
         property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
         property ExternalObjSymbols:TFPObjectList read FExternalObjSymbols;
         property CommonObjSymbols:TFPObjectList read FCommonObjSymbols;
+        property IndirectObjSymbols:TFPObjectList read FIndirectObjSymbols;
         property ExeVTableList:TFPObjectList read FExeVTableList;
         property EntryName:string read FEntryName write FEntryName;
         property ImageBase:aword read FImageBase write FImageBase;
@@ -623,18 +624,6 @@ implementation
         DataOffset:=ADataOffset;
         Symbol:=s;
         OrgSize:=0;
-        ObjSection:=nil;
-        Typ:=Atyp;
-      end;
-
-
-    constructor TObjRelocation.CreateSymbolSize(ADataOffset:aword;s:TObjSymbol;Aorgsize:aword;Atyp:TObjRelocationType);
-      begin
-        if not assigned(s) then
-          internalerror(200603035);
-        DataOffset:=ADataOffset;
-        Symbol:=s;
-        OrgSize:=Aorgsize;
         ObjSection:=nil;
         Typ:=Atyp;
       end;
@@ -1625,6 +1614,7 @@ implementation
         FExternalObjSymbols:=TFPObjectList.Create(false);
         FCommonObjSymbols:=TFPObjectList.Create(false);
         FProvidedObjSymbols:=TFPObjectList.Create(false);
+        FIndirectObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
@@ -1647,6 +1637,7 @@ implementation
         UnresolvedExeSymbols.free;
         ExternalObjSymbols.free;
         FProvidedObjSymbols.free;
+        FIndirectObjSymbols.free;
         CommonObjSymbols.free;
         ExeVTableList.free;
         FExeSectionList.free;
@@ -1703,8 +1694,6 @@ implementation
         AddObjData(internalObjData);
         { Common Data section }
         commonObjSection:=internalObjData.createsection(sec_bss,'');
-        { setting SecOptions acts as 'include' }
-        commonObjSection.SecOptions:=[oso_common];
       end;
 
 
@@ -2604,15 +2593,22 @@ implementation
           Fixing up symbols is done in the following steps:
            1. Update common references
            2. Update external references
+
+           Symbols with objsection<>nil are removed from the lists,
+           remaining ones can be processed later by calling this method again.
         }
 
-        { Step 1, Update commons }
+        { Step 1, Update commons. Preserve the original symbol size and bind,
+          this is needed for correct relocation of DJCOFF files. }
         for i:=0 to CommonObjSymbols.count-1 do
           begin
             objsym:=TObjSymbol(CommonObjSymbols[i]);
             if objsym.bind<>AB_COMMON then
               internalerror(200606241);
-            UpdateSymbol(objsym);
+
+            objsym.ObjSection:=objsym.ExeSymbol.ObjSymbol.ObjSection;
+            objsym.offset:=objsym.ExeSymbol.ObjSymbol.offset;
+            objsym.typ:=objsym.ExeSymbol.ObjSymbol.typ;
           end;
 
         { Step 2, Update externals }
@@ -2622,7 +2618,15 @@ implementation
             if not (objsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
               internalerror(200606242);
             UpdateSymbol(objsym);
+            { Collect symbols that resolve to indirect functions,
+              they will need additional target-specific processing. }
+            if objsym.typ=AT_GNU_IFUNC then
+              IndirectObjSymbols.Add(objsym)
+            else if assigned(objsym.objsection) then
+              ExternalObjSymbols[i]:=nil;
           end;
+        CommonObjSymbols.Clear;
+        ExternalObjSymbols.Pack;
       end;
 
 
