@@ -872,7 +872,7 @@ end;
 {****************************************************************************}
 
 {$ifdef UNICODE}
-procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
+procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
     if Res=0 then
@@ -889,19 +889,19 @@ procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PWideChar
     SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
-constructor TResourceStream.Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
+constructor TResourceStream.Create(Instance: TFPResourceHMODULE; const ResName: WideString; ResType: PWideChar);
   begin
     inherited create;
     Initialize(Instance,PWideChar(ResName),ResType,False);
   end;
-constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
+constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
   begin
     inherited create;
     Initialize(Instance,PWideChar(ResID),ResType,True);
   end;
 {$else UNICODE}
 
-procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
+procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
     if Res=0 then
@@ -918,12 +918,12 @@ procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar; Na
     SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
-constructor TResourceStream.Create(Instance: THandle; const ResName: string; ResType: PChar);
+constructor TResourceStream.Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PChar);
   begin
     inherited create;
     Initialize(Instance,pchar(ResName),ResType,False);
   end;
-constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
+constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PChar);
   begin
     inherited create;
     Initialize(Instance,pchar(PtrInt(ResID)),ResType,True);

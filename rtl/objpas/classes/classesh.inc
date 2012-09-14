@@ -1015,10 +1015,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: WideString; ResType: PWideChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
     destructor Destroy; override;
   end;
 {$else}
@@ -1026,10 +1026,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: string; ResType: PChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PChar);
     destructor Destroy; override;
   end;
 {$endif UNICODE}
