@@ -144,7 +144,7 @@ begin
       prev_frame:=get_caller_frame(curr_addr, curr_frame);
 {$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
       except
-        prev_frame:=nil;
+        halt(217);
       end;
 {$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
       while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
@@ -154,12 +154,12 @@ begin
           try
             caller_addr := get_caller_addr(curr_frame, curr_addr);
           except
-            caller_addr := nil;
+            halt(217);
           end;
           try
             caller_frame := get_caller_frame(curr_frame, curr_addr);
           except
-            caller_frame := nil;
+            halt(217);
           end;
 {$else not FPC_CHECK_GET_CALLER_EXCEPTIONS}
           caller_addr := get_caller_addr(curr_frame, curr_addr);
