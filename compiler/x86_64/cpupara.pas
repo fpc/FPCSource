@@ -342,6 +342,7 @@ unit cpupara;
         i,
         words,
         num: longint;
+        checkalignment: boolean;
       begin
         result:=init_aggregate_classification(def,varspez,words,classes);
         if (words=0) then
@@ -354,6 +355,7 @@ unit cpupara;
               continue;
             vs:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[i]);
             num:=-1;
+            checkalignment:=true;
             if not tabstractrecordsymtable(tabstractrecorddef(def).symtable).is_packed then
               begin
                 new_byte_offset:=byte_offset+vs.fieldoffset;
@@ -363,11 +365,25 @@ unit cpupara;
               begin
                 new_byte_offset:=byte_offset+vs.fieldoffset div 8;
                 if (vs.vardef.typ in [orddef,enumdef]) then
-                  { calculate the number of bytes spanned by
-                    this bitpacked field }
-                  size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8)
+                  begin
+                    { calculate the number of bytes spanned by
+                      this bitpacked field }
+                    size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
+                    { our bitpacked fields are interpreted as always being
+                      aligned, because unlike in C we don't have char:1, int:1
+                      etc (so everything is basically a char:x) }
+                    checkalignment:=false;
+                  end
                 else
-                  size:=vs.vardef.size
+                  size:=vs.vardef.size;
+              end;
+            { If [..] an object [..] contains unaligned fields, it has class
+              MEMORY }
+            if checkalignment and
+               (align(new_byte_offset,vs.vardef.structalignment)<>new_byte_offset) then
+              begin
+                result:=0;
+                exit;
               end;
             num:=classify_aggregate_element(vs.vardef,varspez,size,classes,new_byte_offset);
             if (num=0) then
@@ -413,6 +429,13 @@ unit cpupara;
             begin
               { size does not change }
               new_byte_offset:=byte_offset+i*elesize;
+              { If [..] an object [..] contains unaligned fields, it has class
+                MEMORY }
+              if align(new_byte_offset,def.alignment)<>new_byte_offset then
+                begin
+                  result:=0;
+                  exit;
+                end;
             end
           else
             begin
