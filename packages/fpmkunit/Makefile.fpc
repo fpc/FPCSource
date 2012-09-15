@@ -69,7 +69,7 @@ $(TARGET_UNITDIRBS):
 bootstrap:	$(TARGET_UNITDIRBS)
 	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS)
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) $(FPCMAKEOPT) -Fu$(TARGET_UNITDIRBS)
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) $(FPCMAKEOPT) -Fu$(TARGET_UNITDIRBS) $(OPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
 smart:	fpmake

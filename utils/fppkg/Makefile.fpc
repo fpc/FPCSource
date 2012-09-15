@@ -42,7 +42,7 @@ FPMAKE_OPT+=-bu
 .NOTPARALLEL:
 
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
 smart:	fpmake
