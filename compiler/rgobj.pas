@@ -1606,9 +1606,9 @@ unit rgobj;
     procedure trgobj.generate_interference_graph(list:TAsmList;headertai:tai);
       var
         p : tai;
-{$ifdef EXTDEBUG}
+{$if defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         i : integer;
-{$endif EXTDEBUG}
+{$endif defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         supreg : tsuperregister;
       begin
         { All allocations are available. Now we can generate the
@@ -1630,19 +1630,23 @@ unit rgobj;
                         ra_alloc :
                           begin
                             live_registers.add(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
                               write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
+{$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
                           end;
                         ra_dealloc :
                           begin
                             live_registers.delete(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
                               write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
+{$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
                           end;
                       end;
