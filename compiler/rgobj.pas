@@ -171,7 +171,6 @@ unit rgobj;
         { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
-        function  get_alias(n:Tsuperregister):Tsuperregister;
         function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
@@ -208,9 +207,6 @@ unit rgobj;
         extended_backwards,
         backwards_was_first : tbitset;
 
-{$ifdef EXTDEBUG}
-        procedure writegraph(loopidx:longint);
-{$endif EXTDEBUG}
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
         { Prepare the register colouring.}
@@ -236,7 +232,6 @@ unit rgobj;
         procedure add_worklist(u:Tsuperregister);
         function adjacent_ok(u,v:Tsuperregister):boolean;
         function conservative(u,v:Tsuperregister):boolean;
-        procedure combine(u,v:Tsuperregister);
         procedure coalesce;
         procedure freeze_moves(u:Tsuperregister);
         procedure freeze;
@@ -249,6 +244,13 @@ unit rgobj;
         procedure set_live_end(reg : tsuperregister;t : tai);
         function get_live_end(reg : tsuperregister) : tai;
        public
+{$ifdef EXTDEBUG}
+        procedure writegraph(loopidx:longint);
+{$endif EXTDEBUG}
+        procedure combine(u,v:Tsuperregister);
+        { set v as an alias for u }
+        procedure set_alias(u,v:Tsuperregister);
+        function  get_alias(n:Tsuperregister):Tsuperregister;
         property live_range_direction: TRADirection read int_live_range_direction write set_live_range_direction;
         property live_start[reg : tsuperregister]: tai read get_live_start write set_live_start;
         property live_end[reg : tsuperregister]: tai read get_live_end write set_live_end;
@@ -543,7 +545,8 @@ unit rgobj;
           ungetcpuregister(list,newreg(regtype,i,defaultsub));
     end;
 
-
+    const
+      rtindex : longint = 0;
     procedure trgobj.do_register_allocation(list:TAsmList;headertai:tai);
       var
         spillingcounter:byte;
@@ -553,6 +556,10 @@ unit rgobj;
         insert_regalloc_info_all(list);
         ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
+{$ifdef DEBUG_SSA}
+        writegraph(rtindex);
+{$endif DEBUG_SSA}
+        inc(rtindex);
         { Don't do the real allocation when -sr is passed }
         if (cs_no_regalloc in current_settings.globalswitches) then
           exit;
@@ -649,12 +656,12 @@ unit rgobj;
       writeln(f,'Interference graph');
       writeln(f);
       write(f,'    ');
-      for i:=0 to 15 do
+      for i:=0 to maxreg div 16 do
         for j:=0 to 15 do
           write(f,hexstr(i,1));
       writeln(f);
       write(f,'    ');
-      for i:=0 to 15 do
+      for i:=0 to maxreg div 16 do
         write(f,'0123456789ABCDEF');
       writeln(f);
       for i:=0 to maxreg-1 do
@@ -895,7 +902,7 @@ unit rgobj;
               spillworklist.add(n)
             else if move_related(n) then
               freezeworklist.add(n)
-            else
+            else if not(ri_coalesced in flags) then
               simplifyworklist.add(n);
           end;
       sort_simplify_worklist;
@@ -1093,6 +1100,16 @@ unit rgobj;
               inc(k);
           end;
       conservative:=(k<usable_registers_cnt);
+    end;
+
+    procedure trgobj.set_alias(u,v:Tsuperregister);
+
+    begin
+      include(reginfo[v].flags,ri_coalesced);
+      if reginfo[v].alias<>0 then
+        internalerror(200712291);
+      reginfo[v].alias:=get_alias(u);
+      coalescednodes.add(v);
     end;
 
 
@@ -1613,11 +1630,19 @@ unit rgobj;
                         ra_alloc :
                           begin
                             live_registers.add(supreg);
+                            write(live_registers.length,'  ');
+                            for i:=0 to live_registers.length-1 do
+                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                            writeln;
                             add_edges_used(supreg);
                           end;
                         ra_dealloc :
                           begin
                             live_registers.delete(supreg);
+                            write(live_registers.length,'  ');
+                            for i:=0 to live_registers.length-1 do
+                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                            writeln;
                             add_edges_used(supreg);
                           end;
                       end;
@@ -1743,6 +1768,11 @@ unit rgobj;
                 with Taicpu(p) do
                   begin
                     current_filepos:=fileinfo;
+                    {For speed reasons, get_alias isn't used here, instead,
+                     assign_colours will also set the colour of coalesced nodes.
+                     If there are registers with colour=0, then the coalescednodes
+                     list probably doesn't contain these registers, causing
+                     assign_colours not to do this properly.}
                     for i:=0 to ops-1 do
                       with oper[i]^ do
                         case typ of
