@@ -435,6 +435,7 @@ Type
 
   { TPackageVariant }
 
+  TPackage = Class;
   TPackageVariant = class(TNamedItem)
   private
     FOptions: TStrings;
@@ -453,17 +454,16 @@ Type
     FActivePackageVariantName: string;
     FDefaultPackageVariantName: string;
     FIsInheritable: boolean;
+    FMasterPackage: TPackage;
     FName: string;
-    FOwner: TPersistent;
     function GetActivePackageVariant: TPackageVariant;
     function GetDefaultPackageVariant: TPackageVariant;
     procedure SetActivePackageVariantName(AValue: string);
     procedure SetDefaultPackageVariantName(AValue: string);
-  protected
-    function GetOwner: TPersistent; override;
   public
     function Add(AName: String): TPackageVariant; overload; virtual;
     property Name: string read FName write FName;
+    property MasterPackage: TPackage read FMasterPackage;
     property DefaultPackageVariant: TPackageVariant read GetDefaultPackageVariant;
     property ActivePackageVariant: TPackageVariant read GetActivePackageVariant;
     property DefaultPackageVariantName: string read FDefaultPackageVariantName write SetDefaultPackageVariantName;
@@ -752,7 +752,7 @@ Type
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
-    function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+    Procedure AddPackageVariant(APackageVariant: TPackageVariants);
     procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
     procedure SetDefaultPackageVariant;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
@@ -1105,6 +1105,7 @@ Type
     FLogLevels : TVerboseLevels;
     FFPMakeOptionsString: string;
     FPackageVariantSettings: TStrings;
+    FPackageVariants: TFPList;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -1125,6 +1126,7 @@ Type
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
+    Function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
     Function Run : Boolean;
     Property FPMakeOptionsString: string read FFPMakeOptionsString;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
@@ -2212,11 +2214,6 @@ begin
   FDefaultPackageVariantName:=AValue;
 end;
 
-function TPackageVariants.GetOwner: TPersistent;
-begin
-  Result:=FOwner;
-end;
-
 function TPackageVariants.GetActivePackageVariant: TPackageVariant;
 begin
   result := ItemByName(ActivePackageVariantName) as TPackageVariant;
@@ -2803,11 +2800,6 @@ begin
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
   FreeAndNil(FFlags);
-  for i := 0 to FPackageVariants.Count-1 do
-    begin
-    if TPackageVariants(FPackageVariants.Items[i]).Owner=Self then
-      TPackageVariants(FPackageVariants.Items[i]).Free;
-    end;
   FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
@@ -3128,13 +3120,11 @@ begin
     end;
 end;
 
-function TPackage.AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+procedure TPackage.AddPackageVariant(APackageVariant: TPackageVariants);
 begin
-  result := TPackageVariants.Create(TPackageVariant);
-  result.Name:=AName;
-  result.FIsInheritable:=AIsInheritable;
-  FPackageVariants.Add(result);
-  result.FOwner := Self;
+  if not assigned(APackageVariant.FMasterPackage) then
+    APackageVariant.FMasterPackage := Self;
+  FPackageVariants.Add(APackageVariant);
 end;
 
 procedure TPackage.ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
@@ -3164,8 +3154,8 @@ begin
     Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
     SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
     SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
-    // Do not add targets f the package is inerited
-    if PackageVariants.GetOwner=Self then
+    // Do not add targets f the package is inherited
+    if PackageVariants.MasterPackage=Self then
       for j := 0 to PackageVariants.ActivePackageVariant.Targets.count -1 do
         targets.add.assign(PackageVariants.ActivePackageVariant.Targets.items[j]);
     end;
@@ -3235,7 +3225,8 @@ begin
                 else
                   AnIsInheritable:=false;
                 PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
-                pv := AddPackageVariant(PackageVarName, AnIsInheritable);
+                pv := Installer.AddPackageVariant(PackageVarName, AnIsInheritable);
+                AddPackageVariant(pv);
 
                 k := pos(',',PackageVariantsStr);
                 while k>0 do
@@ -3849,6 +3840,7 @@ end;
 constructor TCustomInstaller.Create(AOwner: TComponent);
 begin
   FPackageVariantSettings := TStringList.Create;
+  FPackageVariants := TFPList.Create;
   GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
   GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
@@ -3860,11 +3852,19 @@ end;
 
 
 destructor TCustomInstaller.Destroy;
+var
+  i: integer;
 begin
   FreePackages;
   FreeAndNil(Defaults);
   FreeAndNil(GlobalDictionary);
   FreeAndNil(FPackageVariantSettings);
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    if TPackageVariants(FPackageVariants.Items[i]).Owner=Self then
+      TPackageVariants(FPackageVariants.Items[i]).Free;
+    end;
+  FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
 
@@ -3921,6 +3921,13 @@ begin
   result:=Packages.AddPackage(AName);
 end;
 
+function TCustomInstaller.AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+begin
+  result := TPackageVariants.Create(TPackageVariant);
+  result.Name:=AName;
+  result.FIsInheritable:=AIsInheritable;
+  FPackageVariants.Add(result);
+end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
