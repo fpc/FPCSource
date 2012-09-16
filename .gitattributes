@@ -2470,9 +2470,7 @@ packages/fcl-sdo/Makefile.fpc svneol=native#text/plain
 packages/fcl-sdo/README svneol=native#text/plain
 packages/fcl-sdo/examples/changes-summary/project.pas svneol=native#text/plain
 packages/fcl-sdo/examples/changes-summary2/out.xsd svneol=native#text/plain
-packages/fcl-sdo/examples/changes-summary2/project -text
 packages/fcl-sdo/examples/changes-summary2/project.pas svneol=native#text/plain
-packages/fcl-sdo/examples/load-embedded-schema/project -text
 packages/fcl-sdo/examples/load-embedded-schema/project.pas svneol=native#text/plain
 packages/fcl-sdo/examples/simple/simple.pas svneol=native#text/plain
 packages/fcl-sdo/examples/xsd2pas/xsd2pas.lpi svneol=native#text/plain
