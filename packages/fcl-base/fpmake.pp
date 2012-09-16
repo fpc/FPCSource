@@ -38,6 +38,8 @@ begin
     T:=P.Targets.AddUnit('ascii85.pp');
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
+    T:=P.Targets.AddUnit('fpobserver.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('blowfish.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('bufstream.pp');
