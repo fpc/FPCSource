@@ -127,6 +127,7 @@ function TPasToUnitTestApplication.CheckOptions : Boolean;
       V:=Trim(Copy(S,1,P-1));
       If (V<>'') then
         List.Add(V);
+      Delete(S,1,P);  
     until (S='');
   end;
 
@@ -206,9 +207,9 @@ begin
     else if (s='--prefix') then
       FCodeGen.TestNamePrefix:=O
     else if (s='--limit') then
-      AddValues(S,FCodeGen.LimitIdentifiers)
+      AddValues(O,FCodeGen.LimitIdentifiers)
     else if (s='--defaultclasstest') then
-      AddValues(S,FCodeGen.DefaultClassTests)
+      AddValues(O,FCodeGen.DefaultClassTests)
     else
       begin
       if (FInputFile='') then
