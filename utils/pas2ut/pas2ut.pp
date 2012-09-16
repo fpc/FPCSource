@@ -35,6 +35,7 @@ Resourcestring
    SHelp80  = '--test-property-required generate a Required test for each property' ;
    SHelp90  = '--test-property-notify   generate a notify test for each property' ;
    SHelp100 = '--test-property-maxlen   generate a maxlen test for each property' ;
+   SHelp105 = '--skip-declaration       Do not generate declarations for the tests' ;
    SHelp110 = '--skip-implementation    Do not generate (empty) implementation for the tests' ;
    SHelp120 = '--skip-fail              Skip fail() statement in test implementations ' ;
    SHelp130 = '--skip-unit              Do not generate a unit' ;
@@ -172,6 +173,8 @@ begin
       op(tNotify,true)
     else if s='--test-property-maxlen' then
       op(tMaxLen,true)
+    else if s='--skip-declaration' then
+      oc(coCreateDeclaration,false)
     else if s='--skip-implementation' then
       oc(coImplementation,false)
     else if s='--skip-fail' then
@@ -276,6 +279,7 @@ begin
   Writeln(SHelp80 );
   Writeln(SHelp90 );
   Writeln(SHelp100);
+  Writeln(SHelp105);
   Writeln(SHelp110);
   Writeln(SHelp120);
   Writeln(SHelp130);

@@ -36,7 +36,8 @@ Type
                          tNotify,     // Generate Property change notification test (tiOPF)
                          tMaxLen);    // Generate property MaxLen (tiOPF)
   TTestpropertyOptions = set of TTestpropertyOption;
-  TTestCodeOption = (coImplementation,  // generate (empty) implementation of tests
+  TTestCodeOption = (coCreateDeclaration, // Generate declaration of test cases. 
+                     coImplementation,  // generate (empty) implementation of tests
                      coDefaultFail,     // Insert Fail() statement in tests
                      coSingleClass,     // Use a single test class for all tests
                      coCreateUnit,      // Generate complete unit source
@@ -158,7 +159,7 @@ Type
 Const
   DefaultVisibilities    = [visDefault,visPublished,visPublic];
   DefaultPropertyOptions = [tDefault];
-  DefaultCodeOptions     = [coImplementation,coDefaultFail,coCreateUnit,
+  DefaultCodeOptions     = [coCreateDeclaration,coImplementation,coDefaultFail,coCreateUnit,
                             coSetup,coTearDown, coFunctions, coClasses,
                             coRegisterTests];
   DefaultMembers         = [tmtMethods,tmtFields,tmtProperties];
@@ -607,7 +608,7 @@ begin
       C.Add('');
       C.Add('Type');
       end;
-    If (coCreateUnit in CodeOptions) then
+    If (coCreateDeclaration in CodeOptions) then
       CreateInterfaceCode(C);
     if (coImplementation in CodeOptions) then
       begin
