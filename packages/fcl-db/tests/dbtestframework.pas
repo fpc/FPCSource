@@ -11,14 +11,14 @@ uses
   fpcunit,  testreport, testregistry,
   DigestTestReport,
   toolsunit,
-// List of supported database-connectors
+// List of supported database connectors
   sqldbtoolsunit,
   dbftoolsunit,
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
   tcsdfdata,
-// Units wich contains the tests
+// Units wich contain the tests
   TestBasics,
   TestFieldTypes,
   TestDatasources,

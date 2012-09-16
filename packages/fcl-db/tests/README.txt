@@ -2,7 +2,7 @@ This directory contains a framework to test several TDataset descendents.
 A lot of these tests are only applicable for SQL databases, but there are several tests that also apply to other objects, such as TBufDataset.
 
 The framework is based on the fpcunit unit test system. The tests can be
-executed using any fpcunit-testrunner. For example the console and graphical
+executed using any fpcunit testrunner. For example the console and graphical
 fpcunit test runners from Lazarus.
 Simply add the test* units in this directory to the uses statement of the
 test runner and all tests will get registered and executed.
@@ -10,6 +10,8 @@ test runner and all tests will get registered and executed.
 A simple test runner (dbtestframework.pas) which generates XML output is
 included in this directory.
 
+DBTestframework architecture
+============================
 To test a TDataset descendent, a 'connector' is needed to test the database.
 To add a new connector, create a new *toolsunit.pas file, then add it to 
 the uses section in 'dbtestframework.pas'. Several connectors are available 
@@ -29,11 +31,36 @@ They call InternalGetNDataset and InternalGetFieldDataset which should be implem
 Toolsunit.pas defines some variables for use, e.g. testValuesCount is the number of records/test values in the FieldDataset dataset; MaxDataset is the same for NDataset.
 See e.g. the SQLDBToolsUnit for the implementation for SQL Databases.
 
+Tests
+=====
+In your tests, you can specify that you only want to run for certain groups/connectors.
+E.g. this example to only run for Bufdataset tests:
+  TTestSpecificTBufDataset = class(TTestCase)
+  ...
+initialization  
+  if uppercase(dbconnectorname)='BUFDATASET' then
+    begin
+    RegisterTestDecorator(TDBBasicsTestSetup, TTestSpecificTBufDataset);
+    end;
+
+Specifying databases, connector names
+=====================================
 Which connector is currently used is dependent on the 'database.ini'
 configuration file. Also some settings which are connector-dependent can be set
 in that file. See 'database.ini.txt' for an example.
 
-I hope this is enough information to get you started,
+The connector names to be used are derived from the connector classes.
+
+For example, the SQL RDBMS connector defined in sqldbtoolsunit:
+- it has this class definition
+TSQLDBConnector = class(TDBConnector)
+- its name in database.ini is sqldb (
+- incidentally, in databases.ini, more parameter such as
+connectorparams=postgresql (which specify db type) are needed
+The parameters use depend on the connector type (sql,...)
+
+If you specify the wrong (or no) name (or don't have database.ini), you will get an exception in your test runner:
+Unknown db connector specified
 
 Joost van der Sluis (30-12-2006), 
-amended by Reinier Olislagers (April 2012)
+amended by Reinier Olislagers (2012)
