@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+    </General>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="3">
+      <Item1>
+        <PackageName Value="FPCUnitTestRunner"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+      </Item3>
+    </RequiredPackages>
+    <Units Count="15">
+      <Unit0>
+        <Filename Value="sdo_test_suite_gui.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_test_suite_gui"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\test_xsdhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_xsdhelper"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\test_changesummary.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_changesummary"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\test_convert_helper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_convert_helper"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\test_copyhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_copyhelper"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\test_dataobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_dataobject"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\test_dataobjectlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_dataobjectlist"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\test_equalityhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_equalityhelper"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\test_field_imp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_field_imp"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\test_property.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_property"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\test_serializer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_serializer"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\test_suite_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_suite_utils"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\test_type.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_type"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\test_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_utils"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\test_xpathhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_xpathhelper"/>
+      </Unit14>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="sdo_test_suite_gui"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="..\..\.."/>
+      <OtherUnitFiles Value="..;..\..;..\..\..;..\..\..\xsd;..\..\..\rtti_filter"/>
+      <UnitOutputDirectory Value="obj"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleOperator Value="False"/>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="4" IgnoreAll="True">
+      <Item1>
+        <Name Value="ESDOPropertyNotFoundException"/>
+        <Enabled Value="False"/>
+      </Item1>
+      <Item2>
+        <Name Value="ESDOInvalidConversionException"/>
+        <Enabled Value="False"/>
+      </Item2>
+      <Item3>
+        <Name Value="ESDOIllegalArgumentException"/>
+        <Enabled Value="False"/>
+      </Item3>
+      <Item4>
+        <Name Value="ESDODuplicatedItemException"/>
+        <Enabled Value="False"/>
+      </Item4>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
