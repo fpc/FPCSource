@@ -8616,6 +8616,7 @@ rtl/unix/syscgen.inc svneol=native#text/plain
 rtl/unix/sysdir.inc svneol=native#text/plain
 rtl/unix/sysfile.inc svneol=native#text/plain
 rtl/unix/sysheap.inc svneol=native#text/plain
+rtl/unix/sysunix.inc svneol=native#text/pascal
 rtl/unix/sysunixh.inc svneol=native#text/plain
 rtl/unix/sysutils.pp svneol=native#text/plain
 rtl/unix/terminfo.pp svneol=native#text/plain

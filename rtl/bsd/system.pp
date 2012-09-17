@@ -77,7 +77,7 @@ Implementation
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
 
-{$I system.inc}
+{$I sysunix.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -335,7 +335,7 @@ Begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  initunicodestringmanager;
+  InitUnixStrings;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Reset IO Error }
