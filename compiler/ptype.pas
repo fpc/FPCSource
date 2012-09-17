@@ -822,12 +822,13 @@ implementation
                add_typedconst_init_routine(current_structdef);
              consume(_END);
             end;
+         { make the record size aligned (has to be done before inserting the
+           parameters, because that may depend on the record's size) }
+         recst.addalignmentpadding;
          { don't keep track of procdefs in a separate list, because the
            compiler may add additional procdefs (e.g. property wrappers for
            the jvm backend) }
          insert_record_hidden_paras(trecorddef(current_structdef));
-         { make the record size aligned }
-         recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
