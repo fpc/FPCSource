@@ -279,7 +279,6 @@ Var
   DestCP      : TSystemCodePage;
   U           : UnicodeString;
   sameCP      : Boolean;
-  tmpStr      : RawByteString;
   tmpCP       : TSystemCodePage;
 begin
   if high(sarr)=0 then
@@ -315,14 +314,7 @@ begin
       U:='';
       for i:=lowstart to high(sarr) do begin
         tmpCP:=StringCodePage(sarr[i]);
-        if (tmpCP=CP_ACP) then
-          begin
-            tmpStr:=sarr[i];
-            SetCodePage(tmpStr,DefaultSystemCodePage,False);
-            U:=U+UnicodeString(tmpStr);
-          end
-        else
-          U:=U+UnicodeString(sarr[i]);
+        U:=U+UnicodeString(sarr[i]);
       end;
 
       DestS:='';
@@ -635,8 +627,12 @@ begin
       exit;
     end;
   cp1:=StringCodePage(S1);
+  if cp1=CP_ACP then
+    cp1:=DefaultSystemCodePage;
   cp2:=StringCodePage(S2);
-  if (cp1=cp2) then
+  if cp2=CP_ACP then
+    cp2:=DefaultSystemCodePage;
+  if cp1=cp2 then
     begin
       Maxi:=Length(S1);
       temp:=Length(S2);
@@ -654,15 +650,11 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
       SetCodePage(r2,65001);
-      Result := fpc_AnsiStr_Compare(r1,r2);
+      Result:=fpc_AnsiStr_Compare(r1,r2);
     end;
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE}
@@ -690,17 +682,21 @@ begin
   { don't compare strings if one of them is empty }
   if (pointer(S1)=nil) then
     begin
-      result:=-Length(S2);
+      result:=-1;
       exit;
     end;
   if (pointer(S2)=nil) then
     begin
-      result:=Length(S1);
+      result:=1;
       exit;
     end;
   cp1:=StringCodePage(S1);
+  if cp1=CP_ACP then
+    cp1:=DefaultSystemCodePage;
   cp2:=StringCodePage(S2);
-  if (cp1=cp2) then
+  if cp2=CP_ACP then
+    cp2:=DefaultSystemCodePage;
+  if cp1=cp2 then
     begin
       Maxi:=Length(S1);
       temp:=Length(S2);
@@ -712,11 +708,7 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
       SetCodePage(r2,65001);
