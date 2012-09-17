@@ -1030,6 +1030,11 @@ implementation
       var
         saved_cg: tcg;
         saved_hlcg: thlcgobj;
+{$ifdef cpu64bitalu}
+        saved_cg128 : tcg128;
+{$else cpu64bitalu}
+        saved_cg64 : tcg64;
+{$endif cpu64bitalu}
       begin
         if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
           InternalError(201201141);
@@ -1040,11 +1045,23 @@ implementation
         saved_hlcg:=hlcg;
         cg:=nil;
         hlcg:=nil;
+{$ifdef cpu64bitalu}
+        saved_cg128:=cg128;
+        cg128:=nil;
+{$else cpu64bitalu}
+        saved_cg64:=cg64;
+        cg64:=nil;
+{$endif cpu64bitalu}
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
         cg:=saved_cg;
         hlcg:=saved_hlcg;
+{$ifdef cpu64bitalu}
+        cg128:=saved_cg128;
+{$else cpu64bitalu}
+        cg64:=saved_cg64;
+{$endif cpu64bitalu}
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;
 
