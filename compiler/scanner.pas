@@ -377,7 +377,7 @@ implementation
             if m_systemcodepage in current_settings.modeswitches then
               begin
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
-                if not cpavailable(current_settings.sourcecodepage) then
+                if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
                     Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
