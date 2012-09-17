@@ -122,12 +122,15 @@ begin
 {$endif x86_64}
 
 {$ifdef arm}
-{$ifdef FPC_ARMHF}
-  { at least raspian has the crt*.o files at an uncommon location,
+  { some newver Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
   if not Dontlinkstdlibpath Then
+{$ifdef FPC_ARMHF}
     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
 {$endif FPC_ARMHF}
+{$ifdef FPC_ARMEL}
+    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
+{$endif}
 {$endif arm}
 end;
 
@@ -158,7 +161,7 @@ end;
 
 {$ifdef arm}
 {$ifdef FPC_ARMHF}
-  const defdynlinker='/lib/arm-linux-gnueabihf/ld-linux.so.3';
+  const defdynlinker='/lib/ld-linux-armhf.so.3';
 {$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
   const defdynlinker='/lib/ld-linux.so.3';
