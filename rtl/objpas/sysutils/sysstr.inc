@@ -7,15 +7,14 @@
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    *********************************************************************
+ **********************************************************************
 
     System Utilities For Free Pascal
 }
