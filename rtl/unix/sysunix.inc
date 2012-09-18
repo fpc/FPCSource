@@ -36,7 +36,7 @@ begin
     p:=Pos('.',Result);
     if p>0 then Delete(Result,1,p);
     p:=Pos('@',Result);
-    if p>0 then Delete(Result,p,length(Result));
+    if p>0 then Delete(Result,p,length(Result)-p+1);
   end;
 end;
 
