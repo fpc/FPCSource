@@ -828,6 +828,7 @@ implementation
               begin
                 CGMessage(parser_e_operator_not_overloaded);
                 candidates.free;
+                ppn.free;
                 exit;
               end;
 
@@ -847,6 +848,7 @@ implementation
               begin
                 CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
                 candidates.free;
+                ppn.free;
                 exit;
               end;
 
