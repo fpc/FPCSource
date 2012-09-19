@@ -6,7 +6,7 @@ unit cp646;
   implementation
 
   uses
-     charset;
+    {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif};
 
   const
      map : array[0..127] of tunicodecharmapping = (
