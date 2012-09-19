@@ -170,6 +170,9 @@ program pp;
 {$endif win32}
 
 uses
+{$ifdef heaptrc}
+  ppheap,
+{$endif heaptrc}
 {$ifdef cmem}
   cmem,
 {$endif cmem}
@@ -226,9 +229,6 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifdef extheaptrc}
-  keepreleased:=true;
-{$endif extheaptrc}
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
