@@ -50,6 +50,7 @@ interface
         stackcheck_asmnode,
         init_asmnode,
         final_asmnode : tasmnode;
+        final_used : boolean;
         dfabuilder : TDFABuilder;
         destructor  destroy;override;
         procedure printproc(pass:string);
@@ -647,6 +648,8 @@ implementation
        begin
          if assigned(code) then
            code.free;
+         if not final_used then
+           final_asmnode.free;
          inherited destroy;
        end;
 
@@ -716,6 +719,7 @@ implementation
                       begin
                         include(tocode.flags,nf_block_with_exit);
                         addstatement(newstatement,final_asmnode);
+                        final_used:=true;
                       end;
 
                     { Self can be nil when fail is called }
@@ -806,6 +810,7 @@ implementation
         current_filepos:=exitpos;
         exitlabel_asmnode:=casmnode.create_get_position;
         final_asmnode:=casmnode.create_get_position;
+        final_used:=false;
         bodyexitcode:=generate_bodyexit_block;
 
         { Generate procedure by combining init+body+final,
@@ -833,6 +838,7 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
+            final_used:=true;
 
             current_filepos:=entrypos;
             wrappedbody:=ctryfinallynode.create_implicit(
@@ -861,7 +867,10 @@ implementation
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
-              addstatement(newstatement,final_asmnode);
+              begin
+                addstatement(newstatement,final_asmnode);
+                final_used:=true;
+              end;
           end;
         do_firstpass(newblock);
         code:=newblock;
