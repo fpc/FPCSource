@@ -166,10 +166,12 @@ implementation
 uses
   SysUtils,
   Comphook,
+{$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
   fmodule,
   ppheap,
 {$endif heaptrc}
+{$endif not GENERIC_CPU}
   cfileutl,
   Globals,Systems
   ;
@@ -544,9 +546,11 @@ uses
          { update cache }
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
+{$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
          ppheap_register_file(f.path+f.name,current_module.unit_index*100000+f.ref_index);
 {$endif heaptrc}
+{$endif not GENERIC_CPU}
       end;
 
 
