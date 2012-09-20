@@ -1251,11 +1251,19 @@ function WSAConnect( s : TSocket; const name : PSockAddr; namelen : Longint; lpC
 function WSACreateEvent : WSAEVENT; stdcall; external WINSOCK2_DLL name 'WSACreateEvent';
 function WSADuplicateSocketA( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoA ) : Longint; stdcall; external WINSOCK2_DLL name 'WSADuplicateSocketA';
 function WSADuplicateSocketW( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoW ) : Longint; stdcall; external WINSOCK2_DLL name 'WSADuplicateSocketW';
-function WSADuplicateSocket( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_Info ) : Longint; stdcall; external WINSOCK2_DLL name 'WSADuplicateSocket';
+{$ifndef Unicode}
+function WSADuplicateSocket( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoA ) : Longint; stdcall; external WINSOCK2_DLL name 'WSADuplicateSocketA';
+{$else}
+function WSADuplicateSocket( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoW ) : Longint; stdcall; external WINSOCK2_DLL name 'WSADuplicateSocketW';
+{$endif}
 function WSAEnumNetworkEvents( const s : TSocket; const hEventObject : WSAEVENT; lpNetworkEvents : LPWSANETWORKEVENTS ) :Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNetworkEvents';
 function WSAEnumProtocolsA( lpiProtocols : PLongint; lpProtocolBuffer : LPWSAProtocol_InfoA; var lpdwBufferLength : DWORD ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumProtocolsA';
 function WSAEnumProtocolsW( lpiProtocols : PLongint; lpProtocolBuffer : LPWSAProtocol_InfoW; var lpdwBufferLength : DWORD ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumProtocolsW';
-function WSAEnumProtocols( lpiProtocols : PLongint; lpProtocolBuffer : LPWSAProtocol_Info; var lpdwBufferLength : DWORD ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumProtocols';
+{$ifndef Unicode}
+function WSAEnumProtocols( lpiProtocols : PLongint; lpProtocolBuffer : LPWSAProtocol_InfoA; var lpdwBufferLength : DWORD ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumProtocolsA';
+{$else}
+function WSAEnumProtocols( lpiProtocols : PLongint; lpProtocolBuffer : LPWSAProtocol_InfoW; var lpdwBufferLength : DWORD ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumProtocolsW';
+{$endif}
 function WSAEventSelect( s : TSocket; hEventObject : WSAEVENT; lNetworkEvents : LongInt ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEventSelect';
 function WSAGetOverlappedResult( s : TSocket; lpOverlapped : LPWSAOVERLAPPED; lpcbTransfer : LPDWORD; fWait : BOOL; var lpdwFlags : DWORD ) : WordBool; stdcall; external WINSOCK2_DLL name 'WSAGetOverlappedResult';
 function WSAGetQosByName( s : TSocket; lpQOSName : LPWSABUF; lpQOS : LPQOS ): WordBool; stdcall; external WINSOCK2_DLL name 'WSAGetQosByName';
@@ -1283,55 +1291,106 @@ function WSASendMsg( s : TSocket; lpMsg : LPWSAMSG; dwFlags : DWORD; lpNumberOfB
 function WSASetEvent( hEvent : WSAEVENT ): WordBool; stdcall; external WINSOCK2_DLL name 'WSASetEvent';
 function WSASocketA( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoA; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketA';
 function WSASocketW( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoW; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketW';
-function WSASocket( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_Info; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocket';
+
+{$ifndef UNICODE}
+function WSASocket ( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoA; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketA';
+{$else}
+function WSASocket ( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoW; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketW';
+{$endif}
+
 function WSAWaitForMultipleEvents( cEvents : DWORD; lphEvents : PWSAEVENT; fWaitAll : LongBool;
         dwTimeout : DWORD; fAlertable : LongBool ): DWORD; stdcall; external WINSOCK2_DLL name 'WSAWaitForMultipleEvents';
 function WSAAddressToStringA( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoA;
         const lpszAddressString : PChar; var lpdwAddressStringLength : DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAAddressToStringA';
 function WSAAddressToStringW( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoW;
         const lpszAddressString : PWideChar; var lpdwAddressStringLength : DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAAddressToStringW';
-function WSAAddressToString( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_Info;
-        const lpszAddressString : PMBChar; var lpdwAddressStringLength : DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAAddressToString';
+{$ifndef Unicode}
+function WSAAddressToString( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoA;
+        const lpszAddressString : PChar; var lpdwAddressStringLength : DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAAddressToStringA';
+{$else}
+function WSAAddressToString( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoW;
+        const lpszAddressString : PWideChar; var lpdwAddressStringLength : DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAAddressToStringW';
+{$endif}
+
 function WSAStringToAddressA( const AddressString : PChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
         var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint; stdcall; external WINSOCK2_DLL name 'WSAStringToAddressA';
 function WSAStringToAddressW( const AddressString : PWideChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
         var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint; stdcall; external WINSOCK2_DLL name 'WSAStringToAddressW';
-function WSAStringToAddress( const AddressString : PMBChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_Info;
-        var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint; stdcall; external WINSOCK2_DLL name 'WSAStringToAddress';
+{$ifndef Unicode}
+function WSAStringToAddress( const AddressString : PChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
+        var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint; stdcall; external WINSOCK2_DLL name 'WSAStringToAddressA';
+{$else}
+function WSAStringToAddress( const AddressString : PWideChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
+        var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint; stdcall; external WINSOCK2_DLL name 'WSAStringToAddressW';
+{$endif}
 
 {       Registration and Name Resolution API functions }
 function WSALookupServiceBeginA( const lpqsRestrictions : LPWSAQuerySetA; const dwControlFlags : DWORD; lphLookup : PHANDLE ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceBeginA';
 function WSALookupServiceBeginW( const lpqsRestrictions : LPWSAQuerySetW; const dwControlFlags : DWORD; lphLookup : PHANDLE ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceBeginW';
-function WSALookupServiceBegin( const lpqsRestrictions : LPWSAQuerySet; const dwControlFlags : DWORD; lphLookup : PHANDLE ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceBegin';
+{$ifndef Unicode}
+function WSALookupServiceBegin( const lpqsRestrictions : LPWSAQuerySetA; const dwControlFlags : DWORD; lphLookup : PHANDLE ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceBeginA';
+{$else}
+function WSALookupServiceBegin( const lpqsRestrictions : LPWSAQuerySetW; const dwControlFlags : DWORD; lphLookup : PHANDLE ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceBeginW';
+{$endif}
+
 function WSALookupServiceNextA( const hLookup : THandle; const dwControlFlags : DWORD; var lpdwBufferLength : DWORD; lpqsResults : LPWSAQuerySetA ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceNextA';
 function WSALookupServiceNextW( const hLookup : THandle; const dwControlFlags : DWORD; var lpdwBufferLength : DWORD; lpqsResults : LPWSAQuerySetW ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceNextW';
-function WSALookupServiceNext( const hLookup : THandle; const dwControlFlags : DWORD; var lpdwBufferLength : DWORD; lpqsResults : LPWSAQuerySet ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceNext';
+{$ifndef unicode}
+function WSALookupServiceNext( const hLookup : THandle; const dwControlFlags : DWORD; var lpdwBufferLength : DWORD; lpqsResults : LPWSAQuerySetA ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceNextA';
+{$else}
+function WSALookupServiceNext( const hLookup : THandle; const dwControlFlags : DWORD; var lpdwBufferLength : DWORD; lpqsResults : LPWSAQuerySetW ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceNextW';
+{$endif}
 function WSALookupServiceEnd( const hLookup : THandle ): Longint; stdcall; external WINSOCK2_DLL name 'WSALookupServiceEnd';
 function WSAInstallServiceClassA( const lpServiceClassInfo : LPWSAServiceClassInfoA ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAInstallServiceClassA';
 function WSAInstallServiceClassW( const lpServiceClassInfo : LPWSAServiceClassInfoW ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAInstallServiceClassW';
-function WSAInstallServiceClass( const lpServiceClassInfo : LPWSAServiceClassInfo ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAInstallServiceClass';
+{$ifndef unicode}
+function WSAInstallServiceClass( const lpServiceClassInfo : LPWSAServiceClassInfoA ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAInstallServiceClassA';
+{$else}
+function WSAInstallServiceClass( const lpServiceClassInfo : LPWSAServiceClassInfoW ) : Longint; stdcall; external WINSOCK2_DLL name 'WSAInstallServiceClassW';
+{$endif}
 function WSARemoveServiceClass( const lpServiceClassId : PGUID ) : Longint; stdcall; external WINSOCK2_DLL name 'WSARemoveServiceClass';
 function WSAGetServiceClassInfoA( const lpProviderId : PGUID; const lpServiceClassId : PGUID; var lpdwBufSize : DWORD;
         lpServiceClassInfo : LPWSAServiceClassInfoA ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassInfoA';
 function WSAGetServiceClassInfoW( const lpProviderId : PGUID; const lpServiceClassId : PGUID; var lpdwBufSize : DWORD;
         lpServiceClassInfo : LPWSAServiceClassInfoW ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassInfoW';
+{$ifndef Unicode}
 function WSAGetServiceClassInfo( const lpProviderId : PGUID; const lpServiceClassId : PGUID; var lpdwBufSize : DWORD;
-        lpServiceClassInfo : LPWSAServiceClassInfo ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassInfo';
+        lpServiceClassInfo : LPWSAServiceClassInfoA ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassInfoA';
+{$else}
+function WSAGetServiceClassInfo( const lpProviderId : PGUID; const lpServiceClassId : PGUID; var lpdwBufSize : DWORD;
+        lpServiceClassInfo : LPWSAServiceClassInfoW ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassInfoW';
+{$endif}
+
 function WSAEnumNameSpaceProvidersA( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_InfoA ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNameSpaceProvidersA';
 function WSAEnumNameSpaceProvidersW( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_InfoW ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNameSpaceProvidersW';
-function WSAEnumNameSpaceProviders( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_Info ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNameSpaceProviders';
+{$ifndef Unicode}
+function WSAEnumNameSpaceProviders( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_InfoA ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNameSpaceProvidersA';
+{$else}
+function WSAEnumNameSpaceProviders( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_InfoW ): Longint; stdcall; external WINSOCK2_DLL name 'WSAEnumNameSpaceProvidersW';
+{$endif}
+
 function WSAGetServiceClassNameByClassIdA( const lpServiceClassId: PGUID; lpszServiceClassName: PChar;
         var lpdwBufferLength: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdA';
 function WSAGetServiceClassNameByClassIdW( const lpServiceClassId: PGUID; lpszServiceClassName: PWideChar;
         var lpdwBufferLength: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdW';
-function WSAGetServiceClassNameByClassId( const lpServiceClassId: PGUID; lpszServiceClassName: PMBChar;
-        var lpdwBufferLength: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassId';
+{$ifndef Unicode}
+function WSAGetServiceClassNameByClassId( const lpServiceClassId: PGUID; lpszServiceClassName: PChar;
+        var lpdwBufferLength: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdA';
+{$else}
+function WSAGetServiceClassNameByClassId( const lpServiceClassId: PGUID; lpszServiceClassName: PWideChar;
+        var lpdwBufferLength: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdW';
+{$endif}
 function WSASetServiceA( const lpqsRegInfo: LPWSAQuerySetA; const essoperation: TWSAeSetServiceOp;
         const dwControlFlags: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSASetServiceA';
 function WSASetServiceW( const lpqsRegInfo: LPWSAQuerySetW; const essoperation: TWSAeSetServiceOp;
         const dwControlFlags: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSASetServiceW';
-function WSASetService( const lpqsRegInfo: LPWSAQuerySet; const essoperation: TWSAeSetServiceOp;
-        const dwControlFlags: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSASetService';
+{$ifndef Unicode}
+function WSASetService( const lpqsRegInfo: LPWSAQuerySetA; const essoperation: TWSAeSetServiceOp;
+        const dwControlFlags: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSASetServiceA';
+{$else}
+function WSASetService( const lpqsRegInfo: LPWSAQuerySetW; const essoperation: TWSAeSetServiceOp;
+        const dwControlFlags: DWORD ): Longint; stdcall; external WINSOCK2_DLL name 'WSASetServiceW';
+{$endif}
 
 { Macros }
 function WSAMakeSyncReply(Buflen, Error: Word): Longint;
