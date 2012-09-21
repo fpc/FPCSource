@@ -529,9 +529,9 @@ implementation
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 system_arm_darwin:
                   if (cs_create_pic in current_settings.moduleswitches) then
-                    AsmWriteln('.section __TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                    AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                   else
-                    AsmWriteln('.section __TEXT,__symbol_stub4,symbol_stubs,none,12')
+                    AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
                 { darwin/x86-64 uses RIP-based GOT addressing, no symbol stubs }
                 else
                   internalerror(2006031101);
