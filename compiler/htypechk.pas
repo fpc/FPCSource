@@ -189,7 +189,7 @@ implementation
        ;
 
     type
-      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr,Valid_Packed);
+      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr,Valid_Packed,Valid_Range);
       TValidAssigns=set of TValidAssign;
 
 
@@ -1504,6 +1504,14 @@ implementation
                end;
              vecn :
                begin
+                 if (tvecnode(hp).right.nodetype=rangen) and
+                    not(valid_range in opts) then
+                  begin
+                    if report_errors then
+                      CGMessagePos(tvecnode(hp).right.fileinfo,parser_e_illegal_expression);
+                    mayberesettypeconvs;
+                    exit;
+                  end;
                  if { only check for first (= outermost) vec node }
                     not gotvec and
                     not(valid_packed in opts) and
@@ -1843,20 +1851,20 @@ implementation
 
     function  valid_for_var(p:tnode; report_errors: boolean):boolean;
       begin
-        valid_for_var:=valid_for_assign(p,[],report_errors);
+        valid_for_var:=valid_for_assign(p,[valid_range],report_errors);
       end;
 
 
     function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
       begin
-        valid_for_formal_var:=valid_for_assign(p,[valid_void],report_errors);
+        valid_for_formal_var:=valid_for_assign(p,[valid_void,valid_range],report_errors);
       end;
 
 
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
       begin
         valid_for_formal_const:=(p.resultdef.typ=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const,valid_property],report_errors);
+          valid_for_assign(p,[valid_void,valid_const,valid_property,valid_range],report_errors);
       end;
 
 

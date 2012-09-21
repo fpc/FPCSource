@@ -621,7 +621,11 @@ implementation
 
         { test if node can be assigned, properties are allowed }
         if not(nf_internal in flags) then
-          valid_for_assignment(left,true);
+          if not valid_for_assignment(left,true) then
+            { errors can in situations that cause the compiler to run out of
+              memory, such as assigning to an implicit pointer-to-array
+              converted node (that array is 2^31 or 2^63 bytes large) }
+            exit;
 
         { assigning nil to a dynamic array clears the array }
         if is_dynamic_array(left.resultdef) and
