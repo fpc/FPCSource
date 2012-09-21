@@ -61,7 +61,7 @@ implementation
 
 { OS independant parts}
 
-{$I system.inc}
+{$I sysunix.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
