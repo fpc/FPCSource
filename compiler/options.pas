@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  CClasses,cfileutl,
+  cfileutl,
   globtype,globals,verbose,systems,cpuinfo, comprsrc;
 
 Type
@@ -90,7 +90,6 @@ uses
   cutils,cmsgs,
   comphook,
   symtable,scanner,rabase,
-  wpobase,
   symconst,
   i_bsd;
 

@@ -26,16 +26,11 @@ interface
 
     uses
        { common }
-       cutils,cclasses,
-       { global }
-       cpuinfo,globtype,tokens,
+       cutils,cclasses,globtype,tokens,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,
        { ppu }
-       ppu,
-       { assembler }
-       aasmtai,aasmdata
-       ;
+       ppu;
 
 
 {****************************************************************************
@@ -346,10 +341,8 @@ implementation
     uses
       { global }
       verbose,globals,
-      { target }
-      systems,
       { symtable }
-      symutil,defcmp,defutil,
+      symutil,defutil,
       { module }
       fmodule,
       { codegen }

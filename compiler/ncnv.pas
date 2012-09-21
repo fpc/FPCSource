@@ -294,8 +294,8 @@ implementation
    uses
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symbase,symtable,
-      ncon,ncal,nset,nadd,ninl,nmem,nmat,nbas,nutils,
+      symconst,symdef,symsym,symtable,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 

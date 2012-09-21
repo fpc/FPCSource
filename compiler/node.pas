@@ -27,9 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,
-       cpubase,cgbase,cgutils,
-       aasmbase,
+       globtype,globals,cgbase,cgutils,
        symtype,
        optbase;
 
@@ -482,7 +480,7 @@ interface
 implementation
 
     uses
-       cutils,verbose,ppu,comphook,
+       verbose,ppu,comphook,
        symconst,
        nutils,nflw,
        defutil;

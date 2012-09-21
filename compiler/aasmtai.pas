@@ -829,8 +829,7 @@ implementation
     uses
       SysUtils,
       verbose,
-      globals,
-      fmodule;
+      globals;
 
     const
       pputaimarker = 254;

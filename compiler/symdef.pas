@@ -36,9 +36,9 @@ interface
        { node }
        node,
        { aasm }
-       aasmbase,aasmtai,aasmdata,
+       aasmbase,aasmtai,
        cpubase,cpuinfo,
-       cgbase,cgutils,
+       cgbase,
        parabase
        ;
 
@@ -1010,9 +1010,9 @@ implementation
       { global }
       verbose,
       { target }
-      systems,aasmcpu,paramgr,
+      systems,paramgr,
       { symtable }
-      symsym,symtable,symutil,defutil,objcdef,
+      symsym,symtable,defutil,objcdef,
 {$ifdef jvm}
       jvmdef,
 {$endif}

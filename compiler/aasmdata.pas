@@ -33,11 +33,10 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems,
-       cpuinfo,cpubase,
-       cgbase,cgutils,
+       globtype,systems,
+       cgbase,
        symtype,
-       aasmbase,ogbase;
+       aasmbase;
 
     type
       { Type of AsmLists. The order is important for the layout of the

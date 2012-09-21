@@ -26,7 +26,7 @@ unit psub;
 interface
 
     uses
-      cclasses,globals,
+      globals,
       node,nbas,
       symdef,procinfo,optdfa;
 
@@ -90,9 +90,7 @@ implementation
        cutils,
        { global }
        globtype,tokens,verbose,comphook,constexp,
-       systems,
-       { aasm }
-       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,
+       systems,cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,symcreat,
        paramgr,
@@ -108,15 +106,14 @@ implementation
        pass_2,
 {$endif}
        { parser }
-       scanner,import,gendef,
+       scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,cgcpu,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,optloop,
-       optutils
+       optcse,optloop
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}

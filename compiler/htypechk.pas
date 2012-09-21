@@ -181,13 +181,11 @@ interface
 implementation
 
     uses
-       sysutils,
        systems,constexp,globals,
        cutils,verbose,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,ncon,
-       cgbase,procinfo
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo
        ;
 
     type

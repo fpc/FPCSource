@@ -96,13 +96,14 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,fpccrc,
+       systems,
        cpuinfo,
        { symtable }
-       symbase,symtable,symcreat,defutil,defcmp,paramgr,cpupara,
+       symbase,symtable,defutil,defcmp,
+       { parameter handling }
+       paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       fmodule,node,htypechk,ncon,
        objcutil,
        { parser }
        scanner,

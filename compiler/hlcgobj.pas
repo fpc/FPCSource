@@ -37,7 +37,7 @@ unit hlcgobj;
        cclasses,globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symtype,symdef,rgobj,
+       symconst,symtype,symdef,
        node
        ;
 
@@ -555,7 +555,7 @@ unit hlcgobj;
 implementation
 
     uses
-       globals,options,systems,
+       globals,systems,
        fmodule,export,
        verbose,defutil,paramgr,
        symbase,symsym,symtable,

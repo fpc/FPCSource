@@ -70,9 +70,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,ptype,pgenutil,
-       { codegen }
-       cgbase,procinfo,cpuinfo
+       pbase,pinline,ptype,pgenutil,procinfo,cpuinfo
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be

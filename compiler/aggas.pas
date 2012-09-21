@@ -29,9 +29,8 @@ unit aggas;
 interface
 
     uses
-      cclasses,
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,
       assemble;
 
     type
@@ -104,8 +103,7 @@ implementation
     uses
       SysUtils,
       cutils,cfileutl,systems,
-      fmodule,finput,verbose,
-      itcpugas,cpubase;
+      fmodule,verbose,cpubase;
 
     const
       line_length = 70;

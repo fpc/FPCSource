@@ -50,21 +50,15 @@ interface
 implementation
 
     uses
-       SysUtils,
        { common }
        cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
-       systems,
-       { aasm }
-       aasmbase,aasmtai,aasmdata,fmodule,
+       systems,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,symcreat,paramgr,defutil,
+       symconst,symbase,symtype,symtable,symcreat,defutil,
        { pass 1 }
-       htypechk,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
-       { codegen }
-       ncgutil,ngenutil,
+       htypechk,ninl,ncon,nobj,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,

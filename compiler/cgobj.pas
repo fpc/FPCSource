@@ -36,7 +36,7 @@ unit cgobj;
   interface
 
     uses
-       cclasses,globtype,constexp,
+       globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symtype,symdef,rgobj
@@ -573,10 +573,9 @@ unit cgobj;
 implementation
 
     uses
-       globals,options,systems,
-       verbose,defutil,paramgr,symsym,
-       tgobj,cutils,procinfo,
-       ncgrtti;
+       globals,systems,
+       verbose,paramgr,symsym,
+       tgobj,cutils,procinfo;
 
 {*****************************************************************************
                             basic functionallity

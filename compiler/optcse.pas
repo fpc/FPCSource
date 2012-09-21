@@ -48,12 +48,10 @@ unit optcse;
     uses
       globtype,globals,
       cutils,cclasses,
-      verbose,
       nutils,
-      procinfo,
-      nbas,nld,ninl,ncal,ncnv,nadd,nmem,
+      nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
-      symconst,symtype,symdef,symsym,
+      symconst,symdef,symsym,
       defutil,
       optbase;
 

@@ -95,10 +95,8 @@ implementation
       verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,symtable,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
-      cpubase,cpuinfo,
-      nld,ncon,
+      cpubase,ncon,
       tgobj,paramgr,
-      regvars,
       cgutils,cgobj,hlcgobj,nutils
       ;
 

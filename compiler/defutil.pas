@@ -26,9 +26,8 @@ unit defutil;
 interface
 
     uses
-       cclasses,
-       globtype,globals,constexp,node,
-       symconst,symbase,symtype,symdef,
+       globtype,globals,constexp,
+       symconst,symtype,symdef,
        cgbase,cpubase;
 
     type
@@ -286,7 +285,7 @@ interface
 implementation
 
     uses
-       systems,verbose;
+       verbose;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;

@@ -173,13 +173,13 @@ interface
 implementation
 
     uses
-      cutils,verbose,globtype,globals,systems,constexp,
+      verbose,globtype,globals,systems,constexp,
       symnot,symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
-      ncon,ninl,ncnv,nmem,ncal,nutils,nbas,
-      cgobj,cgbase
+      ncon,ninl,ncnv,nmem,ncal,nutils,
+      cgbase
       ;
 
 {*****************************************************************************
