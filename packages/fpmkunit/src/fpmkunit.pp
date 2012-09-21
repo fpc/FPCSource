@@ -4083,12 +4083,7 @@ begin
 {$endif}
 {$ifndef NO_THREADING}
     else if CheckOption(I,'T','threads') then
-    { currently broken because the concurrent calls to GlobalDictionary.Substitute
-      are not thread safe, and this leads to crashs
       Defaults.ThreadsAmount:=StrToIntDef(OptionArg(I),-1)
-    }
-      { skip number argument }
-      OptionArg(I)
 {$endif NO_THREADING}
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
