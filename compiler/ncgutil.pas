@@ -3088,7 +3088,11 @@ implementation
                 end;
               LOC_CREGISTER,
               LOC_CREFERENCE,
-              LOC_REFERENCE:
+              LOC_REFERENCE,
+              LOC_CSUBSETREG,
+              LOC_SUBSETREG,
+              LOC_CSUBSETREF,
+              LOC_SUBSETREF:
                 begin
                   reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                   cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
