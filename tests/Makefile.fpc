@@ -464,7 +464,7 @@ else
 .PHONY: allexectests
 
 $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
-        $(FPC) $(FPCOPT) -FE. utils/gparmake.pp
+        $(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed 
