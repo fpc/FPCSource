@@ -407,6 +407,7 @@ type
 
     FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
+    FReadOnly       : Boolean;
 
     FSavedState     : TDatasetState;
     FPacketRecords  : integer;
@@ -436,6 +437,7 @@ type
     function GetIndexFieldNames: String;
     function GetIndexName: String;
     function GetBufUniDirectional: boolean;
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
     function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
@@ -495,6 +497,7 @@ type
     procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
+    procedure SetReadOnly(AValue: Boolean); virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -511,6 +514,7 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     procedure ApplyUpdates; virtual; overload;
     procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
+    procedure MergeChangeLog;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
@@ -532,6 +536,7 @@ type
 
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
+    property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
   published
     property FileName : string read FFileName write FFileName;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
@@ -551,6 +556,7 @@ type
     Property AutoCalcFields;
     Property Filter;
     Property Filtered;
+    Property Readonly;
     Property AfterCancel;
     Property AfterClose;
     Property AfterDelete;
@@ -1080,7 +1086,7 @@ end;
 
 Function TCustomBufDataset.GetCanModify: Boolean;
 begin
-  Result:= True;
+  Result:=not (UniDirectional or ReadOnly);
 end;
 
 function TCustomBufDataset.IntAllocRecordBuffer: TRecordBuffer;
@@ -1117,7 +1123,7 @@ begin
   if not Assigned(FDatasetReader) and (FileName<>'') then
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
-    FDatasetReader := TFpcBinaryDatapacketReader.Create(FFileStream);
+    FDatasetReader := GetPacketReader(dfAny, FFileStream);
     FReadFromFile := True;
     end;
   if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
@@ -1482,6 +1488,11 @@ begin
       InternalAddIndex('','',[],'','');
     BookmarkSize := FCurrentIndex.BookmarkSize;
     end;
+end;
+
+procedure TCustomBufDataset.SetReadOnly(AValue: Boolean);
+begin
+  FReadOnly:=AValue;
 end;
 
 function TCustomBufDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
@@ -2103,33 +2114,39 @@ begin
       end;
   finally
     if failedcount = 0 then
-      begin
-      SetLength(FUpdateBuffer,0);
-
-      if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
-       if assigned(FUpdateBlobBuffers[r]) then
-        begin
-        if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
-          begin
-          Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
-          Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
-          FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
-          end
-        else
-          begin
-          setlength(FBlobBuffers,length(FBlobBuffers)+1);
-          FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
-          FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
-          
-          end;
-        end;
-      SetLength(FUpdateBlobBuffers,0);
-      end;
+      MergeChangeLog;
 
     InternalGotoBookmark(@StoreCurrRec);
     Resync([]);
     EnableControls;
   end;
+end;
+
+procedure TCustomBufDataset.MergeChangeLog;
+
+var r            : Integer;
+
+begin
+  SetLength(FUpdateBuffer,0);
+
+  if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
+   if assigned(FUpdateBlobBuffers[r]) then
+    begin
+    if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+      begin
+      Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
+      Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+      FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
+      end
+    else
+      begin
+      setlength(FBlobBuffers,length(FBlobBuffers)+1);
+      FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
+      FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+
+      end;
+    end;
+  SetLength(FUpdateBlobBuffers,0);
 end;
 
 
@@ -2275,6 +2292,24 @@ end;
 function TCustomBufDataset.GetBufUniDirectional: boolean;
 begin
   result := IsUniDirectional;
+end;
+
+function TCustomBufDataset.GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
+
+var APacketReader: TDataPacketReader;
+    APacketReaderReg: TDatapacketReaderRegistration;
+
+begin
+  if GetRegisterDatapacketReader(AStream, format, APacketReaderReg) then
+    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
+  else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
+    begin
+    AStream.Seek(0, soFromBeginning);
+    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
+    end
+  else
+    DatabaseError(SStreamNotRecognised);
+  Result:=APacketReader;
 end;
 
 function TCustomBufDataset.GetRecordSize : Word;
@@ -2631,19 +2666,10 @@ begin
 end;
 
 procedure TCustomBufDataset.LoadFromStream(AStream: TStream; Format: TDataPacketFormat);
-var APacketReaderReg : TDatapacketReaderRegistration;
-    APacketReader : TDataPacketReader;
+var APacketReader : TDataPacketReader;
 begin
   CheckBiDirectional;
-  if GetRegisterDatapacketReader(AStream,format,APacketReaderReg) then
-    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
-  else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
-    begin
-    AStream.Seek(0,soFromBeginning);
-    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
-    end
-  else
-    DatabaseError(SStreamNotRecognised);
+  APacketReader:=GetPacketReader(Format, AStream);
   try
     SetDatasetPacket(APacketReader);
   finally

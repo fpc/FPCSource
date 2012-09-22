@@ -72,6 +72,7 @@ type
     procedure TestAppendDeleteBIN;
 
     procedure TestFileNameProperty;
+    procedure TestXmlFileRecognition;
     procedure TestCloseDatasetNoConnection; // bug 17623
   end;
 
@@ -460,6 +461,27 @@ begin
 
   LoadDs := DBConnector.GetNDataset(True,2);
   TCustomBufDataset(LoadDs).FileName:='test.dat';
+  LoadDs.Open;
+
+  ds := DBConnector.GetNDataset(true,4);
+  ds.Open;
+  CompareDatasets(ds,LoadDs);
+  ds.close;
+  LoadDs.close;
+end;
+
+procedure TTestBufDatasetStreams.TestXmlFileRecognition;
+var ds    : TDataset;
+    LoadDs: TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+
+  ds.open;
+  TCustomBufDataset(ds).SaveToFile('test.xml',dfXML);
+  ds.close;
+
+  LoadDs := DBConnector.GetNDataset(True,2);
+  TCustomBufDataset(LoadDs).FileName:='test.xml';
   LoadDs.Open;
 
   ds := DBConnector.GetNDataset(true,4);

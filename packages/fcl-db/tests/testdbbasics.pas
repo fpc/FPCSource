@@ -58,6 +58,7 @@ type
     procedure TestdeFieldListChange;
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
+    procedure TestDetectionNonMatchingDataset;
   end;
 
   { TTestBufDatasetDBBasics }
@@ -79,6 +80,8 @@ type
     procedure TestBufDatasetCancelUpd1;
     procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleDelete;
+    procedure TestReadOnly;
+    procedure TestMergeChangeLog;
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -670,6 +673,28 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestDetectionNonMatchingDataset;
+var
+  F: TField;
+  ds: tdataset;
+begin
+  // TDataset.Bindfields should detect problems when the underlying data does
+  // not reflect the fields of the dataset. This test is to check if this is
+  // really done.
+  ds := DBConnector.GetNDataset(true,6);
+  with ds do
+    begin
+    open;
+    close;
+
+    F := TStringField.Create(ds);
+    F.FieldName:='DOES_NOT_EXIST';
+    F.DataSet:=ds;
+    F.Size:=50;
+
+    CheckException(open,EDatabaseError);
+    end;
+end;
 
 procedure TTestCursorDBBasics.TestAppendInsertRecord;
 begin
@@ -1147,15 +1172,60 @@ begin
   with DBConnector.GetNDataset(15) do
     begin
     Open;
-    //FilterOptions := [foNoPartialCompare];
-    //FilterOptions := [];
-    Filter := '(name=''*Name3'')';
+    Filter := '(name=''TestName3'')';
     Filtered := True;
     CheckFalse(EOF);
     CheckEquals(3,FieldByName('ID').asinteger);
     CheckEquals('TestName3',FieldByName('NAME').asstring);
     next;
     CheckTrue(EOF);
+
+    // Check partial compare
+    Filter := '(name=''*Name5'')';
+    CheckFalse(EOF);
+    CheckEquals(5,FieldByName('ID').asinteger);
+    CheckEquals('TestName5',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    // Check case-sensitivity
+    Filter := '(name=''*name3'')';
+    first;
+    CheckTrue(EOF);
+
+    FilterOptions:=[foCaseInsensitive];
+    Filter := '(name=''testname3'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger);
+    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    // Check case-insensitive partial compare
+    Filter := '(name=''*name3'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger);
+    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    Filter := '(name=''*name*'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(1,FieldByName('ID').asinteger);
+    CheckEquals('TestName1',FieldByName('NAME').asstring);
+    next;
+    CheckFalse(EOF);
+    CheckEquals(2,FieldByName('ID').asinteger);
+    CheckEquals('TestName2',FieldByName('NAME').asstring);
+
+    Filter := '(name=''*neme*'')';
+    first;
+    CheckTrue(EOF);
+
+
     Close;
     end;
 end;
@@ -1358,6 +1428,44 @@ begin
     CheckEquals(4,fieldbyname('id').AsInteger);
     next;
     CheckEquals(5,fieldbyname('id').AsInteger);
+    end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestReadOnly;
+var
+  ds: TCustomBufDataset;
+begin
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
+  with ds do
+    begin
+    ReadOnly:=true;
+    CheckFalse(CanModify);
+    end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestMergeChangeLog;
+var
+  ds: TCustomBufDataset;
+  i: integer;
+  s: string;
+begin
+  ds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  with ds do
+    begin
+    open;
+    Edit;
+    i := fields[0].AsInteger;
+    s := fields[1].AsString;
+    fields[0].AsInteger:=64;
+    fields[1].AsString:='Changed';
+    Post;
+    checkequals(fields[0].OldValue,i);
+    checkequals(fields[1].OldValue,s);
+    CheckEquals(ChangeCount,1);
+    MergeChangeLog;
+    CheckEquals(ChangeCount,0);
+    checkequals(fields[0].OldValue,64);
+    checkequals(fields[1].OldValue,'Changed');
     end;
 end;
 

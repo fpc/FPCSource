@@ -85,14 +85,8 @@ Procedure TDataset.BindFields(Binding: Boolean);
 var i, FieldIndex: Integer;
     FieldDef: TFieldDef;
 begin
-  {
-     Here some magic will be needed later; for now just simply set
-     Just set fieldno from listindex...
-     Later we should take it from the fielddefs.
-     // ATM Set by CreateField ...
-  For I:=0 to FFieldList.Count-1 do
-    FFieldList[i].FFieldNo:=I;
-  }
+  { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
+    and for bound fields it is set to FieldDef.FieldNo }
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
@@ -124,7 +118,7 @@ begin
               FOffset := FBlobFieldCount;
               Inc(FBlobFieldCount);
             end;
-          end else FFieldNo := FieldIndex;
+          end else FFieldNo := 0;
         end;
       end else FFieldNo := 0;
     end;
