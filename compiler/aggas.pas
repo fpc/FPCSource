@@ -103,7 +103,11 @@ implementation
     uses
       SysUtils,
       cutils,cfileutl,systems,
-      fmodule,verbose,cpubase;
+      fmodule,verbose,
+{$ifdef TEST_WIN64_SEH}
+      itcpugas,
+{$endif TEST_WIN64_SEH}
+      cpubase;
 
     const
       line_length = 70;
