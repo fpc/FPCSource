@@ -158,6 +158,7 @@ type
     procedure TestBug6893;
     procedure TestRequired;
     procedure TestOldValue;
+    procedure TestModified;
   end;
 
 
@@ -634,6 +635,32 @@ begin
     Post;
     CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
     CheckTrue(UpdateStatus=usInserted, 'Inserted');
+  end;
+end;
+
+procedure TTestCursorDBBasics.TestModified;
+begin
+  // Tests TDataSet.Modified property
+  with DBConnector.GetNDataset(true,1) as TDataset do
+  begin
+    Open;
+    CheckFalse(Modified);
+
+    Edit;
+    CheckFalse(Modified, 'After Edit');
+    Fields[1].AsString := Fields[1].AsString;
+    CheckTrue(Modified, 'After change');
+    Post;
+    CheckFalse(Modified, 'After Post');
+
+    Append;
+    CheckFalse(Modified, 'After Append');
+    Fields[0].AsInteger := 100;
+    CheckTrue(Modified, 'After change');
+    Cancel;
+    CheckFalse(Modified, 'After Cancel');
+
+    Close;
   end;
 end;
 

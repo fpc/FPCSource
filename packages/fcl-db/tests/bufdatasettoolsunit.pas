@@ -134,6 +134,8 @@ begin
     FieldDefs.Add('FDATE',ftDate);
     FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
+    FieldDefs.Add('FBLOB',ftBlob);
+    FieldDefs.Add('FMEMO',ftMemo);
     FieldDefs.Add('FLARGEINT',ftLargeint);
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
     FieldDefs.Add('FFMTBCD',ftFmtBCD);
@@ -152,6 +154,9 @@ begin
       FieldByName('FBCD').AsCurrency := testCurrencyValues[i];
       FieldByName('FDATE').AsDateTime := StrToDateTime(testDateValues[i], Self.FormatSettings);
       FieldByName('FTIME').AsDateTime := StrToTime(testTimeValues[i], Self.FormatSettings);
+      FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
+      FieldByName('FBLOB').AsString := testStringValues[i];
+      FieldByName('FMEMO').AsString := testStringValues[i];
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
