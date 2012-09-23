@@ -498,6 +498,7 @@ type
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
     procedure SetReadOnly(AValue: Boolean); virtual;
+    procedure CreateFieldDefs; virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -2710,7 +2711,24 @@ end;
 procedure TCustomBufDataset.CreateDataset;
 begin
   CheckInactive;
-  CreateFields;
+  if not ((FieldCount=0) or (FieldDefs.Count=0)) then
+    begin
+    Open;
+    Exit;
+    end;
+  if (FieldDefs.Count>0) then
+    begin
+    CreateFields;
+    Open;
+    end
+  else if (fields.Count>0) then
+    begin
+    CreateFieldDefs;
+    BindFields(True);
+    Open;
+    end
+  else
+    raise Exception.Create(SErrNoFieldsDefined);
 end;
 
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
@@ -2896,6 +2914,17 @@ begin
     Acceptable := Boolean((FParser.ExtractFromBuffer(GetCurrentBuffer))^);
 end;
 
+procedure TCustomBufDataset.CreateFieldDefs;
+
+Var
+  I : longint;
+  FieldDef: TFieldDef;
+begin
+  For I:=0 to FieldCount-1 do
+    with Fields.Fields[I] do if FieldKind=fkData then
+      FieldDefs.Add(FieldName,DataType,Size,Required);
+end;
+
 procedure TCustomBufDataset.SetFilterText(const Value: String);
 begin
   if Value = Filter then
@@ -2927,6 +2956,8 @@ end;
 procedure TCustomBufDataset.InternalRefresh;
 var StoreDefaultFields: boolean;
 begin
+  if length(FUpdateBuffer)>0 then
+    DatabaseError(SErrApplyUpdBeforeRefresh);
   StoreDefaultFields:=DefaultFields;
   SetDefaultFields(False);
   FreeFieldBuffers;
