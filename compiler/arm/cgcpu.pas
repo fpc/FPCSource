@@ -1075,51 +1075,7 @@ unit cgcpu;
             )
            ) then
           begin
-            reference_reset(tmpref,4);
-
-            { load symbol }
-            tmpreg:=getintregister(list,OS_INT);
-            if assigned(ref.symbol) then
-              begin
-                current_asmdata.getjumplabel(l);
-                cg.a_label(current_procinfo.aktlocaldata,l);
-                tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-
-                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
-
-                { load consts entry }
-                tmpref.symbol:=l;
-                tmpref.base:=NR_R15;
-                list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
-
-                { in case of LDF/STF, we got rid of the NR_R15 }
-                if is_pc(ref.base) then
-                  ref.base:=NR_NO;
-                if is_pc(ref.index) then
-                  ref.index:=NR_NO;
-              end
-            else
-              a_load_const_reg(list,OS_ADDR,ref.offset,tmpreg);
-
-            if (ref.base<>NR_NO) then
-              begin
-                if ref.index<>NR_NO then
-                  begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                    ref.base:=tmpreg;
-                  end
-                else
-                  begin
-                    ref.index:=tmpreg;
-                    ref.shiftimm:=0;
-                    ref.signindex:=1;
-                    ref.shiftmode:=SM_None;
-                  end;
-              end
-            else
-              ref.base:=tmpreg;
-            ref.offset:=0;
-            ref.symbol:=nil;
+            fixref(list,ref);
           end;
 
         { fold if there is base, index and offset, however, don't fold
@@ -2042,6 +1998,7 @@ unit cgcpu;
         tmpreg : tregister;
         tmpref : treference;
         l : tasmlabel;
+        indirection_done : boolean;
       begin
         { absolute symbols can't be handled directly, we've to store the symbol reference
           in the text segment and access it pc relative
@@ -2059,16 +2016,42 @@ unit cgcpu;
         cg.a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
+        indirection_done:=false;
         if assigned(ref.symbol) then
-          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+          begin
+            if (target_info.system=system_arm_darwin) and
+               (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) then
+              begin
+                tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
+                if ref.offset<>0 then
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
+                indirection_done:=true;
+              end
+            else
+              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+          end
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
-        tmpreg:=getintregister(list,OS_INT);
-        tmpref.symbol:=l;
-        tmpref.base:=NR_PC;
-        list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+        if not indirection_done then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            tmpref.symbol:=l;
+            tmpref.base:=NR_PC;
+            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+          end;
+
+        { This routine can be called with PC as base/index in case the offset
+          was too large to encode in a load/store. In that case, the entire
+          absolute expression has been re-encoded in a new constpool entry, and
+          we have to remove the use of PC from the original reference (the code
+          above made everything relative to the value loaded from the new
+          constpool entry) }
+        if is_pc(ref.base) then
+          ref.base:=NR_NO;
+        if is_pc(ref.index) then
+          ref.index:=NR_NO;
 
         if (ref.base<>NR_NO) then
           begin
@@ -2085,8 +2068,8 @@ unit cgcpu;
                   ref.signindex:=1;
                   ref.shiftmode:=SM_None;
                 end
-                else
-                  ref.base:=tmpreg;
+              else
+                ref.base:=tmpreg;
           end
         else
           ref.base:=tmpreg;
