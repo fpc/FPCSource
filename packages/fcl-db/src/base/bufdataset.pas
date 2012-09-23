@@ -556,7 +556,7 @@ type
     Property AutoCalcFields;
     Property Filter;
     Property Filtered;
-    Property Readonly;
+    Property ReadOnly;
     Property AfterCancel;
     Property AfterClose;
     Property AfterDelete;
@@ -1181,6 +1181,8 @@ begin
       begin
       if assigned(OldValuesBuffer) then
         FreeRecordBuffer(OldValuesBuffer);
+      if (UpdateKind = ukDelete) and assigned(BookmarkData.BookmarkData) then
+        FreeRecordBuffer(TRecordBuffer(BookmarkData.BookmarkData));
       end;
     end;
   SetLength(FUpdateBuffer,0);
@@ -1916,7 +1918,7 @@ end;
 
 procedure TCustomBufDataset.InternalDelete;
 var i : Integer;
-    RemRec, FreeRec : pointer;
+    RemRec : pointer;
     RemRecBookmrk : TBufBookmark;
 begin
   InternalSetToRecord(ActiveBuffer);
@@ -1935,15 +1937,16 @@ begin
     FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
     move(RemRec^, FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
     end
-  else //with FIndexes[0] do
+  else
     begin
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind <> ukModify then
       begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;  //this 'disables' the updatebuffer
-      FreeRec := RemRecBookmrk.BookmarkData;  // mantis #18004
-      FreeRecordBuffer(TRecordBuffer(FreeRec));
-      // RemRecBookmrk.BookmarkData still points to just freed record buffer
-      // There could be record in update-buffer, linked to this record
+      // Do NOT release record buffer (pointed by RemRecBookmrk.BookmarkData) here
+      //  - When record is inserted and deleted(and memory released) and again inserted then same memory block can be returned
+      //    which leads to confusion, because we get same BookmarkData for distinct records
+      //  - In CancelUpdates when records are restored it is expected, that deleted records still exists in memory
+      // There also could be record(s) in update-buffer, linked to this record.
       end;
     end;
   FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
@@ -2011,7 +2014,8 @@ var StoreRecBM     : TBufBookmark;
           begin
           GotoBookmark(@StoreRecBM);
           if ScrollForward = grEOF then
-            ScrollBackward;
+            if ScrollBackward = grBOF then
+              ScrollLast;  // last record will be removed from index, so move to spare record
           StoreCurrentRecIntoBookmark(@StoreRecBM);
           end;
         FCurrentIndex.RemoveRecordFromIndex(Bm);

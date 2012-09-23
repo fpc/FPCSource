@@ -122,7 +122,6 @@ end;
 
 procedure TPQEventMonitor.SetRegistered(AValue: Boolean);
 begin
-  FRegistered := AValue;
   if not (csDesigning in ComponentState) then
     if AValue then
       RegisterEvents
