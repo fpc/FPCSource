@@ -1739,7 +1739,7 @@ implementation
         case n.nodetype of
           loadn:
             begin
-              if tloadnode(n).symtableentry.inheritsfrom(tabstractvarsym) and
+              if (tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
                  (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
                  not assigned(tloadnode(n).left) and
                  ((tloadnode(n).symtableentry <> rr^.ressym) or
