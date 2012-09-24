@@ -1632,6 +1632,9 @@ begin
        include(saveregs,RS_R31);
        if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
          include(saveregs,RS_FRAME_POINTER_REG);
+       if (cs_create_pic in current_settings.moduleswitches) and
+          (pi_needs_got in current_procinfo.flags) then
+         include(saveregs,RS_GP);
        for reg:=RS_R1 to RS_R31 do
          begin
            if reg in saveregs then
