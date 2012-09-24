@@ -203,7 +203,7 @@ implementation
     uses
       cutils,
       verbose,systems,sysutils,
-      defutil,
+      defutil,procinfo,
       cpubase,cgbase,
       nld;
 
@@ -588,6 +588,8 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
       end;
 
     function trealconstnode.docompare(p: tnode): boolean;
@@ -948,6 +950,9 @@ implementation
           end
         else
           expectloc:=LOC_CREFERENCE;
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (expectloc <> LOC_CONSTANT) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1227,6 +1232,9 @@ implementation
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (expectloc <> LOC_CONSTANT) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
