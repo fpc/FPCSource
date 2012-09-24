@@ -259,6 +259,10 @@ unit cgcpu;
                                 reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
+{$ifdef EXTDEBUG}
+				if not (pi_needs_got in current_procinfo.flags) then
+				  Comment(V_warning,'pi_needs_got not included');
+{$endif EXTDEBUG}
                                 include(current_procinfo.flags,pi_needs_got);
                                 list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
                               end
