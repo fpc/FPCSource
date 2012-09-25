@@ -204,6 +204,8 @@ implementation
          hct : tconverttype;
          hobjdef : tobjectdef;
          hpd : tprocdef;
+         i : longint;
+         diff : boolean;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -260,6 +262,33 @@ implementation
                 compare_defs_ext:=te_exact;
                 exit;
               end;
+           end;
+
+         { two specializations are considered equal if they specialize the same
+           generic with the same types }
+         if (df_specialization in def_from.defoptions) and
+             (df_specialization in def_to.defoptions) and
+             (tstoreddef(def_from).genericdef=tstoreddef(def_to).genericdef) then
+           begin
+             if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
+               internalerror(2012091301);
+             diff:=false;
+             for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+               begin
+                 if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
+                   internalerror(2012091302);
+                 if tstoreddef(def_from).genericparas[i]<>tstoreddef(def_to).genericparas[i] then
+                   diff:=true;
+                 if diff then
+                   break;
+               end;
+             if not diff then
+               begin
+                 doconv:=tc_equal;
+                 { the definitions are not exactly the same, but only equal }
+                 compare_defs_ext:=te_equal;
+                 exit;
+               end;
            end;
 
          { we walk the wanted (def_to) types and check then the def_from
