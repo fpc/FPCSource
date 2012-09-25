@@ -1,3 +1,5 @@
+{ %NORUN }
+
 {$MODE DELPHI}
 
 uses uw22427b;
