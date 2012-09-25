@@ -56,7 +56,7 @@ uses
   { common }
   cutils,fpccrc,
   { global }
-  globals,tokens,verbose,
+  globals,tokens,verbose,finput,
   { symtable }
   symconst,symsym,symtable,
   { modules }
@@ -68,6 +68,34 @@ uses
   scanner,
   pbase,pexpr,pdecsub,ptype;
 
+
+    procedure maybe_add_waiting_unit(tt:tdef);
+      var
+        hmodule : tmodule;
+      begin
+        if not assigned(tt) or
+            not (df_generic in tt.defoptions) then
+          exit;
+
+        hmodule:=find_module_from_symtable(tt.owner);
+        if not assigned(hmodule) then
+          internalerror(2012092401);
+
+        if hmodule=current_module then
+          exit;
+
+        if hmodule.state<>ms_compiled then
+          begin
+{$ifdef DEBUG_UNITWAITING}
+            Writeln('Unit ', current_module.modulename^,
+              ' waiting for ', hmodule.modulename^);
+{$endif DEBUG_UNITWAITING}
+            if current_module.waitingforunit.indexof(hmodule)<0 then
+              current_module.waitingforunit.add(hmodule);
+            if hmodule.waitingunits.indexof(current_module)<0 then
+              hmodule.waitingunits.add(current_module);
+          end;
+      end;
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
       var
@@ -374,6 +402,8 @@ uses
                     current_genericdef:=nil;
                     current_specializedef:=nil;
                   end;
+
+                maybe_add_waiting_unit(genericdef);
 
                 { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
@@ -696,14 +726,18 @@ uses
       pu:=tused_unit(hmodule.used_units.first);
       while assigned(pu) do
         begin
-          if (hmodule<>current_module) and not pu.in_interface then
-            begin
-              pu:=tused_unit(pu.next);
-              continue;
-            end;
           if not assigned(pu.u.globalsymtable) then
-            internalerror(200705153);
-          symtablestack.push(pu.u.globalsymtable);
+            { in certain circular, but valid unit constellations it can happen
+              that we specialize a generic in a different unit that was used
+              in the implementation section of the generic's unit and were the
+              interface is still being parsed and thus the localsymtable is in
+              reality the global symtable }
+            if pu.u.in_interface then
+              symtablestack.push(pu.u.localsymtable)
+            else
+              internalerror(200705153)
+          else
+            symtablestack.push(pu.u.globalsymtable);
           sym:=tsym(unitsyms.find(pu.u.modulename^));
           if assigned(sym) and not assigned(tunitsym(sym).module) then
             tunitsym(sym).module:=pu.u;

@@ -25,11 +25,12 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-MObjFPC -Scgi -O1 -gl -vewnhi -l -FiD:\programming\laz_svn\fpc_features\cpstr\lib\i386-win32\ -FuD:\programming\laz_svn\cpstr\cpstrnew\ -Fu. -FUD:\programming\laz_svn\fpc_features\cpstr\lib\i386-win32\ -oproject1.exe D:\programming\laz_svn\fpc_features\cpstr\project1.lpr"/>
+        <CommandLineParams Value="-n -Furtl\units\i386-win32 -viwn -FEtestoutput fpctests\tgenunitstatic.pas"/>
         <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+        <WorkingDirectory Value="c:\svn\fpc"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -40,6 +41,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="aasmcpu"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="globstat.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="globstat"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -63,7 +69,7 @@
     </Parsing>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsStabs"/>
+        <DebugInfoType Value="dsDwarf2Set"/>
       </Debugging>
     </Linking>
     <Other>
@@ -78,7 +84,8 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-di386"/>
+      <CustomOptions Value="-di386
+-dDEBUG_UNITWAITING"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

@@ -64,6 +64,7 @@ interface
           function  needrecompile:boolean;
           procedure setdefgeneration;
           procedure reload_flagged_units;
+          procedure end_of_parsing;override;
        private
          { Each time a unit's defs are (re)created, its defsgeneration is
            set to the value of a global counter, and the global counter is
@@ -1491,6 +1492,21 @@ var
              hp.do_reload:=false;
            hp:=tppumodule(hp.next);
          end;
+      end;
+
+    procedure tppumodule.end_of_parsing;
+      begin
+        { module is now compiled }
+        state:=ms_compiled;
+
+        { free ppu }
+        if assigned(ppufile) then
+          begin
+            ppufile.free;
+            ppufile:=nil;
+          end;
+
+        inherited end_of_parsing;
       end;
 
 

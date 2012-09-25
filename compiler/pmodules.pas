@@ -25,7 +25,7 @@ unit pmodules;
 
 interface
 
-    procedure proc_unit;
+    function proc_unit:boolean;
     procedure proc_package;
     procedure proc_program(islibrary : boolean);
 
@@ -35,7 +35,7 @@ implementation
        SysUtils,
        globtype,version,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
-       globals,verbose,fmodule,finput,fppu,
+       globals,verbose,fmodule,finput,fppu,globstat,
        symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
@@ -725,44 +725,34 @@ implementation
         end;
 {$endif jvm}
 
-    procedure proc_unit;
+type
+    tfinishstate=record
+      init_procinfo:tcgprocinfo;
+    end;
+    pfinishstate=^tfinishstate;
 
-      function is_assembler_generated:boolean;
-      var
-        hal : tasmlisttype;
-      begin
-        result:=false;
-        if Errorcount=0 then
-          begin
-            for hal:=low(TasmlistType) to high(TasmlistType) do
-              if not current_asmdata.asmlists[hal].empty then
-                begin
-                  result:=true;
-                  exit;
-                end;
-          end;
-      end;
+    procedure finish_unit(module:tmodule;immediate:boolean);forward;
 
+    function proc_unit:boolean;
       var
          main_file: tinputfile;
+         {
 {$ifdef EXTDEBUG}
          store_crc,
 {$endif EXTDEBUG}
          store_interface_crc,
-         store_indirect_crc: cardinal;
+         store_indirect_crc: cardinal;}
          s1,s2  : ^string; {Saves stack space}
-         force_init_final : boolean;
-         init_procinfo,
-         finalize_procinfo : tcgprocinfo;
+         init_procinfo : tcgprocinfo;
          unitname : ansistring;
          unitname8 : string[8];
-         ag: boolean;
-{$ifdef debug_devirt}
-         i: longint;
-{$endif debug_devirt}
+         i,j : longint;
+         finishstate:pfinishstate;
+         globalstate:pglobalstate;
       begin
+         result:=true;
+
          init_procinfo:=nil;
-         finalize_procinfo:=nil;
 
          if m_mac in current_settings.modeswitches then
            current_module.mode_switch_allowed:= false;
@@ -962,6 +952,99 @@ implementation
              current_module.mainfilepos:=init_procinfo.entrypos;
            end;
 
+         { remove all units that we are waiting for that are already waiting for
+           us => breaking up circles }
+         for i:=0 to current_module.waitingunits.count-1 do
+           for j:=current_module.waitingforunit.count-1 downto 0 do
+             if current_module.waitingunits[i]=current_module.waitingforunit[j] then
+               current_module.waitingforunit.delete(j);
+
+{$ifdef DEBUG_UNITWAITING}
+         Writeln('Units waiting for ', current_module.modulename^, ': ',
+           current_module.waitingforunit.Count);
+{$endif}
+         result:=current_module.waitingforunit.count=0;
+
+         { save all information that is needed for finishing the unit }
+         New(finishstate);
+         finishstate^.init_procinfo:=init_procinfo;
+         current_module.finishstate:=finishstate;
+
+         if result then
+           finish_unit(current_module,true)
+         else
+           begin
+             { save the current state, so the parsing can continue where we left
+               of here }
+             New(globalstate);
+             save_global_state(globalstate^,true);
+             current_module.globalstate:=globalstate;
+           end;
+      end;
+
+    procedure finish_unit(module:tmodule;immediate:boolean);
+
+      function is_assembler_generated:boolean;
+      var
+        hal : tasmlisttype;
+      begin
+        result:=false;
+        if Errorcount=0 then
+          begin
+            for hal:=low(TasmlistType) to high(TasmlistType) do
+              if not current_asmdata.asmlists[hal].empty then
+                begin
+                  result:=true;
+                  exit;
+                end;
+          end;
+      end;
+
+      procedure module_is_done;inline;
+        begin
+          dispose(pglobalstate(current_module.globalstate));
+          current_module.globalstate:=nil;
+          dispose(pfinishstate(current_module.finishstate));
+          current_module.finishstate:=nil;
+        end;
+
+      var
+{$ifdef EXTDEBUG}
+        store_crc,
+{$endif EXTDEBUG}
+        store_interface_crc,
+        store_indirect_crc: cardinal;
+        force_init_final : boolean;
+        init_procinfo,
+        finalize_procinfo : tcgprocinfo;
+        i,idx : longint;
+        ag : boolean;
+        finishstate : tfinishstate;
+        globalstate : tglobalstate;
+        waitingmodule : tmodule;
+      begin
+         if not immediate then
+           begin
+{$ifdef DEBUG_UNITWAITING}
+             writeln('finishing waiting unit ''', module.modulename^, '''');
+{$endif DEBUG_UNITWAITING}
+             { restore the state when we stopped working on the unit }
+             save_global_state(globalstate,true);
+             if not assigned(module.globalstate) then
+               internalerror(2012091802);
+             restore_global_state(pglobalstate(module.globalstate)^,true);
+           end;
+
+         { current_module is now module }
+
+         if not assigned(current_module.finishstate) then
+           internalerror(2012091801);
+         finishstate:=pfinishstate(current_module.finishstate)^;
+
+         finalize_procinfo:=nil;
+
+         init_procinfo:=finishstate.init_procinfo;
+
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
@@ -1061,6 +1144,9 @@ implementation
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            module_is_done;
+            if not immediate then
+              restore_global_state(globalstate,true);
             exit;
           end;
 
@@ -1148,6 +1234,9 @@ implementation
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            module_is_done;
+            if not immediate then
+              restore_global_state(globalstate,true);
             exit;
           end;
 
@@ -1190,6 +1279,23 @@ implementation
 {$endif debug_devirt}
 
         Message1(unit_u_finished_compiling,current_module.modulename^);
+
+        module_is_done;
+        if not immediate then
+          restore_global_state(globalstate,true);
+
+        for i:=0 to module.waitingunits.count-1 do
+          begin
+            waitingmodule:=tmodule(module.waitingunits[i]);
+            waitingmodule.waitingforunit.remove(module);
+            { only finish the module if it isn't already finished }
+            if (waitingmodule.waitingforunit.count=0) and
+                assigned(waitingmodule.finishstate) then
+              begin
+                finish_unit(waitingmodule,false);
+                waitingmodule.end_of_parsing;
+              end;
+          end;
       end;
 
 
