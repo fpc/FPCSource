@@ -736,12 +736,6 @@ type
     function proc_unit:boolean;
       var
          main_file: tinputfile;
-         {
-{$ifdef EXTDEBUG}
-         store_crc,
-{$endif EXTDEBUG}
-         store_interface_crc,
-         store_indirect_crc: cardinal;}
          s1,s2  : ^string; {Saves stack space}
          init_procinfo : tcgprocinfo;
          unitname : ansistring;
