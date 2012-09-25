@@ -25,27 +25,14 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-n -Furtl\units\i386-win32 -viwn -FEtestoutput fpctests\tgenunitstatic.pas"/>
-        <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
-        <WorkingDirectory Value="c:\svn\fpc"/>
       </local>
     </RunParams>
-    <Units Count="3">
+    <Units Count="1">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="x86\aasmcpu.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="globstat.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="globstat"/>
-      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -67,11 +54,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <DebugInfoType Value="dsDwarf2Set"/>
-      </Debugging>
-    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>
@@ -84,8 +66,7 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-di386
--dDEBUG_UNITWAITING"/>
+      <CustomOptions Value="-di386"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
