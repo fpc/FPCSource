@@ -5927,7 +5927,10 @@ implementation
             odt_interfacecorba:
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
-              needs_inittable:=tObjectSymtable(symtable).needs_init_final;
+              needs_inittable:=
+                tObjectSymtable(symtable).needs_init_final or
+                (assigned(childof) and
+                 childof.needs_inittable);
             odt_cppclass,
             odt_objcclass,
             odt_objcprotocol,

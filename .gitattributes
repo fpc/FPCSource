@@ -11052,6 +11052,7 @@ tests/test/tobject5.pp svneol=native#text/pascal
 tests/test/tobject6.pp svneol=native#text/plain
 tests/test/tobject7.pp svneol=native#text/plain
 tests/test/tobject8.pp svneol=native#text/plain
+tests/test/tobject9.pp svneol=native#text/plain
 tests/test/toperator1.pp svneol=native#text/plain
 tests/test/toperator10.pp svneol=native#text/pascal
 tests/test/toperator11.pp svneol=native#text/pascal
