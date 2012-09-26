@@ -840,6 +840,7 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
       end
     else
       begin
+        UniqueString(s);
         AnsistringClass(S).fCodePage:=CodePage;
       end;
   end;
