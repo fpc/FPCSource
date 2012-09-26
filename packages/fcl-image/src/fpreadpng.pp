@@ -742,27 +742,30 @@ procedure TFPReaderPNG.DoDecompress;
         end
       else
         l := ScanLineLength[rp]*ByteWidth;
-      GetMem (FPreviousLine, l);
-      GetMem (FCurrentLine, l);
-      fillchar (FCurrentLine^,l,0);
-      try
-        for ry := 0 to CountScanlines[rp]-1 do
-          begin
-          FSwitchLine := FCurrentLine;
-          FCurrentLine := FPreviousLine;
-          FPreviousLine := FSwitchLine;
-          Y := CalcY(ry);
-          Decompress.Read (lf, sizeof(lf));
-          Decompress.Read (FCurrentLine^, l);
-          if lf <> 0 then  // Do nothing when there is no filter used
-            for rx := 0 to l-1 do
-              FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
-          HandleScanLine (y, FCurrentLine);
-          end;
-      finally
-        freemem (FPreviousLine);
-        freemem (FCurrentLine);
-      end;
+      if (l>0) then
+        begin
+        GetMem (FPreviousLine, l);
+        GetMem (FCurrentLine, l);
+        fillchar (FCurrentLine^,l,0);
+        try
+          for ry := 0 to CountScanlines[rp]-1 do
+            begin
+            FSwitchLine := FCurrentLine;
+            FCurrentLine := FPreviousLine;
+            FPreviousLine := FSwitchLine;
+            Y := CalcY(ry);
+            Decompress.Read (lf, sizeof(lf));
+            Decompress.Read (FCurrentLine^, l);
+            if lf <> 0 then  // Do nothing when there is no filter used
+              for rx := 0 to l-1 do
+                FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
+            HandleScanLine (y, FCurrentLine);
+            end;
+        finally
+          freemem (FPreviousLine);
+          freemem (FCurrentLine);
+        end;
+        end;
       end;
   end;
 
