@@ -2189,6 +2189,7 @@ begin
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
+{$endif HAS_UNIT_PROCESS}
 
 constructor TPackageVariant.Create(ACollection: TCollection);
 begin
@@ -2240,7 +2241,6 @@ begin
     FDefaultPackageVariantName:=AName;
 end;
 
-{$endif HAS_UNIT_PROCESS}
 
 { TConditionalDestStrings }
 
