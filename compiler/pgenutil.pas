@@ -105,6 +105,7 @@ uses
         found,
         first,
         err : boolean;
+        errval,
         i,
         gencount : longint;
         crc : cardinal;
@@ -198,6 +199,7 @@ uses
                           (srsym.typ<>typesym) then
                         begin
                           identifier_not_found(genname);
+                          tt:=generrordef;
                           exit;
                         end;
                       tt:=ttypesym(srsym).typedef;
@@ -224,18 +226,17 @@ uses
         if err then
           begin
             try_to_consume(_RSHARPBRACKET);
+            tt:=generrordef;
             exit;
           end;
 
-        { search a generic with the given count of params }
-        countstr:='';
-        str(genericdeflist.Count,countstr);
         { use the name of the symbol as procvars return a user friendly version
           of the name }
         if symname='' then
           genname:=ttypesym(genericdef.typesym).realname
         else
           genname:=symname;
+
         { in case of non-Delphi mode the type name could already be a generic
           def (but maybe the wrong one) }
         if assigned(genericdef) and
@@ -257,7 +258,27 @@ uses
                     genname:=copy(genname,1,i-1);
                     break;
                   end;
-          end;
+          end
+        else
+          { search for a potential suffix }
+          for i:=length(genname) downto 1 do
+            if genname[i]='$' then
+              begin
+                { if the part right of the $ is a number we assume that the left
+                  part is the name of the generic, otherwise we assume that the
+                  complete name is the name of the generic }
+                countstr:=copy(genname,i+1,length(genname)-i);
+                gencount:=0;
+                val(countstr,gencount,errval);
+                if errval=0 then
+                  genname:=copy(genname,1,i-1);
+                break;
+              end;
+
+        { search a generic with the given count of params }
+        countstr:='';
+        str(genericdeflist.Count,countstr);
+
         genname:=genname+'$'+countstr;
         ugenname:=upper(genname);
 
@@ -276,6 +297,7 @@ uses
             identifier_not_found(genname);
             genericdeflist.Free;
             generictypelist.Free;
+            tt:=generrordef;
             exit;
           end;
 
@@ -316,7 +338,6 @@ uses
                 inc(gencount);
               end;
           end;
-
 
         { Special case if we are referencing the current defined object }
         if assigned(current_structdef) and
