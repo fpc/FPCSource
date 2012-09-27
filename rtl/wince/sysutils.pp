@@ -62,6 +62,9 @@ implementation
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 
+{ used OS file system APIs use unicodestring }
+{$DEFINE SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -130,7 +133,7 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
@@ -142,36 +145,28 @@ const
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
-var
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(FileName);
-  result := CreateFile(fn, dword(AccessMode[Mode and 3]),
+  result := CreateFile(PWideChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
-  FreeMem(fn);
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
-var
-  fn: PWideChar;
+Function FileCreate (Const FileName : UnicodeString) : THandle;
 begin
-  fn:=StringToPWideChar(FileName);
-  Result := CreateFile(fn, GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFile(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  FreeMem(fn);
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; ShareMode:longint; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;

@@ -37,6 +37,9 @@ implementation
 uses
   sysconst;
     
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -44,10 +47,12 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 var
   NDSFlags: longint;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NDSFlags := 0;
 
   case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
@@ -55,7 +60,7 @@ begin
     fmOpenWrite : NDSFlags := NDSFlags or O_WrOnly;
     fmOpenReadWrite : NDSFlags := NDSFlags or O_RdWr;
   end;
-  FileOpen := _open(pchar(FileName), NDSFlags);
+  FileOpen := _open(pchar(SystemFileName), NDSFlags);
 end;
 
 
@@ -71,19 +76,25 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
+var
+  SystemFileName: RawByteString;
 begin
-  FileCreate:=_open(pointer(FileName), O_RdWr or O_Creat or O_Trunc);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_open(pointer(SystemFileName), O_RdWr or O_Creat or O_Trunc);
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+var
+  SystemFileName: RawByteString;
 begin
-  FileCreate:=_Open(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_Open(pointer(SystemFileName),O_RdWr or O_Creat or O_Trunc,Rights);
 end;
 
 
-function FileCreate(const FileName: string; ShareMode : Integer; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode : Integer; Rights: integer): LongInt;
 begin
   result := FileCreate(FileName, Rights);
 end;

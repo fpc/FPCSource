@@ -38,6 +38,9 @@ implementation
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -452,7 +455,7 @@ const
                              specification for DosFindFirst call.}
 
 {$ASMMODE INTEL}
-function FileOpen (const FileName: string; Mode: integer): longint; assembler;
+function FileOpen (const FileName: pointer; Mode: integer): longint; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -477,21 +480,28 @@ asm
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
+function FileOpen (const FileName: rawbytestring; Mode: integer): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
+  FileOpen := FileOpen(pointer(SystemFileName),Mode);
+end;
 
-function FileCreate (const FileName: string): longint;
+function FileCreate (const FileName: RawByteString): longint;
 begin
   FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW, 777);
                                                        (* Sharing to DenyAll *)
 end;
 
 
-function FileCreate (const FileName: string; Rights: integer): longint;
+function FileCreate (const FileName: RawByteString; Rights: integer): longint;
 begin
   FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW,
                                               Rights); (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode: integer; Rights: integer): longint; assembler;
+function FileCreate (const FileName: Pointer; ShareMode: integer; Rights: integer): longint; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -515,6 +525,13 @@ asm
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
+function FileCreate (const FileName: RawByteString; ShareMode: integer; Rights: integer): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
+  FileOpen := FileCreate(pointer(SystemFileName),ShareMode,Rights);
+end;
 
 function FileRead (Handle: longint; Out Buffer; Count: longint): longint;
                                                                      assembler;

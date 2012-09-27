@@ -41,6 +41,9 @@ uses dos,sysconst;
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -104,13 +107,16 @@ end;
 
 (****** non portable routines ******)
 
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 var
+  SystemFileName: RawByteString;
   dosResult: LongInt;
   tmpStr   : array[0..255] of char;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   {$WARNING FIX ME! To do: FileOpen Access Modes}
-  tmpStr:=PathConv(FileName)+#0;
+  {$WARNING FIX ME! PathConv takes a shortstring, which means 255 char truncation and conversion to defaultsystemcodepage, ignoring the defaultfilesystemcodepage setting}
+  tmpStr:=PathConv(SystemFileName)+#0;
   dosResult:=Open(@tmpStr,MODE_OLDFILE);
   if dosResult=0 then
     dosResult:=-1
@@ -134,11 +140,14 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
 var
+  SystemFileName: RawByteString;
   dosResult: LongInt;
   tmpStr   : array[0..255] of char;
 begin
+ SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+ {$WARNING FIX ME! PathConv takes a shortstring, which means 255 char truncation and conversion to defaultsystemcodepage, ignoring the defaultfilesystemcodepage setting}
  tmpStr:=PathConv(FileName)+#0;
  dosResult:=Open(@tmpStr,MODE_NEWFILE);
  if dosResult=0 then
@@ -150,13 +159,13 @@ begin
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
-function FileCreate(const FileName: string; ShareMode: integer; Rights : Integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : Integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);

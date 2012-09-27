@@ -264,6 +264,9 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -424,9 +427,10 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
 
 Var
+  SystemFileName: RawByteString;
   LinuxFlags : longint;
 begin
   LinuxFlags:=0;
@@ -436,32 +440,39 @@ begin
     fmOpenReadWrite : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
 
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
+    FileOpen:=fpOpen (pointer(SystemFileName),LinuxFlags);
   until (FileOpen<>-1) or (fpgeterrno<>ESysEINTR);
 
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 
+Var
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
+    FileCreate:=fpOpen(pointer(SystemFileName),O_RdWr or O_Creat or O_Trunc);
   until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
-Function FileCreate (Const FileName : String;Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;Rights : Longint) : Longint;
 
+Var
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
+    FileCreate:=fpOpen(pointer(SystemFileName),O_RdWr or O_Creat or O_Trunc,Rights);
   until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
-Function FileCreate (Const FileName : String; ShareMode : Longint; Rights:LongInt ) : Longint;
+Function FileCreate (Const FileName : RawByteString; ShareMode : Longint; Rights:LongInt ) : Longint;
 
 begin
   Result:=FileCreate( FileName, Rights );

@@ -41,6 +41,9 @@ type
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_GETENV_PCHAR}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -61,15 +64,17 @@ const
  FindResvdMask = $00003737; {Allowed bits in attribute
                              specification for DosFindFirst call.}
 
-function FileOpen (const FileName: string; Mode: integer): THandle;
+function FileOpen (const FileName: rawbytestring; Mode: integer): THandle;
 Var
+  SystemFileName: RawByteString;
   Handle: THandle;
   Rc, Action: cardinal;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
 (* DenyNone if sharing not specified. *)
   if (Mode and 112 = 0) or (Mode and 112 > 64) then
    Mode := Mode or 64;
-  Rc:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
+  Rc:=Sys_DosOpenL(PChar (SystemFileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
   else
@@ -77,28 +82,30 @@ begin
     //should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end;
 
-function FileCreate (const FileName: string): THandle;
+function FileCreate (const FileName: RawByteString): THandle;
 begin
   FileCreate := FileCreate (FileName, doDenyRW, 777); (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; Rights: integer): THandle;
+function FileCreate (const FileName: RawByteString; Rights: integer): THandle;
 begin
   FileCreate := FileCreate (FileName, doDenyRW, Rights);
                                       (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode: integer;
+function FileCreate (const FileName: RawByteString; ShareMode: integer;
                                                      Rights: integer): THandle;
 var
+  SystemFileName: RawByteString;
   Handle: THandle;
   RC, Action: cardinal;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   ShareMode := ShareMode and 112;
   (* Sharing to DenyAll as default in case of values not allowed by OS/2. *)
   if (ShareMode = 0) or (ShareMode > 64) then
    ShareMode := doDenyRW;
-  RC := Sys_DosOpenL (PChar (FileName), Handle, Action, 0, 0, $12,
+  RC := Sys_DosOpenL (PChar (SystemFileName), Handle, Action, 0, 0, $12,
                                     faCreate or ofReadWrite or ShareMode, nil);
   if RC = 0 then
    FileCreate := Handle

@@ -77,6 +77,9 @@ implementation
 {$define FPC_FEXPAND_VOLUMES}
 {$define FPC_FEXPAND_NO_DEFAULT_PATHS}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -85,35 +88,38 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
-BEGIN
+    SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NWOpenFlags:=0;
   Case (Mode and 3) of
     0 : NWOpenFlags:=NWOpenFlags or O_RDONLY;
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := _open (pchar(FileName),NWOpenFlags,0);
+  FileOpen := _open (pchar(SystemFileName),NWOpenFlags,0);
 
   //!! We need to set locking based on Mode !!
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
-
+Function FileCreate (Const FileName : RawByteString) : THandle;
+VAR SystemFileName: RawByteString;
 begin
-  FileCreate:=_open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc,0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_open(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
 
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode: Longint; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode: Longint; Rights:longint) : THandle;
 
 begin
   FileCreate:=FileCreate (FileName);

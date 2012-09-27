@@ -49,6 +49,9 @@ implementation
 
 {$DEFINE FPC_NOGENERICANSIROUTINES}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -56,7 +59,7 @@ implementation
                               File Functions
 ****************************************************************************}
 
-function FileOpen(const FileName : string; Mode : Integer) : THandle;
+function FileOpen(const FileName : rawbytestring; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of ACCESS_MASK  = (
     GENERIC_READ,
@@ -73,7 +76,7 @@ var
   objattr: OBJECT_ATTRIBUTES;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  AnsiStrToNtStr(ToSingleByteFileSystemEncodedFileName(FileName), ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   NtCreateFile(@Result, AccessMode[Mode and 3] or NT_SYNCHRONIZE, @objattr,
     @iostatus, Nil, FILE_ATTRIBUTE_NORMAL, ShareMode[(Mode and $F0) shr 4],
@@ -82,19 +85,19 @@ begin
 end;
 
 
-function FileCreate(const FileName : String) : THandle;
+function FileCreate(const FileName : RawByteString) : THandle;
 begin
   FileCreate := FileCreate(FileName, fmShareDenyNone, 0);
 end;
 
 
-function FileCreate(const FileName : String; Rights: longint) : THandle;
+function FileCreate(const FileName : RawByteString; Rights: longint) : THandle;
 begin
   FileCreate := FileCreate(FileName, fmShareDenyNone, Rights);
 end;
 
 
-function FileCreate(const FileName : String; ShareMode : longint; Rights: longint) : THandle;
+function FileCreate(const FileName : RawByteString; ShareMode : longint; Rights: longint) : THandle;
 const
   ShareModeFlags: array[0..4] of ULONG = (
                0,
@@ -108,7 +111,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   res: NTSTATUS;
 begin
-  AnsiStrToNTStr(FileName, ntstr);
+  AnsiStrToNTStr(ToSingleByteFileSystemEncodedFileName(FileName), ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   NtCreateFile(@Result, GENERIC_READ or GENERIC_WRITE or NT_SYNCHRONIZE,
     @objattr, @iostatus, Nil, FILE_ATTRIBUTE_NORMAL,

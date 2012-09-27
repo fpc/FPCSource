@@ -15,6 +15,9 @@
   { Read filename handling functions implementation }
   {$i fina.inc}
 
+  { Read file utility functions implementation }
+  {$i filutil.inc}
+
   { variant error codes }
   {$i varerror.inc}
 

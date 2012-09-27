@@ -79,6 +79,9 @@ implementation
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -87,35 +90,39 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
-BEGIN
+    SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NWOpenFlags:=0;
   Case (Mode and 3) of
     0 : NWOpenFlags:=NWOpenFlags or O_RDONLY;
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := Fpopen (pchar(FileName),NWOpenFlags);
+  FileOpen := Fpopen (pchar(SystemFileName),NWOpenFlags);
 
   //!! We need to set locking based on Mode !!
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : RawByteString) : THandle;
+var SystemFileName: RawByteString;
 begin
-  FileCreate:=Fpopen(Pchar(FileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=Fpopen(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
   if FileCreate >= 0 then
     FileSetAttr (Filename, 0);  // dont know why but open always sets ReadOnly flag
 end;
 
-Function FileCreate (Const FileName : String; rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; rights:longint) : THandle;
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; rights : longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; rights : longint) : THandle;
 begin
   FileCreate:=FileCreate (FileName);
 end;

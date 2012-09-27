@@ -41,6 +41,9 @@ implementation
 uses
   dos, sysconst;
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -48,7 +51,7 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 begin
   result := -1;
 end;
@@ -66,19 +69,19 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: string; ShareMode: integer; rights : integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; rights : integer): LongInt;
 begin
   result := -1;
 end;

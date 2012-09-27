@@ -58,6 +58,9 @@ uses
 {$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
 {$DEFINE FPC_FEXPAND_NO_CURDIR}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -66,12 +69,13 @@ uses
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
 
 Var LinuxFlags : longint;
-
-BEGIN
+    SystemFileName: RawByteString;
+begin
   (* TODO fix
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   LinuxFlags:=0;
   Case (Mode and 3) of
     0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
@@ -84,7 +88,7 @@ BEGIN
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 
 begin
   (* TODO fix
@@ -93,7 +97,7 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String;Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;Rights : Longint) : Longint;
 
 Var LinuxFlags : longint;
 
@@ -109,7 +113,7 @@ BEGIN
   *)
 end;
 
-Function FileCreate (Const FileName : String;ShareMode : Longint; Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;ShareMode : Longint; Rights : Longint) : Longint;
 
 Var LinuxFlags : longint;
 

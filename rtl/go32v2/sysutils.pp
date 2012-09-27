@@ -40,6 +40,9 @@ implementation
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -67,9 +70,22 @@ Type
 procedure StringToTB(const S: string);
 var
   P: pchar;
-  Len: integer;
+  Len: longint;
 begin
   Len := Length(S) + 1;
+  P := StrPCopy(StrAlloc(Len), S);
+  SysCopyToDos(longint(P), Len);
+  StrDispose(P);
+end ;
+
+procedure StringToTB(const S: rawbytestring);
+var
+  P: pchar;
+  Len: longint;
+begin
+  Len := Length(S) + 1;
+  if Len > tb_size then
+    Len := tb_size;
   P := StrPCopy(StrAlloc(Len), S);
   SysCopyToDos(longint(P), Len);
   StrDispose(P);
@@ -78,7 +94,7 @@ end ;
 
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-function OpenFile(const FileName: string; var Handle: longint; Mode, Action: word): longint;
+function OpenFile(const FileName: rawbytestring; var Handle: longint; Mode, Action: word): longint;
 var
    Regs: registers;
 begin
@@ -110,33 +126,37 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
 var
+  SystemFileName: RawByteString;
   e: integer;
-Begin
-  e := OpenFile(FileName, result, Mode, faOpen);
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  e := OpenFile(SystemFileName, result, Mode, faOpen);
   if e <> 0 then
     result := -1;
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 var
+  SystemFileName: RawByteString;
   e: integer;
 begin
+  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
   e := OpenFile(FileName, result, ofReadWrite, faCreate or faOpenReplace);
   if e <> 0 then
     result := -1;
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights : longint) : Longint;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; Rights : longint) : Longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : Longint;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : Longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;

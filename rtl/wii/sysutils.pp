@@ -45,7 +45,7 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 begin
   result := -1;
 end;
@@ -63,18 +63,18 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
   result := -1;
 end;
 
-function FileCreate(const FileName: string; ShareMode: integer; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights: integer): LongInt;
 begin
   result := -1;
 end;
