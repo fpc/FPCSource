@@ -37,6 +37,9 @@ interface
        node,
        { aasm }
        aasmbase,aasmtai,
+{$ifdef jvm}
+       aasmdata,
+{$endif}
        cpubase,cpuinfo,
        cgbase,
        parabase
