@@ -18,6 +18,8 @@
 {$ENDIF SYS_LINUX}
 
 
+function get_got : pointer;assembler;{$ifndef FPC_PIC}nostackframe;{$endif} forward;
+
 {$define FPC_SYSTEM_HAS_FPFORK}
 {
   behaviour of result of fork on sparc/linux is different than on other
@@ -25,6 +27,12 @@
 }
 function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];assembler;
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     2,%g1
         ta      0x10
         bcc     .LSyscOK
@@ -32,16 +40,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -67,6 +89,12 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         ta      0x10
         bcc     .LSyscOK
@@ -74,16 +102,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -100,6 +142,12 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         ta      0x10
@@ -108,16 +156,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -134,6 +196,12 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         mov     %i2,%o1
@@ -143,16 +211,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -169,6 +251,12 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         mov     %i2,%o1
@@ -179,16 +267,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -205,6 +307,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         mov     %i2,%o1
@@ -216,16 +324,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -242,6 +364,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         mov     %i2,%o1
@@ -254,16 +382,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
@@ -280,6 +422,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   copies back the registers as they are after the SysCall.
 }
 asm
+{$ifdef FPC_PIC}
+  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
+  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
+  call get_got
+  nop
+{$endif FPC_PIC}
         mov     %i0,%g1
         mov     %i1,%o0
         mov     %i2,%o1
@@ -293,16 +441,30 @@ asm
         mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+{$ifdef FPC_PIC}
+        ld      [%o2+%l7],%o2
+{$endif FPC_PIC}
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
+{$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
+{else FPC_PIC}
+        sethi   %hi(Errno+4),%o0
+        or      %o0,%lo(Errno+4),%o0
+        ld      [%o0+%l7],%o0
+        ba      .LNoThread
+        nop
+{$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
         or      %o0,%lo(Errno),%o0
+{$ifdef FPC_PIC}
+        ld      [%o0+%l7],%o0
+{$endif FPC_PIC}
         call    %o3
         ld      [%o0],%o0
 .LNoThread:
