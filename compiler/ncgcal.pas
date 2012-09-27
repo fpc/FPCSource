@@ -691,7 +691,7 @@ implementation
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(sparc)}
         cgpara : tcgpara;
 {$endif}
       begin
@@ -977,7 +977,7 @@ implementation
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
 
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
          if (procdefinition.proccalloption=pocall_safecall) and
             (tf_safecall_exceptions in target_info.flags) then
            begin
