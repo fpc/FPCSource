@@ -1172,7 +1172,7 @@ implementation
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
         procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
 
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
         { set implicit_finally flag for if procedure is safecall }
         if (tf_safecall_exceptions in target_info.flags) and
            (procdef.proccalloption=pocall_safecall) then
@@ -1464,7 +1464,7 @@ implementation
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
                (tf_safecall_exceptions in target_info.flags) and

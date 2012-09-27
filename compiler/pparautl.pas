@@ -68,7 +68,7 @@ implementation
                (pd.proccalloption=pocall_safecall)) then
              paranr:=paranr_result_leftright
            else
-{$elseif defined(x86) or defined(arm)}
+{$elseif defined(SUPPORT_SAFECALL)}
            if (tf_safecall_exceptions in target_info.flags) and
               (pd.proccalloption = pocall_safecall)  then
              paranr:=paranr_result_leftright

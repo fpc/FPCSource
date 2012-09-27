@@ -169,6 +169,12 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
+        if (tf_safecall_exceptions in target_info.flags) and
+           (calloption=pocall_safecall) then
+          begin
+            result:=true;
+            exit;
+          end;
          ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
