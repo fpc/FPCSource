@@ -31,22 +31,34 @@ _dynamic_start:
 	.global _start
 	.type _start,#function
 _start:
-
   	/* Terminate the stack frame, and reserve space for functions to
      	   drop their arguments.  */
 	mov	%g0, %fp
 	sub	%sp, 6*4, %sp
 
+.ifdef PIC
+        /* Set %l7 to _GLOBAL_OFFSET_TABLE value */
+        sethi %hi(_GLOBAL_OFFSET_TABLE_-8),%l7
+        or %l7,%lo(_GLOBAL_OFFSET_TABLE_-4),%l7
+        call FPC_GETGOT
+        nop
+.endif
   	/* Extract the arguments and environment as encoded on the stack.  The
      	   argument info starts after one register window (16 words) past the SP.  */
 	ld	[%sp+22*4], %o2
 	sethi	%hi(operatingsystem_parameter_argc),%o1
 	or	%o1,%lo(operatingsystem_parameter_argc),%o1
+.ifdef PIC
+        ld      [%o1+%l7],%o1
+.endif
 	st	%o2, [%o1]
 
 	add	%sp, 23*4, %o0
 	sethi	%hi(operatingsystem_parameter_argv),%o1
 	or	%o1,%lo(operatingsystem_parameter_argv),%o1
+.ifdef PIC
+        ld      [%o1+%l7],%o1
+.endif
 	st	%o0, [%o1]
 
 	/* envp=(argc+1)*4+argv */
@@ -55,11 +67,17 @@ _start:
 	add	%o2, %o0, %o2
 	sethi	%hi(operatingsystem_parameter_envp),%o1
 	or	%o1,%lo(operatingsystem_parameter_envp),%o1
+.ifdef PIC
+        ld      [%o1+%l7],%o1
+.endif
 	st	%o2, [%o1]
 
         /* Save initial stackpointer */
 	sethi	%hi(__stkptr),%o1
 	or	%o1,%lo(__stkptr),%o1
+.ifdef PIC
+        ld      [%o1+%l7],%o1
+.endif
 	st	%sp, [%o1]
 
   	/* Call the user program entry point.  */
