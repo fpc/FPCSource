@@ -236,9 +236,11 @@ BUILDSTAMP=build-stamp.$(FULL_TARGET)
 ifeq ($(findstring $(CPU_TARGET),$(BuildOnlyBaseCPUs)),)
 all: build
 install: installall
+zipinstall: zipinstallall
 else
 all: buildbase
 install: installbase
+zipinstall: zipinstallbase
 endif
 
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
@@ -320,8 +322,8 @@ ifeq ($(findstring $(CPU_TARGET), $(BuildOnlyBaseCPUs)),)
         $(MAKE) installother $(INSTALLOPTS)
 endif
 
-singlezipinstall: zipinstall
-zipinstall: $(BUILDSTAMP)
+singlezipinstall: zipinstallall
+zipinstallall: $(BUILDSTAMP)
         $(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
 
 

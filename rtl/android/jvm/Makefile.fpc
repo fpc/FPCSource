@@ -43,6 +43,20 @@ SYSINIT_UNITS=
 
 [rules]
 .NOTPARALLEL:
+
+.PHONY: installclasses
+
+installclasses:
+	$(MKDIRTREE) $(INSTALL_UNITDIR)/org/freepascal/rtl
+ifdef inUnix
+        $(INSTALL) $(subst $$,\$$, $(wildcard $(UNITTARGETDIRPREFIX)/org/freepascal/rtl/*.class)) $(INSTALL_UNITDIR)/org/freepascal/rtl
+else
+        $(INSTALL) $(wildcard $(UNITTARGETDIRPREFIX)/org/freepascal/rtl/*.class) $(INSTALL_UNITDIR)/org/freepascal/rtl
+endif
+
+fpc_install: installclasses
+
+
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
