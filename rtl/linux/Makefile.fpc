@@ -134,6 +134,15 @@ ifeq ($(ARCH),mipsel)
   ASTARGET=-EL
 endif
 
+ifeq ($(ARCH),sparc)
+  ifneq ($(findstring -Cg ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+endif
+
 #
 # Loaders
 #
