@@ -1459,6 +1459,7 @@ implementation
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
         cgpara.done;
         cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG, NR_FUNCTION_RETURN_REG);
       end;
 
     procedure tcgtryfinallynode.pass_generate_code;
@@ -1561,13 +1562,11 @@ implementation
                CGMessage(cg_e_control_flow_outside_finally);
              if codegenerror then
                exit;
-{$if defined(x86) or defined(arm)}
              if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                handle_safecall_exception
              else
-{$endif}
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
            end
          else
            begin
