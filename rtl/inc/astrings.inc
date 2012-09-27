@@ -1371,3 +1371,15 @@ procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
     DefaultSystemCodePage:=CodePage;
   end;
 
+
+procedure SetMultiByteFileSystemCodePage(CodePage: TSystemCodePage);
+  begin
+    DefaultFileSystemCodePage:=CodePage;
+  end;
+
+
+procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
+  begin
+    DefaultRTLFileSystemCodePage:=CodePage;
+  end;
+

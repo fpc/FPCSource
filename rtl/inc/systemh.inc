@@ -422,8 +422,11 @@ type
 { procedure type }
   TProcedure  = Procedure;
 
-{ platform dependent types }
+{ platform-dependent types }
 {$i sysosh.inc}
+
+{ platform-dependent defines }
+{$i rtldefs.inc}
 
 type
   TEntryInformation = record
@@ -538,6 +541,13 @@ var
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
+  { the code page to use when sending paths/file names to OS file system API
+    calls using single byte strings, and to interpret the results gotten back
+    from such API calls }
+  DefaultFileSystemCodePage,
+  { the code page to use to return file names from single byte file system calls
+    in the RTL that return ansistrings (by default, same as a above) }
+  DefaultRTLFileSystemCodePage,
   UTF8CompareLocale : TSystemCodePage;
 
 
@@ -965,6 +975,8 @@ function StringElementSize(const S : RawByteString): Word; overload;
 function StringRefCount(const S : RawByteString): SizeInt; overload;
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
 procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteFileSystemCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 

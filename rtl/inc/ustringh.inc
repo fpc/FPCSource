@@ -53,9 +53,10 @@ procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:uni
 
 Type
   TStandardCodePageEnum = (
-    scpAnsi,          // system Ansi code page (GetACP on windows)
-    scpConsoleInput,  // system console input code page (GetConsoleCP on windows)
-    scpConsoleOutput  // system console output code page (GetConsoleOutputCP on windows)
+    scpAnsi,                 // system Ansi code page (GetACP on windows)
+    scpConsoleInput,         // system console input code page (GetConsoleCP on windows)
+    scpConsoleOutput,        // system console output code page (GetConsoleOutputCP on windows)
+    scpFileSystemSingleByte  // file system code page used by single byte OS FileSystem APIs (GetACP on Windows),
   );
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}

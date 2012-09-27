@@ -123,7 +123,13 @@ function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
 function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   begin
     { don't raise an exception here. We need this for text file handling }
-    Result:=DefaultSystemCodePage;
+    if stdcp<>scpFileSystemSingleByte then
+      Result:=DefaultSystemCodePage
+    else
+      { we could return UTF-8 here in case of FPCRTL_FILESYSTEM_UTF8, but
+        without a fully functional widestring manager that will probably cause
+        more problems that it solves }
+      Result:=DefaultFileSystemCodePage
   end;
 
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);

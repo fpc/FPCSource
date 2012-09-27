@@ -1591,6 +1591,9 @@ function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
       scpAnsi: Result := GetACP;
       scpConsoleInput: Result := GetACP;
       scpConsoleOutput: Result := GetACP;
+      { all of WinCE's file APIs are based on UTF8 -> prevent data loss when using
+        single byte strings }
+      scpFileSystemSingleByte: Result := CP_UTF8;
     end;
   end;
 
@@ -1611,6 +1614,8 @@ procedure InitWinCEWidestrings;
     widestringmanager.GetStandardCodePageProc:=@WinCEGetStandardCodePage;
 
     DefaultSystemCodePage:=GetACP;
+    DefaultFileSystemCodePage:=DefaultSystemCodePage;
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;
 

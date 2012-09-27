@@ -43,6 +43,12 @@ end;
 procedure InitUnixStrings;
 begin
   DefaultSystemCodepage:=iconv2win(get_locale_charset);
+{$ifdef FPCRTL_FILESYSTEM_UTF8}
+  DefaultFileSystemCodePage:=CP_UTF8;
+{$else}
+  DefaultFileSystemCodePage:=DefaultSystemCodepage;
+{$endif}
+  DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
   initunicodestringmanager;
 end;
 
