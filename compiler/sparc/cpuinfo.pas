@@ -55,6 +55,7 @@ const
   supported_calling_conventions : tproccalloptions = [
     pocall_internproc,
     pocall_stdcall,
+    pocall_safecall,
     pocall_cdecl,
     pocall_cppdecl
   ];
