@@ -2179,7 +2179,7 @@ begin
   else
     begin
     R:=StrToTime(AVAlue);
-    SetData(@R);
+    SetData(@R,False);
     end;
 end;
 
