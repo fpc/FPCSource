@@ -124,6 +124,7 @@ type
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
+    filepos  : tfileposinfo;
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
@@ -1007,6 +1008,7 @@ constructor TInstruction.create(optype : tcoperand);
     Condition:=C_NONE;
     Ops:=0;
     }
+    filepos:=current_filepos;
     for i:=1 to max_operands do
       Operands[i]:=optype.create;
     Labeled:=false;
@@ -1069,6 +1071,7 @@ end;
         operands[i].CheckOperand;
 
       ai:=taicpu.op_none(opcode);
+      ai.fileinfo:=filepos;
       ai.Ops:=Ops;
       ai.Allocate_oper(Ops);
       for i:=1 to Ops do
