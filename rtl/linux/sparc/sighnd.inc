@@ -18,38 +18,44 @@
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res : word;
-  addr : pointer;
+  addr, framebp : pointer;
 begin
   res:=0;
   addr:=nil;
+  framebp:=nil;
   case sig of
     SIGFPE :
         begin
-          addr := siginfo^._sifields._sigfault._addr;
-          case  siginfo^.si_code of
-            FPE_INTDIV:
-              res:=200;
-            FPE_INTOVF:
-              res:=215;
-            FPE_FLTDIV:
-              res:=200;
-            FPE_FLTOVF:
-              res:=205;
-            FPE_FLTUND:
-              res:=206;
-            else
-              res:=207;
-          end;
+          if assigned(siginfo) then
+            begin
+              addr := siginfo^._sifields._sigfault._addr;
+              case  siginfo^.si_code of
+                FPE_INTDIV:
+                  res:=200;
+                FPE_INTOVF:
+                  res:=215;
+                FPE_FLTDIV:
+                  res:=200;
+                FPE_FLTOVF:
+                  res:=205;
+                FPE_FLTUND:
+                  res:=206;
+                else
+                  res:=207;
+              end;
+            end;
         end;
     SIGBUS :
         begin
-          addr := siginfo^._sifields._sigfault._addr;
+          if assigned(siginfo) then
+            addr := siginfo^._sifields._sigfault._addr;
           res:=214;
         end;
     SIGILL,
     SIGSEGV :
         begin
-          addr := siginfo^._sifields._sigfault._addr;
+          if assigned(siginfo) then
+            addr := siginfo^._sifields._sigfault._addr;
           res:=216;
         end;
     SIGINT:
@@ -58,9 +64,16 @@ begin
         res:=233;
   end;
   reenable_signal(sig);
+
+  if assigned(sigcontext) then
+    begin
+      addr:=pointer(sigcontext^.sigc_pc);
+      framebp:=pointer(sigcontext^.sigc_gregs[SIG_SP]);
+    end;
+  
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,addr,nil);
+    HandleErrorAddrFrame(res,addr,framebp);
 end;
 
 
