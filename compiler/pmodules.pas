@@ -598,12 +598,12 @@ implementation
     { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
 
     procedure maybe_load_got;
-{$ifdef i386}
+{$if defined(i386) or defined (sparc)}
        var
          gotvarsym : tstaticvarsym;
-{$endif i386}
+{$endif i386 or sparc}
       begin
-{$ifdef i386}
+{$if defined(i386) or defined(sparc)}
          if (cs_create_pic in current_settings.moduleswitches) and
             (tf_pic_uses_got in target_info.flags) then
            begin
@@ -616,7 +616,7 @@ implementation
              gotvarsym.varstate:=vs_read;
              gotvarsym.refs:=1;
            end;
-{$endif i386}
+{$endif i386 or sparc}
       end;
 
     function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
