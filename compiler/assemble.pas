@@ -605,13 +605,13 @@ Implementation
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
          if (cs_create_pic in current_settings.moduleswitches) then
-		   Replace(result,'$PIC','-KPIC')
+           Replace(result,'$PIC','-K PIC');
          else
-		   Replace(result,'$PIC','');
+           Replace(result,'$PIC','');
          if (cs_asm_source in current_settings.globalswitches) then
-		   Replace(result,'$NOWARN','')
-		 else
-		   Replace(result,'$NOWARN','-W');
+           Replace(result,'$NOWARN','')
+         else
+           Replace(result,'$NOWARN','-W');
       end;
 
 
