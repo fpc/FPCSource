@@ -246,10 +246,7 @@ function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) 
 var
   res : PPGresult;
   tr  : TPQTrans;
-  msg : string;
 begin
-  result := false;
-
   tr := trans as TPQTrans;
 
   tr.PGConn := PQconnectdb(pchar(FConnectString));
@@ -263,6 +260,10 @@ begin
   else
     begin
     tr.ErrorOccured := False;
+
+    if CharSet <> '' then
+      PQsetClientEncoding(tr.PGConn, pchar(CharSet));
+
     res := PQexec(tr.PGConn, 'BEGIN');
     CheckResultError(res,tr.PGConn,sErrTransactionFailed);
 
@@ -275,7 +276,6 @@ procedure TPQConnection.RollBackRetaining(trans : TSQLHandle);
 var
   res : PPGresult;
   tr  : TPQTrans;
-  msg : string;
 begin
   tr := trans as TPQTrans;
   res := PQexec(tr.PGConn, 'ROLLBACK');
@@ -292,7 +292,6 @@ procedure TPQConnection.CommitRetaining(trans : TSQLHandle);
 var
   res : PPGresult;
   tr  : TPQTrans;
-  msg : string;
 begin
   tr := trans as TPQTrans;
   res := PQexec(tr.PGConn, 'COMMIT');
@@ -528,7 +527,7 @@ const TypeStrings : array[TFieldType] of string =
     );
 
 
-var s,serr : string;
+var s : string;
     i : integer;
 
 begin
