@@ -13,11 +13,11 @@ Type
 
   TSQLDBLibraryLoader = Class(TComponent)
   private
-    FCtype: String;
+    FCType: String;
     FEnabled: Boolean;
     FLibraryName: String;
     procedure CheckDisabled;
-    procedure SetCype(AValue: String);
+    procedure SetCType(AValue: String);
     procedure SetEnabled(AValue: Boolean);
     procedure SetLibraryName(AValue: String);
   Protected
@@ -29,7 +29,7 @@ Type
     Procedure UnloadLibrary;
   Published
     Property Enabled : Boolean Read FEnabled Write SetEnabled;
-    Property ConnectionType : String Read FCtype Write SetCype;
+    Property ConnectionType : String Read FCType Write SetCType;
     Property LibraryName : String Read FLibraryName Write SetLibraryName;
   end;
 
@@ -47,11 +47,11 @@ begin
     DatabaseError(SErrConnnected,Self);
 end;
 
-procedure TSQLDBLibraryLoader.SetCype(AValue: String);
+procedure TSQLDBLibraryLoader.SetCType(AValue: String);
 begin
-  if FCtype=AValue then Exit;
+  if FCType=AValue then Exit;
   CheckDisabled;
-  FCtype:=AValue;
+  FCType:=AValue;
   if (FCType<>'') then
     SetDefaultLibraryName;
 end;
@@ -79,7 +79,7 @@ function TSQLDBLibraryLoader.GetConnectionDef: TConnectionDef;
 begin
   Result:=sqldb.GetConnectionDef(ConnectionType);
   if (Result=Nil) then
-    DatabaseErrorFmt(SErrInvalidConnectionType,[FCTYpe],Self)
+    DatabaseErrorFmt(SErrInvalidConnectionType,[FCType],Self)
 end;
 
 procedure TSQLDBLibraryLoader.Loaded;
