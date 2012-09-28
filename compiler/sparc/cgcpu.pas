@@ -735,7 +735,9 @@ implementation
          need_got,need_got_load : boolean;
       begin
         href:=ref;
-        (* make_simple_ref_sparc(list,href,true,r); *)
+{$ifdef TEST_SIMPLE_SPARC}
+        make_simple_ref_sparc(list,href,true,r);
+{$else}
         need_got:=false;
         need_got_load:=false;
         if (href.base=NR_NO) and (href.index<>NR_NO) then
@@ -881,6 +883,7 @@ implementation
           list.concat(taicpu.op_reg_reg_reg(A_ADD,r,current_procinfo.got,r));
         if need_got_load then
           list.concat(taicpu.op_reg_reg(A_LD,r,r)); 
+{$endif}
       end;
 
 
@@ -1559,13 +1562,6 @@ implementation
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
-            { FIXME: this assumes for now that %l7 already has the correct value }
-            if (cs_create_pic in current_settings.moduleswitches) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_G1,NR_L7,NR_G1));
-                reference_reset_base(href,NR_G1,0,sizeof(pint));
-                list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
-              end;
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
 	    g1_used:=false;
           end
