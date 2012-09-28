@@ -726,6 +726,7 @@ begin
      Message(asmr_w_enter_not_supported_by_linux);
 
   ai:=taicpu.op_none(opcode,siz);
+  ai.fileinfo:=filepos;
   ai.SetOperandOrder(OpOrder);
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
