@@ -78,7 +78,7 @@ Const
   {$endif FPC_OBJFPC_EXTENDED_IF}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
+Procedure HandleError (Errno : Longint); external name 'fpc_handleerror';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
 Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer); forward;
