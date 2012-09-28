@@ -44,19 +44,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -106,19 +106,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -160,19 +160,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -215,19 +215,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -271,19 +271,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -328,19 +328,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -386,19 +386,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
@@ -445,19 +445,19 @@ asm
         ld      [%o2+%l7],%o2
 {$endif FPC_PIC}
         ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
+        cmp     %o3,0
         bne     .LThread
         nop
 {$ifndef FPC_PIC}
         sethi   %hi(Errno+4),%o0
         ba      .LNoThread
         or      %o0,%lo(Errno+4),%o0
-{else FPC_PIC}
-        sethi   %hi(Errno+4),%o0
-        or      %o0,%lo(Errno+4),%o0
+{$else FPC_PIC}
+        sethi   %hi(Errno),%o0
+        or      %o0,%lo(Errno),%o0
         ld      [%o0+%l7],%o0
         ba      .LNoThread
-        nop
+        add     %o0,4,%o0
 {$endif FPC_PIC}
 .LThread:
         sethi   %hi(Errno),%o0
