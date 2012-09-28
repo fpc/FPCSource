@@ -821,7 +821,8 @@ begin
   if CopyLastWordCharCount > 0 then
     Result := Copy(ALastWord, 1, CopyLastWordCharCount);
   SetLength(Result, (WordLength-1) + CopyLastWordCharCount);
-  FStream.Read(Result[1+CopyLastWordCharCount], WordLength-1);
+  if WordLength > 1 then
+    FStream.Read(Result[1+CopyLastWordCharCount], WordLength-1);
 end;
 
 function TChmSearchReader.ReadIndexNodeEntry (ALastWord: String;  out AWord: String; out

@@ -277,7 +277,7 @@ procedure TChmReader.ReadCommonData;
      repeat
        Stream.Read(buf, 50);
        Result := Result + buf;
-     until Pos(#0, buf) > -1;
+     until IndexByte(buf, 50, 0) <> -1;
      if FixURL then
        Result := StringReplace(Result, '\', '/', [rfReplaceAll]);
    end;
