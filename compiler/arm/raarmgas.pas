@@ -38,6 +38,7 @@ Unit raarmgas;
         procedure handleopcode;override;
         procedure BuildReference(oper : tarmoperand);
         procedure BuildOperand(oper : tarmoperand);
+        procedure BuildSpecialreg(oper : tarmoperand);
         function TryBuildShifterOp(oper : tarmoperand) : boolean;
         procedure BuildOpCode(instr : tarminstruction);
         procedure ReadSym(oper : tarmoperand);
@@ -925,6 +926,13 @@ Unit raarmgas;
               oper.opr.regtype:=regtype;
               oper.opr.subreg:=subreg;
               oper.opr.regset:=registerset;
+              if actasmtoken=AS_XOR then
+                begin
+                  consume(AS_XOR);
+                  oper.opr.usermode:=true;
+                end
+              else
+                oper.opr.usermode:=false;
               if (registerset=[]) then
                 Message(asmr_e_empty_regset);
             end;
@@ -937,6 +945,68 @@ Unit raarmgas;
             Consume(actasmtoken);
           end;
         end; { end case }
+      end;
+
+    procedure tarmattreader.BuildSpecialreg(oper: tarmoperand);
+      var
+        hs, reg : String;
+        ch : char;
+        i, t : longint;
+        hreg : tregister;
+        flags : tspecialregflags;
+      begin
+        case actasmtoken of
+          AS_REGISTER:
+            begin
+              oper.opr.typ:=OPR_REGISTER;
+              oper.opr.reg:=actasmregister;
+              Consume(AS_REGISTER);
+            end;
+          AS_ID:
+            begin
+              t := pos('_', actasmpattern);
+              if t > 0 then
+                begin
+                  hs:=lower(actasmpattern);
+                  reg:=copy(hs, 1, t-1);
+                  delete(hs, 1, t);
+
+                  if length(hs) < 1 then
+                    Message(asmr_e_invalid_operand_type);
+
+                  if reg = 'cpsr' then
+                    hreg:=NR_CPSR
+                  else if reg='spsr' then
+                    hreg:=NR_SPSR
+                  else
+                    Message(asmr_e_invalid_register);
+
+                  flags:=[];
+                  for i := 1 to length(hs) do
+                    begin
+                      ch:=hs[i];
+                      if ch='c' then
+                        include(flags, srC)
+                      else if ch='x' then
+                        include(flags, srX)
+                      else if ch='f' then
+                        include(flags, srF)
+                      else if ch='s' then
+                        include(flags, srS)
+                      else
+                        message(asmr_e_invalid_operand_type);
+                    end;
+
+                  oper.opr.typ:=OPR_SPECIALREG;
+                  oper.opr.specialreg:=hreg;
+                  oper.opr.specialregflags:=flags;
+
+                  consume(AS_ID);
+                end
+              else
+                Message(asmr_e_invalid_operand_type); // Otherwise it would have been seen as a AS_REGISTER
+            end;
+        end;
       end;
 
 
@@ -1001,7 +1071,10 @@ Unit raarmgas;
                 break;
               end;
           else
-            BuildOperand(instr.Operands[operandnum] as tarmoperand);
+            if (instr.opcode = A_MSR) and (operandnum = 1) then
+              BuildSpecialreg(instr.Operands[operandnum] as tarmoperand)
+            else
+              BuildOperand(instr.Operands[operandnum] as tarmoperand);
           end; { end case }
         until false;
         instr.Ops:=operandnum;

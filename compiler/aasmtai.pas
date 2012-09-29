@@ -201,6 +201,7 @@ interface
        ,top_shifterop
        ,top_conditioncode
        ,top_modeflags
+       ,top_specialreg
 {$endif arm}
 {$ifdef m68k}
        { m68k only }
@@ -241,10 +242,11 @@ interface
           { local varsym that will be inserted in pass_generate_code }
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
-          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister);
+          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
           top_shifterop : (shifterop : pshifterop);
           top_conditioncode : (cc : TAsmCond);
           top_modeflags : (modeflags : tcpumodeflags);
+          top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
       {$endif arm}
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);

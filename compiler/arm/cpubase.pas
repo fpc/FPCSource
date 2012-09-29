@@ -215,6 +215,9 @@ unit cpubase;
       tcpumodeflag = (mfA, mfI, mfF);
       tcpumodeflags = set of tcpumodeflag;
 
+      tspecialregflag = (srC, srX, srS, srF);
+      tspecialregflags = set of tspecialregflag;
+
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
@@ -296,8 +299,8 @@ unit cpubase;
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
-      NR_DEFAULTFLAGS = NR_CPSR_C;
-      RS_DEFAULTFLAGS = RS_CPSR_C;
+      NR_DEFAULTFLAGS = NR_CPSR;
+      RS_DEFAULTFLAGS = RS_CPSR;
 
       { Low part of 64bit return value }
       function NR_FUNCTION_RESULT64_LOW_REG: tregister;{$ifdef USEINLINE}inline;{$endif USEINLINE}

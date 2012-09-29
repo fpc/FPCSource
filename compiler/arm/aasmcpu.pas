@@ -161,9 +161,10 @@ uses
          wideformat : boolean;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
-         procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset);
+         procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset; ausermode: boolean=false);
          procedure loadconditioncode(opidx:longint;const cond:tasmcond);
          procedure loadmodeflags(opidx:longint;const flags:tcpumodeflags);
+         procedure loadspecialreg(opidx:longint;const areg:tregister; const aflags:tspecialregflags);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -191,6 +192,9 @@ uses
          { CPSxx }
          constructor op_modeflags(op: tasmop; flags: tcpumodeflags);
          constructor op_modeflags_const(op: tasmop; flags: tcpumodeflags; a: aint);
+
+         { MSR }
+         constructor op_specialreg_reg(op: tasmop; specialreg: tregister; specialregflags: tspecialregflags; _op2: tregister);
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -286,7 +290,7 @@ implementation
       end;
 
 
-    procedure taicpu.loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset);
+    procedure taicpu.loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset; ausermode: boolean);
       var
         i : byte;
       begin
@@ -301,6 +305,7 @@ implementation
            regset^:=s;
            regtyp:=regsetregtype;
            subreg:=regsetsubregtype;
+           usermode:=ausermode;
            typ:=top_regset;
            case regsetregtype of
              R_INTREGISTER:
@@ -342,6 +347,19 @@ implementation
              clearop(opidx);
            modeflags:=flags;
            typ:=top_modeflags;
+         end;
+      end;
+
+    procedure taicpu.loadspecialreg(opidx: longint; const areg: tregister; const aflags: tspecialregflags);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_specialreg then
+             clearop(opidx);
+           specialreg:=areg;
+           specialflags:=aflags;
+           typ:=top_specialreg;
          end;
       end;
 
@@ -479,6 +497,13 @@ implementation
         loadconst(1,a);
       end;
 
+    constructor taicpu.op_specialreg_reg(op: tasmop; specialreg: tregister; specialregflags: tspecialregflags; _op2: tregister);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadspecialreg(0,specialreg,specialregflags);
+        loadreg(1,_op2);
+      end;
 
      constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
        begin

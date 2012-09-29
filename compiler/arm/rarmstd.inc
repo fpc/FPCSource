@@ -88,5 +88,6 @@
 'd29',
 'd30',
 'd31',
-'cpsr_c',
-'fpscr'
+'cpsr',
+'fpscr',
+'spsr'

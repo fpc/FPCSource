@@ -88,5 +88,6 @@ NR_D28 = tregister($0407001C);
 NR_D29 = tregister($0407001D);
 NR_D30 = tregister($0407001E);
 NR_D31 = tregister($0407001F);
-NR_CPSR_C = tregister($05000000);
+NR_CPSR = tregister($05000000);
 NR_FPSCR = tregister($05000001);
+NR_SPSR = tregister($05000002);

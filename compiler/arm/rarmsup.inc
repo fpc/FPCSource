@@ -88,5 +88,6 @@ RS_D28 = $1C;
 RS_D29 = $1D;
 RS_D30 = $1E;
 RS_D31 = $1F;
-RS_CPSR_C = $00;
+RS_CPSR = $00;
 RS_FPSCR = $01;
+RS_SPSR = $02;

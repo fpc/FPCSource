@@ -215,6 +215,8 @@ unit agarmgas;
                     first:=false;
                   end;
               getopstr:=getopstr+'}';
+              if o.usermode then
+                getopstr:=getopstr+'^';
             end;
           top_conditioncode:
             getopstr:=cond2str[o.cc];
@@ -238,6 +240,18 @@ unit agarmgas;
               end
             else
               getopstr:=getreferencestring(o.ref^);
+          top_specialreg:
+            begin
+              getopstr:=gas_regname(o.specialreg);
+              if o.specialflags<>[] then
+                begin
+                  getopstr:=getopstr+'_';
+                  if srC in o.specialflags then getopstr:=getopstr+'c';
+                  if srX in o.specialflags then getopstr:=getopstr+'x';
+                  if srF in o.specialflags then getopstr:=getopstr+'f';
+                  if srS in o.specialflags then getopstr:=getopstr+'s';
+                end;
+            end
           else
             internalerror(2002070604);
         end;
