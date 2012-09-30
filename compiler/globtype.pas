@@ -311,7 +311,7 @@ interface
 
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
-       tmodeswitch = (m_none,m_all, { needed for keyword }
+       tmodeswitch = (m_none,
          { generic }
          m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
          {$ifdef fpc_mode}m_gpc,{$endif}
@@ -352,6 +352,10 @@ interface
        );
        tmodeswitches = set of tmodeswitch;
 
+    const
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+
+    type
        { Win32, OS/2 & MacOS application types }
        tapptype = (
          app_none,
@@ -473,7 +477,7 @@ interface
 
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
-       modeswitchstr : array[tmodeswitch] of string[18] = ('','',
+       modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }

@@ -1779,7 +1779,7 @@ implementation
       }
 
       var
-        oldfailtokenmode : tmodeswitch;
+        oldfailtokenmode : tmodeswitches;
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
@@ -1814,7 +1814,7 @@ implementation
         if (pd.proctypeoption=potype_constructor) then
          begin
            oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
-           tokeninfo^[_FAIL].keyword:=m_all;
+           tokeninfo^[_FAIL].keyword:=alllanguagemodes;
          end;
 
         tcgprocinfo(current_procinfo).parse_body;

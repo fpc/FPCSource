@@ -113,7 +113,7 @@ implementation
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=pattern) and
-            (tokeninfo^[idtoken].keyword=m_class) then
+            (m_class in tokeninfo^[idtoken].keyword) then
            Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 

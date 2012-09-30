@@ -49,29 +49,29 @@ interface
 
     const
        delphimodeswitches =
-         [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
+         [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
-         [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
+         [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
           m_property,m_default_inline];
        objfpcmodeswitches =
-         [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
+         [m_objfpc,m_fpc,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_out,m_default_para,m_hintdirective,
           m_property,m_default_inline,m_except];
        tpmodeswitches =
-         [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
+         [m_tp7,m_tp_procvar,m_duplicate_names];
 {$ifdef gpc_mode}
        gpcmodeswitches =
-         [m_gpc,m_all,m_tp_procvar];
+         [m_gpc,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
+         [m_mac,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
-         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
 
        { maximum nesting of routines }
        maxnesting = 32;
