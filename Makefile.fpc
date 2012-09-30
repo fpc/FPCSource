@@ -149,10 +149,14 @@ endif
 BASEPACKDIR=$(BASEDIR)/basepack
 
 # Newly created fpcmake
+ifndef FPCMAKE
 ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
 else
 FPCMAKENEW=fpcmake
+endif
+else
+FPCMAKENEW=$(FPCMAKE)
 endif
 
 # Build/install options
