@@ -10906,6 +10906,7 @@ tests/test/tintfcdecl1.pp svneol=native#text/plain
 tests/test/tintfcdecl2.pp svneol=native#text/plain
 tests/test/tintfdef.pp svneol=native#text/plain
 tests/test/tintuint.pp svneol=native#text/plain
+tests/test/tisobuf1.pp svneol=native#text/pascal
 tests/test/tisogoto1.pp svneol=native#text/pascal
 tests/test/tisogoto2.pp svneol=native#text/pascal
 tests/test/tisogoto3.pp svneol=native#text/pascal

@@ -1653,7 +1653,15 @@ implementation
                    typecheckpass(p1);
                  end;
 
-               if (p1.resultdef.typ<>pointerdef) then
+               { iso file buf access? }
+               if (m_iso in current_settings.modeswitches) and
+                 (p1.resultdef.typ=filedef) and
+                 (tfiledef(p1.resultdef).filetyp=ft_text) then
+                 begin
+                   p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf',ccallparanode.create(p1,nil)));
+                   typecheckpass(p1);
+                 end
+               else if (p1.resultdef.typ<>pointerdef) then
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;

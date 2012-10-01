@@ -471,6 +471,7 @@ procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
+function fpc_GetBuf(var f : Text) : pchar; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
