@@ -286,6 +286,7 @@ unit cpubase;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
+    function dwarf_reg(r:tregister):shortint;
 
   implementation
 
@@ -385,6 +386,12 @@ unit cpubase;
           result:=generic_regname(r);
       end;
 
+    function dwarf_reg(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
+      end;
 
 begin
 end.
