@@ -267,7 +267,7 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end 
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end
 				   ,ait_ent, ait_ent_end, ait_directive
                    ,ait_varloc,ait_seh_directive
                    ,ait_jvar, ait_jcatch];
@@ -740,6 +740,8 @@ interface
         tai_align_class = class of tai_align_abstract;
 
         tai_varloc = class(tai)
+           oldlocation,
+           oldlocationhi,
            newlocation,
            newlocationhi : tregister;
            varsym : tsym;
@@ -831,6 +833,7 @@ implementation
     uses
       SysUtils,
       verbose,
+      symsym,
       globals;
 
     const
@@ -923,6 +926,9 @@ implementation
         newlocation:=loc;
         newlocationhi:=NR_NO;
         varsym:=sym;
+        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
+        oldlocationhi:=NR_NO;
+        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
       end;
 
 
@@ -933,6 +939,10 @@ implementation
         newlocation:=loc;
         newlocationhi:=lochi;
         varsym:=sym;
+        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
+        oldlocationhi:=tabstractnormalvarsym(sym).currentregloc.registerhi;
+        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
+        tabstractnormalvarsym(sym).currentregloc.registerHI:=newlocationHI;
       end;
 
 
@@ -944,6 +954,10 @@ implementation
         newlocation:=loc;
         newlocationhi:=lochi;
         varsym:=sym;
+        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
+        oldlocationhi:=tabstractnormalvarsym(sym).currentregloc.registerhi;
+        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
+        tabstractnormalvarsym(sym).currentregloc.registerHI:=newlocationHI;
       end;
 {$endif cpu64bitalu}
 

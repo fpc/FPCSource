@@ -1725,7 +1725,7 @@ implementation
         oldhi, newhi: tregister;
         ressym: tsym;
         { moved sym }
-        sym : tsym;
+        sym : tabstractnormalvarsym;
       end;
 
 
@@ -1903,7 +1903,9 @@ implementation
           begin
             n.location.register128.reglo := rr.new;
             n.location.register128.reghi := rr.newhi;
-            if assigned(rr.sym) then
+            if assigned(rr.sym) and
+               ((rr.sym.currentregloc.register<>rr.new) or
+                (rr.sym.currentregloc.registerhi<>rr.newhi)) then
               list.concat(tai_varloc.create128(rr.sym,rr.new,rr.newhi));
           end
         else
@@ -1912,14 +1914,16 @@ implementation
           begin
             n.location.register64.reglo := rr.new;
             n.location.register64.reghi := rr.newhi;
-            if assigned(rr.sym) then
+            if assigned(rr.sym) and
+               ((rr.sym.currentregloc.register<>rr.new) or
+                (rr.sym.currentregloc.registerhi<>rr.newhi)) then
               list.concat(tai_varloc.create64(rr.sym,rr.new,rr.newhi));
           end
         else
       {$endif cpu64bitalu}
           begin
             n.location.register := rr.new;
-            if assigned(rr.sym) then
+            if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
               list.concat(tai_varloc.create(rr.sym,rr.new));
           end;
       end;

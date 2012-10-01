@@ -2301,9 +2301,10 @@ implementation
     procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
       var
         templist : TAsmList;
-        blocksize : longint;
+        blocksize,size_of_int : longint;
         tag : tdwarf_tag;
-        dreg : byte;
+        has_high_reg : boolean;
+        dreg,dreghigh : byte;
       begin
         { external symbols can't be resolved at link time, so we
           can't generate stabs for them
@@ -2328,6 +2329,10 @@ implementation
           LOC_CFPUREGISTER :
             begin
               dreg:=dwarf_reg(sym.localloc.register);
+              has_high_reg:=(sym.localloc.registerhi<>NR_NO) and
+                (dwarf_reg(sym.localloc.registerhi)<=high(tregisterindex));
+              if has_high_reg then
+                dreghigh:=dwarf_reg(sym.localloc.registerhi);
               if (sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                  (sym.typ=paravarsym) and
                   paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
@@ -2341,10 +2346,30 @@ implementation
                 end
               else
                 begin
-                  templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
-                  templist.concat(tai_const.create_uleb128bit(dreg));
-                  blocksize:=1+Lengthuleb128(dreg);
-                end;
+                  if has_high_reg then
+                    begin
+                      templist.concat(tai_comment.create(strpnew('high:low reg pair variable')));
+                      size_of_int:=sizeof(aint);
+                      templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+                      templist.concat(tai_const.create_uleb128bit(dreg));
+                      blocksize:=1+Lengthuleb128(dreg);
+                      templist.concat(tai_const.create_8bit(ord(DW_OP_piece)));
+                      templist.concat(tai_const.create_uleb128bit(size_of_int));
+                      blocksize:=blocksize+1+Lengthuleb128(size_of_int);
+                      templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+                      templist.concat(tai_const.create_uleb128bit(dreghigh));
+                      blocksize:=blocksize+1+Lengthuleb128(dreghigh);
+                      templist.concat(tai_const.create_8bit(ord(DW_OP_piece)));
+                      templist.concat(tai_const.create_uleb128bit(size_of_int));
+                      blocksize:=blocksize+1+Lengthuleb128(size_of_int);
+                    end
+                  else
+                    begin
+                      templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+                      templist.concat(tai_const.create_uleb128bit(dreg));
+                      blocksize:=1+Lengthuleb128(dreg);
+                    end;
+                 end;
             end;
           else
             begin

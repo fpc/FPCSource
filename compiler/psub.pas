@@ -890,7 +890,11 @@ implementation
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin
              if not(cs_no_regalloc in current_settings.globalswitches) then
-               cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+               begin
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+                 if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+               end;
              if cs_asm_source in current_settings.globalswitches then
                begin
                  if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then

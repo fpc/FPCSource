@@ -188,6 +188,7 @@ interface
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
           initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
+          currentregloc  : TLocation; { current registers for register variables with moving register numbers }
           inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
@@ -1539,6 +1540,7 @@ implementation
       begin
          inherited create(st,n,vsp,def,vopts);
          fillchar(localloc,sizeof(localloc),0);
+         fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
       end;
@@ -1548,6 +1550,7 @@ implementation
       begin
          inherited ppuload(st,ppufile);
          fillchar(localloc,sizeof(localloc),0);
+         fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          ppufile.getderef(defaultconstsymderef);
       end;
