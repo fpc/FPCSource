@@ -811,6 +811,10 @@ const pemagic : array[0..3] of byte = (
         write(offset,len);
       end;
 
+{ We don't want overflow nor range checks here,
+  wrapping is accepted in the address computation below }
+{$r-}
+{$q-}
 
     procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
       var
