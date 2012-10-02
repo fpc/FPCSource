@@ -888,19 +888,19 @@ implementation
              if (target_info.system in systems_windows+systems_wince) then
                offsetabstype:=aitconst_secrel32_symbol
              else
-               offsetabstype:=aitconst_32bit;
+               offsetabstype:=aitconst_32bit_unaligned;
              if (target_info.system in systems_darwin) then
                 offsetreltype:=aitconst_darwin_dwarf_delta32
               else
-                offsetreltype:=aitconst_32bit;
+                offsetreltype:=aitconst_32bit_unaligned;
            end
          else
            begin
              if (target_info.system in systems_darwin) then
                 offsetreltype:=aitconst_darwin_dwarf_delta64
              else
-               offsetreltype:=aitconst_64bit;
-             offsetabstype:=aitconst_64bit;
+               offsetreltype:=aitconst_64bit_unaligned;
+             offsetabstype:=aitconst_64bit_unaligned;
            end;
       end;
 
@@ -1113,11 +1113,11 @@ implementation
           DW_FORM_data2:
              case value.VType of
               vtInteger:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInteger));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(value.VInteger));
               vtInt64:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInt64^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(value.VInt64^));
               vtQWord:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VQWord^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(value.VQWord^));
               else
                 internalerror(200602144);
             end;
@@ -1125,11 +1125,11 @@ implementation
           DW_FORM_data4:
              case value.VType of
               vtInteger:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInteger));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(value.VInteger));
               vtInt64:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInt64^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(value.VInt64^));
               vtQWord:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VQWord^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(value.VQWord^));
               else
                 internalerror(200602145);
             end;
@@ -1137,11 +1137,11 @@ implementation
           DW_FORM_data8:
              case value.VType of
               vtInteger:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInteger));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(value.VInteger));
               vtInt64:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInt64^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(value.VInt64^));
               vtQWord:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VQWord^));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(value.VQWord^));
               else
                 internalerror(200602146);
             end;
@@ -1234,13 +1234,13 @@ implementation
       begin
         AddConstToAbbrev(ord(attr));
         AddConstToAbbrev(ord(DW_FORM_addr));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym));
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         AddConstToAbbrev(ord(DW_FORM_ref_addr));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym))
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -2715,20 +2715,20 @@ implementation
             begin
 {$ifdef cpu64bitaddr}
               AddConstToAbbrev(ord(DW_FORM_data8));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(0));
 {$else cpu64bitaddr}
               AddConstToAbbrev(ord(DW_FORM_data4));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(0));
 {$endif cpu64bitaddr}
             end;
           constpointer:
             begin
 {$ifdef cpu64bitaddr}
               AddConstToAbbrev(ord(DW_FORM_data8));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(int64(sym.value.valueordptr)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(int64(sym.value.valueordptr)));
 {$else cpu64bitaddr}
               AddConstToAbbrev(ord(DW_FORM_data4));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint(sym.value.valueordptr)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(longint(sym.value.valueordptr)));
 {$endif cpu64bitaddr}
             end;
           constreal:
@@ -2749,7 +2749,7 @@ implementation
                 s64currency:
                   begin
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(trunc(pbestreal(sym.value.valueptr)^)));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit_unaligned(trunc(pbestreal(sym.value.valueptr)^)));
                   end;
                 s80real,
                 sc80real:
@@ -2959,13 +2959,13 @@ implementation
         { size }
         current_asmdata.getlabel(lbl,alt_dbgfile);
         if use_64bit_headers then
-          linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
+          linelist.concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
         linelist.concat(tai_const.create_rel_sym(offsetreltype,
           lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { version }
-        linelist.concat(tai_const.create_16bit(dwarf_version));
+        linelist.concat(tai_const.create_16bit_unaligned(dwarf_version));
 
         { header length }
         current_asmdata.getlabel(lbl,alt_dbgfile);
@@ -3108,13 +3108,13 @@ implementation
         current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
         { size }
         if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
           lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(dwarf_version));
         { abbrev table (=relative from section start)}
         if not(tf_dwarf_relative_addresses in target_info.flags) then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
@@ -3381,7 +3381,7 @@ implementation
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
                         asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-                        asmline.concat(tai_const.create_sym(currlabel));
+                        asmline.concat(tai_const.create_type_sym(offsetabstype,currlabel));
                       end
                     else
                       begin
@@ -3433,7 +3433,7 @@ implementation
             asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
             asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
             asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-            asmline.concat(tai_const.create_sym(currlabel));
+            asmline.concat(tai_const.create_type_sym(offsetabstype,currlabel));
           end;
 
         { end sequence }
@@ -3467,7 +3467,7 @@ implementation
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
         asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-        asmline.concat(tai_const.create_sym(nil));
+        asmline.concat(tai_const.create_type_sym(offsetabstype,nil));
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
         asmline.concat(tai_const.Create_8bit(1));
         asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
@@ -3713,9 +3713,9 @@ implementation
         { Since Dwarf 3 the length of a DW_FORM_ref_addr entry is not dependent on the pointer size of the
           target platform, but on the used Dwarf-format (32 bit or 64 bit) for the current compilation section. }
         if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_64bit,sym))
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_64bit_unaligned,sym))
         else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_32bit,sym));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_32bit_unaligned,sym));
       end;
 
     procedure tdebuginfodwarf3.appenddef_array(list: tasmlist; def: tarraydef);
@@ -3751,12 +3751,12 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
         { pointer = nil? }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(5));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(5));
         { yes -> length = 0 }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const1s)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(-1)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(3));
         { no -> load length }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
@@ -3824,11 +3824,11 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
               { pointer = nil? }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(4));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(4));
               { yes -> length = 0 }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(3));
               { no -> load length }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
