@@ -651,25 +651,27 @@ Unit raarmgas;
           begin
             is_ConditionCode := false;
             
-            if actopcode in [A_IT,A_ITE,A_ITT,
-                             A_ITEE,A_ITTE,A_ITET,A_ITTT,
-                             A_ITEEE,A_ITTEE,A_ITETE,A_ITTTE,A_ITEET,A_ITTET,A_ITETT,A_ITTTT] then
-              begin
-                { search for condition, conditions are always 2 chars }
-                if length(hs)>1 then
-                  begin
-                    for icond:=low(tasmcond) to high(tasmcond) do
-                      begin
-                        if copy(hs,1,2)=uppercond2str[icond] then
-                          begin
-                            //actcondition:=icond;
-                            oper.opr.typ := OPR_COND;
-                            oper.opr.cc := icond;
-                            exit(true);
-                          end;
-                      end;
-                  end;
-              end;
+            case actopcode of
+              A_IT,A_ITE,A_ITT,
+              A_ITEE,A_ITTE,A_ITET,A_ITTT,
+              A_ITEEE,A_ITTEE,A_ITETE,A_ITTTE,A_ITEET,A_ITTET,A_ITETT,A_ITTTT:
+                begin
+                  { search for condition, conditions are always 2 chars }
+                  if length(hs)>1 then
+                    begin
+                      for icond:=low(tasmcond) to high(tasmcond) do
+                        begin
+                          if copy(hs,1,2)=uppercond2str[icond] then
+                            begin
+                              //actcondition:=icond;
+                              oper.opr.typ := OPR_COND;
+                              oper.opr.cc := icond;
+                              exit(true);
+                            end;
+                        end;
+                    end;
+                end;
+            end;
           end;
 
 
