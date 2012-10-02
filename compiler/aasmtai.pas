@@ -1585,11 +1585,13 @@ implementation
         case consttype of
           aitconst_8bit :
             result:=1;
-          aitconst_16bit :
+          aitconst_16bit,aitconst_16bit_unaligned :
             result:=2;
-          aitconst_32bit,aitconst_darwin_dwarf_delta32:
+          aitconst_32bit,aitconst_darwin_dwarf_delta32,
+	  aitconst_32bit_unaligned:
             result:=4;
-          aitconst_64bit,aitconst_darwin_dwarf_delta64:
+          aitconst_64bit,aitconst_darwin_dwarf_delta64,
+	  aitconst_64bit_unaligned:
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :

@@ -1427,6 +1427,9 @@ Implementation
                    aitconst_64bit,
                    aitconst_32bit,
                    aitconst_16bit,
+                   aitconst_64bit_unaligned,
+                   aitconst_32bit_unaligned,
+                   aitconst_16bit_unaligned,
                    aitconst_8bit :
                      begin
                        if assigned(tai_const(hp).sym) and
