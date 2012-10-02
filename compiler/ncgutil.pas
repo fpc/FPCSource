@@ -1814,6 +1814,7 @@ implementation
     procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
       var
         rr: treplaceregrec;
+        varloc : tai_varloc;
       begin
 {$ifdef jvm}
         exit;
@@ -1906,7 +1907,14 @@ implementation
             if assigned(rr.sym) and
                ((rr.sym.currentregloc.register<>rr.new) or
                 (rr.sym.currentregloc.registerhi<>rr.newhi)) then
-              list.concat(tai_varloc.create128(rr.sym,rr.new,rr.newhi));
+              begin
+                varloc:=tai_varloc.create128(rr.sym,rr.new,rr.newhi);
+                varloc.oldlocation:=rr.sym.currentregloc.register;
+                varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
+                rr.sym.currentregloc.register:=rr.new;
+                rr.sym.currentregloc.registerHI:=rr.newhi;
+                list.concat(varloc);
+              end;
           end
         else
       {$else cpu64bitalu}
@@ -1917,14 +1925,26 @@ implementation
             if assigned(rr.sym) and
                ((rr.sym.currentregloc.register<>rr.new) or
                 (rr.sym.currentregloc.registerhi<>rr.newhi)) then
-              list.concat(tai_varloc.create64(rr.sym,rr.new,rr.newhi));
+              begin
+                varloc:=tai_varloc.create64(rr.sym,rr.new,rr.newhi);
+                varloc.oldlocation:=rr.sym.currentregloc.register;
+                varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
+                rr.sym.currentregloc.register:=rr.new;
+                rr.sym.currentregloc.registerHI:=rr.newhi;
+                list.concat(varloc);
+              end;
           end
         else
       {$endif cpu64bitalu}
           begin
             n.location.register := rr.new;
             if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
-              list.concat(tai_varloc.create(rr.sym,rr.new));
+              begin
+                varloc:=tai_varloc.create(rr.sym,rr.new);
+                varloc.oldlocation:=rr.sym.currentregloc.register;
+                rr.sym.currentregloc.register:=rr.new;
+                list.concat(varloc);
+              end;
           end;
       end;
 

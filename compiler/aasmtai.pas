@@ -833,7 +833,6 @@ implementation
     uses
       SysUtils,
       verbose,
-      symsym,
       globals;
 
     const
@@ -926,9 +925,7 @@ implementation
         newlocation:=loc;
         newlocationhi:=NR_NO;
         varsym:=sym;
-        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
         oldlocationhi:=NR_NO;
-        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
       end;
 
 
@@ -939,10 +936,6 @@ implementation
         newlocation:=loc;
         newlocationhi:=lochi;
         varsym:=sym;
-        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
-        oldlocationhi:=tabstractnormalvarsym(sym).currentregloc.registerhi;
-        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
-        tabstractnormalvarsym(sym).currentregloc.registerHI:=newlocationHI;
       end;
 
 
@@ -954,10 +947,6 @@ implementation
         newlocation:=loc;
         newlocationhi:=lochi;
         varsym:=sym;
-        oldlocation:=tabstractnormalvarsym(sym).currentregloc.register;
-        oldlocationhi:=tabstractnormalvarsym(sym).currentregloc.registerhi;
-        tabstractnormalvarsym(sym).currentregloc.register:=newlocation;
-        tabstractnormalvarsym(sym).currentregloc.registerHI:=newlocationHI;
       end;
 {$endif cpu64bitalu}
 
