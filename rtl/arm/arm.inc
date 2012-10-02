@@ -561,6 +561,32 @@ asm
   mov r0, r1
   bx  lr
 {$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_dec_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  sub r1, r0, #1 // Decrement value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r1, #1
@@ -580,6 +606,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -594,6 +621,32 @@ asm
   bne .Lloop
   mov r0, r1
   bx  lr
+{$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_inc_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, #1 // Increment value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
+
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -613,6 +666,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
@@ -646,6 +700,36 @@ asm
   mov  r0, r2
   bx  lr
 {$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {r4, lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+  mov r4, r1   // Save addend
+.Latomic_add_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, r4 // Add to value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  // r1 does not get clobbered, so just get back the original value
+  // Otherwise we would have to allocate one more register and store the
+  // temporary value
+  subcs   r0, r1, r4
+  ldmcsfd r13!, {r4, pc}
+
+  b .Latomic_add_loop // kuser_cmpxchg failed, loop back
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r2, #1
@@ -666,6 +750,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -681,6 +766,35 @@ asm
   bne      .Lloop
   mov      r0, r3
   bx       lr
+{$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {r4, lr}
+  mvn   r3, #0x0000f000
+  sub   r3, r3, #0x3F
+
+  mov   r4, r2 // Swap parameters around
+  mov   r2, r0
+  mov   r0, r4 // Use r4 because we'll need the new value for later
+
+  // r1 and r2 will not be clobbered by kuser_cmpxchg
+  // If we have to loop, r0 will be set to the original Comperand
+  .Linterlocked_compare_exchange_loop:
+
+  blx   r3       // Call kuser_cmpxchg sets C-Flag on success
+  movcs r0, r4   // Return the previous value on success
+  ldmcsfd r13!, {r4, pc}
+  // The error case is a bit tricky, kuser_cmpxchg does not return the current value
+  // So we may need to loop to avoid race conditions
+  // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
+  // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
+  // would have the set the value to our comperand
+  ldr	r0, [r2] // Load the currently set value
+  cmp   r0, r4   // Return if Comperand != current value, otherwise loop again
+  ldmnefd r13!, {r4, pc}
+  // If we need to loop here, we have to
+  b	.Linterlocked_compare_exchange_loop
+
 {$else}
 // lock
   ldr r12, .Lfpc_system_lock
@@ -701,6 +815,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
