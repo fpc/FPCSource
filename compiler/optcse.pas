@@ -234,6 +234,17 @@ unit optcse;
               DFASetExclude(plists(arg)^.avail,i);
             result:=fen_norecurse_false;
           end;
+{$ifdef cpuhighleveltarget}
+          { The high level targets use the functionality from ncgnstld for
+            nested accesses, and that one stores the complete location of the
+            nested variable in tloadnode.left rather than only the location of
+            the parent context containing it. This causes problems with the
+            CSE in case the nested variable is used as an lvalue, so disable
+            CSE in that case
+          }
+          if (n.nodetype=loadn) and assigned(tloadnode(n).left) then
+            result:=fen_norecurse_false;
+{$endif}
        end;
 
 
