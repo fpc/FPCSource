@@ -53,6 +53,7 @@ interface
         procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
+        procedure WriteUnalignedIntConst(hp: tai_const);
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
@@ -199,11 +200,37 @@ implementation
 
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_half16bit] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,
+        #9'.short'#9,#9'.long'#9,#9'.quad'#9
       );
+
+      ait_unaligned_consts = [aitconst_16bit_unaligned..aitconst_64bit_unaligned];
+
+      { Sparc type of unaligned pseudo-instructions }
+      use_ua_sparc_systems = [system_sparc_linux];
+      ait_ua_sparc_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.uahalf'#9,#9'.uaword'#9,#9'.uaxword'#9
+        );
+
+      { Alpha type of unaligned pseudo-instructions }
+      use_ua_alpha_systems = [system_alpha_linux];
+      ait_ua_alpha_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.uword'#9,#9'.ulong'#9,#9'.uquad'#9
+        );
+
+      { Generic unaligned pseudo-instructions, seems ELF specific }
+      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux];
+      ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
+        );
+
+
 
 {****************************************************************************}
 {                          GNU Assembler writer                              }
@@ -905,7 +932,10 @@ implementation
                  aitconst_secrel32_symbol,
                  aitconst_darwin_dwarf_delta32,
                  aitconst_darwin_dwarf_delta64,
-                 aitconst_half16bit:
+                 aitconst_half16bit,
+                 aitconst_16bit_unaligned,
+                 aitconst_32bit_unaligned,
+                 aitconst_64bit_unaligned:
                    begin
                      { the AIX assembler (and for compatibility, the GNU
                        assembler when targeting AIX) automatically aligns
@@ -932,7 +962,16 @@ implementation
                        end
                      else
                        begin
-                         if not(target_info.system in systems_aix) or
+                         if (constdef in ait_unaligned_consts) and
+                            (target_info.system in use_ua_sparc_systems) then
+                           AsmWrite(ait_ua_sparc_const2str[constdef])
+                         else if (constdef in ait_unaligned_consts) and
+                            (target_info.system in use_ua_alpha_systems) then
+                           AsmWrite(ait_ua_alpha_const2str[constdef])
+                         else if (constdef in ait_unaligned_consts) and
+                                 (target_info.system in use_ua_elf_systems) then
+                           AsmWrite(ait_ua_elf_const2str[constdef])
+                          else if not(target_info.system in systems_aix) or
                             (constdef<>aitconst_64bit) then
                            AsmWrite(ait_const2str[constdef])
                          else
@@ -1517,6 +1556,41 @@ implementation
           else
             internalerror(2012010402);
         end;
+      end;
+
+    procedure TGNUAssembler.WriteUnalignedIntConst(hp: tai_const);
+      var
+        pos, size: longint;
+      begin
+        size:=tai_const(hp).size;
+        AsmWrite(#9'.byte'#9);
+        if target_info.endian=endian_big then
+          begin
+            pos:=size-1;
+            while pos>=0 do
+              begin
+                AsmWrite(tostr((tai_const(hp).value shr (pos*8)) and $ff));
+                dec(pos);
+                if pos>=0 then
+                  AsmWrite(', ')
+                else
+                  AsmLn;
+              end;
+          end
+        else
+          begin
+            pos:=0;
+            while pos<size do
+              begin
+                AsmWriteln(tostr((tai_const(hp).value shr (pos*8)) and $ff));
+                inc(pos);
+                if pos<=size then
+                  AsmWrite(', ')
+                else
+                  AsmLn;
+              end;
+          end;
+        AsmLn;
       end;
 
 
