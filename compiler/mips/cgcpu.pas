@@ -2007,8 +2007,7 @@ begin
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reglo, NR_R0, regsrc.reglo));
         list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg1, NR_R0, regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, NR_R0, regsrc.reghi));
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, tmpreg1, regdst.reghi, tmpreg1));
-        list.concat(Taicpu.Op_reg_reg(A_MOVE, regdst.reghi, tmpreg1));
+        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, tmpreg1));
         exit;
       end;
     OP_NOT:
@@ -2119,10 +2118,10 @@ begin
         tmpreg2 := cg.GetIntRegister(list,OS_S32);
         // destreg.reglo could be regsrc1.reglo or regsrc2.reglo
         list.concat(taicpu.op_reg_reg_reg(A_SUBU,tmpreg1, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg(A_MOVE, regdst.reglo, tmpreg1));
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, regsrc1.reghi, regsrc1.reghi, tmpreg2));
+        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, regsrc2.reglo,tmpreg1));
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
+        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, tmpreg2));
+        list.concat(taicpu.op_reg_reg(A_MOVE, regdst.reglo, tmpreg1));
         exit;
     end;
     OP_XOR:
