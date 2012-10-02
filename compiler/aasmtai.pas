@@ -129,14 +129,20 @@ interface
           aitconst_darwin_dwarf_delta64,
           aitconst_darwin_dwarf_delta32,
           { ARM Thumb-2 only }
-          aitconst_half16bit { used for table jumps. The actual value is the 16bit value shifted left once }
+          aitconst_half16bit, { used for table jumps. The actual value is the 16bit value shifted left once }
+          { for use by dwarf debugger information }
+          aitconst_16bit_unaligned,
+          aitconst_32bit_unaligned,
+          aitconst_64bit_unaligned
         );
 
     const
 {$ifdef cpu64bitaddr}
        aitconst_ptr = aitconst_64bit;
+       aitconst_ptr_unaligned = aitconst_64bit_unaligned;
 {$else cpu64bitaddr}
        aitconst_ptr = aitconst_32bit;
+       aitconst_ptr_unaligned = aitconst_32bit_unaligned;
 {$endif cpu64bitaddr}
 
 {$ifdef cpu64bitalu}
@@ -520,6 +526,9 @@ interface
           constructor Create_64bit(_value : int64);
           constructor Create_32bit(_value : longint);
           constructor Create_16bit(_value : word);
+          constructor Create_64bit_unaligned(_value : int64);
+          constructor Create_32bit_unaligned(_value : longint);
+          constructor Create_16bit_unaligned(_value : word);
           constructor Create_8bit(_value : byte);
           constructor Create_char(size: integer; _value: dword);
           constructor Create_sleb128bit(_value : int64);
@@ -1362,6 +1371,38 @@ implementation
          inherited Create;
          typ:=ait_const;
          consttype:=aitconst_16bit;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+    constructor tai_const.Create_64bit_unaligned(_value : int64);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_64bit_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_32bit_unaligned(_value : longint);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_32bit_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_16bit_unaligned(_value : word);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_16bit_unaligned;
          value:=_value;
          sym:=nil;
          endsym:=nil;
