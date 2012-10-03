@@ -2658,7 +2658,7 @@ begin
   def_system_macro('FPC_HAS_OPERATOR_ENUMERATOR');
   def_system_macro('FPC_HAS_CONSTREF');
   def_system_macro('FPC_STATICRIPFIXED');
-{$if defined(x86) or defined(powerpc) or defined(powerpc64)}
+{$if defined(x86) or defined(powerpc) or defined(powerpc64) or defined(cpuarm)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$endif}
   def_system_macro('FPC_HAS_UNICODESTRING');

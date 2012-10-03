@@ -42,6 +42,10 @@ interface
         procedure second_float;override;
       end;
 
+      tarmshlshrnode = class(tcgshlshrnode)
+         procedure second_64bit;override;
+         function first_shlshr64bitint: tnode; override;
+      end;
 
 implementation
 
@@ -291,9 +295,142 @@ implementation
         end;
       end;
 
+    function tarmshlshrnode.first_shlshr64bitint: tnode;
+      begin
+        result := nil;
+      end;
+
+    procedure tarmshlshrnode.second_64bit;
+      var
+        hreg64hi,hreg64lo,shiftreg:Tregister;
+        v : TConstExprInt;
+        l1,l2,l3:Tasmlabel;
+        so: tshifterop;
+
+      procedure emit_instr(p: tai);
+        begin
+          current_asmdata.CurrAsmList.concat(p);
+        end;
+
+      {Reg1 gets shifted and moved into reg2, and is set to zero afterwards}
+      procedure shift_more_than_32(reg1, reg2: TRegister; shiftval: Byte ; sm: TShiftMode);
+        begin
+          shifterop_reset(so); so.shiftimm:=shiftval - 32; so.shiftmode:=sm;
+          emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, reg2, reg1, so));
+          emit_instr(taicpu.op_reg_const(A_MOV, reg1, 0));
+        end;
+
+      procedure shift_less_than_32(reg1, reg2: TRegister; shiftval: Byte; shiftright: boolean);
+        begin
+          shifterop_reset(so); so.shiftimm:=shiftval;
+          if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
+          emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, reg1, reg1, so));
+
+          if shiftright then so.shiftmode:=SM_LSL else so.shiftmode:=SM_LSR;
+          so.shiftimm:=32-shiftval;
+          emit_instr(taicpu.op_reg_reg_reg_shifterop(A_ORR, reg1, reg1, reg2, so));
+
+          if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
+          so.shiftimm:=shiftval;
+          emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, reg2, reg2, so));
+        end;
+
+      procedure shift_by_variable(reg1, reg2, shiftval: TRegister; shiftright: boolean);
+        var
+          shiftval2:TRegister;
+        begin
+          shifterop_reset(so);
+          shiftval2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          {Do we shift more than 32 bits?}
+          emit_instr(setoppostfix(taicpu.op_reg_reg_const(A_RSB, shiftval2, shiftval, 32), PF_S));
+
+          {This part cares for 32 bits and more}
+          emit_instr(setcondition(taicpu.op_reg_reg_const(A_SUB, shiftval2, shiftval, 32), C_MI));
+          if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
+          so.rs:=shiftval2;
+          emit_instr(setcondition(taicpu.op_reg_reg_shifterop(A_MOV, reg2, reg1, so), C_MI));
+
+          {Less than 32 bits}
+          so.rs:=shiftval;
+          emit_instr(setcondition(taicpu.op_reg_reg_shifterop(A_MOV, reg2, reg2, so), C_PL));
+          if shiftright then so.shiftmode:=SM_LSL else so.shiftmode:=SM_LSR;
+          so.rs:=shiftval2;
+          emit_instr(setcondition(taicpu.op_reg_reg_reg_shifterop(A_ORR, reg2, reg2, reg1, so), C_PL));
+
+          {Final adjustments}
+          if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
+          so.rs:=shiftval;
+          emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, reg1, reg1, so));
+        end;
+
+      begin
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+
+        { load left operator in a register }
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        hreg64hi:=left.location.register64.reghi;
+        hreg64lo:=left.location.register64.reglo;
+        location.register64.reghi:=hreg64hi;
+        location.register64.reglo:=hreg64lo;
+
+        { shifting by a constant directly coded: }
+        if (right.nodetype=ordconstn) then
+          begin
+            v:=Tordconstnode(right).value and 63;
+            {Single bit shift}
+            if v = 1 then
+              if nodetype=shln then
+                begin
+                  {Shift left by one by 2 simple 32bit additions}
+                  emit_instr(setoppostfix(taicpu.op_reg_reg_reg(A_ADD, hreg64lo, hreg64lo, hreg64lo), PF_S));
+                  emit_instr(taicpu.op_reg_reg_reg(A_ADC, hreg64hi, hreg64hi, hreg64hi));
+                end
+              else
+                begin
+                  {Shift right by first shifting hi by one and then using RRX (rotate right extended), which rotates through the carry}
+                  shifterop_reset(so); so.shiftmode:=SM_LSR; so.shiftimm:=1;
+                  emit_instr(setoppostfix(taicpu.op_reg_reg_shifterop(A_MOV, hreg64hi, hreg64hi, so), PF_S));
+                  so.shiftmode:=SM_RRX; so.shiftimm:=0; {RRX does NOT have a shift amount}
+                  emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, hreg64lo, hreg64lo, so));
+                end
+            {A 32bit shift just replaces a register and clears the other}
+            else if v = 32 then
+              begin
+                if nodetype=shln then
+                  emit_instr(taicpu.op_reg_const(A_MOV, hreg64hi, 0))
+                else
+                  emit_instr(taicpu.op_reg_const(A_MOV, hreg64lo, 0));
+                location.register64.reghi:=hreg64lo;
+                location.register64.reglo:=hreg64hi;
+              end
+            {Shift LESS than 32}
+            else if v < 32 then
+              if nodetype=shln then
+                shift_less_than_32(hreg64hi, hreg64lo, v.uvalue, false)
+              else
+                shift_less_than_32(hreg64lo, hreg64hi, v.uvalue, true)
+            {More than 32}
+            else
+              if nodetype=shln then
+                shift_more_than_32(hreg64lo, hreg64hi, v.uvalue, SM_LSL)
+              else
+                shift_more_than_32(hreg64hi, hreg64lo, v.uvalue, SM_LSR)
+          end
+        else
+          begin
+            { force right operators in a register }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
+            if nodetype = shln then
+              shift_by_variable(hreg64lo,hreg64hi,right.location.register, false)
+            else
+              shift_by_variable(hreg64hi,hreg64lo,right.location.register, true);
+          end;
+      end;
+
 
 begin
   cmoddivnode:=tarmmoddivnode;
   cnotnode:=tarmnotnode;
   cunaryminusnode:=tarmunaryminusnode;
+  cshlshrnode:=tarmshlshrnode;
 end.

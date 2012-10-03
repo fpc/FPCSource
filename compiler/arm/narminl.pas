@@ -49,6 +49,7 @@ interface
         procedure second_sin_real; override;
         }
         procedure second_prefetch; override;
+        procedure second_abs_long; override;
       private
         procedure load_fpu_location(out singleprec: boolean);
       end;
@@ -59,14 +60,14 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      cpuinfo,
+      cpuinfo, defutil,
       symconst,symdef,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,
       pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu;
+      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu, hlcgobj;
 
 {*****************************************************************************
                               tarminlinenode
@@ -331,6 +332,21 @@ implementation
           end;
       end;
 
+    procedure tarminlinenode.second_abs_long;
+      var
+        hregister : tregister;
+        opsize : tcgsize;
+        hp : taicpu;
+      begin
+        secondpass(left);
+        opsize:=def_cgsize(left.resultdef);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        location:=left.location;
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
+        current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
+      end;
 
 begin
   cinlinenode:=tarminlinenode;
