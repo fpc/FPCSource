@@ -1234,13 +1234,13 @@ implementation
       begin
         AddConstToAbbrev(ord(attr));
         AddConstToAbbrev(ord(DW_FORM_addr));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_ptr_unaligned,sym));
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         AddConstToAbbrev(ord(DW_FORM_ref_addr));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym))
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_ptr_unaligned,sym))
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -1278,7 +1278,7 @@ implementation
           { use append_labelentry_dataptr_rel instead }
           internalerror(2007020210);
         append_labelentry_dataptr_common(attr);
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym))
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetreltype,sym))
       end;
 
 
@@ -3381,7 +3381,7 @@ implementation
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
                         asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-                        asmline.concat(tai_const.create_type_sym(offsetabstype,currlabel));
+                        asmline.concat(tai_const.create_type_sym(aitconst_ptr_unaligned,currlabel));
                       end
                     else
                       begin
@@ -3433,7 +3433,7 @@ implementation
             asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
             asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
             asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-            asmline.concat(tai_const.create_type_sym(offsetabstype,currlabel));
+            asmline.concat(tai_const.create_type_sym(aitconst_ptr_unaligned,currlabel));
           end;
 
         { end sequence }
@@ -3467,7 +3467,7 @@ implementation
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
         asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-        asmline.concat(tai_const.create_type_sym(offsetabstype,nil));
+        asmline.concat(tai_const.create_type_sym(aitconst_ptr_unaligned,nil));
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
         asmline.concat(tai_const.Create_8bit(1));
         asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
