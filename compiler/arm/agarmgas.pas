@@ -147,7 +147,10 @@ unit agarmgas;
 
                      s:=s+gas_regname(index);
 
-                     if shiftmode<>SM_None then
+                     {RRX always rotates by 1 bit and does not take an imm}
+                     if shiftmode = SM_RRX then
+                       s:=s+', rrx'
+                     else if shiftmode <> SM_None then
                        s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
                   end
                 else if offset<>0 then
@@ -165,10 +168,6 @@ unit agarmgas;
         getreferencestring:=s;
       end;
 
-
-    const
-      shiftmode2str: array[tshiftmode] of string[3] = ('','lsl','lsr','asr','ror','rrx');
-
     function getopstr(const o:toper) : string;
       var
         hs : string;
@@ -180,10 +179,13 @@ unit agarmgas;
             getopstr:=gas_regname(o.reg);
           top_shifterop:
             begin
-              if (o.shifterop^.rs<>NR_NO) and (o.shifterop^.shiftimm=0) then
-                getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_regname(o.shifterop^.rs)
+              {RRX is special, it only rotates by 1 and does not take any shiftervalue}
+              if o.shifterop^.shiftmode=SM_RRX then
+                getopstr:='rrx'
+              else if (o.shifterop^.rs<>NR_NO) and (o.shifterop^.shiftimm=0) then
+                getopstr:=gas_shiftmode2str[o.shifterop^.shiftmode]+' '+gas_regname(o.shifterop^.rs)
               else if (o.shifterop^.rs=NR_NO) then
-                getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' #'+tostr(o.shifterop^.shiftimm)
+                getopstr:=gas_shiftmode2str[o.shifterop^.shiftmode]+' #'+tostr(o.shifterop^.shiftimm)
               else internalerror(200308282);
             end;
           top_const:
