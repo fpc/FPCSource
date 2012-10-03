@@ -7,6 +7,12 @@ uses
   SysUtils,Math;
 
 const
+{$if defined(cpuarm) or defined (cpumips)}
+  arctan_res = 1E-13;
+{$else}
+  arctan_res = 1E-14;
+{$endif}
+
 
  dim = 36;
  MaxFloat = 1.1000000000000000E+4932;
@@ -88,7 +94,7 @@ for i:=1 to 8 do
   Ref := i*10;
   Value := arctan(tan(i*10/float(180)*pi))/pi*float(180);
   Delta := Value - Ref;
-  if Abs(Delta) > {$ifdef cpuarm} 1E-13 {$else} 1E-14 {$endif} then
+  if Abs(Delta) > arctan_res then
     begin
       writeln('  Error for ArcTan(',i*10,') was:',Value,' should be:',Ref);
       halt(1);
@@ -101,7 +107,7 @@ for i:=-1 downto -8 do
   Ref := i*10;
   Value := arctan(tan(i*10/float(180)*pi))/pi*float(180);
   Delta := Value - Ref;
-  if Abs(Delta) > {$ifdef cpuarm} 1E-13 {$else} 1E-14 {$endif} then
+  if Abs(Delta) > arctan_res then
     begin
       writeln('  Error for ArcTan(',i*10,') was:',Value,' should be:',Ref);
       halt(1);
