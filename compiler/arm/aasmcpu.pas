@@ -567,12 +567,10 @@ implementation
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
-        result:=(
-                  ((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                  ((opcode=A_MVF) and (regtype = R_FPUREGISTER)) or
-                  ((opcode in [A_FCPYS, A_FCPYD]) and (regtype = R_MMREGISTER))
+        result:=(((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
+                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER) and (oppostfix in [PF_None,PF_D])) or
+                 (((opcode=A_FCPYS) or (opcode=A_FCPYD)) and (regtype = R_MMREGISTER))
                 ) and
-                (oppostfix in [PF_None,PF_D]) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
