@@ -138,62 +138,69 @@ end;
 Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
         // less than 0?
-        cmp r1,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
-        movlt pc,lr
+        cmp     r1,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+        movle   pc,lr
 {$else}
-        bxlt  lr
+        bxle    lr
 {$endif}
         mov     r3,r0
-        cmp     r1,#8           // at least 8 bytes to do?
-        blt     .LFillchar2
-        orr r2,r2,r2,lsl #8
-        orr r2,r2,r2,lsl #16
-.LFillchar0:
-        tst     r3,#3           // aligned yet?
-        strneb r2,[r3],#1
-        subne   r1,r1,#1
-        bne     .LFillchar0
+
+        orr     r2,r2,r2,lsl #8
+        orr     r2,r2,r2,lsl #16
+
+        tst     r3, #3  // Aligned?
+        bne     .LFillchar_do_align
+
+.LFillchar_is_aligned:
+        subs    r1,r1,#8
+        bmi     .LFillchar_less_than_8bytes
+
         mov     ip,r2
-.LFillchar1:
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
+.LFillchar_at_least_8bytes:
+        // Do 16 bytes per loop
+        // More unrolling is uncessary, as we'll just stall on the write buffers
         stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
-        stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
-        stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        stmgeia r3!,{r2,ip}
-        subge   r1,r1,#8
-        bge     .LFillchar1
-.LFillchar2:
-        movs r1,r1              // anything left?
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        subs    r1,r1,#8
+        stmplia r3!,{r2,ip}
+        subpls  r1,r1,#8
+        bpl     .LFillchar_at_least_8bytes
+
+.LFillchar_less_than_8bytes:
+        // Do the rest
+        adds    r1, r1, #8
+
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
         moveq   pc,lr
 {$else}
         bxeq    lr
 {$endif}
-        rsb     r1,r1,#7
-        add     pc,pc,r1,lsl #2
-        mov     r0,r0
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+
+        tst     r1, #4
+        strne   r2,[r3],#4
+        tst     r1, #2
+        strneh  r2,[r3],#2
+        tst     r1, #1
+        strneb  r2,[r3],#1
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
         mov pc,lr
 {$else}
         bx  lr
 {$endif}
+
+// Special case for unaligned start
+// We make a maximum of 3 loops here
+.LFillchar_do_align:
+        strb r2,[r3],#1
+        subs r1, r1, #1
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+        moveq pc,lr
+{$else}
+        bxeq  lr
+{$endif}
+        tst r3,#3
+        bne .LFillchar_do_align
+        b .LFillchar_is_aligned
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
@@ -204,7 +211,7 @@ asm
   pld [r0]
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   movle pc,lr
 {$else}
   bxle  lr
@@ -221,7 +228,7 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -266,7 +273,7 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
   bxeq  lr
@@ -276,7 +283,7 @@ asm
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -287,7 +294,7 @@ procedure Move_blended(const source;var dest;count:longint);assembler;nostackfra
 asm
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   movle pc,lr
 {$else}
   bxle  lr
@@ -304,7 +311,7 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -346,7 +353,7 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
   bxeq  lr
@@ -356,7 +363,7 @@ asm
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -535,7 +542,7 @@ asm
       terminating 0, due to the known carry flag sbc can do this.*)
     sbc r0,r1,r0
 .Ldone:
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
     mov pc,lr
 {$else}
     bx  lr
@@ -846,6 +853,127 @@ begin
   else
     moveproc:=@move_blended;
 {$endif FPC_SYSTEM_FPC_MOVE}
+end;
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+{ SwapEndian(<16 Bit>) being inlined is faster than using assembler }
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
+  end;
+
+
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result := Word((AValue shr 8) or (AValue shl 8));
+  end;
+
+(*
+This is kept for reference. Thats what the compiler COULD generate in these cases.
+But FPC currently does not support inlining of asm-functions, so the whole call-overhead
+is bigger than the gain of the optimized function.
+function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
+asm
+	// We're starting with 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+	mov r0, r0, shl #16	// Shift to make that 2100
+	mov r0, r0, ror #24	// Rotate to 1002
+	orr r0, r0, r0 shr #16  // Shift and combine into 0012
+{$else}
+	rev r0, r0		// Reverse byteorder    r0 = 1234
+	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
+{$endif}
+end;
+
+*)
+
+function SwapEndian(const AValue: LongInt): LongInt;assembler;nostackframe;
+asm
+        // We're starting with r0 = 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r1, r0, #16711680           // r1 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r1, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r0, r2, r0, lsl #8          // r0 = 1234
+{$else}
+	rev r0, r0
+{$endif}
+end;
+
+function SwapEndian(const AValue: DWord): DWord;assembler;nostackframe;
+asm
+        // We're starting with r0 = 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r1, r0, #16711680           // r1 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r1, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r0, r2, r0, lsl #8          // r0 = 1234
+{$else}
+	rev r0, r0
+{$endif}
+end;
+
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
+asm
+        // We're starting with r0 = 4321 r1 = 8765
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov ip, r1
+
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r3, r0, #16711680           // r3 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r3, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r1, r2, r0, lsl #8          // r1 = 1234
+
+        mov r2, ip, lsr #24             // r2 = 0008
+        and r3, ip, #16711680           // r1 = 0700
+        orr r2, r2, ip, lsl #24         // r2 = 5008
+        orr r2, r2, r3, lsr #8          // r2 = 5078
+        and ip, ip, #65280              // ip = 0060
+        orr r0, r2, ip, lsl #8          // r0 = 5678
+        bx lr
+{$else}
+	rev r2, r0
+	rev r0, r1
+	mov r1, r2
+{$endif}
+end;
+
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
+asm
+        // We're starting with r0 = 4321 r1 = 8765
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov ip, r1
+
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r3, r0, #16711680           // r3 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r3, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r1, r2, r0, lsl #8          // r1 = 1234
+
+        mov r2, ip, lsr #24             // r2 = 0008
+        and r3, ip, #16711680           // r1 = 0700
+        orr r2, r2, ip, lsl #24         // r2 = 5008
+        orr r2, r2, r3, lsr #8          // r2 = 5078
+        and ip, ip, #65280              // ip = 0060
+        orr r0, r2, ip, lsl #8          // r0 = 5678
+        bx lr
+{$else}
+	rev r2, r0
+	rev r0, r1
+	mov r1, r2
+{$endif}
 end;
 
 {include hand-optimized assembler division code}

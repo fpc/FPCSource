@@ -175,7 +175,7 @@ asm
 .Ldiv_next:
   bcs .Ldiv_loop
   mov r0, r3
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc, lr
 {$else}
   bx  lr
@@ -184,7 +184,7 @@ asm
   mov r0, #200
   mov r1, r11
   bl handleerrorframe
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc, lr
 {$else}
   bx  lr
