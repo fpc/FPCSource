@@ -251,16 +251,17 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
 *)
 {$ifdef X86_64}
         SigContextRec = record
+	sc_args : array[0..6] of clong;
 	sc_rdi : clong;
 	sc_rsi : clong;
-        sc_rdx : clong;
 	sc_rcx : clong;
+        sc_rdx : clong;
 	sc_r8  : clong;
 	sc_r9  : clong;
-	sc_arg6  : clong;
-	sc_arg7  : clong;
-	sc_arg8  : clong;
-	sc_arg9  : clong;
+	//sc_arg6  : clong;
+	//sc:wq_arg7  : clong;
+	//sc_arg8  : clong;
+	//sc_arg9  : clong;
 	sc_r10 : clong;
 	sc_r11 : clong;
 	sc_r12 : clong;
@@ -281,6 +282,8 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
 	sc_rflags : clong;
 	sc_rsp : clong;
 	sc_ss  : clong;
+	sc_pad : clong;
+	sc_fpregs : array [0..511] of byte;
 	end;
 {$endif def x86_64}
 
