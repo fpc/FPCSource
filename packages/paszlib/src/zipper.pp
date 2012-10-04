@@ -136,6 +136,8 @@ Type
     Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord); virtual;
     Procedure Compress; Virtual; Abstract;
     Class Function ZipID : Word; virtual; Abstract;
+    Class Function ZipVersionReqd: Word; virtual; Abstract;
+    Function ZipBitFlag: Word; virtual; Abstract;
     Property BufferSize : LongWord read FBufferSize;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
@@ -226,6 +228,8 @@ Type
     Destructor Destroy; override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
+    Class Function ZipVersionReqd : Word; override;
+    Function ZipBitFlag : Word; override;
   end;
 
   { TDeflater }
@@ -237,6 +241,8 @@ Type
     Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord);override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
+    Class Function ZipVersionReqd : Word; override;
+    Function ZipBitFlag : Word; override;
     Property CompressionLevel : TCompressionlevel Read FCompressionLevel Write FCompressionLevel;
   end;
 
@@ -319,7 +325,7 @@ Type
   Protected
     Procedure CloseInput(Item : TZipFileEntry);
     Procedure StartZipFile(Item : TZipFileEntry);
-    Function  UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord;AMethod : Word) : Boolean;
+    Function  UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord;AMethod : Word; AZipVersionReqd : Word; AZipBitFlag : Word) : Boolean;
     Procedure BuildZipDirectory;
     Procedure DoEndOfFile;
     Procedure ZipOneFile(Item : TZipFileEntry); virtual;
@@ -675,8 +681,8 @@ Var
 begin
   CRC32Val:=$FFFFFFFF;
   Buf:=GetMem(FBufferSize);
-  if FOnPercent = 0 then 
-    FOnPercent := 1; 
+  if FOnPercent = 0 then
+    FOnPercent := 1;
   OnBytes:=Round((FInFile.Size * FOnPercent) / 100);
   BytesNow:=0; NextMark := OnBytes;
   FSize:=FInfile.Size;
@@ -698,7 +704,7 @@ begin
             if (FSize>0) and assigned(FOnProgress) Then
               FOnProgress(self,100 * ( BytesNow / FSize));
             inc(NextMark,OnBytes);
-          end;   
+          end;
       Until (Count=0);
     Finally
       C.Free;
@@ -714,6 +720,23 @@ end;
 class function TDeflater.ZipID: Word;
 begin
   Result:=8;
+end;
+
+class function TDeflater.ZipVersionReqd: Word;
+begin
+  Result:=20;
+end;
+
+function TDeflater.ZipBitFlag: Word;
+begin
+  case CompressionLevel of
+    clnone: Result := %110;
+    clfastest: Result := %100;
+    cldefault: Result := %000;
+    clmax: Result := %010;
+    else
+      Result := 0;
+  end;
 end;
 
 { ---------------------------------------------------------------------
@@ -851,6 +874,16 @@ end;
 class function TShrinker.ZipID: Word;
 begin
   Result:=1;
+end;
+
+class function TShrinker.ZipVersionReqd: Word;
+begin
+  Result:=10;
+end;
+
+function TShrinker.ZipBitFlag: Word;
+begin
+  Result:=0;
 end;
 
 
@@ -1251,7 +1284,9 @@ Begin
 End;
 
 
-Function TZipper.UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord; AMethod : Word) : Boolean;
+function TZipper.UpdateZipHeader(Item: TZipFileEntry; FZip: TStream;
+  ACRC: LongWord; AMethod: Word; AZipVersionReqd: Word; AZipBitFlag: Word
+  ): Boolean;
 var
   ZFileName  : ShortString;
 Begin
@@ -1259,14 +1294,20 @@ Begin
   With LocalHdr do
     begin
     FileName_Length := Length(ZFileName);
-    Compressed_Size := FZip.Size;
     Crc32 := ACRC;
-    Compress_method:=AMethod;
     Result:=Not (Compressed_Size >= Uncompressed_Size);
     If Not Result then
       begin                     { No...                          }
       Compress_Method := 0;                  { ...change stowage type      }
       Compressed_Size := Uncompressed_Size;  { ...update compressed size   }
+      end
+    else
+      begin
+      Compress_method:=AMethod;
+      Compressed_Size := FZip.Size;
+      Bit_Flag := Bit_Flag or AZipBitFlag;
+      if AZipVersionReqd > Extract_Version_Reqd then
+        Extract_Version_Reqd := AZipVersionReqd;
       end;
     end;
   FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapLFH{$ENDIF}(LocalHdr),SizeOf(LocalHdr));
@@ -1356,6 +1397,8 @@ Procedure TZipper.ZipOneFile(Item : TZipFileEntry);
 Var
   CRC : LongWord;
   ZMethod : Word;
+  ZVersionReqd : Word;
+  ZBitFlag : Word;
   ZipStream : TStream;
   TmpFileName : String;
 
@@ -1378,10 +1421,12 @@ Begin
           Compress;
           CRC:=Crc32Val;
           ZMethod:=ZipID;
+          ZVersionReqd:=ZipVersionReqd;
+          ZBitFlag:=ZipBitFlag;
         Finally
           Free;
         end;
-      If UpdateZipHeader(Item,ZipStream,CRC,ZMethod) then
+      If UpdateZipHeader(Item,ZipStream,CRC,ZMethod,ZVersionReqd,ZBitFlag) then
         // Compressed file smaller than original file.
         FOutStream.CopyFrom(ZipStream,0)
       else
@@ -1568,8 +1613,8 @@ Begin
     as directory separator. We don't want that behaviour
     here, since 'abc\' is a valid file name under Unix.
 	
-	(mantis 15836) On the other hand, many archives on 
-	 windows have '/' as pathseparator, even Windows 
+	(mantis 15836) On the other hand, many archives on
+	 windows have '/' as pathseparator, even Windows
 	 generated .odt files. So we disable this for windows.
   }
   OldDirectorySeparators:=AllowDirectorySeparators;
@@ -1580,7 +1625,7 @@ Begin
   OutStream:=Nil;
   If Assigned(FOnCreateStream) then
     FOnCreateStream(Self, OutStream, Item);
-  // If FOnCreateStream didn't create one, we create one now.  
+  // If FOnCreateStream didn't create one, we create one now.
   If (OutStream=Nil) then
     Begin
     if (Path<>'') then
@@ -1652,7 +1697,7 @@ End;
 Procedure TUnZipper.ReadZipDirectory;
 
 Var
-  i,
+  i : LongInt;
   EndHdrPos,
   CenDirPos : LongInt;
   NewNode   : TFullZipFileEntry;
@@ -2074,7 +2119,7 @@ Procedure TZipFileEntries.AddFileEntries(Const List : TStrings);
 
 Var
   I : integer;
-  
+
 begin
   For I:=0 to List.Count-1 do
     AddFileEntry(List[i]);
