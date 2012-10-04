@@ -176,11 +176,7 @@
         tmpi2:=nil;
         if Assigned(S) and ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or
             TObject(S).GetInterface(IID,tmpi)) then
-          begin
-            // decrease reference count
-            fpc_class_cast_intf:=nil;
-            pointer(fpc_class_cast_intf):=tmpi
-          end
+          pointer(fpc_class_cast_intf):=tmpi
         else
           fpc_class_cast_intf:=nil;
       end;
@@ -206,8 +202,6 @@
              tmpi:=nil;
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
-             // decrease reference count
-             fpc_intf_as:=nil;
              pointer(fpc_intf_as):=tmpi;
           end
         else
@@ -241,8 +235,6 @@
              tmpi2:=nil;
              if not ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi)) then
                handleerror(219);
-             // decrease reference count
-             fpc_class_as_intf:=nil;
              pointer(fpc_class_as_intf):=tmpi;
           end
         else
