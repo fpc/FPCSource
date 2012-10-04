@@ -32,7 +32,7 @@ unit agarmgas;
        globtype,
        aasmtai,aasmdata,
        aggas,
-       cpubase;
+       cpubase,cpuinfo;
 
     type
       TARMGNUAssembler=class(TGNUassembler)
@@ -54,13 +54,33 @@ unit agarmgas;
       gas_shiftmode2str : array[tshiftmode] of string[3] = (
         '','lsl','lsr','asr','ror','rrx');
 
+    const 
+      cputype_to_gas_march : array[tcputype] of string = (
+        '', // cpu_none
+        'armv3',
+        'armv4',
+        'armv4t',
+        'armv5',
+        'armv5t',
+        'armv5te',
+        'armv5tej',
+        'armv6',
+        'armv6k',
+        'armv6t2',
+        'armv6z',
+        'armv7',
+        'armv7-a',
+        'armv7-r',
+        'armv7-m',
+        'armv7e-m');
+
   implementation
 
     uses
        cutils,globals,verbose,
        systems,
        assemble,
-       cpuinfo,aasmcpu,
+       aasmcpu,
        itcpugas,
        cgbase,cgutils;
 
@@ -89,10 +109,8 @@ unit agarmgas;
 
         if current_settings.cputype=cpu_armv7m then
           result:='-march=armv7m -mthumb -mthumb-interwork '+result
-        else if current_settings.cputype=cpu_armv6 then
-          result:='-march=armv6 '+result
-        else if current_settings.cputype=cpu_armv7 then
-          result:='-march=armv7-a '+result;
+        else
+          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
 
         if target_info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
