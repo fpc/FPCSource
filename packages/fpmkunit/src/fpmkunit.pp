@@ -1292,7 +1292,7 @@ ResourceString
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
-  SErrBuildOptNotExist  = 'There are no build options with the name "%s"';
+  SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -2211,7 +2211,7 @@ procedure TPackageVariants.SetDefaultPackageVariantName(AValue: string);
 begin
   if FDefaultPackageVariantName=AValue then Exit;
   if not assigned(ItemByName(avalue)) then
-    raise exception.CreateFmt(SErrBuildOptNotExist,[AValue]);
+    raise exception.CreateFmt(SErrPackVarNotExist,[AValue]);
   FDefaultPackageVariantName:=AValue;
 end;
 
@@ -2229,7 +2229,7 @@ procedure TPackageVariants.SetActivePackageVariantName(AValue: string);
 begin
   if FActivePackageVariantName=AValue then Exit;
   if not assigned(ItemByName(avalue)) then
-    raise exception.CreateFmt(SErrBuildOptNotExist,[AValue]);
+    raise exception.CreateFmt(SErrPackVarNotExist,[AValue]);
   FActivePackageVariantName:=AValue;
 end;
 
