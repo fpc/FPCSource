@@ -1315,6 +1315,7 @@ ResourceString
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
   SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
+  SWarnDuplicatePackage = 'Warning: Package %s is already added. Using the existing package';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -3355,9 +3356,20 @@ end;
 
 
 function TPackages.AddPackage(const AName: String): TPackage;
+var
+  i: integer;
 begin
-  Result:=Add as TPackage;
-  Result.Name:=AName;
+  i := IndexOfName(AName);
+  if i > -1 then
+    begin
+    result := PackageItems[i];
+    Installer.Log(vlWarning,Format(SWarnDuplicatePackage,[AName]))
+    end
+  else
+    begin
+    Result:=Add as TPackage;
+    Result.Name:=AName;
+    end;
 end;
 
 
