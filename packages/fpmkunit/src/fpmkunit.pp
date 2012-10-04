@@ -1340,7 +1340,7 @@ ResourceString
   SDbgOutputNotYetAvailable = 'Output file %s not available';
   SDbgDependencyOnUnit      = 'Dependency of %s on unit %s';
   SDbgDependencyUnitRecompiled = 'Dependent unit %s is being recompiled';
-  SDbgMustCompile           = 'Must compile %s';
+  SDbgMustCompile           = 'Must compile %s. (%s)';
   SDbgSkippingTargetWrongCPU = 'Skipping target %s, different CPU (%s)';
   SDbgSkippingTargetWrongOS  = 'Skipping target %s, different OS (%s)';
   SDbgTargetIsNotAUnitOrProgram = 'Skipping Target %s, not an unit or program';
@@ -1364,6 +1364,13 @@ ResourceString
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
   SDbgGenerateBuildUnit     = 'Generate build-unit %s';
+  SDbgForcedCompile         = 'Forced compile';
+  SDbgOutputDoesNotExist    = 'Output file does not exist';
+  SDbgNewerSource           = 'Source file is newer then output file';
+  SDbgNewerInclude          = 'The include file %s is newer then output file';
+  SDbgDependencyRecompiled  = 'The unit %s where this unit depends on is recompiled';
+  SDbgPackageDepRecompiled  = 'The package %s where this package depends on is recompiled';
+  SDbgTargetHasToBeCompiled = 'At least one of the targets in the package has to be compiled.';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -5313,12 +5320,16 @@ Var
   D : TDependency;
   T : TTarget;
   OD,OFN,TFN : String;
+  CompileReason: String;
 begin
   Result:=False;
 
   // Forced recompile?
   if FForceCompile then
+    begin
     Result:=true;
+    CompileReason:=SDbgForcedCompile;
+    end;
 
   // For now examples are not compiled at all
   if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
@@ -5340,7 +5351,10 @@ begin
       OFN:=AddPathPrefix(APackage, OD+ATarget.GetOutPutFileName(Defaults.OS));
       Result:=Not FileExists(OFN);
       if Result then
+        begin
+        CompileReason:=SDbgOutputDoesNotExist;
         Log(vlDebug,SDbgOutputNotYetAvailable,[OFN]);
+        end;
     end;
 
   // Check main source
@@ -5348,7 +5362,9 @@ begin
     begin
       TFN := AddPathPrefix(APackage,ATarget.TargetSourceFileName);
       if FileExists(TFN) then
-        Result:=FileNewer(TFN,OFN)
+        Result:=FileNewer(TFN,OFN);
+      if Result then
+        CompileReason:=SDbgNewerSource;
     end;
 
   // Check unit and include dependencies
@@ -5371,7 +5387,10 @@ begin
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
                     Result:=(T.State=tsCompiled);
                     if Result then
+                      begin
                       Log(vldebug, SDbgDependencyUnitRecompiled, [T.Name]);
+                      CompileReason:=Format(SDbgDependencyRecompiled,[T.Name]);
+                      end;
                   end;
                 depInclude :
                   begin
@@ -5379,6 +5398,8 @@ begin
                       begin
                         TFN:=AddPathPrefix(APackage,D.TargetFileName);
                         Result:=FileNewer(TFN,OFN);
+                        if result then
+                          CompileReason:=Format(SDbgNewerInclude,[D.TargetFileName]);
                       end;
                   end;
                 depPackage :
@@ -5393,7 +5414,7 @@ begin
     end;
 
   if result then
-    Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
+    Log(vlDebug,SDbgMustCompile,[ATarget.Name, CompileReason]);
 end;
 
 
@@ -5506,12 +5527,16 @@ Var
   I : Integer;
   P : TPackage;
   D : TDependency;
+  CompileReason: string;
 begin
   Result:=False;
 
   // Forced recompile?
   if FForceCompile then
+    begin
     Result:=true;
+    CompileReason:=SDbgForcedCompile;
+    end;
 
   // Recompile because of Package Dependencies?
   if not Result then
@@ -5528,7 +5553,10 @@ begin
                  begin
                    Result:=(P.State=tsCompiled);
                    if Result then
+                     begin
                      break;
+                     CompileReason:=Format(SDbgPackageDepRecompiled,[P.Name]);
+                     end;
                  end;
              end;
          end;
@@ -5543,7 +5571,10 @@ begin
           begin
             Result:=NeedsCompile(APackage,APackage.Targets.TargetItems[i]);
             if Result then
+              begin
               break;
+              CompileReason:=Format(SDbgTargetHasToBeCompiled,[APackage.Targets.TargetItems[i].Name]);
+              end;
           end;
       Finally
         GPathPrefix := '';
@@ -5551,7 +5582,7 @@ begin
     end;
 
   if result then
-    Log(vlDebug,SDbgMustCompile,[APackage.Name]);
+    Log(vlDebug,SDbgMustCompile,[APackage.Name, CompileReason]);
 end;
 
 
