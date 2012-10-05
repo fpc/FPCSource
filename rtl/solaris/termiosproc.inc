@@ -79,7 +79,7 @@ end;
 
 Function TCFlush(fd,qsel:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel));
 end;
 
 Function IsATTY (Handle:cint):cint;
