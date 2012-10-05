@@ -24,6 +24,7 @@ type
     procedure TestFieldDefWithoutDS;
     procedure TestGetParamList;
     procedure TestGetFieldList;
+    procedure TestExtractFieldName;
   end;
 
 implementation
@@ -314,6 +315,45 @@ begin
   end;
 end;
 
+procedure TTestBasics.TestExtractFieldName;
+var
+  i: Integer;
+  Fields: String;
+  FieldName: String;
+begin
+  Fields := '';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(1, i);
+  AssertEquals('', FieldName);
+
+  Fields := 'test';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(5, i);
+  AssertEquals('test', FieldName);
+
+  Fields := 'test;';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(6, i);
+  AssertEquals('test', FieldName);
+
+  Fields := ' test ';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(7, i);
+  AssertEquals('test', FieldName);
+
+  Fields := 'test;xxx';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(6, i);
+  AssertEquals('test', FieldName);
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(9, i);
+  AssertEquals('xxx', FieldName);
+end;
 
 initialization
   RegisterTest(TTestBasics);

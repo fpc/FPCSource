@@ -2139,20 +2139,17 @@ begin
     DatabaseErrorFmt(Fmt, Args);
 end;
 
-Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
-
+function ExtractFieldName(const Fields: string; var Pos: Integer): string;
 var
-  i: integer;
+  i: Integer;
+  FieldsLength: Integer;
 begin
-  for i := Pos to Length(Fields) do begin
-    if Fields[i] = ';' then begin
-      Result := Copy(Fields, Pos, i - Pos);
-      Pos := i + 1;
-      Exit;
-    end;
-  end;
-  Result := Copy(Fields, Pos, Length(Fields));
-  Pos := Length(Fields) + 1;
+  i:=Pos;
+  FieldsLength:=Length(Fields);
+  while (i<=FieldsLength) and (Fields[i]<>';') do Inc(i);
+  Result:=Trim(Copy(Fields,Pos,i-Pos));
+  if (i<=FieldsLength) and (Fields[i]=';') then Inc(i);
+  Pos:=i;
 end;
 
 { EUpdateError }
