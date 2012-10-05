@@ -69,6 +69,9 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
+    procedure TestStreamingBlobFieldsXML;
+    procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingCalculatedFieldsXML;
 
     procedure TestAppendDeleteBIN;
 
@@ -450,6 +453,124 @@ end;
 procedure TTestBufDatasetStreams.TestDeleteAllInsertXML;
 begin
   TestChangesXML(@DeleteAllInsertChange);
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+var SaveDs: TCustomBufDataset;
+    LoadDs: TCustomBufDataset;
+begin
+  SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
+  SaveDs.Open;
+  SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+
+  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs.LoadFromFile('FieldsDS.xml');
+
+  LoadDS.First;
+  SaveDS.First;
+  while not LoadDS.EOF do
+    begin
+    AssertEquals(LoadDS.FieldByName('FBLOB').AsString,SaveDS.FieldByName('FBLOB').AsString);
+    AssertEquals(LoadDS.FieldByName('FMEMO').AsString,SaveDS.FieldByName('FMEMO').AsString);
+    LoadDS.Next;
+    SaveDS.Next;
+    end;
+
+  LoadDs.Free;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingBigBlobFieldsXML;
+var
+  SaveDs: TCustomBufDataset;
+  LoadDs: TCustomBufDataset;
+  j: integer;
+  i: byte;
+  s: string;
+  f: file of byte;
+  fn: string;
+  fs: TMemoryStream;
+begin
+  // Create a temp. file with blob-data.
+  fn := GetTempFileName;
+  assign(f,fn);
+  Rewrite(f);
+  s := 'This is a blob-field test file.';
+  for j := 0 to 250 do
+    begin
+    for i := 1 to length(s) do
+      write(f,ord(s[i]));
+    for i := 0 to 255 do
+      write(f,i);
+    end;
+  close(f);
+
+  try
+    // Open dataset and set blob-field-data to content of blob-file.
+    SaveDs := DBConnector.GetFieldDataset(true) as TCustomBufDataset;
+    SaveDs.Open;
+    SaveDs.Edit;
+    TBlobField(SaveDs.FieldByName('FBLOB')).LoadFromFile(fn);
+    SaveDs.Post;
+
+    // Save this dataset to file.
+    SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+
+    // Load this file in another dataset
+    LoadDs := TCustomBufDataset.Create(nil);
+    try
+      LoadDs.LoadFromFile('FieldsDS.xml');
+      LoadDS.First;
+
+      // Compare the content of the blob-field with the file on disc
+      fs := TMemoryStream.Create;
+      try
+        TBlobField(SaveDs.FieldByName('FBLOB')).SaveToStream(fs);
+        fs.Seek(0,soBeginning);
+        assign(f,fn);
+        reset(f);
+        for j := 0 to fs.Size-1 do
+          begin
+          read(f,i);
+          CheckEquals(i,fs.ReadByte);
+          end;
+      finally
+        fs.free;
+      end;
+    finally
+      LoadDs.Free;
+    end;
+  finally
+    DeleteFile(fn);
+  end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingCalculatedFieldsXML;
+var
+  ADataset: TCustomBufDataset;
+  f: tfield;
+begin
+  ADataset := DBConnector.GetNDataset(true,10) as TCustomBufDataset;
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='ID';
+  f.dataset := ADataset;
+
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='CalcID';
+  f.dataset := ADataset;
+  f.FieldKind:=fkCalculated;
+
+  f := TStringField.Create(ADataset);
+  f.FieldName:='NAME';
+  f.dataset := ADataset;
+
+  ADataset.Open;
+  ADataset.SaveToFile('FieldsDS.xml',dfXML);
+  ADataset.Close;
+
+  ADataset.LoadFromFile('FieldsDS.xml',dfXML);
+  AssertEquals(ADataset.FieldByName('ID').AsInteger,1);
+  AssertEquals(ADataset.FieldByName('NAME').AsString,'TestName1');
+  ADataset.Close;
 end;
 
 procedure TTestBufDatasetStreams.TestAppendDeleteBIN;

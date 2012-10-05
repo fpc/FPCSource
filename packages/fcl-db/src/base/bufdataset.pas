@@ -457,7 +457,6 @@ type
     procedure InitDefaultIndexes;
   protected
     procedure UpdateIndexDefs; override;
-    function GetNewBlobBuffer : PBlobBuffer;
     function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
     procedure SetRecNo(Value: Longint); override;
@@ -523,6 +522,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
+    function GetNewBlobBuffer : PBlobBuffer;
 
     procedure SetDatasetPacket(AReader : TDataPacketReader);
     procedure GetDatasetPacket(AWriter : TDataPacketReader);
@@ -2712,26 +2712,30 @@ begin
 end;
 
 procedure TCustomBufDataset.CreateDataset;
+var AStoreFilename: string;
+
 begin
   CheckInactive;
-  if not ((FieldCount=0) or (FieldDefs.Count=0)) then
+  if ((FieldCount=0) or (FieldDefs.Count=0)) then
     begin
-    Open;
-    Exit;
+    if (FieldDefs.Count>0) then
+      CreateFields
+    else if (fields.Count>0) then
+      begin
+      InitFieldDefsFromfields;
+      BindFields(True);
+      end
+    else
+      raise Exception.Create(SErrNoFieldsDefined);
     end;
-  if (FieldDefs.Count>0) then
-    begin
-    CreateFields;
+  // When a filename is set, do not read from this file
+  AStoreFilename:=FFileName;
+  FFileName := '';
+  try
     Open;
-    end
-  else if (fields.Count>0) then
-    begin
-    InitFieldDefsFromfields;
-    BindFields(True);
-    Open;
-    end
-  else
-    raise Exception.Create(SErrNoFieldsDefined);
+  finally
+    FFileName:=AStoreFilename;
+  end;
 end;
 
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
@@ -2751,8 +2755,12 @@ end;
 procedure TCustomBufDataset.IntLoadFielddefsFromFile;
 
 begin
+  FieldDefs.Clear;
   FDatasetReader.LoadFielddefs(FieldDefs);
-  if DefaultFields then CreateFields;
+  if DefaultFields then
+    CreateFields
+  else
+    BindFields(true);
 end;
 
 procedure TCustomBufDataset.IntLoadRecordsFromFile;

@@ -16,11 +16,18 @@ uses
 
 {$IFDEF Unix}
   const
-    pqlib = 'libpq.'+sharedsuffix;
+{$ifdef darwin}
+    pqlib = 'libpq.'+sharedsuffix; // No version number.
+{$else}
+    pqlib5 = 'libpq.'+sharedsuffix+'.5'; // 8.2 and higher
+    pqlib4 = 'libpq.'+sharedsuffix+'.4'; // 8.0, 8.1
+    pqlib3 = 'libpq.'+sharedsuffix+'.3'; // 7.3, 7.4
+    pqlib  = pqlib5;
+{$endif}
 {$ENDIF}
 {$IFDEF Win32}
   const
-    pqlib = 'libpq.dll';
+    pqlib = 'libpq.dll'; // Not sure if it has a version number ?
 {$ENDIF}
 
 
@@ -210,7 +217,8 @@ var
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
 
-Procedure InitialisePostgres3(libpath:string=pqlib);
+Function InitialisePostgres3(Const libpath : shortstring) : integer;
+Procedure InitialisePostgres3;
 Procedure ReleasePostgres3;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
@@ -227,10 +235,22 @@ var
   RefCount : integer;
   LoadedLibrary : String;
 
-Procedure InitialisePostgres3(libpath:string=pqlib);
+procedure InitialisePostgres3;
+
+begin
+  if (RefCount<>0) then
+      // pretend to load whatever is already loaded, so we do not get a library name conflict.
+    inc(Refcount)
+  else
+    InitialisePostgres3(pqlib)
+end;
+
+
+function InitialisePostgres3(Const libpath : shortstring) : Integer;
 
 begin
   inc(RefCount);
+  Result:=Refcount;
   if RefCount = 1 then
     begin
     Postgres3LibraryHandle := loadlibrary(libpath);
@@ -344,7 +364,7 @@ begin
     pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
     pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
 
-    InitialiseDllist;
+    InitialiseDllist(libpath);
     end
   else
     if (libpath<>pqlib) and (LoadedLibrary<>libpath) then

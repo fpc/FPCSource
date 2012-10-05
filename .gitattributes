@@ -2012,6 +2012,7 @@ packages/fcl-db/tests/sdfdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sqldbtoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/tcgensql.pas svneol=native#text/plain
 packages/fcl-db/tests/tcparser.pas svneol=native#text/plain
+packages/fcl-db/tests/tcsdfdata.pp svneol=native#text/plain
 packages/fcl-db/tests/tcsqlscanner.pas svneol=native#text/plain
 packages/fcl-db/tests/test.json svneol=native#text/plain
 packages/fcl-db/tests/testbasics.pas svneol=native#text/plain

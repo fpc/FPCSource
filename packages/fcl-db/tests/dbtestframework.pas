@@ -17,6 +17,7 @@ uses
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
+  tcsdfdata,
 // Units wich contains the tests
   TestBasics,
   TestFieldTypes,
