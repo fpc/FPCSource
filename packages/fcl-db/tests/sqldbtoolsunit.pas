@@ -170,7 +170,7 @@ begin
     FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
-  {$IFDEF Win64}
+  {$IFNDEF Win64}
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
   if SQLDbType = MSSQL then
