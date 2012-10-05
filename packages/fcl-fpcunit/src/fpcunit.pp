@@ -18,17 +18,11 @@ unit fpcunit;
 {$h+}
 
 interface
-{$IFNDEF MORPHOS}
-  {$DEFINE SHOWLINEINFO}
-{$ENDIF}
 
 { Uncomment this define to remove the DUnit compatibility interface. }
 {$DEFINE DUnit}
 
 uses
-  {$ifdef SHOWLINEINFO}
-  LineInfo,
-  {$endif}
   SysUtils
   ,Classes
   ;
