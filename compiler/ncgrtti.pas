@@ -66,7 +66,7 @@ implementation
     uses
        cutils,
        globals,globtype,verbose,systems,
-       fmodule,
+       fmodule, procinfo,
        symsym,
        aasmtai,aasmdata,
        defutil,
@@ -1212,6 +1212,9 @@ implementation
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1245,16 +1248,25 @@ implementation
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 end.
