@@ -396,6 +396,7 @@ Type
     FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
     FOutputPath : String;
+    FFileComment: String;
     FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
     FZipStream  : TStream;     { I/O file variables                         }
@@ -441,6 +442,7 @@ Type
     Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
     Property FileName : String Read FFileName Write SetFileName;
     Property OutputPath : String Read FOutputPath Write SetOutputPath;
+    Property FileComment: String Read FFileComment;
     Property Files : TStrings Read FFiles;
     Property Entries : TFullZipFileEntries Read FEntries;
   end;
@@ -1693,31 +1695,81 @@ Begin
     end;
 End;
 
+procedure FindEndHeader(AZip: TStream; out AEndHdr: End_of_Central_Dir_Type; out AEndHdrPos: Int64; out AZipFileComment: string);
+var
+  Buf: PByte;
+  BufSize: Integer;
+  I: Integer;
+begin
+  AZipFileComment := '';
+  AEndHdrPos := AZip.Size - SizeOf(AEndHdr);
+  if AEndHdrPos < 0 then
+  begin
+    AEndHdrPos := -1;
+    FillChar(AEndHdr, SizeOf(AEndHdr), 0);
+    exit;
+  end;
+  AZip.Seek(AEndHdrPos, soFromBeginning);
+  AZip.ReadBuffer(AEndHdr, SizeOf(AEndHdr));
+  {$IFDEF FPC_BIG_ENDIAN}
+  AEndHdr := SwapECD(AEndHdr);
+  {$ENDIF}
+  if (AEndHdr.Signature = END_OF_CENTRAL_DIR_SIGNATURE) and
+     (AEndHdr.ZipFile_Comment_Length = 0) then
+    exit;
+
+  // scan the last (64k + something) bytes for the END_OF_CENTRAL_DIR_SIGNATURE
+  // (zip file comments are 64k max)
+  BufSize := 65536 + SizeOf(AEndHdr) + 128;
+  if AZip.Size < BufSize then
+    BufSize := AZip.Size;
+
+  Buf := GetMem(BufSize);
+  try
+    AZip.Seek(AZip.Size - BufSize, soFromBeginning);
+    AZip.ReadBuffer(Buf^, BufSize);
+
+    for I := BufSize - SizeOf(AEndHdr) downto 0 do
+    begin
+      if (Buf[I] or (Buf[I + 1] shl 8) or (Buf[I + 2] shl 16) or (Buf[I + 3] shl 24)) = END_OF_CENTRAL_DIR_SIGNATURE then
+      begin
+        Move(Buf[I], AEndHdr, SizeOf(AEndHdr));
+        {$IFDEF FPC_BIG_ENDIAN}
+        AEndHdr := SwapECD(AEndHdr);
+        {$ENDIF}
+        if (AEndHdr.Signature = END_OF_CENTRAL_DIR_SIGNATURE) and
+           (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length = BufSize) then
+        begin
+          AEndHdrPos := AZip.Size - BufSize + I;
+          AZip.Seek(AEndHdrPos + SizeOf(AEndHdr), soFromBeginning);
+          SetLength(AZipFileComment, AEndHdr.ZipFile_Comment_Length);
+          AZip.ReadBuffer(AZipFileComment[1], Length(AZipFileComment));
+          exit;
+        end;
+      end;
+    end;
+
+    AEndHdrPos := -1;
+    FillChar(AEndHdr, SizeOf(AEndHdr), 0);
+  finally
+    FreeMem(Buf);
+  end;
+end;
 
 Procedure TUnZipper.ReadZipDirectory;
 
 Var
   i : LongInt;
   EndHdrPos,
-  CenDirPos : LongInt;
+  CenDirPos : Int64;
   NewNode   : TFullZipFileEntry;
   D : TDateTime;
   S : String;
 Begin
-  EndHdrPos:=FZipStream.Size-SizeOf(EndHdr);
+  FindEndHeader(FZipStream, EndHdr, EndHdrPos, FFileComment);
   if EndHdrPos < 0 then
     raise EZipError.CreateFmt(SErrCorruptZIP,[FileName]);
-  FZipStream.Seek(EndHdrPos,soFromBeginning);
-  FZipStream.ReadBuffer(EndHdr, SizeOf(EndHdr));
-{$IFDEF FPC_BIG_ENDIAN}
-  EndHdr := SwapECD(EndHdr);
-{$ENDIF}
-  With EndHdr do
-    begin
-    if Signature <> END_OF_CENTRAL_DIR_SIGNATURE then
-      raise EZipError.CreateFmt(SErrCorruptZIP,[FileName]);
-    CenDirPos:=Start_Disk_Offset;
-    end;
+  CenDirPos := EndHdr.Start_Disk_Offset;
   FZipStream.Seek(CenDirPos,soFrombeginning);
   FEntries.Clear;
   for i:=0 to EndHdr.Entries_This_Disk-1 do
