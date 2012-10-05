@@ -37,6 +37,7 @@ Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 Function LoadLibrary(const Name : AnsiString) : TLibHandle;
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
+Function GetLoadErrorStr: string;
 
 // Kylix/Delphi compability
 

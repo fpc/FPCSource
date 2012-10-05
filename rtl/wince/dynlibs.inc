@@ -59,4 +59,20 @@ begin
   Result:=Windows.FreeLibrary(Lib);
 end;
 
+Function GetLoadErrorStr: string;
+
+Var
+  rc,c : integer;
+  w : widestring;
+  
+begin  
+  rc := GetLastError;
+  SetLength(w,255);
+  C:=FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,
+                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                 @W[1], 255,nil);
+  SetLength(w,c);
+  Result:=w;
+end;
+
 {$endif}

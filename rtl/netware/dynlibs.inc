@@ -56,5 +56,11 @@ begin
   Result:=false;
 end;
 
+
+Function GetLoadErrorStr: string;
+
+begin  
+  Result:='';
+end;
 {$endif}
 
