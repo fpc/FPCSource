@@ -181,7 +181,9 @@ implementation
           begin
             if not(pi_needs_got in current_procinfo.flags) then
               begin
-                //internalerror(200501161);
+{$ifdef CHECK_PIC}
+                internalerror(200501161);
+{$endif CHECK_PIC}
                 include(current_procinfo.flags,pi_needs_got);
               end;
             if current_procinfo.got=NR_NO then
@@ -201,7 +203,9 @@ implementation
             tmpref.refaddr:=addr_pic;
             if not(pi_needs_got in current_procinfo.flags) then
               begin
-                //internalerror(200501161);
+{$ifdef CHECK_PIC}
+                internalerror(200501161);
+{$endif CHECK_PIC}
                 include(current_procinfo.flags,pi_needs_got);
               end;
             if current_procinfo.got=NR_NO then
@@ -749,7 +753,9 @@ implementation
           begin
             if not(pi_needs_got in current_procinfo.flags) then
               begin
-                //internalerror(200501161);
+{$ifdef CHECK_PIC}
+                internalerror(200501161);
+{$endif CHECK_PIC}
                 include(current_procinfo.flags,pi_needs_got);
               end;
             if current_procinfo.got=NR_NO then
@@ -769,7 +775,9 @@ implementation
             tmpref.refaddr:=addr_pic;
             if not(pi_needs_got in current_procinfo.flags) then
               begin
-                //internalerror(200501161);
+{$ifdef CHECK_PIC}
+                internalerror(200501161);
+{$endif CHECK_PIC}
                 include(current_procinfo.flags,pi_needs_got);
               end;
             if current_procinfo.got=NR_NO then
