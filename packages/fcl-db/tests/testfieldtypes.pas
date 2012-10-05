@@ -61,7 +61,6 @@ type
     procedure TestScript;
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
-    procedure TestOpenSpecialStatements;
 
     procedure TestTemporaryTable;
     procedure TestRefresh;
@@ -1267,47 +1266,6 @@ begin
     finally
       Connection.ExecuteDirect('drop procedure FPDEV_PROC');
       Transaction.CommitRetaining;
-    end;
-  end;
-end;
-
-procedure TTestFieldTypes.TestOpenSpecialStatements;
-const CTE_SELECT = 'WITH a AS (SELECT * FROM FPDEV) SELECT * FROM a';
-type TTestStatements = array of string;
-var statements: TTestStatements;
-    s: string;
-begin
-  // tests non-select statements (other than "SELECT ..."), which return result-set
-  // at least one row must be returned
-  with TSQLDBConnector(DBConnector) do
-  begin
-    case SQLDbType of
-      sqlite3:
-        statements := TTestStatements.Create('pragma table_info(FPDEV)');
-      interbase:
-        statements := TTestStatements.Create(CTE_SELECT (*FB 2.1*));
-      postgresql:
-        statements := TTestStatements.Create(CTE_SELECT);
-      mssql:
-        statements := TTestStatements.Create(CTE_SELECT  (*MS SQL 2005*));
-      else
-        if SQLdbType in MySQLdbTypes then
-          statements := TTestStatements.Create(
-            'check table FPDEV',  // bug 14519
-            'show tables from '+Connection.DatabaseName  // bug 16842
-          )
-        else
-          Ignore(STestNotApplicable);
-    end;
-
-    for s in statements do
-    begin
-      Query.SQL.Text := s;
-      Query.Open;
-      AssertTrue(Query.FieldCount>0);
-      AssertFalse('Eof after open', Query.Eof);
-      Query.Next;
-      Query.Close;
     end;
   end;
 end;
