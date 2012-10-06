@@ -2177,6 +2177,12 @@ implementation
                          { helpers can access strict protected symbols }
                          is_objectpascal_helper(contextobjdef) and
                          tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                       ) or
+                       (
+                         { same as above, but from context of call node inside
+                           helper method }
+                         is_objectpascal_helper(current_structdef) and
+                         tobjectdef(current_structdef).extendeddef.is_related(symownerdef)
                        );
             end;
           vis_protected :
