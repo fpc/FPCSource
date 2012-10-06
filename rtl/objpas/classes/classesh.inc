@@ -1368,7 +1368,6 @@ type
 {$endif}
     procedure FlushBuffer;
     procedure WriteValue(Value: TValueType);
-    procedure WriteStr(const Value: String);
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
@@ -1396,6 +1395,7 @@ type
     procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
+    procedure WriteStr(const Value: String);
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
