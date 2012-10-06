@@ -85,6 +85,9 @@ type
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
   end;
 
   EPQDatabaseError = class(EDatabaseError)
@@ -1073,6 +1076,33 @@ end;
 class function TPQConnectionDef.Description: String;
 begin
   Result:='Connect to a PostGreSQL database directly via the client library';
+end;
+
+class function TPQConnectionDef.DefaultLibraryName: String;
+begin
+  {$IfDef LinkDynamically}
+  Result:=pqlib;
+  {$else}
+  result:='';
+  {$endif}
+end;
+
+class function TPQConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  {$IfDef LinkDynamically}
+  Result:=@InitialisePostgres3;
+  {$else}
+  result:=Nil;
+  {$endif}
+end;
+
+class function TPQConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  {$IfDef LinkDynamically}
+  Result:=@ReleasePostgres3;
+  {$else}
+  result:=Nil;
+  {$endif}
 end;
 
 initialization

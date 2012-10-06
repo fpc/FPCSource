@@ -674,7 +674,12 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('sqlite3conn.pp');
+    T:=P.Targets.AddUnit('sqldblib.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+        end;
+    T:=P.Targets.AddUnit('sqlite3conn.pp', SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('db');
