@@ -29,7 +29,7 @@ interface
       cgbase,cpubase;
 
     type
-      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual);
+      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM);
 
     const
 {$ifdef x86_64}
@@ -50,7 +50,8 @@ interface
        'd',
        '','','',
        't',
-       ''
+        'x',
+        'y'
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
      { !! S_LQ excluded: movzlq does not exist, movslq is processed
@@ -76,7 +77,8 @@ interface
        'd',
        '','','',
        't',
-       ''
+        'x',
+        'y'   
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
      att_sizesuffixstr : array[0..9] of string[2] = (

@@ -25,7 +25,13 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="@c:\fpc\bin\fpc.cfg c:\fpc\branches\trunk\tests\webtbs\tw3863.pp -al"/>
       </local>
+      <environment>
+        <UserOverrides Count="1">
+          <Variable0 Name="MYFPC" Value="branches\trunk\"/>
+        </UserOverrides>
+      </environment>
     </RunParams>
     <Units Count="1">
       <Unit0>

@@ -145,8 +145,8 @@ interface
                   OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,
-                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128);
+                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,  
+                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128,OS_MS256 );  
 
       { Register types }
       TRegisterType = (
@@ -174,7 +174,10 @@ interface
         R_SUBFQ,   { = 8; Float that allocates 4 FPU registers }
         R_SUBMMS,  { = 9; single scalar in multi media register }
         R_SUBMMD,  { = 10; double scalar in multi media register }
-        R_SUBMMWHOLE  { = 11; complete MM register, size depends on CPU }
+        R_SUBMMWHOLE,  { = 11; complete MM register, size depends on CPU }
+        { For Intel X86 AVX-Register }
+        R_SUBMMX,     { = 12; 128 BITS }
+        R_SUBMMY      { = 13; 256 BITS }
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -272,7 +275,7 @@ interface
          { floating point values }
          4,8,10,8,16,
          { multimedia values }
-         1,2,4,8,16,1,2,4,8,16);
+         1,2,4,8,16,32,1,2,4,8,16,32); 
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
          (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
@@ -300,8 +303,8 @@ interface
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
           OS_8,OS_16,OS_32,OS_64,OS_128,OS_8,OS_16,OS_32,OS_64,OS_128,
           OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128);
+          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
+          OS_M64,OS_M128,OS_M256);
 
        tcgloc2str : array[TCGLoc] of string[12] = (
             'LOC_INVALID',

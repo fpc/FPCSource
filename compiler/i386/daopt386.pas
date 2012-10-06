@@ -58,6 +58,7 @@ const
     OS_M32,
     OS_ADDR,OS_NO,OS_NO,
     OS_NO,
+    OS_NO,
     OS_NO);
 
 

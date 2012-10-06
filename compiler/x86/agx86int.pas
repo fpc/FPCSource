@@ -336,6 +336,8 @@ implementation
                              AsmWrite('dword ptr ')
                             else
                              AsmWrite('word ptr ');
+                     S_XMM: AsmWrite('xmmword ptr ');
+                     S_YMM: AsmWrite('ymmword ptr ');
 {$ifdef x86_64}
                      S_BQ : if dest then
                              AsmWrite('qword ptr ')
@@ -349,7 +351,6 @@ implementation
                              AsmWrite('qword ptr ')
                             else
                              AsmWrite('dword ptr ');
-                     S_XMM: AsmWrite('xmmword ptr ');
 
 {$endif x86_64}
                      end;

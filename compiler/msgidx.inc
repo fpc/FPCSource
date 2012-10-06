@@ -748,6 +748,10 @@ const
   asmr_e_wrong_gotpcrel_intel_syntax=07117;
   asmr_e_no_gotpcrel_support=07118;
   asmr_w_global_access_without_got=07119;
+  asmr_w_check_mem_operand_size=07120;
+  asmr_w_check_mem_operand_size3=07121;
+  asmr_w_check_mem_operand_size_offset=07122;
+  asmr_w_check_mem_operand_negative_offset=07123;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -950,9 +954,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 66543;
+  MsgTxtSize = 66864;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,323,120,87,56,120,26,202,63,
+    26,92,323,120,87,56,124,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

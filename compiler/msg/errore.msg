@@ -2292,7 +2292,7 @@ cg_d_autoinlining=06055_DL_Auto inlining: $1
 #
 # Assembler reader
 #
-# 07120 is the last used one
+# 07123 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2576,6 +2576,18 @@ asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL 
 asmr_w_global_access_without_got=07119_W_Exported/global symbols should accessed via the GOT
 % Global symbols (symbols from the unit interface, or defined in a program
 % or library) should be accessed via the GOT when generating position-indepent code.
+asmr_w_check_mem_operand_size=07120_W_Check size of memory operand "$1"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size3=07121_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size_offset=07122_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits + $4 byte offset]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_negative_offset=07123_W_Check "$1: offset of memory operand is negative "$2 byte"
+% The offset of memory operand is possible invalid. This is
+% probably an error in the assembler statement
 
 #
 # Assembler/binary writers

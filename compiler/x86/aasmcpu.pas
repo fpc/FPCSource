@@ -51,6 +51,8 @@ interface
       OT_BITS16    = $00000002;
       OT_BITS32    = $00000004;
       OT_BITS64    = $00000008;  { x86_64 and FPU }
+      OT_BITS128   = $10000000;  { 16 byte SSE }
+      OT_BITS256   = $20000000;  { 32 byte AVX }
       OT_BITS80    = $00000010;  { FPU only  }
       OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
       OT_NEAR      = $00000040;
@@ -58,7 +60,7 @@ interface
 
       { TODO: FAR/NEAR/SHORT are sizes too, they should be included into size mask,
         but this requires adjusting the opcode table }
-      OT_SIZE_MASK = $0000001F;  { all the size attributes  }
+      OT_SIZE_MASK = $3000001F;  { all the size attributes  }
       OT_NON_SIZE  = longint(not OT_SIZE_MASK);
 
       { Bits 8..11: modifiers }
@@ -84,6 +86,7 @@ interface
       otf_reg_fpu  = $01000000;
       otf_reg_mmx  = $02000000;
       otf_reg_xmm  = $04000000;
+      otf_reg_ymm  = $08000000;
       { Bits 16..19: subclasses, meaning depends on classes field }
       otf_sub0     = $00010000;
       otf_sub1     = $00020000;
@@ -91,6 +94,7 @@ interface
       otf_sub3     = $00080000;
       OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
 
+      OT_REG_TYPMASK = otf_reg_cdt or otf_reg_gpr or otf_reg_sreg or otf_reg_fpu or otf_reg_mmx or otf_reg_xmm or otf_reg_ymm;
       { register class 0: CRx, DRx and TRx }
 {$ifdef x86_64}
       OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS64;
@@ -148,18 +152,24 @@ interface
       OT_XMMREG    = OT_REGNORM or otf_reg_xmm;
       OT_XMMRM     = OT_REGMEM or otf_reg_xmm;
 
+      { register class 5: XMM (both reg and r/m) }
+      OT_YMMREG    = OT_REGNORM or otf_reg_ymm;
+      OT_YMMRM     = OT_REGMEM or otf_reg_ymm;
+
       { Memory operands }
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
       OT_MEM64     = OT_MEMORY or OT_BITS64;
+      OT_MEM128    = OT_MEMORY or OT_BITS128;
+      OT_MEM256    = OT_MEMORY or OT_BITS256;
       OT_MEM80     = OT_MEMORY or OT_BITS80;
 
       OT_MEM_OFFS  = OT_MEMORY or otf_sub0;  { special type of EA  }
                                              { simple [address] offset  }
 
       { Matches any type of r/m operand }
-      OT_MEMORY_ANY = OT_MEMORY or OT_RM_GPR or OT_XMMRM or OT_MMXRM;
+      OT_MEMORY_ANY = OT_MEMORY or OT_RM_GPR or OT_XMMRM or OT_MMXRM or OT_YMMRM;
 
       { Immediate operands }
       OT_IMM8      = OT_IMMEDIATE or OT_BITS8;
@@ -212,6 +222,17 @@ interface
         Ch : Array[1..MaxInsChanges] of TInsChange;
       end;
 
+      TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize, msiMultiple,
+                         msiMemRegSize, msiMemRegx64y128, msiMemRegx64y256,
+                         msiMem8, msiMem16, msiMem32, msiMem64, msiMem128, msiMem256);
+
+      TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
+
+      TInsTabMemRefSizeInfoRec = record
+        MemRefSize  : TMemRefSizeInfo;
+        ExistsSSEAVX: boolean;
+        ConstSize   : TConstSizeInfo;
+      end;
     const
       InsProp : array[tasmop] of TInsProp =
 {$ifdef x86_64}
@@ -228,7 +249,7 @@ interface
         ops     : byte;
         optypes : array[0..max_operands-1] of longint;
         code    : array[0..maxinfolen] of char;
-        flags   : cardinal;
+        flags   : int64;
       end;
       pinsentry=^tinsentry;
 
@@ -313,6 +334,8 @@ interface
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -375,6 +398,8 @@ implementation
        IF_SSSE3  = $00200000;
        IF_SSE41  = $00200000;
        IF_SSE42  = $00200000;
+       IF_AVX    = $00200000;
+       IF_SANDYBRIDGE = $00200000;
 
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
@@ -400,6 +425,9 @@ implementation
        TInsTabCache=array[TasmOp] of longint;
        PInsTabCache=^TInsTabCache;
 
+       TInsTabMemRefSizeInfoCache=array[TasmOp] of TInsTabMemRefSizeInfoRec;
+       PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
+
      const
 {$ifdef x86_64}
        InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
@@ -408,7 +436,7 @@ implementation
 {$endif x86_64}
      var
        InsTabCache : PInsTabCache;
-
+       InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
      const
 {$ifdef x86_64}
        { Intel style operands ! }
@@ -420,7 +448,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
@@ -429,7 +458,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
@@ -438,7 +468,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          )
        );
 
@@ -455,7 +486,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
@@ -464,7 +496,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
@@ -473,7 +506,8 @@ implementation
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
-          OT_NONE
+          OT_BITS128,
+          OT_BITS256
          )
       );
 
@@ -481,6 +515,11 @@ implementation
         {$i r386ot.inc}
       );
 {$endif x86_64}
+
+    function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
+    begin
+      result := InsTabMemRefSizeInfoCache^[aAsmop];
+    end;
 
     { Operation type for spilling code }
     type
@@ -808,6 +847,9 @@ implementation
                if (ot and OT_XMMREG)=OT_XMMREG then
                 s:=s+'xmmreg'
                else
+                 if (ot and OT_YMMREG)=OT_YMMREG then
+                  s:=s+'ymmreg'
+               else
                  if (ot and OT_MMXREG)=OT_MMXREG then
                   s:=s+'mmxreg'
                else
@@ -847,6 +889,12 @@ implementation
                   else
                    if (ot and OT_BITS64)<>0 then
                     s:=s+'64'
+                  else
+                   if (ot and OT_BITS128)<>0 then
+                    s:=s+'128'
+                  else
+                   if (ot and OT_BITS256)<>0 then
+                    s:=s+'256'
                   else
                     s:=s+'??';
                   { signed }
@@ -1076,16 +1124,33 @@ implementation
                 end;
               top_const :
                 begin
-                  { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
-                  { further, allow AAD and AAM with imm. operand }
-                  if (opsize=S_NO) and not((i in [1,2,3]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
-                    message(asmr_e_invalid_opcode_and_operand);
-                  if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
-                    ot:=OT_IMM8 or OT_SIGNED
+                  // if opcode is a SSE or AVX-instruction then we need a
+                  // special handling (opsize can different from const-size)
+                  // (e.g. "pextrw  reg/m16, xmmreg, imm8" =>> opsize (16 bit), const-size (8 bit)
+                  if (InsTabMemRefSizeInfoCache^[opcode].ExistsSSEAVX) and
+                     (not(InsTabMemRefSizeInfoCache^[opcode].ConstSize in [csiMultiple, csiUnkown])) then
+                  begin
+                    case InsTabMemRefSizeInfoCache^[opcode].ConstSize of
+                      csiNoSize: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE;
+                        csiMem8: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS8;
+                       csiMem16: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS16;
+                       csiMem32: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS32;
+                       csiMem64: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS64;
+                    end;
+                  end
                   else
-                    ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
-                  if (val=1) and (i=1) then
-                    ot := ot or OT_ONENESS;
+                  begin
+                    { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
+                    { further, allow AAD and AAM with imm. operand }
+                    if (opsize=S_NO) and not((i in [1,2,3]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
+                      message(asmr_e_invalid_opcode_and_operand);
+                    if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
+                      ot:=OT_IMM8 or OT_SIGNED
+                    else
+                      ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+                    if (val=1) and (i=1) then
+                      ot := ot or OT_ONENESS;
+                  end;
                 end;
               top_none :
                 begin
@@ -1213,6 +1278,36 @@ implementation
               end;
           end;
 
+        if (InsTabMemRefSizeInfoCache^[opcode].MemRefSize = msiMultiple) and
+           (InsTabMemRefSizeInfoCache^[opcode].ExistsSSEAVX) then
+        begin
+          for i:=0 to p^.ops-1 do
+           begin
+             insot:=p^.optypes[i];
+             if ((insot and OT_XMMRM) = OT_XMMRM) OR
+                ((insot and OT_YMMRM) = OT_YMMRM) then
+             begin
+               if (insot and OT_SIZE_MASK) = 0 then
+               begin
+                 case insot and (OT_XMMRM or OT_YMMRM) of
+                   OT_XMMRM: insot := insot or OT_BITS128;
+                   OT_YMMRM: insot := insot or OT_BITS256;
+                 end;
+               end;
+             end;
+
+             currot:=oper[i]^.ot;
+             { Check the operand flags }
+             if (insot and (not currot) and OT_NON_SIZE)<>0 then
+               exit;
+             { Check if the passed operand size matches with one of
+               the supported operand sizes }
+             if ((insot and OT_SIZE_MASK)<>0) and
+                ((insot and currot and OT_SIZE_MASK)<>(currot and OT_SIZE_MASK)) then
+               exit;
+           end;
+
+        end;
         result:=true;
       end;
 
@@ -1732,12 +1827,22 @@ implementation
         c     : byte;
         len     : shortint;
         ea_data : ea;
+        exists_vex: boolean;
+        exists_vex_extention: boolean;
+        exists_prefix_66: boolean;
+        exists_prefix_F2: boolean;
+        exists_prefix_F3: boolean;
 {$ifdef x86_64}
         omit_rexw : boolean;
 {$endif x86_64}
       begin
         len:=0;
         codes:=@p^.code[0];
+        exists_vex := false;
+        exists_vex_extention := false;
+        exists_prefix_66 := false;
+        exists_prefix_F2 := false;
+        exists_prefix_F3 := false;
 {$ifdef x86_64}
         rex:=0;
         omit_rexw:=false;
@@ -1798,6 +1903,7 @@ implementation
             56,57,58,
             172,173,174 :
               inc(len,4);
+            60,61,62,63: ; // ignore vex-coded operand-idx
             208,209,210 :
               begin
                 case (oper[c-208]^.ot and OT_SIZE_MASK) of
@@ -1836,8 +1942,21 @@ implementation
             213,
             215,
             217,218: ;
-            219,220,241 :
-              inc(len);
+            219:
+              begin
+                inc(len);
+                exists_prefix_F2 := true;
+              end;
+            220:
+              begin
+                inc(len);
+                exists_prefix_F3 := true;
+              end;
+            241:
+              begin
+                inc(len);
+                exists_prefix_66 := true;
+              end;
             221:
 {$ifdef x86_64}
               omit_rexw:=true
@@ -1864,6 +1983,38 @@ implementation
 {$endif x86_64}
 
               end;
+            242: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
+                 // =>> DEFAULT = 2 Bytes
+              begin
+                if not(exists_vex) then
+                begin
+                  inc(len, 2);
+                  exists_vex := true;
+                end;
+              end;
+            243: // REX.W = 1
+                 // =>> VEX prefix length = 3
+              begin
+                if not(exists_vex_extention) then
+                begin
+                  inc(len);
+                  exists_vex_extention := true;
+                end;
+              end;
+            244: ; // VEX length bit
+            247: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
+            248: // VEX-Extention prefix $0F
+                 // ignore for calculating length
+                 ;
+            249, // VEX-Extention prefix $0F38
+            250: // VEX-Extention prefix $0F3A
+              begin
+                if not(exists_vex_extention) then
+                begin
+                  inc(len);
+                  exists_vex_extention := true;
+                end;
+              end;
             else
              InternalError(200603141);
           end;
@@ -1879,9 +2030,24 @@ implementation
             else
               rex:=rex and $F7;
           end;
-        if rex<>0 then
-          Inc(len);
+        if not(exists_vex) then 
+        begin
+          if rex<>0 then
+            Inc(len);
+        end;
 {$endif}
+        if exists_vex then
+        begin
+          if exists_prefix_66 then dec(len);
+          if exists_prefix_F2 then dec(len);
+          if exists_prefix_F3 then dec(len);
+
+  {$ifdef x86_64}
+          if not(exists_vex_extention) then
+            if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extention
+  {$endif x86_64}
+
+        end;
         calcsize:=len;
       end;
 
@@ -1915,6 +2081,7 @@ implementation
        * \64, \65, \66 - select between \6[012] and \7[012] depending on 16/32 bit
        *                 assembly mode or the address-size override on the operand
        * \70, \71, \72 - a long relative operand, from operand 0, 1 or 2
+       * \74, \75, \76 - a vex-coded vector operand, from operand 0, 1 or 2
        * \1ab          - a ModRM, calculated on EA in operand a, with the spare
        *                 field the register value of operand b.
        * \2ab          - a ModRM, calculated on EA in operand a, with the spare
@@ -1940,6 +2107,16 @@ implementation
        * \334          - 0xF2 prefix for SSE instructions
        * \335          - Indicates 64-bit operand size with REX.W not necessary
        * \361          - 0x66 prefix for SSE instructions
+
+       * \362          - VEX prefix for AVX instructions
+       * \363          - VEX W1
+       * \364          - VEX Vector length 256
+       * \367          - operand 3 (ymmreg) encoded in bit 4-7 of the immediate byte
+
+       * \370          - VEX 0F-FLAG
+       * \371          - VEX 0F38-FLAG
+       * \372          - VEX 0F3A-FLAG
+
       }
 
       var
@@ -2050,6 +2227,11 @@ implementation
         data,s,opidx : longint;
         ea_data : ea;
         relsym : TObjSymbol;
+        needed_VEX_Extention: boolean;
+        needed_VEX: boolean;
+        opmode: integer;
+        VEXvvvv: byte;
+        VEXmmmmm: byte;
       begin
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
@@ -2062,10 +2244,129 @@ implementation
         { Force word push/pop for registers }
         if (opsize=S_W) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
+        begin
+          bytes[0]:=$66;
+          objdata.writebytes(bytes,1);
+        end;
+
+        // needed VEX Prefix (for AVX etc.)
+
+        needed_VEX := false;
+        needed_VEX_Extention := false;
+        opmode   := -1;
+        VEXvvvv  := 0;
+        VEXmmmmm := 0;
+        repeat
+          c:=ord(codes^);
+          inc(codes);
+
+          case c of
+              0: break;
+              1,
+              2,
+              3: inc(codes,c);
+             60: opmode := 0;
+             61: opmode := 1;
+             62: opmode := 2;
+            219: VEXvvvv                := VEXvvvv  OR $02; // set SIMD-prefix $F3
+            220: VEXvvvv                := VEXvvvv  OR $03; // set SIMD-prefix $F2
+            241: VEXvvvv                := VEXvvvv  OR $01; // set SIMD-prefix $66
+            242: needed_VEX             := true;
+            243: begin
+                   needed_VEX_Extention := true;
+                   VEXvvvv              := VEXvvvv  OR (1 shl 7); // set REX.W
+                 end;
+            244: VEXvvvv                := VEXvvvv  OR $04; // vectorlength = 256 bits AND no scalar
+            248: VEXmmmmm               := VEXmmmmm OR $01; // set leading opcode byte $0F
+            249: begin
+                   needed_VEX_Extention := true;
+                   VEXmmmmm             := VEXmmmmm OR $02; // set leading opcode byte $0F38
+                 end;
+            250: begin
+                   needed_VEX_Extention := true;
+                   VEXmmmmm             := VEXmmmmm OR $03; // set leading opcode byte $0F3A
+                 end;
+
+          end;
+        until false;
+
+        if needed_VEX then
+        begin
+          if (opmode > ops) or
+             (opmode < -1) then
           begin
-            bytes[0]:=$66;
+            Internalerror(777100);
+          end
+          else if opmode = -1 then
+          begin
+            VEXvvvv := VEXvvvv or ($0F shl 3); // set VEXvvvv bits (bits 6-3) to 1
+          end
+          else if oper[opmode]^.typ = top_reg then
+          begin
+            VEXvvvv := VEXvvvv or ((not(regval(oper[opmode]^.reg)) and $07) shl 3);
+
+            {$ifdef x86_64}
+              if rexbits(oper[opmode]^.reg) = 0 then VEXvvvv := VEXvvvv or (1 shl 6);
+            {$else}
+              VEXvvvv := VEXvvvv or (1 shl 6);
+            {$endif x86_64}
+          end
+          else Internalerror(777101);
+
+          if not(needed_VEX_Extention) then
+          begin
+            {$ifdef x86_64}
+              if rex and $0B <> 0 then needed_VEX_Extention := true;
+            {$endif x86_64}
+          end;
+
+          if needed_VEX_Extention then
+          begin
+            // VEX-Prefix-Length = 3 Bytes
+            bytes[0]:=$C4;
+            objdata.writebytes(bytes,1);
+
+            {$ifdef x86_64}
+              VEXmmmmm := VEXmmmmm or ((not(rex) and $07) shl 5);  // set REX.rxb
+            {$else}
+              VEXmmmmm := VEXmmmmm or (7 shl 5);  //
+            {$endif x86_64}
+
+              bytes[0] := VEXmmmmm;
+              objdata.writebytes(bytes,1);
+
+            {$ifdef x86_64}
+              VEXvvvv  := VEXvvvv OR ((rex and $08) shl 7);   // set REX.w
+            {$endif x86_64}
+            bytes[0] := VEXvvvv;
+            objdata.writebytes(bytes,1);
+          end
+          else
+          begin
+            // VEX-Prefix-Length = 2 Bytes
+            bytes[0]:=$C5;
+            objdata.writebytes(bytes,1);
+
+            {$ifdef x86_64}
+              if rex and $04 = 0 then
+            {$endif x86_64}
+            begin
+              VEXvvvv := VEXvvvv or (1 shl 7);
+            end;
+
+            bytes[0] := VEXvvvv;
             objdata.writebytes(bytes,1);
           end;
+        end
+        else
+        begin
+          needed_VEX_Extention := false;
+          opmode := -1;
+        end;
+
+        { load data to write }
+        codes:=insentry^.code;
+
         repeat
           c:=ord(codes^);
           inc(codes);
@@ -2075,7 +2376,8 @@ implementation
             1,2,3 :
               begin
 {$ifdef x86_64}
-                maybewriterex;
+                if not(needed_VEX) then  // TG
+                  maybewriterex;
 {$endif x86_64}
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
@@ -2116,7 +2418,8 @@ implementation
             8,9,10 :
               begin
 {$ifdef x86_64}
-                maybewriterex;
+                if not(needed_VEX) then  // TG
+                  maybewriterex;
 {$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
@@ -2248,6 +2551,8 @@ implementation
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
               end;
+            60,61,62 : ; // 074..076 - vex-coded vector operand
+                         // ignore
             172,173,174 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
               begin
                 getvalsym(c-172);
@@ -2298,10 +2603,14 @@ implementation
             211,
             213 : {no action needed};
 
-            212, 241 :
+            212,
+            241:
               begin
-                bytes[0]:=$66;
-                objdata.writebytes(bytes,1);
+                if not(needed_VEX) then
+                begin
+                  bytes[0]:=$66;
+                  objdata.writebytes(bytes,1);
+                end;
               end;
             214 :
               begin
@@ -2311,13 +2620,19 @@ implementation
               end;
             219 :
               begin
-                bytes[0]:=$f3;
-                objdata.writebytes(bytes,1);
+                if not(needed_VEX) then
+                begin
+                  bytes[0]:=$f3;
+                  objdata.writebytes(bytes,1);
+                end;
               end;
             220 :
               begin
-                bytes[0]:=$f2;
-                objdata.writebytes(bytes,1);
+                if not(needed_VEX) then
+                begin
+                  bytes[0]:=$f2;
+                  objdata.writebytes(bytes,1);
+                end;
               end;
             221:
               ;
@@ -2328,6 +2643,29 @@ implementation
                 { these are dissambler hints or 32 bit prefixes which
                   are not needed }
               end;
+            242..244: ; // VEX flags =>> nothing todo
+                 247: begin
+                        if needed_VEX then
+                        begin
+                          if ops = 4 then
+                          begin
+                            if (oper[3]^.typ=top_reg) then
+                            begin
+                              if (oper[3]^.ot and otf_reg_xmm <> 0) or
+                                 (oper[3]^.ot and otf_reg_ymm <> 0) then
+                              begin
+                                bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
+                                objdata.writebytes(bytes,1);
+                              end
+                              else Internalerror(777102);
+                            end
+                            else Internalerror(777103);
+                          end
+                          else Internalerror(777104);
+                        end
+                        else Internalerror(777105);
+                      end;
+            248..250: ; // VEX flags =>> nothing todo
             31,
             48,49,50 :
               begin
@@ -2337,8 +2675,9 @@ implementation
               begin
                 { rex should be written at this point }
 {$ifdef x86_64}
-                if (rex<>0) and not(rexwritten) then
-                  internalerror(200603191);
+                if not(needed_VEX) then  // TG
+                  if (rex<>0) and not(rexwritten) then
+                    internalerror(200603191);
 {$endif x86_64}
                 if (c>=64) and (c<=151) then  // 0100..0227
                  begin
@@ -2611,11 +2950,279 @@ implementation
       end;
 
 
+    procedure BuildInsTabMemRefSizeInfoCache;
+    var
+      AsmOp: TasmOp;
+      i,j: longint;
+      insentry  : PInsEntry;
+      MRefInfo: TMemRefSizeInfo;
+      SConstInfo: TConstSizeInfo;
+      actRegSize: int64;
+      actMemSize: int64;
+      actConstSize: int64;
+      actRegCount: integer;
+      actMemCount: integer;
+      actConstCount: integer;
+      actRegTypes  : int64;
+      actRegMemTypes: int64;
+      NewRegSize: int64;
+      NewMemSize: int64;
+      NewConstSize: int64;
+      RegSize: int64;
+      MemSize: int64;
+      ConstSize: int64;
+      RegMMXSizeMask: int64;
+      RegXMMSizeMask: int64;
+      RegYMMSizeMask: int64;
+
+      bitcount: integer;
+      IsRegSizeMemSize: boolean;
+      ExistsRegMem: boolean;
+      s: string;
+
+      function bitcnt(aValue: int64): integer;
+      var
+        i: integer;
+      begin
+        result := 0;
+
+        for i := 0 to 63 do
+        begin
+          if (aValue mod 2) = 1 then
+          begin
+            inc(result);
+          end;
+
+          aValue := aValue shr 1;
+        end;
+      end;
+
+    begin
+      new(InsTabMemRefSizeInfoCache);
+      FillChar(InsTabMemRefSizeInfoCache^,sizeof(TInsTabMemRefSizeInfoCache),0);
+
+      for AsmOp := low(TAsmOp) to high(TAsmOp) do
+      begin
+        i := InsTabCache^[AsmOp];
+
+        if i >= 0 then
+        begin
+          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize   := msiUnkown;
+          InsTabMemRefSizeInfoCache^[AsmOp].ConstSize    := csiUnkown;
+          InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := false;
+
+          RegSize := 0;
+          IsRegSizeMemSize := true;
+          ExistsRegMem     := false;
+
+          insentry:=@instab[i];
+          RegMMXSizeMask := 0;
+          RegXMMSizeMask := 0;
+          RegYMMSizeMask := 0;
+
+          while (insentry^.opcode=AsmOp) do
+          begin
+            MRefInfo         := msiUnkown;
+
+            actRegSize       := 0;
+            actRegCount      := 0;
+            actRegTypes      := 0;
+            NewRegSize       := 0;
+
+            actMemSize       := 0;
+            actMemCount      := 0;
+            actRegMemTypes   := 0;
+            NewMemSize       := 0;
+
+            actConstSize     := 0;
+            actConstCount    := 0;
+            NewConstSize     := 0;
+
+
+            if asmop = a_movups then
+            begin
+              RegXMMSizeMask := RegXMMSizeMask;
+            end;
+
+
+
+            for j := 0 to insentry^.ops -1 do
+            begin
+              if (insentry^.optypes[j] and OT_REGISTER) = OT_REGISTER then
+              begin
+                inc(actRegCount);
+
+                NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
+                if NewRegSize = 0 then
+                begin
+                  case insentry^.optypes[j] and (OT_MMXREG OR OT_XMMREG OR OT_YMMREG) of
+                    OT_MMXREG: begin
+                                 NewRegSize := OT_BITS64;
+                               end;
+                    OT_XMMREG: begin
+                                 NewRegSize := OT_BITS128;
+                                 InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                               end;
+                    OT_YMMREG: begin
+                                 NewRegSize := OT_BITS256;
+                                 InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                               end;
+                          else NewRegSize := not(0);
+                  end;
+                end;
+
+                actRegSize  := actRegSize or NewRegSize;
+                actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG OR OT_XMMREG OR OT_YMMREG));
+              end
+              else if ((insentry^.optypes[j] and OT_MEMORY) <> 0) then
+              begin
+                inc(actMemCount);
+
+                actMemSize    := actMemSize or (insentry^.optypes[j] and OT_SIZE_MASK);
+                if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
+                begin
+                  actRegMemTypes  := actRegMemTypes or insentry^.optypes[j];
+                end;
+              end
+              else if ((insentry^.optypes[j] and OT_IMMEDIATE) = OT_IMMEDIATE) then
+              begin
+                inc(actConstCount);
+
+                actConstSize    := actConstSize or (insentry^.optypes[j] and OT_SIZE_MASK);
+              end
+            end;
+
+            if actConstCount > 0 then
+            begin
+              case actConstSize of
+                        0: SConstInfo := csiNoSize;
+                 OT_BITS8: SConstInfo := csiMem8;
+                OT_BITS16: SConstInfo := csiMem16;
+                OT_BITS32: SConstInfo := csiMem32;
+                OT_BITS64: SConstInfo := csiMem64;
+                      else SConstInfo := csiMultiple;
+              end;
+
+              if InsTabMemRefSizeInfoCache^[AsmOp].ConstSize = csiUnkown then
+              begin
+                InsTabMemRefSizeInfoCache^[AsmOp].ConstSize := SConstInfo;
+              end
+              else if InsTabMemRefSizeInfoCache^[AsmOp].ConstSize <> SConstInfo then
+              begin
+                InsTabMemRefSizeInfoCache^[AsmOp].ConstSize := csiMultiple;
+              end;
+            end;
+
+
+            case actMemCount of
+                0: ; // nothing todo
+                1: begin
+                     MRefInfo := msiUnkown;
+                     case actRegMemTypes and (OT_MMXRM OR OT_XMMRM OR OT_YMMRM) of
+                       OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
+                       OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
+                       OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
+                     end;
+
+                     case actMemSize of
+                                0: MRefInfo := msiNoSize;
+                         OT_BITS8: MRefInfo := msiMem8;
+                        OT_BITS16: MRefInfo := msiMem16;
+                        OT_BITS32: MRefInfo := msiMem32;
+                        OT_BITS64: MRefInfo := msiMem64;
+                       OT_BITS128: MRefInfo := msiMem128;
+                       OT_BITS256: MRefInfo := msiMem256;
+                       OT_BITS80,
+                          OT_FAR,
+                         OT_NEAR,
+                         OT_SHORT: ; // ignore
+                              else begin
+                                     bitcount := bitcnt(actMemSize);
+
+                                     if bitcount > 1 then MRefInfo := msiMultiple
+                                     else InternalError(777203);
+                                   end;
+                     end;
+
+                     if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnkown then
+                     begin
+                       InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
+                     end
+                     else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
+                     begin
+                       InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMultiple;
+                     end;
+
+                     if actRegCount > 0 then
+                     begin
+                       case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG) of
+                         OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
+                         OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
+                         OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
+                               else begin
+                                      RegMMXSizeMask := not(0);
+                                      RegXMMSizeMask := not(0);
+                                      RegYMMSizeMask := not(0);
+                                    end;
+                       end;
+                     end;
+                   end;
+              else InternalError(777202);
+            end;
+
+            inc(insentry);
+          end;
+
+          if (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiMultiple) and
+             (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
+          begin
+            case RegXMMSizeMask of
+               OT_BITS64: case RegYMMSizeMask of
+                            OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
+                            OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
+                          end;
+              OT_BITS128: begin
+                            if RegMMXSizeMask = 0 then
+                            begin
+                              case RegYMMSizeMask of
+                                OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
+                                OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
+                              end;
+                            end
+                            else if RegYMMSizeMask = 0 then
+                            begin
+                              case RegMMXSizeMask of
+                                OT_BITS64: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
+                              end;
+                            end
+                            else InternalError(777205);
+                          end;
+            end;
+          end;
+        end;
+      end;
+
+      for AsmOp := low(TAsmOp) to high(TAsmOp) do
+      begin
+
+
+        // only supported intructiones with SSE- or AVX-operands
+        if not(InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) then
+        begin
+          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize  := msiUnkown;
+          InsTabMemRefSizeInfoCache^[AsmOp].ConstSize   := csiUnkown;
+        end;
+      end;
+    end;
+
     procedure InitAsm;
       begin
         build_spilling_operation_type_table;
         if not assigned(instabcache) then
           BuildInsTabCache;
+
+        if not assigned(InsTabMemRefSizeInfoCache) then
+          BuildInsTabMemRefSizeInfoCache;
       end;
 
 
@@ -2631,6 +3238,12 @@ implementation
             dispose(instabcache);
             instabcache:=nil;
           end;
+
+        if assigned(InsTabMemRefSizeInfoCache) then
+        begin
+          dispose(InsTabMemRefSizeInfoCache);
+          InsTabMemRefSizeInfoCache:=nil;
+        end;
       end;
 
 

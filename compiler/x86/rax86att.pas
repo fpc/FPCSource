@@ -396,6 +396,12 @@ Implementation
                     Message(asmr_e_wrong_sym_type);
                    inc(l,toffset);
                    oper.SetSize(tsize,true);
+
+                   case oper.opr.typ of
+                     OPR_REFERENCE: oper.opr.varsize := tsize;
+                         OPR_LOCAL: oper.opr.localvarsize := tsize;
+                   end;
+
                  end;
              end;
             if actasmtoken in [AS_PLUS,AS_MINUS] then
@@ -410,7 +416,8 @@ Implementation
                      (oper.opr.localsym.owner.symtabletype=parasymtable) and
                      (current_procinfo.procdef.proccalloption<>pocall_register) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
-                  inc(oper.opr.localsymofs,l)
+                  inc(oper.opr.localsymofs,l);
+                  inc(oper.opr.localconstoffset,l);
                 end;
               OPR_CONSTANT :
                 if (mangledname<>'') then
@@ -423,7 +430,10 @@ Implementation
                 else
                   inc(oper.opr.val,l);
               OPR_REFERENCE :
-                inc(oper.opr.ref.offset,l);
+                begin
+                  inc(oper.opr.ref.offset,l);
+                  inc(oper.opr.constoffset,l);
+                end;
               OPR_SYMBOL:
                 Message(asmr_e_invalid_symbol_ref);
               else
@@ -500,6 +510,11 @@ Implementation
                      if (mangledname<>'') then
                        Message(asmr_e_invalid_reference_syntax);
                      inc(oper.opr.ref.offset,l);
+
+                     case oper.opr.typ of
+                       OPR_REFERENCE: oper.opr.varsize := k;
+                           OPR_LOCAL: oper.opr.localvarsize := k;
+                     end;
                    end;
                   MaybeGetPICModifier(oper);
                   case actasmtoken of
@@ -656,9 +671,15 @@ Implementation
                             OPR_CONSTANT :
                               inc(oper.opr.val,l);
                             OPR_LOCAL :
-                              inc(oper.opr.localsymofs,l);
+                              begin
+                                inc(oper.opr.localsymofs,l);
+                                inc(oper.opr.localconstoffset, l);
+                              end;
                             OPR_REFERENCE :
-                              inc(oper.opr.ref.offset,l);
+                              begin
+                                inc(oper.opr.ref.offset,l);
+                                inc(oper.opr.constoffset, l);
+                              end;
                             else
                               internalerror(200309202);
                           end;

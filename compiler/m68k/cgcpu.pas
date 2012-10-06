@@ -127,7 +127,8 @@ unit cgcpu;
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_NO,S_B,S_W,S_L,S_L,S_NO,
          S_FS,S_FD,S_FX,S_NO,S_NO,
-         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
     procedure create_codegen;
 

@@ -56,7 +56,7 @@ var
 
 function formatop(s:string;allowsizeonly:boolean):string;
    const
-     replaces=26;
+     replaces=28;
      replacetab : array[1..replaces,1..2] of string[32]=(
        (':',' or ot_colon'),
        ('reg','regnorm'),
@@ -70,6 +70,8 @@ function formatop(s:string;allowsizeonly:boolean):string;
        ('mem16','memory or ot_bits16'),
        ('mem32','memory or ot_bits32'),
        ('mem64','memory or ot_bits64'),
+       ('mem128','memory or ot_bits128'),
+       ('mem256','memory or ot_bits256'),
        ('mem80','memory or ot_bits80'),
        ('mem','memory'),
        ('memory_offs','mem_offs'),
@@ -269,6 +271,11 @@ begin
               attopcode:=Copy(s,i+1,j-i-1);
               { att Suffix }
               case attopcode[length(attopcode)] of
+                'M' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufMM';
+                  end;
                 'X' :
                   begin
                     dec(attopcode[0]);
