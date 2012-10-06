@@ -36,7 +36,6 @@ type
     Buf: array[0..2] of Byte;
     BufSize: Integer;    // # of bytes used in Buf
   public
-    constructor Create(ASource: TStream);
     destructor Destroy; override;
     Function Flush : Boolean;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -126,11 +125,6 @@ const
      NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA);
 
   Alphabet = ['a'..'z','A'..'Z','0'..'9','+','/','=']; // all 65 chars that are in the base64 encoding alphabet
-
-constructor TBase64EncodingStream.Create(ASource: TStream);
-begin
-  inherited Create(ASource);
-end;
 
 function TBase64EncodingStream.Flush : Boolean;
 
@@ -437,8 +431,7 @@ begin
       Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
       try
          Outstream.CopyFrom(Decoder,Decoder.Size);
-         Outstream.Position:=0;
-         Result:=Outstream.ReadString(Outstream.Size);
+         Result:=Outstream.DataString;
       finally
         Decoder.Free;
         end;
@@ -464,8 +457,7 @@ begin
     finally 
       Encoder.Free;
       end;
-    Outstream.Position:=0;
-    Result:=Outstream.ReadString(Outstream.Size);
+    Result:=Outstream.DataString;
   finally
     Outstream.free;
     end;
