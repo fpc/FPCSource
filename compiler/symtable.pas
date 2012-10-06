@@ -2113,6 +2113,12 @@ implementation
         result:=false;
       end;
 
+    { symst: symboltable that contains the symbol (-> symowner def: record/objectdef in which the symbol is defined)
+      symvisibility: visibility of the symbol
+      contextobjdef: via which def the symbol is accessed, e.g.:
+        fieldname:=1 -> contextobjdef = current_structdef
+        objfield.fieldname:=1 -> contextobjdef = def of objfield
+    }
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
         symownerdef : tabstractrecorddef;
@@ -2156,9 +2162,16 @@ implementation
           vis_strictprotected :
             begin
                result:=(
+                         { access from nested class }
                          assigned(current_structdef) and
-                         (current_structdef.is_related(symownerdef) or
-                         is_owned_by(current_structdef,symownerdef))
+                         is_owned_by(current_structdef,symownerdef)
+                       ) or
+                       (
+                         { access from child class }
+                         assigned(contextobjdef) and
+                         assigned(current_structdef) and
+                         contextobjdef.is_related(symownerdef) and
+                         current_structdef.is_related(contextobjdef)
                        ) or
                        (
                          { helpers can access strict protected symbols }
