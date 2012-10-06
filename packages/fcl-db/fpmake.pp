@@ -456,6 +456,7 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
+
     T:=P.Targets.AddUnit('fpddsqldb.pp', DatadictOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -716,7 +717,11 @@ begin
           AddUnit('customsqliteds');
           AddUnit('db');
         end;
-
+    T:=P.Targets.AddUnit('sqlite3backup.pas', SqliteOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqlite3conn');
+        end;
     // SQL
     T:=P.Targets.AddUnit('fpsqltree.pp');
     T:=P.Targets.AddUnit('fpsqlscanner.pp');
