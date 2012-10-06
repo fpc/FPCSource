@@ -1444,7 +1444,7 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 % The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
 % emulate them in a way that makes it possible to support calling virtual constructors
 % for the current instance inside another constructor.
-parser_e_method_lower_visibility=03322_E_Overring method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
+parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
 % \end{description}
 # Type Checking
