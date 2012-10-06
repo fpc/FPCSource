@@ -404,12 +404,12 @@ begin
 {$ifdef dsdebug}
   Writeln ('Calling internal open');
 {$endif}
-  FBOF:=True;
 {$ifdef dsdebug}
   Writeln ('Calling RecalcBufListSize');
 {$endif}
   FRecordcount := 0;
   RecalcBufListSize;
+  FBOF:=True;
   FEOF := (FRecordcount = 0);
 end;
 
