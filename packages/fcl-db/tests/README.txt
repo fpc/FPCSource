@@ -33,7 +33,7 @@ See e.g. the SQLDBToolsUnit for the implementation for SQL Databases.
 
 Tests
 =====
-In your tests, you can specify that you only want to run for certain groups/connectors.
+In your test units, you can specify that you only want to run for certain groups/connectors.
 E.g. this example to only run for Bufdataset tests:
   TTestSpecificTBufDataset = class(TTestCase)
   ...
@@ -42,6 +42,17 @@ initialization
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestSpecificTBufDataset);
     end;
+	
+In your individual tests, you can indicate you want to run tests only in certain cases, e.g. for certain SQLDB databases:
+  if not(SQLDbType in [interbase]) then Ignore(STestNotApplicable);
+  
+Setting up your database
+========================
+Some tests are file based (e.g. those for bufdataset); others by their nature need databases (e.g. a Firebird SQLDB test).
+File-based tests will generally write to the current/test directory, a subdirectory or a temp file.
+
+For SQLDB database servers, please make sure you have a username/password and a database set up that the test suite can use and abuse.
+The database can be empty: the test suite will create and delete tables etc. in this database as needed.
 
 Specifying databases, connector names
 =====================================
@@ -54,7 +65,7 @@ The connector names to be used are derived from the connector classes.
 For example, the SQL RDBMS connector defined in sqldbtoolsunit:
 - it has this class definition
 TSQLDBConnector = class(TDBConnector)
-- its name in database.ini is sqldb (
+- its name in database.ini is sqldb
 - incidentally, in databases.ini, more parameter such as
 connectorparams=postgresql (which specify db type) are needed
 The parameters use depend on the connector type (sql,...)
