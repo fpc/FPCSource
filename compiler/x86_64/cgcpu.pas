@@ -160,7 +160,7 @@ unit cgcpu;
                 if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                   begin
                     templist.concat(cai_seh_directive.create_reg_offset(ash_savexmm,
-                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),
+                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),
                       href.offset+frame_offset));
                     inc(href.offset,tcgsize2size[OS_VECTOR]);
                   end;

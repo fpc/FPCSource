@@ -2182,7 +2182,7 @@ implementation
                       begin
                         if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                           begin
-                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),href,nil);
                             inc(href.offset,tcgsize2size[OS_VECTOR]);
                           end;
                         include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
@@ -2222,7 +2222,7 @@ implementation
               begin
                 if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                   begin
-                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE);
+                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE);
                     { Allocate register so the optimizer does not remove the load }
                     a_reg_alloc(list,hreg);
                     a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
