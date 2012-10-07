@@ -1628,7 +1628,7 @@ implementation
          if is_dynamic_array(paradef) then
           begin
             { Only allow 1 or 3 arguments }
-            if (counter<>1) and (counter<>3) then
+            if not(counter in [1..3]) then
              begin
                CGMessage1(parser_e_wrong_parameter_size,'Copy');
                exit;
@@ -3741,6 +3741,14 @@ implementation
             ppn:=tcallparanode(ppn.right);
           end;
         paradef:=ppn.left.resultdef;
+
+        { fill up third parameter }
+        if counter=2 then
+          begin
+            paras:=ccallparanode.create(cordconstnode.create(torddef(sinttype).high,sinttype,false),paras);
+            counter:=3;
+          end;
+
         if is_ansistring(resultdef) then
           { keep the specific kind of ansistringdef as result }
           result:=ccallnode.createinternres('fpc_ansistr_copy',paras,resultdef)
@@ -3755,17 +3763,21 @@ implementation
         else if is_dynamic_array(resultdef) then
           begin
             { create statements with call }
-            if (counter=3) then
-             begin
-               highppn:=tcallparanode(paras).left.getcopy;
-               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
-             end
-            else
-             begin
-               { copy the whole array using [0..high(sizeint)] range }
-               highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
-               lowppn:=cordconstnode.create(0,sinttype,false);
-             end;
+            case counter of
+              1:
+                begin
+                  { copy the whole array using [0..high(sizeint)] range }
+                  highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
+                  lowppn:=cordconstnode.create(0,sinttype,false);
+                end;
+              3:
+                begin
+                  highppn:=tcallparanode(paras).left.getcopy;
+                  lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
+                end;
+              else
+                internalerror(2012100701);
+            end;
 
             { create call to fpc_dynarray_copy }
             npara:=ccallparanode.create(highppn,
