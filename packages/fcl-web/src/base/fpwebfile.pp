@@ -68,9 +68,9 @@ begin
   if DefaultFileModuleClass=Nil then
     DefaultFileModuleClass:=TFPCustomFileModule;  
   if (ADirectory='') then
-    Locations.Values[IncludeTrailingPathDelimiter(ALocation)]:=ExtractFilePath(ParamStr(0))
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=ExtractFilePath(ParamStr(0))
   else  
-    Locations.Values[IncludeTrailingPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
   RegisterHTTPModule(ALocation,DefaultFileModuleClass,true);
 end;
 
