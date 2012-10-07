@@ -1627,6 +1627,14 @@ begin
     // tests parsing SELECT with table alias and embedded comments (MySQL requires space after -- )
     SQL.Text:='/**/select * from/**/FPDEV as fp-- comment'#13'where(NAME>''TestName20'')/**/order by 1';
     Open;
+    CheckTrue(CanModify, 'CanModify: '+SQL.Text);
+    CheckTrue(ServerIndexDefs.Count >= 1, 'ServerIndexDefs: '+SQL.Text); // is TableName extracted correctly? (MS SQL Server can automatically creates index)
+    Close;
+
+    // tests parsing SELECT with quoted identifiers (MySQL requires sql-mode=ANSI_QUOTES)
+    SQL.Text:='SELECT"ID"FROM"FPDEV"ORDER BY"ID"';
+    if sqlDBtype in [postgresql] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
   end;
