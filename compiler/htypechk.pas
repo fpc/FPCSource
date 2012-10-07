@@ -1190,14 +1190,20 @@ implementation
                                    begin
                                      if tloadnode(p).symtable.symtabletype=localsymtable then
                                        begin
-                                         if (vsf_use_hints in varstateflags) then
+                                         { on the JVM, an uninitialized var-parameter
+                                           is just as fatal as a nil pointer dereference }
+                                         if (vsf_use_hints in varstateflags) and
+                                            not(target_info.system in systems_jvm) then
                                            CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
                                          else
                                            CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
                                        end
                                      else
                                        begin
-                                         if (vsf_use_hints in varstateflags) then
+                                         { on the JVM, an uninitialized var-parameter
+                                           is just as fatal as a nil pointer dereference }
+                                         if (vsf_use_hints in varstateflags) and
+                                            not(target_info.system in systems_jvm) then
                                            CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
                                          else
                                            CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
