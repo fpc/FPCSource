@@ -2329,8 +2329,7 @@ implementation
           LOC_CFPUREGISTER :
             begin
               dreg:=dwarf_reg(sym.localloc.register);
-              has_high_reg:=(sym.localloc.registerhi<>NR_NO) and
-                (dwarf_reg(sym.localloc.registerhi)<=high(tregisterindex));
+              has_high_reg:=(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and (sym.localloc.registerhi<>NR_NO);
               if has_high_reg then
                 dreghigh:=dwarf_reg(sym.localloc.registerhi);
               if (sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) and
