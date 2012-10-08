@@ -559,17 +559,12 @@ Procedure TComponent.FreeNotification(AComponent: TComponent);
 
 begin
   If (Owner<>Nil) and (AComponent=Owner) then exit;
-  if csDestroying in ComponentState then
-    AComponent.Notification(Self,opRemove)
-  else
+  If not (Assigned(FFreeNotifies)) then
+    FFreeNotifies:=TFpList.Create;
+  If FFreeNotifies.IndexOf(AComponent)=-1 then
     begin
-    If not (Assigned(FFreeNotifies)) then
-      FFreeNotifies:=TFpList.Create;
-    If FFreeNotifies.IndexOf(AComponent)=-1 then
-      begin
-      FFreeNotifies.Add(AComponent);
-      AComponent.FreeNotification (self);
-      end;
+    FFreeNotifies.Add(AComponent);
+    AComponent.FreeNotification (self);
     end;
 end;
 
