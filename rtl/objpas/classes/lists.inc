@@ -646,8 +646,7 @@ end;
 
 destructor TList.Destroy;
 begin
-  If (Flist<>Nil) then
-    Clear;
+  Clear;
   If Assigned(FObservers) then
     begin
     FPONotifyObservers(Self,ooFree,Nil);
@@ -726,9 +725,8 @@ end;
 procedure TList.Clear;
 
 begin
-  If Assigned(Flist) then
-    While (FList.Count>0) do
-      Delete(Count-1);
+  While (FList.Count>0) do
+    Delete(Count-1);
 end;
 
 procedure TList.Delete(Index: Integer);
