@@ -653,6 +653,7 @@ Function ResultTypeName (AResult : TResultType) : String;
 Function CharToResultType(C : Char) : TResultType;
 Function BuiltinIdentifiers : TExprBuiltInManager;
 Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager);
+function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
 
 Const
   AllBuiltIns = [bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser];
@@ -923,14 +924,21 @@ Var
   C : Char;
   X : TExprFloat;
   I : Integer;
+  prevC: Char;
 
 begin
   C:=CurrentChar;
-  while (not IsWordDelim(C)) and (C<>cNull) do
+  prevC := #0;
+  while (not IsWordDelim(C) or (prevC='E')) and (C<>cNull) do
     begin
-    If Not (IsDigit(C) or ((FToken<>'') and (Upcase(C)='E'))) then
+    If Not ( IsDigit(C)
+             or ((FToken<>'') and (Upcase(C)='E'))
+             or ((FToken<>'') and (C in ['+','-']) and (prevC='E'))
+           )
+    then
       ScanError(Format(SErrInvalidNumberChar,[C]));
     FToken := FToken+C;
+    prevC := Upcase(C);
     C:=NextPos;
     end;
   Val(FToken,X,I);
@@ -2808,8 +2816,17 @@ begin
     begin
     rtp:=CharToResultType(FID.ParameterTypes[i+1]);
     rta:=FArgumentNodes[i].NodeType;
-    If (rtp<>rta) then
+    If (rtp<>rta) then begin
+
+      // Automatically convert integers to floats in functions that return
+      // a float
+      if (rta = rtInteger) and (rtp = rtFloat) then begin
+        FArgumentNodes[i] := TIntToFloatNode(FArgumentNodes[i]);
+        exit;
+      end;
+
       RaiseParserError(SErrInvalidArgumentType,[I+1,ResultTypeName(rtp),ResultTypeName(rta)])
+    end;
     end;
 end;
 
@@ -2897,46 +2914,57 @@ end;
 
 }
 
+function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
+// Utility function for the built-in math functions. Accepts also integers
+// in place of the floating point arguments. To be called in builtins or
+// user-defined callbacks having float results.
+begin
+  if Arg.ResultType = rtInteger then
+    result := Arg.resInteger
+  else
+    result := Arg.resFloat;
+end;
+
 // Math builtins
 
 Procedure BuiltInCos(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Cos(Args[0].resFloat);
+  Result.resFloat:=Cos(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInSin(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Sin(Args[0].resFloat);
+  Result.resFloat:=Sin(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInArcTan(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Arctan(Args[0].resFloat);
+  Result.resFloat:=Arctan(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInAbs(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Abs(Args[0].resFloat);
+  Result.resFloat:=Abs(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInSqr(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Sqr(Args[0].resFloat);
+  Result.resFloat:=Sqr(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInSqrt(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Sqrt(Args[0].resFloat);
+  Result.resFloat:=Sqrt(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInExp(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Exp(Args[0].resFloat);
+  Result.resFloat:=Exp(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInLn(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Ln(Args[0].resFloat);
+  Result.resFloat:=Ln(ArgToFloat(Args[0]));
 end;
 
 Const
@@ -2944,27 +2972,27 @@ Const
 
 Procedure BuiltInLog(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Ln(Args[0].resFloat)/L10;
+  Result.resFloat:=Ln(ArgToFloat(Args[0]))/L10;
 end;
 
 Procedure BuiltInRound(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resInteger:=Round(Args[0].resFloat);
+  Result.resInteger:=Round(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInTrunc(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resInteger:=Trunc(Args[0].resFloat);
+  Result.resInteger:=Trunc(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInInt(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=Int(Args[0].resFloat);
+  Result.resFloat:=Int(ArgToFloat(Args[0]));
 end;
 
 Procedure BuiltInFrac(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
-  Result.resFloat:=frac(Args[0].resFloat);
+  Result.resFloat:=frac(ArgToFloat(Args[0]));
 end;
 
 // String builtins
