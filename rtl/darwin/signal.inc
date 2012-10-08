@@ -219,7 +219,7 @@
     SigActionHandler = procedure (Sig: cint; info : psiginfo; SigContext:PSigContext); cdecl;
 
 
-    SigActionRec = packed record
+    SigActionRec = record
 {
       case byte of
         0: (Sh: SignalHandler; Sa_Flags: longint; Sa_Mask: SigSet);
