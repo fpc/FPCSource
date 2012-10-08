@@ -365,7 +365,7 @@ Const
       	// ct_stm32f103rb,
         (
     	controllertypestr:'STM32F103RB';
-        controllerunitstr:'STM32F103';
+        controllerunitstr:'STM32F10X_MD';
         flashbase:$08000000;
         flashsize:$00020000;
         srambase:$20000000;
@@ -374,16 +374,16 @@ Const
         // ct_stm32f103re,
         (
     	controllertypestr:'STM32F103RE';
-        controllerunitstr:'STM32F103';
+        controllerunitstr:'STM32F10X_HD';
         flashbase:$08000000;
         flashsize:$00080000;
         srambase:$20000000;
         sramsize:$00010000
         ),
-        // ct_stm32f103re,
+        // ct_stm32f103c4t,
         (
     	controllertypestr:'STM32F103C4T';
-        controllerunitstr:'STM32F103';
+        controllerunitstr:'STM32F10X_LD';
         flashbase:$08000000;
         flashsize:$00004000;
         srambase:$20000000;

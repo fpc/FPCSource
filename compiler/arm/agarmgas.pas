@@ -109,7 +109,8 @@ unit agarmgas;
 
         if current_settings.cputype=cpu_armv7m then
           result:='-march=armv7m -mthumb -mthumb-interwork '+result
-        else
+        // EDSP instructions in RTL require armv5te at least to not generate error
+        else if current_settings.cputype >= cpu_armv5te then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
 
         if target_info.abi = abi_eabihf then
