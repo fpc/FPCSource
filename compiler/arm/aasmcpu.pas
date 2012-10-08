@@ -478,8 +478,8 @@ implementation
     constructor taicpu.op_cond(op: tasmop; cond: tasmcond);
       begin
         inherited create(op);
-        ops:=0;
-        condition := cond;
+        ops:=1;
+        loadconditioncode(0, cond);
       end;
 
     constructor taicpu.op_modeflags(op: tasmop; flags: tcpumodeflags);

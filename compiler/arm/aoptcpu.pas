@@ -79,6 +79,7 @@ Implementation
       result:=
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
+        ((taicpu(p).opcode<A_IT) or (taicpu(p).opcode>A_ITTTT)) and
         (taicpu(p).opcode<>A_PLD) and
         ((taicpu(p).opcode<>A_BLX) or
          (taicpu(p).oper[0]^.typ=top_reg));
@@ -265,6 +266,15 @@ Implementation
       end;
   end;
 
+  function isValidConstLoadStoreOffset(const aoffset: longint; const pf: TOpPostfix) : boolean;
+    begin
+      if current_settings.cputype in cpu_thumb2 then
+        result := (aoffset<4096) and (aoffset>-256)
+      else
+        result := ((pf in [PF_None,PF_B]) and
+                   (abs(aoffset)<4096)) or
+                  (abs(aoffset)<256);
+    end;
 
   function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
     var AllUsedRegs: TAllUsedRegs): Boolean;
@@ -1094,16 +1104,10 @@ Implementation
                           { new offset must be valid: either in the range of 8 or 12 bit, depend on the
                             ldr postfix }
                           (((taicpu(p).opcode=A_ADD) and
-                            (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
-                              (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<4096)) or
-                             (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<256)
-                            )
+                           isValidConstLoadStoreOffset(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val, taicpu(hp1).oppostfix)
                            ) or
                            ((taicpu(p).opcode=A_SUB) and
-                             (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
-                               (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<4096)) or
-                              (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<256)
-                             )
+                            isValidConstLoadStoreOffset(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val, taicpu(hp1).oppostfix)
                            )
                           ) do
                           begin
