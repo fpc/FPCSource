@@ -646,7 +646,8 @@ end;
 
 destructor TList.Destroy;
 begin
-  Clear;
+  if Assigned(Flist) then
+    Clear;
   If Assigned(FObservers) then
     begin
     FPONotifyObservers(Self,ooFree,Nil);
