@@ -69,7 +69,6 @@ type
   protected
     procedure Changed; override;
   public
-    constructor Create;
     destructor Destroy; override;
     function IndexOf(const S: String): Integer; override;
     function IndexOfName(const Name: String): Integer; override;
@@ -227,21 +226,10 @@ end;
 
 { THashedStringList }
 
-constructor THashedStringList.Create;
-begin
-  inherited;
-  FValueHash := nil;
-  FNameHash := nil;
-  FValueHashValid := False;
-  FNameHashValid := False;
-end;
-
 destructor THashedStringList.Destroy;
 begin
-  if Assigned(FValueHash) then
-    FValueHash.Free;
-  if Assigned(FNameHash) then
-    FNameHash.Free;
+  FreeAndNil(FValueHash);
+  FreeAndNil(FNameHash);
   inherited Destroy;
 end;
 
