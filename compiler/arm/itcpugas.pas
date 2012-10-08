@@ -46,7 +46,7 @@ implementation
       cutils,verbose;
 
     const
-      gas_regname_table : array[tregisterindex] of string[7] = (
+      gas_regname_table : array[tregisterindex] of string[10] = (
         {$i rarmstd.inc}
       );
 

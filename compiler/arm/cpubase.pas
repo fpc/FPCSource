@@ -139,7 +139,11 @@ unit cpubase;
         { multiple load/store vfp address modes }
         PF_IAD,PF_DBD,PF_FDD,PF_EAD,
         PF_IAS,PF_DBS,PF_FDS,PF_EAS,
-        PF_IAX,PF_DBX,PF_FDX,PF_EAX
+        PF_IAX,PF_DBX,PF_FDX,PF_EAX,
+        { FPv4 postfixes }
+        PF_32,PF_64,PF_F32,PF_F64,
+        PF_F32S32,PF_F32U32,
+        PF_S32F32,PF_U32F32
       );
 
       TOpPostfixes = set of TOpPostfix;
@@ -152,14 +156,17 @@ unit cpubase;
         PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
         PF_S,PF_D,PF_E,PF_None,PF_None);
 
-      oppostfix2str : array[TOpPostfix] of string[3] = ('',
+      oppostfix2str : array[TOpPostfix] of string[8] = ('',
         's',
         'd','e','p','ep',
         'b','sb','bt','h','sh','t',
         'ia','ib','da','db','fd','fa','ed','ea',
         'iad','dbd','fdd','ead',
         'ias','dbs','fds','eas',
-        'iax','dbx','fdx','eax');
+        'iax','dbx','fdx','eax',
+        '.32','.64','.f32','.f64',
+        '.f32.s32','.f32.u32',
+        '.s32.f32','.u32.f32');
 
       roundingmode2str : array[TRoundingMode] of string[1] = ('',
         'p','m','z');
@@ -371,7 +378,7 @@ unit cpubase;
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : array[tregisterindex] of string[10] = (
         {$i rarmstd.inc}
       );
 

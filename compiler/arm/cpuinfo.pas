@@ -65,7 +65,8 @@ Type
       fpu_fpa11,
       fpu_vfpv2,
       fpu_vfpv3,
-      fpu_vfpv3_d16
+      fpu_vfpv3_d16,
+      fpu_fpv4_s16
      );
 
    tcontrollertype =
@@ -227,7 +228,8 @@ Const
      'FPA11',
      'VFPV2',
      'VFPV3',
-     'VFPV3_D16'
+     'VFPV3_D16',
+     'FPV4_S16'
    );
 
 
@@ -1004,7 +1006,7 @@ Const
         )
     );
 
-   vfp_scalar = [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16];
+   vfp_scalar = [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+

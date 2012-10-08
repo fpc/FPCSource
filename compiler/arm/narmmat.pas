@@ -39,6 +39,7 @@ interface
       end;
 
       tarmunaryminusnode = class(tcgunaryminusnode)
+        function pass_1: tnode; override;
         procedure second_float;override;
       end;
 
@@ -54,9 +55,10 @@ implementation
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
+      symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
-      ncon,
+      ncon,ncnv,ncal,
       cpubase,cpuinfo,
       ncgutil,cgcpu,
       nadd,pass_1,symdef;
@@ -326,6 +328,46 @@ implementation
                                TARMUNARYMINUSNODE
 *****************************************************************************}
 
+    function tarmunaryminusnode.pass_1: tnode;
+      var
+        procname: string[31];
+        fdef : tdef;
+      begin
+        if (current_settings.fputype<>fpu_fpv4_s16) or
+          (tfloatdef(resultdef).floattype=s32real) then
+          exit(inherited pass_1);
+
+        result:=nil;
+        firstpass(left);
+        if codegenerror then
+          exit;
+
+        if (left.resultdef.typ=floatdef) then
+          begin
+            case tfloatdef(resultdef).floattype of
+              s64real:
+                begin
+                  procname:='float64_sub';
+                  fdef:=search_system_type('FLOAT64').typedef;
+                end;
+              else
+                internalerror(2005082801);
+            end;
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+              ctypeconvnode.create_internal(left,fDef),
+              ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+
+            left:=nil;
+          end
+        else
+          begin
+            if (left.resultdef.typ=floatdef) then
+              expectloc:=LOC_FPUREGISTER
+             else if (left.resultdef.typ=orddef) then
+               expectloc:=LOC_REGISTER;
+          end;
+      end;
+
     procedure tarmunaryminusnode.second_float;
       var
         op: tasmop;
@@ -357,6 +399,15 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
                 location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            begin
+              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              location:=left.location;
+              if (left.location.loc=LOC_CMMREGISTER) then
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
+                location.register,left.location.register), PF_F32));
+            end
           else
             internalerror(2009112602);
         end;

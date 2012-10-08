@@ -106,6 +106,8 @@ unit agarmgas;
           result:='-mfpu=vfpv3 '+result;
         if (current_settings.fputype = fpu_vfpv3_d16) then
           result:='-mfpu=vfpv3-d16 '+result;
+        if (current_settings.fputype = fpu_fpv4_s16) then
+          result:='-mfpu=fpv4-sp-d16 '+result;
 
         if current_settings.cputype=cpu_armv7m then
           result:='-march=armv7m -mthumb -mthumb-interwork '+result
@@ -292,8 +294,10 @@ unit agarmgas;
 
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+' '+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
+          else if (taicpu(hp).opcode>=A_VABS) and (taicpu(hp).opcode<=A_VSUB) then
+            s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else
-            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+postfix+cond2str[taicpu(hp).condition]; // Conditional infixes are deprecated in unified syntax
+            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]+postfix; // Conditional infixes are deprecated in unified syntax
         end
       else
         s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
