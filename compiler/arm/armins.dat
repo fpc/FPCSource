@@ -618,6 +618,14 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 [SEVcc]
 
+[ASRcc]
+
+[LSRcc]
+
+[LSLcc]
+
+[RORcc]
+
 [SHADD16cc]
 [SHADD8cc]
 [SHASXcc]
@@ -702,17 +710,9 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 ; Thumb-2
 
-[ASRcc]
-
-[LSRcc]
-
-[LSLcc]
-
 [POP]
 
 [PUSH]
-
-[RORcc]
 
 [SDIVcc]
 
@@ -752,3 +752,6 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 [TBB]
 [TBH]
+
+[CBZ]
+[CBNZ]

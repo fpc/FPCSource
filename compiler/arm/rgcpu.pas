@@ -70,10 +70,17 @@ unit rgcpu;
     procedure trgintcputhumb2.add_cpu_interferences(p: tai);
       var
         r : tregister;
+        hr : longint;
       begin
         if p.typ=ait_instruction then
           begin
             case taicpu(p).opcode of
+              A_CBNZ,
+              A_CBZ:
+                begin
+                  for hr := RS_R8 to RS_R15 do
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg), hr);
+                end;
               A_ADD:
                 begin
                   if taicpu(p).ops = 3 then

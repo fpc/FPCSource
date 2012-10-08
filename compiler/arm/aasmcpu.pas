@@ -175,6 +175,7 @@ uses
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
 
+         constructor op_regset(op:tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
          constructor op_ref_regset(op:tasmop; _op1: treference; regtype: tregistertype; subreg: tsubregister; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
@@ -413,6 +414,13 @@ implementation
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,aint(_op2));
+      end;
+
+    constructor taicpu.op_regset(op: tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
+      begin
+        inherited create(op);
+        ops:=1;
+        loadregset(0,regtype,subreg,_op1);
       end;
 
 

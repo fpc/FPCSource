@@ -206,6 +206,10 @@
 'sel',
 'setend',
 'sev',
+'asr',
+'lsr',
+'lsl',
+'ror',
 'shadd16',
 'shadd8',
 'shasx',
@@ -270,12 +274,8 @@
 'wfe',
 'wfi',
 'yield',
-'asr',
-'lsr',
-'lsl',
 'pop',
 'push',
-'ror',
 'sdiv',
 'udiv',
 'movt',
@@ -295,5 +295,7 @@
 'itett',
 'itttt',
 'tbb',
-'tbh'
+'tbh',
+'cbz',
+'cbnz'
 );
