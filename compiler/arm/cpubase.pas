@@ -361,6 +361,9 @@ unit cpubase;
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
     function dwarf_reg(r:tregister):shortint;
 
+    function IsIT(op: TAsmOp) : boolean;
+    function GetITLevels(op: TAsmOp) : longint;
+
   implementation
 
     uses
@@ -605,5 +608,36 @@ unit cpubase;
       else
         result:=RS_R0;
     end;
+
+    function IsIT(op: TAsmOp) : boolean;
+      begin
+        case op of
+          A_IT,
+          A_ITE, A_ITT,
+          A_ITEE, A_ITTE, A_ITET, A_ITTT,
+          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
+          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
+            result:=true;
+        else
+          result:=false;
+        end;
+      end;
+
+    function GetITLevels(op: TAsmOp) : longint;
+      begin
+        case op of
+          A_IT:
+            result:=1;
+          A_ITE, A_ITT:
+            result:=2;
+          A_ITEE, A_ITTE, A_ITET, A_ITTT:
+            result:=3;
+          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
+          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
+            result:=4;
+        else
+          result:=0;
+        end;
+      end;
 
 end.

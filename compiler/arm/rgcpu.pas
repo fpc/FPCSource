@@ -255,37 +255,6 @@ unit rgcpu;
           result:=getsubreg(r);
       end;
 
-    function IsIT(op: TAsmOp) : boolean;
-      begin
-        case op of
-          A_IT,
-          A_ITE, A_ITT,
-          A_ITEE, A_ITTE, A_ITET, A_ITTT,
-          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
-          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
-            result:=true;
-        else
-          result:=false;
-        end;
-      end;
-
-    function GetITLevels(op: TAsmOp) : longint;
-      begin
-        case op of
-          A_IT:
-            result:=1;
-          A_ITE, A_ITT:
-            result:=2;
-          A_ITEE, A_ITTE, A_ITET, A_ITTT:
-            result:=3;
-          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
-          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
-            result:=4;
-        else
-          result:=0;
-        end;
-      end;
-
     function GetITRemainderOp(originalOp:TAsmOp;remLevels:longint;var newOp: TAsmOp;var NeedsCondSwap:boolean) : TAsmOp;
       const
         remOps : array[1..3] of array[A_ITE..A_ITTTT] of TAsmOp = (
