@@ -717,7 +717,7 @@ begin
           AddUnit('customsqliteds');
           AddUnit('db');
         end;
-    T:=P.Targets.AddUnit('sqlite3backup.pas', SqliteOSes);
+    T:=P.Targets.AddUnit('sqlite3backup.pas', SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('sqlite3conn');
