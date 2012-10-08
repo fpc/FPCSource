@@ -1,5 +1,6 @@
 { don't edit, this file is generated from armreg.dat }
 0,
+92,
 89,
 27,
 30,

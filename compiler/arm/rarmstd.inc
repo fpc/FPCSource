@@ -90,4 +90,5 @@
 'd31',
 'cpsr',
 'fpscr',
-'spsr'
+'spsr',
+'apsr_nzcv'

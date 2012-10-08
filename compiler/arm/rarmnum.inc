@@ -90,4 +90,5 @@ tregister($0407001E),
 tregister($0407001F),
 tregister($05000000),
 tregister($05000001),
-tregister($05000002)
+tregister($05000002),
+tregister($05000003)

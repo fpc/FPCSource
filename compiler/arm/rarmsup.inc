@@ -91,3 +91,4 @@ RS_D31 = $1F;
 RS_CPSR = $00;
 RS_FPSCR = $01;
 RS_SPSR = $02;
+RS_APSR_nzcv = $03;

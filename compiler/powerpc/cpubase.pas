@@ -422,7 +422,7 @@ implementation
       rgbase,verbose;
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : array[tregisterindex] of string[10] = (
         {$i rppcstd.inc}
       );
 
