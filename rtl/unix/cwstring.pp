@@ -754,7 +754,7 @@ end;
 
 procedure InitThread;
 begin
-{$if not(defined(darwin) and defined(arm))}
+{$if not(defined(darwin) and defined(arm)) and not defined(iphonesim)}
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,nl_langinfo(CODESET));
 {$else}
