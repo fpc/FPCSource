@@ -28,13 +28,6 @@
 
 {$define USEEXCEPT}
 
-{ If anyone wants to use interrupt for
-  a specific target, add a
-  $define FPC_HAS_SYSTEMS_INTERRUPT_TABLE
-  to fpcdefs.inc to reactivate
-  the corresponding code }
-{$undef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}

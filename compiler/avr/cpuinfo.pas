@@ -104,7 +104,6 @@ Const
    ((
    	controllertypestr:'';
         controllerunitstr:'';
-        interruptvectors:0;
         flashbase:0;
         flashsize:0;
         srambase:0;
@@ -115,7 +114,6 @@ Const
         (
    	controllertypestr:'ATMEGA16';
         controllerunitstr:'ATMEGA16';
-        interruptvectors:0;
         flashbase:0;
         flashsize:$4000;
         srambase:0;
@@ -126,7 +124,6 @@ Const
         (
    	controllertypestr:'ATMEGA32';
         controllerunitstr:'ATMEGA32';
-        interruptvectors:0;
         flashbase:0;
         flashsize:$8000;
         srambase:0;
@@ -137,7 +134,6 @@ Const
    	(
         controllertypestr:'ATMEGA48';
         controllerunitstr:'ATMEGA48';
-        interruptvectors:0;
         flashbase:0;
         flashsize:$1000;
         srambase:0;
@@ -148,7 +144,6 @@ Const
    	(
         controllertypestr:'ATMEGA64';
         controllerunitstr:'ATMEGA64';
-        interruptvectors:0;
         flashbase:0;
         flashsize:$10000;
         srambase:0;
@@ -159,7 +154,6 @@ Const
    	(
         controllertypestr:'ATMEGA128';
         controllerunitstr:'ATMEGA128';
-        interruptvectors:0;
         flashbase:0;
         flashsize:$20000;
         srambase:0;

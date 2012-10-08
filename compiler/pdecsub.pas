@@ -1484,26 +1484,9 @@ begin
 end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-var v: Tconstexprint;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-
 begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-  if target_info.system in systems_interrupt_table then
-    begin
-      if token<>_SEMICOLON then
-        begin
-          pd.proccalloption:=pocall_interrupt;
-          v:=get_intconst;
-          Tprocdef(pd).interruptvector:=v.uvalue;
-        end;
-    end;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);

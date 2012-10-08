@@ -267,7 +267,6 @@ interface
        { Used by ARM / AVR to differentiate between specific microcontrollers }
        tcontrollerdatatype = record
           controllertypestr, controllerunitstr: string[20];
-          interruptvectors:integer;
           flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
        end;
 

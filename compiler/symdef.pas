@@ -638,8 +638,6 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-          { interrupt vector }
-          interruptvector : longint;
           { First/last assembler symbol/instruction in aasmoutput list.
             Note: initialised after compiling the code for the procdef, but
               not saved to/restored from ppu. Used when inserting debug info }
@@ -4079,7 +4077,6 @@ implementation
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
-         interruptvector:=-1;
       end;
 
 
@@ -4125,10 +4122,6 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           interruptvector:=ppufile.getlongint;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -4275,10 +4268,6 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           ppufile.putlongint(interruptvector);
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then
