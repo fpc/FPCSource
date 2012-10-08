@@ -85,7 +85,10 @@ interface
 {$endif m68k}
 {$ifdef arm}
           ait_thumb_func,
+          ait_thumb_set,
 {$endif arm}
+          ait_set,
+          ait_weak,
           { used to split into tiny assembler files }
           ait_cutobject,
           ait_regalloc,
@@ -94,11 +97,13 @@ interface
           ait_marker,
           { used to describe a new location of a variable }
           ait_varloc,
-          { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive,
+{$ifdef JVM}
           { JVM only }
           ait_jvar,    { debug information for a local variable }
-          ait_jcatch   { exception catch clause }
+          ait_jcatch,  { exception catch clause }
+{$endif JVM}
+          { SEH directives used in ARM,MIPS and x86_64 COFF targets }
+          ait_seh_directive
           );
 
         taiconst_type = (
@@ -187,15 +192,20 @@ interface
 {$endif m68k}
 {$ifdef arm}
           'thumb_func',
+          'thumb_set',
 {$endif arm}
+          'set',
+          'weak',
           'cut',
           'regalloc',
           'tempalloc',
           'marker',
           'varloc',
-          'seh_directive',
+{$ifdef JVM}
           'jvar',
-          'jcatch'
+          'jcatch',
+{$endif JVM}
+          'seh_directive'
           );
 
     type
@@ -275,8 +285,11 @@ interface
                    ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end
 				   ,ait_ent, ait_ent_end, ait_directive
-                   ,ait_varloc,ait_seh_directive
-                   ,ait_jvar, ait_jcatch];
+                   ,ait_varloc,
+{$ifdef JVM}
+                   ait_jvar, ait_jcatch,
+{$endif JVM}
+                   ait_seh_directive];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -288,11 +301,15 @@ interface
 					 ait_ent, ait_ent_end,
 {$ifdef arm}
                      ait_thumb_func,
+                     ait_thumb_set,
 {$endif arm}
+                     ait_set,ait_weak,
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
                      ait_symbol,
-                     ait_seh_directive,
-                     ait_jvar,ait_jcatch
+{$ifdef JVM}
+                     ait_jvar, ait_jcatch,
+{$endif JVM}
+                     ait_seh_directive
                     ];
 
 
@@ -790,6 +807,7 @@ interface
         end;
         tai_seh_directive_class=class of tai_seh_directive;
 
+{$ifdef JVM}
         { JVM variable live range description }
         tai_jvar = class(tai)
           stackslot: longint;
@@ -814,6 +832,30 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
         end;
         tai_jcatch_class = class of tai_jcatch;
+{$endif JVM}
+
+        tai_set = class(tai)
+          sym,
+          value: pshortstring;
+          constructor create(const asym, avalue: string);
+          destructor destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+
+{$ifdef arm}
+        tai_thumb_set = class(tai_set)
+          constructor create(const asym, avalue: string);
+        end;
+{$endif arm}
+
+        tai_weak = class(tai)
+          sym: pshortstring;
+          constructor create(const asym: string);
+          destructor destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
 
     var
       { array with all class types for tais }
@@ -924,6 +966,69 @@ implementation
          end
         else
          ppufile.putbyte(byte(ait_none));
+      end;
+
+
+    constructor tai_weak.create(const asym: string);
+      begin
+        inherited create;
+        typ:=ait_weak;
+        sym:=stringdup(asym);
+      end;
+
+    destructor tai_weak.destroy;
+      begin
+        stringdispose(sym);
+        inherited destroy;
+      end;
+
+    constructor tai_weak.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        sym:=stringdup(ppufile.getstring);
+      end;
+
+    procedure tai_weak.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(sym^);
+      end;
+
+{$ifdef arm}
+    constructor tai_thumb_set.create(const asym, avalue: string);
+      begin
+        inherited create(asym, avalue);
+        typ:=ait_thumb_set;
+      end;
+{$endif arm}
+
+    constructor tai_set.create(const asym, avalue: string);
+      begin
+        inherited create;
+        typ:=ait_set;
+        sym:=stringdup(asym);
+        value:=stringdup(avalue);
+      end;
+
+    destructor tai_set.destroy;
+      begin
+        stringdispose(sym);
+        stringdispose(value);
+        inherited destroy;
+      end;
+
+    constructor tai_set.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        sym:=stringdup(ppufile.getstring);
+        value:=stringdup(ppufile.getstring);
+      end;
+
+    procedure tai_set.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(sym^);
+        ppufile.putstring(value^);
       end;
 
 
@@ -2823,6 +2928,7 @@ implementation
       begin
       end;
 
+{$ifdef JVM}
 
 {****************************************************************************
                               tai_jvar
@@ -2913,6 +3019,7 @@ implementation
         ppufile.putasmsymbol(handlerlab);
       end;
 
+{$endif JVM}
 
 begin
 {$push}{$warnings off}
