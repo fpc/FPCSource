@@ -950,6 +950,7 @@ begin
   TestString('123.4',ttNumber);
   TestString('123.E4',ttNumber);
   TestString('1.E4',ttNumber);
+  TestString('1e-2',ttNumber);
   DoInvalidNumber('1..1');
   DoInvalidNumber('1.E--1');
   DoInvalidNumber('.E-1');
