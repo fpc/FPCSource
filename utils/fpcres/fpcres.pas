@@ -72,7 +72,7 @@ begin
   writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
-  writeln('                         sparc, alpha, ia64 (elf)');
+  writeln('                         sparc, alpha, ia64, mips, mipsel (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm (mach-o)');
   writeln('                         bigendian, littleendian (external)');
   writeln('  --subarch, -s <name> Set object file sub-architecture. Supported values:');
@@ -250,6 +250,8 @@ begin
     mtsparc : Result.MachineType:=emtsparc;
     mtalpha : Result.MachineType:=emtalpha;
     mtia64 : Result.MachineType:=emtia64;
+    mtmips : Result.MachineType:=emtmips;
+    mtmipsel : Result.MachineType:=emtmipsel;
   end;
 end;
 
