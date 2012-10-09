@@ -3142,8 +3142,9 @@ end;
 Destructor TFields.Destroy;
 
 begin
-  Clear;
-  FFieldList.Free;
+  if Assigned(FFieldList) then
+    Clear;
+  FreeAndNil(FFieldList);
   inherited Destroy;
 end;
 
