@@ -1067,7 +1067,7 @@ type
   Tfields = Class(TObject)
     Private
       FDataset : TDataset;
-      FFieldList : TList;
+      FFieldList : TFpList;
       FOnChange : TNotifyEvent;
       FValidFieldKinds : TFieldKinds;
     Protected
