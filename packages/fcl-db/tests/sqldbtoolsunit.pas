@@ -229,6 +229,14 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    if (dbhostname='') and (SQLDbType=interbase) then
+    begin
+      // Firebird embedded: create database file if it doesn't yet exist
+      // Note: pagesize parameter has influence on behavior. We're using
+      // Firebird default here.
+      if not(fileexists(dbname)) then
+        FConnection.CreateDB; //Create testdb
+    end;
     if length(dbQuoteChars)>1 then
       begin
         FieldNameQuoteChars:=dbquotechars;
