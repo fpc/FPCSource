@@ -133,7 +133,9 @@ interface
        { Contains only strings }
        oso_strings,
        { Ignore this section }
-       oso_disabled
+       oso_disabled,
+       { Must be cloned when writing separate debug file }
+       oso_debug_copy
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -2043,7 +2045,7 @@ implementation
       begin
         { don't write normal section if writing only debug info }
         if (ExeWriteMode=ewm_dbgonly) and
-           not(oso_debug in exesec.SecOptions) then
+           (exesec.SecOptions*[oso_debug,oso_debug_copy]=[]) then
           exit;
 
         if (oso_Data in exesec.SecOptions) then
@@ -3115,7 +3117,7 @@ implementation
             exesec:=TExeSection(ExeSectionList[j]);
             { don't write normal section if writing only debug info }
             if (ExeWriteMode=ewm_dbgonly) and
-               not(oso_debug in exesec.SecOptions) then
+               (exesec.SecOptions*[oso_debug,oso_debug_copy]=[]) then
               continue;
 
             if oso_data in exesec.SecOptions then
