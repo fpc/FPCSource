@@ -1361,6 +1361,7 @@ TYPE
 
    DVTARGETDEVICE               = TagDVTARGETDEVICE;
    PDVTARGETDEVICE              = ^tagDVTARGETDEVICE;
+   PTAGDVTARGETDEVICE           = PDVTARGETDEVICE;
    LPCLIPFORMAT                 = ^TCLIPFORMAT;
    TCLIPFORMAT                  = Word;
    CLIPFORMAT                   = TCLIPFORMAT;
@@ -3510,15 +3511,15 @@ type
 
     IPrint = interface(IUnknown)
        ['{B722BCC9-4E68-101B-A2BC-00AA00404770}']
-       procedure SetInitialPageNum(nFirstPage:Integer);stdcall;
-       procedure GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer);stdcall;
-       procedure RemotePrint(grfFlags:LongWord;var pptd:PDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer);stdcall;
+       function SetInitialPageNum(nFirstPage:Integer):HRESULT;stdcall;
+       function GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer):HRESULT;stdcall;
+       function RemotePrint(grfFlags:LongWord;var pptd:PtagDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer):HRESULT;stdcall;
       end;
-
+  
     IOleCommandTarget = interface(IUnknown)
        ['{B722BCCB-4E68-101B-A2BC-00AA00404770}']
-       procedure QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT);stdcall;
-       procedure Exec(var pguidCmdGroup:GUID;nCmdID:LongWord;nCmdexecopt:LongWord;var pvaIn:OleVariant;var pvaOut:OleVariant);stdcall;
+       function QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT):HRESULT;stdcall;
+       function Exec(var pguidCmdGroup:GUID;nCmdID:LongWord;nCmdexecopt:LongWord;var pvaIn:OleVariant;var pvaOut:OleVariant):HRESULT;stdcall;
       end;
 
     IContinueCallback = interface(IUnknown)
