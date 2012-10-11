@@ -568,7 +568,8 @@ begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed method ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName],True);
         bIsFunction:=(bIsDispatch and (FD^.elemdescFunc.tdesc.vt<>VT_VOID)) or
-          (not bIsDispatch and (FD^.cParams>0) and ((FD^.lprgelemdescParam[FD^.cParams-1].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0));
+          (not bIsDispatch and (FD^.cParams>0) and ((FD^.lprgelemdescParam[FD^.cParams-1].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0)) or
+          (sConv<>'safecall');
         if bIsFunction then
           sFunc:=format('    // %s : %s '#13#10'   function %s(',[sMethodName,BstrDocString,sMethodName])
         else
@@ -682,7 +683,10 @@ begin
           sEventImplementations:=sEventImplementations+';'#13#10;
           end;
         if bIsFunction then
-          sFunc:=sFunc+format(':%s',[sType]);
+          if (sConv<>'safecall') then
+            sFunc:=sFunc+':HRESULT'
+          else
+            sFunc:=sFunc+format(':%s',[sType]);
         if bIsDispatch then
           s:=s+sFunc+format(';dispid %d;'#13#10,[FD^.memid])
         else
