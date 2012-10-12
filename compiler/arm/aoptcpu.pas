@@ -333,7 +333,7 @@ Implementation
            will be optimized to
              str reg2, [reg1]
          }
-         not (regLoadedWithNewValue(taicpu(p).oper[0]^.reg, p)) then
+         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, p) then
         begin
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
