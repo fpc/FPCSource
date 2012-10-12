@@ -321,7 +321,15 @@ Implementation
          not (
            (taicpu(p).opcode in [A_MLA, A_MUL]) and
            (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg)
-         ) then
+         ) and
+         { Take care to only do this for instructions which REALLY load to the first register.
+           Otherwise
+             str reg0, [reg1]
+             mov reg2, reg0
+           will be optimized to
+             str reg2, [reg1]
+         }
+         not (regLoadedWithNewValue(taicpu(p).oper[0]^.reg, p)) then
         begin
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
