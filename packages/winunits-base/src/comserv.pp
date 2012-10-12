@@ -113,7 +113,7 @@ begin
 {$endif}
 end;
 
-{
+(*
     //FROM MSDN (Error messages are different in MSDN.DllGetClassObject)
 
     HRESULT hres = E_OUTOFMEMORY;
@@ -125,7 +125,7 @@ end;
         pClassFactory->Release();
     }
     return hRes;
-}
+*)
 
 function DllGetClassObject(const rclsid: REFIID {should be REFCLSID}; const riid: REFIID; out ppv: Pointer): HResult; stdcall;
 var
