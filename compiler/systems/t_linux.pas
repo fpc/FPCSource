@@ -230,6 +230,11 @@ begin
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
     begin
+      { Syntax "external 'c' name 'foo'" adds 'libc.so' to
+        linkothersharedlibs, while "$linklib c" adds just 'c'.
+        Therefore we must search for both names, this deserves a better fix. }
+      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      if result then break;
       result:=hp.linkothersharedlibs.find('c');
       if result then break;
       hp:=tmodule(hp.next);
