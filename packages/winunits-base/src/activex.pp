@@ -2212,7 +2212,7 @@ TYPE
      IEnumUnknown = Interface(IUnknown)
         ['{00000100-0000-0000-C000-000000000046}']
         //    pointer_default(unique)
-     Function Next(Celt:Ulong;out rgelt;out pCeltFetched:pulong):HRESULT;StdCall;
+     Function Next(Celt:Ulong; out rgelt;pCeltFetched:pulong):HRESULT;StdCall;
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
      Function Reset():HResult;
@@ -2319,14 +2319,14 @@ TYPE
        End;
 
     ISequentialStream = Types.ISequentialStream;
-    {interface(IUnknown)
+    (*interface(IUnknown)
        ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
        function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;
        function Write(pv : Pointer;cb : ULONG;pcbWritten : PULONG): HRESULT;stdcall;
      end;
-    }
+    *)
 
-    { defined above by pulling it in from types IStream = interface(ISequentialStream)
+    (* defined above by pulling it in from types IStream = interface(ISequentialStream)
        ['{0000000C-0000-0000-C000-000000000046}']
        function Seek(dlibMove : LargeInt; dwOrigin: Longint;
             out libNewPosition : LargeInt): HResult; stdcall;
@@ -2342,7 +2342,7 @@ TYPE
        Function Stat(out statstg : TStatStg; grfStatFlag: Longint): HRESULT;stdcall;
        function Clone(out stm : IStream) : HRESULT; stdcall;
      end;
-    }
+    *)
     IEnumSTATSTG = Interface (IUnknown)
        ['{0000000d-0000-0000-C000-000000000046}']
         Function Next (Celt:ULong;Out xcelt;pceltfetched : PUlong):HResult; StdCall;
@@ -3241,6 +3241,15 @@ TYPE
      Function ParseDisplayName(CONST bc: IBindCtx; pszDisplayName: POleStr;OUT chEaten: Longint; OUT mkOut: IMoniker): HResult;StdCall;
      End;
 
+const
+     // IOleContainer.EnumObjects() flags
+     OLECONTF_EMBEDDINGS    = 1;
+     OLECONTF_LINKS         = 2;
+     OLECONTF_OTHERS        = 4;
+     OLECONTF_ONLYUSER      = 8;
+     OLECONTF_ONLYIFRUNNING = 16;
+
+type
    IOleContainer = interface(IParseDisplayName)
      ['{0000011B-0000-0000-C000-000000000046}']
      Function EnumObjects(grfFlags: Longint; OUT Enum: IEnumUnknown):HResult;StdCall;
@@ -3553,6 +3562,11 @@ type
     function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
     end;
 
+  IObjectWithSite = interface
+    ['{FC4801A3-2BA9-11CF-A229-00AA003D7352}']
+    function SetSite(const pUnkSite: IUnknown):HRESULT; stdcall;
+    function GetSite(const riid: TIID; out Site: IUnknown):HRESULT; stdcall;
+  end;
 
 
 { COMCAT}
