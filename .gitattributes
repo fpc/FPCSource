@@ -10369,6 +10369,7 @@ tests/test/packages/fcl-xml/tw22495.pp svneol=native#text/plain
 tests/test/packages/fcl-xml/uw22495.pp svneol=native#text/plain
 tests/test/packages/hash/sha1test.pp svneol=native#text/plain
 tests/test/packages/hash/tmdtest.pp svneol=native#text/plain
+tests/test/packages/univint/tcgrectmake.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw10045.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw11142.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw11570.pp svneol=native#text/plain

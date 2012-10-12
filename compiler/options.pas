@@ -3309,7 +3309,7 @@ if (target_info.abi = abi_eabihf) then
   Option:=nil;
 
   clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal];
-  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl];
+  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl, pocall_mwpascal];
   if (tf_safecall_clearstack in target_info.flags) then
     begin
       include (cdecl_pocalls, pocall_safecall);

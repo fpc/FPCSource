@@ -193,7 +193,7 @@ unit cpupara;
                 result:=false
               else
                 result:=
-                  (not(calloption in (cdecl_pocalls+[pocall_mwpascal])) and
+                  (not(calloption in (cdecl_pocalls)) and
                    (def.size>sizeof(aint))) or
                   (((calloption = pocall_mwpascal) or (target_info.system=system_i386_wince)) and
                    (varspez=vs_const));
