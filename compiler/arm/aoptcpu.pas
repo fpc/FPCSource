@@ -167,10 +167,14 @@ Implementation
         exit;
       {Take care of post/preincremented store and loads, they will change their base register}
       A_STR, A_LDR:
-        regLoadedWithNewValue :=
-          (taicpu(p).oper[1]^.typ=top_ref) and
-          (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-          (taicpu(p).oper[1]^.ref^.base = reg);
+        begin
+          regLoadedWithNewValue :=
+            (taicpu(p).oper[1]^.typ=top_ref) and
+            (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+            (taicpu(p).oper[1]^.ref^.base = reg);
+          {STR does not load into it's first register}
+          if p.opcode = A_STR then exit;
+        end;
       { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
       A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
         regLoadedWithNewValue :=
