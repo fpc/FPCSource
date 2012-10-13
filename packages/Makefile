@@ -1650,6 +1650,8 @@ FPMAKE_OPT+=-bu
 .NOTPARALLEL:
 fpmkunit_bootstrap:
 	$(MAKE) -C fpmkunit bootstrap
+fpmkunit_clean_bootstrap:
+	$(MAKE) -C fpmkunit clean_bootstrap
 fpmake: fpmake.pp fpmkunit_bootstrap
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake
@@ -1661,18 +1663,18 @@ release:	fpmake
 debug:	fpmake
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
 ifeq ($(FPMAKE_BIN_CLEAN),)
-clean:	
+clean:	fpmkunit_clean_bootstrap
 else
-clean:	
+clean:	fpmkunit_clean_bootstrap
 	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
 endif
 CLEAN_TARGET_DIRS=$(subst /Makefile, ,$(wildcard */Makefile))
 %_distclean:
 	$(MAKE) -C $* distclean
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS))
+distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS)) fpmkunit_clean_bootstrap
 else
-distclean:	
+distclean:	fpmkunit_clean_bootstrap
 ifdef inUnix
 	{ $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 else

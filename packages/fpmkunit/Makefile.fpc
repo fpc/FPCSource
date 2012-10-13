@@ -68,6 +68,8 @@ $(TARGET_UNITDIRBS):
 	$(MKDIRTREE) $(TARGET_UNITDIRBS)
 bootstrap:	$(TARGET_UNITDIRBS)
 	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(OPT)
+clean_bootstrap:
+	-$(DELTREE) units_bs
 fpmake: fpmake.pp
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) $(FPCMAKEOPT) -Fu$(TARGET_UNITDIRBS) $(OPT)
 all:	fpmake
@@ -82,27 +84,23 @@ debug:	fpmake
 # most often fail because the dependencies are cleared.
 # In case of a clean, simply do nothing
 ifeq ($(FPMAKE_BIN_CLEAN),)
-clean:	
-	-$(DELTREE) units_bs
+clean:	clean_bootstrap
 else
-clean:	
+clean:	clean_bootstrap
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
-	-$(DELTREE) units_bs
 endif
 # In case of a distclean, perform an 'old'-style distclean. This to avoid problems
 # when the package is compiled using fpcmake prior to running this clean using fpmake
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
-	-$(DELTREE) units_bs
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall clean_bootstrap
 else
-distclean:	
+distclean:	clean_bootstrap
 ifdef inUnix
         { $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 else
         $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 endif
 	-$(DEL) $(LOCALFPMAKE)
-	-$(DELTREE) units_bs
 endif
 install:	fpmake
 ifdef UNIXHier

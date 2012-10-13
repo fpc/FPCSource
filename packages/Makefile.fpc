@@ -60,6 +60,8 @@ FPMAKE_OPT+=-bu
 
 fpmkunit_bootstrap:
 	$(MAKE) -C fpmkunit bootstrap
+fpmkunit_clean_bootstrap:
+	$(MAKE) -C fpmkunit clean_bootstrap
 fpmake: fpmake.pp fpmkunit_bootstrap
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake
@@ -74,9 +76,9 @@ debug:	fpmake
 # most often fail because the dependencies are cleared.
 # In case of a clean, simply do nothing
 ifeq ($(FPMAKE_BIN_CLEAN),)
-clean:	
+clean:	fpmkunit_clean_bootstrap
 else
-clean:	
+clean:	fpmkunit_clean_bootstrap
 	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
 endif
 
@@ -87,9 +89,9 @@ CLEAN_TARGET_DIRS=$(subst /Makefile, ,$(wildcard */Makefile))
 # In case of a distclean, perform an 'old'-style distclean. This to avoid problems
 # when the package is compiled using fpcmake prior to running this clean using fpmake
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS))
+distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS)) fpmkunit_clean_bootstrap
 else
-distclean:	
+distclean:	fpmkunit_clean_bootstrap
 ifdef inUnix
         { $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 else
