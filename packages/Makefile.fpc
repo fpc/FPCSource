@@ -79,11 +79,15 @@ else
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
 endif
+
+CLEAN_TARGET_DIRS=$(subst /Makefile, ,$(wildcard */Makefile))
+%_distclean:
+	$(MAKE) -C $* distclean
+
 # In case of a distclean, perform an 'old'-style distclean. This to avoid problems
 # when the package is compiled using fpcmake prior to running this clean using fpmake
-# It does not work well, though, since the sub-directories are not cleaned at all.
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS))
 else
 distclean:	
 ifdef inUnix
