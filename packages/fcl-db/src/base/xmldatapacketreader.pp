@@ -347,20 +347,20 @@ begin
     AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
     if assigned(AFieldNode) then
       begin
-      if FieldDefs[FieldNr].DataType in [ftMemo,ftBlob] then
+       s := AFieldNode.NodeValue;
+       if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
+         s := DecodeStringBase64(s);
+       if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo] then
         begin
         ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
         afield := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
         AField.SetData(@ABufBlobField);
-        s := AFieldNode.NodeValue;
-        if (FieldDefs[FieldNr].DataType = ftBlob) and (s<>'') then
-          s := DecodeStringBase64(s);
         ABufBlobField.BlobBuffer^.Size:=length(s);
         ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
         move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
         end
       else
-        Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo).AsString := AFieldNode.NodeValue;  // set it to the filterbuffer
+        Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo).AsString := s;  // set it to the filterbuffer
       end
     end;
 end;
@@ -375,7 +375,7 @@ begin
   for FieldNr := 0 to ADataset.FieldDefs.Count-1 do
     begin
     AField := ADataset.Fields.FieldByNumber(ADataset.FieldDefs[FieldNr].FieldNo);
-    if AField.DataType=ftBlob then
+    if AField.DataType in [ftBlob, ftBytes, ftVarBytes] then
       ARecordNode.SetAttribute(AField.FieldName,EncodeStringBase64(AField.AsString))
     else
       ARecordNode.SetAttribute(AField.FieldName,AField.AsString);
