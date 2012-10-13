@@ -303,8 +303,12 @@ type
 	********************************************************************************	}
 	ByteParameter = SInt8;
 
-// For interfaces that use Cs "bool" type, which is a 32 bit number
-	CBool = SInt32; 
+// For interfaces that use Cs "bool" type
+{$ifc TARGET_CPU_PPC}
+	CBool = SInt32;
+{$elsec}
+	CBool = SInt8;
+{$endc}
 
 {*******************************************************************************
 
