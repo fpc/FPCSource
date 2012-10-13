@@ -3006,7 +3006,7 @@ TYPE
       Function  LocalGetIDsOfNames():HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-     Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+     Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; pVarResult: PVARIANT; pExcepInfo: PEXCEPINFO; puArgErr: PUINT):HResult;StdCall;
      {$else}
      Function  LocalInvoke ():HResult;StdCall;
      {$endif}
