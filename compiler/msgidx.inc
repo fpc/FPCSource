@@ -108,6 +108,7 @@ const
   scan_w_multiple_main_name_overrides=02086;
   scanner_w_illegal_warn_identifier=02087;
   scanner_e_illegal_alignment_directive=02088;
+  scanner_f_illegal_utf8_bom=02089;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -900,9 +901,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61685;
+  MsgTxtSize = 61832;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,89,314,103,85,54,111,23,202,63,
+    24,90,314,103,85,54,111,23,202,63,
     51,20,1,1,1,1,1,1,1,1
   );

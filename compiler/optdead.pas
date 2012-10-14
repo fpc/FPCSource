@@ -312,9 +312,6 @@ const
         { make sure there's room for the name }
         if failiferror(fsymnamepos>length(line)) then
           exit;
-        { and that we're not in the middle of some other column }
-        if failiferror(pos(' ',copy(line,fsymnamepos,length(line)))>0) then
-          exit;
         result:=true;
       end;
 

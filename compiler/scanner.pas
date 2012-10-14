@@ -2375,6 +2375,13 @@ In case not, the value returned can be arbitrary.
                      (ord((inputpointer+1)^)=$bb) and
                      (ord((inputpointer+2)^)=$bf) then
                      begin
+                       (* we don't support including files with an UTF-8 bom
+                          inside another file that wasn't encoded as UTF-8
+                          already (we don't support {$codepage xxx} switches in
+                          the middle of a file either) *)
+                       if (current_settings.sourcecodepage<>'utf8') and
+                          not current_module.in_global then
+                         Message(scanner_f_illegal_utf8_bom);
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:='utf8';

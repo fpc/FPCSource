@@ -1729,6 +1729,7 @@ implementation
              end;
            constreal :
              begin
+               ppufile.getderef(constdefderef);
                new(pd);
                pd^:=ppufile.getreal;
                value.valueptr:=pd;
@@ -1773,14 +1774,14 @@ implementation
 
     procedure tconstsym.buildderef;
       begin
-        if consttyp in [constord,constpointer,constset] then
+        if consttyp in [constord,constreal,constpointer,constset] then
           constdefderef.build(constdef);
       end;
 
 
     procedure tconstsym.deref;
       begin
-        if consttyp in [constord,constpointer,constset] then
+        if consttyp in [constord,constreal,constpointer,constset] then
           constdef:=tdef(constdefderef.resolve);
       end;
 
@@ -1813,7 +1814,10 @@ implementation
                ppufile.putdata(pchar(value.valueptr)^,value.len);
              end;
            constreal :
-             ppufile.putreal(pbestreal(value.valueptr)^);
+             begin
+               ppufile.putderef(constdefderef);
+               ppufile.putreal(pbestreal(value.valueptr)^);
+             end;
            constset :
              begin
                ppufile.putderef(constdefderef);

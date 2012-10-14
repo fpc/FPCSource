@@ -129,7 +129,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02087 is the last used one
+# 02089 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -368,6 +368,9 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
+scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
+% All source code that is part of a single compilation entity (program, library, unit) must be encoded
+% in the same code page
 % \end{description}
 #
 # Parser
@@ -3376,7 +3379,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2WX_Enable executable stack (Linux)
 **1X_Executable options:
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
-**2Xd_Do not use standard library search path (needed for cross compile)
+**2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
 **2Xe_Use external linker
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)

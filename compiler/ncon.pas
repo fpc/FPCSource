@@ -313,7 +313,7 @@ implementation
           constwstring :
             p1:=cstringconstnode.createwstr(pcompilerwidestring(p.value.valueptr));
           constreal :
-            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
+            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
           constset :
             p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
           constpointer :
