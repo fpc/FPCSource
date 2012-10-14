@@ -810,9 +810,9 @@ implementation
                      begin
                        asmwrite(#9'.lcomm ');
                        asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
-                       asmwrite(',_data.bss_[RW],');
+                       asmwrite(',');
                        asmwrite(tostr(tai_datablock(hp).size)+',');
-                       asmwriteln(tostr(last_align));
+                       asmwrite('_data.bss_');
                      end;
                  end
                else

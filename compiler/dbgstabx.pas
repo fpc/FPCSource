@@ -282,7 +282,7 @@ implementation
         if isglobal then
           list.concat(tai_stab.Create_ansistr(stabx_bs,'.data[RW]'))
         else
-          list.concat(tai_stab.Create_ansistr(stabx_bs,'_data.bss_[RW]'));
+          list.concat(tai_stab.Create_ansistr(stabx_bs,'_data.bss_'));
       inherited;
       if ismem then
         list.concat(tai_stab.Create_ansistr(stabx_es,''));
