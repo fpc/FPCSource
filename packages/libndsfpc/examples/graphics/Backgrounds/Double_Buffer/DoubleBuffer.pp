@@ -43,7 +43,9 @@ begin
 				backBuffer[iy * 256 + ix] := random(colorMask) or BIT(15);
 
 		swiWaitForVBlank();
-
+		scanKeys();
+		if (keysDown() and KEY_START) <> 0 then 
+      exit;
 		//swap the back buffer to the current buffer
 		backBuffer := pcuint16(bgGetGfxPtr(bg));
 

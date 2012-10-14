@@ -17,11 +17,19 @@ const
   CARD_CR1_IRQ    = $40;  // in byte 1, i.e. 0x4000
 
   // SPI EEPROM COMMANDS
-  EEPROM_WRSR = $01;
-  EEPROM_WRDI = $04;
-  EEPROM_RDSR = $05;
-  EEPROM_WREN = $06;
-  EEPROM_RDID = $9f;
+
+  SPI_EEPROM_WRSR   = $01;
+  SPI_EEPROM_PP     = $02;	// Page Program
+  SPI_EEPROM_READ   = $03;
+  SPI_EEPROM_WRDI   = $04;  // Write disable
+  SPI_EEPROM_RDSR   = $05;  // Read status register
+  SPI_EEPROM_WREN   = $06;  // Write enable
+  SPI_EEPROM_PW     = $0a;	// Page Write
+  SPI_EEPROM_FAST   = $0b;	// Fast Read
+  SPI_EEPROM_RDID   = $9f;
+  SPI_EEPROM_RDP    = $ab;  // Release from deep power down
+  SPI_EEPROM_DPD    = $b9;  // Deep power down
+
 
 // REG_ROMCTRL:
   CARD_ACTIVATE   = (1 shl 31);  // when writing, get the ball rolling
