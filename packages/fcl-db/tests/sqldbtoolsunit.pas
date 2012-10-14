@@ -19,11 +19,11 @@ uses
   ,mssqlconn
   ;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql);
+type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
 
 const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
         (
@@ -168,7 +168,8 @@ begin
   {$IFNDEF Win64}
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  if SQLDbType = MSSQL then
+  if SQLDbType in [MSSQL,Sybase] then
+    // todo: Sybase: copied over MSSQL; verify correctness
     begin
     Fconnection := TMSSQLConnection.Create(nil);
     FieldtypeDefinitions[ftBoolean] := 'BIT';
@@ -194,7 +195,7 @@ begin
         testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
       end;
     end;
-  if SQLDbType in [postgresql,interbase,mssql] then
+  if SQLDbType in [postgresql,interbase,mssql,sybase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
@@ -216,6 +217,7 @@ begin
   // SQLite does not support fixed length CHAR datatype
   // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
   // MSSQL set SET ANSI_PADDING ON
+  // todo: verify Sybase behaviour
   if SQLDbType in [sqlite3] then
     for t := 0 to testValuesCount-1 do
       testValues[ftFixedChar,t] := PadRight(testValues[ftFixedChar,t], 10);
@@ -237,6 +239,7 @@ begin
       if not(fileexists(dbname)) then
         FConnection.CreateDB; //Create testdb
     end;
+
     if length(dbQuoteChars)>1 then
       begin
         FieldNameQuoteChars:=dbquotechars;
