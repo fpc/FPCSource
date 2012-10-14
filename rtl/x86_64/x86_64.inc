@@ -25,14 +25,14 @@
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movq    %rsp,%rax
 end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movq    %rbp,%rax
 end;

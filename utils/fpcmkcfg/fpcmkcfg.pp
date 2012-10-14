@@ -79,6 +79,7 @@ Resourcestring
   SErrBackupFailed    = 'Error: Backup of file "%s" to "%s" failed.';
   SErrDelBackupFailed = 'Error: Delete of old backup file "%s" failed.';
   SErrCreateDirFailed = 'Error: Could not create the directory for file "%s".';
+  SErrDestDirectory   = 'Error: The output file "%s" is a directory.';
 
   SWarnIgnoringFile   = 'Warning: Ignoring non-existent file: ';
   SWarnIgnoringPair   = 'Warning: Ignoring wrong name/value pair: ';
@@ -490,6 +491,12 @@ Var
   I : Integer;
 
 begin
+  if (OutputFileName<>'') and
+     DirectoryExists(OutputFileName) then
+    begin
+      Writeln(StdErr,Format(SErrDestDirectory,[OutputFileName]));
+      Halt(1);
+    end;
   If (OutputFileName<>'')
      and FileExists(OutputFileName)
      and not SkipBackup then
