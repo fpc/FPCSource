@@ -30,6 +30,7 @@ unit cpu;
 
     function InterlockedCompareExchange128Support : boolean;inline;
     function AESSupport : boolean;inline;
+    function AVXSupport : boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -40,6 +41,7 @@ unit cpu;
 
     var
       _AESSupport,
+      _AVXSupport,
       _InterlockedCompareExchange128Support : boolean;
 
     function InterlockedCompareExchange128Support : boolean;inline;
@@ -52,6 +54,10 @@ unit cpu;
         result:=_AESSupport;
       end;
 
+    function AVXSupport: boolean;
+      begin
+        result:=_AVXSupport;
+      end;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -119,6 +125,19 @@ unit cpu;
     {$endif win64}
 
 
+    function XGETBV(i : dword) : int64;assembler;
+      asm
+    {$ifndef win64}
+        movq %rdi,%rcx
+    {$endif win64}
+        // older FPCs don't know the xgetbv opcode
+        .byte 0x0f,0x01,0xd0
+        andl $0xffffffff,%eax
+        shll $32,%rdx
+        orq %rdx,%rax
+      end;
+
+
     procedure SetupSupport;
       var
         _ecx : longint;
@@ -132,6 +151,15 @@ unit cpu;
         end;
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
         _AESSupport:=(_ecx and $2000000)<>0;
+
+        _AVXSupport:=
+          { XGETBV suspport? }
+          ((_ecx and $08000000)<>0) and
+          { xmm and ymm state enabled? }
+          ((XGETBV(0) and %110)=%110) and
+          { avx supported? }
+          ((_ecx and $10000000)<>0);
+
         is_sse3_cpu:=(_ecx and $1)<>0;
       end;
 
