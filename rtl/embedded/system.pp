@@ -67,7 +67,7 @@ const
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCrLF;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}

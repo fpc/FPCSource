@@ -423,9 +423,9 @@ Const
         (controllertypestr:'STM32F103XE';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
         (controllertypestr:'STM32F103XF';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$000C0000; srambase:$20000000; sramsize:$00018000),
         (controllertypestr:'STM32F103XG';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00018000),
-        (controllertypestr:'STM32F107X8';     controllerunitstr:'STM32F10X_CONN';     flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00010000),
-        (controllertypestr:'STM32F107XB';     controllerunitstr:'STM32F10X_CONN';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
-        (controllertypestr:'STM32F107XC';     controllerunitstr:'STM32F10X_CONN';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F107X8';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F107XB';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F107XC';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       	// ct_lm3s1110,
