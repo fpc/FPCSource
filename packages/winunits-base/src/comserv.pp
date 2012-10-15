@@ -207,7 +207,7 @@ begin
   //http://www.experts-exchange.com/Programming/Misc/Q_20634807.html
   OleCheck(TypeLib.GetLibAttr(ptla));
   try
-    OleCheck(ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind));
+    ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind);
   finally
     TypeLib.ReleaseTLibAttr(ptla);
   end;
