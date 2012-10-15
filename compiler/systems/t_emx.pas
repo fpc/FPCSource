@@ -37,7 +37,7 @@ interface
 implementation
 
   uses
-     sysutils,
+     SysUtils,
      cutils,cfileutl,cclasses,
      globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,script,ogbase,
@@ -158,6 +158,8 @@ var ar:ar_hdr;        {PackTime is platform independent}
     time:TSystemTime;
     numtime:longint;
     tmp:string[19];
+
+
 begin
     ar_member_size:=size;
     fillchar(ar.ar_name,sizeof(ar.ar_name),' ');
@@ -355,9 +357,9 @@ end;
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
                 AddImport(ImportLibrary.Name,ImportSymbol.OrdNr,
                   ImportSymbol.Name,ImportSymbol.MangledName);
-              end;
-            close(out_file);
          end;
+         close(out_file);
+      end;
       end;
 
 
@@ -379,8 +381,8 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT -o $OUT @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE $OUT -aim -s$DOSHEAPKB';
-     if source_info.script = script_dos then
+     ExeCmd[2]:='emxbind -b $STRIP $MAP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE $OUT -aim -s$DOSHEAPKB';
+     if Source_Info.Script = script_dos then
       ExeCmd[3]:='del $OUT';
    end;
 end;
@@ -455,19 +457,26 @@ var
   success : boolean;
   i       : longint;
   AppTypeStr,
-  StripStr: string[40];
+  StripStr: string[3];
+  MapStr: shortstring;
+  BaseFilename: TPathStr;
   RsrcStr : string;
-  OutName: string;
+  OutName: TPathStr;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
-  OutName := ChangeFileExt(current_module.exefilename^,'.out');
+  BaseFilename := ChangeFileExt(current_module.exefilename^,'');
+  OutName := BaseFilename + '.out';
   if (cs_link_strip in current_settings.globalswitches) then
-   StripStr := '-s'
+   StripStr := '-s '
   else
    StripStr := '';
+  if (cs_link_map in current_settings.globalswitches) then
+   MapStr := '-m' + BaseFileName + ' '
+  else
+   MapStr := '';
   if (usewindowapi) or (AppType = app_gui) then
    AppTypeStr := '-p'
   else if AppType = app_fs then
@@ -497,11 +506,20 @@ begin
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
-        Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$STRIP ', StripStr);
+        Replace(cmdstr,'$MAP ', MapStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+(*
+   Arrgh!!! The ancient EMX LD.EXE simply dies without saying anything
+   if the full pathname to link.res is quoted!!!!! @#$@@^%@#$^@#$^@^#$
+   This means that name of the output directory cannot contain spaces,
+   but at least it works otherwise...
+
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-        Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RSRC',RsrcStr);
+*)
+        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$OPT ',Info.ExtraOptions);
+        Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         if i<>3 then
