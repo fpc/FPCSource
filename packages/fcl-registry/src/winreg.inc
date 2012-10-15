@@ -266,7 +266,7 @@ end;
 
 procedure TRegistry.CloseKey(key:HKEY);
 begin
-  RegCloseKey(CurrentKey)
+  RegCloseKey(key);
 end;
 
 procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
