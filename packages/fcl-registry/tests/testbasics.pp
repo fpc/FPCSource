@@ -42,7 +42,14 @@ var
   fn: string;
 {$endif}
 begin
-{$ifndef windows}
+{$ifdef windows}
+  with TRegistry.Create do
+    try
+      DeleteKey('FirstNode');
+    finally
+      Free;
+    end;
+{$else}
   FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
   if FileExists(FN) then
     AssertTrue(DeleteFile(FN));
@@ -70,7 +77,7 @@ begin
   DeleteUserXmlFile;
   with TRegistry.Create do
     try
-      OpenKey('test', true);
+      OpenKey('FirstNode', true);
       WriteString('LAYOUT', '');
       CloseKey;
     finally
@@ -78,7 +85,7 @@ begin
     end;
   with TRegistry.Create do
     try
-      OpenKey('test', true);
+      OpenKey('FirstNode', true);
       WriteString('LAYOUT', '');
       CloseKey;
     finally
@@ -155,3 +162,4 @@ end;
 initialization
   RegisterTest(TTestBasics);
 end.
+

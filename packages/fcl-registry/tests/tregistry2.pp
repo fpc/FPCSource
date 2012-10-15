@@ -35,8 +35,18 @@ begin
       TestFailed(4);
     if reg.CurrentPath <> STestRegPath + '\1' then
       TestFailed(5);
+    reg.CloseKey;
+    if reg.CurrentPath <> '' then
+      TestFailed(6);
   finally
     reg.Free;
+    with TRegistry.Create do
+      try
+        DeleteKey(STestRegPath + '\1');
+        DeleteKey(STestRegPath);
+      finally
+        Free;
+      end;
   end;
 end;
 

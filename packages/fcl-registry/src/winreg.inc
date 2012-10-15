@@ -260,7 +260,8 @@ begin
     else
       RegFlushKey(CurrentKey);
     fCurrentKey:=0;
-    end
+    end;
+  fCurrentPath:='';
 end;
 
 procedure TRegistry.CloseKey(key:HKEY);
