@@ -1023,43 +1023,47 @@ HKCR
         if Register then
         begin
           classidguid := GUIDToString(ClassID);
-          CreateRegKey('CLSID\' + classidguid, '', Description);
-          if ClassVersion <> '' then
-          begin
-            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
-            CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID + '.' + ClassVersion);
-          end
-          else
-            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
-
           CreateRegKey('CLSID\' + classidguid + '\InprocServer32', '', FComServer.ServerFileName);
-
           //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
           CreateRegKey('CLSID\' + classidguid + '\InprocServer32', 'ThreadingModel', ThreadModelToString(ThreadingModel));
-
-          CreateRegKey(ProgID, '', Description);
-          CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
-          if ClassVersion <> '' then
+          CreateRegKey('CLSID\' + classidguid, '', Description);
+          if ClassName <> '' then
           begin
-            CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
-            CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
-            CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
-          end;
+            if ClassVersion <> '' then
+            begin
+              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
+              CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID);
+            end
+            else
+              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
 
+            CreateRegKey(ProgID, '', Description);
+            CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
+            if ClassVersion <> '' then
+            begin
+              CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
+              CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
+              CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
+            end;
+          end;
         end else
         begin
           classidguid := GUIDToString(ClassID);
           DeleteRegKey('CLSID\' + classidguid + '\InprocServer32');
           DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
-          DeleteRegKey('CLSID\' + classidguid + '\ProgID');
-          DeleteRegKey('CLSID\' + classidguid);
-          DeleteRegKey(ProgID + '\CLSID');
-          DeleteRegKey(ProgID);
-          if ClassVersion <> '' then
+          if ClassName <> '' then
           begin
-            DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
-            DeleteRegKey(ProgID + '.' + ClassVersion);
+            DeleteRegKey('CLSID\' + classidguid + '\ProgID');
+            DeleteRegKey(ProgID + '\CLSID');
+            if ClassVersion <> '' then
+            begin
+              DeleteRegKey(ProgID + '\CurVer');
+              DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
+              DeleteRegKey(ProgID + '.' + ClassVersion);
+            end;
+            DeleteRegKey(ProgID);
           end;
+          DeleteRegKey('CLSID\' + classidguid);
         end;
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry end');
