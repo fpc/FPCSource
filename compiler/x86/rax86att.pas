@@ -27,9 +27,12 @@ Interface
 
   uses
     cpubase,
-    raatt,rax86;
+    raatt,rax86, rautils;
 
   type
+
+    { tx86attreader }
+
     tx86attreader = class(tattreader)
       ActOpsize : topsize;
       function is_asmopcode(const s: string):boolean;override;
@@ -42,7 +45,10 @@ Interface
       procedure MaybeGetPICModifier(var oper: tx86operand);
     end;
 
+    { Tx86attInstruction }
+
     Tx86attInstruction = class(Tx86Instruction)
+      procedure AddReferenceSizes; override;
       procedure FixupOpcode;override;
     end;
 
@@ -62,11 +68,33 @@ Implementation
       scanner,
       procinfo,
       itcpugas,
-      rabase,rautils,
+      rabase,
       cgbase
       ;
 
     { Tx86attInstruction }
+
+
+    procedure Tx86attInstruction.AddReferenceSizes;
+    var
+      i: integer;
+    begin
+      if (Opsize <> S_NO) and
+         (MemRefInfo(opcode).ExistsSSEAVX) and
+         (MemRefInfo(opcode).MemRefSize in MemRefMultiples) then
+      begin
+        for i := 1 to ops do
+        begin
+          if operands[i].Opr.Typ in [OPR_REFERENCE, OPR_LOCAL] then
+          begin
+            if (tx86operand(operands[i]).opsize = S_NO) then
+             tx86operand(operands[i]).opsize := Opsize;
+          end;
+        end;
+      end;
+
+      inherited AddReferenceSizes;
+    end;
 
     procedure Tx86attInstruction.FixupOpcode;
       begin
@@ -927,6 +955,7 @@ Implementation
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;
+
 
 
 end.
