@@ -26,13 +26,15 @@ unit cpugas;
   interface
 
     uses
-      cpubase,
-       aasmtai, aasmcpu, assemble, aggas;
+      cpubase, aasmbase, globtype,
+      aasmtai, aasmcpu, assemble, aggas;
 
     type
       TMIPSGNUAssembler = class(TGNUassembler)
         nomacro, noreorder, noat : boolean;
         constructor create(smart: boolean); override;
+        {# Constructs the command line for calling the assembler }
+        function MakeCmdLine: TCmdStr; override;
       end;
 
       TMIPSInstrWriter = class(TCPUInstrWriter)
@@ -50,7 +52,7 @@ unit cpugas;
   implementation
 
     uses
-      aasmbase, cutils, systems,
+      cutils, systems, cpuinfo,
       verbose, itcpugas, cgbase, cgutils;
 
     function gas_std_regname(r:Tregister):string;
@@ -92,6 +94,14 @@ unit cpugas;
         noat:=false;
       end;
 
+    function TMIPSGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+         result := Inherited MakeCmdLine;
+         { ABI selection }
+         Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
+         { ACH selection }
+         Replace(result,'$ARCH','-march='+cputypestr[mips_cpu]);
+      end;
 
 {****************************************************************************}
 {                  Helper routines for Instruction Writer                    }
@@ -376,7 +386,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 $NOWARN -EL $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $ASM';
         supported_targets: [system_mipsel_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
@@ -388,7 +398,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 $NOWARN -EB $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $ASM';
         supported_targets: [system_mipseb_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
