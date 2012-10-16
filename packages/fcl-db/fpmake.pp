@@ -412,6 +412,22 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('mysql50conn');
         end;
+    T:=P.Targets.AddUnit('fpddmysql51.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql51conn');
+        end;
+    T:=P.Targets.AddUnit('fpddmysql55.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql55conn');
+        end;
     T:=P.Targets.AddUnit('fpddodbc.pp', DatadictOSes);
       with T.Dependencies do
         begin
