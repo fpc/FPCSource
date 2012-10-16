@@ -2930,6 +2930,9 @@ const
            else
             break;
          end;
+         if (po_nostackframe in pd.procoptions) and
+            not (po_assembler in pd.procoptions) then
+           message(parser_w_nostackframe_without_assembler);
       end;
 
 
