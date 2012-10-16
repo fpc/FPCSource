@@ -367,6 +367,8 @@ begin
     CheckTrue(EOF);
     CheckTrue(BOF);
     open;
+    CheckTrue(BOF, 'No BOF when opened non-empty dataset');
+    CheckFalse(EOF, 'EOF after opened non-empty dataset');
     close;
     CheckTrue(EOF);
     CheckTrue(BOF);
