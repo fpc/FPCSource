@@ -25,7 +25,7 @@ uses
     pqlib  = pqlib5;
 {$endif}
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   const
     pqlib = 'libpq.dll'; // Not sure if it has a version number ?
 {$ENDIF}
