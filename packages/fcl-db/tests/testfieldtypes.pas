@@ -95,6 +95,7 @@ type
     procedure TestBCDParamQuery;
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
+    procedure TestBooleanParamQuery;
     procedure TestAggregates;
 
     procedure TestStringLargerThen8192;
@@ -826,6 +827,11 @@ begin
   TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, SQLDbType<>mssql);
 end;
 
+procedure TTestFieldTypes.TestBooleanParamQuery;
+begin
+  TestXXParamQuery(ftBoolean, FieldtypeDefinitions[ftBoolean], testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -838,7 +844,7 @@ begin
 end;
 
 
-procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
+procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
 
 var i : integer;
 
@@ -864,7 +870,8 @@ begin
       begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
-        ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
+        ftInteger: Params.ParamByName('field1').asInteger := testIntValues[i];
+        ftBoolean: Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
@@ -900,6 +907,7 @@ begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
+        ftBoolean: AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
         ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
