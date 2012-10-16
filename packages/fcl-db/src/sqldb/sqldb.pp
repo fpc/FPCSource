@@ -1222,9 +1222,14 @@ end;
 function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
 
 type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
-     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepEnd);
+     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
+     TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
 
-Var
+const
+  KeywordNames: array[TKeyword] of string =
+    ('WITH', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'JOIN', 'WHERE', 'GROUP', 'ORDER', 'UNION', 'ROWS', 'LIMIT', '');
+
+var
   PSQL, CurrentP, SavedP,
   PhraseP, PStatementPart : pchar;
   S                       : string;
@@ -1232,6 +1237,7 @@ Var
   BracketCount            : Integer;
   ConnOptions             : TConnOptions;
   Separator               : TPhraseSeparator;
+  Keyword, K              : TKeyword;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -1254,7 +1260,7 @@ begin
     SavedP := CurrentP;
 
     case CurrentP^ of
-      ' ', #9, #10, #11, #12, #13:
+      ' ', #9..#13:
         Separator := sepWhiteSpace;
       ',':
         Separator := sepComma;
@@ -1273,6 +1279,9 @@ begin
         until (CurrentP^ = #0) or (BracketCount = 0);
         if CurrentP^ <> #0 then inc(CurrentP);
         end;
+      '"':
+        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
+          Separator := sepDoubleQuote;
       else
         if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
           Separator := sepComment
@@ -1291,14 +1300,21 @@ begin
       if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
         begin
         SetString(s, PhraseP, CurrentP-PhraseP);
-        s := uppercase(s);
+
+        Keyword := kwUnknown;
+        for K in TKeyword do
+          if SameText(s, KeywordNames[K]) then
+          begin
+            Keyword := K;
+            break;
+          end;
 
         case ParsePart of
           ppStart  : begin
                      Result := TSQLConnection(Database).StrToStatementType(s);
-                     case s of
-                       'WITH'  : ParsePart := ppWith;
-                       'SELECT': ParsePart := ppSelect;
+                     case Keyword of
+                       kwWITH  : ParsePart := ppWith;
+                       kwSELECT: ParsePart := ppSelect;
                        else      break;
                      end;
                      if not FParseSQL then break;
@@ -1306,16 +1322,16 @@ begin
           ppWith   : begin
                      // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
                      //  { SELECT | INSERT | UPDATE | DELETE } ...
-                     case s of
-                       'SELECT': Result := stSelect;
-                       'INSERT': Result := stInsert;
-                       'UPDATE': Result := stUpdate;
-                       'DELETE': Result := stDelete;
+                     case Keyword of
+                       kwSELECT: Result := stSelect;
+                       kwINSERT: Result := stInsert;
+                       kwUPDATE: Result := stUpdate;
+                       kwDELETE: Result := stDelete;
                      end;
                      if Result <> stUnknown then break;
                      end;
           ppSelect : begin
-                     if s = 'FROM' then
+                     if Keyword = kwFROM then
                        ParsePart := ppTableName;
                      end;
           ppTableName:
@@ -1324,7 +1340,7 @@ begin
                      //  and select-statements from more then one table
                      //  and/or derived tables are also not updateable
                      if (FSchemaType = stNoSchema) and
-                        (Separator in [sepWhitespace, sepComment, sepEnd]) then
+                        (Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd]) then
                        begin
                        FTableName := s;
                        FUpdateable := True;
@@ -1332,13 +1348,13 @@ begin
                      ParsePart := ppFrom;
                      end;
           ppFrom   : begin
-                     if (s = 'WHERE') or (s = 'GROUP') or (s = 'ORDER') or (s = 'LIMIT') or (s = 'ROWS') or
+                     if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
                         (Separator = sepEnd) then
                        begin
-                       case s of
-                         'WHERE': ParsePart := ppWhere;
-                         'GROUP': ParsePart := ppGroup;
-                         'ORDER': ParsePart := ppOrder;
+                       case Keyword of
+                         kwWHERE: ParsePart := ppWhere;
+                         kwGROUP: ParsePart := ppGroup;
+                         kwORDER: ParsePart := ppOrder;
                          else     ParsePart := ppBogus;
                        end;
 
@@ -1347,14 +1363,14 @@ begin
                        end
                      else
                      // joined table or user_defined_function (...)
-                     if (s = 'JOIN') or (Separator in [sepComma, sepParentheses]) then
+                     if (Keyword = kwJOIN) or (Separator in [sepComma, sepParentheses]) then
                        begin
                        FTableName := '';
                        FUpdateable := False;
                        end;
                      end;
           ppWhere  : begin
-                     if (s = 'GROUP') or (s = 'ORDER') or (s = 'LIMIT') or (s = 'ROWS') or
+                     if (Keyword in [kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
                         (Separator = sepEnd) then
                        begin
                        ParsePart := ppBogus;
@@ -1364,7 +1380,7 @@ begin
                        else
                          FWhereStopPos := PhraseP-PSQL+1;
                        end
-                     else if (s = 'UNION') then
+                     else if (Keyword = kwUNION) then
                        begin
                        ParsePart := ppBogus;
                        FUpdateable := False;
@@ -1372,7 +1388,7 @@ begin
                      end;
         end; {case}
         end;
-      if Separator in [sepComment, sepParentheses] then
+      if Separator in [sepComment, sepParentheses, sepDoubleQuote] then
         dec(CurrentP);
       PhraseP := CurrentP+1;
       end
