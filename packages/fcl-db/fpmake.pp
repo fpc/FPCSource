@@ -11,7 +11,7 @@ const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
   DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince];
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
-  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,wince];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
   DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64];
   SqldbWithoutOracleOSes   = [win64];
