@@ -3135,14 +3135,14 @@ Constructor TFields.Create(ADataset : TDataset);
 
 begin
   FDataSet:=ADataset;
-  FFieldList:=TList.Create;
+  FFieldList:=TFpList.Create;
   FValidFieldKinds:=[fkData..fkInternalcalc];
 end;
 
 Destructor TFields.Destroy;
 
 begin
-  if FFieldList <> nil then Clear;
+  Clear;
   FFieldList.Free;
   inherited Destroy;
 end;
@@ -3235,13 +3235,15 @@ begin
 end;
 
 Procedure TFields.Clear;
-
+var
+  AField: TField;
 begin
-  with FFieldList do
-    while Count > 0 do begin
-      TField(Last).FDataSet := Nil;
-      TField(Last).Free;
-      FFieldList.Delete(Count - 1);
+  while FFieldList.Count > 0 do 
+    begin
+    AField := TField(FFieldList.Last);
+    AField.FDataSet := Nil;
+    AField.Free;
+    FFieldList.Delete(FFieldList.Count - 1);
     end;
   Changed;
 end;

@@ -591,8 +591,13 @@ begin
     // If the statementtype is isc_info_sql_stmt_exec_procedure then
     // override the statement type derrived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
-    if IBStatementType = isc_info_sql_stmt_exec_procedure then
-      FStatementType := stExecProcedure;
+    case IBStatementType of
+      isc_info_sql_stmt_select: FStatementType := stSelect;
+      isc_info_sql_stmt_insert: FStatementType := stInsert;
+      isc_info_sql_stmt_update: FStatementType := stUpdate;
+      isc_info_sql_stmt_delete: FStatementType := stDelete;
+      isc_info_sql_stmt_exec_procedure: FStatementType := stExecProcedure;
+    end;
 
     if FStatementType in [stSelect,stExecProcedure] then
       begin
