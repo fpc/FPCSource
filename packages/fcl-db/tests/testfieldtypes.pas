@@ -1293,7 +1293,10 @@ begin
       sqlite3:
         statements := TTestStatements.Create('pragma table_info(FPDEV)');
       interbase:
-        statements := TTestStatements.Create(CTE_SELECT (*FB 2.1*));
+        statements := TTestStatements.Create(
+          CTE_SELECT (*FB 2.1*),
+          'EXECUTE BLOCK RETURNS (U VARCHAR(255)) AS BEGIN SELECT rdb$get_context(''SYSTEM'',''CURRENT_USER'') FROM rdb$database INTO U; SUSPEND; END' (*FB 2.0*)
+        );
       postgresql:
         statements := TTestStatements.Create(CTE_SELECT);
       mssql:
