@@ -188,10 +188,9 @@ begin
     FieldtypeDefinitions[ftGraphic] := '';
     end;
 
-  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc,interbase] then
+  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc] then
     begin
     // Some DB's do not support milliseconds in datetime and time fields.
-    // Firebird support miliseconds, see BUG 17199 (when resolved, then interbase can be excluded)
     for t := 0 to testValuesCount-1 do
       begin
       testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
