@@ -330,11 +330,11 @@ begin
       testValues[ftDateTime,i] := testDateValues[i];
     end;
 
-  if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
+  if dbconnectorname = '' then raise Exception.Create('There is no db connector specified');
   DBConnectorClass := GetClass('T'+dbconnectorname+'DBConnector');
   if assigned(DBConnectorClass) then
     DBConnector := TDBConnectorClass(DBConnectorClass).create
-  else Raise Exception.Create('Unknown db-connector specified: ' + 'T'+dbconnectorname+'DBConnector');
+  else Raise Exception.Create('Unknown db connector specified: ' + 'T'+dbconnectorname+'DBConnector');
   inc(DBConnectorRefCount);
 end;
 

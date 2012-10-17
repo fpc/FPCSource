@@ -3,7 +3,7 @@
 ; Select here which section has to be used currently, 
 ; i.e. which database you want to use
 [Database]
-type=interbase
+type=bufdataset
 
 
 ; These sections are for the several SQLDB-types of databases:
@@ -117,3 +117,9 @@ connector=memds
 ; BufDataset in memory dataset:
 [bufdataset]
 connector=bufdataset
+
+; sdfdataset file-based dataset:
+[sdfdataset]
+connector=sdfds
+; subdirectory for the sdf files:
+name=sdftest

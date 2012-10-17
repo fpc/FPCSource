@@ -46,11 +46,14 @@ end;
 procedure TSdfDSDBConnector.CreateNDatasets;
 var countID,n : integer;
 begin
+  if dbname='' then raise Exception.Create('dbname variable not specified. You must specify name= in database.ini');
   for n := 0 to MaxDataSet do
     begin
     with TSdfDataSet.Create(nil) do
       begin
       FileName := dbname+PathDelim+'fpdev_'+inttostr(n)+'.dat';
+      // Make sure the directory exists so we can write
+      ForceDirectories(dbname);
       DeleteFile(FileName);
       FileMustExist:=False;
       
@@ -78,10 +81,13 @@ end;
 procedure TSdfDSDBConnector.CreateFieldDataset;
 var i : integer;
 begin
+  if dbname='' then raise Exception.Create('dbname variable not specified. You must specify name= in database.ini');
   with TSdfDataSet.Create(nil) do
     begin
     FileName := dbname+PathDelim+'fpdev_field.dat';
       DeleteFile(FileName);
+    // Make sure the directory exists so we can write
+    ForceDirectories(dbname);
     FileMustExist:=False;
     
     SetFieldDatasetSchema(Schema);

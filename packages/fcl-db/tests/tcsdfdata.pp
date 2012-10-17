@@ -1,24 +1,28 @@
 unit tcsdfdata;
-// Tests multiline functionality of sdfdataset
+// Tests specific functionality of sdfdataset (multiline etc)
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, Fpcunit, Testutils, Testregistry,
-  dateutils, sdfdata;
+  Classes, SysUtils, Fpcunit, Testutils, Testregistry, testdecorator,
+  dateutils,sdfdata,ToolsUnit;
 
 type
 
-  { Ttestexport1 }
+  { Ttestsdfspecific }
 
-  Ttestexport1 = class(Ttestcase)
+  Ttestsdfspecific = class(Ttestcase)
   protected
     TestDataset: TSDFDataset;
     procedure Setup; override;
     procedure Teardown; override;
   published
+    procedure TestEmptyFileHeader;
+    procedure TestEmptyFileNoHeader;
+    procedure TestSingleLineHeader;
+    procedure TestSingleLineNoHeader;
     procedure TestOutput;
     procedure TestInputOurFormat;
     procedure TestDelimitedTextOutput;
@@ -26,7 +30,104 @@ type
 
 implementation
 
-procedure Ttestexport1.TestOutput;
+procedure Ttestsdfspecific.TestEmptyFileHeader;
+// An empty file should return 0 records even if it has a header
+const
+  InputFilename='empty.csv';
+begin
+  TestDataSet.Close;
+
+  if FileExists(InputFilename) then DeleteFile(InputFilename);
+  TestDataset.FileMustExist:=false;
+  TestDataset.FirstLineAsSchema := True;  
+  TestDataset.FileName:=InputFilename;
+  TestDataset.Open;
+
+  TestDataset.Last;
+  TestDataset.First;  
+  AssertEquals('Number of records in test dataset', 0, TestDataset.RecordCount);
+  TestDataset.Close;
+end;
+
+procedure Ttestsdfspecific.TestEmptyFileNoHeader;
+// An empty file should return 0 records even if it has a header
+const
+  InputFilename='empty.csv';
+begin
+  TestDataSet.Close;
+
+  if FileExists(InputFilename) then DeleteFile(InputFilename);
+  TestDataset.FileMustExist:=false;
+  TestDataset.FirstLineAsSchema := false;  
+  TestDataset.FileName:=InputFilename;
+  TestDataset.Open;
+
+  TestDataset.Last;
+  TestDataset.First;  
+  AssertEquals('Number of records in test dataset', 0, TestDataset.RecordCount);
+  TestDataset.Close;
+end;
+
+procedure Ttestsdfspecific.TestSingleLineHeader;
+// A file with a single data line and header should return 1 records
+const
+  InputFilename='singleh.csv';
+var
+  FileStrings: TStringList;
+begin
+  TestDataSet.Close;
+
+  if FileExists(InputFilename) then DeleteFile(InputFilename);
+  FileStrings:=TStringList.Create;
+  try
+    FileStrings.Add('ID,NAME,BIRTHDAY');
+    FileStrings.Add('1,SimpleName,31-12-1976');
+    FileStrings.SaveToFile(InputFileName);
+  finally
+    FileStrings.Free;
+  end;
+
+  TestDataset.FileMustExist:=false;
+  TestDataset.FirstLineAsSchema := true;
+  TestDataset.FileName:=InputFilename;
+  TestDataset.Open;
+
+  TestDataset.Last;
+  TestDataset.First;
+  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  TestDataset.Close;
+end;
+
+procedure Ttestsdfspecific.TestSingleLineNoHeader;
+// A file with a single data line, no header should return 1 records
+const
+  InputFilename='single.csv';
+var
+  FileStrings: TStringList;
+begin
+  TestDataSet.Close;
+
+  if FileExists(InputFilename) then DeleteFile(InputFilename);
+  FileStrings:=TStringList.Create;
+  try
+    FileStrings.Add('1,SimpleName,31-12-1976');
+    FileStrings.SaveToFile(InputFileName);
+  finally
+    FileStrings.Free;
+  end;
+
+  TestDataset.FileMustExist:=false;
+  TestDataset.FirstLineAsSchema := false;
+  TestDataset.FileName:=InputFilename;
+  TestDataset.Open;
+
+  TestDataset.Last;
+  TestDataset.First;
+  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  TestDataset.Close;
+end;
+
+procedure Ttestsdfspecific.TestOutput;
 const
   OutputFilename='output.csv';
 begin
@@ -72,7 +173,7 @@ begin
   TestDataset.Close;
 end;
 
-procedure Ttestexport1.TestInputOurFormat;
+procedure Ttestsdfspecific.TestInputOurFormat;
 // Test if input works with our format
 // Mainly check if reading quotes is according to Delphi sdf specs and works.
 // See test results from bug 19610 for evidence that the strings below should work.
@@ -136,7 +237,7 @@ begin
   AssertEquals(Expected7, TestDataSet.FieldByName('NAME').AsString);
 end;
 
-procedure Ttestexport1.TestDelimitedTextOutput;
+procedure Ttestsdfspecific.TestDelimitedTextOutput;
 // Test if input works with our format
 // Mainly check if reading quotes is according to Delphi sdf specs and works.
 // See test results from bug 19610 for evidence that the strings below should work.
@@ -193,7 +294,7 @@ begin
 end;
 
 
-procedure Ttestexport1.Setup;
+procedure Ttestsdfspecific.Setup;
 
 begin
   TestDataset := TSDFDataset.Create(nil);
@@ -205,7 +306,7 @@ begin
   TestDataset.Schema.Add('BIRTHDAY');
 end;
 
-procedure Ttestexport1.Teardown;
+procedure Ttestsdfspecific.Teardown;
 begin
   try
     TestDataset.Close;
@@ -222,7 +323,12 @@ begin
 end;
 
 initialization
-
-  Registertest(Ttestexport1);
+  // Only run these tests if we are running
+  // sdf tests. After all, running these when testing
+  // e.g. SQL RDBMS doesn't make sense.
+  if uppercase(dbconnectorname)='SDFDS' then
+    begin
+    Registertest(Ttestsdfspecific);
+    end;
 end.
 

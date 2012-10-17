@@ -6,7 +6,7 @@
 main=fcl-db
 
 [target]
-units=sqlite3conn
+units=sqlite3conn sqlite3backup
 
 [require]
 packages=fcl-xml sqlite

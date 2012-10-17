@@ -11,14 +11,15 @@ program dbtestframework_gui;
 
 uses
   Interfaces, Forms, GuiTestRunner,
-  // Generic DB-testframework units
+  // Generic DB test framework units
   ToolsUnit,
-  // Connecors for different database-types
+  // Connectors for different database-types
   sqldbtoolsunit,
   dbftoolsunit,
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
+  tcsdfdata,
   // DB unittest
   testbasics,
   TestFieldTypes,

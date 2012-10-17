@@ -1,15 +1,16 @@
 This is the Database directory of the Free Component Library.
 
-All base classes are in the db unit, the dbconst unit contains the 
+All base classes are in the db unit; the dbconst unit contains the 
 used resourcestrings.
 
 memds
-  contains a dataset-class in memory which can be read from, and
+  contains a dataset class in memory which can be read from, and
   written to a stream
 
 sqldb
-  contains a framework to work with several SQL-based databases
-  as Interbase, Firebird, MySQL, ODBC, SQLite3 and Oracle
+  contains a framework to work with several SQL-based databases such
+  as Interbase, Firebird, MySQL, ODBC, Oracle, Microsoft SQL Server, 
+	PostgreSQL, SQLite3 and Sybase ASE
 
 dbase
   contains the tDbf components, to work with DBASE and FoxPro
@@ -17,11 +18,11 @@ dbase
 
 sdf
   contains a dataset class to use text files directly as a
-  database. That could be fixed-size, or limited (SDF)
+  database. That could be fixed-size, or delimited (RFC 4180 CSV)
 
 sqlite
-  contains datases classes to use sqlite and sqlite3
+  contains dataset classes to use sqlite and sqlite3
 
-Succes !
+Good luck !
 
 Joost van der Sluis.              
