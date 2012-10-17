@@ -448,7 +448,7 @@ interface
     procedure DefaultReplacements(var s:ansistring);
 
     function Shell(const command:ansistring): longint;
-    function  GetEnvPChar(const envname:string):pchar;
+    function  GetEnvPChar(const envname:ansistring):pchar;
     procedure FreeEnvPChar(p:pchar);
 
     function is_number_float(d : double) : boolean;
@@ -809,7 +809,7 @@ implementation
                                OS Dependent things
  ****************************************************************************}
 
-    function GetEnvPChar(const envname:string):pchar;
+    function GetEnvPChar(const envname:ansistring):pchar;
       {$ifdef win32}
       var
         s     : string;
@@ -818,7 +818,7 @@ implementation
       {$endif}
       begin
       {$ifdef hasunix}
-        GetEnvPchar:=BaseUnix.fpGetEnv(envname);
+        GetEnvPchar:=BaseUnix.fpGetEnv(pansichar(envname));
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}

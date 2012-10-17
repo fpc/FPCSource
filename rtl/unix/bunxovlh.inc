@@ -65,7 +65,7 @@ function  fptime    :time_t; inline;
 Function fpSelect   (N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
 Function fpSelect   (var T:Text;TimeOut :PTimeval):cint;
 Function fpSelect   (var T:Text;TimeOut :time_t):cint;
-Function FpGetEnv   (name : String): pChar;
+Function FpGetEnv   (name : String): pChar; deprecated; // because shortstring
 
 // macro's
 
