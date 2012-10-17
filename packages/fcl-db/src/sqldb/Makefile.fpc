@@ -14,8 +14,10 @@ dirs_iphonesim=interbase postgres mysql odbc oracle sqlite
 dirs_netbsd=interbase postgres mysql odbc oracle sqlite mssql
 dirs_openbsd=interbase postgres mysql odbc oracle sqlite mssql
 dirs_win32=interbase postgres mysql odbc oracle sqlite mssql
-dirs_win64=interbase odbc mysql sqlite mssql
+dirs_win64=interbase postgres mysql odbc sqlite mssql
 dirs_wince=interbase postgres mysql odbc oracle sqlite
+dirs_solaris=interbase postgres mysql odbc oracle sqlite
+
 units=sqldb sqldblib
 rsts=sqldb
 

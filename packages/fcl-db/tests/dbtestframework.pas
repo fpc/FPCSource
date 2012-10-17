@@ -24,14 +24,17 @@ uses
   TestDatasources,
   TestDBBasics,
   TestBufDatasetStreams,
-  TestSpecificTBufDataset;
+  TestSpecificTBufDataset,
+  consoletestrunner;
+
+Procedure LegacyOutput;
 
 var
   FXMLResultsWriter: TXMLResultsWriter;
   FDigestResultsWriter: TDigestResultsWriter;
   testResult: TTestResult;
+
 begin
-  InitialiseDBConnector;
   testResult := TTestResult.Create;
   FXMLResultsWriter := TXMLResultsWriter.Create;
   FDigestResultsWriter := TDigestResultsWriter.Create(nil);
@@ -50,5 +53,30 @@ begin
     FXMLResultsWriter.Free;
     FDigestResultsWriter.Free;
   end;
-  FreeDBConnector;
+end;
+  
+Var
+  Application : TTestRunner;  
+  
+begin
+  InitialiseDBConnector;
+  Try
+    Application:=TTestRunner.Create(nil);
+    With Application do
+      try
+        if HasOption('g','legacy') then
+          LegacyOutput
+        else
+          begin  
+          DefaultFormat:=fplain;
+          DefaultRunAllTests:=True;
+          Initialize;
+          Run;
+          end;
+      finally
+        Free;
+      end;
+  Finally    
+    FreeDBConnector;
+  end;  
 end.

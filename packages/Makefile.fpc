@@ -37,7 +37,7 @@ dirs_arm_darwin= httpd22 opengles objcrtl
 dirs_i386_iphonesim= httpd22 opengles objcrtl dblib
 dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib fcl-extra \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1  httpd22 numlib iconvenc gtk2 cairo dblib fpindexer
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1  httpd22 numlib iconvenc gtk2 cairo dblib fpindexer dblib
 dirs_netbsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1  httpd22 pxlib numlib dblib fpindexer
