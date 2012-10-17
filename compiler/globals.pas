@@ -810,7 +810,7 @@ implementation
  ****************************************************************************}
 
     function GetEnvPChar(const envname:ansistring):pchar;
-      {$ifdef win32}
+      {$ifdef mswindows}
       var
         s     : string;
         i,len : longint;
@@ -821,7 +821,7 @@ implementation
         GetEnvPchar:=BaseUnix.fpGetEnv(pansichar(envname));
         {$define GETENVOK}
       {$endif}
-      {$ifdef win32}
+      {$ifdef mswindows}
         GetEnvPchar:=nil;
         p:=GetEnvironmentStrings;
         hp:=p;
