@@ -1598,7 +1598,7 @@ HKCR
         else
       //  Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
       //  Result := fTypeInfo.Invoke(IDispatch(Self), DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
-          Result := fTypeInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+          Result := fTypeInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), VarResult, ExcepInfo, ArgErr);
       end;
 
     function TAutoIntfObject.InterfaceSupportsErrorInfo(const riid: TIID): HResult;
@@ -1700,7 +1700,7 @@ HKCR
         begin
           Result := TAutoObjectFactory(Factory).DispTypeInfo.Invoke(Pointer(
             PtrUint(Self) + TAutoObjectFactory(Factory).DispIntfEntry^.IOffset),
-            DispID, Flags, TDispParams(Params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+            DispID, Flags, TDispParams(Params), VarResult, ExcepInfo, ArgErr);
         end;
       end;
 
