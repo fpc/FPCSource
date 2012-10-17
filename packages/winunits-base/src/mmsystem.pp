@@ -998,7 +998,7 @@ Type
                             lpData: PChar;
                             dwBufferLength: DWORD;
                             dwBytesRecorded: DWORD;
-                            dwUser: DWORD;
+                            dwUser: DWORD_PTR;
                             dwFlags: DWORD;
                             dwLoops: DWORD;
                             lpNext: PWAVEHDR;
@@ -1242,12 +1242,12 @@ Type
                     lpData: PChar;
                     dwBufferLength: DWORD;
                     dwBytesRecorded: DWORD;
-                    dwUser: DWORD;
+                    dwUser: DWORD_PTR;
                     dwFlags: DWORD;
                     lpNext: PMIDIHDR;
                     reserved: DWORD;
                     dwOffset: DWORD;
-                    dwReserved: array [0..Pred(8)] Of DWORD;
+                    dwReserved: array [0..Pred(8)] Of DWORD_PTR;
 	    End;
  MIDIHDR   = _midihdr;
  NPMIDIHDR = ^_midihdr;
@@ -1379,7 +1379,7 @@ Type
                        dwSource: DWORD;
                        dwLineID: DWORD;
                        fdwLine: DWORD;
-                       dwUser: DWORD;
+                       dwUser: DWORD_PTR;
                        dwComponentType: DWORD;
                        cChannels: DWORD;
                        cConnections: DWORD;
@@ -1404,7 +1404,7 @@ Type
                        dwSource: DWORD;
                        dwLineID: DWORD;
                        fdwLine: DWORD;
-                       dwUser: DWORD;
+                       dwUser: DWORD_PTR;
                        dwComponentType: DWORD;
                        cChannels: DWORD;
                        cConnections: DWORD;

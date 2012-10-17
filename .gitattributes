@@ -1755,6 +1755,7 @@ packages/fcl-base/src/dummy/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/eventlog.pp svneol=native#text/plain
 packages/fcl-base/src/fpexprpars.pp svneol=native#text/plain
 packages/fcl-base/src/fpmimetypes.pp svneol=native#text/plain
+packages/fcl-base/src/fpobserver.pp svneol=native#text/plain
 packages/fcl-base/src/fptemplate.pp svneol=native#text/plain
 packages/fcl-base/src/fptimer.pp svneol=native#text/plain
 packages/fcl-base/src/gettext.pp svneol=native#text/plain

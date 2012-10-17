@@ -147,6 +147,51 @@ type
   EInvalidOperation = class(Exception);
   TExceptionClass = Class of Exception;
 
+{ ---------------------------------------------------------------------
+  Free Pascal Observer support
+  ---------------------------------------------------------------------}
+
+
+Const
+  BaseGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
+  BaseGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
+
+  GUIDObserved : TGUID = BaseGUIDObserved;
+  GUIDObserver : TGUID = BaseGUIDObserver;
+
+  // String is needed for testing
+  SGUIDObserver = BaseGUIDObserver;
+  SGUIDObserved = BaseGUIDObserved;
+
+
+
+Type
+  // Notification operations :
+  // Observer has changed, is freed, item added to/deleted from list, custom event.
+  TFPObservedOperation = (ooChange,ooFree,ooAddItem,ooDeleteItem,ooCustom);
+{$INTERFACES CORBA}
+
+  { IFPObserved }
+
+  IFPObserved = Interface [BaseGUIDObserved]
+    // attach a new observer
+    Procedure FPOAttachObserver(AObserver : TObject);
+    // Detach an observer
+    Procedure FPODetachObserver(AObserver : TObject);
+    // Notify all observers of a change.
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
+  end;
+
+  { IFPObserver }
+
+  IFPObserver = Interface  [BaseGUIDObserver]
+    // Called by observed when observers are notified.
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+  end;
+{$INTERFACES COM}
+
+  EObserver = Class(Exception);
+
 { Forward class declarations }
 
   TStream = class;
@@ -269,9 +314,10 @@ type
     property Current: Pointer read GetCurrent;
   end;
 
-  TList = class(TObject)
+  TList = class(TObject,IFPObserved)
   private
     FList: TFPList;
+    FObservers : TFPList;
     procedure CopyMove (aList : TList);
     procedure MergeMove (aList : TList);
     procedure DoCopy(ListA, ListB : TList);
@@ -293,6 +339,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
     Procedure AddList(AList : TList);
     function Add(Item: Pointer): Integer;
     procedure Clear; virtual;
@@ -390,14 +439,19 @@ type
 
 {$M+}
 
-  TPersistent = class(TObject)
+  TPersistent = class(TObject,IFPObserved)
   private
+    FObservers : TFPList;
     procedure AssignError(Source: TPersistent);
   protected
     procedure AssignTo(Dest: TPersistent); virtual;
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
   public
+    Destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
     function  GetNamePath: string; virtual; {dynamic;}
   end;
@@ -961,10 +1015,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: WideString; ResType: PWideChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
     destructor Destroy; override;
   end;
 {$else}
@@ -972,10 +1026,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: string; ResType: PChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PChar);
     destructor Destroy; override;
   end;
 {$endif UNICODE}
@@ -1314,7 +1368,6 @@ type
 {$endif}
     procedure FlushBuffer;
     procedure WriteValue(Value: TValueType);
-    procedure WriteStr(const Value: String);
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
@@ -1342,6 +1395,7 @@ type
     procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
+    procedure WriteStr(const Value: String);
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;

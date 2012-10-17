@@ -49,6 +49,60 @@ begin
   Result:=Nil;
 end;
 
+destructor TPersistent.Destroy;
+begin
+  If Assigned(FObservers) then
+    begin
+    FPONotifyObservers(Self,ooFree,Nil);
+    FreeAndNil(FObservers);
+    end;
+  inherited Destroy;
+end;
+
+procedure TPersistent.FPOAttachObserver(AObserver: TObject);
+Var
+   I : IFPObserver;
+
+begin
+   If Not AObserver.GetInterface(SGUIDObserver,I) then
+     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
+   If not Assigned(FObservers) then
+     FObservers:=TFPList.Create;
+   FObservers.Add(AObserver);
+end;
+
+procedure TPersistent.FPODetachObserver(AObserver: TObject);
+Var
+  I : IFPObserver;
+
+begin
+  If Not AObserver.GetInterface(SGUIDObserver,I) then
+    Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
+  If Assigned(FObservers) then
+    begin
+    FObservers.Remove(AObserver);
+    If (FObservers.Count=0) then
+      FreeAndNil(FObservers);
+    end;
+end;
+
+procedure TPersistent.FPONotifyObservers(ASender: TObject;
+  AOperation: TFPObservedOperation; Data : Pointer);
+Var
+  O : TObject;
+  I : Integer;
+  Obs : IFPObserver;
+
+begin
+  If Assigned(FObservers) then
+    For I:=FObservers.Count-1 downto 0 do
+      begin
+      O:=TObject(FObservers[i]);
+      If O.GetInterface(SGUIDObserver,Obs) then
+        Obs.FPOObservedChanged(Self,AOperation,Data);
+      end;
+end;
+
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin

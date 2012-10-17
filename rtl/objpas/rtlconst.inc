@@ -114,6 +114,7 @@ ResourceString
   SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available.';
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
+  SErrNotObserver               = '"%s" is not an observer';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
   SerrInvalidPropertyType       = 'Invalid property type from streamed property: %d';
   SErrUnknownEnumValue          = 'Unknown enumeration value: "%s"';
