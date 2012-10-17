@@ -1449,7 +1449,7 @@ parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lo
 % \end{description}
 parser_w_nostackframe_without_assembler=03323_W_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
 % nostackframe call modifier is supposed to be used in conjunction with assembler.
-parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $2
+parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
 % nostackframe call modifier used without assembler modifier
 % might still generate local stack needs.
 %
