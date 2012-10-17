@@ -4748,6 +4748,7 @@ packages/libndsfpc/src/nds/input.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/interrupts.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/ipc.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/jtypes.inc svneol=native#text/plain
+packages/libndsfpc/src/nds/libversion.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/memory.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/nds.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/ndsinclude.inc svneol=native#text/plain

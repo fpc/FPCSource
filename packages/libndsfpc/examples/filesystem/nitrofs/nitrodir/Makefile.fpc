@@ -4,7 +4,7 @@
 
 [target]
 loaders= 
-programs=*
+programs=nitrodir
 
 [require]
 packages=libndsfpc
@@ -20,7 +20,7 @@ target=nds
 fpcdir=../../../../../..
 
 [compiler]
-options=-gl -Xm -O2 
+options=-Xm -O2 
 #-d__THUMB__
 
 [clean]
