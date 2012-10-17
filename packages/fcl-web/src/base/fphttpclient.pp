@@ -935,7 +935,7 @@ begin
   SS:=TStringStream.Create(s);
   try
     SS.Seek(0,soFromEnd);
-    F:=TFileStream.Create(AFileName,fmOpenRead);
+    F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
     try
       SS.CopyFrom(F,F.Size);
     finally

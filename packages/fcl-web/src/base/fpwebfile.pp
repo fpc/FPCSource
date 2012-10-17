@@ -129,7 +129,7 @@ begin
   AResponse.ContentType:=MimeTypes.GetMimeType(ExtractFileExt(AFileName));
   If (AResponse.ContentType='') then
     AResponse.ContentType:='Application/octet-stream';
-  F:=TFileStream.Create(AFileName,fmOpenRead);
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
   try
     AResponse.ContentLength:=F.Size;
     AResponse.ContentStream:=F;
