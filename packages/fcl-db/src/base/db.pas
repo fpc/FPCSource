@@ -415,7 +415,7 @@ type
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
-    property ValidChars : TFieldChars Read FValidChars;
+    property ValidChars : TFieldChars read FValidChars write FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;

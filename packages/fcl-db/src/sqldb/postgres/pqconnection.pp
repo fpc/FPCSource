@@ -31,6 +31,16 @@ type
     FieldBinding : array of integer;
   end;
 
+  EPQDatabaseError = class(EDatabaseError)
+    public
+      SEVERITY:string;
+      SQLSTATE: string;
+      MESSAGE_PRIMARY:string;
+      MESSAGE_DETAIL:string;
+      MESSAGE_HINT:string;
+      STATEMENT_POSITION:string;
+  end;
+
   { TPQConnection }
 
   TPQConnection = class (TSQLConnection)
@@ -40,6 +50,7 @@ type
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
     procedure CheckResultError(res: PPGresult; conn:PPGconn; ErrMsg: string);
+    function GetPQDatabaseError(res : PPGresult;ErrMsg: string):EPQDatabaseError;
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
@@ -88,16 +99,6 @@ type
     Class Function DefaultLibraryName : String; override;
     Class Function LoadFunction : TLibraryLoadFunction; override;
     Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
-  end;
-
-  EPQDatabaseError = class(EDatabaseError)
-    public
-      SEVERITY:string;
-      SQLSTATE: string;
-      MESSAGE_PRIMARY:string;
-      MESSAGE_DETAIL:string;
-      MESSAGE_HINT:string;
-      STATEMENT_POSITION:string;
   end;
 
 implementation
@@ -349,6 +350,22 @@ end;
 procedure TPQConnection.CheckResultError(res: PPGresult; conn: PPGconn;
   ErrMsg: string);
 var
+  E: EPQDatabaseError;
+
+begin
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    E:=GetPQDatabaseError(res,ErrMsg);
+    pqclear(res);
+    if assigned(conn) then
+      PQFinish(conn);
+    raise E;
+    end;
+end;
+
+function TPQConnection.GetPQDatabaseError(res: PPGresult; ErrMsg: string
+  ): EPQDatabaseError;
+var
   serr:string;
   E: EPQDatabaseError;
   CompName: string;
@@ -358,36 +375,29 @@ var
   MESSAGE_DETAIL:string;
   MESSAGE_HINT:string;
   STATEMENT_POSITION:string;
-
 begin
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    SEVERITY:=PQresultErrorField(res,ord('S'));
-    SQLSTATE:=PQresultErrorField(res,ord('C'));
-    MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
-    MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
-    MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
-    STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
-    serr:=PQresultErrorMessage(res)+LineEnding+
-      'Severity: '+ SEVERITY +LineEnding+
-      'SQL State: '+ SQLSTATE +LineEnding+
-      'Primary Error: '+ MESSAGE_PRIMARY +LineEnding+
-      'Error Detail: '+ MESSAGE_DETAIL +LineEnding+
-      'Hint: '+ MESSAGE_HINT +LineEnding+
-      'Character: '+ STATEMENT_POSITION +LineEnding;
-    pqclear(res);
-    if assigned(conn) then
-      PQFinish(conn);
-    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
-    E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName,ErrMsg, serr]);
-    E.SEVERITY:=SEVERITY;
-    E.SQLSTATE:=SQLSTATE;
-    E.MESSAGE_PRIMARY:=MESSAGE_PRIMARY;
-    E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
-    E.MESSAGE_HINT:=MESSAGE_HINT;
-    E.STATEMENT_POSITION:=STATEMENT_POSITION;
-    raise E;
-    end;
+  SEVERITY:=PQresultErrorField(res,ord('S'));
+  SQLSTATE:=PQresultErrorField(res,ord('C'));
+  MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
+  MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
+  MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
+  STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
+  serr:=PQresultErrorMessage(res)+LineEnding+
+    'Severity: '+ SEVERITY +LineEnding+
+    'SQL State: '+ SQLSTATE +LineEnding+
+    'Primary Error: '+ MESSAGE_PRIMARY +LineEnding+
+    'Error Detail: '+ MESSAGE_DETAIL +LineEnding+
+    'Hint: '+ MESSAGE_HINT +LineEnding+
+    'Character: '+ STATEMENT_POSITION +LineEnding;
+  if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
+  E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName,ErrMsg, serr]);
+  E.SEVERITY:=SEVERITY;
+  E.SQLSTATE:=SQLSTATE;
+  E.MESSAGE_PRIMARY:=MESSAGE_PRIMARY;
+  E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
+  E.MESSAGE_HINT:=MESSAGE_HINT;
+  E.STATEMENT_POSITION:=STATEMENT_POSITION;
+  result:=E;
 end;
 
 function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
@@ -580,6 +590,8 @@ begin
 end;
 
 procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
+var
+  E: EPQDatabaseError;
 
 begin
   with (cursor as TPQCursor) do if FPrepared then
@@ -590,8 +602,9 @@ begin
       res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
+          E:=GetPQDatabaseError(res,SErrPrepareFailed);
           pqclear(res);
-          DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
+          raise E;
         end
       else
         pqclear(res);
@@ -609,6 +622,7 @@ var ar  : array of pchar;
     ParamNames,
     ParamValues : array of string;
     cash: int64;
+    E: EPQDatabaseError;
 
 begin
   with cursor as TPQCursor do
@@ -687,14 +701,14 @@ begin
       end;
     if assigned(res) and not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
-      s := PQerrorMessage(tr.PGConn);
+      E:=GetPQDatabaseError(res,SErrExecuteFailed);
       pqclear(res);
 
       tr.ErrorOccured := True;
 // Don't perform the rollback, only make it possible to do a rollback.
 // The other databases also don't do this.
 //      atransaction.Rollback;
-      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + s + ')',self);
+      raise E;
       end;
     end;
 end;
