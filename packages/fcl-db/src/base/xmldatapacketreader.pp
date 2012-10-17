@@ -348,37 +348,39 @@ begin
     if assigned(AFieldNode) then
       begin
        s := AFieldNode.NodeValue;
+       AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
        if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
          s := DecodeStringBase64(s);
        if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo] then
         begin
         ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
-        afield := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
         AField.SetData(@ABufBlobField);
         ABufBlobField.BlobBuffer^.Size:=length(s);
         ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
         move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
         end
       else
-        Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo).AsString := s;  // set it to the filterbuffer
+        AField.AsString := s;  // set it to the filterbuffer
       end
     end;
 end;
 
 procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
-    AField: TField;
+    AFieldDef: TFieldDef;
+    s: string;
     ARecordNode : TDOMElement;
 begin
   inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
   for FieldNr := 0 to ADataset.FieldDefs.Count-1 do
     begin
-    AField := ADataset.Fields.FieldByNumber(ADataset.FieldDefs[FieldNr].FieldNo);
-    if AField.DataType in [ftBlob, ftBytes, ftVarBytes] then
-      ARecordNode.SetAttribute(AField.FieldName,EncodeStringBase64(AField.AsString))
+    AFieldDef := ADataset.FieldDefs[FieldNr];
+    s := ADataset.Fields.FieldByNumber(AFieldDef.FieldNo).AsString;
+    if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
+      ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(s))
     else
-      ARecordNode.SetAttribute(AField.FieldName,AField.AsString);
+      ARecordNode.SetAttribute(AFieldDef.Name, s);
     end;
   if ARowState<>[] then
     begin
