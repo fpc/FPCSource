@@ -64,7 +64,7 @@ Type
     Procedure ViewChangedHandler(Sender : TObject);  virtual;
     // Check if APropertyName is published property of AObject.
     // Only performed if both parameters are not empty.
-    procedure CheckPropertyName(AObject: TObject; APropertyName: String);
+    procedure CheckPropertyName(AObject: TObject; const APropertyName: String);
     // If all CheckObjectSubject and Active are true, call ObjectToView.
     Procedure MaybeObjectToView;
     // If all CheckObjectSubject and Active are true, call ViewToObject.
@@ -137,7 +137,6 @@ Type
     procedure SetComponent(const AValue: TComponent);
   Public
     procedure Notification(AComponent: TComponent;  Operation: TOperation); override;
-    Procedure ViewChangedHandler(Sender : TObject); override;
   Published
     // General component which can be set in Object Inspector
     Property ViewComponent : TComponent Read FViewComponent Write SetComponent;
@@ -353,7 +352,7 @@ Type
     destructor Destroy; override;
     // If APropName is empty or APropInfo is Nil, a composite mediator will be searched.
     function FindDefFor(ASubject: TObject; AGui: TComponent): TMediatorDef; overload;
-    function FindDefFor(ASubject: TObject; AGui: TComponent; APropName: string): TMediatorDef; overload;
+    function FindDefFor(ASubject: TObject; AGui: TComponent; const APropName: string): TMediatorDef; overload;
     function FindDefFor(ASubject: TObject; AGui: TComponent; APropInfo: PPropInfo): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyName: string): TMediatorDef; overload;
@@ -365,7 +364,7 @@ Type
 
 function MediatorManager: TMediatorManager;
 Procedure MediatorError(Sender : TObject; Const Msg : String); overload;
-Procedure MediatorError(Sender : TObject; Fmt : String; Args : Array of const); overload;
+Procedure MediatorError(Sender : TObject; Const Fmt : String; Args : Array of const); overload;
 
 implementation
 
@@ -400,7 +399,7 @@ begin
     Err:=Msg
   else If Sender is TBaseMediator then
     begin
-    M:=Sender as TBaseMediator;
+    M:=TBaseMediator(Sender);
     V:=M.View;
     S:=M.Subject;
     CN:='';
@@ -429,7 +428,7 @@ begin
   Raise EMediator.Create(Err);
 end;
 
-Procedure MediatorError(Sender : TObject; Fmt : String; Args : Array of const); overload;
+Procedure MediatorError(Sender : TObject; const Fmt : String; Args : Array of const); overload;
 
 begin
   MediatorError(Sender,Format(Fmt,Args));
@@ -582,7 +581,7 @@ begin
   ValueListChanged;
 end;
 
-procedure TBaseMediator.CheckPropertyName(AObject : TObject; APropertyName : String);
+procedure TBaseMediator.CheckPropertyName(AObject : TObject; const APropertyName : String);
 
 begin
   If Assigned(AObject) and (APropertyName<>'') then
@@ -808,11 +807,6 @@ begin
     end;
 end;
 
-procedure TComponentMediator.ViewChangedHandler(Sender: TObject);
-begin
-  inherited ViewChangedHandler(Sender);
-end;
-
 { TMediatorDef }
 
 function TMediatorDef.Handles(ASubject: TObject; AGui: TComponent; APropInfo: PPropInfo): Boolean;
@@ -910,7 +904,7 @@ begin
   Result := FindDefFor(ASubject, AGUI, PPropInfo(nil));
 end;
 
-function TMediatorManager.FindDefFor(ASubject: TObject; AGui: TComponent; APropName: string): TMediatorDef;
+function TMediatorManager.FindDefFor(ASubject: TObject; AGui: TComponent; const APropName: string): TMediatorDef;
 var
   propinfo: PPropInfo;
 begin
