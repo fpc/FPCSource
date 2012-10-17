@@ -879,6 +879,7 @@ implementation
         WriteLn('LockServer: ', fLock);
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -888,6 +889,7 @@ implementation
         WriteLn('GetLicInfo');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -897,6 +899,7 @@ implementation
         WriteLn('RequestLicKey');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -908,6 +911,7 @@ implementation
         WriteLn('CreateInstanceLic');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -996,9 +1000,6 @@ HKCR
 
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
-        {$ifndef DUMMY_REG}
-        reg: TRegistry;
-        {$endif}
         classidguid: String;
 
         function ThreadModelToString(model: TThreadingModel): String;
@@ -1691,8 +1692,6 @@ HKCR
     function TAutoObject.Invoke(DispID: LongInt; const iid: TGUID;
       LocaleID: longint; Flags: Word; var params; VarResult, ExcepInfo,
       ArgErr: pointer): HResult; stdcall;
-      var
-        fInterfacePointer: Pointer;
       begin
 {$ifdef DEBUG_COM}
         WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', GUIDToString(iid));
