@@ -25,7 +25,9 @@ type
 
   TTestSpecificTBufDataset = class(TTestCase)
   private
-    procedure TestDataset(ABufDataset: TBufDataset);
+    procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
+    function GetAutoIncDataset: TBufDataset;
+    procedure IntTestAutoIncFieldStreaming(XML: boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -34,6 +36,9 @@ type
     procedure CreateDatasetFromFields;
     procedure TestCreationDatasetWithCalcFields;
     procedure TestOpeningNonExistingDataset;
+    procedure TestAutoIncField;
+    procedure TestAutoIncFieldStreaming;
+    procedure TestAutoIncFieldStreamingXML;
   end;
 
 implementation
@@ -48,14 +53,16 @@ uses
 
 { TTestSpecificTBufDataset }
 
-procedure TTestSpecificTBufDataset.TestDataset(ABufDataset: TBufDataset);
+procedure TTestSpecificTBufDataset.TestDataset(ABufDataset: TBufDataset;
+  AutoInc: boolean);
 var
   i  : integer;
 begin
   for i := 1 to 10 do
     begin
     ABufDataset.Append;
-    ABufDataset.FieldByName('ID').AsInteger := i;
+    if not AutoInc then
+      ABufDataset.FieldByName('ID').AsInteger := i;
     ABufDataset.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
     ABufDataset.Post;
     end;
@@ -67,6 +74,52 @@ begin
     ABufDataset.next;
     end;
   CheckTrue(ABufDataset.EOF);
+end;
+
+function TTestSpecificTBufDataset.GetAutoIncDataset: TBufDataset;
+var
+  ds : TBufDataset;
+  f: TField;
+begin
+  ds := TBufDataset.Create(nil);
+  F := TAutoIncField.Create(ds);
+  F.FieldName:='ID';
+  F.DataSet:=ds;
+  F := TStringField.Create(ds);
+  F.FieldName:='NAME';
+  F.DataSet:=ds;
+  F.Size:=50;
+  DS.CreateDataset;
+
+  TestDataset(ds,True);
+  result := ds;
+end;
+
+procedure TTestSpecificTBufDataset.IntTestAutoIncFieldStreaming(XML: boolean);
+var
+  ds : TBufDataset;
+  fn: string;
+begin
+  ds := GetAutoIncDataset;
+  fn := GetTempFileName;
+  if xml then
+    ds.SaveToFile(fn,dfXML)
+  else
+    ds.SaveToFile(fn);
+  DS.Close;
+  ds.Free;
+
+  ds := TBufDataset.Create(nil);
+  ds.LoadFromFile(fn);
+  ds.Last;
+  CheckEquals(10,ds.FieldByName('Id').AsInteger);
+  ds.Append;
+  ds.FieldByName('NAME').asstring := 'Test';
+  ds.Post;
+  CheckEquals(11,ds.FieldByName('Id').AsInteger);
+  ds.Free;
+
+  DeleteFile(fn);
 end;
 
 procedure TTestSpecificTBufDataset.SetUp;
@@ -174,6 +227,25 @@ begin
 
   CheckException(ds.Open,EDatabaseError);
   ds.Free;
+end;
+
+procedure TTestSpecificTBufDataset.TestAutoIncField;
+var
+  ds : TBufDataset;
+begin
+  ds := GetAutoIncDataset;
+  DS.Close;
+  ds.Free;
+end;
+
+procedure TTestSpecificTBufDataset.TestAutoIncFieldStreaming;
+begin
+  IntTestAutoIncFieldStreaming(false);
+end;
+
+procedure TTestSpecificTBufDataset.TestAutoIncFieldStreamingXML;
+begin
+  IntTestAutoIncFieldStreaming(true);
 end;
 
 initialization
