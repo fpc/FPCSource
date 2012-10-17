@@ -26,7 +26,7 @@ uses
   sipapi, cpl, bt_api, bt_sdp, bthapi, bthutil, pimstore, ril, sms, ws2bth,
   keybd, nled, phone, connmgr, devload, devmgmt, mmreg, mmsystem, msacm,
   wininet, ras, raserror, sip, projects, wap, tsp, extapi, imm, rapitypes,
-  storemgr, pnp, tlhelp32;
+  oleserver, storemgr, pnp, tlhelp32;
 
 implementation
 

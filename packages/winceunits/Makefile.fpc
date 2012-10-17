@@ -39,4 +39,5 @@ WINDIR=../winunits-base/src
 comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp $(WINDIR)/eventsink.pp $(WINDIR)/stdole2.pas $(WINDIR)/oleserver.pp
         $(COMPILER) $(WINDIR)/comobj.pp
         $(COMPILER) $(WINDIR)/eventsink.pp
-        $(COMPILER) $(WINDIR)/stdole2.pas 
+        $(COMPILER) $(WINDIR)/stdole2.pas
+        $(COMPILER) $(WINDIR)/oleserver.pp
