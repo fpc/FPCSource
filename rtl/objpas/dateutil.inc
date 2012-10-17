@@ -423,6 +423,14 @@ Function MacTimeStampToUnix(const AValue: Int64): Int64;
 Function DateTimeToDosDateTime(const AValue: TDateTime): longint;
 Function DosDateTimeToDateTime( AValue: longint): TDateTime;
 
+{ UTC <-> Local time }
+
+Function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+Function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
+
+
 { ScanDateTime is a limited inverse of formatdatetime }
 function ScanDateTime(const Pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
 function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
@@ -2458,6 +2466,45 @@ function scandatetime(const pattern:string;const s:string;startpos:integer=1) : 
 
 begin
  result:=scandatetime(pattern,s,defaultformatsettings);
+end;
+
+{ Conversion of UTC to local time and vice versa }
+
+
+function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+
+begin
+  Result:=UniversalTimeToLocal(UT,GetLocalTimeOffset);
+end;
+
+function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+
+begin
+  Result := UT;
+  if (TZOffset > 0) then
+    Result := UT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset = 0) then
+    Result := UT
+  else if (TZOffset < 0) then
+    Result := UT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0);
+end;
+ 
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+
+begin
+  Result:=LocalTimeToUniversal(LT,GetLocalTimeOffset);
+end;
+
+Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
+
+begin
+  Result := LT;
+  if (TZOffset > 0) then
+    Result := LT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset = 0) then
+    Result := LT
+  else if (TZOffset < 0) then
+    Result := LT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0);
 end;
 
 {$else}
