@@ -519,7 +519,7 @@ const msgtxt : array[0..000279,1..240] of char=(
   '03323_W_Procedure/Function declared with call option NOSTACKFRAME but '+
   'without ASSEMBLER'#000+
   '03324_E_Procedure/Function declared w','ith call option NOSTACKFRAME bu'+
-  't local stack size is $2'#000+
+  't local stack size is $1'#000+
   '04000_E_Type mismatch'#000+
   '04001_E_Incompatible types: got "$1" expected "$2"'#000+
   '04002_E_Type mismatch between "$1" and "$2"'#000+
