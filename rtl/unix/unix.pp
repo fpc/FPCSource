@@ -85,7 +85,7 @@ function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;     deprecated;
 Function Shell   (const Command:AnsiString):cint; deprecated;
-Function fpSystem(const Command:string):cint; deprecated; // because of shortstring
+Function fpSystem(const Command:string):cint; deprecated  'use ansistring version';
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
