@@ -48,12 +48,12 @@ Const
   MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
 { Flags to `msync'.  There is non msync() call in this unit? }
-  MS_ASYNC        = 1;               { Sync memory asynchronously.  }
-  MS_SYNC         = 4;               { Synchronous memory sync.  }
-  MS_INVALIDATE   = 2;               { Invalidate the caches.  }
+  MS_ASYNC        = 1 deprecated;               { Sync memory asynchronously.  }
+  MS_SYNC         = 4 deprecated;               { Synchronous memory sync.  }
+  MS_INVALIDATE   = 2 deprecated;               { Invalidate the caches.  }
 
 Type
-  Tpipe = baseunix.tfildes;     // compability.
+  Tpipe = baseunix.tfildes deprecated;     // compability.
 
 {** Time/Date Handling **}
 
@@ -85,7 +85,7 @@ function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;     deprecated;
 Function Shell   (const Command:AnsiString):cint; deprecated;
-Function fpSystem(const Command:string):cint;
+Function fpSystem(const Command:string):cint; deprecated; // because of shortstring
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
