@@ -1117,9 +1117,9 @@ end;
 procedure TCustomBufDataset.InternalOpen;
 
 var IndexNr : integer;
+    i : integer;
 
 begin
-  InitDefaultIndexes;
   if not Assigned(FDatasetReader) and (FileName<>'') then
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
@@ -1127,6 +1127,27 @@ begin
     FReadFromFile := True;
     end;
   if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
+
+  // This is to check if the dataset is actually created (By calling CreateDataset,
+  // reading from a stream in some other way implemented by a descendent)
+  // If there are less fields then FieldDefs we know for sure that the dataset
+  // is not (correctly) created.
+  
+  // commented for now. If there are constant expressions in the select
+  // statement they are ftunknown, and not created.
+  // See mantis #22030
+  
+  //  if Fields.Count<FieldDefs.Count then
+  //    DatabaseError(SErrNoDataset);
+  
+  // If there is a field with FieldNo=0 then the fields are not found to the
+  // FieldDefs which is a sign that there is no dataset created. (Calculated and
+  // lookupfields have FieldNo=-1)
+  for i := 0 to Fields.Count-1 do
+    if fields[i].FieldNo=0 then
+      DatabaseError(SErrNoDataset);
+
+  InitDefaultIndexes;
   CalcRecordSize;
 
   FBRecordcount := 0;
