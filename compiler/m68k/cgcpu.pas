@@ -76,6 +76,7 @@ unit cgcpu;
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
+        procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
@@ -1083,6 +1084,15 @@ unit cgcpu;
          list.concat(taicpu.op_reg_reg(A_CMP,tcgsize2opsize[size],reg1,reg2));
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
+      end;
+
+    procedure tcg68k.a_jmp_name(list: TAsmList; const s: string);
+      var
+       ai: taicpu;
+      begin
+         ai := Taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s));
+         ai.is_jmp := true;
+         list.concat(ai);
       end;
 
     procedure tcg68k.a_jmp_always(list : TAsmList;l: tasmlabel);
