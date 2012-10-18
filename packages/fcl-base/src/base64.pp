@@ -87,7 +87,7 @@ type
   end;
 
 function EncodeStringBase64(const s:string):String;
-function DecodeStringBase64(const s:string):String;
+function DecodeStringBase64(const s:string;strict:boolean=false):String;
 
 implementation
 
@@ -417,7 +417,7 @@ begin
   raise EStreamError.Create('Invalid stream operation');
 end;
 
-function DecodeStringBase64(const s:string):String;
+function DecodeStringBase64(const s:string;strict:boolean=false):String;
 
 var 
   Instream, 
@@ -428,7 +428,10 @@ begin
   try
     Outstream:=TStringStream.Create('');
     try 
-      Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
+      if strict then
+        Decoder:=TBase64DecodingStream.Create(Instream,bdmStrict)
+      else
+        Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
       try
          Outstream.CopyFrom(Decoder,Decoder.Size);
          Result:=Outstream.DataString;
