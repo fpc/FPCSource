@@ -150,6 +150,8 @@ unit cgx86;
       winstackpagesize = 4096;
 {$endif NOTARGETWIN}
 
+    function UseAVX: boolean;
+
   implementation
 
     uses
@@ -157,6 +159,11 @@ unit cgx86;
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
        fmodule,symsym;
+
+    function UseAVX: boolean;
+      begin
+        Result:=current_settings.fputype in [fpu_avx];
+      end;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,

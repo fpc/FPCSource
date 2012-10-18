@@ -83,7 +83,9 @@ interface
            links to some sections }
          RELOC_NONE,
          { Darwin relocation, using PAIR }
-         RELOC_PIC_PAIR
+         RELOC_PIC_PAIR,
+         { Untranslated target-specific value }
+         RELOC_RAW
       );
 
 {$ifndef x86_64}
@@ -113,6 +115,12 @@ interface
 
       { GNU extensions }
       debuglinkname='.gnu_debuglink';
+
+      { TObjRelocation.flags }
+      { 'ftype' field contains platform-specific value }
+      rf_raw = 1;
+      { relocation must be added to dynamic list }
+      rf_dynamic = 2;
 
     type
       TObjSectionOption = (
@@ -172,15 +180,23 @@ interface
      PObjStabEntry=^TObjStabEntry;
 
      TObjRelocation = class
+     private
+        function GetType:TObjRelocationType;
+        procedure SetType(v:TObjRelocationType);
+     public
         DataOffset,
         orgsize    : aword;  { COFF: original size of the symbol to relocate }
                              { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
-        typ        : TObjRelocationType;
+        ftype      : byte;
         size       : byte;
+        flags      : byte;
         constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+        function TargetName:TSymStr;
+        property typ: TObjRelocationType read GetType write SetType;
      end;
 
      TObjSection = class(TFPHashObject)
@@ -219,6 +235,7 @@ interface
        procedure alloc(l:aword);
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
        procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+       procedure addrawReloc(ofs:aword;p:TObjSymbol;RawReloctype:byte);
        procedure ReleaseData;
        function  FullName:string;
        property  Data:TDynamicArray read FData;
@@ -327,7 +344,8 @@ interface
 
       TVTableEntry=record
         ObjRelocation : TObjRelocation;
-        orgreloctype  : TObjRelocationType;
+        orgreloctype,
+        orgrelocflags : byte;
         Enabled,
         Used  : Boolean;
       end;
@@ -627,7 +645,7 @@ implementation
         Symbol:=s;
         OrgSize:=0;
         ObjSection:=nil;
-        Typ:=Atyp;
+        ftype:=ord(Atyp);
       end;
 
 
@@ -639,9 +657,49 @@ implementation
         Symbol:=nil;
         OrgSize:=0;
         ObjSection:=aobjsec;
-        Typ:=Atyp;
+        ftype:=ord(Atyp);
       end;
 
+
+    constructor TObjRelocation.CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+      begin
+        if not assigned(s) then
+          internalerror(2012091701);
+        DataOffset:=ADataOffset;
+        Symbol:=s;
+        ObjSection:=nil;
+        orgsize:=0;
+        ftype:=ARawType;
+        flags:=rf_raw;
+      end;
+
+
+    function TObjRelocation.GetType:TObjRelocationType;
+      begin
+        if (flags and rf_raw)=0 then
+          result:=TObjRelocationType(ftype)
+        else
+          result:=RELOC_RAW;
+      end;
+
+
+    procedure TObjRelocation.SetType(v:TObjRelocationType);
+      begin
+        ftype:=ord(v);
+        flags:=flags and (not rf_raw);
+      end;
+
+
+    function TObjRelocation.TargetName:TSymStr;
+      begin
+        if assigned(symbol) then
+          if symbol.typ=AT_SECTION then
+            result:=symbol.objsection.name
+          else
+            result:=symbol.Name
+        else
+          result:=objsection.Name;
+      end;
 
 {****************************************************************************
                               TObjSection
@@ -778,6 +836,12 @@ implementation
     procedure TObjSection.addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
+      end;
+
+
+    procedure TObjSection.addrawReloc(ofs:aword;p:TObjSymbol;RawReloctype:byte);
+      begin
+        ObjRelocations.Add(TObjRelocation.CreateRaw(ofs,p,RawReloctype));
       end;
 
 
@@ -1419,7 +1483,8 @@ implementation
             if objreloc.dataoffset=vtblentryoffset then
               begin
                 EntryArray[VTableIdx].ObjRelocation:=objreloc;
-                EntryArray[VTableIdx].OrgRelocType:=objreloc.typ;
+                EntryArray[VTableIdx].OrgRelocType:=objreloc.ftype;
+                EntryArray[VTableIdx].OrgRelocFlags:=objreloc.flags;
                 objreloc.typ:=RELOC_ZERO;
                 break;
               end;
@@ -1447,7 +1512,8 @@ implementation
         { Restore relocation if available }
         if assigned(EntryArray[VTableIdx].ObjRelocation) then
           begin
-            EntryArray[VTableIdx].ObjRelocation.typ:=EntryArray[VTableIdx].OrgRelocType;
+            EntryArray[VTableIdx].ObjRelocation.ftype:=EntryArray[VTableIdx].OrgRelocType;
+            EntryArray[VTableIdx].ObjRelocation.flags:=EntryArray[VTableIdx].OrgRelocFlags;
             result:=EntryArray[VTableIdx].ObjRelocation;
           end;
         EntryArray[VTableIdx].Used:=true;

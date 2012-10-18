@@ -109,7 +109,8 @@ unit agarmgas;
 
         if current_settings.cputype=cpu_armv7m then
           result:='-march=armv7m -mthumb -mthumb-interwork '+result
-        else
+        { pass only cpu types >= armv6 because the rtl uses runtime selected code with armv5te statements }
+        else if current_settings.cputype>=cpu_armv6 then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
 
         if target_info.abi = abi_eabihf then

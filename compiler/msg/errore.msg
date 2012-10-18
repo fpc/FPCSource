@@ -390,7 +390,7 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 #
 # Parser
 #
-# 03322 is the last used one
+# 03324 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1447,6 +1447,12 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
 % \end{description}
+parser_w_nostackframe_without_assembler=03323_W_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
+% nostackframe call modifier is supposed to be used in conjunction with assembler.
+parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
+% nostackframe call modifier used without assembler modifier
+% might still generate local stack needs.
+%
 # Type Checking
 #
 # 04119 is the last used one

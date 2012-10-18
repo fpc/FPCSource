@@ -80,7 +80,6 @@ interface
          procedure createsymtab(data: TObjData);
          procedure writesectionheader(s:TElfObjSection);
          procedure section_write_symbol(p:TObject;arg:pointer);
-         procedure section_write_sh_string(p:TObject;arg:pointer);
          procedure section_count_sections(p:TObject;arg:pointer);
          procedure section_create_relocsec(p:TObject;arg:pointer);
          procedure section_write_sechdr(p:TObject;arg:pointer);
@@ -1056,7 +1055,10 @@ implementation
           AB_EXTERNAL :
             elfsym.st_info:=STB_GLOBAL shl 4;
           AB_WEAK_EXTERNAL :
-            elfsym.st_info:=STB_WEAK shl 4;
+            begin
+              elfsym.st_info:=STB_WEAK shl 4;
+              elfsym.st_value:=objsym.address;
+            end;
           AB_GLOBAL :
             begin
               elfsym.st_value:=objsym.address;
@@ -1072,6 +1074,10 @@ implementation
                 elfsym.st_info:=elfsym.st_info or STT_FUNC;
               AT_DATA :
                 elfsym.st_info:=elfsym.st_info or STT_OBJECT;
+              AT_TLS:
+                elfsym.st_info:=elfsym.st_info or STT_TLS;
+              AT_GNU_IFUNC:
+                elfsym.st_info:=elfsym.st_info or STT_GNU_IFUNC;
             end;
           end;
         if objsym.bind<>AB_COMMON then
@@ -1196,19 +1202,33 @@ implementation
       end;
 
 
-    procedure TElfObjectOutput.section_write_sh_string(p:TObject;arg:pointer);
-      begin
-        TElfObjSection(p).shstridx:=shstrtabsect.writestr(TObjSection(p).name);
-      end;
-
-
     procedure TElfObjectOutput.createshstrtab(data: TObjData);
+      var
+        i,prefixlen:longint;
+        objsec,target:TElfObjSection;
       begin
-        with data do
-         begin
-           shstrtabsect.writezeros(1);
-           ObjSectionList.ForEachCall(@section_write_sh_string,nil);
-         end;
+        shstrtabsect.writezeros(1);
+        prefixlen:=length('.rel')+ord(relocs_use_addend);
+        for i:=0 to data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TElfObjSection(data.ObjSectionList[i]);
+            { Alias section names into names of corresponding reloc sections,
+              this is allowed by ELF specs and saves good half of .shstrtab space. }
+            if objsec.shtype=relsec_shtype[relocs_use_addend] then
+              begin
+                target:=TElfObjSection(data.ObjSectionList[objsec.shinfo-1]);
+                if (target.ObjRelocations.Count=0) or
+                   (target.shstridx<prefixlen) then
+                  InternalError(2012101204);
+                objsec.shstridx:=target.shstridx-prefixlen;
+              end
+            else
+              begin
+                if objsec.ObjRelocations.Count<>0 then
+                  shstrtabsect.write(relsec_prefix[true][1],prefixlen);
+                objsec.shstridx:=shstrtabsect.writestr(objsec.name);
+              end;
+          end;
       end;
 
 
