@@ -28,13 +28,36 @@ unit cpupi;
   interface
 
     uses
-      procinfo,cgbase,psub;
+      psub;
 
     type
       tm68kprocinfo = class(tcgprocinfo)
+        procedure init_framepointer;override;
       end;
 
   implementation
+
+    uses
+      procinfo,
+      cpubase,
+      systems;
+
+  { tm68kprocinfo }
+
+    procedure tm68kprocinfo.init_framepointer;
+      begin
+        { ToDo : what about system_m68k_embedded? }
+        if target_info.system in [system_m68k_linux,system_m68k_netbsd,system_m68k_openbsd] then
+          begin
+            RS_FRAME_POINTER_REG:=RS_A6;
+            NR_FRAME_POINTER_REG:=NR_A6;
+          end
+        else
+          begin
+            NR_FRAME_POINTER_REG:=NR_A5;
+            RS_FRAME_POINTER_REG:=RS_A5;
+          end;
+      end;
 
 begin
    cprocinfo:=tm68kprocinfo;
