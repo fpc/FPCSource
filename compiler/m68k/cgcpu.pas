@@ -865,7 +865,7 @@ unit cgcpu;
               end;
           OP_IMUL :
               begin
-                if current_settings.cputype = cpu_MC68000 then
+                if current_settings.cputype<>cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -894,7 +894,7 @@ unit cgcpu;
               end;
           OP_MUL :
               begin
-                 if current_settings.cputype = cpu_MC68000 then
+                 if current_settings.cputype<>cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -902,7 +902,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
+                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -1120,7 +1120,7 @@ unit cgcpu;
               begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
-                 if current_settings.cputype = cpu_MC68000 then
+                 if current_settings.cputype <> cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -1128,7 +1128,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
+                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
