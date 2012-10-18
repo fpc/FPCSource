@@ -177,7 +177,7 @@ implementation
          if signed then
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_LONGINT',false)
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_CARDINAL',false);
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_DWORD',false);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,reg_d0,denum);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d0);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d1);
