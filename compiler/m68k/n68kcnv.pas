@@ -43,7 +43,7 @@ implementation
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,procinfo,
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
@@ -160,7 +160,15 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
+        hlabel,
+        oldTrueLabel,
+        oldFalseLabel : tasmlabel;
       begin
+         oldTrueLabel:=current_procinfo.CurrTrueLabel;
+         oldFalseLabel:=current_procinfo.CurrFalseLabel;
+         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+
          secondpass(left);
 
 { TODO: needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
@@ -178,10 +186,10 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-{   ACTIVATE when loc_jump support is added
+{   ACTIVATE when loc_jump support is added }
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
               current_procinfo.CurrFalseLabel:=oldFalseLabel;
-}
+//}
               exit;
            end;
 
@@ -220,6 +228,22 @@ implementation
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=left.location.resflags;
+              end;
+            LOC_JUMP :
+              begin
+                { for now blindly copied from nx86cnv }
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                current_asmdata.getjumplabel(hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                if not(is_cbool(resultdef)) then
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register)
+                else
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,-1,location.register);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
+                cg.a_label(current_asmdata.CurrAsmList,hlabel);
               end;
             else
              internalerror(200512182);
