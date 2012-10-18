@@ -2056,9 +2056,11 @@ unit rgobj;
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                     with ref^ do
                       begin
-                        if (base <> NR_NO) then
+                        if (base <> NR_NO) and
+                            (getregtype(base)=regtype) then
                           addreginfo(base,instr.spilling_get_operation_type_ref(counter,base));
-                        if (index <> NR_NO) then
+                        if (index <> NR_NO) and
+                            (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
                       end;
                 end;
@@ -2219,6 +2221,7 @@ unit rgobj;
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                     begin
+                      { no need to check for the register type here }
                       tryreplacereg(ref^.base);
                       tryreplacereg(ref^.index);
                     end;
