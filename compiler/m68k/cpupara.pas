@@ -32,7 +32,7 @@ unit cpupara;
       cpubase,
       aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,paramgr,cgbase;
+      parabase,paramgr,cgbase,cgutils;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
