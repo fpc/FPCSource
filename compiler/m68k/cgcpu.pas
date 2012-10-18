@@ -697,11 +697,6 @@ unit cgcpu;
           OP_AND,
           OP_OR:
               begin
-                { TODO: on Coldfire ORI/ANDI to CCR is not supported }
-                if op=OP_AND then
-                  opcode:=A_ANDI
-                else
-                  opcode:=A_ORI;
                 if isaddressregister(reg) then
                   begin
                     { use scratch register (there is a anda/ora though...) }
