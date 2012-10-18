@@ -51,10 +51,7 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   end;
 
 
-{$ifdef notsupported}
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL6'];
   asm
   end;
 
-
-{$endif notsupported}

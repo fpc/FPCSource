@@ -354,7 +354,9 @@ begin
   StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := initialstkptr - StackLength;
   { Set up signals handlers (may be needed by init code to test cpu features) }
+{$ifndef cpum68k}
   InstallSignals;
+{$endif cpum68k}
 
 {$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
@@ -374,6 +376,8 @@ begin
   InitSystemThreads;
   initvariantmanager;
   { restore original signal handlers in case this is a library }
+{$ifndef cpum68k}
   if IsLibrary then
     RestoreOldSignalHandlers;
+{$endif cpum68k}
 end.
