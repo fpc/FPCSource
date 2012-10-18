@@ -697,7 +697,21 @@ unit cgcpu;
           OP_AND,
           OP_OR:
               begin
-                 list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
+                { TODO: on Coldfire ORI/ANDI to CCR is not supported }
+                if op=OP_AND then
+                  opcode:=A_ANDI
+                else
+                  opcode:=A_ORI;
+                if isaddressregister(reg) then
+                  begin
+                    { use scratch register (there is a anda/ora though...) }
+                    scratch_reg:=getintregister(list,OS_INT);
+                    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg));
+                    list.concat(taicpu.op_const_reg(opcode,S_L,longint(a),scratch_reg));
+                    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
+                  end
+                else
+                  list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
               end;
           OP_DIV :
               begin
