@@ -639,6 +639,12 @@ implementation
               end
             else
 {$endif cpu64bitalu}
+            { Note: for withs of records (and maybe objects, classes, etc.) an
+                    address register could be set here, but that is later
+                    changed to an intregister neverthless when in the
+                    tcgassignmentnode maybechangeloadnodereg is called for the
+                    temporary node; so the workaround for now is to fix the
+                    symptoms... }
               l.register:=cg.getintregister(list,l.size);
           end;
       end;

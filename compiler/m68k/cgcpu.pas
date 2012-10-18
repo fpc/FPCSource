@@ -188,7 +188,7 @@ unit cgcpu;
          if ref.index <> NR_NO then
            begin
              if ref.base <> NR_NO then
-                internalerror(20020814);
+                internalerror(2002081401);
              if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                 isvalidrefoffset := false
            end
@@ -926,7 +926,7 @@ unit cgcpu;
               begin
                 if (a >= 1) and (a <= 8) then
                  begin
-                   { now allowed to shift an address register }
+                   { not allowed to shift an address register }
                    if (isaddressregister(reg)) then
                      begin
                        scratch_reg := getintregister(list,OS_INT);

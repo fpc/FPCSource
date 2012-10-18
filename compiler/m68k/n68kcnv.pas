@@ -130,7 +130,7 @@ implementation
           internalerror(200110011);
         { has to be handled by a helper }
         if not signed then
-           internalerror(20020814);
+           internalerror(2002081404);
 
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,opsize);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
