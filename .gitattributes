@@ -7935,6 +7935,8 @@ rtl/m68k/lowmath.inc svneol=native#text/plain
 rtl/m68k/m68k.inc svneol=native#text/plain
 rtl/m68k/makefile.cpu svneol=native#text/plain
 rtl/m68k/math.inc svneol=native#text/plain
+rtl/m68k/mathu.inc svneol=native#text/plain
+rtl/m68k/mathuh.inc svneol=native#text/plain
 rtl/m68k/readme -text
 rtl/m68k/set.inc svneol=native#text/plain
 rtl/m68k/setjump.inc svneol=native#text/plain
