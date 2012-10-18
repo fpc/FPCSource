@@ -17,16 +17,12 @@
                            MIPS specific stuff
 ****************************************************************************}
 function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
-  var
-    fsr : dword;
   asm
     cfc1 $2,$31
   end;
 
 
-procedure set_fsr(fsr : dword);assembler;[public, alias: 'FPC_SETFSR'];
-  var
-    _fsr : dword;
+procedure set_fsr(fsr : dword);assembler;nostackframe;[public, alias: 'FPC_SETFSR'];
   asm
     ctc1 $4,$31
   end;
