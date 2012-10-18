@@ -171,8 +171,6 @@ implementation
 
          secondpass(left);
 
-{ TODO: needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
-
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }
          if (nf_explicit in flags) and
@@ -186,10 +184,8 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-{   ACTIVATE when loc_jump support is added }
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
               current_procinfo.CurrFalseLabel:=oldFalseLabel;
-//}
               exit;
            end;
 
@@ -248,10 +244,15 @@ implementation
             else
              internalerror(200512182);
          end;
-         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
-         if (is_cbool(resultdef)) then
-           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
-         location.register := hreg1;
+         if left.location.loc<>LOC_JUMP then
+           begin
+             cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
+             if (is_cbool(resultdef)) then
+               cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
+             location.register := hreg1;
+           end;
+         current_procinfo.CurrTrueLabel:=oldTrueLabel;
+         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 {
