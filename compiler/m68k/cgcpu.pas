@@ -317,6 +317,7 @@ unit cgcpu;
           { Push the data starting at ofs }
           href:=r;
           inc(href.offset,ofs);
+          fixref(list,href);
           if tcgsize2size[paraloc^.size]>cgpara.alignment then
             pushsize:=paraloc^.size
           else
@@ -414,41 +415,114 @@ unit cgcpu;
 
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
-
+       var
+         hreg,idxreg : tregister;
+         href : treference;
        begin
          result:=false;
-         { The Coldfire and MC68020+ have extended
+         { The MC68020+ has extended
            addressing capabilities with a 32-bit
            displacement.
          }
-         if (current_settings.cputype<>cpu_MC68000) then
+         if (current_settings.cputype=cpu_MC68020) then
            exit;
-         if (ref.base<>NR_NO) then
-           begin
-             if (ref.index <> NR_NO) and assigned(ref.symbol) then
-                internalerror(20020814);
-             { base + reg }
-             if ref.index <> NR_NO then
-                begin
-                   { base + reg + offset }
-                   if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+         { ToDo: check which constraints of Coldfire also apply to MC68000 }
+         case current_settings.cputype of
+           cpu_MC68000:
+             begin
+               if (ref.base<>NR_NO) then
+                 begin
+                   if (ref.index <> NR_NO) and assigned(ref.symbol) then
+                      internalerror(2002081402);
+                   { base + reg }
+                   if ref.index <> NR_NO then
+                      begin
+                         { base + reg + offset }
+                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                           begin
+                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                              fixref := true;
+                              ref.offset := 0;
+                              exit;
+                           end;
+                      end
+                   else
+                   { base + offset }
+                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
                      begin
-                        list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                        fixref := true;
-                        ref.offset := 0;
-                        exit;
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                       fixref := true;
+                       ref.offset := 0;
+                       exit;
                      end;
-                end
-             else
-             { base + offset }
-             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-               begin
-                 list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                 fixref := true;
-                 ref.offset := 0;
-                 exit;
-               end;
-           end;
+                 end;
+             end;
+           cpu_Coldfire:
+             begin
+               if (ref.base<>NR_NO) then
+                 begin
+                   if assigned(ref.symbol) and (ref.index=NR_NO) then
+                     begin
+                       hreg:=cg.getaddressregister(list);
+                       reference_reset_symbol(href,ref.symbol,0,ref.alignment);
+                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                       ref.index:=ref.base;
+                       ref.base:=hreg;
+                       ref.symbol:=nil;
+                     end;
+                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
+                     begin
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,ref.index));
+                       ref.index:=NR_NO;
+                     end;
+                   {if (ref.index <> NR_NO) and assigned(ref.symbol) then
+                      internalerror(2002081403);}
+                   { first ensure that base is an address register }
+                   if not isaddressregister(ref.base) then
+                     begin
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       fixref:=true;
+                       ref.base:=hreg;
+                     end;
+                   { base + reg }
+                   if ref.index <> NR_NO then
+                      begin
+                         { base + reg + offset }
+                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                           begin
+                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                              fixref := true;
+                              ref.offset := 0;
+                              exit;
+                           end;
+                      end
+                   else
+                   { base + offset }
+                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+                     begin
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                       fixref:=true;
+                       ref.offset:=0;
+                       exit;
+                     end;
+                 end
+               else
+                 { Note: symbol -> ref would be supported as long as ref does not
+                         contain a offset or index... (maybe something for the
+                         optimizer) }
+                 if Assigned(ref.symbol) {and (ref.index<>NR_NO)} then
+                   begin
+                     hreg:=cg.getaddressregister(list);
+                     idxreg:=ref.index;
+                     ref.index:=NR_NO;
+                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+                     reference_reset_base(ref,hreg,0,ref.alignment);
+                     ref.index:=idxreg;
+                     fixref:=true;
+                   end;
+             end;
+         end;
        end;
 
 
@@ -514,12 +588,32 @@ unit cgcpu;
       end;
 
     procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);
+      var
+        hreg : tregister;
+        href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
         list.concat(tai_comment.create(strpnew('a_load_const_ref')));
 {$endif DEBUG_CHARLIE}
 
-        list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),ref));
+        href:=ref;
+        fixref(list,href);
+        { for coldfire we need to go through a temporary register if we have a
+          offset, index or symbol given }
+        if (current_settings.cputype=cpu_coldfire) and
+            (
+              (href.offset<>0) or
+              { TODO : check whether we really need this second condition }
+              (href.index<>NR_NO) or
+              assigned(href.symbol)
+            ) then
+          begin
+            hreg:=getintregister(list,tosize);
+            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),hreg));
+            list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href));
+          end
+        else
+          list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),href));
       end;
 
 
@@ -541,6 +635,8 @@ unit cgcpu;
       var
         aref: treference;
         bref: treference;
+        dofix : boolean;
+        hreg: TRegister;
       begin
         aref := sref;
         bref := dref;
@@ -549,6 +645,57 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
 //        writeln('a_load_ref_ref');
 {$endif DEBUG_CHARLIE}
+        { Coldfire dislikes certain move combinations }
+        if current_settings.cputype=cpu_coldfire then
+          begin
+            { TODO : move.b/w only allowed in newer coldfires... (ISA_B+) }
+
+            dofix:=false;
+            if { (d16,Ax) and (d8,Ax,Xi) }
+                (
+                  (aref.base<>NR_NO) and
+                  (
+                    (aref.index<>NR_NO) or
+                    (aref.offset<>0)
+                  )
+                ) or
+                { (xxx) }
+                assigned(aref.symbol) then
+              begin
+                if aref.index<>NR_NO then
+                  begin
+                    dofix:={ (d16,Ax) and (d8,Ax,Xi) }
+                           (
+                             (bref.base<>NR_NO) and
+                             (
+                               (bref.index<>NR_NO) or
+                               (bref.offset<>0)
+                             )
+                           ) or
+                           { (xxx) }
+                           assigned(bref.symbol);
+                  end
+                else
+                  { offset <> 0, but no index }
+                  begin
+                    dofix:={ (d8,Ax,Xi) }
+                           (
+                             (bref.base<>NR_NO) and
+                             (bref.index<>NR_NO)
+                           ) or
+                           { (xxx) }
+                           assigned(bref.symbol);
+                  end;
+              end;
+
+            if dofix then
+              begin
+                hreg:=getaddressregister(list);
+                list.concat(taicpu.op_ref_reg(A_LEA,S_L,bref,hreg));
+                list.concat(taicpu.op_reg_ref(A_MOVE,S_L{TCGSize2OpSize[fromsize]},hreg,bref));
+                exit;
+              end;
+          end;
         list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
       end;
 
@@ -566,7 +713,7 @@ unit cgcpu;
       var
        href : treference;
       begin
-         href := ref;
+         href:=ref;
          fixref(list,href);
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
          { extend the value in the register }
