@@ -81,7 +81,7 @@ implementation
         { for testing }
         needs_frame_pointer := true;//false;
         computed_local_size:=-1;
-        { pi_needs_got is not yet set correctly 
+        { pi_needs_got is not yet set correctly
           so include it always if creating PIC code }
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -101,8 +101,14 @@ implementation
         if tg.direction = -1 then
           tg.setfirsttemp(0)
         else
-          tg.setfirsttemp(maxpushedparasize+
-           floatregssave*sizeof(aint)+intregssave*sizeof(aint));
+          begin
+            if not (po_nostackframe in procdef.procoptions) then
+              tg.setfirsttemp(Align(maxpushedparasize+
+                floatregssave*sizeof(aint)+intregssave*sizeof(aint)
+                ,max(current_settings.alignment.localalignmin,8)))
+            else
+              tg.setfirsttemp(align(maxpushedparasize,max(current_settings.alignment.localalignmin,8)));
+          end;
       end;
 
 
