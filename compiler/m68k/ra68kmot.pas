@@ -1587,7 +1587,6 @@ const
      AS_SEPARATOR, AS_COMMA: ;
     else
      begin
-      writeln('looofasz');
       Message(asmr_e_invalid_opcode_and_operand);
       Consume(actasmtoken);
      end;
