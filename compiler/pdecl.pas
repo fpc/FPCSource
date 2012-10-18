@@ -372,6 +372,7 @@ implementation
         paras: tnode;
         again: boolean;
         od: tobjectdef;
+        classattrdef: tobjectdef;
         constrpd: tprocdef;
         typesym: ttypesym;
         oldblock_type: tblock_type;
@@ -384,6 +385,9 @@ implementation
           begin
           typesym := ttypesym(ttypenode(p).typesym);
           od := tobjectdef(ttypenode(p).typedef);
+          classattrdef := tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
+          if not od.is_related(classattrdef) then
+            incompatibletypes(od,classattrdef);
 
           { Search the tprocdef of the constructor which has to be called. }
           constrpd := od.find_procdef_bytype(potype_constructor);

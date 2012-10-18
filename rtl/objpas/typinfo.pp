@@ -240,9 +240,6 @@ unit typinfo;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
-      TCustomAttribute = class(TObject)
-       end;
-
       TAttributeProc = function : TObject;
       PAttributeProcList = ^TAttributeProcList;
       TAttributeProcList = array[0..255] of TAttributeProc;

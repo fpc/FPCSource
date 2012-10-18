@@ -334,6 +334,9 @@
          Frames     : PPointer;
        end;
 
+       TCustomAttribute = class(TObject)
+       end;
+
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;
