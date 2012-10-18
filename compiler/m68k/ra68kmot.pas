@@ -1697,7 +1697,7 @@ const
         hl: tasmlabel;
         instr : TM68kInstruction;
       begin
-        Message(asmr_d_start_reading);
+        //Message(asmr_d_start_reading);
         firsttoken := TRUE;
         operandnum := 0;
         { sets up all opcode and register tables in uppercase }
@@ -1806,7 +1806,7 @@ const
         LocalLabelList.Free;
 
         assemble:=curlist;
-        Message(asmr_d_finish_reading);
+        //Message(asmr_d_finish_reading);
       end;
 
 
