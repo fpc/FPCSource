@@ -380,27 +380,29 @@ implementation
         { Parse attribute type }
         p := factor(false,true);
 
-        typesym := ttypesym(ttypenode(p).typesym);
-        od := tobjectdef(ttypenode(p).typedef);
+        if p.nodetype<>errorn then
+          begin
+          typesym := ttypesym(ttypenode(p).typesym);
+          od := tobjectdef(ttypenode(p).typedef);
 
-        { Search the tprocdef of the constructor which has to be called. }
-        constrpd := od.find_procdef_bytype(potype_constructor);
+          { Search the tprocdef of the constructor which has to be called. }
+          constrpd := od.find_procdef_bytype(potype_constructor);
 
-        { Parse the attribute-parameters as if it is a list of parameters from
-          a call to the constrpd constructor in an execution-block. }
-        p1 := cloadvmtaddrnode.create(ctypenode.create(od));
-        again:=true;
-        oldblock_type := block_type;
-        block_type := bt_body;
-        do_member_read(od,false,constrpd.procsym,p1,again,[]);
-        block_type:=oldblock_type;
+          { Parse the attribute-parameters as if it is a list of parameters from
+            a call to the constrpd constructor in an execution-block. }
+          p1 := cloadvmtaddrnode.create(ctypenode.create(od));
+          again:=true;
+          oldblock_type := block_type;
+          block_type := bt_body;
+          do_member_read(od,false,constrpd.procsym,p1,again,[]);
+          block_type:=oldblock_type;
 
-        { Add attribute to attribute list which will be added
-          to the property which is defined next. }
-        if not assigned(rtti_attributes) then
-          rtti_attributes := trtti_attributesdef.create;
-        rtti_attributes.addattribute(typesym,p1);
-
+          { Add attribute to attribute list which will be added
+            to the property which is defined next. }
+          if not assigned(rtti_attributes) then
+            rtti_attributes := trtti_attributesdef.create;
+          rtti_attributes.addattribute(typesym,p1);
+          end;
         p.free;
         consume(_RECKKLAMMER);
       end;
