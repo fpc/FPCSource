@@ -151,9 +151,9 @@ interface
                if (index<>NR_NO) and (base=NR_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
-                    s:=s+'(,'+indexstr+'.l)'
+                    s:=s+'('+indexstr+'.l)'
                   else
-                    s:=s+'(,'+indexstr+'.l*'+tostr(scalefactor)+')'
+                    s:=s+'('+indexstr+'.l*'+tostr(scalefactor)+')'
                 end
                 else if (index=NR_NO) and (base<>NR_NO) and (direction=dir_inc) then
                 begin
