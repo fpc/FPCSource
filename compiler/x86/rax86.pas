@@ -500,42 +500,79 @@ begin
         case operands[i].Opr.Typ of
           OPR_REFERENCE:
                 case MemRefInfo(opcode).MemRefSize of
-                    msiMem8,
+                    msiMem8:
+                            begin
+                              tx86operand(operands[i]).opsize := S_B;
+                              tx86operand(operands[i]).size   := OS_8;
+                            end;
                     msiMultiple8:
-                             begin
-                               tx86operand(operands[i]).opsize := S_B;
-                               tx86operand(operands[i]).size   := OS_8;
-                             end;
-                   msiMem16,
-                   msiMultiple16:
+                            begin
+                              tx86operand(operands[i]).opsize := S_B;
+                              tx86operand(operands[i]).size   := OS_8;
+
+                              Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"8 bit memory operand"');
+                            end;
+                    msiMem16:
+                            begin
+                              tx86operand(operands[i]).opsize := S_W;
+                              tx86operand(operands[i]).size   := OS_16;
+                            end;
+                    msiMultiple16:
                              begin
                                tx86operand(operands[i]).opsize := S_W;
                                tx86operand(operands[i]).size   := OS_16;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"16 bit memory operand"');
                              end;
-                   msiMem32,
-                   msiMultiple32:
+                    msiMem32:
                              begin
                                tx86operand(operands[i]).opsize := S_L;
                                tx86operand(operands[i]).size   := OS_32;
                              end;
-                   msiMem64,
-                   msiMultiple64:
+                    msiMultiple32:
+                             begin
+                               tx86operand(operands[i]).opsize := S_L;
+                               tx86operand(operands[i]).size   := OS_32;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"32 bit memory operand"');
+                             end;
+                    msiMem64:
                              begin
                                tx86operand(operands[i]).opsize := S_Q;
                                tx86operand(operands[i]).size   := OS_M64;
                              end;
-                  msiMem128,
-                  msiMultiple128:
+                    msiMultiple64:
+                             begin
+                               tx86operand(operands[i]).opsize := S_Q;
+                               tx86operand(operands[i]).size   := OS_M64;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"64 bit memory operand"');
+                             end;
+                    msiMem128:
                              begin
                                tx86operand(operands[i]).opsize := S_XMM;
                                tx86operand(operands[i]).size   := OS_M128;
                              end;
-                  msiMem256,
-                  msiMultiple256:
+                    msiMultiple128:
+                             begin
+                               tx86operand(operands[i]).opsize := S_XMM;
+                               tx86operand(operands[i]).size   := OS_M128;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"128 bit memory operand"');
+                             end;
+                    msiMem256:
                              begin
                                tx86operand(operands[i]).opsize := S_YMM;
                                tx86operand(operands[i]).size   := OS_M256;
                                opsize := S_YMM;
+                             end;
+                    msiMultiple256:
+                             begin
+                               tx86operand(operands[i]).opsize := S_YMM;
+                               tx86operand(operands[i]).size   := OS_M256;
+                               opsize := S_YMM;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"256 bit memory operand"');
                              end;
                   msiMemRegSize:
                              begin
