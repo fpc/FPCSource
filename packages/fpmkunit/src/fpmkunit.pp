@@ -203,6 +203,7 @@ Const
   AllMessages = [vlError,vlWarning,vlCommand,vlInfo];
 
 Type
+  TTargets = Class;
   { TNamedItem }
 
   TNamedItem = Class(TCollectionItem)
@@ -218,10 +219,14 @@ Type
   TNamedCollection = Class(TCollection)
   private
     FUniqueNames: Boolean;
+  private
+    function GetItem(Index: Integer): TNamedItem;
+    procedure SetItem(Index: Integer; AValue: TNamedItem);
   Public
     Function IndexOfName(const AName : String) : Integer;
     Function ItemByName(const AName : String) : TNamedItem;
     Property UniqueNames : Boolean Read FUniqueNames;
+    property Items[Index: Integer]: TNamedItem read GetItem write SetItem;
   end;
 
   { TNamedItemList }
@@ -392,8 +397,11 @@ Type
   { TPackageDictionary }
 
   TPackageDictionary = Class(TDictionary)
+  private
+    FMasterDictionary: TDictionary;
   Public
     Function GetValue(const AName,Args : String) : String; override;
+    property MasterDictionary: TDictionary read FMasterDictionary write FMasterDictionary;
   end;
 
 
@@ -418,6 +426,45 @@ Type
     Property Version : String Read GetVersion Write SetVersion;
     Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
+
+  { TPackageVariant }
+
+  TPackage = Class;
+  TPackageVariant = class(TNamedItem)
+  private
+    FOptions: TStrings;
+    FTargets: TTargets;
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+    property Options: TStrings read FOptions;
+    property Targets: TTargets read FTargets;
+  end;
+
+  { TPackageVariants }
+
+  TPackageVariants = class(TNamedCollection)
+  private
+    FActivePackageVariantName: string;
+    FDefaultPackageVariantName: string;
+    FIsInheritable: boolean;
+    FMasterPackage: TPackage;
+    FName: string;
+    function GetActivePackageVariant: TPackageVariant;
+    function GetDefaultPackageVariant: TPackageVariant;
+    procedure SetActivePackageVariantName(AValue: string);
+    procedure SetDefaultPackageVariantName(AValue: string);
+  public
+    function Add(AName: String): TPackageVariant; overload; virtual;
+    property Name: string read FName write FName;
+    property MasterPackage: TPackage read FMasterPackage;
+    property DefaultPackageVariant: TPackageVariant read GetDefaultPackageVariant;
+    property ActivePackageVariant: TPackageVariant read GetActivePackageVariant;
+    property DefaultPackageVariantName: string read FDefaultPackageVariantName write SetDefaultPackageVariantName;
+    property ActivePackageVariantName: string read FActivePackageVariantName write SetActivePackageVariantName;
+    property IsInheritable: boolean read FIsInheritable;
+  end;
+
 
   TDependencies = Class(TConditionalStrings)
     function GetDependency(Index : Integer): TDependency;
@@ -484,6 +531,7 @@ Type
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
+    procedure AssignTo(Dest: TPersistent); override;
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
     Function HaveOptions : Boolean;
     procedure SetName(const AValue: String);override;
@@ -654,6 +702,8 @@ Type
     FDescriptionFile : String;
     FDescription : String;
     FInstalledChecksum : Cardinal;
+    FUnitsOutputDir: String;
+    FPackageUnitInstallDir: String;
     // Cached directory of installed packages
     FUnitDir : String;
     // Used by buildunits
@@ -665,6 +715,7 @@ Type
     FDictionary : TDictionary;
     // Is set when all sourcefiles are found
     FAllFilesResolved: boolean;
+    FPackageVariants: TFPList;
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
@@ -674,15 +725,19 @@ Type
     Procedure SetVersion(const V : string);
   Protected
     procedure SetName(const AValue: String);override;
-    procedure LoadUnitConfigFromFile(Const AFileName: String);
     procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
-    procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     property Dictionary: TDictionary read GetDictionary;
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
     Function HaveOptions : Boolean;
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Function  GetUnitConfigOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Procedure InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
+    Function  GetPackageVariantsByName(AName: string): TPackageVariants;
+    Procedure SetUnitsOutputDir(AValue: string);
+    Function  GetPackageUnitInstallDir(ACPU:TCPU; AOS : TOS):String;
+    Procedure SetPackageUnitInstallDir(AValue: string);
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS); virtual;
@@ -690,6 +745,11 @@ Type
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
+    Procedure AddPackageVariant(APackageVariant: TPackageVariants);
+    procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
+    procedure SetDefaultPackageVariant;
+    procedure LoadUnitConfigFromFile(Const AFileName: String);
+    procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
     Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
@@ -936,7 +996,7 @@ Type
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
-    Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
+    Procedure LogSearchPath(APackage: TPackage;const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
@@ -1036,6 +1096,8 @@ Type
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
     FFPMakeOptionsString: string;
+    FPackageVariantSettings: TStrings;
+    FPackageVariants: TFPList;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -1056,6 +1118,7 @@ Type
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
+    Function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
     Function Run : Boolean;
     Property FPMakeOptionsString: string read FFPMakeOptionsString;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
@@ -1123,6 +1186,7 @@ Type
 
   TInstallerClass = Class of TCustomInstaller;
   TDictionaryClass = Class of TDictionary;
+  TPackageDictionaryClass = Class of TPackageDictionary;
 
 Type
   TArchiveEvent = Procedure (Const AFileName : String; List : TStrings) of Object;
@@ -1130,7 +1194,7 @@ Type
 
 Var
   DictionaryClass : TDictionaryClass = TDictionary;
-  PackageDictionaryClass : TDictionaryClass = TPackageDictionary;
+  PackageDictionaryClass : TPackageDictionaryClass = TPackageDictionary;
   OnArchiveFiles : TArchiveEvent = Nil;
   ArchiveFilesProc : TArchiveProc = Nil;
 
@@ -1220,6 +1284,7 @@ ResourceString
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
+  SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1242,6 +1307,7 @@ ResourceString
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
   SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
+  SWarnDuplicatePackage = 'Warning: Package %s is already added. Using the existing package';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1256,6 +1322,7 @@ ResourceString
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
+  SInfoFallbackBuildmodeBU= 'Buildmode not supported by package, falling back to compilation using a buildunit';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
@@ -1266,7 +1333,7 @@ ResourceString
   SDbgOutputNotYetAvailable = 'Output file %s not available';
   SDbgDependencyOnUnit      = 'Dependency of %s on unit %s';
   SDbgDependencyUnitRecompiled = 'Dependent unit %s is being recompiled';
-  SDbgMustCompile           = 'Must compile %s';
+  SDbgMustCompile           = 'Must compile %s. (%s)';
   SDbgSkippingTargetWrongCPU = 'Skipping target %s, different CPU (%s)';
   SDbgSkippingTargetWrongOS  = 'Skipping target %s, different OS (%s)';
   SDbgTargetIsNotAUnitOrProgram = 'Skipping Target %s, not an unit or program';
@@ -1290,6 +1357,13 @@ ResourceString
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
   SDbgGenerateBuildUnit     = 'Generate build-unit %s';
+  SDbgForcedCompile         = 'Forced compile';
+  SDbgOutputDoesNotExist    = 'Output file does not exist';
+  SDbgNewerSource           = 'Source file is newer then output file';
+  SDbgNewerInclude          = 'The include file %s is newer then output file';
+  SDbgDependencyRecompiled  = 'The unit %s where this unit depends on is recompiled';
+  SDbgPackageDepRecompiled  = 'The package %s where this package depends on is recompiled';
+  SDbgTargetHasToBeCompiled = 'At least one of the targets in the package has to be compiled.';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1360,6 +1434,7 @@ Const
   KeyAddIn    = 'FPMakeAddIn';
   KeySourcePath = 'SourcePath';
   KeyFPMakeOptions = 'FPMakeOptions';
+  KeyPackageVar = 'PackageVariant_';
 
 {****************************************************************************
                                 Helpers
@@ -1836,15 +1911,16 @@ begin
 end;
 
 
-function AddConditionalStrings(Dest : TStrings; Src : TConditionalStrings;ACPU:TCPU;AOS:TOS; Const APrefix : String='') : Integer ;
+function AddConditionalStrings(APackage: TPackage; Dest : TStrings; Src : TConditionalStrings;ACPU:TCPU;AOS:TOS; Const APrefix : String='') : Integer ;
 Var
   I : Integer;
   C : TConditionalString;
-  D : TDictionary;
+  D : TPackageDictionary;
   S : String;
 begin
   Result:=0;
   D := PackageDictionaryClass.Create(nil);
+  D.MasterDictionary := APackage.Dictionary;
   try
     D.AddVariable('CPU',CPUToString(ACPU));
     D.AddVariable('OS',OSToString(AOS));
@@ -2095,8 +2171,58 @@ begin
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
-
 {$endif HAS_UNIT_PROCESS}
+
+constructor TPackageVariant.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FTargets := TTargets.Create(TTarget);
+  FOptions := TStringList.Create;
+end;
+
+destructor TPackageVariant.Destroy;
+begin
+  FOptions.Free;
+  FTargets.Free;
+  inherited Destroy;
+end;
+
+{ TPackageVariants }
+
+procedure TPackageVariants.SetDefaultPackageVariantName(AValue: string);
+begin
+  if FDefaultPackageVariantName=AValue then Exit;
+  if not assigned(ItemByName(avalue)) then
+    raise exception.CreateFmt(SErrPackVarNotExist,[AValue]);
+  FDefaultPackageVariantName:=AValue;
+end;
+
+function TPackageVariants.GetActivePackageVariant: TPackageVariant;
+begin
+  result := ItemByName(ActivePackageVariantName) as TPackageVariant;
+end;
+
+function TPackageVariants.GetDefaultPackageVariant: TPackageVariant;
+begin
+  result := ItemByName(DefaultPackageVariantName) as TPackageVariant;
+end;
+
+procedure TPackageVariants.SetActivePackageVariantName(AValue: string);
+begin
+  if FActivePackageVariantName=AValue then Exit;
+  if not assigned(ItemByName(avalue)) then
+    raise exception.CreateFmt(SErrPackVarNotExist,[AValue]);
+  FActivePackageVariantName:=AValue;
+end;
+
+function TPackageVariants.Add(AName: String): TPackageVariant;
+begin
+  result := self.add as TPackageVariant;
+  result.Name := AName;
+  if FDefaultPackageVariantName='' then
+    FDefaultPackageVariantName:=AName;
+end;
+
 
 { TConditionalDestStrings }
 
@@ -2151,7 +2277,10 @@ begin
   I:=Flist.IndexOf(AName);
   If (I=-1) then
     begin
-      result := GlobalDictionary.GetValue(AName,Args);
+      if assigned(MasterDictionary) then
+        result := MasterDictionary.GetValue(AName,Args)
+      else
+        result := GlobalDictionary.GetValue(AName,Args);
       Exit;
     end;
   O:=Flist.Objects[I];
@@ -2238,6 +2367,16 @@ end;
 {****************************************************************************
                                 TNamedCollection
 ****************************************************************************}
+
+function TNamedCollection.GetItem(Index: Integer): TNamedItem;
+begin
+  result := TNamedItem(inherited getItem(index));
+end;
+
+procedure TNamedCollection.SetItem(Index: Integer; AValue: TNamedItem);
+begin
+  inherited SetItem(Index, AValue);
+end;
 
 function TNamedCollection.IndexOfName(const AName: String): Integer;
 
@@ -2612,6 +2751,8 @@ begin
   FExamplePath:=TConditionalStrings.Create(TConditionalString);
   FTestPath:=TConditionalStrings.Create(TConditionalString);
   FCommands:=TCommands.Create(TCommand);
+  FUnitsOutputDir:='units'+PathDelim+'$(target)'+PathDelim;
+  FPackageVariants:=TFPList.Create;
   FCPUs:=AllCPUs;
   FOSes:=AllOSes;
   FInstalledChecksum:=$ffffffff;
@@ -2622,6 +2763,8 @@ end;
 
 
 destructor TPackage.destroy;
+var
+  i: integer;
 begin
   FreeAndNil(FDictionary);
   FreeAndNil(FDependencies);
@@ -2637,6 +2780,7 @@ begin
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
+  FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
 
@@ -2657,7 +2801,64 @@ end;
 
 Function TPackage.GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
 begin
-  Result:='units'+PathDelim+MakeTargetString(ACPU,AOS);
+  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
+begin
+  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+procedure TPackage.InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
+var
+  i: integer;
+  APackageVariants: TPackageVariants;
+begin
+  for i := 0 to ADependencyPackage.FPackageVariants.Count-1 do
+    begin
+      APackageVariants := TPackageVariants(ADependencyPackage.FPackageVariants[i]);
+      if APackageVariants.IsInheritable then
+        begin
+        if not assigned(GetPackageVariantsByName(APackageVariants.Name)) then
+          begin
+          FPackageVariants.Add(APackageVariants);
+          end;
+        end;
+    end;
+end;
+
+function TPackage.GetPackageVariantsByName(AName: string): TPackageVariants;
+var
+  i: Integer;
+begin
+  result := nil;
+  for i := 0 to FPackageVariants.Count-1 do
+    if SameText(TPackageVariants(FPackageVariants.Items[i]).Name, AName) then
+      begin
+      result := TPackageVariants(FPackageVariants.Items[i]);
+      break;
+      end;
+end;
+
+procedure TPackage.SetUnitsOutputDir(AValue: string);
+begin
+  if AValue<>'' then
+    FUnitsOutputDir:=IncludeTrailingPathDelimiter(AValue)
+  else
+    FUnitsOutputDir:='';
+end;
+
+function TPackage.GetPackageUnitInstallDir(ACPU: TCPU; AOS: TOS): String;
+begin
+  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+end;
+
+procedure TPackage.SetPackageUnitInstallDir(AValue: string);
+begin
+  if AValue<>'' then
+    FPackageUnitInstallDir:=IncludeTrailingPathDelimiter(AValue)
+  else
+    FPackageUnitInstallDir:='';
 end;
 
 
@@ -2674,7 +2875,7 @@ Var
 begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
-  AddConditionalStrings(List,CleanFiles,ACPU,AOS);
+  AddConditionalStrings(Self, List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, ACPU, AOS);
 end;
@@ -2687,7 +2888,7 @@ Var
   T : TTarget;
 begin
   if Types=[] then
-    AddConditionalStrings(List,InstallFiles,ACPU,AOS)
+    AddConditionalStrings(Self, List,InstallFiles,ACPU,AOS)
   else
     begin
       OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaults.OS));
@@ -2899,6 +3100,47 @@ begin
     end;
 end;
 
+procedure TPackage.AddPackageVariant(APackageVariant: TPackageVariants);
+begin
+  if not assigned(APackageVariant.FMasterPackage) then
+    APackageVariant.FMasterPackage := Self;
+  FPackageVariants.Add(APackageVariant);
+end;
+
+procedure TPackage.ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
+var
+  i: integer;
+  PackageVariants: TPackageVariants;
+begin
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+    ACompilerOptions.AddStrings(PackageVariants.ActivePackageVariant.Options);
+    end;
+end;
+
+procedure TPackage.SetDefaultPackageVariant;
+var
+  i,j: integer;
+  PackageVariants: TPackageVariants;
+begin
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+    if Installer.FPackageVariantSettings.Values[PackageVariants.Name]<>'' then
+      PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name]
+    else
+      PackageVariants.ActivePackageVariantName:= PackageVariants.DefaultPackageVariantName;
+    Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
+    SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
+    SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
+    // Do not add targets f the package is inherited
+    if PackageVariants.MasterPackage=Self then
+      for j := 0 to PackageVariants.ActivePackageVariant.Targets.count -1 do
+        targets.add.assign(PackageVariants.ActivePackageVariant.Targets.items[j]);
+    end;
+end;
+
 
 procedure TPackage.LoadUnitConfigFromFile(Const AFileName: String);
 var
@@ -2909,6 +3151,10 @@ var
   DepChecksum : Cardinal;
   DepName : String;
   D : TDependency;
+  PackageVariantsStr: string;
+  PackageVarName: string;
+  pv: TPackageVariants;
+  AnIsInheritable: boolean;
 begin
   L:=TStringList.Create;
   Try
@@ -2940,6 +3186,41 @@ begin
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
         IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
+
+        i := 1;
+        repeat
+        PackageVariantsStr:=Values[KeyPackageVar+inttostr(i)];
+        if PackageVariantsStr<>'' then
+          begin
+            k := pos(':',PackageVariantsStr);
+            if k > 0 then
+              begin
+                PackageVarName:=copy(PackageVariantsStr,1,k-1);
+                if PackageVarName[Length(PackageVarName)]='*' then
+                  begin
+                  SetLength(PackageVarName,Length(PackageVarName)-1);
+                  AnIsInheritable:=true;
+                  end
+                else
+                  AnIsInheritable:=false;
+                PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
+                pv := Installer.AddPackageVariant(PackageVarName, AnIsInheritable);
+                AddPackageVariant(pv);
+
+                k := pos(',',PackageVariantsStr);
+                while k>0 do
+                  begin
+                    PackageVarName:=copy(PackageVariantsStr,1,k-1);
+                    PackageVariantsStr:=copy(PackageVariantsStr,k+1,length(PackageVariantsStr)-k);
+                    pv.Add(PackageVarName);
+                    k := pos(',',PackageVariantsStr);
+                  end;
+                pv.Add(PackageVariantsStr);
+              end;
+          end;
+        inc(i);
+        until PackageVariantsStr='';
+
       end;
   Finally
     L.Free;
@@ -2949,9 +3230,11 @@ end;
 procedure TPackage.SaveUnitConfigToStringList(const AStringList: TStrings; ACPU: TCPU; AOS: TOS);
 Var
   Deps : String;
-  i : integer;
+  i,j : integer;
   D : TDependency;
   p : TPackage;
+  PackageVariants : TPackageVariants;
+  PackageVariantsStr: string;
 begin
   with AStringList do
     begin
@@ -2987,6 +3270,18 @@ begin
         Values[KeyAddIn]:='Y'
       else
         Values[KeyAddIn]:='N';
+      for i := 0 to FPackageVariants.Count-1 do
+        begin
+          PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
+          PackageVariantsStr:=PackageVariants.Name;
+          if PackageVariants.IsInheritable then
+            PackageVariantsStr:=PackageVariantsStr+'*';
+          PackageVariantsStr := PackageVariantsStr +':'+PackageVariants.DefaultPackageVariantName;
+          for j := 0 to PackageVariants.Count-1 do
+            if not sametext(PackageVariants.Items[j].Name, PackageVariants.DefaultPackageVariantName) then
+              PackageVariantsStr:=PackageVariantsStr+','+PackageVariants.Items[j].Name;
+          values[KeyPackageVar+inttostr(i+1)] := PackageVariantsStr;
+        end;
     end;
 end;
 
@@ -3030,9 +3325,20 @@ end;
 
 
 function TPackages.AddPackage(const AName: String): TPackage;
+var
+  i: integer;
 begin
-  Result:=Add as TPackage;
-  Result.Name:=AName;
+  i := IndexOfName(AName);
+  if i > -1 then
+    begin
+    result := PackageItems[i];
+    Installer.Log(vlWarning,Format(SWarnDuplicatePackage,[AName]))
+    end
+  else
+    begin
+    Result:=Add as TPackage;
+    Result.Name:=AName;
+    end;
 end;
 
 
@@ -3521,6 +3827,8 @@ end;
 
 constructor TCustomInstaller.Create(AOwner: TComponent);
 begin
+  FPackageVariantSettings := TStringList.Create;
+  FPackageVariants := TFPList.Create;
   GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
   GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
@@ -3532,10 +3840,19 @@ end;
 
 
 destructor TCustomInstaller.Destroy;
+var
+  i: integer;
 begin
   FreePackages;
   FreeAndNil(Defaults);
   FreeAndNil(GlobalDictionary);
+  FreeAndNil(FPackageVariantSettings);
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    if TPackageVariants(FPackageVariants.Items[i]).Owner=Self then
+      TPackageVariants(FPackageVariants.Items[i]).Free;
+    end;
+  FreeAndNil(FPackageVariants);
   inherited destroy;
 end;
 
@@ -3592,6 +3909,13 @@ begin
   result:=Packages.AddPackage(AName);
 end;
 
+function TCustomInstaller.AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+begin
+  result := TPackageVariants.Create(TPackageVariant);
+  result.Name:=AName;
+  result.FIsInheritable:=AIsInheritable;
+  FPackageVariants.Add(result);
+end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
@@ -3602,6 +3926,28 @@ procedure TCustomInstaller.AnalyzeOptions;
     O:=Paramstr(Index);
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
     if AddToOptionString and Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
+  end;
+
+  Function CheckBuildOptionSetValue(Index: Integer): boolean;
+  var
+    O : String;
+    BuildModeName: string;
+    P: integer;
+  begin
+    O:=Paramstr(Index);
+    result := O[1]='+';
+    if result then
+      begin
+      P:=Pos('=',Paramstr(Index));
+      If (P=0) then
+        Error(SErrNeedArgument,[Index,O])
+      else
+        begin
+        BuildModeName:=copy(o,2,P-2);
+        Delete(O,1,P);
+        FPackageVariantSettings.Values[BuildModeName] := O;
+        end;
+      end;
   end;
 
   Function CheckCustomOption(Index : Integer; out CustOptName: string): Boolean;
@@ -3759,7 +4105,7 @@ begin
         CustomFpMakeCommandlineValues := TStringList.Create;
       CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I)
       end
-    else if not Defaults.IgnoreInvalidOptions then
+    else if (not CheckBuildOptionSetValue(I)) and (not Defaults.IgnoreInvalidOptions) then
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
       end;
@@ -4433,7 +4779,7 @@ begin
 end;
 
 
-Procedure TBuildEngine.LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
+procedure TBuildEngine.LogSearchPath(APackage: TPackage; const ASearchPathName: string; Path: TConditionalStrings; ACPU: TCPU; AOS: TOS);
 var
   S : String;
   I : Integer;
@@ -4447,7 +4793,7 @@ begin
         begin
           if S<>'' then
             S:=S+PathSeparator;
-          S:=S+GlobalDictionary.ReplaceStrings(C.Value)
+          S:=S+APackage.Dictionary.ReplaceStrings(C.Value)
         end;
     end;
   if S<>'' then
@@ -4494,7 +4840,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
   var
     SD,SF  : String;
   begin
-    LogSearchPath('package source',APackage.SourcePath,ACPU,AOS);
+    LogSearchPath(APackage,'package source',APackage.SourcePath,ACPU,AOS);
     SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
     SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
@@ -4519,8 +4865,8 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     D : TDependency;
     j : integer;
   begin
-    LogSearchPath('target include',T.IncludePath,ACPU,AOS);
-    LogSearchPath('package include',APackage.IncludePath,ACPU,AOS);
+    LogSearchPath(APackage,'target include',T.IncludePath,ACPU,AOS);
+    LogSearchPath(APackage,'package include',APackage.IncludePath,ACPU,AOS);
     for j:=0 to T.Dependencies.Count-1 do
       begin
         D:=T.Dependencies[j];
@@ -4564,7 +4910,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
   var
     SD,SF  : String;
   begin
-    LogSearchPath('package example',APackage.ExamplePath,ACPU,AOS);
+    LogSearchPath(APackage,'package example',APackage.ExamplePath,ACPU,AOS);
     SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
     SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
@@ -4654,13 +5000,13 @@ begin
       if (APackage.UnitDir='') and
          (Defaults.LocalUnitDir<>'') then
         begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name;
+          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
           if not SysDirectoryExists(APackage.UnitDir) then
             APackage.UnitDir:='';
         end;
       if APackage.UnitDir='' then
         begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name;
+          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
           if not SysDirectoryExists(APackage.UnitDir) then
             APackage.UnitDir:=DirNotFound;
         end;
@@ -4795,8 +5141,8 @@ begin
   // Object Path
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
-  AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fo'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
@@ -4805,8 +5151,8 @@ begin
   L.Duplicates:=dupIgnore;
   AddDependencyUnitPaths(L,APackage);
   AddDependencyPaths(L,depUnit,ATarget);
-  AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fu'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
@@ -4814,14 +5160,17 @@ begin
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddDependencyPaths(L,depInclude,ATarget);
-  AddConditionalStrings(L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
-  AddConditionalStrings(L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
+  AddConditionalStrings(APackage, L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
   // Custom Options
   If (Defaults.HaveOptions) then
     Args.AddStrings(Defaults.Options);
+
+  APackage.ApplyPackageVariantToCompilerOptions(Args);
+
   If (APackage.HaveOptions) then
     Args.AddStrings(APackage.Options);
   If (ATarget.HaveOptions) then
@@ -4952,19 +5301,27 @@ Var
   D : TDependency;
   T : TTarget;
   OD,OFN,TFN : String;
+  CompileReason: String;
 begin
   Result:=False;
 
   // Forced recompile?
   if FForceCompile then
+    begin
     Result:=true;
+    CompileReason:=SDbgForcedCompile;
+    end;
 
   // For now examples are not compiled at all
   if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
     Exit;
 
+  // Files which should not be compiled on this target can not trigger a compile.
+  if not TargetOK(ATarget) then
+    Exit;
+
   // Check output file
-  if not result and TargetOK(ATarget) then
+  if not result then
     begin
       if ATarget.TargetType in ProgramTargets then
         OD:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)
@@ -4975,7 +5332,10 @@ begin
       OFN:=AddPathPrefix(APackage, OD+ATarget.GetOutPutFileName(Defaults.OS));
       Result:=Not FileExists(OFN);
       if Result then
+        begin
+        CompileReason:=SDbgOutputDoesNotExist;
         Log(vlDebug,SDbgOutputNotYetAvailable,[OFN]);
+        end;
     end;
 
   // Check main source
@@ -4983,7 +5343,9 @@ begin
     begin
       TFN := AddPathPrefix(APackage,ATarget.TargetSourceFileName);
       if FileExists(TFN) then
-        Result:=FileNewer(TFN,OFN)
+        Result:=FileNewer(TFN,OFN);
+      if Result then
+        CompileReason:=SDbgNewerSource;
     end;
 
   // Check unit and include dependencies
@@ -5006,7 +5368,10 @@ begin
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
                     Result:=(T.State=tsCompiled);
                     if Result then
+                      begin
                       Log(vldebug, SDbgDependencyUnitRecompiled, [T.Name]);
+                      CompileReason:=Format(SDbgDependencyRecompiled,[T.Name]);
+                      end;
                   end;
                 depInclude :
                   begin
@@ -5014,6 +5379,8 @@ begin
                       begin
                         TFN:=AddPathPrefix(APackage,D.TargetFileName);
                         Result:=FileNewer(TFN,OFN);
+                        if result then
+                          CompileReason:=Format(SDbgNewerInclude,[D.TargetFileName]);
                       end;
                   end;
                 depPackage :
@@ -5028,7 +5395,7 @@ begin
     end;
 
   if result then
-    Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
+    Log(vlDebug,SDbgMustCompile,[ATarget.Name, CompileReason]);
 end;
 
 
@@ -5043,7 +5410,7 @@ begin
   If Assigned(ATarget.BeforeCompile) then
     ATarget.BeforeCompile(ATarget);
 
-  if APackage.BuildMode=bmBuildUnit then
+  if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttExampleProgram]) then
     begin
       APackage.FBUTarget.Dependencies.AddUnit(ATarget.Name).FTargetFileName:=ATarget.TargetSourceFileName;
     end
@@ -5141,12 +5508,16 @@ Var
   I : Integer;
   P : TPackage;
   D : TDependency;
+  CompileReason: string;
 begin
   Result:=False;
 
   // Forced recompile?
   if FForceCompile then
+    begin
     Result:=true;
+    CompileReason:=SDbgForcedCompile;
+    end;
 
   // Recompile because of Package Dependencies?
   if not Result then
@@ -5163,7 +5534,10 @@ begin
                  begin
                    Result:=(P.State=tsCompiled);
                    if Result then
+                     begin
                      break;
+                     CompileReason:=Format(SDbgPackageDepRecompiled,[P.Name]);
+                     end;
                  end;
              end;
          end;
@@ -5178,7 +5552,10 @@ begin
           begin
             Result:=NeedsCompile(APackage,APackage.Targets.TargetItems[i]);
             if Result then
+              begin
               break;
+              CompileReason:=Format(SDbgTargetHasToBeCompiled,[APackage.Targets.TargetItems[i].Name]);
+              end;
           end;
       Finally
         GPathPrefix := '';
@@ -5186,7 +5563,7 @@ begin
     end;
 
   if result then
-    Log(vlDebug,SDbgMustCompile,[APackage.Name]);
+    Log(vlDebug,SDbgMustCompile,[APackage.Name, CompileReason]);
 end;
 
 
@@ -5217,6 +5594,8 @@ begin
         begin
           Log(vlDebug, Format(SDbgLoading, [F]));
           Result.LoadUnitConfigFromFile(F);
+          result.SetDefaultPackageVariant;
+          result.UnitDir:=result.UnitDir+Result.GetPackageUnitInstallDir(Defaults.CPU, Defaults.OS);
         end;
       // Check recursive implicit dependencies
       CompileDependencies(Result);
@@ -5262,6 +5641,7 @@ begin
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
             Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+          APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
 end;
@@ -5303,6 +5683,7 @@ begin
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
             Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+          APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
 end;
@@ -5404,8 +5785,13 @@ begin
 
   case Defaults.BuildMode of
     bmOneByOne:  begin
-                   if bmOneByOne in APackage.SupportBuildModes then
-                     APackage.FBuildMode:=bmOneByOne
+                   if (bmOneByOne in APackage.SupportBuildModes) then
+                     APackage.FBuildMode:=bmBuildUnit
+                   else if bmBuildUnit in APackage.SupportBuildModes then
+                     begin
+                       log(vlInfo,SInfoFallbackBuildmodeBU);
+                       APackage.FBuildMode:=bmBuildUnit;
+                     end
                    else
                      raise exception.create(SErrUnsupportedBuildmode);
                  end;
@@ -5488,7 +5874,7 @@ begin
 
     if RegenerateUnitconfigFile then
       begin
-        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
+        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
         Log(vlInfo, Format(SDbgGenerating, [UC]));
         APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
       end;
@@ -5567,6 +5953,8 @@ begin
       result := False;
       Exit;
     end;
+  APackage.SetDefaultPackageVariant;
+
   ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,True,False);
   If NeedsCompile(APackage) then
     result := True
@@ -5603,7 +5991,7 @@ Var
 begin
   List:=TStringList.Create;
   Try
-    List.add(IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
+    List.add(IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
     CmdCopyFiles(List,Dest);
   Finally
     List.Free;
@@ -5665,19 +6053,21 @@ begin
     B:=false;
     GlobalDictionary.AddVariable('PackageName',APackage.Name);
     GlobalDictionary.AddVariable('unitinstalldir',Defaults.UnitInstallDir);
+    GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
 
     D:=IncludeTrailingPathDelimiter(Defaults.BaseInstallDir);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
     if InstallPackageFiles(APackage,[],D) then
       B:=true;
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
     if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
     //  B:=true;
     // Unit (dependency) configuration if there were units installed
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
     if B then
       InstallUnitConfigFile(APackage,D);
     // Programs
@@ -6260,6 +6650,42 @@ begin
   FreeAndNil(FCommands);
   FreeAndNil(Foptions);
   inherited Destroy;
+end;
+
+procedure TTarget.AssignTo(Dest: TPersistent);
+var
+  DestTarget: TTarget;
+begin
+  if Dest is TTarget then
+    begin
+    DestTarget := TTarget(Dest);
+    DestTarget.Dependencies.Assign(Dependencies);
+    DestTarget.Commands.Assign(Commands);
+    DestTarget.FTargetState := FTargetState;
+    DestTarget.TargetType := TargetType;
+    DestTarget.CPUs := CPUs;
+    DestTarget.OSes := OSes;
+    DestTarget.Mode := Mode;
+    DestTarget.Options := Options;
+    DestTarget.Name :=  Name;
+    DestTarget.Extension:= Extension;
+    DestTarget.FPCTarget := FPCTarget;
+    DestTarget.FileType := FileType;
+    DestTarget.Directory := Directory;
+    DestTarget.ResourceStrings := ResourceStrings;
+    DestTarget.Install := Install;
+    DestTarget.FTargetSourceFileName := fTargetSourceFileName;
+    DestTarget.ObjectPath.Assign(ObjectPath);
+    DestTarget.UnitPath.Assign(UnitPath);
+    DestTarget.IncludePath.Assign(IncludePath);
+    DestTarget.FXML := FXML;
+    DestTarget.AfterCompile := AfterCompile;
+    DestTarget.BeforeCompile := BeforeCompile;
+    DestTarget.BeforeClean := BeforeCompile;
+    DestTarget.AfterClean := AfterClean;
+    end
+  else
+    inherited AssignTo(Dest);
 end;
 
 function TTarget.GetOptions: TStrings;

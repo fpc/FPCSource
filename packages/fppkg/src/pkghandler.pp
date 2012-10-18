@@ -87,7 +87,7 @@ begin
   FullActionName:=APackageName+AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
     begin
-      Log(vlDebug,'Already executed or executing action '+FullActionName);
+      Log(llDebug,'Already executed or executing action '+FullActionName);
       exit;
     end;
 
@@ -97,9 +97,9 @@ begin
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackageName) do
     try
-      Log(vlDebug,SLogRunAction+' start',[AAction]);
+      Log(llDebug,SLogRunAction+' start',[AAction]);
       Execute;
-      Log(vlDebug,SLogRunAction+' end',[AAction]);
+      Log(llDebug,SLogRunAction+' end',[AAction]);
     finally
       Free;
     end;
@@ -169,9 +169,93 @@ begin
   FPackageName:=APackageName;
 end;
 
+{$ifdef HAS_UNIT_PROCESS}
+function ExecuteFPC(const Path: string; const ComLine: string): integer;
+var
+  P: TProcess;
+  ConsoleOutput: TMemoryStream;
+  BytesRead: longint;
+
+  function ReadFromStream: longint;
+
+  const
+    READ_BYTES = 2048;
+
+  var
+    n: longint;
+    BuffPos: longint;
+    sLine: string;
+    ch: char;
+  begin
+    // make sure we have room
+    ConsoleOutput.SetSize(BytesRead + READ_BYTES);
+
+    // try reading it
+    n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
+    if n > 0 then
+    begin
+      Inc(BytesRead, n);
+
+      sLine := '';
+      BuffPos := ConsoleOutput.Position;
+
+      //read lines from the stream
+      repeat
+        ConsoleOutput.Read(ch,1);
+
+        if ch in [#10, #13] then
+        begin
+          log(llProgres,sLine);
+          sLine := '';
+          BuffPos := ConsoleOutput.Position;
+        end
+        else
+          sLine := sLine + ch;
+
+      until ConsoleOutput.Position >= BytesRead;
+
+      ConsoleOutput.Position := BuffPos;
+    end
+    else
+    begin
+      // no data, wait 100 ms
+      Sleep(100);
+    end;
+
+    Result := n;
+  end;
+
+begin
+  result := -1;
+  BytesRead := 0;
+  ConsoleOutput := TMemoryStream.Create;
+  try
+    P := TProcess.Create(nil);
+    try
+      P.CommandLine := Path + ' ' + ComLine;
+      P.Options := [poUsePipes];
+      P.Execute;
+      while P.Running do
+        ReadFromStream;
+
+      // read last part
+      repeat
+      until ReadFromStream = 0;
+      ConsoleOutput.SetSize(BytesRead);
+
+      result := P.ExitStatus;
+    finally
+      P.Free;
+    end;
+  finally
+    ConsoleOutput.Free;
+  end;
+end;
+{$endif HAS_UNIT_PROCESS}
+
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin
-  Log(vlCommands,SLogExecute,[Prog,Args]);
+  Log(llCommands,SLogExecute,[Prog,Args]);
   Flush(StdOut);
   Result:=SysUtils.ExecuteProcess(Prog,Args);
 end;
@@ -179,7 +263,7 @@ end;
 
 Procedure TPackageHandler.SetCurrentDir(Const ADir:String);
 begin
-  Log(vlCommands,SLogChangeDir,[ADir]);
+  Log(llCommands,SLogChangeDir,[ADir]);
   if not SysUtils.SetCurrentDir(ADir) then
     Error(SErrChangeDirFailed,[ADir]);
 end;
