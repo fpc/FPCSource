@@ -512,7 +512,7 @@ type
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ,
+          A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR:
             if opnr=1 then begin
               result:=operand_write;
