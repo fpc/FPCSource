@@ -95,7 +95,12 @@ procedure FillChar(var x;count:longint;value:byte); assembler;
    @LMEMSET4:             { fast loop mode section 68010+ }
      move.b d0,(a0)+
    @LMEMSET3:
+{$ifdef CPUCOLDFIRE}
+     sub.l #1,d1
+     bmi @LMEMSET4
+{$else}
      dbra d1,@LMEMSET4
+{$endif}
 
    @LMEMSET5:
     end ['d0','d1','a0'];
@@ -137,7 +142,12 @@ asm
 @LMSTRCOPY56:         { 68010 Fast loop mode }
    move.b (a0)+,(a1)+
 @LMSTRCOPY55:
+{$ifdef CPUCOLDFIRE}
+   sub.l #1,d1
+   bmi @LMSTRCOPY56
+{$else}
    dbra  d1,@LMSTRCOPY56
+{$endif}
 @Lend:
 end;
 
@@ -172,7 +182,12 @@ procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 @Loop:
       move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
 @ALoop:
+{$ifdef CPUCOLDFIRE}
+      sub.l   #1,d6
+      bmi     @Loop
+{$else}
       dbra    d6,@Loop
+{$endif}
       move.l  s1,a0
       add.b   d0,(a0)              { change to new string length }
 @Lend:
@@ -270,12 +285,22 @@ begin
   @LMOVE01:
     move.b   -(a0),-(a1)   {  (s < d) copy loop }
   @LMOVE02:
+{$ifdef CPUCOLDFIRE}
+    sub.l     #1,d0
+    bmi       @LMOVE01
+{$else}
     dbra      d0,@LMOVE01
+{$endif}
     bra       @LMOVE5
   @LMOVE03:
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
   @LMOVE04:
+{$ifdef CPUCOLDFIRE}
+    sub.l     #1,d0
+    bmi       @LMOVE03
+{$else}
     dbra      d0,@LMOVE03
+{$endif}
   { end fast loop mode }
   @LMOVE5:
   end ['d0','a0','a1'];

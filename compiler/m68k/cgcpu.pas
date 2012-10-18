@@ -1440,7 +1440,14 @@ unit cgcpu;
                    a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
                    a_label(list,hl2);
-                   list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
+                   if current_settings.cputype=cpu_coldfire then
+                     begin
+                       { Coldfire does not support DBRA }
+                       list.concat(taicpu.op_const_reg(A_SUB,S_L,1,hregister));
+                       list.concat(taicpu.op_sym(A_BMI,S_L,hl));
+                     end
+                   else
+                     list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
 
               { restore the registers that we have just used olny if they are used! }
