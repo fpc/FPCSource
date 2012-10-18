@@ -111,7 +111,7 @@ begin
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
     // Install windows resources
-    P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes);
+    P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes,'$(unitinstalldir)');
 
     // Examples
     P.ExamplePath.Add('examples');
