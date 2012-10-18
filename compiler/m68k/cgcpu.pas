@@ -1372,7 +1372,7 @@ unit cgcpu;
 
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
-//        r,hregister : TRegister;
+        r,hregister : TRegister;
         localsize: tcgint;
         spr : TRegister;
         fpr : TRegister;
@@ -1393,7 +1393,36 @@ unit cgcpu;
                 { only 68020+ supports RTD, so this needs another code path
                   for 68000 and Coldfire (KB) }
 { TODO: 68020+ only code generation, without fallback}
-                list.concat(taicpu.op_const(A_RTD,S_NO,parasize));
+                if current_settings.cputype=cpu_mc68020 then
+                  list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
+                else
+                  begin
+
+                    { We must pull the PC Counter from the stack, before  }
+                    { restoring the stack pointer, otherwise the PC would }
+                    { point to nowhere!                                   }
+
+                    { save the PC counter (pop it from the stack)         }
+                    //hregister:=cg.getaddressregister(list);
+                    hregister:=NR_A3;
+                    cg.a_reg_alloc(list,hregister);
+                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
+                    ref.direction:=dir_inc;
+                    list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
+                    { can we do a quick addition ... }
+                    r:=NR_SP;
+                    if (parasize > 0) and (parasize < 9) then
+                       list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
+                    else { nope ... }
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
+
+                    { restore the PC counter (push it on the stack)       }
+                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
+                    ref.direction:=dir_dec;
+                    cg.a_reg_alloc(list,hregister);
+                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
+                    list.concat(taicpu.op_none(A_RTS,S_NO));
+                  end;
               end
             else
               list.concat(taicpu.op_none(A_RTS,S_NO));
