@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='regexpr';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.SourcePath.Add('src');
 
     // Sorokin's RegExpr

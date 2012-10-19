@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-res';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

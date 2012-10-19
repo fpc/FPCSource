@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='dts';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
 
     P.Author := 'Library: Gildas Bazin, header: Ivo Steinmann';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';

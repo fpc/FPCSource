@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-web';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');

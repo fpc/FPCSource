@@ -16,9 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fftw';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
 
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.Author := 'Library: Matteo Frigo and Steven G. Johnson, header: Daniel Mantione';
     P.License := 'Library: GPL or commercial, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

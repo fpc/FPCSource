@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='aspell';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
     P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';

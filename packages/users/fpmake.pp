@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='users';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.Author := 'Michael van Canneyt, Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

@@ -4,7 +4,7 @@
 
 [package]
 name=httpd22
-version=2.6.1
+version=2.6.2rc1
 
 [target]
 units=apr apriconv aprutil httpd

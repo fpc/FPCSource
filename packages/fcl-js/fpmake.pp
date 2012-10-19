@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-js';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2rc1';
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with FPC modification';
     P.HomepageURL := 'www.freepascal.org';

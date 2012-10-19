@@ -29,8 +29,8 @@ interface
        { version string }
        version_nr = '2';
        release_nr = '6';
-       patch_nr   = '1';
-       minorpatch = '';
+       patch_nr   = '2';
+       minorpatch = 'rc1';
 
        { word version for ppu file }
        wordversion = ((ord(version_nr)-ord('0')) shl 14)+
