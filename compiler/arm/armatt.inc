@@ -50,6 +50,7 @@
 'mcr',
 'mla',
 'mov',
+'mrc',
 'mrs',
 'msr',
 'mnf',

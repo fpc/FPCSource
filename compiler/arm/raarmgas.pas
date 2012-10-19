@@ -1061,7 +1061,7 @@ Unit raarmgas;
             AS_COMMA: { Operand delimiter }
               Begin
                 if ((instr.opcode in [A_MOV, A_MVN, A_CMP, A_CMN, A_TST, A_TEQ]) and (operandnum=2)) or
-                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA])) then
+                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_MRC,A_MCR,A_MCRR,A_MRRC])) then
                   begin
                     Consume(AS_COMMA);
                     if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tarmoperand)) then

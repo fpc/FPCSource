@@ -48,7 +48,7 @@ unit cpubase;
       TAsmOp= {$i armop.inc}
       {This is a bit of a hack, because there are more than 256 ARM Assembly Ops
        But FPC currently can't handle more than 256 elements in a set.}
-      TCommonAsmOps = Set of A_None .. A_UQSAX;
+      TCommonAsmOps = Set of A_None .. A_UQASX;
 
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -230,7 +230,7 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      max_operands = 4;
+      max_operands = 6;
 
       maxintregs = 15;
       maxfpuregs = 8;

@@ -235,7 +235,7 @@ reg32,imm8,fpureg        \xF0\x02\x01                   FPA
 [LOGcc]
 
 [MCR]
-reg32,mem32         \320\301\1\x13\110            ARM7
+; reg32,mem32         \320\301\1\x13\110            ARM7
 
 [MLAcc]
 reg32,reg32,reg32,reg32  \x15\x00\x20\x90               ARM7
@@ -247,7 +247,7 @@ reg32,reg32,reg32,reg32  \x15\x00\x20\x90               ARM7
 ; reg32,reg32,imm          \xA\x1\xA0                     ARM7
 ; reg32,imm                \xB\x3\xA0                     ARM7
 
-; [MRC]
+[MRC]
 ; reg32,reg32         \321\301\1\x13\110                  ARM7
 
 [MRScc]
