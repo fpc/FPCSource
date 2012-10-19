@@ -812,7 +812,7 @@ begin
 
 {$ifdef m68k}
   {$ifdef cpu68}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpu68}
     default_target(system_m68k_linux);
   {$endif cpu68}
