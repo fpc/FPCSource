@@ -62,7 +62,7 @@ unit cpupara;
        verbose,
        globals,
        systems,
-       cpuinfo,cgutils,
+       cpuinfo,
        defutil;
 
     procedure tm68kparamanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
