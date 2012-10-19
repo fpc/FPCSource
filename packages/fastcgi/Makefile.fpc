@@ -28,7 +28,7 @@ LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 [rules]
 .NOTPARALLEL:
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(OPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
