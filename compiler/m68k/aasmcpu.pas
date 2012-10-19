@@ -583,4 +583,7 @@ type
       end;
 
 
+begin
+  cai_align:=tai_align;
+  cai_cpu:=taicpu;
 end.
