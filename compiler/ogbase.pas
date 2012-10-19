@@ -154,8 +154,10 @@ interface
        typ        : TAsmsymtype;
        { Current assemble pass, used to detect duplicate labels }
        pass       : byte;
-       objsection : TObjSection;
+       { how the symbol is referenced (target-specific bitfield)
+       refs       : byte;
        symidx     : longint;
+       objsection : TObjSection;
        offset,
        size       : aword;
        { Used for external and common solving during linking }
@@ -375,6 +377,9 @@ interface
         State      : TSymbolState;
         { Used for vmt references optimization }
         VTable     : TExeVTable;
+        { fields for ELF linking }
+        gotoffset  : aword;
+        dynindex   : aword;
       end;
 
       TExeSection = class(TFPHashObject)
@@ -533,6 +538,7 @@ interface
         procedure RemoveUnreferencedSections;
         procedure RemoveDisabledSections;
         procedure RemoveDebugInfo;
+        procedure AfterUnusedSectionRemoval;virtual;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
         function WriteExeFile(const fn:string):boolean;
@@ -2552,6 +2558,11 @@ implementation
 
 
     procedure TExeOutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
+      begin
+      end;
+
+
+    procedure TExeOutput.AfterUnusedSectionRemoval;
       begin
       end;
 

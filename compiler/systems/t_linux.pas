@@ -58,6 +58,18 @@ interface
       procedure LoadPredefinedLibraryOrder; override;
     end;
 
+    TInternalLinkerLinux=class(TInternalLinker)
+    private
+      libctype: TLibcType;
+      reorder: boolean;
+      linklibc: boolean;
+      prtobj: string[20];
+      dynlinker: string[100];
+    public
+      constructor Create;override;
+      procedure DefaultLinkScript;override;
+      procedure InitSysInitUnitName;override;
+    end;
 
 implementation
 
@@ -70,6 +82,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
+    ogelf,
     rescmn, i_linux
     ;
 
@@ -1126,6 +1139,324 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+end;
+
+{*****************************************************************************
+                              TINTERNALLINKERLINUX
+*****************************************************************************}
+
+constructor TInternalLinkerLinux.Create;
+begin
+  inherited Create;
+  SetupLibrarySearchPath;
+  SetupDynlinker(dynlinker,libctype);
+
+  CExeOutput:=ElfExeOutputClass;
+  CObjInput:=TElfObjInput;
+
+end;
+
+procedure TInternalLinkerLinux.InitSysInitUnitName;
+begin
+  linklibc:=ModulesLinkToLibc;
+  reorder:=linklibc and ReOrderEntries;
+  sysinitunit:=defsinames[current_module.islibrary];
+  prtobj:=defprtnames[current_module.islibrary];
+
+  if cs_profile in current_settings.moduleswitches then
+    begin
+      prtobj:=gprtnames[libctype];
+      sysinitunit:=gsinames[libctype];
+      linklibc:=true;
+    end
+  else if linklibc then
+    begin
+      prtobj:=cprtnames[libctype];
+      sysinitunit:=csinames[libctype];
+    end;
+end;
+
+
+procedure TInternalLinkerLinux.DefaultLinkScript;
+var
+  s,s1,s2:TCmdStr;
+  found1,found2:boolean;
+  linkToSharedLibs:boolean;
+
+  procedure AddLibraryStatement(const s:TCmdStr);
+    var
+      i:longint;
+      s1,s2:TCmdStr;
+    begin
+      i:=pos(target_info.sharedClibext+'.',s);
+      if (i>0) then
+        s1:=target_info.sharedClibprefix+S
+      else
+        s1:=target_info.sharedClibprefix+S+target_info.sharedClibext;
+      { TODO: to be compatible with ld search algorithm, each found file
+        must be tested for target compatibility, incompatible ones should be skipped. }
+      { TODO: shall we search library without suffix if one with suffix is not found? }
+      if (not(cs_link_staticflag in current_settings.globalswitches)) and
+         FindLibraryFile(s1,'','',s2) then
+        LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
+      { TODO: static libraries never have numeric suffix in their names }
+      else if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+        LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
+      else
+        Comment(V_Error,'Import library not found for '+S);
+    end;
+
+begin
+  if cs_profile in current_settings.moduleswitches then
+    begin
+      if not(libctype in [glibc2,glibc21]) then
+        AddSharedLibrary('gmon');
+      AddSharedLibrary('c');
+    end;
+
+  { add objectfiles, start with prt0 always }
+  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
+    LinkScript.Concat('READOBJECT '+ maybequoted(FindObjectFile(prtobj,'',false)));
+
+  { try to add crti and crtbegin if linking to C }
+  if linklibc and (libctype<>uclibc) then
+    begin
+      { crti.o must come first }
+      if librarysearchpath.FindFile('crti.o',false,s) then
+        LinkScript.Concat('READOBJECT '+maybequoted(s));
+      { then the crtbegin* }
+      if cs_create_pic in current_settings.moduleswitches then
+        begin
+          if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+            LinkScript.Concat('READOBJECT '+maybequoted(s));
+        end
+      else
+        if (cs_link_staticflag in current_settings.globalswitches) and
+          librarysearchpath.FindFile('crtbeginT.o',false,s) then
+          LinkScript.Concat('READOBJECT '+maybequoted(s))
+        else if librarysearchpath.FindFile('crtbegin.o',false,s) then
+          LinkScript.Concat('READOBJECT '+maybequoted(s));
+    end;
+
+  ScriptAddSourceStatements(false);
+  { we must reorder here because the result could empty sharedlibfiles }
+  if reorder then
+    ExpandAndApplyOrder(SharedLibFiles);
+
+  { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
+    and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
+  if IsSharedLibrary then
+    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(dynlinker));
+
+  linkToSharedLibs:=(not SharedLibFiles.Empty);
+
+  { Symbols declared as "external 'libx.so'" are added to ImportLibraryList, library
+    prefix/extension *not* stripped. TImportLibLinux copies these to SharedLibFiles,
+    stripping prefixes and extensions.
+    However extension won't be stripped if library is specified with numeric suffix
+    (like "libpango-1.0.so.0")
+    Libraries specified with $LINKLIB directive are directly added to SharedLibFiles
+    and won't be present in ImportLibraryList. }
+  while not SharedLibFiles.Empty do
+    begin
+      S:=SharedLibFiles.GetFirst;
+      if (S<>'c') or reorder then
+        AddLibraryStatement(S);
+    end;
+
+  if (cs_link_staticflag in current_settings.globalswitches) or
+    (linklibc and not reorder) then
+    begin
+      if (cs_link_staticflag in current_settings.globalswitches) then
+        begin
+          AddLibraryStatement('gcc');
+          AddLibraryStatement('gcc_eh');
+        end;
+      if linklibc and not reorder then
+        AddLibraryStatement('c');
+    end;
+
+  { objects which must be at the end }
+  if linklibc and (libctype<>uclibc) then
+    begin
+      if cs_create_pic in current_settings.moduleswitches then
+        found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+      else
+        found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+      found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+      if found1 then
+        LinkScript.Concat('READOBJECT '+maybequoted(s1));
+      if found2 then
+        LinkScript.Concat('READOBJECT '+maybequoted(s2));
+    end;
+
+   if (not IsSharedLibrary) then
+     if (linkToSharedLibs and not linklibc) then
+       LinkScript.Concat('ENTRYNAME _dynamic_start')
+     else
+       LinkScript.Concat('ENTRYNAME _start')
+   else
+     LinkScript.Concat('ISSHAREDLIBRARY');
+
+  with LinkScript do
+    begin
+      Concat('HEADER');
+      Concat('EXESECTION .interp');
+      Concat('  OBJSECTION .interp');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .note.ABI-tag');
+      Concat('  OBJSECTION .note.ABI-tag');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .note.gnu.build-id');
+      Concat('  OBJSECTION .note.gnu.build-id');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .hash');
+      Concat('  OBJSECTION .hash');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynsym');
+      Concat('  OBJSECTION .dynsym');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynstr');
+      Concat('  OBJSECTION .dynstr');
+      Concat('ENDEXESECTION');
+{$ifdef x86_64}
+      Concat('EXESECTION .rela.dyn');
+      Concat('  OBJSECTION .rela.dyn');
+{$else}
+      Concat('EXESECTION .rel.dyn');
+      Concat('  OBJSECTION .rel.dyn');
+{$endif}
+
+      Concat('ENDEXESECTION');
+{$ifdef x86_64}
+      Concat('EXESECTION .rela.plt');
+      Concat('  OBJSECTION .rela.plt');
+      Concat('  PROVIDE __rela_iplt_start');
+      Concat('  OBJSECTION .rela.iplt');
+      Concat('  PROVIDE __rela_iplt_end');
+{$else}
+      Concat('EXESECTION .rel.plt');
+      Concat('  OBJSECTION .rel.plt');
+{$endif}
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .init');
+      Concat('  OBJSECTION .init');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .plt');
+      Concat('  OBJSECTION .plt');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .text');
+      Concat('  OBJSECTION .text*');
+      Concat('ENDEXESECTION');
+
+      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
+      Concat('EXESECTION __libc_thread_freeres_fn');
+      Concat('  PROVIDE __start__libc_thread_freeres_fn');
+      Concat('  OBJSECTION __libc_thread_freeres_fn');
+      Concat('  PROVIDE __stop__libc_thread_freeres_fn');
+      Concat('ENDEXESECTION');
+
+      Concat('EXESECTION __libc_freeres_fn');
+      Concat('  PROVIDE __start__libc_freeres_fn');
+      Concat('  OBJSECTION __libc_freeres_fn');
+      Concat('  PROVIDE __stop__libc_freeres_fn');
+      Concat('ENDEXESECTION');
+
+      Concat('EXESECTION .fini');
+      Concat('  OBJSECTION .fini');
+      Concat('  PROVIDE __etext');
+      Concat('  PROVIDE _etext');
+      Concat('  PROVIDE etext');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .rodata');
+      Concat('  OBJSECTION .rodata*');
+      Concat('ENDEXESECTION');
+
+      Concat('EXESECTION .eh_frame');
+      Concat('  OBJSECTION .eh_frame');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gcc_except_table');
+      Concat('  OBJSECTION .gcc_except_table');
+      Concat('  OBJSECTION .gcc_except_table.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .tdata');
+      Concat('  OBJSECTION .tdata');
+      Concat('  OBJSECTION .tdata.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .tbss');
+      Concat('  OBJSECTION .tbss');
+      Concat('  OBJSECTION .tbss.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .preinit_array');
+      Concat('  PROVIDE __preinit_array_start');
+      Concat('  OBJSECTION .preinit_array');
+      Concat('  PROVIDE __preinit_array_end');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .init_array');
+      Concat('  PROVIDE __init_array_start');
+      { why the hell .ctors are both here and exesection .ctors below?? }
+      //  KEEP ( *(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
+      Concat('  OBJSECTION .init_array');
+      //  KEEP ( *(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
+      Concat('PROVIDE __init_array_end');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .fini_array');
+      Concat('  PROVIDE __fini_array_start');
+      //  KEEP ( *(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
+      Concat('  OBJSECTION .fini_array');
+      //  KEEP ( *(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
+      Concat('  PROVIDE __fini_array_end');
+      Concat('ENDEXESECTION');
+
+      Concat('EXESECTION .ctors');
+      Concat('  OBJSECTION .ctors*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dtors');
+      Concat('  OBJSECTION .dtors*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .jcr');
+      Concat('  OBJSECTION .jcr');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynamic');
+      Concat('  OBJSECTION .dynamic');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .got');
+      Concat('  OBJSECTION .got');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .got.plt');
+      Concat('  OBJSECTION .got.plt');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .data');
+      Concat('  OBJSECTION .data*');
+      Concat('  OBJSECTION .fpc*');
+      Concat('  OBJSECTION fpc.resources');
+      Concat('  PROVIDE _edata');
+      Concat('  PROVIDE edata');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .bss');
+      Concat('  OBJSECTION .bss*');
+      Concat('  OBJSECTION fpc.reshandles');
+      Concat('  PROVIDE end');
+      Concat('  SYMBOL _end');
+      Concat('ENDEXESECTION');
+
+      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
+      Concat('EXESECTION __libc_freeres_ptrs');
+      Concat('  PROVIDE __start__libc_freeres_ptrs');
+      Concat('  OBJSECTION __libc_freeres_ptrs');
+      Concat('  PROVIDE __stop__libc_freeres_ptrs');
+      Concat('ENDEXESECTION');
+
+      ScriptAddGenericSections('.debug_aranges,.debug_pubnames,.debug_info,'+
+         '.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
+         '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges');
+      Concat('EXESECTION .stab');
+      Concat('  OBJSECTION .stab');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .stabstr');
+      Concat('  OBJSECTION .stabstr');
+      Concat('ENDEXESECTION');
+    end;
 end;
 
 {*****************************************************************************

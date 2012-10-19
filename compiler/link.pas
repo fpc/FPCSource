@@ -1388,6 +1388,7 @@ Implementation
           STABS for empty linker scripts }
           exeoutput.MergeStabs;
         exeoutput.MarkEmptySections;
+        exeoutput.AfterUnusedSectionRemoval;
         if ErrorCount>0 then
           goto myexit;
 

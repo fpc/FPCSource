@@ -28,20 +28,30 @@ interface
 implementation
 
   uses
+    globtype,cclasses,
     verbose,
     systems,ogbase,ogelf,assemble;
 
   type
-    TElfObjOutput386=class(TElfObjectOutput)
-      function encodereloc(objrel:TObjRelocation):byte;override;
+    TElfTarget386=class(TElfTarget)
+      class function encodereloc(objrel:TObjRelocation):byte;override;
+      class procedure loadreloc(objrel:TObjRelocation);override;
     end;
 
-    TElfAssembler386=class(TInternalAssembler)
-      constructor create(smart:boolean);override;
+    TElfExeOutput386=class(TElfExeOutput)
+    private
+      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
+    protected
+      procedure WriteFirstPLTEntry;override;
+      procedure WritePLTEntry(exesym:TExeSymbol);override;
+      procedure WriteIndirectPLTEntry(exesym:TExeSymbol);override;
+      procedure GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);override;
+      procedure DoRelocationFixup(objsec:TObjSection);override;
     end;
 
   const
     { Relocation types }
+    R_386_NONE = 0;
     R_386_32 = 1;                    { ordinary absolute relocation }
     R_386_PC32 = 2;                  { PC-relative relocation }
     R_386_GOT32 = 3;                 { an offset into GOT }
@@ -87,12 +97,14 @@ implementation
 
 
 {****************************************************************************
-                               TElfObjOutput386
+                               TElfTarget386
 ****************************************************************************}
 
-  function TElfObjOutput386.encodereloc(objrel:TObjRelocation):byte;
+  class function TElfTarget386.encodereloc(objrel:TObjRelocation):byte;
     begin
       case objrel.typ of
+        RELOC_NONE :
+          result:=R_386_NONE;
         RELOC_RELATIVE :
           result:=R_386_PC32;
         RELOC_ABSOLUTE :
@@ -109,14 +121,307 @@ implementation
       end;
     end;
 
+
+  class procedure TElfTarget386.loadreloc(objrel:TObjRelocation);
+    begin
+    end;
+
+
 {****************************************************************************
-                               TElfAssembler386
+                               TElfExeOutput386
 ****************************************************************************}
 
-  constructor TElfAssembler386.create(smart:boolean);
+
+  procedure TElfExeOutput386.WriteFirstPLTEntry;
     begin
-      inherited Create(smart);
-      CObjOutput:=TElfObjOutput386;
+      if IsSharedLibrary then
+        // push 4(%ebx);  jmp  *8(%ebx)
+        pltobjsec.writeBytes(#$FF#$B3#$04#$00#$00#$00#$FF#$A3#$08#$00#$00#$00)
+      else
+        begin
+          pltobjsec.writeBytes(#$FF#$35);         // push got+4
+          pltobjsec.writeReloc_internal(gotpltobjsec,sizeof(pint),4,RELOC_ABSOLUTE);
+          pltobjsec.writeBytes(#$FF#$25);         // jmp  *got+8
+          pltobjsec.writeReloc_internal(gotpltobjsec,2*sizeof(pint),4,RELOC_ABSOLUTE);
+        end;
+      pltobjsec.writeBytes(#$90#$90#$90#$90);     // nop
+    end;
+
+
+  procedure TElfExeOutput386.WritePLTEntry(exesym:TExeSymbol);
+    var
+      got_offset: aword;
+      tmp:pint;
+    begin
+      got_offset:=gotpltobjsec.size;
+      if IsSharedLibrary then
+        begin
+          pltobjsec.writeBytes(#$FF#$A3);   // jmp got+x(%ebx)
+          pltobjsec.write(got_offset,4);
+        end
+      else
+        begin
+          pltobjsec.writeBytes(#$FF#$25);   // jmp *got+x
+          pltobjsec.writeReloc_internal(gotpltobjsec,got_offset,4,RELOC_ABSOLUTE);
+        end;
+      pltobjsec.writeBytes(#$68);           // push  $index
+      tmp:=pltrelocsec.size;
+      pltobjsec.write(tmp,4);
+
+      pltobjsec.writeBytes(#$E9);           // jmp   .plt
+      tmp:=-(4+pltobjsec.Size);
+      pltobjsec.write(tmp,4);
+
+      { write a .got.plt slot pointing back to the 'push' instruction }
+      gotpltobjsec.writeReloc_internal(pltobjsec,pltobjsec.size-(16-6),sizeof(pint),RELOC_ABSOLUTE);
+
+      { write a .rel.plt entry }
+      pltrelocsec.writeReloc_internal(gotpltobjsec,got_offset,sizeof(pint),RELOC_ABSOLUTE);
+      got_offset:=(exesym.dynindex shl 8) or R_386_JUMP_SLOT;
+      pltrelocsec.write(got_offset,sizeof(pint));
+      if relocs_use_addend then
+        pltrelocsec.writezeros(sizeof(pint));
+    end;
+
+
+  procedure TElfExeOutput386.WriteIndirectPLTEntry(exesym:TExeSymbol);
+    begin
+      // TODO
+      inherited WriteIndirectPLTEntry(exesym);
+    end;
+
+
+  procedure TElfExeOutput386.GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);
+    var
+      objsym:TObjSymbol;
+      sym:TExeSymbol;
+      reltyp:byte;
+    begin
+      if (ObjReloc.flags and rf_raw)=0 then
+        reltyp:=ElfTarget.encodereloc(ObjReloc)
+      else
+        reltyp:=ObjReloc.ftype;
+      case reltyp of
+
+        R_386_PLT32:
+          begin
+            objsym:=objreloc.symbol.exesymbol.ObjSymbol;
+            objsym.refs:=objsym.refs or symref_plt;
+          end;
+
+        R_386_GOT32:
+          begin
+            sym:=ObjReloc.symbol.exesymbol;
+
+            { Although local symbols should not be accessed through GOT,
+              this isn't strictly forbidden. In this case we need to fake up
+              the exesym to store the GOT offset in it.
+              TODO: name collision; maybe use a different symbol list object? }
+            if sym=nil then
+              begin
+                sym:=TExeSymbol.Create(ExeSymbolList,objreloc.symbol.name+'*local*');
+                sym.objsymbol:=objreloc.symbol;
+                objreloc.symbol.exesymbol:=sym;
+              end;
+            if sym.GotOffset>0 then
+              exit;
+            gotobjsec.alloc(sizeof(pint));
+            sym.GotOffset:=gotobjsec.size;
+            { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
+              imported/exported symbols need GLOB_DAT instead. For executables,
+              only the latter applies. }
+            if IsSharedLibrary or (sym.dynindex>0) then
+              dynrelocsec.alloc(dynrelocsec.shentsize);
+          end;
+
+        R_386_32:
+          begin
+            { TODO: How to handle absolute relocation to *weak* external symbol
+              from executable? See test/tweaklib2, symbol test2, ld handles it
+              differently for PIC and non-PIC code. In non-PIC code it drops
+              dynamic relocation altogether. }
+            if not IsSharedLibrary then
+              exit;
+            if (oso_executable in objsec.SecOptions) or
+               not (oso_write in objsec.SecOptions) then
+              hastextrelocs:=True;
+            dynrelocsec.alloc(dynrelocsec.shentsize);
+            objreloc.flags:=objreloc.flags or rf_dynamic;
+          end;
+
+        R_386_PC32:
+          begin
+            if not IsSharedLibrary then
+              exit;
+            { In shared library PC32 reloc to external symbol cannot be redirected
+              to PLT entry, because PIC PLT relies on ebx register set properly. }
+            if assigned(objreloc.symbol) and
+              (
+                (objreloc.symbol.objsection=nil) or
+                (oso_plt in objreloc.symbol.objsection.SecOptions)
+              ) then
+              begin
+                { Must be a dynamic symbol }
+                if not (assigned(objreloc.symbol.exesymbol) and
+                   (objreloc.symbol.exesymbol.dynindex<>0)) then
+                  InternalError(2012101201);
+                if (oso_executable in objsec.SecOptions) or
+                   not (oso_write in objsec.SecOptions) then
+                  hastextrelocs:=True;
+                dynrelocsec.alloc(dynrelocsec.shentsize);
+                objreloc.flags:=objreloc.flags or rf_dynamic;
+              end;
+          end;
+      end;
+    end;
+
+
+  procedure TElfExeOutput386.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
+    var
+      gotoff,dynidx,tmp:aword;
+    begin
+      gotoff:=exesym.gotoffset;
+      if gotoff=0 then
+        InternalError(2012060902);
+
+      { the GOT slot itself, and a dynamic relocation for it }
+      { TODO: only data symbols must get here }
+      if gotoff=gotobjsec.Data.size+sizeof(pint) then
+        begin
+          dynidx:=exesym.dynindex;
+          gotobjsec.write(relocval,sizeof(pint));
+
+          tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
+          if (dynidx>0) then
+            WriteDynRelocEntry(tmp,R_386_GLOB_DAT,dynidx,0)
+          else if IsSharedLibrary then
+            WriteDynRelocEntry(tmp,R_386_RELATIVE,0,relocval);
+        end;
+    end;
+
+
+  procedure TElfExeOutput386.DoRelocationFixup(objsec:TObjSection);
+    var
+      i,zero:longint;
+      objreloc: TObjRelocation;
+      address,
+      relocval : aint;
+      relocsec : TObjSection;
+      data: TDynamicArray;
+      reltyp: byte;
+    begin
+      data:=objsec.data;
+      for i:=0 to objsec.ObjRelocations.Count-1 do
+        begin
+          objreloc:=TObjRelocation(objsec.ObjRelocations[i]);
+          case objreloc.typ of
+            RELOC_NONE:
+              continue;
+            RELOC_ZERO:
+              begin
+                data.Seek(objreloc.dataoffset);
+                zero:=0;
+                data.Write(zero,4);
+                continue;
+              end;
+          end;
+
+          if (objreloc.flags and rf_raw)=0 then
+            reltyp:=ElfTarget.encodereloc(objreloc)
+          else
+            reltyp:=objreloc.ftype;
+
+          if relocs_use_addend then
+            address:=objreloc.orgsize
+          else
+            begin
+              data.Seek(objreloc.dataoffset);
+              data.Read(address,4);
+            end;
+          if assigned(objreloc.symbol) then
+            begin
+              relocsec:=objreloc.symbol.objsection;
+              relocval:=objreloc.symbol.address;
+            end
+          else if assigned(objreloc.objsection) then
+            begin
+              relocsec:=objreloc.objsection;
+              relocval:=objreloc.objsection.mempos
+            end
+          else
+            internalerror(2012060702);
+
+          { Only debug sections are allowed to have relocs pointing to unused sections }
+          if assigned(relocsec) and not (relocsec.used and assigned(relocsec.exesection)) and
+             not (oso_debug in objsec.secoptions) then
+            begin
+              writeln(objsec.fullname,' references ',relocsec.fullname);
+              internalerror(2012060703);
+            end;
+
+          { TODO: if relocsec=nil, relocations must be copied to .rel.dyn section }
+          if (relocsec=nil) or (relocsec.used) then
+            case reltyp of
+              R_386_PC32:
+                begin
+                  if (objreloc.flags and rf_dynamic)<>0 then
+                    WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_PC32,objreloc.symbol.exesymbol.dynindex,0)
+                  else
+                    address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                end;
+
+              R_386_PLT32:
+                begin
+                  { If target is in current object, treat as RELOC_RELATIVE }
+                  address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                end;
+
+              R_386_32:
+                begin
+                  if (objreloc.flags and rf_dynamic)<>0 then
+                    begin
+                      if (objreloc.symbol=nil) or
+                         (objreloc.symbol.exesymbol=nil) or
+                         (objreloc.symbol.exesymbol.dynindex=0) then
+                        begin
+                          address:=address+relocval;
+                          WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_RELATIVE,0,address);
+                        end
+                      else
+                        { Don't modify address in this case, as it serves as addend for RTLD }
+                        WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_32,objreloc.symbol.exesymbol.dynindex,0);
+                    end
+                  else
+                    address:=address+relocval;
+                end;
+
+              R_386_GOTPC:
+                begin
+                  address:=address+gotsymbol.address-(objsec.mempos+objreloc.dataoffset);
+                end;
+
+              R_386_GOT32:
+                begin
+                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol.exesymbol);
+
+                  relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint)-gotsymbol.address;
+                  address:=address+relocval;
+                end;
+
+              //R_386_GOTOFF:  !!TODO
+
+              else
+                begin
+                  writeln(objreloc.typ);
+                  internalerror(200604014);
+                end;
+            end
+          else           { not relocsec.Used }
+            address:=0;  { Relocation in debug section points to unused section, which is eliminated by linker }
+
+          data.Seek(objreloc.dataoffset);
+          data.Write(address,4);
+        end;
     end;
 
 
@@ -143,7 +448,9 @@ implementation
        );
 
 initialization
-  RegisterAssembler(as_i386_elf32_info,TElfAssembler386);
+  RegisterAssembler(as_i386_elf32_info,TElfAssembler);
+  ElfExeOutputClass:=TElfExeOutput386;
+  ElfTarget:=TElfTarget386;
 
 end.
 
