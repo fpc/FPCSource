@@ -425,7 +425,8 @@ unit cgcpu;
            displacement.
          }
          { first ensure that base is an address register }
-         if (ref.base<>NR_NO) and not isaddressregister(ref.base) then
+         if (not assigned (ref.symbol) and (current_settings.cputype<>cpu_MC68000)) and
+            (ref.base<>NR_NO) and not isaddressregister(ref.base) then
            begin
              hreg:=getaddressregister(list);
              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
@@ -465,6 +466,23 @@ unit cgcpu;
                        fixref := true;
                        ref.offset := 0;
                        exit;
+                     end;
+                   if assigned(ref.symbol) then
+                     begin
+                       hreg:=getaddressregister(list);
+                       idxreg:=ref.base;
+                       ref.base:=NR_NO;
+                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+                       reference_reset_base(ref,hreg,0,ref.alignment);
+                       fixref:=true;
+                       ref.index:=idxreg;
+                     end
+                   else if not isaddressregister(ref.base) then
+                     begin
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       fixref:=true;
+                       ref.base:=hreg;
                      end;
                  end
                else
