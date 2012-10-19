@@ -440,8 +440,11 @@ unit cgcpu;
              begin
                if (ref.base<>NR_NO) then
                  begin
-                   if (ref.index <> NR_NO) and assigned(ref.symbol) then
-                      internalerror(2002081402);
+                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
+                     begin
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,ref.index));
+                       ref.index:=NR_NO;
+                     end;
                    { base + reg }
                    if ref.index <> NR_NO then
                       begin
@@ -463,7 +466,21 @@ unit cgcpu;
                        ref.offset := 0;
                        exit;
                      end;
-                 end;
+                 end
+               else
+                 { Note: symbol -> ref would be supported as long as ref does not
+                         contain a offset or index... (maybe something for the
+                         optimizer) }
+                 if Assigned(ref.symbol) and (ref.index<>NR_NO) then
+                   begin
+                     hreg:=cg.getaddressregister(list);
+                     idxreg:=ref.index;
+                     ref.index:=NR_NO;
+                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+                     reference_reset_base(ref,hreg,0,ref.alignment);
+                     ref.index:=idxreg;
+                     fixref:=true;
+                   end;
              end;
            cpu_Coldfire:
              begin
@@ -1209,6 +1226,18 @@ unit cgcpu;
       begin
        if a = 0 then
          begin
+           if (current_settings.cputype = cpu_MC68000) and isaddressregister(reg) then
+             begin
+               {
+                 68000 does not seem to like address register for TST instruction
+               }
+               { always move to a data register }
+               hregister := getintregister(list,OS_INT);
+               list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,hregister));
+               { sign/zero extend the register }
+               sign_extend(list, size,hregister);
+               reg:=hregister;
+             end;
            list.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[size],reg));
          end
        else
