@@ -222,7 +222,9 @@ interface
         Ch : Array[1..MaxInsChanges] of TInsChange;
       end;
 
-      TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize, msiMultiple,
+      TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize,
+                         msiMultiple, msiMultiple8, msiMultiple16, msiMultiple32,
+                         msiMultiple64, msiMultiple128, msiMultiple256,
                          msiMemRegSize, msiMemRegx64y128, msiMemRegx64y256,
                          msiMem8, msiMem16, msiMem32, msiMem64, msiMem128, msiMem256);
 
@@ -233,7 +235,14 @@ interface
         ExistsSSEAVX: boolean;
         ConstSize   : TConstSizeInfo;
       end;
+
     const
+      MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultiple8,
+                                                 msiMultiple16, msiMultiple32,
+                                                 msiMultiple64, msiMultiple128,
+                                                 msiMultiple256];
+
+
       InsProp : array[tasmop] of TInsProp =
 {$ifdef x86_64}
         {$i x8664pro.inc}
@@ -1278,7 +1287,7 @@ implementation
               end;
           end;
 
-        if (InsTabMemRefSizeInfoCache^[opcode].MemRefSize = msiMultiple) and
+        if (InsTabMemRefSizeInfoCache^[opcode].MemRefSize in MemRefMultiples) and
            (InsTabMemRefSizeInfoCache^[opcode].ExistsSSEAVX) then
         begin
           for i:=0 to p^.ops-1 do
@@ -3150,7 +3159,19 @@ implementation
                      end
                      else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
                      begin
-                       InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMultiple;
+                       with InsTabMemRefSizeInfoCache^[AsmOp] do
+                       begin
+
+
+                         if ((MemRefSize = msiMem8)        OR (MRefInfo = msiMem8))   then MemRefSize := msiMultiple8
+                         else if ((MemRefSize = msiMem16)  OR (MRefInfo = msiMem16))  then MemRefSize := msiMultiple16
+                         else if ((MemRefSize = msiMem32)  OR (MRefInfo = msiMem32))  then MemRefSize := msiMultiple32
+                         else if ((MemRefSize = msiMem64)  OR (MRefInfo = msiMem64))  then MemRefSize := msiMultiple64
+                         else if ((MemRefSize = msiMem128) OR (MRefInfo = msiMem128)) then MemRefSize := msiMultiple128
+                         else if ((MemRefSize = msiMem256) OR (MRefInfo = msiMem256)) then MemRefSize := msiMultiple256
+
+                         else MemRefSize := msiMultiple;
+                       end;
                      end;
 
                      if actRegCount > 0 then
@@ -3173,7 +3194,7 @@ implementation
             inc(insentry);
           end;
 
-          if (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiMultiple) and
+          if (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples) and
              (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
           begin
             case RegXMMSizeMask of
