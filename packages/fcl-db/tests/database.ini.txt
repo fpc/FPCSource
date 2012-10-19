@@ -116,7 +116,18 @@ name=test.db
 connector=sql
 connectorparams=mssql
 name=pubs
+; If you want to use trusted authentication/SSPI, leave
+; user and password blank
 user=sa
+password=
+hostname=127.0.0.1
+
+; Sybase ASE database
+[sybase]
+connector=sql
+connectorparams=sybase
+name=testdb
+usser=sa
 password=
 hostname=127.0.0.1
 

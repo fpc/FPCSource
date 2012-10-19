@@ -221,6 +221,7 @@ const
   var
    token: tasmtoken;
    forcelabel: boolean;
+   s : string;
   begin
     forcelabel := FALSE;
     actasmpattern :='';
@@ -504,7 +505,8 @@ const
                            end;
             else
              begin
-               Message(scan_f_illegal_char);
+               s:=c;
+               Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
              end;
 
       end; { end case }
@@ -1585,7 +1587,6 @@ const
      AS_SEPARATOR, AS_COMMA: ;
     else
      begin
-      writeln('looofasz');
       Message(asmr_e_invalid_opcode_and_operand);
       Consume(actasmtoken);
      end;
@@ -1697,7 +1698,7 @@ const
         hl: tasmlabel;
         instr : TM68kInstruction;
       begin
-        Message(asmr_d_start_reading);
+        //Message(asmr_d_start_reading);
         firsttoken := TRUE;
         operandnum := 0;
         { sets up all opcode and register tables in uppercase }
@@ -1806,7 +1807,7 @@ const
         LocalLabelList.Free;
 
         assemble:=curlist;
-        Message(asmr_d_finish_reading);
+        //Message(asmr_d_finish_reading);
       end;
 
 

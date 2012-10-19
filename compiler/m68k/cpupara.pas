@@ -32,7 +32,7 @@ unit cpupara;
       cpubase,
       aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,paramgr,cgbase;
+      parabase,paramgr,cgbase,cgutils;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -49,6 +49,7 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
+          function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
          private
           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -467,6 +468,12 @@ unit cpupara;
           else
             internalerror(2005121801);
         end;
+      end;
+
+    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { for now we set all int registers as volatile }
+        Result:=[RS_D0..RS_D7];
       end;
 
 

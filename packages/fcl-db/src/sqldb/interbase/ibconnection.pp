@@ -1049,7 +1049,7 @@ end;
 {$IFDEF SUPPORT_MSECS}
 const
   IBDateOffset = 15018; //an offset from 17 Nov 1858.
-  IBSecsCount  = SecsPerDay * 10000; //count of 1/10000 seconds since midnight.
+  IBTimeFractionsPerDay  = SecsPerDay * ISC_TIME_SECONDS_PRECISION; //Number of Firebird time fractions per day
 {$ENDIF}
 
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
@@ -1071,7 +1071,7 @@ begin
       {$IFNDEF SUPPORT_MSECS}
       isc_decode_sql_time(PISC_TIME(CurrBuff), @CTime);
       {$ELSE}
-      PTime :=  PISC_TIME(CurrBuff)^ / IBSecsCount;
+      PTime :=  PISC_TIME(CurrBuff)^ / IBTimeFractionsPerDay;
       {$ENDIF}
     SQL_TIMESTAMP :
       begin
@@ -1080,7 +1080,7 @@ begin
       {$ELSE}
       PTime := ComposeDateTime(
                   PISC_TIMESTAMP(CurrBuff)^.timestamp_date - IBDateOffset,
-                  PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBSecsCount
+                  PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBTimeFractionsPerDay
                );
       {$ENDIF}
       end
@@ -1130,7 +1130,7 @@ begin
       {$IFNDEF SUPPORT_MSECS}
       isc_encode_sql_time(@CTime, PISC_TIME(CurrBuff));
       {$ELSE}
-      PISC_TIME(CurrBuff)^ := Trunc(abs(Frac(PTime)) * IBSecsCount);
+      PISC_TIME(CurrBuff)^ := Trunc(abs(Frac(PTime)) * IBTimeFractionsPerDay);
       {$ENDIF}
     SQL_TIMESTAMP :
       begin
@@ -1138,7 +1138,7 @@ begin
       isc_encode_timestamp(@CTime, PISC_TIMESTAMP(CurrBuff));
       {$ELSE}
       PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
-      PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Trunc(abs(Frac(PTime)) * IBSecsCount);
+      PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Trunc(abs(Frac(PTime)) * IBTimeFractionsPerDay);
       {$ENDIF}
       end
   else

@@ -145,7 +145,7 @@ implementation
      paraloc1 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype <> cpu_MC68000 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -165,7 +165,7 @@ implementation
        end
      else
        begin
-         { On MC68000/68010 mw must pass through RTL routines }
+         { On MC68000/68010/Coldfire we must pass through RTL routines }
          reg_d0:=NR_D0;
          cg.getcpuregister(current_asmdata.CurrAsmList,NR_D0);
          reg_d1:=NR_D1;
@@ -177,7 +177,7 @@ implementation
          if signed then
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_LONGINT',false)
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_CARDINAL',false);
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_DWORD',false);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,reg_d0,denum);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d0);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d1);
@@ -193,7 +193,7 @@ implementation
     begin
 //     writeln('emit mod reg reg');
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype <> cpu_MC68000 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -228,7 +228,7 @@ implementation
        end
      else
        begin
-         { On MC68000/68010 mw must pass through RTL routines }
+         { On MC68000/68010/coldfire we must pass through RTL routines }
          Reg_d0:=NR_D0;
          cg.getcpuregister(current_asmdata.CurrAsmList,NR_D0);
          Reg_d1:=NR_D1;
@@ -240,7 +240,7 @@ implementation
          if signed then
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_LONGINT',false)
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_CARDINAL',false);
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_DWORD',false);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,Reg_D0,denum);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D0);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D1);

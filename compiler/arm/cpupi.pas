@@ -63,6 +63,13 @@ unit cpupi;
           is especially a problem when taking the address of a local. For now,
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
+        if (po_nostackframe in procdef.procoptions) then
+          begin
+             { maxpushedparasize sghould be zero,
+               if not we will get an error later. }
+             tg.setfirsttemp(maxpushedparasize);
+             exit;
+          end;
         if tg.direction = -1 then
           begin
             if (target_info.system<>system_arm_darwin) then

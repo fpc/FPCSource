@@ -2464,14 +2464,14 @@ implementation
         { When the generic RA is used this needs to be overridden, we don't use
           virtual;abstract; to prevent a lot of warnings of unimplemented abstract methods
           when tai_cpu is created (PFV) }
-        internalerror(200404091);
+        internalerror(2004040901);
         result:=false;
       end;
 
 
     function tai_cpu_abstract.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        internalerror(200404091);
+        internalerror(2004040902);
         result:=operand_readwrite;
       end;
 

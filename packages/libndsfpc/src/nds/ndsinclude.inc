@@ -1,5 +1,6 @@
 
 
+{$include libversion.inc} 
 { $include helper.inc}
 {$include ndstypes.inc}
 {$include bios.inc}
@@ -15,7 +16,7 @@
 {$include system.inc}
 {$include timers.inc}
 {$include fifomessages.inc} 
-{$include input.inc} // testing...
+{$include input.inc} 
  
 {$ifdef ARM9}
   {$include arm9/dynamicArray.inc}

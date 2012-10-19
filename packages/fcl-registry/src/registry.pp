@@ -46,7 +46,9 @@ type
   TRegistry = class(TObject)
   private
     FStringSizeIncludesNull : Boolean;
+{$ifdef XMLREG}
     FSysData : Pointer;
+{$endif XMLREG}
     fAccess: LongWord;
     fCurrentKey: HKEY;
     fRootKey: HKEY;
@@ -133,6 +135,10 @@ type
     fFileName          : String;
     fPath              : String;
     fPreferStringValues: Boolean;
+    fOldCurKey         : HKEY;
+
+    function OpenSection(const Section: string): boolean;
+    procedure CloseSection;
   public
     constructor Create(const FN: string); overload;
     constructor Create(const FN: string;aaccess:longword); overload;
@@ -186,6 +192,7 @@ type
     procedure EraseSection(const Section: string); override;
     procedure DeleteKey(const Section, Name: String); override;
     procedure UpdateFile; override;
+    function ValueExists(const Section, Ident: string): Boolean; override;
     property RegIniFile: TRegIniFile read FRegIniFile;
   end;
 
@@ -337,9 +344,6 @@ end;
 
 function TRegistry.ReadCurrency(const Name: string): Currency;
 
-Var
-  RegDataType: TRegDataType;
-
 begin
   ReadBinaryData(Name, Result, SizeOf(Currency));
 end;
@@ -352,8 +356,6 @@ begin
 end;
 
 function TRegistry.ReadDateTime(const Name: string): TDateTime;
-Var
-  RegDataType: TRegDataType;
 
 begin
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
@@ -493,122 +495,53 @@ end;
 
 function TRegistryIniFile.ReadDate(const Section, Name: string;
   Default: TDateTime): TDateTime;
-var sectkey,curkey : HKey;
-begin 
+begin
+  Result:=Default;
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadDate(Name)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+    if OpenSection(Section) then
+      try
+        if ValueExists(Name) then
+          Result:=FRegInifile.ReadDate(Name);
+      finally
+        CloseSection;
+      end;
 end;
 
 function TRegistryIniFile.ReadDateTime(const Section, Name: string;
   Default: TDateTime): TDateTime;
-var sectkey,curkey : HKey;  
 begin
+  Result:=Default;
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadDateTime(Name)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+    if OpenSection(Section) then
+      try
+        if ValueExists(Name) then
+          Result:=FRegInifile.ReadDateTime(Name);
+      finally
+        CloseSection;
+      end;
 end;
 
 function TRegistryIniFile.ReadFloat(const Section, Name: string;
   Default: Double): Double;
-var sectkey,curkey : HKey;  
 begin
+  Result:=Default;
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadFloat(Name)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+    if OpenSection(Section) then
+      try
+        if ValueExists(Name) then
+          Result:=FRegInifile.ReadFloat(Name);
+      finally
+        CloseSection;
+      end;
 end;
 
 function TRegistryIniFile.ReadInteger(const Section, Name: string;
   Default: Integer): Longint;
-var sectkey,curkey : HKey;  
 begin
-  with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadInteger(section,Name,default)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+  Result:=FRegInifile.ReadInteger(Section, Name, Default);
 end;
 
-procedure TRegistryIniFile.ReadSection(const Section: string;
-  Strings: TStrings);
+procedure TRegistryIniFile.ReadSection(const Section: string; Strings: TStrings);
 begin
   FRegIniFile.ReadSection(Section,strings);
 end;
@@ -626,60 +559,22 @@ end;
 
 function TRegistryIniFile.ReadString(const Section, Name,
   Default: string): string;
-var sectkey,curkey : HKey;  
 begin
-  with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadString(section,Name,default)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+  Result:=FRegInifile.ReadString(Section, Name, Default);
 end;
 
 function TRegistryIniFile.ReadTime(const Section, Name: string;
   Default: TDateTime): TDateTime;
-var sectkey,curkey : HKey;  
 begin
+  Result:=Default;
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              if ValueExists(Name) THen 
-                result:=FRegIniFile.ReadTime(Name)
-              else
-                result:=default;
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-       else
-         result:=default; 
-    end;          
+    if OpenSection(Section) then
+      try
+        if ValueExists(Name) then
+          Result:=FRegInifile.ReadTime(Name);
+      finally
+        CloseSection;
+      end;
 end;
 
 procedure TRegistryIniFile.UpdateFile;
@@ -695,146 +590,72 @@ end;
 
 procedure TRegistryIniFile.WriteDate(const Section, Name: string;
   Value: TDateTime);
-var sectkey,curkey : HKey;  
 begin
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteDate(name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;          
+    if OpenSection(Section) then
+      try
+        FRegInifile.WriteDate(Name, Value);
+      finally
+        CloseSection;
+      end;
 end;
 
 procedure TRegistryIniFile.WriteDateTime(const Section, Name: string;
   Value: TDateTime);
-var sectkey,curkey : HKey;  
 begin
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteDateTime(Name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;
+    if OpenSection(Section) then
+      try
+        FRegInifile.WriteDateTime(Name, Value);
+      finally
+        CloseSection;
+      end;
 end;
 
 procedure TRegistryIniFile.WriteFloat(const Section, Name: string;
   Value: Double);
-var sectkey,curkey : HKey;  
 begin
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteFloat(Name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;          
+    if OpenSection(Section) then
+      try
+        FRegInifile.WriteFloat(Name, Value);
+      finally
+        CloseSection;
+      end;
 end;
 
 procedure TRegistryIniFile.WriteInteger(const Section, Name: string;
   Value: Integer);
-var sectkey,curkey : HKey;  
 begin
-  with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteInteger(section,Name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;          
-
+  FRegInifile.WriteInteger(Section, Name, Value);
 end;
 
 procedure TRegistryIniFile.WriteString(const Section, Name, Value: String);
-var sectkey,curkey : HKey;  
 begin
-  with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin           
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;               
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteString(section,Name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;
+  FRegInifile.WriteString(Section, Name, Value);
 end;
 
 procedure TRegistryIniFile.WriteTime(const Section, Name: string;
   Value: TDateTime);
-var sectkey,curkey : HKey;
 begin
   with FRegInifile do
-    begin
-      sectkey:=getkey(Section);
-      if sectkey<>0 then
-        begin
-          try // allocation ok
-            curkey:=FRegIniFile.CurrentKey;
-            SetCurrentKey(sectKey);
-            try             // save current key
-              FRegIniFile.WriteTime(Name,value)
-            finally
-              SetCurrentKey(CurKey);
-              end;
-          finally
-            closekey(sectkey);
-            end;
-        end
-    end;
+    if OpenSection(Section) then
+      try
+        FRegInifile.WriteTime(Name, Value);
+      finally
+        CloseSection;
+      end;
+end;
+
+function TRegistryIniFile.ValueExists(const Section, Ident: string): Boolean;
+begin
+  with FRegInifile do
+    if OpenSection(Section) then
+      try
+        Result:=FRegInifile.ValueExists(Ident);
+      finally
+        CloseSection;
+      end;
 end;
 
 end.

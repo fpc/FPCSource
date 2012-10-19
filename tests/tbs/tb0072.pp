@@ -52,7 +52,7 @@ asm
   mov y,%i1
 end;
 {$endif CPUSPARC}
-{$ifdef CPUSMIPS}
+{$ifdef CPUMIPS}
 {$define SUPPORTED}
 asm
   lw $t1,x

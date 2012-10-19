@@ -73,6 +73,12 @@ _haltproc:
         bras  _haltproc
 
 .bss
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
+
         .type operatingsystem_parameters,@object
         .size operatingsystem_parameters,12
 operatingsystem_parameters:

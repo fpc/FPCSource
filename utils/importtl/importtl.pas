@@ -11,7 +11,7 @@ var
   F:text;
   slDep:TStringList;
   i:integer;
-  bNoRecurse,bHelp,bActiveX,bPackage:boolean;
+  bNoRecurse,bHelp,bActiveX,bPackage,bRemoveStructTag:boolean;
 begin
   slDep:=TStringList.Create;
   bNoRecurse:=false;
@@ -25,6 +25,7 @@ begin
     else if pos('-a',ParamStr(i))>0 then bActiveX:=true
     else if pos('-h',ParamStr(i))>0 then bHelp:=true
     else if pos('-p',ParamStr(i))>0 then bPackage:=true
+    else if pos('-t',ParamStr(i))>0 then bRemoveStructTag:=true
     else if pos('-d',ParamStr(i))>0 then
       begin
       sOutDir:=trim(copy(ParamStr(i), pos('-d',ParamStr(i))+2, 260));  // windows MAX_PATH
@@ -53,16 +54,17 @@ begin
     writeln('  -h    : displays this text.');
     writeln('  -a    : create ActiveXContainer descendants');
     writeln('  -d dir: set output directory. Default: current directory.');
-    writeln('  -n    : do not recurse typelibs. Default: create bindingss for all');
+    writeln('  -n    : do not recurse typelibs. Default: create bindings for all');
     writeln('          dependencies.');
     writeln('  -p    : create lazarus package for ActiveXContainer descendants');
+    writeln('  -t    : remove "tag" prefix from structs');
     exit;
     end;
   slDep.Add(paramstr(Paramcount));
   i:=0;
   repeat
     writeln('Reading typelib from '+slDep[i]+ ' ...');
-    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX,bPackage,sPackageSource,sPackageRegUnitSource);
+    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX,bPackage,bRemoveStructTag,sPackageSource,sPackageRegUnitSource);
     unitname:=sOutDir+unitname;
     if (bPackage) and (sPackageSource<>'') then
       begin

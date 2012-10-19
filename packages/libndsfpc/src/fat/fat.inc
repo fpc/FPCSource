@@ -43,5 +43,24 @@ function fatInitDefault(): cbool; cdecl; external;
 function fatMountSimple (const name: pcchar; const ainterface: PDISC_INTERFACE): cbool; cdecl; external;
 function fatMount (const name: pcchar; const ainterface: PDISC_INTERFACE; startSector, cacheSize, SectorsPerPage: cuint32): cbool; cdecl; external;
 function fatUnmount(const name: pcchar): cbool; cdecl; external;
+
+// Get Volume Label
+procedure fatGetVolumeLabel(const name: pcchar; labl: pcchar); cdecl; external;
+
+// File attributes
+const
+  ATTR_ARCHIVE    = $20;  // Archive
+  ATTR_DIRECTORY  = $10;  // Directory
+  ATTR_VOLUME     = $08;  // Volume
+  ATTR_SYSTEM     = $04;  // System
+  ATTR_HIDDEN     = $02;  // Hidden
+  ATTR_READONLY   = $01;  // Read only
+
+
+// Methods to modify DOS File Attributes
+
+function FAT_getAttr(const _file: pcchar): cint; cdecl; external;
+function FAT_setAttr(const _file: pcchar; attr: cint): cint; cdecl; external;
+
 {$endif NDS_INTERFACE}
 

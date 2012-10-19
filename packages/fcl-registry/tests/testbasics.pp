@@ -22,12 +22,17 @@ type
     procedure TestSimpleWinRegistry;
     procedure TestDoubleWrite;
     procedure bug16395;
+    procedure TestAdv;
   end;
 
 implementation
 
 uses
-  registry;
+  registry
+{$ifdef windows}
+  , tregistry2
+{$endif windows}
+  ;
 
 { TTestBasics }
 
@@ -37,7 +42,14 @@ var
   fn: string;
 {$endif}
 begin
-{$ifndef windows}
+{$ifdef windows}
+  with TRegistry.Create do
+    try
+      DeleteKey('FirstNode');
+    finally
+      Free;
+    end;
+{$else}
   FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
   if FileExists(FN) then
     AssertTrue(DeleteFile(FN));
@@ -65,7 +77,7 @@ begin
   DeleteUserXmlFile;
   with TRegistry.Create do
     try
-      OpenKey('test', true);
+      OpenKey('FirstNode', true);
       WriteString('LAYOUT', '');
       CloseKey;
     finally
@@ -73,7 +85,7 @@ begin
     end;
   with TRegistry.Create do
     try
-      OpenKey('test', true);
+      OpenKey('FirstNode', true);
       WriteString('LAYOUT', '');
       CloseKey;
     finally
@@ -140,6 +152,14 @@ begin
   DeleteUserXmlFile;
 end;
 
+procedure TTestBasics.TestAdv;
+begin
+{$ifdef windows}
+  DoRegTest2;
+{$endif windows}
+end;
+
 initialization
   RegisterTest(TTestBasics);
 end.
+

@@ -76,6 +76,7 @@ unit cgcpu;
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
+        procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
@@ -187,7 +188,7 @@ unit cgcpu;
          if ref.index <> NR_NO then
            begin
              if ref.base <> NR_NO then
-                internalerror(20020814);
+                internalerror(2002081401);
              if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                 isvalidrefoffset := false
            end
@@ -316,6 +317,7 @@ unit cgcpu;
           { Push the data starting at ofs }
           href:=r;
           inc(href.offset,ofs);
+          fixref(list,href);
           if tcgsize2size[paraloc^.size]>cgpara.alignment then
             pushsize:=paraloc^.size
           else
@@ -413,41 +415,114 @@ unit cgcpu;
 
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
-
+       var
+         hreg,idxreg : tregister;
+         href : treference;
        begin
          result:=false;
-         { The Coldfire and MC68020+ have extended
+         { The MC68020+ has extended
            addressing capabilities with a 32-bit
            displacement.
          }
-         if (current_settings.cputype<>cpu_MC68000) then
+         if (current_settings.cputype=cpu_MC68020) then
            exit;
-         if (ref.base<>NR_NO) then
-           begin
-             if (ref.index <> NR_NO) and assigned(ref.symbol) then
-                internalerror(20020814);
-             { base + reg }
-             if ref.index <> NR_NO then
-                begin
-                   { base + reg + offset }
-                   if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+         { ToDo: check which constraints of Coldfire also apply to MC68000 }
+         case current_settings.cputype of
+           cpu_MC68000:
+             begin
+               if (ref.base<>NR_NO) then
+                 begin
+                   if (ref.index <> NR_NO) and assigned(ref.symbol) then
+                      internalerror(2002081402);
+                   { base + reg }
+                   if ref.index <> NR_NO then
+                      begin
+                         { base + reg + offset }
+                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                           begin
+                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                              fixref := true;
+                              ref.offset := 0;
+                              exit;
+                           end;
+                      end
+                   else
+                   { base + offset }
+                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
                      begin
-                        list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                        fixref := true;
-                        ref.offset := 0;
-                        exit;
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                       fixref := true;
+                       ref.offset := 0;
+                       exit;
                      end;
-                end
-             else
-             { base + offset }
-             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-               begin
-                 list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                 fixref := true;
-                 ref.offset := 0;
-                 exit;
-               end;
-           end;
+                 end;
+             end;
+           cpu_Coldfire:
+             begin
+               if (ref.base<>NR_NO) then
+                 begin
+                   if assigned(ref.symbol) and (ref.index=NR_NO) then
+                     begin
+                       hreg:=cg.getaddressregister(list);
+                       reference_reset_symbol(href,ref.symbol,0,ref.alignment);
+                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                       ref.index:=ref.base;
+                       ref.base:=hreg;
+                       ref.symbol:=nil;
+                     end;
+                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
+                     begin
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,ref.index));
+                       ref.index:=NR_NO;
+                     end;
+                   {if (ref.index <> NR_NO) and assigned(ref.symbol) then
+                      internalerror(2002081403);}
+                   { first ensure that base is an address register }
+                   if not isaddressregister(ref.base) then
+                     begin
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       fixref:=true;
+                       ref.base:=hreg;
+                     end;
+                   { base + reg }
+                   if ref.index <> NR_NO then
+                      begin
+                         { base + reg + offset }
+                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                           begin
+                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                              fixref := true;
+                              ref.offset := 0;
+                              exit;
+                           end;
+                      end
+                   else
+                   { base + offset }
+                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+                     begin
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                       fixref:=true;
+                       ref.offset:=0;
+                       exit;
+                     end;
+                 end
+               else
+                 { Note: symbol -> ref would be supported as long as ref does not
+                         contain a offset or index... (maybe something for the
+                         optimizer) }
+                 if Assigned(ref.symbol) {and (ref.index<>NR_NO)} then
+                   begin
+                     hreg:=cg.getaddressregister(list);
+                     idxreg:=ref.index;
+                     ref.index:=NR_NO;
+                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+                     reference_reset_base(ref,hreg,0,ref.alignment);
+                     ref.index:=idxreg;
+                     fixref:=true;
+                   end;
+             end;
+         end;
        end;
 
 
@@ -513,12 +588,32 @@ unit cgcpu;
       end;
 
     procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);
+      var
+        hreg : tregister;
+        href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
         list.concat(tai_comment.create(strpnew('a_load_const_ref')));
 {$endif DEBUG_CHARLIE}
 
-        list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),ref));
+        href:=ref;
+        fixref(list,href);
+        { for coldfire we need to go through a temporary register if we have a
+          offset, index or symbol given }
+        if (current_settings.cputype=cpu_coldfire) and
+            (
+              (href.offset<>0) or
+              { TODO : check whether we really need this second condition }
+              (href.index<>NR_NO) or
+              assigned(href.symbol)
+            ) then
+          begin
+            hreg:=getintregister(list,tosize);
+            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),hreg));
+            list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href));
+          end
+        else
+          list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),href));
       end;
 
 
@@ -540,6 +635,8 @@ unit cgcpu;
       var
         aref: treference;
         bref: treference;
+        dofix : boolean;
+        hreg: TRegister;
       begin
         aref := sref;
         bref := dref;
@@ -548,6 +645,57 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
 //        writeln('a_load_ref_ref');
 {$endif DEBUG_CHARLIE}
+        { Coldfire dislikes certain move combinations }
+        if current_settings.cputype=cpu_coldfire then
+          begin
+            { TODO : move.b/w only allowed in newer coldfires... (ISA_B+) }
+
+            dofix:=false;
+            if { (d16,Ax) and (d8,Ax,Xi) }
+                (
+                  (aref.base<>NR_NO) and
+                  (
+                    (aref.index<>NR_NO) or
+                    (aref.offset<>0)
+                  )
+                ) or
+                { (xxx) }
+                assigned(aref.symbol) then
+              begin
+                if aref.index<>NR_NO then
+                  begin
+                    dofix:={ (d16,Ax) and (d8,Ax,Xi) }
+                           (
+                             (bref.base<>NR_NO) and
+                             (
+                               (bref.index<>NR_NO) or
+                               (bref.offset<>0)
+                             )
+                           ) or
+                           { (xxx) }
+                           assigned(bref.symbol);
+                  end
+                else
+                  { offset <> 0, but no index }
+                  begin
+                    dofix:={ (d8,Ax,Xi) }
+                           (
+                             (bref.base<>NR_NO) and
+                             (bref.index<>NR_NO)
+                           ) or
+                           { (xxx) }
+                           assigned(bref.symbol);
+                  end;
+              end;
+
+            if dofix then
+              begin
+                hreg:=getaddressregister(list);
+                list.concat(taicpu.op_ref_reg(A_LEA,S_L,bref,hreg));
+                list.concat(taicpu.op_reg_ref(A_MOVE,S_L{TCGSize2OpSize[fromsize]},hreg,bref));
+                exit;
+              end;
+          end;
         list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
       end;
 
@@ -565,7 +713,7 @@ unit cgcpu;
       var
        href : treference;
       begin
-         href := ref;
+         href:=ref;
          fixref(list,href);
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
          { extend the value in the register }
@@ -696,7 +844,16 @@ unit cgcpu;
           OP_AND,
           OP_OR:
               begin
-                 list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
+                if isaddressregister(reg) then
+                  begin
+                    { use scratch register (there is a anda/ora though...) }
+                    scratch_reg:=getintregister(list,OS_INT);
+                    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg));
+                    list.concat(taicpu.op_const_reg(opcode,S_L,longint(a),scratch_reg));
+                    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
+                  end
+                else
+                  list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
               end;
           OP_DIV :
               begin
@@ -708,7 +865,7 @@ unit cgcpu;
               end;
           OP_IMUL :
               begin
-                if current_settings.cputype = cpu_MC68000 then
+                if current_settings.cputype<>cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -737,7 +894,7 @@ unit cgcpu;
               end;
           OP_MUL :
               begin
-                 if current_settings.cputype = cpu_MC68000 then
+                 if current_settings.cputype<>cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -745,7 +902,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
+                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -769,7 +926,7 @@ unit cgcpu;
               begin
                 if (a >= 1) and (a <= 8) then
                  begin
-                   { now allowed to shift an address register }
+                   { not allowed to shift an address register }
                    if (isaddressregister(reg)) then
                      begin
                        scratch_reg := getintregister(list,OS_INT);
@@ -963,7 +1120,7 @@ unit cgcpu;
               begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
-                 if current_settings.cputype = cpu_MC68000 then
+                 if current_settings.cputype <> cpu_MC68020 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -971,7 +1128,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
+                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -1083,6 +1240,15 @@ unit cgcpu;
          list.concat(taicpu.op_reg_reg(A_CMP,tcgsize2opsize[size],reg1,reg2));
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
+      end;
+
+    procedure tcg68k.a_jmp_name(list: TAsmList; const s: string);
+      var
+       ai: taicpu;
+      begin
+         ai := Taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s));
+         ai.is_jmp := true;
+         list.concat(ai);
       end;
 
     procedure tcg68k.a_jmp_always(list : TAsmList;l: tasmlabel);
@@ -1274,7 +1440,14 @@ unit cgcpu;
                    a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
                    a_label(list,hl2);
-                   list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
+                   if current_settings.cputype=cpu_coldfire then
+                     begin
+                       { Coldfire does not support DBRA }
+                       list.concat(taicpu.op_const_reg(A_SUB,S_L,1,hregister));
+                       list.concat(taicpu.op_sym(A_BMI,S_L,hl));
+                     end
+                   else
+                     list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
 
               { restore the registers that we have just used olny if they are used! }
@@ -1353,7 +1526,7 @@ unit cgcpu;
 
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
-//        r,hregister : TRegister;
+        r,hregister : TRegister;
         localsize: tcgint;
         spr : TRegister;
         fpr : TRegister;
@@ -1374,7 +1547,36 @@ unit cgcpu;
                 { only 68020+ supports RTD, so this needs another code path
                   for 68000 and Coldfire (KB) }
 { TODO: 68020+ only code generation, without fallback}
-                list.concat(taicpu.op_const(A_RTD,S_NO,parasize));
+                if current_settings.cputype=cpu_mc68020 then
+                  list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
+                else
+                  begin
+
+                    { We must pull the PC Counter from the stack, before  }
+                    { restoring the stack pointer, otherwise the PC would }
+                    { point to nowhere!                                   }
+
+                    { save the PC counter (pop it from the stack)         }
+                    //hregister:=cg.getaddressregister(list);
+                    hregister:=NR_A3;
+                    cg.a_reg_alloc(list,hregister);
+                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
+                    ref.direction:=dir_inc;
+                    list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
+                    { can we do a quick addition ... }
+                    r:=NR_SP;
+                    if (parasize > 0) and (parasize < 9) then
+                       list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
+                    else { nope ... }
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
+
+                    { restore the PC counter (push it on the stack)       }
+                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
+                    ref.direction:=dir_dec;
+                    cg.a_reg_alloc(list,hregister);
+                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
+                    list.concat(taicpu.op_none(A_RTS,S_NO));
+                  end;
               end
             else
               list.concat(taicpu.op_none(A_RTS,S_NO));

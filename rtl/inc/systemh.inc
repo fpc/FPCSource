@@ -142,6 +142,12 @@ Type
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
 
+  {$ifdef CPUCOLDFIRE}
+    {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+    {$define FPC_INCLUDE_SOFTWARE_MUL}
+    {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$endif}
+
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 

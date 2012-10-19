@@ -220,8 +220,10 @@ end ;
 
 function DayOfWeek(DateTime: TDateTime): integer;
 begin
-  Result := 1 + (Abs(Trunc(DateTime) - 1) mod 7);
-end ;
+  Result := 1 + ((Trunc(DateTime) - 1) mod 7);
+  If (Result<=0) then
+    Inc(Result,7);
+end;
 
 {   Date returns the current Date   }
 

@@ -355,7 +355,6 @@ begin
   StackBottom := initialstkptr - StackLength;
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
-
 {$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
 {$endif cpui386}
