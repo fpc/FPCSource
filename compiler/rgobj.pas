@@ -2259,9 +2259,12 @@ unit rgobj;
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                     begin
-                      { no need to check for the register type here }
-                      tryreplacereg(ref^.base);
-                      tryreplacereg(ref^.index);
+                      if (ref^.base <> NR_NO) and
+                          (getregtype(ref^.base)=regtype) then
+                        tryreplacereg(ref^.base);
+                      if (ref^.index <> NR_NO) and
+                          (getregtype(ref^.index)=regtype) then
+                        tryreplacereg(ref^.index);
                     end;
                 end;
 {$ifdef ARM}
