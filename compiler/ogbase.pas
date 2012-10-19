@@ -154,7 +154,7 @@ interface
        typ        : TAsmsymtype;
        { Current assemble pass, used to detect duplicate labels }
        pass       : byte;
-       { how the symbol is referenced (target-specific bitfield)
+       { how the symbol is referenced (target-specific bitfield) }
        refs       : byte;
        symidx     : longint;
        objsection : TObjSection;
