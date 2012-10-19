@@ -607,6 +607,10 @@ unit rgobj;
       procedure addadj(u,v:Tsuperregister);
 
       begin
+{$ifdef EXTDEBUG}
+        if (u>=maxreginfo) then
+          internalerror(2012101901);
+{$endif}
         with reginfo[u] do
           begin
             if adjlist=nil then
@@ -680,6 +684,10 @@ unit rgobj;
 
     procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
     begin
+{$ifdef EXTDEBUG}
+        if (u>=maxreginfo) then
+          internalerror(2012101902);
+{$endif}
       with reginfo[u] do
         begin
           if movelist=nil then
@@ -801,6 +809,7 @@ unit rgobj;
      register allocator can try to eliminate it.}
 
     var i:Tmoveins;
+        sreg, dreg : Tregister;
         ssupreg,dsupreg:Tsuperregister;
 
     begin
@@ -809,13 +818,20 @@ unit rgobj;
          (instr.oper[O_MOV_DEST]^.typ<>top_reg) then
         internalerror(200311291);
     {$endif}
+      sreg:=instr.oper[O_MOV_SOURCE]^.reg;
+      dreg:=instr.oper[O_MOV_DEST]^.reg;
+      { How should we handle m68k move %d0,%a0? }
+      if (getregtype(sreg)<>getregtype(dreg)) then
+        exit;
       i:=Tmoveins.create;
       i.moveset:=ms_worklist_moves;
       worklist_moves.insert(i);
-      ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE]^.reg);
+      ssupreg:=getsupreg(sreg);
       add_to_movelist(ssupreg,i);
-      dsupreg:=getsupreg(instr.oper[O_MOV_DEST]^.reg);
-      if ssupreg<>dsupreg then
+      dsupreg:=getsupreg(dreg);
+      { On m68k move can mix address and integer registers,
+        this leads to problems ... PM }
+      if (ssupreg<>dsupreg) {and (getregtype(sreg)=getregtype(dreg))} then
         {Avoid adding the same move instruction twice to a single register.}
         add_to_movelist(dsupreg,i);
       i.x:=ssupreg;
@@ -1685,6 +1701,7 @@ unit rgobj;
       var
         hp,p,q:Tai;
         i:shortint;
+        u:longint;
 {$ifdef arm}
         so:pshifterop;
 {$endif arm}
@@ -1782,7 +1799,14 @@ unit rgobj;
                         case typ of
                           Top_reg:
                              if (getregtype(reg)=regtype) then
-                               setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                               begin
+                                 u:=getsupreg(reg);
+{$ifdef EXTDEBUG}
+                                 if (u>=maxreginfo) then
+                                   internalerror(2012101903);
+{$endif}
+                                 setsupreg(reg,reginfo[u].colour);
+                               end;
                           Top_ref:
                             begin
                               if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
@@ -1790,10 +1814,24 @@ unit rgobj;
                                   begin
                                     if (base<>NR_NO) and
                                        (getregtype(base)=regtype) then
-                                      setsupreg(base,reginfo[getsupreg(base)].colour);
+                                      begin
+                                        u:=getsupreg(base);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2012101904);
+{$endif}
+                                        setsupreg(base,reginfo[u].colour);
+                                      end;
                                     if (index<>NR_NO) and
                                        (getregtype(index)=regtype) then
-                                      setsupreg(index,reginfo[getsupreg(index)].colour);
+                                      begin
+                                        u:=getsupreg(index);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2012101905);
+{$endif}
+                                        setsupreg(index,reginfo[u].colour);
+                                      end;
                                   end;
                             end;
 {$ifdef arm}
