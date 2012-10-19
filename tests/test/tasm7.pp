@@ -1,4 +1,4 @@
-{ %CPU=i386,x86_64 }
+{ %CPU=x86_64 }
 
 // (Almost) every of these instructions use a high register and thus generate REX.
 {$asmmode intel}
