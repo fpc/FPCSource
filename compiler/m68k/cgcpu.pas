@@ -424,6 +424,14 @@ unit cgcpu;
            addressing capabilities with a 32-bit
            displacement.
          }
+         { first ensure that base is an address register }
+         if (ref.base<>NR_NO) and not isaddressregister(ref.base) then
+           begin
+             hreg:=getaddressregister(list);
+             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+             fixref:=true;
+             ref.base:=hreg;
+           end;
          if (current_settings.cputype=cpu_MC68020) then
            exit;
          { ToDo: check which constraints of Coldfire also apply to MC68000 }
@@ -477,14 +485,6 @@ unit cgcpu;
                      end;
                    {if (ref.index <> NR_NO) and assigned(ref.symbol) then
                       internalerror(2002081403);}
-                   { first ensure that base is an address register }
-                   if not isaddressregister(ref.base) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       fixref:=true;
-                       ref.base:=hreg;
-                     end;
                    { base + reg }
                    if ref.index <> NR_NO then
                       begin
