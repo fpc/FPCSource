@@ -1146,6 +1146,7 @@ implementation
                if paraloc.shiftval<0 then
                  a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER:
                    a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
                  R_MMREGISTER:
@@ -1157,6 +1158,7 @@ implementation
            LOC_MMREGISTER :
              begin
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER:
                    a_loadmm_reg_intreg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
                  R_MMREGISTER:
@@ -1183,6 +1185,7 @@ implementation
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER :
                    a_load_ref_reg(list,paraloc.size,regsize,href,reg);
                  R_FPUREGISTER :
