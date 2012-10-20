@@ -69,6 +69,7 @@ implementation
       var
          hl : tasmlabel;
          opsize : tcgsize;
+         loc : tcgloc;
       begin
          opsize:=def_cgsize(resultdef);
          if is_boolean(resultdef) then
@@ -77,9 +78,14 @@ implementation
             { if it is a register variable, so we've to do      }
             { this before the case statement                    }
             if left.expectloc<>LOC_JUMP then
-              secondpass(left);
+              begin
+                secondpass(left);
+                loc:=left.location.loc;
+              end
+            else
+              loc:=LOC_JUMP;
 
-            case left.location.loc of
+            case loc of
               LOC_JUMP :
                 begin
                   location_reset(location,LOC_JUMP,OS_NO);
@@ -111,7 +117,7 @@ implementation
                   location.resflags:=F_E;
                 end;
              else
-                internalerror(200203224);
+                internalerror(200203223);
             end;
           end
          else if is_64bitint(left.resultdef) then
