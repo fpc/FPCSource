@@ -59,6 +59,24 @@ user=root
 password=
 hostname=127.0.0.1
 
+; MySQL 5.1 database:
+[mysql51]
+connector=sql
+connectorparams=mysql51
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+; MySQL 5.5 database:
+[mysql55]
+connector=sql
+connectorparams=mysql55
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
 ; Oracle database:
 [oracle]
 connector=sql
