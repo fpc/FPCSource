@@ -69,7 +69,6 @@ implementation
       var
          hl : tasmlabel;
          opsize : tcgsize;
-         seconddone : boolean;
       begin
          opsize:=def_cgsize(resultdef);
          if is_boolean(resultdef) then
@@ -77,13 +76,8 @@ implementation
             { the second pass could change the location of left }
             { if it is a register variable, so we've to do      }
             { this before the case statement                    }
-            if left.location.loc<>LOC_JUMP then
-              begin
-                secondpass(left);
-                seconddone:=true;
-              end
-            else
-              seconddone:=false;
+            if left.expectloc<>LOC_JUMP then
+              secondpass(left);
 
             case left.location.loc of
               LOC_JUMP :
@@ -92,8 +86,7 @@ implementation
                   hl:=current_procinfo.CurrTrueLabel;
                   current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
                   current_procinfo.CurrFalseLabel:=hl;
-                  if not seconddone then
-                    secondpass(left);
+                  secondpass(left);
                   maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
                   hl:=current_procinfo.CurrTrueLabel;
                   current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
