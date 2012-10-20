@@ -386,6 +386,7 @@ implementation
         otl,ofl : tasmlabel;
       begin
 //        writeln('second_cmpboolean');
+        { ToDo : add support for pasbool64 and bool64bit }
         if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
            (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
          cgsize:=OS_8
@@ -402,7 +403,7 @@ implementation
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            isjump:=(left.location.loc=LOC_JUMP);
+            isjump:=(left.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=current_procinfo.CurrTrueLabel;
@@ -422,7 +423,7 @@ implementation
                current_procinfo.CurrFalseLabel:=ofl;
              end;
 
-            isjump:=(right.location.loc=LOC_JUMP);
+            isjump:=(right.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=current_procinfo.CurrTrueLabel;
