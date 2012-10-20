@@ -61,6 +61,9 @@ Type
   end;
 
   TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
+  private
+    function RegAllocated(hp: tai; areg: TRegister): boolean;
+  public
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
@@ -1745,6 +1748,28 @@ Implementation
         end;
     end;
 
+  function TCpuThumb2AsmOptimizer.RegAllocated(hp: tai; areg: TRegister): boolean;
+    var
+      p: tai;
+    begin
+      result := true;
+      p := hp;
+      while assigned(p) do
+        begin
+          if (p.typ=ait_regalloc) and
+             (tai_regalloc(p).reg = areg) then
+            begin
+              if tai_regalloc(p).ratype = ra_alloc then
+                exit(false)
+              else if tai_regalloc(p).ratype = ra_dealloc then
+                exit;
+            end;
+
+          p := tai(p.Next);
+        end;
+      result := false;
+    end;
+
   function TCpuThumb2AsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp : taicpu;
@@ -1808,7 +1833,7 @@ Implementation
         (taicpu(p).oper[1]^.typ=top_const) and
         (taicpu(p).oper[1]^.val >= 0) and
         (taicpu(p).oper[1]^.val < 256) and
-        (not Assigned(FindRegDeAlloc(NR_DEFAULTFLAGS, p))) then
+        (not RegAllocated(p, NR_DEFAULTFLAGS)) then
         begin
           taicpu(p).oppostfix:=PF_S;
           result:=true;
@@ -1816,7 +1841,7 @@ Implementation
       else if (p.typ=ait_instruction) and
         MatchInstruction(p, A_MVN, [], [PF_None]) and
         (taicpu(p).oper[1]^.typ=top_reg) and
-        (not Assigned(FindRegDeAlloc(NR_DEFAULTFLAGS, p))) then
+        (not RegAllocated(p, NR_DEFAULTFLAGS)) then
         begin
           taicpu(p).oppostfix:=PF_S;
           result:=true;
@@ -1829,19 +1854,19 @@ Implementation
         (taicpu(p).oper[2]^.typ=top_const) and
         (taicpu(p).oper[2]^.val >= 0) and
         (taicpu(p).oper[2]^.val < 256) and
-        (not Assigned(FindRegDeAlloc(NR_DEFAULTFLAGS, p))) then
+        (not RegAllocated(p, NR_DEFAULTFLAGS)) then
         begin
           taicpu(p).loadconst(1,taicpu(p).oper[2]^.val);
           taicpu(p).oppostfix:=PF_S;
           taicpu(p).ops := 2;
           result:=true;
         end
-      {else if (p.typ=ait_instruction) and
-        MatchInstruction(p, [A_AND,A_ORR,A_EOR,A_LSL,A_LSR,A_ASR,A_ROR], [], [PF_None,PF_S]) and
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND,A_ORR,A_EOR,A_LSL,A_LSR,A_ASR,A_ROR], [C_None], [PF_None,PF_S]) and
         (taicpu(p).ops = 3) and
         MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
         (taicpu(p).oper[2]^.typ=top_reg) and
-        (not Assigned(FindRegDeAlloc(NR_DEFAULTFLAGS, p))) then
+        (not RegAllocated(p, NR_DEFAULTFLAGS)) then
         begin
           taicpu(p).ops := 2;
           taicpu(p).loadreg(1,taicpu(p).oper[2]^.reg);
@@ -1852,12 +1877,12 @@ Implementation
         MatchInstruction(p, [A_AND,A_ORR,A_EOR], [], [PF_None,PF_S]) and
         (taicpu(p).ops = 3) and
         MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[2]^) and
-        (not Assigned(FindRegDeAlloc(NR_DEFAULTFLAGS, p))) then
+        (not RegAllocated(p, NR_DEFAULTFLAGS)) then
         begin
           taicpu(p).oppostfix:=PF_S;
           taicpu(p).ops := 2;
           result:=true;
-        end}
+        end
       else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_AND], [], [PF_None]) and
         (taicpu(p).ops = 2) and
