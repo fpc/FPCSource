@@ -446,8 +446,11 @@ unit cgcpu;
                  begin
                    if (ref.index<>NR_NO) and assigned(ref.symbol) then
                      begin
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,ref.index));
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,hreg));
                        ref.index:=NR_NO;
+                       ref.base:=hreg;
                      end;
                    { base + reg }
                    if ref.index <> NR_NO then
@@ -455,19 +458,25 @@ unit cgcpu;
                          { base + reg + offset }
                          if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                            begin
-                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                              fixref := true;
-                              ref.offset := 0;
-                              exit;
+                             hreg:=getaddressregister(list);
+                             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                             list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                             fixref:=true;
+                             ref.offset:=0;
+                             ref.base:=hreg;
+                             exit;
                            end;
                       end
                    else
                    { base + offset }
                    if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
                      begin
-                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                       fixref := true;
-                       ref.offset := 0;
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                       fixref:=true;
+                       ref.offset:=0;
+                       ref.base:=hreg;
                        exit;
                      end;
                    if assigned(ref.symbol) then
@@ -520,7 +529,10 @@ unit cgcpu;
                      end;
                    if (ref.index<>NR_NO) and assigned(ref.symbol) then
                      begin
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,ref.index));
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg,ref.index));
+                       ref.base:=hreg;
                        ref.index:=NR_NO;
                      end;
                    {if (ref.index <> NR_NO) and assigned(ref.symbol) then
@@ -531,9 +543,12 @@ unit cgcpu;
                          { base + reg + offset }
                          if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                            begin
-                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
-                              fixref := true;
-                              ref.offset := 0;
+                              hreg:=getaddressregister(list);
+                              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                              fixref:=true;
+                              ref.base:=hreg;
+                              ref.offset:=0;
                               exit;
                            end;
                       end
@@ -541,9 +556,12 @@ unit cgcpu;
                    { base + offset }
                    if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
                      begin
-                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                       hreg:=getaddressregister(list);
+                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
                        fixref:=true;
                        ref.offset:=0;
+                       ref.base:=hreg;
                        exit;
                      end;
                  end
