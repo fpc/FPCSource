@@ -1468,7 +1468,6 @@ implementation
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
       retdef: tdef;
-      cgsize: tcgsize;
       opc: tasmop;
     begin
       if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
