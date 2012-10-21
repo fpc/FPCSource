@@ -315,8 +315,10 @@ const
                              end;
                              uppervar(actasmpattern);
 
-                             If is_asmopcode(actasmpattern) then
-                               exit;
+                             { this isn't the first token, so it can't be an
+                               opcode }
+                             {If is_asmopcode(actasmpattern) then
+                               exit;}
                              if is_register(actasmpattern) then
                                exit;
                              if is_asmdirective(actasmpattern) then
