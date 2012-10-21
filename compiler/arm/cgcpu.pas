@@ -160,6 +160,8 @@ unit cgcpu;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
 
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference; override;
 
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
@@ -3170,24 +3172,12 @@ unit cgcpu;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
-          if is_shifter_const(a,imm_shift) then
+          if is_thumb_imm(a) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
-          { loading of constants with mov and orr }
-          else if (is_shifter_const(a-byte(a),imm_shift)) then
-            begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-byte(a)));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,byte(a)));
-            end
-          else if (is_shifter_const(a-word(a),imm_shift)) and (is_shifter_const(word(a),imm_shift)) then
-            begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-word(a)));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,word(a)));
-            end
-          else if (is_shifter_const(a-(dword(a) shl 8) shr 8,imm_shift)) and (is_shifter_const((dword(a) shl 8) shr 8,imm_shift)) then
-            begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-(dword(a) shl 8) shr 8));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,(dword(a) shl 8) shr 8));
-            end
+          else if is_thumb_imm(not(a)) then
+            list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
+          else if (a and $FFFF)=a then
+            list.concat(taicpu.op_reg_const(A_MOVW,reg,a))
           else
             begin
                reference_reset(hr,4);
@@ -3198,6 +3188,7 @@ unit cgcpu;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
+               hr.base:=NR_PC;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
        end;
@@ -3478,6 +3469,35 @@ unit cgcpu;
                 so.shiftimm:=l1;
                 list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,src,src,so));
               end
+            { for example : b=a*7 -> b=a*8-a with rsb instruction and shl }
+            else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a+1,l1) and not(cgsetflags or setflags) then
+              begin
+                if l1>32 then{does this ever happen?}
+                  internalerror(201205181);
+                shifterop_reset(so);
+                so.shiftmode:=SM_LSL;
+                so.shiftimm:=l1;
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
+              end
+            else if (op in [OP_MUL,OP_IMUL]) and not(cgsetflags or setflags) and try_optimized_mul32_const_reg_reg(list,a,src,dst) then
+              begin
+                { nothing to do on success }
+              end
+            { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
+              Just using mov x, #0 might allow some easier optimizations down the line. }
+            else if (op = OP_AND) and (dword(a)=0) then
+              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
+            { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
+            else if (op = OP_AND) and (not(dword(a))=0) then
+              list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
+            { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
+              broader range of shifterconstants.}
+            {else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
+              list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))}
+            else if (op = OP_AND) and is_thumb_imm(a) then
+              list.concat(taicpu.op_reg_reg_const(A_MOV,dst,src,dword(a)))
+            else if (op = OP_AND) and is_thumb_imm(not(dword(a))) then
+              list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
             else
               begin
                 tmpreg:=getintregister(list,size);
@@ -3810,6 +3830,22 @@ unit cgcpu;
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
       end;
 
+    procedure Tthumb2cgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+      begin
+        if reverse then
+          begin
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
+            list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
+            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
+          end
+        else
+          begin
+            list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
+            list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
+            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
+          end
+      end;
 
    function Tthumb2cgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
