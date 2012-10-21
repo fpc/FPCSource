@@ -1,3 +1,5 @@
+{ %fail }
+
 type TTest = object
                 constructor Init;
              end;
