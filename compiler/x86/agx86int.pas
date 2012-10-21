@@ -963,7 +963,7 @@ implementation
             asmbin : 'tasm';
             asmcmd : '/m2 /ml $ASM $OBJ';
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
-            flags : [af_allowdirect,af_needar,af_labelprefix_only_inside_procedure];
+            flags : [af_needar,af_labelprefix_only_inside_procedure];
             labelprefix : '@@';
             comment : '; ';
             dollarsign: '$';
@@ -976,7 +976,7 @@ implementation
             asmbin : 'masm';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
-            flags : [af_allowdirect,af_needar];
+            flags : [af_needar];
             labelprefix : '@@';
             comment : '; ';
             dollarsign: '$';
@@ -989,7 +989,7 @@ implementation
             asmbin : 'wasm';
             asmcmd : '$ASM -6s -fp6 -ms -zq -Fo=$OBJ';
             supported_targets : [system_i386_watcom];
-            flags : [af_allowdirect,af_needar];
+            flags : [af_needar];
             labelprefix : '@@';
             comment : '; ';
             dollarsign: '$';
@@ -1003,7 +1003,7 @@ implementation
             asmbin : 'ml64';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
             supported_targets : [system_x86_64_win64];
-            flags : [af_allowdirect,af_needar];
+            flags : [af_needar];
             labelprefix : '@@';
             comment : '; ';
             dollarsign: '$';

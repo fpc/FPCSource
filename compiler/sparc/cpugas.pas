@@ -246,7 +246,7 @@ implementation
            asmcmd : '$PIC -Av9 -o $OBJ $ASM';
 {$endif}
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
-           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
            dollarsign: '$';
@@ -259,7 +259,7 @@ implementation
            asmbin : 'gas';
            asmcmd : '$PIC -Av9 -o $OBJ $ASM';
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
-           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
            dollarsign: '$';
