@@ -306,8 +306,9 @@ implementation
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
-                          if (not assigned(current_procinfo) or
-                              is_void(current_procinfo.procdef.returndef)) then
+                          if not assigned(current_procinfo) or
+                             (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                             is_void(current_procinfo.procdef.returndef) then
                             begin
                               Message(parser_e_void_function);
                               { recovery }
