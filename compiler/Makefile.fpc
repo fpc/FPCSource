@@ -32,10 +32,10 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm
 
 # All supported targets used for clean
-ALLTARGETS=$(CYCLETARGETS) jvm
+ALLTARGETS=$(CYCLETARGETS)
 
 # Allow ALPHA, POWERPC, POWERPC64, M68K, I386, jvm defines for target cpu
 ifdef ALPHA
