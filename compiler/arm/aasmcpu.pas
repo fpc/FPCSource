@@ -735,7 +735,7 @@ implementation
               { check for pre/post indexed }
               result := operand_read;
           //Thumb2
-          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV,A_MOVT:
+          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS:
             if opnr in [0] then
               result:=operand_write
             else

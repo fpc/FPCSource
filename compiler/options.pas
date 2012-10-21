@@ -3268,7 +3268,11 @@ if (target_info.abi = abi_eabihf) then
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
   if CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype] then
-    def_system_macro('FPC_HAS_INTERNAL_BSR');
+    begin
+      def_system_macro('FPC_HAS_INTERNAL_BSR');
+      if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
+        def_system_macro('FPC_HAS_INTERNAL_BSF');
+    end;
 {$endif}
 
 

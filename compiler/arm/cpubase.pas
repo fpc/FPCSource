@@ -365,6 +365,7 @@ unit cpubase;
     function is_pc(const r : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+    function is_thumb_imm(d : aint) : boolean; { Doesn't handle ROR_C detection }
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
     function dwarf_reg(r:tregister):shortint;
 
@@ -548,6 +549,43 @@ unit cpubase;
               end;
           end;
         result:=false;
+      end;
+
+    function is_thumb_imm(d: aint): boolean;
+      var
+        t : aint;
+        i : longint;
+        imm : byte;
+      begin
+        result:=false;
+        if (d and $FF) = d then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d and $FF00FF00) = 0) and
+           ((d shr 16)=(d and $FFFF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d and $00FF00FF) = 0) and
+           ((d shr 16)=(d and $FFFF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d shr 16)=(d and $FFFF)) and
+           ((d shr 8)=(d and $FF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if is_shifter_const(d,imm) then
+          begin
+            result:=true;
+            exit;
+          end;
       end;
 
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword) : boolean;
