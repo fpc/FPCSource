@@ -108,6 +108,9 @@ implementation
 {$ifdef TEST_WIN64_SEH}
       itcpugas,
 {$endif TEST_WIN64_SEH}
+{$ifdef m68k}
+      cpuinfo,aasmcpu,
+{$endif m68k}
       cpubase;
 
     const
@@ -636,15 +639,40 @@ implementation
         end;
 
 
-      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
+{$ifdef m68k}
+          instr : string;
+{$endif}
         begin
           last_align:=alignment;
           if alignment>1 then
             begin
               if not(target_info.system in (systems_darwin+systems_aix)) then
                 begin
+{$ifdef m68k}
+                  if assigned(lasthp) and
+                      (lasthp.typ=ait_instruction) and
+                      (taicpu(lasthp).opcode<>A_JMP) then
+                    begin
+                      if ispowerof2(alignment,i) then
+                        begin
+                          { the Coldfire manual suggests the TBF instruction for
+                            alignments, but somehow QEMU does not interpret that
+                            correctly... }
+                          {if current_settings.cputype=cpu_coldfire then
+                            instr:='0x51fc'
+                          else}
+                            instr:='0x4e71';
+                          AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
+                        end
+                      else
+                        internalerror(2012102101);
+                    end
+                  else
+                    begin
+{$endif m68k}
                   AsmWrite(#9'.balign '+tostr(alignment));
                   if use_op then
                     AsmWrite(','+tostr(fillop))
@@ -653,6 +681,9 @@ implementation
                   else if LastSecType=sec_code then
                     AsmWrite(',0x90');
 {$endif x86}
+{$ifdef m68k}
+                    end;
+{$endif m68k}
                 end
               else
                 begin
@@ -668,6 +699,7 @@ implementation
 
     var
       ch       : char;
+      lasthp,
       hp       : tai;
       constdef : taiconst_type;
       s,t      : string;
@@ -695,6 +727,7 @@ implementation
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
                  and (p=current_asmdata.asmlists[al_procedures]));
+      lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -743,7 +776,7 @@ implementation
 
            ait_align :
              begin
-               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align);
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align,lasthp);
              end;
 
            ait_section :
@@ -1436,6 +1469,7 @@ implementation
            else
              internalerror(2006012201);
          end;
+         lasthp:=hp;
          hp:=tai(hp.next);
        end;
     end;
