@@ -160,8 +160,6 @@ unit cgcpu;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference; override;
 
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
@@ -1486,6 +1484,12 @@ unit cgcpu;
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
             list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
             list.Concat(taicpu.op_reg_reg_const(A_AND,dst,dst,255));
+          end
+        else if CPUARM_HAS_RBIT in cpu_capabilities[current_settings.cputype] then
+          begin
+            list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
+            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
           end
         else
           internalerror(201209041);
@@ -3782,69 +3786,40 @@ unit cgcpu;
                 inc(stackmisalignment,4);
 
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-              begin
-                LocalSize:=current_procinfo.calc_stackframe_size;
-                if (LocalSize<>0) or
-                   ((stackmisalignment<>0) and
-                    ((pi_do_call in current_procinfo.flags) or
-                     (po_assembler in current_procinfo.procdef.procoptions))) then
-                  begin
-                    localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                    if not(is_shifter_const(LocalSize,shift)) then
-                      begin
-                        a_reg_alloc(list,NR_R12);
-                        a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                        a_reg_dealloc(list,NR_R12);
-                      end
-                    else
-                      begin
-                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-                      end;
-                  end;
 
-                if regs=[] then
-                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+            LocalSize:=current_procinfo.calc_stackframe_size;
+            if (LocalSize<>0) or
+               ((stackmisalignment<>0) and
+                ((pi_do_call in current_procinfo.flags) or
+                 (po_assembler in current_procinfo.procdef.procoptions))) then
+              begin
+                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                if not(is_shifter_const(LocalSize,shift)) then
+                  begin
+                    a_reg_alloc(list,NR_R12);
+                    a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                    list.concat(taicpu.op_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_R12));
+                    a_reg_dealloc(list,NR_R12);
+                  end
                 else
                   begin
-                    reference_reset(ref,4);
-                    ref.index:=NR_STACK_POINTER_REG;
-                    ref.addressmode:=AM_PREINDEXED;
-                    list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
+                    a_reg_dealloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_const(A_ADD,NR_STACK_POINTER_REG,LocalSize));
                   end;
-              end
+              end;
+
+            if regs=[] then
+              list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
             else
               begin
-                { restore int registers and return }
-                list.concat(taicpu.op_reg_reg(A_MOV, NR_STACK_POINTER_REG, NR_FRAME_POINTER_REG));
-                { Add 4 to SP to make it point to an "imaginary PC" which the paramanager assumes is there(for normal ARM) }
-                list.concat(taicpu.op_reg_const(A_ADD, NR_STACK_POINTER_REG, 4));
-
                 reference_reset(ref,4);
                 ref.index:=NR_STACK_POINTER_REG;
-                list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_DB));
+                ref.addressmode:=AM_PREINDEXED;
+                list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
               end;
           end
         else
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
-      end;
-
-    procedure Tthumb2cgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-      begin
-        if reverse then
-          begin
-            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
-            list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
-            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
-          end
-        else
-          begin
-            list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
-            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
-            list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
-            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
-          end
       end;
 
    function Tthumb2cgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
