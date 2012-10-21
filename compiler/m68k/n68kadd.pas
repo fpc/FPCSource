@@ -307,7 +307,6 @@ implementation
       tmpreg : tregister;
       op : tasmop;
      begin
-//       writeln('second_cmpordinal');
        pass_left_right;
        { set result location }
        location_reset(location,LOC_JUMP,OS_NO);
@@ -359,19 +358,20 @@ implementation
         location.loc := LOC_FLAGS;
         location.resflags := getresflags(unsigned);
         op := A_CMP;
+        { Attention: The RIGHT(!) operand is substracted from and must be a
+                     register! }
         if (right.location.loc = LOC_CONSTANT) then
           if useconst then
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(op,S_L,
-              left.location.register,longint(right.location.value)))
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(op,S_L,
+              longint(right.location.value),left.location.register))
           else
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
-                left.location.register,tmpreg));
-//              cg.ungetcpuregister(current_asmdata.CurrAsmList,tmpreg);
+                tmpreg,left.location.register));
             end
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
-            left.location.register,right.location.register));
+            right.location.register,left.location.register));
      end;
 
 {*****************************************************************************
