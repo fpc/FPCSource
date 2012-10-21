@@ -2619,6 +2619,7 @@ implementation
 
   procedure thlcgobj.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
+      ovloc.loc:=LOC_VOID;
       if not setflags then
         a_op_const_reg_reg(list,op,size,a,src,dst)
       else
@@ -2627,6 +2628,7 @@ implementation
 
   procedure thlcgobj.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
+      ovloc.loc:=LOC_VOID;
       if not setflags then
         a_op_reg_reg_reg(list,op,size,src1,src2,dst)
       else
