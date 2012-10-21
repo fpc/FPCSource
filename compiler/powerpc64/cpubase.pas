@@ -424,7 +424,7 @@ uses
   rgBase, verbose, itcpugas;
 
 const
-  std_regname_table: array[tregisterindex] of string[7] = (
+  std_regname_table: array[tregisterindex] of string[10] = (
 {$I rppcstd.inc}
     );
 

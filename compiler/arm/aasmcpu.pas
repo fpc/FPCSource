@@ -175,6 +175,7 @@ uses
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
 
+         constructor op_regset(op:tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
          constructor op_ref_regset(op:tasmop; _op1: treference; regtype: tregistertype; subreg: tsubregister; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
@@ -269,7 +270,7 @@ uses
 implementation
 
   uses
-    cutils,rgobj,itcpugas;
+    cutils,rgobj,itcpugas,aoptcpu;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -415,6 +416,13 @@ implementation
          loadconst(1,aint(_op2));
       end;
 
+    constructor taicpu.op_regset(op: tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
+      begin
+        inherited create(op);
+        ops:=1;
+        loadregset(0,regtype,subreg,_op1);
+      end;
+
 
     constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; regtype: tregistertype; subreg: tsubregister; _op2: tcpuregisterset);
       begin
@@ -478,8 +486,8 @@ implementation
     constructor taicpu.op_cond(op: tasmop; cond: tasmcond);
       begin
         inherited create(op);
-        ops:=0;
-        condition := cond;
+        ops:=1;
+        loadconditioncode(0, cond);
       end;
 
     constructor taicpu.op_modeflags(op: tasmop; flags: tcpumodeflags);
@@ -1090,13 +1098,110 @@ implementation
           end;
       end;
 
+
+    function getMergedInstruction(FirstOp,LastOp:TAsmOp;InvertLast:boolean) : TAsmOp;
+      const
+        opTable: array[A_IT..A_ITTTT] of string =
+          ('T','TE','TT','TEE','TTE','TET','TTT',
+           'TEEE','TTEE','TETE','TTTE',
+           'TEET','TTET','TETT','TTTT');
+        invertedOpTable: array[A_IT..A_ITTTT] of string =
+          ('E','ET','EE','ETT','EET','ETE','EEE',
+           'ETTT','EETT','ETET','EEET',
+           'ETTE','EETE','ETEE','EEEE');
+      var
+        resStr : string;
+        i : TAsmOp;
+      begin
+        if InvertLast then
+          resStr := opTable[FirstOp]+invertedOpTable[LastOp]
+        else
+          resStr := opTable[FirstOp]+opTable[LastOp];
+        if length(resStr) > 4 then
+          internalerror(2012100805);
+
+        for i := low(opTable) to high(opTable) do
+          if opTable[i] = resStr then
+            exit(i);
+
+        internalerror(2012100806);
+      end;
+
+    procedure foldITInstructions(list: TAsmList);
+      var
+        curtai,hp1 : tai;
+        levels,i : LongInt;
+      begin
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            case curtai.typ of
+              ait_instruction:
+                if IsIT(taicpu(curtai).opcode) then
+                  begin
+                    levels := GetITLevels(taicpu(curtai).opcode);
+                    if levels < 4 then
+                      begin
+                        i:=levels;
+                        hp1:=tai(curtai.Next);
+                        while assigned(hp1) and
+                          (i > 0) do
+                          begin
+                            if hp1.typ=ait_instruction then
+                              begin
+                                dec(i);
+                                if (i = 0) and
+                                  mustbelast(hp1) then
+                                  begin
+                                    hp1:=nil;
+                                    break;
+                                  end;
+                              end;
+                            hp1:=tai(hp1.Next);
+                          end;
+
+                        if assigned(hp1) then
+                          begin
+                            // We are pointing at the first instruction after the IT block
+                            while assigned(hp1) and
+                              (hp1.typ<>ait_instruction) do
+                                hp1:=tai(hp1.Next);
+
+                            if assigned(hp1) and
+                              (hp1.typ=ait_instruction) and
+                              IsIT(taicpu(hp1).opcode) then
+                              begin
+                                if (levels+GetITLevels(taicpu(hp1).opcode) <= 4) and
+                                  ((taicpu(curtai).oper[0]^.cc=taicpu(hp1).oper[0]^.cc) or
+                                   (taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc))) then
+                                  begin
+                                    taicpu(curtai).opcode:=getMergedInstruction(taicpu(curtai).opcode,
+                                                                                taicpu(hp1).opcode,
+                                                                                taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc));
+
+                                    list.Remove(hp1);
+                                    hp1.Free;
+                                  end;
+                              end;
+                          end;
+                      end;
+                  end;
+            end;
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
-        insertpcrelativedata(list, listtoinsert);
-
         { Do Thumb-2 16bit -> 32bit transformations }
         if current_settings.cputype in cpu_thumb2 then
-          ensurethumb2encodings(list);
+          begin
+            ensurethumb2encodings(list);
+            foldITInstructions(list);
+          end;
+
+        insertpcrelativedata(list, listtoinsert);
       end;
 
     procedure InsertPData;

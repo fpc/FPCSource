@@ -53,6 +53,7 @@ unit raatt;
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,AS_CEXTENDED,
         AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_RVA,AS_END,
+        AS_SET,AS_WEAK,AS_SECTION,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI,
@@ -66,7 +67,7 @@ unit raatt;
       { These tokens should be modified accordingly to the modifications }
       { in the different enumerations.                                   }
       firstdirective = AS_DB;
-      lastdirective  = AS_END;
+      lastdirective  = AS_SECTION;
 
       token2str : array[tasmtoken] of tasmkeyword=(
         '','Label','LLabel','string','integer',
@@ -78,6 +79,7 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
         '.data','.text','.init','.fini','.rva','END',
+        '.set','.weak','.section',
         'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
         'directive');
 
@@ -972,9 +974,13 @@ unit raatt;
    Function tattreader.Assemble: tlinkedlist;
      Var
        hl         : tasmlabel;
-       commname   : string;
+       commname,
+       symname,
+       symval     : string;
        lasTSec    : TAsmSectiontype;
        l1,l2      : longint;
+       symofs     : aint;
+       symtyp     : TAsmsymtype;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');
        firsttoken:=TRUE;
@@ -1198,6 +1204,31 @@ unit raatt;
                  Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
                Consume(AS_RVA);
                BuildRva;
+             end;
+
+           AS_SET:
+             begin
+               Consume(AS_SET);
+               BuildConstSymbolExpression(true,false,false, symofs,symname,symtyp);
+               Consume(AS_COMMA);
+               BuildConstSymbolExpression(true,false,false, symofs,symval,symtyp);
+
+               curList.concat(tai_set.create(symname,symval));
+             end;
+
+           AS_WEAK:
+             begin
+               Consume(AS_WEAK);
+               BuildConstSymbolExpression(true,false,false, l1,symname,symtyp);
+               curList.concat(tai_weak.create(symname));
+             end;
+
+           AS_SECTION:
+             begin
+               Consume(AS_SECTION);
+               new_section(curlist, sec_user, actasmpattern, 0);
+               //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
+               consume(AS_STRING);
              end;
 
            AS_TARGET_DIRECTIVE:

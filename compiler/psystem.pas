@@ -629,14 +629,19 @@ implementation
 {$endif SPARC}
 {$ifdef arm}
         aiclass[ait_thumb_func]:=tai_thumb_func;
+        aiclass[ait_thumb_set]:=tai_thumb_set;
 {$endif arm}
+        aiclass[ait_set]:=tai_set;
+        aiclass[ait_weak]:=tai_weak;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
         aiclass[ait_seh_directive]:=tai_seh_directive;
+{$ifdef JVM}
         aiclass[ait_jvar]:=tai_jvar;
         aiclass[ait_jcatch]:=tai_jcatch;
+{$endif JVM}
       end;
 
 end.

@@ -1286,7 +1286,19 @@ implementation
              begin
                AsmWriteLn(#9'.thumb_func');
              end;
+           ait_thumb_set:
+             begin
+               AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);
+             end;
 {$endif arm}
+           ait_set:
+             begin
+               AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+             end;
+           ait_weak:
+             begin
+               AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
+             end;
            ait_ent:
              begin
                AsmWrite(#9'.ent'#9);

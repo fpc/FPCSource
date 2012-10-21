@@ -125,6 +125,14 @@ unit cpupi;
                 if r in regs then
                   inc(floatsavesize,8);
             end;
+          fpu_fpv4_s16:
+            begin
+              floatsavesize:=0;
+              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+              for r:=RS_D0 to RS_D15 do
+                if r in regs then
+                  inc(floatsavesize,8);
+            end;
         end;
         floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);

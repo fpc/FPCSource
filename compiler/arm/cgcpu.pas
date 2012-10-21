@@ -161,6 +161,12 @@ unit cgcpu;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
 
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference; override;
+
+        procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
+        procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+        procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister; shuffle : pmmshuffle); override;
       end;
 
       tthumb2cg64farm = class(tcg64farm)
@@ -3120,10 +3126,17 @@ unit cgcpu;
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
-        rg[R_FPUREGISTER]:=trgcputhumb2.create(R_FPUREGISTER,R_SUBNONE,
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
-        rg[R_MMREGISTER]:=trgcputhumb2.create(R_MMREGISTER,R_SUBNONE,
-            [RS_S0,RS_S1,RS_R2,RS_R3,RS_R4,RS_S31],first_mm_imreg,[]);
+
+        if current_settings.fputype=fpu_fpv4_s16 then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
+              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+              ],first_mm_imreg,[])
+        else
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
+              [RS_S0,RS_S1,RS_R2,RS_R3,RS_R4,RS_S31],first_mm_imreg,[]);
       end;
 
 
@@ -3957,6 +3970,127 @@ unit cgcpu;
           end;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
         Result := ref;
+      end;
+
+     procedure Tthumb2cgarm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
+      var
+        instr: taicpu;
+      begin
+        if (fromsize=OS_F32) and
+          (tosize=OS_F32) then
+          begin
+            instr:=setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32);
+            list.Concat(instr);
+            add_move_instruction(instr);
+          end
+        else if (fromsize=OS_F64) and
+          (tosize=OS_F64) then
+          begin
+            //list.Concat(setoppostfix(taicpu.op_reg_reg(A_VMOV,tregister(longint(reg2)+1),tregister(longint(reg1)+1)), PF_F32));
+            //list.Concat(setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32));
+          end
+        else if (fromsize=OS_F32) and
+          (tosize=OS_F64) then
+          //list.Concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,reg2,reg1), PF_F32))
+          begin
+            //list.concat(nil);
+          end;
+      end;
+
+     procedure Tthumb2cgarm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+      var
+        href: treference;
+        tmpreg: TRegister;
+        so: tshifterop;
+      begin
+        href:=ref;
+
+        if (href.base<>NR_NO) and
+          (href.index<>NR_NO) then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            if href.shiftmode<>SM_None then
+              begin
+                so.rs:=href.index;
+                so.shiftimm:=href.shiftimm;
+                so.shiftmode:=href.shiftmode;
+                list.concat(taicpu.op_reg_reg_shifterop(A_ADD,tmpreg,href.base,so));
+              end
+            else
+              a_op_reg_reg_reg(list,OP_ADD,OS_INT,href.index,href.base,tmpreg);
+
+            reference_reset_base(href,tmpreg,href.offset,0);
+          end;
+
+        if assigned(href.symbol) then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            a_loadaddr_ref_reg(list,href,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,0);
+          end;
+
+        if fromsize=OS_F32 then
+          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VLDR,reg,href), PF_F32))
+        else
+          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VLDR,reg,href), PF_F64));
+      end;
+
+     procedure Tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+      var
+        href: treference;
+        so: tshifterop;
+        tmpreg: TRegister;
+      begin
+        href:=ref;
+
+        if (href.base<>NR_NO) and
+          (href.index<>NR_NO) then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            if href.shiftmode<>SM_None then
+              begin
+                so.rs:=href.index;
+                so.shiftimm:=href.shiftimm;
+                so.shiftmode:=href.shiftmode;
+                list.concat(taicpu.op_reg_reg_shifterop(A_ADD,tmpreg,href.base,so));
+              end
+            else
+              a_op_reg_reg_reg(list,OP_ADD,OS_INT,href.index,href.base,tmpreg);
+
+            reference_reset_base(href,tmpreg,href.offset,0);
+          end;
+
+        if assigned(href.symbol) then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            a_loadaddr_ref_reg(list,href,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,0);
+          end;
+
+        if fromsize=OS_F32 then
+          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VSTR,reg,href), PF_32))
+        else
+          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VSTR,reg,href), PF_64));
+      end;
+
+     procedure Tthumb2cgarm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+      begin
+        if //(shuffle=nil) and
+          (tosize=OS_F32) then
+          list.Concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg))
+        else
+          internalerror(2012100813);
+      end;
+
+     procedure Tthumb2cgarm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
+      begin
+        if //(shuffle=nil) and
+          (fromsize=OS_F32) then
+          list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg))
+        else
+          internalerror(2012100814);
       end;
 
 

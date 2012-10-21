@@ -35,6 +35,7 @@ Unit raarmgas;
         actwideformat : boolean;
         function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
+        function is_targetdirective(const s: string): boolean; override;
         procedure handleopcode;override;
         procedure BuildReference(oper : tarmoperand);
         procedure BuildOperand(oper : tarmoperand);
@@ -43,6 +44,7 @@ Unit raarmgas;
         procedure BuildOpCode(instr : tarminstruction);
         procedure ReadSym(oper : tarmoperand);
         procedure ConvertCalljmp(instr : tarminstruction);
+        procedure HandleTargetDirective; override;
       end;
 
 
@@ -117,6 +119,16 @@ Unit raarmgas;
                 exit;
               end;
           end;
+      end;
+
+    function tarmattreader.is_targetdirective(const s: string): boolean;
+      begin
+        if s = '.thumb_func' then
+          result:=true
+        else if s='.thumb_set' then
+          result:=true
+        else
+          Result:=inherited is_targetdirective(s);
       end;
 
 
@@ -1049,7 +1061,7 @@ Unit raarmgas;
             AS_COMMA: { Operand delimiter }
               Begin
                 if ((instr.opcode in [A_MOV, A_MVN, A_CMP, A_CMN, A_TST, A_TEQ]) and (operandnum=2)) or
-                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA])) then
+                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_MRC,A_MCR,A_MCRR,A_MRRC])) then
                   begin
                     Consume(AS_COMMA);
                     if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tarmoperand)) then
@@ -1203,6 +1215,31 @@ Unit raarmgas;
               Message(asmr_e_syn_operand);
             instr.Operands[1].opr:=newopr;
           end;
+      end;
+
+    procedure tarmattreader.HandleTargetDirective;
+      var
+        symname,
+        symval  : String;
+        val     : aint;
+        symtyp  : TAsmsymtype;
+      begin
+        if actasmpattern='.thumb_set' then
+          begin
+            consume(AS_TARGET_DIRECTIVE);
+            BuildConstSymbolExpression(true,false,false, val,symname,symtyp);
+            Consume(AS_COMMA);
+            BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
+
+            curList.concat(tai_thumb_set.create(symname,symval));
+          end
+        else if actasmpattern='.thumb_func' then
+          begin
+            consume(AS_TARGET_DIRECTIVE);
+            curList.concat(tai_thumb_func.create);
+          end
+        else
+          inherited HandleTargetDirective;
       end;
 
 

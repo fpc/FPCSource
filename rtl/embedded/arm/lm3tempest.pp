@@ -60,238 +60,273 @@ unit lm3tempest;
       rcgc0			:dword absolute (sysconoffset+$100);
       rcgc1			:dword absolute (sysconoffset+$104);
       rcgc2			:dword absolute (sysconoffset+$108);
-
-
-    var
-      NMI_Handler,
-      HardFault_Handler,
-      MemManage_Handler,
-      BusFault_Handler,
-      UsageFault_Handler,
-      SWI_Handler,
-      DebugMonitor_Handler,
-      PendingSV_Handler,
-      Systick_Handler,UART0intvector: pointer;
 	
   implementation
 
-    var
-      _data: record end; external name '_data';
-      _edata: record end; external name '_edata';
-      _etext: record end; external name '_etext';
-      _bss_start: record end; external name '_bss_start';
-      _bss_end: record end; external name '_bss_end';
-      _stack_top: record end; external name '_stack_top';
+procedure NMI_interrupt; external name 'NMI_interrupt';
+procedure Hardfault_interrupt; external name 'Hardfault_interrupt';
+procedure MemManage_interrupt; external name 'MemManage_interrupt';
+procedure BusFault_interrupt; external name 'BusFault_interrupt';
+procedure UsageFault_interrupt; external name 'UsageFault_interrupt';
+procedure SWI_interrupt; external name 'SWI_interrupt';
+procedure DebugMonitor_interrupt; external name 'DebugMonitor_interrupt';
+procedure PendingSV_interrupt; external name 'PendingSV_interrupt';
+procedure SysTick_interrupt; external name 'SysTick_interrupt';
+procedure GPIO_Port_A_Interrupt; external name 'GPIO_Port_A_Interrupt';
+procedure GPIO_Port_B_Interrupt; external name 'GPIO_Port_B_Interrupt';
+procedure GPIO_Port_C_Interrupt; external name 'GPIO_Port_C_Interrupt';
+procedure GPIO_Port_D_Interrupt; external name 'GPIO_Port_D_Interrupt';
+procedure GPIO_Port_E_Interrupt; external name 'GPIO_Port_E_Interrupt';
+procedure UART0_Interrupt; external name 'UART0_Interrupt';
+procedure UART1_Interrupt; external name 'UART1_Interrupt';
+procedure SSI0_Interrupt; external name 'SSI0_Interrupt';
+procedure I2C0_Interrupt; external name 'I2C0_Interrupt';
+procedure PWM_Fault_Interrupt; external name 'PWM_Fault_Interrupt';
+procedure PWM_Generator_0_Interrupt; external name 'PWM_Generator_0_Interrupt';
+procedure PWM_Generator_1_Interrupt; external name 'PWM_Generator_1_Interrupt';
+procedure PWM_Generator_2_Interrupt; external name 'PWM_Generator_2_Interrupt';
+procedure QEI0_Interrupt; external name 'QEI0_Interrupt';
+procedure ADC0_Sequence_0_Interrupt; external name 'ADC0_Sequence_0_Interrupt';
+procedure ADC0_Sequence_1_Interrupt; external name 'ADC0_Sequence_1_Interrupt';
+procedure ADC0_Sequence_2_Interrupt; external name 'ADC0_Sequence_2_Interrupt';
+procedure ADC0_Sequence_3_Interrupt; external name 'ADC0_Sequence_3_Interrupt';
+procedure Watchdog_Timers_0_and_1_Interrupt; external name 'Watchdog_Timers_0_and_1_Interrupt';
+procedure Timer_0A_Interrupt; external name 'Timer_0A_Interrupt';
+procedure Timer_0B_Interrupt; external name 'Timer_0B_Interrupt';
+procedure Timer_1A_Interrupt; external name 'Timer_1A_Interrupt';
+procedure Timer_1B_Interrupt; external name 'Timer_1B_Interrupt';
+procedure Timer_2A_Interrupt; external name 'Timer_2A_Interrupt';
+procedure Timer_2B_Interrupt; external name 'Timer_2B_Interrupt';
+procedure Analog_Comparator_0_Interrupt; external name 'Analog_Comparator_0_Interrupt';
+procedure Analog_Comparator_1_Interrupt; external name 'Analog_Comparator_1_Interrupt';
+procedure System_Control_Interrupt; external name 'System_Control_Interrupt';
+procedure Flash_Memory_Control_Interrupt; external name 'Flash_Memory_Control_Interrupt';
+procedure GPIO_Port_F_Interrupt; external name 'GPIO_Port_F_Interrupt';
+procedure GPIO_Port_G_Interrupt; external name 'GPIO_Port_G_Interrupt';
+procedure GPIO_Port_H_Interrupt; external name 'GPIO_Port_H_Interrupt';
+procedure UART2_Interrupt; external name 'UART2_Interrupt';
+procedure SSI1_Interrupt; external name 'SSI1_Interrupt';
+procedure Timer_3A_Interrupt; external name 'Timer_3A_Interrupt';
+procedure Timer_3B_Interrupt; external name 'Timer_3B_Interrupt';
+procedure I2C1_Interrupt; external name 'I2C1_Interrupt';
+procedure QEI1_Interrupt; external name 'QEI1_Interrupt';
+procedure CAN0_Interrupt; external name 'CAN0_Interrupt';
+procedure CAN1_Interrupt; external name 'CAN1_Interrupt';
+procedure Hibernation_Module_Interrupt; external name 'Hibernation_Module_Interrupt';
+procedure USB_Interrupt; external name 'USB_Interrupt';
+procedure uDMA_Software_Interrupt; external name 'uDMA_Software_Interrupt';
+procedure uDMA_Error_Interrupt; external name 'uDMA_Error_Interrupt';
+procedure ADC1_Sequence_0_Interrupt; external name 'ADC1_Sequence_0_Interrupt';
+procedure ADC1_Sequence_1_Interrupt; external name 'ADC1_Sequence_1_Interrupt';
+procedure ADC1_Sequence_2_Interrupt; external name 'ADC1_Sequence_2_Interrupt';
+procedure ADC1_Sequence_3_Interrupt; external name 'ADC1_Sequence_3_Interrupt';
+procedure I2S0_Interrupt; external name 'I2S0_Interrupt';
+procedure GPIO_Port_J_Interrupt; external name 'GPIO_Port_J_Interrupt';
 
-    procedure PASCALMAIN; external name 'PASCALMAIN';
+{$i cortexm3_start.inc}
 
-    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
-      asm
-        .Lhalt:
-	  b .Lhalt
-      end;
-
-
-    procedure _FPC_start; assembler; nostackframe;
-      label
-        _start;
-      asm
-	.init
-	.align 16
-
-	// JEC NOTE: CONFIRMED AUG 2011 - address must manually have offset
-	//        the assembler / linker will NOT automatically add the LSB
-        //	  failure to have the LSB prevents coming up in Thumb2 mode
-	.long _stack_top	 			// First entry in NVIC table is the new stack pointer
-	.long _start+1         //gjb changed from stm32f version to avoid invstate error when interrupt fires
-	//b   _start					// Reset
-	.long _start+1
-	//b	 .LNMI_Addr				// Non maskable interrupt. The RCC Clock Security System (CSS) is linked to the NMI vector.
-	.long _start+1
-	//b	 .LHardFault_Addr		// All class of fault
-	.long _start+1
-	//b	 .LMemManage_Addr		// Memory management
-	.long _start+1
-	//b	 .LBusFault_Addr		// Pre-fetch fault, memory access fault
-	.long _start+1
-	//b	 .LUsageFault_Addr	// Undefined instruction or illegal state
-	.long _start+1
-	//nop							// Reserved
-	.long _start+1
-	//nop							// Reserved
-	.long _start+1
-	//nop							// Reserved
-	.long _start+1
-	//nop							// Reserved
-	.long _start+1
-	//b	 .LSWI_Addr				// Software Interrupt vector now SVC
-	.long _start+1
-	//b	 .LDebugMonitor_Addr	// Debug Monitor
-	.long _start+1
-	//nop							// Reserved
-	.long _start+1
-	//b	 .LPendingSV_Addr		//	Pendable request for system service
-	.long _start+1
-	//b	 .LSystick_Addr		// System tick timer
-	//16
-	.long .LDefaultHandler+1     //GPIOA  #0
-	.long .LDefaultHandler+1     //GPIOB
-	.long .LDefaultHandler+1     //GPIOC
-	.long .LDefaultHandler+1     //GPIOD
-	.long .LDefaultHandler+1     //GPIOE
-	.long .LUART0handler+1       //.LDefaultHandler+1     //UART0
-	.long .LDefaultHandler+1     //UART1
-	.long .LDefaultHandler+1     //SSI0
-	//24
-	.long .LDefaultHandler+1     //I2C0   #8
-	.long .LDefaultHandler+1     //PWMF
-	.long .LDefaultHandler+1     //PWMG0
-	.long .LDefaultHandler+1     //PWMG1
-	.long .LDefaultHandler+1     //PWMG2
-	.long .LDefaultHandler+1     //QEI0
-	.long .LDefaultHandler+1     //ADC0S0
-	.long .LDefaultHandler+1     //ADC0S1
-	//32
-	.long .LDefaultHandler+1     //ADC0S2 #16
-	.long .LDefaultHandler+1     //ADC0S3
-	.long .LDefaultHandler+1     //WDGTimer01
-	.long .LDefaultHandler+1     //T0A
-	.long .LDefaultHandler+1     //T0B
-	.long .LDefaultHandler+1     //T1A
-	.long .LDefaultHandler+1     //T1B
-	.long .LDefaultHandler+1     //T2A
-	//40
-	.long .LDefaultHandler+1     //T2B    #24
-	.long .LDefaultHandler+1     //COMP0
-	.long .LDefaultHandler+1     //COMP1
-	.long .LDefaultHandler+1     //COMP2
-	.long .LDefaultHandler+1     //SYSCON
-	.long .LDefaultHandler+1     //FLASH
-	.long .LDefaultHandler+1     //GPIOF
-	.long .LDefaultHandler+1     //GPIOG
-	//48
-	.long .LDefaultHandler+1     //GPIOH  #32
-	.long .LDefaultHandler+1     //UART2
-	.long .LDefaultHandler+1     //SSI1
-	.long .LDefaultHandler+1     //T3A
-	.long .LDefaultHandler+1     //T3B
-	.long .LDefaultHandler+1     //I2C1
-	.long .LDefaultHandler+1     //QEI1
-	.long .LDefaultHandler+1     //CAN0
-	//56
-	.long .LDefaultHandler+1     //CAN1   #40
-	.long .LDefaultHandler+1     //res
-	.long .LDefaultHandler+1     //ETH
-	.long .LDefaultHandler+1     //res
-	.long .LDefaultHandler+1     //USB
-	.long .LDefaultHandler+1     //PWMG3
-	.long .LDefaultHandler+1     //UDMAS
-	.long .LDefaultHandler+1     //UDMAE
-	//64
-	.long .LDefaultHandler+1     //ADC1S0 #48
-	.long .LDefaultHandler+1     //ADC1S1
-	.long .LDefaultHandler+1     //ADC1S2
-	.long .LDefaultHandler+1     //ADC1S3
-	.long .LDefaultHandler+1     //I2S0
-	.long .LDefaultHandler+1     //EPI
-	.long .LDefaultHandler+1     //GPIOJ
-	.long .LDefaultHandler+1     //res    #55
-
-.LNMI_Addr:
-	ldr r0,.L1
-	ldr pc,[r0]
-.LHardFault_Addr:
-	ldr r0,.L2
-	ldr pc,[r0]
-.LMemManage_Addr:
-	ldr r0,.L3
-	ldr pc,[r0]
-.LBusFault_Addr:
-	ldr r0,.L4
-	ldr pc,[r0]
-.LUsageFault_Addr:
-	ldr r0,.L5
-	ldr pc,[r0]
-.LSWI_Addr:
-	ldr r0,.L6
-	ldr pc,[r0]
-.LDebugMonitor_Addr:
-	ldr r0,.L7
-	ldr pc,[r0]
-.LPendingSV_Addr:
-	ldr r0,.L8
-	ldr pc,[r0]
-.LSystick_Addr:
-	ldr r0,.L9
-	ldr pc,[r0]
-.LUART0handler:
-  ldr r0,.L10
-  ldr pc,[r0]
-.L1:
-	.long NMI_Handler
-.L2:
-	.long HardFault_Handler
-.L3:
-	.long MemManage_Handler
-.L4:
-	.long BusFault_Handler
-.L5:
-	.long UsageFault_Handler
-.L6:
-	.long SWI_Handler
-.L7:
-	.long DebugMonitor_Handler
-.L8:
-	.long PendingSV_Handler
-.L9:
-	.long Systick_Handler   
-.L10:
-  .long UART0IntVector
+procedure Vectors; assembler; nostackframe;
+label interrupt_vectors;
+asm
+  .section ".init.interrupt_vectors"
+interrupt_vectors:
+	.long _stack_top
+  .long Startup
+  .long NMI_interrupt
+  .long Hardfault_interrupt
+  .long MemManage_interrupt
+  .long BusFault_interrupt
+  .long UsageFault_interrupt
+  .long 0
+  .long 0
+  .long 0
+  .long 0
+  .long SWI_interrupt
+  .long DebugMonitor_interrupt
+  .long 0
+  .long PendingSV_interrupt
+  .long SysTick_interrupt
   
-	.globl _start
-	.text
-_start:
-	
-	// Copy initialized data to ram
-	ldr r1,.L_etext
-	ldr r2,.L_data
-	ldr r3,.L_edata
-.Lcopyloop:
-	cmp r2,r3
-	ittt ls
-	ldrls r0,[r1],#4
-	strls r0,[r2],#4
-	bls .Lcopyloop
+  .long GPIO_Port_A_Interrupt
+  .long GPIO_Port_B_Interrupt
+  .long GPIO_Port_C_Interrupt
+  .long GPIO_Port_D_Interrupt
+  .long GPIO_Port_E_Interrupt
+  .long UART0_Interrupt
+  .long UART1_Interrupt
+  .long SSI0_Interrupt
+  .long I2C0_Interrupt
+  .long PWM_Fault_Interrupt
+  .long PWM_Generator_0_Interrupt
+  .long PWM_Generator_1_Interrupt
+  .long PWM_Generator_2_Interrupt
+  .long QEI0_Interrupt
+  .long ADC0_Sequence_0_Interrupt
+  .long ADC0_Sequence_1_Interrupt
+  .long ADC0_Sequence_2_Interrupt
+  .long ADC0_Sequence_3_Interrupt
+  .long Watchdog_Timers_0_and_1_Interrupt
+  .long Timer_0A_Interrupt
+  .long Timer_0B_Interrupt
+  .long Timer_1A_Interrupt
+  .long Timer_1B_Interrupt
+  .long Timer_2A_Interrupt
+  .long Timer_2B_Interrupt
+  .long Analog_Comparator_0_Interrupt
+  .long Analog_Comparator_1_Interrupt
+  .long 0
+  .long System_Control_Interrupt
+  .long Flash_Memory_Control_Interrupt
+  .long GPIO_Port_F_Interrupt
+  .long GPIO_Port_G_Interrupt
+  .long GPIO_Port_H_Interrupt
+  .long UART2_Interrupt
+  .long SSI1_Interrupt
+  .long Timer_3A_Interrupt
+  .long Timer_3B_Interrupt
+  .long I2C1_Interrupt
+  .long QEI1_Interrupt
+  .long CAN0_Interrupt
+  .long CAN1_Interrupt
+  .long 0
+  .long 0
+  .long Hibernation_Module_Interrupt
+  .long USB_Interrupt
+  .long 0
+  .long uDMA_Software_Interrupt
+  .long uDMA_Error_Interrupt
+  .long ADC1_Sequence_0_Interrupt
+  .long ADC1_Sequence_1_Interrupt
+  .long ADC1_Sequence_2_Interrupt
+  .long ADC1_Sequence_3_Interrupt
+  .long I2S0_Interrupt
+  .long 0
+  .long GPIO_Port_J_Interrupt
+  
+  .weak NMI_interrupt
+  .weak Hardfault_interrupt
+  .weak MemManage_interrupt
+  .weak BusFault_interrupt
+  .weak UsageFault_interrupt
+  .weak SWI_interrupt
+  .weak DebugMonitor_interrupt
+  .weak PendingSV_interrupt
+  .weak SysTick_interrupt
 
-	// clear onboard ram
-	ldr r1,.L_bss_start
-	ldr r2,.L_bss_end
-	mov r0,#0
-.Lzeroloop:
-	cmp r1,r2
-	itt ls
-	strls r0,[r1],#4
-	bls .Lzeroloop
+  .weak GPIO_Port_A_Interrupt
+  .weak GPIO_Port_B_Interrupt
+  .weak GPIO_Port_C_Interrupt
+  .weak GPIO_Port_D_Interrupt
+  .weak GPIO_Port_E_Interrupt
+  .weak UART0_Interrupt
+  .weak UART1_Interrupt
+  .weak SSI0_Interrupt
+  .weak I2C0_Interrupt
+  .weak PWM_Fault_Interrupt
+  .weak PWM_Generator_0_Interrupt
+  .weak PWM_Generator_1_Interrupt
+  .weak PWM_Generator_2_Interrupt
+  .weak QEI0_Interrupt
+  .weak ADC0_Sequence_0_Interrupt
+  .weak ADC0_Sequence_1_Interrupt
+  .weak ADC0_Sequence_2_Interrupt
+  .weak ADC0_Sequence_3_Interrupt
+  .weak Watchdog_Timers_0_and_1_Interrupt
+  .weak Timer_0A_Interrupt
+  .weak Timer_0B_Interrupt
+  .weak Timer_1A_Interrupt
+  .weak Timer_1B_Interrupt
+  .weak Timer_2A_Interrupt
+  .weak Timer_2B_Interrupt
+  .weak Analog_Comparator_0_Interrupt
+  .weak Analog_Comparator_1_Interrupt
+  .weak System_Control_Interrupt
+  .weak Flash_Memory_Control_Interrupt
+  .weak GPIO_Port_F_Interrupt
+  .weak GPIO_Port_G_Interrupt
+  .weak GPIO_Port_H_Interrupt
+  .weak UART2_Interrupt
+  .weak SSI1_Interrupt
+  .weak Timer_3A_Interrupt
+  .weak Timer_3B_Interrupt
+  .weak I2C1_Interrupt
+  .weak QEI1_Interrupt
+  .weak CAN0_Interrupt
+  .weak CAN1_Interrupt
+  .weak Hibernation_Module_Interrupt
+  .weak USB_Interrupt
+  .weak uDMA_Software_Interrupt
+  .weak uDMA_Error_Interrupt
+  .weak ADC1_Sequence_0_Interrupt
+  .weak ADC1_Sequence_1_Interrupt
+  .weak ADC1_Sequence_2_Interrupt
+  .weak ADC1_Sequence_3_Interrupt
+  .weak I2S0_Interrupt
+  .weak GPIO_Port_J_Interrupt
+  
+  .set NMI_interrupt, Startup
+  .set Hardfault_interrupt, Startup
+  .set MemManage_interrupt, Startup
+  .set BusFault_interrupt, Startup
+  .set UsageFault_interrupt, Startup
+  .set SWI_interrupt, Startup
+  .set DebugMonitor_interrupt, Startup
+  .set PendingSV_interrupt, Startup
+  .set SysTick_interrupt, Startup
 
-	b PASCALMAIN
-	b _FPC_haltproc
-
-.L_bss_start:
-	.long _bss_start
-.L_bss_end:
-	.long _bss_end
-.L_etext:
-	.long _etext
-.L_data:
-	.long _data
-.L_edata:
-	.long _edata
-.LDefaultHandlerAddr:
-	.long .LDefaultHandler
-	// default irq handler just returns
-.LDefaultHandler:
-	mov pc,r14
-    end;
+  .set GPIO_Port_A_Interrupt, Startup
+  .set GPIO_Port_B_Interrupt, Startup
+  .set GPIO_Port_C_Interrupt, Startup
+  .set GPIO_Port_D_Interrupt, Startup
+  .set GPIO_Port_E_Interrupt, Startup
+  .set UART0_Interrupt, Startup
+  .set UART1_Interrupt, Startup
+  .set SSI0_Interrupt, Startup
+  .set I2C0_Interrupt, Startup
+  .set PWM_Fault_Interrupt, Startup
+  .set PWM_Generator_0_Interrupt, Startup
+  .set PWM_Generator_1_Interrupt, Startup
+  .set PWM_Generator_2_Interrupt, Startup
+  .set QEI0_Interrupt, Startup
+  .set ADC0_Sequence_0_Interrupt, Startup
+  .set ADC0_Sequence_1_Interrupt, Startup
+  .set ADC0_Sequence_2_Interrupt, Startup
+  .set ADC0_Sequence_3_Interrupt, Startup
+  .set Watchdog_Timers_0_and_1_Interrupt, Startup
+  .set Timer_0A_Interrupt, Startup
+  .set Timer_0B_Interrupt, Startup
+  .set Timer_1A_Interrupt, Startup
+  .set Timer_1B_Interrupt, Startup
+  .set Timer_2A_Interrupt, Startup
+  .set Timer_2B_Interrupt, Startup
+  .set Analog_Comparator_0_Interrupt, Startup
+  .set Analog_Comparator_1_Interrupt, Startup
+  .set System_Control_Interrupt, Startup
+  .set Flash_Memory_Control_Interrupt, Startup
+  .set GPIO_Port_F_Interrupt, Startup
+  .set GPIO_Port_G_Interrupt, Startup
+  .set GPIO_Port_H_Interrupt, Startup
+  .set UART2_Interrupt, Startup
+  .set SSI1_Interrupt, Startup
+  .set Timer_3A_Interrupt, Startup
+  .set Timer_3B_Interrupt, Startup
+  .set I2C1_Interrupt, Startup
+  .set QEI1_Interrupt, Startup
+  .set CAN0_Interrupt, Startup
+  .set CAN1_Interrupt, Startup
+  .set Hibernation_Module_Interrupt, Startup
+  .set USB_Interrupt, Startup
+  .set uDMA_Software_Interrupt, Startup
+  .set uDMA_Error_Interrupt, Startup
+  .set ADC1_Sequence_0_Interrupt, Startup
+  .set ADC1_Sequence_1_Interrupt, Startup
+  .set ADC1_Sequence_2_Interrupt, Startup
+  .set ADC1_Sequence_3_Interrupt, Startup
+  .set I2S0_Interrupt, Startup
+  .set GPIO_Port_J_Interrupt, Startup
+  
+  .text
+end;
 
 end.
 
