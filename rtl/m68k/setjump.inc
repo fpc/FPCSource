@@ -18,6 +18,7 @@
 
 Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];compilerproc;
 asm
+  moveq.l #0, d0
 end;
 
 Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];compilerproc;
