@@ -10296,6 +10296,7 @@ tests/test/jvm/tstring9.pp svneol=native#text/plain
 tests/test/jvm/tstrreal1.pp svneol=native#text/plain
 tests/test/jvm/tstrreal2.pp svneol=native#text/plain
 tests/test/jvm/tthreadvar.pp svneol=native#text/plain
+tests/test/jvm/ttincdec.pp svneol=native#text/plain
 tests/test/jvm/ttrig.pp svneol=native#text/plain
 tests/test/jvm/ttrunc.pp svneol=native#text/plain
 tests/test/jvm/tval.inc svneol=native#text/plain
