@@ -1,4 +1,5 @@
 program tw22807;
+{$q-}
 var
     i: Integer;
 begin
