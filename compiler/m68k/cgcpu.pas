@@ -416,7 +416,7 @@ unit cgcpu;
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
        var
-         hreg,idxreg : tregister;
+         hreg,idxreg,hreg2 : tregister;
          href : treference;
          instr : taicpu;
        begin
@@ -518,25 +518,24 @@ unit cgcpu;
              begin
                if (ref.base<>NR_NO) then
                  begin
-                   if assigned(ref.symbol) and (ref.index=NR_NO) then
+                   { base + symbol is not good }
+                   if assigned(ref.symbol) then
                      begin
                        hreg:=cg.getaddressregister(list);
                        reference_reset_symbol(href,ref.symbol,0,ref.alignment);
                        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
-                       ref.index:=ref.base;
+                       if ref.index=NR_NO then
+                         ref.index:=ref.base
+                       else
+                         begin
+                           hreg2:=getaddressregister(list);
+                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg2));
+                           list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg,ref.index));
+                           ref.index:=hreg2;
+                         end;
                        ref.base:=hreg;
                        ref.symbol:=nil;
                      end;
-                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg,ref.index));
-                       ref.base:=hreg;
-                       ref.index:=NR_NO;
-                     end;
-                   {if (ref.index <> NR_NO) and assigned(ref.symbol) then
-                      internalerror(2002081403);}
                    { base + reg }
                    if ref.index <> NR_NO then
                       begin
