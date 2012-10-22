@@ -2014,6 +2014,9 @@ Implementation
 
        mls/mla x,y,z,w
        }
+      {
+      According to Jeppe Johansen this currently uses operands in the wrong order.
+
       else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_MUL], [C_None], [PF_None]) and
         (taicpu(p).ops=3) and
@@ -2074,6 +2077,7 @@ Implementation
 
           result:=true;
         end
+      }
       {else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_CMP], [C_None], [PF_None]) and
         (taicpu(p).oper[1]^.typ=top_const) and
