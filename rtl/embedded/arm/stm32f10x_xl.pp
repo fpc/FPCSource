@@ -317,10 +317,6 @@ type
   CR: byte;
  end;
 
- TFSMCRegisters = record
-  nothingyet: byte;
- end;
-
  TFlashRegisters = record
   ACR,
   KEYR,
@@ -344,7 +340,7 @@ type
    reserved3: array[0..23] of longword;
   IABR: array[0..7] of longword;
    reserved4: array[0..55] of longword;
-  IP: array[0..239] of longword;
+  IP: array[0..239] of byte;
    reserved5: array[0..643] of longword;
   STIR: longword;
  end;
@@ -376,6 +372,53 @@ type
   Load,
   Val,
   Calib: longword;
+ end;
+ 
+ TFSMC_Bank1 = record
+  BCR1 : longword;
+  BTR1 : longword;
+  BCR2 : longword;
+  BTR2 : longword;
+  BCR3 : longword;
+  BTR3 : longword;
+  BCR4 : longword;
+  BTR4 : longword;
+ end;
+
+ TFSMC_Bank1E = record
+   BWTR1 : longword;
+   res1  : longword;
+   BWTR2 : longword;
+   res2  : longword;
+   BWTR3 : longword;
+   res3  : longword;
+   BWTR4 : longword;
+ end;
+
+ TFSMC_Bank2 = record
+   PCR2,
+   SR2,
+   PMEM2,
+   PATT2,
+   res1,
+   ECCR2 : longword
+ end;
+
+ TFSMC_Bank3 = record
+   PCR3,
+   SR3,
+   PMEM3,
+   PATT3,
+   RESERVED0,
+   ECCR3 : longword;
+ end;
+
+ TFSMC_Bank4 = record
+   PCR4,
+   SR4,
+   PMEM4,
+   PATT4,
+   PIO4 : longword;
  end;
 
 {$ALIGN 2}
@@ -470,6 +513,13 @@ var
 
  { NVIC }
  NVIC: TNVICRegisters      absolute (SCS_BASE+$0100);
+
+ { FSMC }
+ FSMC_Bank1 : TFSMC_Bank1 absolute (FSMCBase + $40000000); 
+ FSMC_Bank1E : TFSMC_Bank1E absolute (FSMCBase + $40000104);
+ FSMC_Bank2 : TFSMC_Bank2 absolute (FSMCBase + $40000060); 
+ FSMC_Bank3 : TFSMC_Bank3 absolute (FSMCBase + $40000080); 
+ FSMC_Bank4 : TFSMC_Bank4 absolute (FSMCBase + $400000A0);  
 
 implementation
 
