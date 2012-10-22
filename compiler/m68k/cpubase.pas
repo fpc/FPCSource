@@ -353,7 +353,7 @@ implementation
 
 
     const
-      std_regname_table : array[tregisterindex] of string[10] = (
+      std_regname_table : TRegNameTable = (
         {$i r68kstd.inc}
       );
 

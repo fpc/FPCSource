@@ -268,7 +268,7 @@ implementation
 
     const
     {$ifdef x86_64}
-      std_regname_table : array[tregisterindex] of string[10] = (
+      std_regname_table : TRegNameTable = (
         {$i r8664std.inc}
       );
 
@@ -279,7 +279,7 @@ implementation
         {$i r8664sri.inc}
       );
     {$else x86_64}
-      std_regname_table : array[tregisterindex] of string[10] = (
+      std_regname_table : TRegNameTable = (
         {$i r386std.inc}
       );
 

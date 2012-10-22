@@ -43,10 +43,10 @@ interface
 implementation
 
     uses
-      cutils,verbose;
+      cutils,verbose,rgbase;
 
     const
-      gas_regname_table : array[tregisterindex] of string[10] = (
+      gas_regname_table : TRegNameTable = (
         {$i rarmstd.inc}
       );
 
