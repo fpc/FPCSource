@@ -824,7 +824,7 @@ function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
 {$define FPC_HAS_INTERNAL_BSF_BYTE}
 {$define FPC_HAS_INTERNAL_BSF_WORD}
 {$define FPC_HAS_INTERNAL_BSF_DWORD}
