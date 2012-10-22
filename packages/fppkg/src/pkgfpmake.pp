@@ -6,7 +6,7 @@ interface
 
 uses
   Classes,SysUtils,DateUtils,
-  pkghandler, fpmkunit;
+  pkghandler;
 
 implementation
 
@@ -224,7 +224,7 @@ begin
       // Compile options
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
-      if llInfo in LogLevels then
+      if vlInfo in LogLevels then
         AddOption('-vi');
       AddOption('-O2');
       AddOption('-XXs');
@@ -243,7 +243,7 @@ begin
       DeleteDir(TempBuildDir);
     end
   else
-    Log(llCommands,SLogNotCompilingFPMake);
+    Log(vlCommands,SLogNotCompilingFPMake);
 end;
 
 
@@ -295,9 +295,9 @@ begin
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
   { Create options }
-  if llDebug in LogLevels then
+  if vlDebug in LogLevels then
     AddOption('--debug')
-  else if llInfo in LogLevels then
+  else if vlInfo in LogLevels then
     AddOption('--verbose');
   if P.RecompileBroken and
      (P.FPMakeOptionsString<>'') then // Check for a empty FPMakeOptionString for packages being installed with an old fpmkunit

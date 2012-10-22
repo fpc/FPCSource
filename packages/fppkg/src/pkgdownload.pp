@@ -168,8 +168,8 @@ begin
   DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
-      Log(llCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
-      pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+      Log(vlCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
+      pkgglobals.log(vlProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
       Download(PackageRemoteArchive(P),PackageLocalArchive(P));
     finally
       Free;

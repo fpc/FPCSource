@@ -16,7 +16,7 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals, fpmkunit;
+uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals;
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';
@@ -238,11 +238,11 @@ begin
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
-    pkgglobals.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
+    pkgglobals.Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    pkgglobals.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
+    pkgglobals.Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
   // Log configuration
-  GlobalOptions.LogValues(llDebug);
+  GlobalOptions.LogValues(vlDebug);
 end;
 
 
@@ -255,7 +255,7 @@ begin
   CompilerOptions.UpdateLocalRepositoryOption;
   if FileExists(S) then
     begin
-      pkgglobals.Log(llDebug,SLogLoadingCompilerConfig,[S]);
+      pkgglobals.Log(vlDebug,SLogLoadingCompilerConfig,[S]);
       CompilerOptions.LoadCompilerFromFile(S)
     end
   else
@@ -263,7 +263,7 @@ begin
       // Generate a default configuration if it doesn't exists
       if GlobalOptions.CompilerConfig='default' then
         begin
-          pkgglobals.Log(llDebug,SLogGeneratingCompilerConfig,[S]);
+          pkgglobals.Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
           CompilerOptions.InitCompilerDefaults;
           CompilerOptions.SaveCompilerToFile(S);
           if CompilerOptions.SaveInifileChanges then
@@ -273,13 +273,13 @@ begin
         Error(SErrMissingCompilerConfig,[S]);
     end;
   // Log compiler configuration
-  CompilerOptions.LogValues(llDebug,'');
+  CompilerOptions.LogValues(vlDebug,'');
   // Load FPMake compiler config, this is normally the same config as above
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   FPMakeCompilerOptions.UpdateLocalRepositoryOption;
   if FileExists(S) then
     begin
-      pkgglobals.Log(llDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FPMakeCompilerOptions.LoadCompilerFromFile(S);
       if FPMakeCompilerOptions.SaveInifileChanges then
         FPMakeCompilerOptions.SaveCompilerToFile(S);
@@ -287,7 +287,7 @@ begin
   else
     Error(SErrMissingCompilerConfig,[S]);
   // Log compiler configuration
-  FPMakeCompilerOptions.LogValues(llDebug,'fpmake-building ');
+  FPMakeCompilerOptions.LogValues(vlDebug,'fpmake-building ');
 end;
 
 
@@ -439,7 +439,7 @@ begin
         FConfigVersion:=ReadInteger(SDefaults,KeyConfigVersion,0);
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
-            log(llDebug,SLogUpgradingConfig,[AFileName]);
+            log(vlDebug,SLogUpgradingConfig,[AFileName]);
             FSaveInifileChanges:=true;
             if FConfigVersion<1 then
               begin
@@ -688,7 +688,7 @@ begin
   // We retrieve the real binary
   if FCompilerVersion='2.2.0' then
     FCompiler:=GetCompilerInfo(FCompiler,'-PB');
-  log(llDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
+  log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
 
   // Use the same algorithm as the compiler, see options.pas
   // Except that the prefix is extracted and GlobalInstallDir is set using
@@ -706,12 +706,12 @@ begin
   FGlobalPrefix:=ExpandFileName(FGlobalPrefix);
 {$endif unix}
 
-  log(llDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
+  log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
   // User writable install directory
   if not IsSuperUser then
     begin
       FLocalPrefix:= '{LocalRepository}';
-      log(llDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
+      log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
 
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'));
@@ -720,7 +720,7 @@ begin
     {$ifndef Unix}
     fpcdir:=ExpandFileName(fpcdir);
     {$endif unix}
-    log(llDebug,SLogFPCDirEnv,[fpcdir]);
+    log(vlDebug,SLogFPCDirEnv,[fpcdir]);
     FGlobalInstallDir:=fpcdir;
     end;
 end;
@@ -738,7 +738,7 @@ begin
         FConfigVersion:=ReadInteger(SDefaults,KeyConfigVersion,0);
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
-            log(llDebug,SLogUpgradingConfig,[AFileName]);
+            log(vlDebug,SLogUpgradingConfig,[AFileName]);
             FSaveInifileChanges:=true;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
