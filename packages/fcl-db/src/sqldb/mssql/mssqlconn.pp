@@ -395,7 +395,8 @@ end;
 
 function TMSSQLConnection.StrToStatementType(s: string): TStatementType;
 begin
-  if s = 'EXEC' then
+  s:=LowerCase(s);
+  if s = 'exec' then
     Result:=stExecProcedure
   else
     Result:=inherited StrToStatementType(s);
