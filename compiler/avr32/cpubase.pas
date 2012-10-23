@@ -90,7 +90,7 @@ unit cpubase;
       first_mm_imreg     = $0;
 
 { TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
+      regnumber_count_bsstart = 8;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ravr32num.inc}
@@ -214,7 +214,7 @@ unit cpubase;
       maxintregs = 15;
       { to determine how many registers to use for regvars }
       maxintscratchregs = 3;
-      usableregsint = [RS_R0..RS_R10,RS_R12];
+      usableregsint = [RS_R0..RS_R12];
       c_countusableregsint = 12;
 
       maxfpuregs = 0;
@@ -383,21 +383,10 @@ unit cpubase;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
-        case regtype of
-          R_MMREGISTER:
-            begin
-              case s of
-                OS_F32:
-                  cgsize2subreg:=R_SUBFS;
-                OS_F64:
-                  cgsize2subreg:=R_SUBFD;
-                else
-                  internalerror(2009112701);
-              end;
-            end;
-          else
-            cgsize2subreg:=R_SUBWHOLE;
-        end;
+        if s in [OS_64,OS_S64] then
+          cgsize2subreg:=R_SUBQ
+        else
+          cgsize2subreg:=R_SUBWHOLE;
       end;
 
 

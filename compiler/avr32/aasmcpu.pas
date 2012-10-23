@@ -178,6 +178,7 @@ uses
          constructor op_reg(op : tasmop;_op1 : tregister);
          constructor op_ref(op : tasmop;const _op1 : treference);
          constructor op_const(op : tasmop;_op1 : longint);
+         constructor op_regset(op:tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_ref_reg(op : tasmop;const _op1 : treference;_op2 : tregister);
@@ -365,6 +366,13 @@ implementation
          inherited create(op);
          ops:=1;
          loadconst(0,aint(_op1));
+      end;
+
+    constructor taicpu.op_regset(op: tasmop; regtype: tregistertype; subreg: tsubregister; _op1: tcpuregisterset);
+      begin
+         inherited create(op);
+         ops:=1;
+         loadregset(0,regtype,subreg,_op1);
       end;
 
 
@@ -575,7 +583,7 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=setoppostfix(taicpu.op_reg_ref(A_LD,r,ref),PF_W);
+            result:=setoppostfix(taicpu.op_reg_ref(A_LDDSP,r,ref),PF_W);
           else
             internalerror(200401041);
         end;
@@ -588,7 +596,7 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=setoppostfix(taicpu.op_ref_reg(A_ST,ref,r),PF_W);
+            result:=setoppostfix(taicpu.op_ref_reg(A_STDSP,ref,r),PF_W);
           else
             internalerror(200401041);
         end;
@@ -611,8 +619,9 @@ implementation
           A_EORH,A_EORL,
           A_ORH,A_ORL,
           A_TST,
+          A_MAC,A_MACS,A_MACU,
           A_CASTS,A_CASTU,
-          A_CBR,A_SWAP,
+          A_SBR,A_CBR,A_SWAP,
           A_ROL,A_ROR:
             if opnr = 0 then
               result:=operand_readwrite;
@@ -622,36 +631,41 @@ implementation
           A_BR,
           A_RJMP,A_ACALL,A_ICALL,A_MCALL,A_RCALL,A_SCALL,
           A_RET,A_RETD,A_RETE,A_RETS,
-          A_MEMC,A_MEMS,A_MEMT:;
+          A_MEMC,A_MEMS,A_MEMT,A_POPM,
+          A_PUSHM:;
 
-          A_ADC,A_ADD,A_ADDABS,
-          A_MAX,A_MIN,
-          A_RSUB,A_SBC,A_SUB,
+          A_ADD,
+          A_RSUB,A_SUB,
+          A_MUL,
+          A_AND,A_ANDN,
+          A_EOR,A_OR,
+          A_ASR,
+          A_LSL,
+          A_LSR:
+            if (ops=2) and (opnr=0) then
+              result:=operand_readwrite
+            else if opnr=0 then
+              result:=operand_write;
+
+          A_ADC,A_ADDABS,
+          A_MAX,A_MIN,A_SBC,
           A_DIVS,A_DIVU,
           A_ADDHH,
-          A_MAC,A_MACS,A_MACU,
-          A_MUL,A_MULS,A_MULU,
+          A_MULS,A_MULU,
           A_MULHH,A_MULWH,A_MULNHH,A_MULNWH,
           A_SATADD,A_SATSUB,
           A_SUBHH,
           A_MULSATHH,A_MULSATRNDHH,A_MULSATRNDWH,A_MULSATWH,
-          A_AND,A_ANDN,
-          A_EOR,A_OR,
           A_BFEXTS,A_BFEXTU,
           A_BFINS,
           A_BREV,
           A_CLZ,
-          A_SBR,
-          A_ASR,
-          A_LSL,
-          A_LSR,
           A_MOV,
           A_MOVH,
           A_LD,A_LDINS,A_LDSWP,A_LDDPC,A_LDDSP,
           A_ST,A_STCOND,A_STDSP,A_STHH,A_STSWP,
           A_XCHG,
-          A_LDM,A_LDMTS,A_POPM,
-          A_PUSHM,A_STM,A_STMTS,
+          A_LDM,A_LDMTS,A_STM,A_STMTS,
           A_BREAKPOINT,
           A_CACHE,
           A_CSRF,
@@ -956,12 +970,14 @@ implementation
                 current_asmdata.getjumplabel(l);
                 curdata.insert(taicpu.op_sym(A_BR,l));
                 curdata.concat(tai_label.create(l));
+                curdata.Insert(tai_align.Create_zeros(4));
                 list.insertlistafter(curtai,curdata);
                 curtai:=hp;
               end
             else
               curtai:=tai(curtai.next);
           end;
+        list.concat(tai_align.Create_zeros(4));
         list.concatlist(curdata);
         curdata.free;
       end;

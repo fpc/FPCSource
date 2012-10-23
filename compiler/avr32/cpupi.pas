@@ -32,9 +32,10 @@ unit cpupi;
        procinfo,cpuinfo,psub;
 
     type
-       tarmprocinfo = class(tcgprocinfo)
+       tavr32procinfo = class(tcgprocinfo)
+         procedure set_first_temp_offset; override;
+         function calc_stackframe_size: longint; override;
        end;
-
 
   implementation
 
@@ -48,6 +49,20 @@ unit cpupi;
        cgobj;
 
 
+    procedure tavr32procinfo.set_first_temp_offset;
+      begin
+        if tg.direction = -1 then
+          tg.setfirsttemp(-28-16)
+        else
+          tg.setfirsttemp(maxpushedparasize);
+      end;
+
+    function tavr32procinfo.calc_stackframe_size: longint;
+      begin
+        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
+        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
+      end;
+
 begin
-   cprocinfo:=tarmprocinfo;
+   cprocinfo:=tavr32procinfo;
 end.

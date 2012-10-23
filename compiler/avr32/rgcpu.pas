@@ -34,7 +34,12 @@ unit rgcpu;
        rgobj;
 
      type
+
+       { trgcpu }
+
        trgcpu = class(trgobj)
+         procedure add_constraints(reg: Tregister); override;
+         procedure add_cpu_interferences(p: tai); override;
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
@@ -49,6 +54,64 @@ unit rgcpu;
       cgobj,
       procinfo;
 
+    procedure trgcpu.add_constraints(reg: Tregister);
+      var
+        supreg,i : Tsuperregister;
+      begin
+        case getsubreg(reg) of
+          { Let 64bit ints conflict with all odd int regs }
+          R_SUBQ:
+            begin
+              supreg:=getsupreg(reg);
+              i:=RS_R1;
+              while (i<=RS_R15) do
+                begin
+                  add_edge(supreg,i);
+                  inc(i,2);
+                end;
+            end;
+        end;
+      end;
+
+    procedure trgcpu.add_cpu_interferences(p: tai);
+      var
+        r : Tsuperregister;
+      begin
+        if p.typ=ait_instruction then
+          begin
+            case taicpu(p).opcode of
+              A_DIVS,
+              A_DIVU:
+                begin
+                  r:=RS_R1;
+                  while r <= RS_R15 do
+                    begin
+                      add_edge(getsupreg(taicpu(p).oper[0]^.reg), r);
+                      inc(r,2);
+                    end;
+                end;
+              A_MACHH,
+              A_MACS,
+              A_MACU,
+              A_MACWH,
+              A_MULNWH,
+              A_MULS,
+              A_MULU,
+              A_MULWH:
+                begin
+                  if taicpu(p).oppostfix=PF_D then
+                    begin
+                      r:=RS_R1;
+                      while r <= RS_R15 do
+                        begin
+                          add_edge(getsupreg(taicpu(p).oper[0]^.reg), r);
+                          inc(r,2);
+                        end;
+                    end;
+                end;
+            end;
+          end;
+      end;
 
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
@@ -57,20 +120,6 @@ unit rgcpu;
         l : tasmlabel;
         hreg : tregister;
       begin
-        { don't load spilled register between
-          mov lr,pc
-          mov pc,r4
-          but befure the mov lr,pc
-        }
-        if assigned(pos.previous) and
-          (pos.typ=ait_instruction) and
-          (taicpu(pos).opcode=A_MOV) and
-          (taicpu(pos).oper[0]^.typ=top_reg) and
-          (taicpu(pos).oper[0]^.reg=NR_R14) and
-          (taicpu(pos).oper[1]^.typ=top_reg) and
-          (taicpu(pos).oper[1]^.reg=NR_PC) then
-          pos:=tai(pos.previous);
-
         if in_signed_bits(spilltemp.offset,16) then
           begin
             {helplist:=TAsmList.create;

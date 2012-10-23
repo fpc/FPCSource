@@ -138,7 +138,7 @@
   {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
-  { $define cputargethasfixedstack}
+  {$define cputargethasfixedstack}
 {$endif avr32}
 
 {$ifdef mipsel}

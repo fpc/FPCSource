@@ -52,7 +52,7 @@ CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
 endif
 
 ifeq ($(ARCH),avr32)
-CPU_UNITS=at32uc3b1256
+CPU_UNITS=at32uc3b1256 at32uc3l064
 endif
 
 ifeq ($(ARCH),i386)

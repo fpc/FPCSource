@@ -80,14 +80,14 @@ unit cpupara;
             if nr<=4 then
               begin
                 loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,RS_R0+nr-1,R_SUBWHOLE);
+                register:=newreg(R_INTREGISTER,RS_R12-nr+1,R_SUBWHOLE);
               end
             else
               begin
                 { the other parameters are passed on the stack }
                 loc:=LOC_REFERENCE;
                 reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=(nr-5)*4;
+                reference.offset:=(nr-6)*4;
               end;
           end;
       end;
@@ -221,7 +221,7 @@ unit cpupara;
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-               inc(nextintreg);
+               dec(nextintreg);
              end
            else
              begin
@@ -325,8 +325,6 @@ unit cpupara;
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             dec(nextintreg);
-                            if nextintreg=RS_R11 then
-                              dec(nextintreg);
                           end
                         else
                           begin
@@ -383,7 +381,7 @@ unit cpupara;
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                         inc(paraloc^.reference.offset,4);
+                         //inc(paraloc^.reference.offset,4);
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);

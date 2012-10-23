@@ -242,10 +242,6 @@ asm
 	rjmp .Lhalt
 end;
 
-procedure DefaultHandler; assembler; nostackframe; public name 'DefaultHandler';
-asm
-end;
-
 procedure StartCode; nostackframe; assembler; [public, alias: '_START'];// interrupt 0;
 asm
    .init
@@ -254,16 +250,16 @@ asm
    .text
 .Lstart:
    // Update stack
-   ld.w sp, .L_stack_top
+   lddpc sp, .L_stack_top
    
    // Set EVBA
-   ld.w r0, .L_evba_base
+   lddpc r0, .L_evba_base
    mtsr 4, r0 // EVBA
    
    // copy initialized data from flash to ram
-   ld.w r1,.L_etext
-   ld.w r2,.L_data
-   ld.w r3,.L_edata
+   lddpc r1,.L_etext
+   lddpc r2,.L_data
+   lddpc r3,.L_edata
 .Lcopyloop:
    cp.w r2,r3
    brhi .Lecopyloop
@@ -273,8 +269,8 @@ asm
 .Lecopyloop:
 
    // clear onboard ram
-   ld.w r1,.L_bss_start
-   ld.w r2,.L_bss_end
+   lddpc r1,.L_bss_start
+   lddpc r2,.L_bss_end
    mov r0, 0
 .Lzeroloop:
    cp.w r1,r2

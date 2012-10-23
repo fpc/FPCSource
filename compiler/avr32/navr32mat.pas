@@ -54,7 +54,8 @@ implementation
       pass_2,procinfo,
       ncon,
       cpubase,cpuinfo,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      nadd,pass_1,symdef;
 
 {*****************************************************************************
                              Tavr32MODDIVNODE
@@ -72,6 +73,19 @@ implementation
           ) and
           not(is_64bitint(resultdef)) then
           result:=nil
+        else if (nodetype=divn) and
+          not(is_64bitint(resultdef)) then
+          result:=nil
+        else if (nodetype=modn) and
+          not(is_64bitint(resultdef)) then
+          begin
+            if (right.nodetype=ordconstn) and
+              ispowerof2(tordconstnode(right).value,power) and
+              (tordconstnode(right).value>0) then
+              result:=caddnode.create(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
+            else
+              result:=nil;
+          end
         else
           result:=inherited first_moddivint;
       end;
@@ -80,112 +94,103 @@ implementation
     procedure tavr32moddivnode.pass_generate_code;
       var
         power  : longint;
+        helper1,helper2,
         numerator,
         resultreg  : tregister;
         size       : Tcgsize;
-        so : tshifterop;
 
-       procedure genOrdConstNodeDiv;
-         begin
-           if tordconstnode(right).value=0 then
-             internalerror(2005061701)
-           else if tordconstnode(right).value=1 then
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, numerator, resultreg)
-           else if (tordconstnode(right).value = int64(-1)) then
-             begin
-               // note: only in the signed case possible..., may overflow
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,resultreg,numerator));
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NEG,resultreg));
-             end
-           else if ispowerof2(tordconstnode(right).value,power) then
-             begin
-               if (is_signed(right.resultdef)) then
-                 begin
-                   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,resultreg);
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LSR,resultreg,32-power));
-                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_ADD,resultreg,numerator));
-                   current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_ASR,resultreg,power));
-                  end
-               else
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
-             end;
-         end;
-
-{
-       procedure genOrdConstNodeMod;
-         var
-             modreg, maskreg, tempreg : tregister;
-         begin
-             if (tordconstnode(right).value = 0) then begin
-                 internalerror(2005061702);
-             end
-             else if (abs(tordconstnode(right).value.svalue) = 1) then
-             begin
-                // x mod +/-1 is always zero
-                cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
-             end
-             else if (ispowerof2(tordconstnode(right).value, power)) then
-             begin
-                 if (is_signed(right.resultdef)) then begin
-
-                     tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-                     maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-                     modreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-
-                     cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, abs(tordconstnode(right).value.svalue)-1, modreg);
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 31, numerator, maskreg);
-                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, numerator, modreg, tempreg);
-
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ANDC, maskreg, maskreg, modreg));
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC, modreg, tempreg, 0));
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBFE, modreg, modreg, modreg));
-                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, modreg, maskreg, maskreg);
-                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_INT, maskreg, tempreg, resultreg);
-                 end else begin
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value.svalue-1, numerator, resultreg);
-                 end;
-             end else begin
-                 genOrdConstNodeDiv();
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg, resultreg);
-                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
-             end;
-         end;
-}
+      procedure genOrdConstNodeDiv;
+        begin
+          if tordconstnode(right).value=0 then
+            internalerror(2005061701)
+          else if tordconstnode(right).value=1 then
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, numerator, resultreg)
+          else if (tordconstnode(right).value = int64(-1)) then
+            begin
+              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_INT,numerator,resultreg);
+            end
+          else if ispowerof2(tordconstnode(right).value,power) then
+            begin
+              if (is_signed(right.resultdef)) then
+                begin
+                   helper1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   helper2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ASR,helper1,numerator,31));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LSR,helper1,32-power));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_ASR,helper2,power));
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,helper2,resultreg);
+                 end
+              else
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
+            end;
+        end;
 
       begin
         secondpass(left);
         secondpass(right);
-        location_copy(location,left.location);
 
-        { put numerator in register }
-        size:=def_cgsize(left.resultdef);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,
-          size,true);
-        location_copy(location,left.location);
-        numerator:=location.register;
-        resultreg:=location.register;
-        if location.loc=LOC_CREGISTER then
-          begin
-            location.loc := LOC_REGISTER;
-            location.register := cg.getintregister(current_asmdata.CurrAsmList,size);
-            resultreg:=location.register;
-          end
-        else if (nodetype=modn) or (right.nodetype=ordconstn) then
-          begin
-            // for a modulus op, and for const nodes we need the result register
-            // to be an extra register
-            resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
-          end;
+        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
+        location_force_reg(current_asmdata.CurrAsmList,right.location,OS_INT,true);
 
-        if right.nodetype=ordconstn then
+        if (nodetype=divn) and
+           not(is_64bitint(resultdef)) then
           begin
-            if nodetype=divn then
-              genOrdConstNodeDiv
+            size:=def_cgsize(left.resultdef);
+
+            if (right.nodetype=ordconstn) and
+               ((tordconstnode(right).value=1) or
+                (tordconstnode(right).value=int64(-1)) or
+                (tordconstnode(right).value=0) or
+                ispowerof2(tordconstnode(right).value,power)) then
+              begin
+                location_copy(location,left.location);
+                location.loc := LOC_REGISTER;
+                location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                resultreg:=location.register;
+
+                numerator:=left.location.register;
+
+                genOrdConstNodeDiv;
+              end
             else
-//              genOrdConstNodeMod;
-          end;
+              begin
+                location_copy(location,left.location);
+                location.loc := LOC_REGISTER;
+                location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                cg.alloccpuregisters(current_asmdata.CurrAsmList, R_INTREGISTER, [RS_R10,RS_R11]);
 
-        location.register:=resultreg;
+                if is_signed(left.resultdef) or
+                   is_signed(right.resultdef) then
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_IDIV,OS_INT,right.location.register,left.location.register,NR_R10)
+                else
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_DIV,OS_INT,right.location.register,left.location.register,NR_R10);
+
+                cg.dealloccpuregisters(current_asmdata.CurrAsmList, R_INTREGISTER, [RS_R10,RS_R11]);
+
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_R10,location.register);
+              end;
+          end
+        else if (nodetype=modn) and
+           not(is_64bitint(resultdef)) then
+          begin
+            location_copy(location,left.location);
+            location.loc := LOC_REGISTER;
+            location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg.alloccpuregisters(current_asmdata.CurrAsmList, R_INTREGISTER, [RS_R10,RS_R11]);
+
+            if is_signed(left.resultdef) or
+               is_signed(right.resultdef) then
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_IDIV,OS_INT,right.location.register,left.location.register,NR_R10)
+            else
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_DIV,OS_INT,right.location.register,left.location.register,NR_R10);
+
+            cg.dealloccpuregisters(current_asmdata.CurrAsmList, R_INTREGISTER, [RS_R10,RS_R11]);
+
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_R11,location.register);
+          end
+        else
+          internalerror(2012090701);
 
         { unsigned division/module can only overflow in case of division by zero }
         { (but checking this overflow flag is more convoluted than performing a  }

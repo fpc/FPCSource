@@ -265,7 +265,7 @@ unit i_embed;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 2;
+                localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 4;
