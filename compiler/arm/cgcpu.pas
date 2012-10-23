@@ -2213,6 +2213,12 @@ unit cgcpu;
             a_load_ref_reg(list,OS_32,OS_32,source,tmpreg);
             a_load_reg_ref(list,OS_32,OS_32,tmpreg,dest);
           end
+        else if aligned and (len=2) then
+          begin
+            tmpreg:=getintregister(list,OS_16);
+            a_load_ref_reg(list,OS_16,OS_16,source,tmpreg);
+            a_load_reg_ref(list,OS_16,OS_16,tmpreg,dest);
+          end
         else if (len<=helpsize) and aligned then
           begin
             tmpregi:=0;
@@ -2337,8 +2343,8 @@ unit cgcpu;
 
     procedure tcgarm.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
       begin
-        if (source.alignment in [1..3]) or
-          (dest.alignment in [1..3]) then
+        if (source.alignment in [1,3]) or
+          (dest.alignment in [1,3]) then
           g_concatcopy_internal(list,source,dest,len,false)
         else
           g_concatcopy_internal(list,source,dest,len,true);
