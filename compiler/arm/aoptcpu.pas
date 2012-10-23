@@ -2002,7 +2002,7 @@ Implementation
 
        mls/mla x,y,z,w
        }
-      else if (p.typ=ait_instruction) and
+      {else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_MUL], [C_None], [PF_None]) and
         (taicpu(p).ops=3) and
         (taicpu(p).oper[0]^.typ = top_reg) and
@@ -2061,7 +2061,7 @@ Implementation
             end;
 
           result:=true;
-        end
+        end}
       {else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_CMP], [C_None], [PF_None]) and
         (taicpu(p).oper[1]^.typ=top_const) and
