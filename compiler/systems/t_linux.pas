@@ -238,14 +238,17 @@ end;
 function ModulesLinkToLibc:boolean;
 var
   hp: tmodule;
+  i: tlinkcontaineritem;
 begin
-  result:=false;
+  { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
+    The former contains library names qualified with prefix and suffix (coming from
+    "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
+    directives). }
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
     begin
-      { Syntax "external 'c' name 'foo'" adds 'libc.so' to
-        linkothersharedlibs, while "$linklib c" adds just 'c'.
-        Therefore we must search for both names, this deserves a better fix. }
+      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      if result then break;
       result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
       if result then break;
       result:=hp.linkothersharedlibs.find('c');
