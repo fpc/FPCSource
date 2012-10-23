@@ -484,6 +484,11 @@ implementation
                   address:=address+relocval;
                 end;
 
+              R_X86_64_GOTOFF64:
+                begin
+                  address:=address+relocval-gotsymbol.address;
+                end;
+
               else
                 begin
                   writeln(objreloc.typ);

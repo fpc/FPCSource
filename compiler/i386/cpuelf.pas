@@ -408,7 +408,10 @@ implementation
                   address:=address+relocval;
                 end;
 
-              //R_386_GOTOFF:  !!TODO
+              R_386_GOTOFF:
+                begin
+                  address:=address+relocval-gotsymbol.address;
+                end;
 
               else
                 begin
