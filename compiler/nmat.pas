@@ -766,7 +766,9 @@ implementation
 {$endif not cpu64bitaddr}
          else if (left.resultdef.typ=orddef) then
            begin
+{$ifndef cpunodefaultint}
              inserttypeconv(left,sinttype);
+{$endif cpunodefaultint}
              resultdef:=left.resultdef
            end
          else

@@ -238,11 +238,15 @@ implementation
         secondpass(left);
         { load left operator in a register }
         location_copy(location,left.location);
+{$ifdef cpunodefaultint}
+        opsize:=left.resultdef;
+{$else cpunodefaultint}
         { in case of a 32 bit system that can natively execute 64 bit operations }
         if (left.resultdef.size<=sinttype.size) then
           opsize:=sinttype
         else
           opsize:=s64inttype;
+{$endif cpunodefaultint}
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
 
