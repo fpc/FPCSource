@@ -29,7 +29,7 @@ interface
        node,ncgadd,cpubase;
 
     type
-       tavraddnode = class(tcgaddnode)
+       TAVRAddNode = class(tcgaddnode)
        private
          function  GetResFlags(unsigned:Boolean):TResFlags;
        protected
@@ -54,7 +54,7 @@ interface
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
 {*****************************************************************************
-                               TSparcAddNode
+                               TAVRAddNode
 *****************************************************************************}
 
     function tavraddnode.GetResFlags(unsigned:Boolean):TResFlags;
