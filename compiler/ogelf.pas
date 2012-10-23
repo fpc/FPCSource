@@ -125,6 +125,8 @@ interface
          symtaboffset: aword;
          syms: longword;
          localsyms: longword;
+         symversions: PWord;
+         dynobj: boolean;
          function LoadHeader:word;
          procedure LoadSection(const hdr;index:longint;objdata:TObjData);
          procedure LoadRelocations(const secrec:TSectionRec);
@@ -333,6 +335,9 @@ implementation
       SHT_PREINIT_ARRAY = 16;
       SHT_GROUP    = 17;
       SHT_SYMTAB_SHNDX = 18;
+      SHT_GNU_verdef = $6ffffffd;
+      SHT_GNU_verneed = $6ffffffe;
+      SHT_GNU_versym = $6fffffff;
 
       SHF_WRITE     = 1;
       SHF_ALLOC     = 2;
@@ -1554,6 +1559,8 @@ implementation
           FreeMem(strtab);
         if Assigned(shstrtab) then
           FreeMem(shstrtab);
+        if Assigned(symversions) then
+          FreeMem(symversions);
         inherited Destroy;
       end;
 
@@ -1608,6 +1615,7 @@ implementation
         bind: TAsmSymBind;
         typ: TAsmSymType;
         objsym: TObjSymbol;
+        ver: word;
       begin
         FSymTbl:=AllocMem(count*sizeof(Pointer));
         for i:=1 to count-1 do
@@ -1621,7 +1629,12 @@ implementation
               Continue
             else if sym.st_shndx=SHN_COMMON then
               bind:=AB_COMMON
-            else if (sym.st_shndx>=nsects) or ((sym.st_shndx>0) and (FSecTbl[sym.st_shndx].sec=nil)) then
+            else if (sym.st_shndx>=nsects) or
+              (
+                (sym.st_shndx>0) and
+                (FSecTbl[sym.st_shndx].sec=nil) and
+                (not dynobj)
+              ) then
               begin
                 writeln(objdata.name,' ',i);
                 InternalError(2012060206)
@@ -1660,6 +1673,19 @@ implementation
               writeln(objdata.name,' ',sym.st_info and $0F);
               InternalError(2012060208);
             end;
+            { If reading DSO, we're interested only in global symbols defined there.
+              Symbols with non-current version should also be ignored. }
+            if dynobj then
+              begin
+                if assigned(symversions) then
+                  begin
+                    ver:=symversions[i];
+                    if (ver=0) or (ver > $7FFF) then
+                      continue;
+                  end;
+                if (bind= AB_LOCAL) or (sym.st_shndx=SHN_UNDEF) then
+                  continue;
+              end;
             { validity of name and objsection has been checked above }
             { !! all AT_SECTION symbols have duplicate (null) name,
               therefore TObjSection.CreateSymbol cannot be used here }
@@ -1837,10 +1863,10 @@ implementation
 
     function TElfObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
       var
-        i,strndx,dynndx: longint;
+        i,j,symtabndx,strndx,dynndx,
+        versymndx,verdefndx,verneedndx: longint;
         objsec: TElfObjSection;
         shdrs: array of TElfsechdr;
-        isdyn: boolean;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -1854,7 +1880,7 @@ implementation
             InputError('Not a relocatable or dynamic ELF file');
             exit;
           end;
-        isdyn:=(i=ET_DYN);
+        dynobj:=(i=ET_DYN);
 
         if shentsize<>sizeof(TElfsechdr) then
           InternalError(2012062701);
@@ -1888,13 +1914,11 @@ implementation
           Load the strings, postpone symtable itself until done with sections.
           Note that is is legal to have no symtable.
           For DSO, locate .dynsym instead, this one is near the beginning, but
-          overall number of sections won't be big. Also locate .dynamic. }
-        dynndx:=0;
+          overall number of sections won't be big. }
+        symtabndx:=-1;
         for i:=nsects-1 downto 1 do
           begin
-            if isdyn and (shdrs[i].sh_type=SHT_DYNAMIC) then
-              dynndx:=i;
-            if (shdrs[i].sh_type<>symsectypes[isdyn]) then
+            if (shdrs[i].sh_type<>symsectypes[dynobj]) then
               continue;
             if (shdrs[i].sh_entsize<>sizeof(TElfSymbol)) then
               InternalError(2012060213);
@@ -1913,16 +1937,71 @@ implementation
             localsyms:=shdrs[i].sh_info;
             FLoaded[i]:=True;
             FLoaded[strndx]:=True;
+            symtabndx:=i;
             break;
           end;
 
-        if isdyn then
+        if dynobj then
           begin
+            { Locate .dynamic and version sections. Expect a single one of a kind. }
+            dynndx:=0;
+            versymndx:=0;
+            verdefndx:=0;
+            verneedndx:=0;
+            for i:=nsects-1 downto 0 do
+              begin
+                case shdrs[i].sh_type of
+                  SHT_DYNAMIC:
+                    begin
+                      if dynndx<>0 then
+                        InternalError(2012102001);
+                      dynndx:=i;
+                      if (shdrs[dynndx].sh_link<>strndx) then
+                        InternalError(2012071402);
+                      LoadDynamic(shdrs[dynndx],objdata);
+                    end;
+
+                  SHT_GNU_versym:
+                    begin
+                      if versymndx<>0 then
+                        InternalError(2012102002);
+                      versymndx:=i;
+                      if shdrs[i].sh_entsize<>sizeof(word) then
+                        InternalError(2012102003);
+                      if shdrs[i].sh_link<>symtabndx then
+                        InternalError(2012102004);
+                      if shdrs[i].sh_size<>syms*sizeof(word) then
+                        InternalError(2012102005);
+                      GetMem(symversions,shdrs[i].sh_size);
+                      FReader.seek(shdrs[i].sh_offset);
+                      FReader.read(symversions^,shdrs[i].sh_size);
+                      if source_info.endian<>target_info.endian then
+                        for j:=0 to syms-1 do
+                          SwapEndian(symversions[j]);
+                    end;
+
+                  SHT_GNU_verdef:
+                    begin
+                      if verdefndx<>0 then
+                        InternalError(2012102006);
+                      verdefndx:=i;
+                      //sh_link->.dynstr
+                      //sh_info->.hash
+                    end;
+
+                  SHT_GNU_verneed:
+                    begin
+                      if verneedndx<>0 then
+                        InternalError(2012102007);
+                      verneedndx:=i;
+                      //sh_link->.dynstr
+                      //sh_info->hash
+                    end;
+                end;
+             end;
+
             if dynndx=0 then
               InternalError(2012071401);
-            if (shdrs[dynndx].sh_link<>strndx) then
-              InternalError(2012071402);
-            LoadDynamic(shdrs[dynndx],objdata);
 
             { for DSO, we aren't interested in actual sections, but need to a dummy one
               to maintain integrity. }
@@ -2270,10 +2349,26 @@ implementation
 
 
     procedure TElfExeOutput.Load_DynamicObject(objdata:TObjData);
+      var
+        i: longint;
+        exesym: TExeSymbol;
+        objsym: TObjSymbol;
       begin
         Comment(v_debug,'Dynamic object: '+objdata.name);
         if neededlist.Find(objdata.name)=nil then
           neededlist.Add(objdata.name,objdata);
+        for i:=0 to UnresolvedExeSymbols.Count-1 do
+          begin
+            exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
+            if exesym.State<>symstate_undefined then
+              continue;
+            objsym:=TObjSymbol(objdata.ObjSymbolList.Find(exesym.name));
+            if assigned(objsym) then
+              begin
+                exesym.State:=symstate_defined;
+                exesym.dynindex:=dynsymlist.Add(exesym)+1;
+              end;
+          end;
       end;
 
 
@@ -2339,6 +2434,24 @@ implementation
         objsym:TObjSymbol;
         objsec: TObjSection;
       begin
+        { Unused section removal changes state of referenced exesymbols
+          to symstate_dynamic. Remaining ones can be removed. }
+        for i:=0 to dynsymlist.count-1 do
+          begin
+            exesym:=TExeSymbol(dynsymlist[i]);
+            if assigned(exesym.ObjSymbol.ObjSection) then  // an exported symbol
+              continue;
+            if exesym.state<>symstate_dynamic then
+              begin
+                dynsymlist[i]:=nil;
+                exesym.dynindex:=0;
+              end;
+          end;
+        dynsymlist.Pack;
+        { reindex }
+        for i:=0 to dynsymlist.count-1 do
+          TExeSymbol(dynsymlist[i]).dynindex:=i+1;
+
         { Drop unresolved symbols that aren't referenced, assign dynamic
           indices to remaining ones. }
         for i:=0 to UnresolvedExeSymbols.Count-1 do
@@ -2360,9 +2473,11 @@ implementation
         PrepareGOT;
 
         { Write required PLT entries }
-        for i:=0 to UnresolvedExeSymbols.Count-1 do
+        for i:=0 to dynsymlist.Count-1 do
           begin
-            exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
+            exesym:=TExeSymbol(dynsymlist[i]);
+            if assigned(exesym.ObjSymbol.objsection) then  // an exported symbol
+              continue;
 
             { if there's no PLT references to symbol, then PLT entry isn't needed }
             { !! Does not work correctly yet !! }
@@ -2961,9 +3076,15 @@ implementation
               InternalError(2012071801);
           until exportlist.empty;
 
-        if not (cs_link_staticflag in current_settings.globalswitches) then
-          for i:=0 to UnresolvedExeSymbols.Count-1 do
-            TExeSymbol(UnresolvedExeSymbols[i]).state:=symstate_defined;
+        { Mark unresolved weak symbols as defined, they will become dynamic further on.
+          If compiling a .so, make all symbols dynamic, since shared library may reference
+          symbols from executable which does not participate in linking. }
+        for i:=0 to UnresolvedExeSymbols.Count-1 do
+          begin
+            sym:=TExeSymbol(UnresolvedExeSymbols[i]);
+            if (sym.objsymbol.bind=AB_WEAK_EXTERNAL) or IsSharedLibrary then
+              sym.state:=symstate_defined;
+          end;
       end;
 
 
