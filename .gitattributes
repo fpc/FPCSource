@@ -11163,6 +11163,7 @@ tests/test/toperator86.pp svneol=native#text/pascal
 tests/test/toperator87.pp svneol=native#text/pascal
 tests/test/toperator88.pp svneol=native#text/pascal
 tests/test/toperator9.pp svneol=native#text/pascal
+tests/test/toperatorerror.pp svneol=native#text/plain
 tests/test/tover1.pp svneol=native#text/plain
 tests/test/tover2.pp svneol=native#text/plain
 tests/test/tover3.pp svneol=native#text/plain

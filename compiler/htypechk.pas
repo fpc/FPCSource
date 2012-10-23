@@ -827,6 +827,7 @@ implementation
                 CGMessage(parser_e_operator_not_overloaded);
                 candidates.free;
                 ppn.free;
+                ppn:=nil;
                 exit;
               end;
 
@@ -847,6 +848,7 @@ implementation
                 CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
                 candidates.free;
                 ppn.free;
+                ppn:=nil;
                 exit;
               end;
 
@@ -932,6 +934,7 @@ implementation
         if (cand_cnt=0) and (optoken=_NE) then
           begin
             ppn.free;
+            ppn:=nil;
             operpd:=nil;
             optoken:=_EQ;
             cand_cnt:=search_operator(optoken,true);
