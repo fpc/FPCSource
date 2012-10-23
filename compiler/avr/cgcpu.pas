@@ -56,7 +56,7 @@ unit cgcpu;
         procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
-        procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
+        procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister); override;
 
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
@@ -107,6 +107,9 @@ unit cgcpu;
         function GetStore(const ref: treference): tasmop;
 
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+      protected
+        procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
+        procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
       end;
 
       tcg64favr = class(tcg64f32)
@@ -332,60 +335,22 @@ unit cgcpu;
 
 
      procedure tcgavr.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
-       var
-         mask : qword;
-         shift : byte;
-         i : byte;
-         tmpreg : tregister;
        begin
-         mask:=$ff;
-         shift:=0;
-         case op of
-           OP_OR:
-             begin
-               for i:=1 to tcgsize2size[size] do
-                 begin
-                   list.concat(taicpu.op_reg_const(A_ORI,reg,(a and mask) shr shift));
-                   reg:=GetNextReg(reg);
-                   mask:=mask shl 8;
-                   inc(shift,8);
-                 end;
-             end;
-           OP_AND:
-             begin
-               for i:=1 to tcgsize2size[size] do
-                 begin
-                   list.concat(taicpu.op_reg_const(A_ANDI,reg,(a and mask) shr shift));
-                   reg:=GetNextReg(reg);
-                   mask:=mask shl 8;
-                   inc(shift,8);
-                 end;
-             end;
-           OP_SUB:
-             begin
-               list.concat(taicpu.op_reg_const(A_SUBI,reg,a));
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-                 begin
-                   for i:=2 to tcgsize2size[size] do
-                     begin
-                       reg:=GetNextReg(reg);
-                       mask:=mask shl 8;
-                       inc(shift,8);
-                       list.concat(taicpu.op_reg_const(A_SBCI,reg,(a and mask) shr shift));
-                     end;
-                 end;
-             end;
-         else
-           begin
-             tmpreg:=getintregister(list,size);
-             a_load_const_reg(list,size,a,tmpreg);
-             a_op_reg_reg(list,op,size,tmpreg,reg);
-           end;
-         end;
+         if not(size in [OS_S8,OS_8,OS_S16,OS_16,OS_S32,OS_32]) then
+           internalerror(2012102403);
+         a_op_const_reg_internal(list,Op,size,a,reg,NR_NO);
        end;
 
 
-     procedure tcgavr.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+     procedure tcgavr.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister);
+       begin
+         if not(size in [OS_S8,OS_8,OS_S16,OS_16,OS_S32,OS_32]) then
+           internalerror(2012102401);
+         a_op_reg_reg_internal(list,Op,size,src,NR_NO,dst,NR_NO);
+       end;
+
+
+     procedure tcgavr.a_op_reg_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
        var
          countreg,
          tmpreg: tregister;
@@ -393,6 +358,30 @@ unit cgcpu;
          instr : taicpu;
          paraloc1,paraloc2,paraloc3 : TCGPara;
          l1,l2 : tasmlabel;
+
+       procedure NextSrcDst;
+         begin
+           if i=5 then
+             begin
+               dst:=dsthi;
+               src:=srchi;
+             end
+           else
+             begin
+               dst:=GetNextReg(dst);
+               src:=GetNextReg(src);
+             end;
+         end;
+
+       { iterates TmpReg through all registers of dst }
+       procedure NextTmp;
+         begin
+           if i=5 then
+             tmpreg:=dsthi
+           else
+             tmpreg:=GetNextReg(tmpreg);
+         end;
+
       begin
          case op of
            OP_ADD:
@@ -402,12 +391,10 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       dst:=GetNextReg(dst);
-                       src:=GetNextReg(src);
+                       NextSrcDst;
                        list.concat(taicpu.op_reg_reg(A_ADC,dst,src));
-                   end;
-                 end
-               else
+                     end;
+                 end;
              end;
 
            OP_SUB:
@@ -417,8 +404,7 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       dst:=GetNextReg(dst);
-                       src:=GetNextReg(src);
+                       NextSrcDst;
                        list.concat(taicpu.op_reg_reg(A_SBC,dst,src));
                      end;
                  end;
@@ -435,18 +421,16 @@ unit cgcpu;
                    for i:=2 to tcgsize2size[size] do
                      begin
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
-                       tmpreg:=GetNextReg(tmpreg);
+                       NextTmp;
                      end;
                    list.concat(taicpu.op_reg(A_NEG,dst));
                    tmpreg:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
                        list.concat(taicpu.op_reg_const(A_SBCI,dst,-1));
-                       tmpreg:=GetNextReg(tmpreg);
+                       NextTmp;
                    end;
-                 end
-               else
-                 list.concat(taicpu.op_reg(A_NEG,dst));
+                 end;
              end;
 
            OP_NOT:
@@ -456,8 +440,7 @@ unit cgcpu;
                    if src<>dst then
                      a_load_reg_reg(list,OS_8,OS_8,src,dst);
                    list.concat(taicpu.op_reg(A_COM,dst));
-                   src:=GetNextReg(src);
-                   dst:=GetNextReg(dst);
+                   NextSrcDst;
                  end;
              end;
 
@@ -508,11 +491,11 @@ unit cgcpu;
                cg.a_label(list,l1);
                case op of
                  OP_SHR:
-                   list.concat(taicpu.op_reg(A_LSR,GetOffsetReg(dst,tcgsize2size[size]-1)));
+                   list.concat(taicpu.op_reg(A_LSR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
                  OP_SHL:
                    list.concat(taicpu.op_reg(A_LSL,dst));
                  OP_SAR:
-                   list.concat(taicpu.op_reg(A_ASR,GetOffsetReg(dst,tcgsize2size[size]-1)));
+                   list.concat(taicpu.op_reg(A_ASR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
                  OP_ROR:
                    begin
                      { load carry? }
@@ -522,7 +505,7 @@ unit cgcpu;
                          list.concat(taicpu.op_reg_const(A_SBRC,src,0));
                          list.concat(taicpu.op_none(A_SEC));
                        end;
-                     list.concat(taicpu.op_reg(A_ROR,GetOffsetReg(dst,tcgsize2size[size]-1)));
+                     list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
                    end;
                  OP_ROL:
                    begin
@@ -530,7 +513,7 @@ unit cgcpu;
                      if not(size in [OS_8,OS_S8]) then
                        begin
                          list.concat(taicpu.op_none(A_CLC));
-                         list.concat(taicpu.op_reg_const(A_SBRC,GetOffsetReg(dst,tcgsize2size[size]-1),7));
+                         list.concat(taicpu.op_reg_const(A_SBRC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1),7));
                          list.concat(taicpu.op_none(A_SEC));
                        end;
                      list.concat(taicpu.op_reg(A_ROL,dst))
@@ -545,12 +528,12 @@ unit cgcpu;
                        case op of
                          OP_ROR,
                          OP_SHR:
-                           list.concat(taicpu.op_reg(A_ROR,GetOffsetReg(dst,tcgsize2size[size]-i)));
+                           list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i)));
                          OP_ROL,
                          OP_SHL:
-                           list.concat(taicpu.op_reg(A_ROL,GetOffsetReg(dst,i-1)));
+                           list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(dst,dsthi,i-1)));
                          OP_SAR:
-                           list.concat(taicpu.op_reg(A_ROR,GetOffsetReg(dst,tcgsize2size[size]-i)));
+                           list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i)));
                          else
                            internalerror(2011030902);
                        end;
@@ -569,14 +552,88 @@ unit cgcpu;
                 for i:=1 to tcgsize2size[size] do
                   begin
                     list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
-                    dst:=GetNextReg(dst);
-                    src:=GetNextReg(src);
+                    NextSrcDst;
                   end;
              end;
            else
              internalerror(2011022004);
          end;
        end;
+
+     procedure tcgavr.a_op_const_reg_internal(list: TAsmList; Op: TOpCG;
+      size: TCGSize; a: tcgint; reg, reghi: TRegister);
+
+       var
+         mask : qword;
+         shift : byte;
+         i : byte;
+         tmpreg : tregister;
+         tmpreg64 : tregister64;
+
+      procedure NextReg;
+        begin
+          if i=5 then
+            reg:=reghi
+          else
+            reg:=GetNextReg(reg);
+        end;
+
+       begin
+         mask:=$ff;
+         shift:=0;
+         case op of
+           OP_OR:
+             begin
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   list.concat(taicpu.op_reg_const(A_ORI,reg,(a and mask) shr shift));
+                   NextReg;
+                   mask:=mask shl 8;
+                   inc(shift,8);
+                 end;
+             end;
+           OP_AND:
+             begin
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   list.concat(taicpu.op_reg_const(A_ANDI,reg,(a and mask) shr shift));
+                   NextReg;
+                   mask:=mask shl 8;
+                   inc(shift,8);
+                 end;
+             end;
+           OP_SUB:
+             begin
+               list.concat(taicpu.op_reg_const(A_SUBI,reg,a));
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       list.concat(taicpu.op_reg_const(A_SBCI,reg,(a and mask) shr shift));
+                     end;
+                 end;
+             end;
+         else
+           begin
+             if size in [OS_64,OS_S64] then
+               begin
+                 tmpreg64.reglo:=getintregister(list,OS_32);
+                 tmpreg64.reghi:=getintregister(list,OS_32);
+                 cg64.a_load64_const_reg(list,a,tmpreg64);
+                 cg64.a_op64_reg_reg(list,op,size,tmpreg64,joinreg64(reg,reghi));
+               end
+             else
+               begin
+                 tmpreg:=getintregister(list,size);
+                 a_load_const_reg(list,size,a,tmpreg);
+                 a_op_reg_reg(list,op,size,tmpreg,reg);
+               end;
+           end;
+       end;
+     end;
 
 
      procedure tcgavr.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
@@ -1020,18 +1077,20 @@ unit cgcpu;
                  end;
                OS_S8:
                  begin
-                   { dest is always at least 16 bit at this point }
                    emit_mov(list,reg2,reg1);
 
-                   reg2:=GetNextReg(reg2);
-                   list.concat(taicpu.op_reg(A_CLR,reg2));
-                   list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
-                   list.concat(taicpu.op_reg(A_COM,reg2));
-                   tmpreg:=reg2;
-                   for i:=3 to tcgsize2size[tosize] do
+                   if tcgsize2size[tosize]>1 then
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,tmpreg);
+                       list.concat(taicpu.op_reg(A_CLR,reg2));
+                       list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
+                       list.concat(taicpu.op_reg(A_COM,reg2));
+                       tmpreg:=reg2;
+                       for i:=3 to tcgsize2size[tosize] do
+                         begin
+                           reg2:=GetNextReg(reg2);
+                           emit_mov(list,reg2,tmpreg);
+                         end;
                      end;
                  end;
                OS_16:
@@ -1050,22 +1109,24 @@ unit cgcpu;
                  end;
                OS_S16:
                  begin
-                   { dest is always at least 32 bit at this point }
                    emit_mov(list,reg2,reg1);
 
                    reg1:=GetNextReg(reg1);
                    reg2:=GetNextReg(reg2);
                    emit_mov(list,reg2,reg1);
 
-                   reg2:=GetNextReg(reg2);
-                   list.concat(taicpu.op_reg(A_CLR,reg2));
-                   list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
-                   list.concat(taicpu.op_reg(A_COM,reg2));
-                   tmpreg:=reg2;
-                   for i:=4 to tcgsize2size[tosize] do
+                   if tcgsize2size[tosize]>2 then
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,tmpreg);
+                       list.concat(taicpu.op_reg(A_CLR,reg2));
+                       list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
+                       list.concat(taicpu.op_reg(A_COM,reg2));
+                       tmpreg:=reg2;
+                       for i:=4 to tcgsize2size[tosize] do
+                         begin
+                           reg2:=GetNextReg(reg2);
+                           emit_mov(list,reg2,tmpreg);
+                         end;
                      end;
                  end;
                else
@@ -1733,13 +1794,15 @@ unit cgcpu;
 
     procedure tcg64favr.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
-        { TODO : a_op64_reg_reg }
+         if not(size in [OS_S64,OS_64]) then
+           internalerror(2012102402);
+         tcgavr(cg).a_op_reg_reg_internal(list,Op,size,regsrc.reglo,regsrc.reghi,regdst.reglo,regdst.reghi);
       end;
 
 
     procedure tcg64favr.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
-        { TODO : a_op64_const_reg }
+        tcgavr(cg).a_op_const_reg_internal(list,Op,size,value,reg.reglo,reg.reghi);
       end;
 
 
