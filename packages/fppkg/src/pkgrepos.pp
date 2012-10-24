@@ -6,8 +6,7 @@ interface
 
 uses
   SysUtils,Classes,
-  fprepos,pkgoptions,
-  fpmkunit;
+  fprepos,pkgoptions;
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
 
@@ -81,7 +80,7 @@ begin
 
   // Repository
   S:=GlobalOptions.LocalMirrorsFile;
-  log(llDebug,SLogLoadingMirrorsFile,[S]);
+  log(vlDebug,SLogLoadingMirrorsFile,[S]);
   if not FileExists(S) then
     exit;
   try
@@ -95,7 +94,7 @@ begin
   except
     on E : Exception do
       begin
-        Log(llError,E.Message);
+        Log(vlError,E.Message);
         Error(SErrCorruptMirrorsFile,[S]);
       end;
   end;
@@ -137,7 +136,7 @@ begin
     end;
   if assigned(M) then
     begin
-      log(llInfo,SLogSelectedMirror,[M.Name]);
+      log(vlInfo,SLogSelectedMirror,[M.Name]);
       Result:=M.URL;
     end
   else
@@ -206,7 +205,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
         result.UnusedVersion:=result.Version;
         // Log packages found in multiple locations (local and global) ?
         if showdups then
-          log(llDebug,SDbgPackageMultipleLocations,[result.Name,ExtractFilePath(AFileName)]);
+          log(vlDebug,SDbgPackageMultipleLocations,[result.Name,ExtractFilePath(AFileName)]);
       end;
     result.InstalledLocally:=Local;
   end;
@@ -235,7 +234,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
     Result:=false;
     if FindFirst(IncludeTrailingPathDelimiter(AUnitDir)+AllFiles,faDirectory,SR)=0 then
       begin
-        log(llDebug,SLogFindInstalledPackages,[AUnitDir]);
+        log(vlDebug,SLogFindInstalledPackages,[AUnitDir]);
         repeat
           if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
             begin
@@ -279,7 +278,7 @@ end;
 
 Procedure AddFPMakeAddIn(APackage: TFPPackage);
 begin
-  log(llDebug,SLogFoundFPMakeAddin,[APackage.Name]);
+  log(vlDebug,SLogFoundFPMakeAddin,[APackage.Name]);
   setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
   FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
   FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
@@ -308,7 +307,7 @@ begin
             begin
               if (DepPackage.Checksum<>D.RequireChecksum) then
                 begin
-                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
+                  log(vlInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
                   result:=true;
                   if MarkForReInstall then
                     begin
@@ -337,7 +336,7 @@ begin
                 end;
             end
           else
-            log(llDebug,SDbgObsoleteDependency,[D.PackageName]);
+            log(vlDebug,SDbgObsoleteDependency,[D.PackageName]);
         end;
     end;
 end;
@@ -387,19 +386,15 @@ begin
           else
             AvailVerStr:='<not available>';
           ReqVer:=TFPVersion.Create;
-          try
-            ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
-            log(llDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
-            if ReqVer.CompareVersion(P.Version)<=0 then
-              FPMKUnitDeps[i].available:=true
-            else
-              log(llDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
-          finally
-            ReqVer.Free;
-          end;
+          ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
+          log(vlDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
+          if ReqVer.CompareVersion(P.Version)<=0 then
+            FPMKUnitDeps[i].available:=true
+          else
+            log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
         end
       else
-        log(llDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+        log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
     end;
 end;
 
@@ -418,7 +413,7 @@ begin
   AvailableRepository:=GetDefaultRepositoryClass.Create(Nil);
   // Repository
   S:=GlobalOptions.LocalPackagesFile;
-  log(llDebug,SLogLoadingPackagesFile,[S]);
+  log(vlDebug,SLogLoadingPackagesFile,[S]);
   if not FileExists(S) then
     exit;
   try
@@ -432,7 +427,7 @@ begin
   except
     on E : Exception do
       begin
-        Log(llError,E.Message);
+        Log(vlError,E.Message);
         Error(SErrCorruptPackagesFile,[S]);
       end;
   end;
@@ -629,7 +624,7 @@ begin
         { Unzip manifest.xml }
         With TUnZipper.Create do
           try
-            log(llCommands,SLogUnzippping,[ArchiveSL[i]]);
+            log(vlCommands,SLogUnzippping,[ArchiveSL[i]]);
             OutputPath:='.';
             UnZipFiles(ArchiveSL[i],ManifestSL);
           Finally

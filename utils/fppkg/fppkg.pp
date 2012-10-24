@@ -9,7 +9,7 @@ program fppkg;
 uses
   // General
 {$ifdef unix}
-  baseunix, cthreads,
+  baseunix,
 {$endif}
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
@@ -17,8 +17,7 @@ uses
   pkgmessages, pkgglobals, pkgoptions, pkgrepos,
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
-  pkgfpmake, pkgcommands,
-  fpmkunit
+  pkgfpmake, pkgcommands
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
@@ -58,7 +57,7 @@ begin
   for i:=1 to ParamCount do
     if (ParamStr(i)='-d') or (ParamStr(i)='--debug') then
       begin
-        LogLevels:=AllLogLevels+[llDebug];
+        LogLevels:=AllLogLevels+[vlDebug];
         break;
       end;
   // First try config file from command line
@@ -199,7 +198,7 @@ begin
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels
       else if CheckOption(I,'d','debug') then
-        LogLevels:=AllLogLevels+[llDebug]
+        LogLevels:=AllLogLevels+[vlDebug]
       else if CheckOption(I,'g','global') then
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
@@ -314,7 +313,7 @@ begin
           pkghandler.ExecuteAction('','update');
         except
           on E: Exception do
-            pkgglobals.Log(llWarning,E.Message);
+            pkgglobals.Log(vlWarning,E.Message);
         end;
       end;
     LoadLocalAvailableRepository;
@@ -333,7 +332,7 @@ begin
         (ParaAction='install') or
         (ParaAction='archive')) then
       begin
-        pkgglobals.Log(llDebug,SLogCheckBrokenDependenvies);
+        pkgglobals.Log(vlDebug,SLogCheckBrokenDependenvies);
         SL:=TStringList.Create;
         if FindBrokenPackages(SL) then
           Error(SErrBrokenPackagesFound);
@@ -358,7 +357,7 @@ begin
               end
             else
               begin
-                pkgglobals.Log(llDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
+                pkgglobals.Log(vlDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
                 pkghandler.ExecuteAction(ParaPackages[i],ParaAction);
               end;
           end;

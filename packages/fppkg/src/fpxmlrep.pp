@@ -17,7 +17,7 @@ unit fpxmlrep;
 interface
 
 uses
-  Classes, SysUtils, dom, fprepos, fpmkunit;
+  Classes, SysUtils, dom, fprepos;
 
 Type
 

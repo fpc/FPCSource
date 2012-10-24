@@ -10,7 +10,6 @@ uses
 {$endif}
   SysUtils,
   Classes,
-  fpmkunit,
   fprepos;
 
 Const
@@ -53,13 +52,13 @@ Const
   );
 
 Type
-  TLogLevel = (llError,llWarning,llInfo,llCommands,llDebug,llProgres);
+  TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug,vlProgres);
   TLogLevels = Set of TLogLevel;
   TLogProc = procedure(Level:TLogLevel;Const Msg: String);
 
 const
-  DefaultLogLevels = [llError,llWarning, llProgres];
-  AllLogLevels = [llError,llWarning,llCommands,llInfo];
+  DefaultLogLevels = [vlError,vlWarning, vlProgres];
+  AllLogLevels = [vlError,vlWarning,vlCommands,vlInfo];
 
 type
   EPackagerError = class(Exception);
@@ -155,15 +154,15 @@ begin
     exit;
   Prefix:='';
   case Level of
-    llWarning :
+    vlWarning :
       Prefix:=SWarning;
-    llError :
+    vlError :
       Prefix:=SError;
-{    llInfo :
+{    vlInfo :
       Prefix:='I: ';
-    llCommands :
+    vlCommands :
       Prefix:='C: ';
-    llDebug :
+    vlDebug :
       Prefix:='D: '; }
   end;
   Writeln(stdOut,Prefix,Msg);
@@ -254,9 +253,9 @@ Function DirectoryExistsLog(const ADir:string):Boolean;
 begin
   result:=SysUtils.DirectoryExists(ADir);
   if result then
-    log(llDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
-    log(llDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
 end;
 
 
@@ -264,9 +263,9 @@ Function FileExistsLog(const AFileName:string):Boolean;
 begin
   result:=SysUtils.FileExists(AFileName);
   if result then
-    log(llDebug,SDbgFileExists,[AFileName,SDbgFound])
+    log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
-    log(llDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+    log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
 end;
 
 
@@ -275,7 +274,7 @@ Var
   BFN : String;
 begin
   BFN:=AFileName+'.bak';
-  log(llDebug,SDbgBackupFile,[BFN]);
+  log(vlDebug,SDbgBackupFile,[BFN]);
   If not RenameFile(AFileName,BFN) then
     Error(SErrBackupFailed,[AFileName,BFN]);
 end;
