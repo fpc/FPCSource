@@ -249,6 +249,8 @@ begin
   asm
     clr.l      d0
     move.l   16(a6),d0   {  number of bytes }
+    tst.l  d0            { anything to copy at all? }
+    beq    @LMOVE5
   @LMOVE0:
     move.l   12(a6),a1   {  destination          }
     move.l   8(a6),a0      {  source               }
