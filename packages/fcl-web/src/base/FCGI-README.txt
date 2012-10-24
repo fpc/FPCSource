@@ -45,6 +45,8 @@ latter case.
 2. mod_fastcgi from fastcgi.com
 2.1 on Windows
 2.1 on Linux
+3. NGINX configuration
+
 ===============================================================================
 
 1. mod_fcgid from Apache:
@@ -400,3 +402,61 @@ http://127.0.0.1/myfcgi/webmodule1/func1call
 If there is any problem, you can try and check the Apache error.log for clues.
 
 ===============================================================================
+
+3. NGINX Configuration
+
+Full configuraion of FastCGI is discussed at:
+
+http://wiki.nginx.org/HttpFastcgiModule
+
+NGINX does not support managing the FastCGI process. The FastCGI process must be
+started outside of the NGINX engine, much like the FastCgiExternalServer
+mode of Apache. NGINX will just forward the requests to whatever port the
+FastCGI process is running on. Note that the fastcgi process does not need
+to be running on the same machine as the NGINX process.
+
+This means that in the FastCGI program, you must set the port on which the 
+FastCGI process is listening:
+
+Example:
+<...snip...>
+  Application.Initialize;
+  Application.Port:=1234;//Port the FCGI application is listening on 
+  Application.Run;
+<...snip...>
+
+And the FastCGI process must be started somehow separately. 
+On windows, a windows service application is most suitable.
+On Unices, a simple process can be put in the system startup scripts.
+
+Then, NGINX must be told to forward all requests to this address.
+
+The following is a sample of a NGINX configuration which sends all requests
+to a FastCGI process, listening on port 1234 on the same machine:
+
+{
+  include /etc/nginx/fastcgi_params;
+
+  location / { 
+     fastcgi_pass 127.0.0.1:1234
+     fastcgi_split_path_info ^((?U).+www.mysite.com)(/?.+)$; 
+     fastcgi_param  PATH_INFO          $fastcgi_path_info; 
+     fastcgi_param  PATH_TRANSLATED    $document_root$fastcgi_path_info; 
+     fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name; 
+  } 
+}
+
+The "fastcgi_split_path_info" and fastcgi_param directives are needed, 
+so that the FCL-Web environment gets enough information to act on the
+request. (PATH_INFO and SCRIPT_FILENAME are needed to work correctly)
+
+This is another example:
+
+location ~ /helloworld/.*) {
+  fastcgi_pass    127.0.0.1:1234
+  fastcgi_split_path_info ^((?U)./helloworld)(/?.+)$; 
+  fastcgi_param   PATH_INFO   $path_info;
+  fastcgi_param   SCRIPT_NAME "/helloworld";
+}
+
+All urls below 'helloworld' will be passed on to the FastCGI process.
