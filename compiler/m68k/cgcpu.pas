@@ -783,7 +783,7 @@ unit cgcpu;
          fixref(list,href);
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
          { extend the value in the register }
-         sign_extend(list, tosize, register);
+         sign_extend(list, fromsize, register);
       end;
 
 
