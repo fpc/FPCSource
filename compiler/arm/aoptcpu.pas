@@ -1176,6 +1176,7 @@ Implementation
                           RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
                       end;
                   end;
+{$ifdef dummy}                  
                 A_MVN:
                   begin
                     {
@@ -1217,6 +1218,7 @@ Implementation
                         p:=hp1;
                       end;
                   end;
+{$endif dummy}                                    
                 A_UXTB:
                   begin
                     {
