@@ -230,6 +230,7 @@ implementation
 
       case reltyp of
         R_X86_64_PLT32,
+        R_X86_64_PLTOFF64,
         R_X86_64_GOTPLT64:
           begin
             objsym:=ObjReloc.symbol.exesymbol.ObjSymbol;
@@ -484,7 +485,8 @@ implementation
                   address:=address+relocval;
                 end;
 
-              R_X86_64_GOTOFF64:
+              R_X86_64_GOTOFF64,
+              R_X86_64_PLTOFF64:
                 begin
                   address:=address+relocval-gotsymbol.address;
                 end;
