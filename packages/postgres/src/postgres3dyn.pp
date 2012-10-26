@@ -82,6 +82,7 @@ var
   PQtransactionStatus : function (conn:PPGconn):PGTransactionStatusType;cdecl;
   PQparameterStatus : function (conn:PPGconn; paramName:Pchar):Pchar;cdecl;
   PQprotocolVersion : function (conn:PPGconn):longint;cdecl;
+  PQserverVersion : function (conn:PPGconn):longint;cdecl;
   PQerrorMessage : function (conn:PPGconn):Pchar;cdecl;
   PQsocket : function (conn:PPGconn):longint;cdecl;
   PQbackendPID : function (conn:PPGconn):longint;cdecl;
@@ -224,6 +225,7 @@ Procedure ReleasePostgres3;
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
 
 var Postgres3LibraryHandle : TLibHandle;
+  Postgres3LoadedLibrary : String;
 
 implementation
 
@@ -233,7 +235,6 @@ resourcestring
 
 var
   RefCount : integer;
-  LoadedLibrary : String;
 
 procedure InitialisePostgres3;
 
@@ -260,7 +261,7 @@ begin
       Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
       end;
 
-    LoadedLibrary:=libpath;
+    Postgres3LoadedLibrary:=libpath;
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
     pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
     pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
@@ -283,6 +284,7 @@ begin
     pointer(PQtransactionStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQtransactionStatus');
     pointer(PQparameterStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQparameterStatus');
     pointer(PQprotocolVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQprotocolVersion');
+    pointer(PQserverVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQserverVersion');
     pointer(PQerrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQerrorMessage');
     pointer(PQsocket) := GetProcedureAddress(Postgres3LibraryHandle,'PQsocket');
     pointer(PQbackendPID) := GetProcedureAddress(Postgres3LibraryHandle,'PQbackendPID');
@@ -367,10 +369,10 @@ begin
     InitialiseDllist(libpath);
     end
   else
-    if (libpath<>pqlib) and (LoadedLibrary<>libpath) then
+    if (libpath<>pqlib) and (Postgres3LoadedLibrary<>libpath) then
       begin
       Dec(RefCount);
-      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[Postgres3LoadedLibrary]);
       end;
 end;
 
