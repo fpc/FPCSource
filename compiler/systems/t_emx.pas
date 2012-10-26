@@ -483,7 +483,7 @@ begin
    AppTypeStr := '-f'
   else AppTypeStr := '-w';
   if not (Current_module.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst
+   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst + ' '
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
