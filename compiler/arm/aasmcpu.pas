@@ -678,7 +678,7 @@ implementation
       begin
         case opcode of
           A_ADC,A_ADD,A_AND,A_BIC,
-          A_EOR,A_CLZ,
+          A_EOR,A_CLZ,A_RBIT,
           A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
           A_LDRSH,A_LDRT,
           A_MOV,A_MVN,A_MLA,A_MUL,
