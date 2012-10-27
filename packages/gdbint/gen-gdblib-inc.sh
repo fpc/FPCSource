@@ -279,7 +279,7 @@ BEGIN {
     print dynamiclib;
     print librarypath;
   }
-  if ( list[i] ~ /-l/ ) {
+  if ( list[i] ~ /^-l/ ) {
     systemlib = gensub (/-l([^ ]*)/,"\\1","g",list[i]);
     if (forcestatic == 1) {
       systemlib="lib" systemlib ".a"
