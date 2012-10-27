@@ -483,12 +483,15 @@ interface
         EntrySym  : TObjSymbol;
         SectionDataAlign,
         SectionMemAlign : aword;
+        FixedSectionAlign : boolean;
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
         procedure WriteExeSectionContent;
         procedure DoRelocationFixup(objsec:TObjSection);virtual;abstract;
+        function MemAlign(exesec: TExeSection): longword;
+        function DataAlign(exesec: TExeSection): longword;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -563,6 +566,8 @@ interface
     var
       exeoutput : TExeOutput;
 
+    function align_aword(v:aword;a:longword):aword;
+    function align_qword(v:qword;a:longword):qword;
 
 implementation
 
@@ -578,6 +583,27 @@ implementation
       memobjsymbols,
       memobjsections : TMemDebug;
 {$endif MEMDEBUG}
+
+{*****************************************************************************
+                                 Helpers
+*****************************************************************************}
+
+    function align_aword(v:aword;a:longword):aword;
+      begin
+        if a<=1 then
+          result:=v
+        else
+          result:=((v+a-1) div a) * a;
+      end;
+
+
+    function align_qword(v:qword;a:longword):qword;
+      begin
+        if a<=1 then
+          result:=v
+        else
+          result:=((v+a-1) div a) * a;
+      end;
 
 {*****************************************************************************
                                  TObjSymbol
@@ -809,7 +835,7 @@ implementation
         if oso_Data in secoptions then
           begin
             { get aligned Datapos }
-            Datapos:=align(dpos,secalign);
+            Datapos:=align_aword(dpos,secalign);
             Dataalignbytes:=Datapos-dpos;
             { return updated Datapos }
             dpos:=Datapos+size;
@@ -821,7 +847,7 @@ implementation
 
     function TObjSection.setmempos(mpos:qword):qword;
       begin
-        mempos:=align(mpos,secalign);
+        mempos:=align_qword(mpos,secalign);
         { return updated mempos }
         result:=mempos+size;
       end;
@@ -1250,14 +1276,14 @@ implementation
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402253);
-        CurrObjSec.alloc(align(CurrObjSec.size,len)-CurrObjSec.size);
+        CurrObjSec.alloc(align_aword(CurrObjSec.size,len)-CurrObjSec.size);
       end;
 
 
     procedure TObjData.section_afteralloc(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
-          alloc(align(size,secalign)-size);
+          alloc(align_aword(size,secalign)-size);
       end;
 
 
@@ -1266,7 +1292,7 @@ implementation
         with TObjSection(p) do
           begin
             if assigned(Data) then
-              writezeros(align(size,secalign)-size);
+              writezeros(align_aword(size,secalign)-size);
           end;
       end;
 
@@ -1700,6 +1726,7 @@ implementation
         SectionMemAlign:=$1000;
         SectionDataAlign:=$200;
 {$endif cpu16bitaddr}
+        FixedSectionAlign:=True;
         FCExeSection:=TExeSection;
         FCObjData:=TObjData;
       end;
@@ -1718,6 +1745,24 @@ implementation
         ObjDatalist.free;
         FWriter.free;
         inherited destroy;
+      end;
+
+
+    function TExeOutput.MemAlign(exesec:TExeSection):longword;
+      begin
+        if FixedSectionAlign then
+          result:=SectionMemAlign
+        else
+          result:=exesec.SecAlign;
+      end;
+
+
+    function TExeOutput.DataAlign(exesec:TExeSection):longword;
+      begin
+        if FixedSectionAlign then
+          result:=SectionDataAlign
+        else
+          result:=exesec.SecAlign;
       end;
 
 
@@ -2066,7 +2111,7 @@ implementation
         objsec : TObjSection;
       begin
         { Alignment of ExeSection }
-        CurrMemPos:=align(CurrMemPos,SectionMemAlign);
+        CurrMemPos:=align_qword(CurrMemPos,MemAlign(exesec));
         exesec.MemPos:=CurrMemPos;
 
         { set position of object ObjSections }
@@ -2122,7 +2167,7 @@ implementation
 
         if (oso_Data in exesec.SecOptions) then
           begin
-            CurrDataPos:=align(CurrDataPos,SectionDataAlign);
+            CurrDataPos:=align_aword(CurrDataPos,DataAlign(exesec));
             exesec.DataPos:=CurrDataPos;
           end;
 
@@ -3199,7 +3244,7 @@ implementation
 
             if oso_data in exesec.SecOptions then
               begin
-                FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
+                FWriter.Writezeros(Align(FWriter.Size,DataAlign(exesec))-FWriter.Size);
                 for i:=0 to exesec.ObjSectionList.Count-1 do
                   begin
                     objsec:=TObjSection(exesec.ObjSectionList[i]);
