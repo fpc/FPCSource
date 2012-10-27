@@ -1485,14 +1485,17 @@ unit cgcpu;
             list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
             list.Concat(taicpu.op_reg_reg_const(A_AND,dst,dst,255));
           end
-        else if CPUARM_HAS_RBIT in cpu_capabilities[current_settings.cputype] then
+        { it is decided during the compilation of the system unit if this code is used or not 
+          so no additional check for rbit is needed                                           }
+        else
           begin
             list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
-            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
-            list.Concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
-          end
-        else
-          internalerror(201209041);
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));            
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
+            list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
+            list.Concat(setcondition(taicpu.op_reg_const(A_MOV,dst,$ff),C_EQ));
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
+          end;
       end;
 
 
