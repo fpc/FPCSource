@@ -201,7 +201,7 @@ unit cpupara;
 
     function classify_argument(def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint; forward;
 
-    function init_aggregate_classification(def: tdef; varspez: tvarspez; out words: longint; out classes: tx64paraclasses): longint;
+    function init_aggregate_classification(def: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
       var
         i: longint;
       begin
@@ -223,7 +223,9 @@ unit cpupara;
         if def.size > 32 then
           exit(0);
 
-        words:=(def.size+7) div 8;
+        { if a struct starts an offset not divisible by 8, it can span extra
+          words }
+        words:=(def.size+byte_offset mod 8+7) div 8;
 
         (* Zero sized arrays or structures are NO_CLASS.  We return 0 to
            signal memory class, so handle it as special case.  *)
@@ -258,6 +260,7 @@ unit cpupara;
             classes[i+pos] :=
               merge_classes(subclasses[i],classes[i+pos]);
           end;
+        inc(result,pos);
       end;
 
 
@@ -344,7 +347,7 @@ unit cpupara;
         num: longint;
         checkalignment: boolean;
       begin
-        result:=init_aggregate_classification(def,varspez,words,classes);
+        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
@@ -405,7 +408,7 @@ unit cpupara;
         num: longint;
         isbitpacked: boolean;
       begin
-        result:=init_aggregate_classification(def,varspez,words,classes);
+        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
