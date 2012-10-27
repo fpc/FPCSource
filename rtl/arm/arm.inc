@@ -1012,6 +1012,41 @@ begin
   Result:=QWord(SwapEndian(Int64(AValue)));
 end;
 
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+procedure barrier; assembler; nostackframe;
+asm
+{$ifdef CPUARM_HAS_DMB}
+  .long 0xf57ff05f  // dmb sy
+{$else}
+  .long 0xee070f9a  // mcr 15, 0, r0, cr7, cr10, {4}
+{$endif}
+end;
+
+procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { reads imply barrier on earlier reads depended on }
+  barrier;
+end;
+
+procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+{$endif}
+
 {include hand-optimized assembler division code}
 { $i divide.inc}
 
