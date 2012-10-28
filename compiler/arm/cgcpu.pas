@@ -1493,6 +1493,8 @@ unit cgcpu;
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));            
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
+            if current_settings.cputype in cpu_thumb2 then
+              list.Concat(taicpu.op_cond(A_IT, C_EQ));
             list.Concat(setcondition(taicpu.op_reg_const(A_MOV,dst,$ff),C_EQ));
             a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end;
