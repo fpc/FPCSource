@@ -1015,12 +1015,18 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
+{ Generic read/readwrite barrier code.  }
 procedure barrier; assembler; nostackframe;
 asm
+  // manually encode the instructions to avoid bootstrap and -march external
+  // assembler settings 
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05f  // dmb sy
 {$else}
-  .long 0xee070f9a  // mcr 15, 0, r0, cr7, cr10, {4}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
+{$endif}
 {$endif}
 end;
 
@@ -1031,8 +1037,7 @@ end;
 
 procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  { reads imply barrier on earlier reads depended on }
-  barrier;
+  { reads imply barrier on earlier reads depended on; not required on ARM }
 end;
 
 procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1040,9 +1045,18 @@ begin
   barrier;
 end;
 
-procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  barrier;
+procedure WriteBarrier; assembler; nostackframe;
+asm
+  // specialize the write barrier because according to ARM, implementations for
+  // "dmb st" may be more optimal than the more generic "dmb sy"
+{$ifdef CPUARM_HAS_DMB2}
+  .long 0xf57ff05e  // dmb st
+{$else}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
+{$endif}
+{$endif}
 end;
 
 {$endif}
