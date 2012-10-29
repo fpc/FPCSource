@@ -1049,7 +1049,7 @@ procedure WriteBarrier; assembler; nostackframe;
 asm
   // specialize the write barrier because according to ARM, implementations for
   // "dmb st" may be more optimal than the more generic "dmb sy"
-{$ifdef CPUARM_HAS_DMB2}
+{$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05e  // dmb st
 {$else}
 {$ifdef CPUARMV6}
