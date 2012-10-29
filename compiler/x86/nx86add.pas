@@ -968,7 +968,7 @@ unit nx86add;
 
             { load fpu flags }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
-            emit_reg(A_FSTSW,S_NO,NR_AX);
+            emit_reg(A_FNSTSW,S_NO,NR_AX);
             emit_none(A_SAHF,S_NO);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
             if nf_swapped in flags then
