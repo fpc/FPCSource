@@ -128,6 +128,9 @@ interface
   {$define GDB_BP_LOCATION_HAS_REFCOUNT}
   {$define GDB_BP_LOCATION_HAS_OPS}
   {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
+  {$ifdef win32}
+      {$define GDB_USES_LIBADVAPI32}
+  {$endif win32}
 {$endif def GDB_V704}
 
 { 7.3.x }
@@ -469,7 +472,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
   {$endif not USE_MINGW_GDB}
-  {$LINKLIB advapi32}
+  {$ifdef GDB_USES_LIBADVAPI32}
+    {$LINKLIB advapi32}
+  {$endif GDB_USES_LIBADVAPI32}
   {$LINKLIB user32}
   {$LINKLIB kernel32}
 {$endif win32}
