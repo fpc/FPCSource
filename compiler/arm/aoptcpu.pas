@@ -823,7 +823,9 @@ Implementation
                        (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
                        (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
                        (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
-                       getnextinstruction(p,hp1) and
+                       GetNextInstructionUsingReg(p,hp1, taicpu(p).oper[0]^.reg) and
+                       (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) and
                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
                        (taicpu(hp1).ops=3) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
@@ -918,10 +920,13 @@ Implementation
                                               A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
                                         [taicpu(p).condition], []) and
                        {MOV and MVN might only have 2 ops}
-                       (taicpu(hp1).ops = 3) and
+                       (taicpu(hp1).ops >= 2) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp1).oper[1]^.typ = top_reg) and
-                       (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop]) then
+                       (
+                         (taicpu(hp1).ops = 2) or
+                         (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop])
+                       ) then
                       begin
                       { When we get here we still don't know if the registers match}
                         for I:=1 to 2 do
@@ -930,7 +935,8 @@ Implementation
                             The checks will still be ok, because all required information
                             will also be in hp1 then.
                           }
-                          if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                          if (taicpu(hp1).ops > I) and
+                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                             begin
                               DebugMsg('Peephole RedundantMovProcess done', hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
