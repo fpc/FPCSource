@@ -56,6 +56,7 @@ type
     Fstatus : STATUS;      // current result/rows fetch status
     function CheckError(const Ret: RETCODE): RETCODE;
     procedure DBExecute(const cmd: string);
+    procedure ExecuteDirectSQL(const Query: string);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function ClientCharset: TClientCharset;
     function AutoCommit: boolean;
@@ -97,6 +98,8 @@ type
     function GetSchemaInfoSQL(SchemaType:TSchemaType; SchemaObjectName, SchemaObjectPattern:string):string; override;
   public
     constructor Create(AOwner : TComponent); override;
+    procedure CreateDB; override;
+    procedure DropDB; override;
     //property TDS:integer read Ftds;
   published
     // Redeclare properties from TSQLConnection
@@ -259,6 +262,31 @@ begin
   Ftds := DBTDS_UNKNOWN;
 end;
 
+procedure TMSSQLConnection.CreateDB;
+begin
+  ExecuteDirectSQL('CREATE DATABASE '+DatabaseName);
+end;
+
+procedure TMSSQLConnection.DropDB;
+begin
+  ExecuteDirectSQL('DROP DATABASE '+DatabaseName);
+end;
+
+procedure TMSSQLConnection.ExecuteDirectSQL(const Query: string);
+var ADatabaseName: string;
+begin
+  CheckDisConnected;
+  ADatabaseName:=DatabaseName;
+  DatabaseName:='';
+  try
+    Open;
+    DBExecute(Query);
+  finally
+    Close;
+    DatabaseName:=ADatabaseName;
+  end;
+end;
+
 function TMSSQLConnection.GetHandle: pointer;
 begin
   Result:=FDBProc;
@@ -311,7 +339,8 @@ const
   ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
 begin
-  inherited DoInternalConnect;
+  // Do not call the inherited method as it checks for a non-empty DatabaseName, empty DatabaseName=default database defined for login
+  //inherited DoInternalConnect;
 
   InitialiseDBLib(DBLibLibraryName);
 
@@ -368,9 +397,11 @@ begin
   else
     DBExecute('SET TEXTSIZE 16777216');
 
-  if AutoCommit then DBExecute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
+  if AutoCommit then
+    DBExecute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
 
-  CheckError( dbuse(FDBProc, PChar(DatabaseName)) );
+  if DatabaseName <> '' then
+    CheckError( dbuse(FDBProc, PChar(DatabaseName)) );
 end;
 
 procedure TMSSQLConnection.DoInternalDisconnect;
