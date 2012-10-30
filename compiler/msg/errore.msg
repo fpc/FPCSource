@@ -3480,6 +3480,7 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
 3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
+3*2Tnativent_Native NT API (experimental)
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
 3*2Tnetwlibc_Novell Netware Module (libc)
