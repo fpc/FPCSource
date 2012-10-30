@@ -282,7 +282,6 @@ implementation
       var
         sym: tasmsymbol;
         paraloc1 : tcgpara;
-        hreg  : tregister;
         tmpref: treference;
         sref: tsubsetreference;
       begin

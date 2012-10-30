@@ -3905,7 +3905,6 @@ implementation
       var
         j, nestinglevel: longint;
         pvs, npvs: tparavarsym;
-        csym, ncsym: tconstsym;
       begin
         nestinglevel:=parast.symtablelevel;
         if newtyp=procdef then
@@ -4447,9 +4446,7 @@ implementation
 
     function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
       var
-        i : tcallercallee;
         j : longint;
-        pvs : tparavarsym;
       begin
         result:=inherited getcopyas(newtyp,copytyp);
         if newtyp=procvardef then

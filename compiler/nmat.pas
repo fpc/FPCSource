@@ -439,7 +439,6 @@ implementation
     function tmoddivnode.firstoptimize: tnode;
       var
         power,shiftval : longint;
-        newtype: tnodetype;
         statements : tstatementnode;
         temp : ttempcreatenode;
       begin

@@ -1584,9 +1584,6 @@ implementation
 
     function tinlinenode.handle_copy: tnode;
       var
-        lowppn,
-        highppn,
-        npara,
         paras   : tnode;
         ppn     : tcallparanode;
         paradef : tdef;
