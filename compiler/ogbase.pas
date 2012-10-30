@@ -1940,29 +1940,29 @@ implementation
 
     procedure TExeOutput.Order_Symbol(const aname:string);
       var
-        ObjSection : TObjSection;
+        objsym: TObjSymbol;
       begin
-        ObjSection:=internalObjData.findsection('*'+aname);
-        if not assigned(ObjSection) then
+        objsym:=TObjSymbol(internalObjData.ObjSymbolList.Find(aname));
+        if (objsym=nil) or (objsym.ObjSection.ObjData<>internalObjData) then
           internalerror(200603041);
-        CurrExeSec.AddObjSection(ObjSection,True);
+        CurrExeSec.AddObjSection(objsym.ObjSection,True);
       end;
 
     procedure TExeOutput.Order_ProvideSymbol(const aname:string);
       var
-        ObjSection : TObjSection;
+        objsym : TObjSymbol;
         exesym : TExeSymbol;
       begin
-        ObjSection:=internalObjData.findsection('*'+aname);
-        if not assigned(ObjSection) then
+        objsym:=TObjSymbol(internalObjData.ObjSymbolList.Find(aname));
+        if (objsym=nil) or (objsym.ObjSection.ObjData<>internalObjData) then
           internalerror(200603041);
         exesym:=TExeSymbol(ExeSymbolList.Find(aname));
         if not assigned(exesym) then
           internalerror(201206301);
         { Only include this section if it actually resolves
           the symbol }
-        if exesym.objsymbol.objsection=objsection then
-          CurrExeSec.AddObjSection(ObjSection,True);
+        if exesym.objsymbol=objsym then
+          CurrExeSec.AddObjSection(objsym.ObjSection,True);
       end;
 
 
@@ -3244,7 +3244,9 @@ implementation
 
             if oso_data in exesec.SecOptions then
               begin
-                FWriter.Writezeros(Align(FWriter.Size,DataAlign(exesec))-FWriter.Size);
+                if exesec.DataPos<FWriter.Size then
+                  InternalError(2012103001);
+                FWriter.Writezeros(exesec.DataPos-FWriter.Size);
                 for i:=0 to exesec.ObjSectionList.Count-1 do
                   begin
                     objsec:=TObjSection(exesec.ObjSectionList[i]);
