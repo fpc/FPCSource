@@ -61,9 +61,9 @@ const
   ];
 
    cputypestr : array[tcputype] of string[10] = ('',
-     'SPARC V7',
-     'SPARC V8',
-     'SPARC V9'
+     'SPARCV7',
+     'SPARCV8',
+     'SPARCV9'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
