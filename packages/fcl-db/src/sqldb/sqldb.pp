@@ -25,6 +25,7 @@ uses SysUtils, Classes, DB, bufdataset, sqlscript;
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
+     TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
 
      TRowsCount = LargeInt;
 
@@ -96,9 +97,8 @@ type
     FCharSet             : string;
     FRole                : String;
 
-
     function GetPort: cardinal;
-    procedure Setport(const AValue: cardinal);
+    procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings : TFormatSettings;
@@ -134,7 +134,7 @@ type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
-    property port: cardinal read GetPort write Setport;
+    property Port: cardinal read GetPort write SetPort;
   public
     property Handle: Pointer read GetHandle;
     property FieldNameQuoteChars: TQuoteChars read FFieldNameQuoteChars write FFieldNameQuoteChars;
@@ -147,7 +147,8 @@ type
     procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
-    procedure GetFieldNames(const TableName : string; List :  TStrings); virtual;
+    procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
   published
@@ -483,6 +484,7 @@ type
     Class Function DefaultLibraryName : String; virtual;
     Class Function LoadFunction : TLibraryLoadFunction; virtual;
     Class Function UnLoadFunction : TLibraryUnLoadFunction; virtual;
+    Class Function LoadedLibraryName : string; virtual;
     Procedure ApplyParams(Params : TStrings; AConnection : TSQLConnection); virtual;
   end;
   TConnectionDefClass = class of TConnectionDef;
@@ -638,7 +640,7 @@ begin
   result := StrToIntDef(Params.Values['Port'],0);
 end;
 
-procedure TSQLConnection.Setport(const AValue: cardinal);
+procedure TSQLConnection.SetPort(const AValue: cardinal);
 begin
   if AValue<>0 then
     params.Values['Port']:=IntToStr(AValue)
@@ -699,6 +701,18 @@ end;
 procedure TSQLConnection.GetFieldNames(const TableName: string; List: TStrings);
 begin
   GetDBInfo(stColumns,TableName,'column_name',List);
+end;
+
+function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+var i: TConnInfoType;
+begin
+  Result:='';
+  if InfoType = citAll then
+    for i:=citServerType to citClientVersion do
+      begin
+      if Result<>'' then Result:=Result+',';
+      Result:=Result+'"'+GetConnectionInfo(i)+'"';
+      end;
 end;
 
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
@@ -2256,6 +2270,11 @@ end;
 class function TConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
 begin
   Result:=Nil;
+end;
+
+class function TConnectionDef.LoadedLibraryName: string;
+begin
+  Result:='';
 end;
 
 procedure TConnectionDef.ApplyParams(Params: TStrings;

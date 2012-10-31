@@ -112,6 +112,7 @@ type
     function CreateConnectionString:string;
   public
     constructor Create(AOwner : TComponent); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     property Environment:TODBCEnvironment read FEnvironment;
   published
     property Driver:string read FDriver write FDriver;    // will be passed as DRIVER connection parameter
@@ -149,7 +150,7 @@ type
 implementation
 
 uses
-  Math, DBConst, ctypes;
+  DBConst, ctypes;
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;
@@ -1411,6 +1412,32 @@ begin
   if not (SchemaType in [stNoSchema, stTables, stSysTables, stColumns, stProcedures]) then
     DatabaseError(SMetadataUnavailable);
 end;
+
+function TODBCConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+var i,l: SQLSMALLINT;
+    b: array[0..41] of AnsiChar;
+begin
+  case InfoType of
+    citServerType:
+      i:=17{SQL_DBMS_NAME};
+    citServerVersion,
+    citServerVersionString:
+      i:=18{SQL_DBMS_VER};
+    citClientName:
+      i:=6{SQL_DRIVER_NAME};
+    citClientVersion:
+      i:=7{SQL_DRIVER_VER};
+  else
+    Result:=inherited GetConnectionInfo(InfoType);
+    Exit;
+  end;
+
+  if Connected and (SQLGetInfo(FDBCHandle, i, @b, sizeof(b), @l) = SQL_SUCCESS) then
+    SetString(Result, @b, l)
+  else
+    Result:='';
+end;
+
 
 { TODBCEnvironment }
 

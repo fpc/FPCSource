@@ -92,8 +92,9 @@ type
     function StrToStatementType(s : string) : TStatementType; override;
   public
     constructor Create(AOwner : TComponent); override;
-    function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
+    function GetInsertID: int64;
     // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
     // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
     // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
@@ -110,6 +111,7 @@ type
     class function TypeName: string; override;
     class function ConnectionClass: TSQLConnectionClass; override;
     class function Description: string; override;
+    class function LoadedLibraryName: string; override;
   end;
   
 Var
@@ -926,6 +928,29 @@ begin
   GetDBInfo(stColumns,TableName,'name',List);
 end;
 
+function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    InitializeSqlite;
+    case InfoType of
+      citServerType:
+        Result:=TSQLite3ConnectionDef.TypeName;
+      citServerVersion,
+      citClientVersion:
+        Result:=inttostr(sqlite3_libversion_number());
+      citServerVersionString:
+        Result:=sqlite3_libversion();
+      citClientName:
+        Result:=TSQLite3ConnectionDef.LoadedLibraryName;
+    else
+      Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    ReleaseSqlite;
+  end;
+end;
+
 function UTF8CompareCallback(user: pointer; len1: longint; data1: pointer; len2: longint; data2: pointer): longint; cdecl;
 var S1, S2: AnsiString;
 begin
@@ -995,6 +1020,11 @@ end;
 class function TSQLite3ConnectionDef.Description: string;
 begin
   Result := 'Connect to a SQLite3 database directly via the client library';
+end;
+
+class function TSQLite3ConnectionDef.LoadedLibraryName: string;
+begin
+  Result := SQLiteLoadedLibrary;
 end;
 
 initialization
