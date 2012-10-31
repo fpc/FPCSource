@@ -672,8 +672,7 @@ unit cgcpu;
           begin
             hreg:=getintregister(list,tosize);
             list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[tosize],longint(a),hreg));
-            sign_extend(list,tosize,hreg);
-            list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href));
+            list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
           end
         else
           list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
