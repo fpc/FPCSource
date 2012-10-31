@@ -642,7 +642,7 @@ unit cgcpu;
         else
          begin
            if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
-              list.concat(taicpu.op_const_reg(A_MOVEQ,tcgsize2opsize[size],longint(a),register))
+              list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
               list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
            sign_extend(list,size,register);
