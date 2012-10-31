@@ -255,8 +255,10 @@ begin
     move.l   12(a6),a1   {  destination          }
     move.l   8(a6),a0      {  source               }
 
+{$ifndef CPUCOLDFIRE}
     cmpi.l #65535, d0     { check, if this is a word move }
     ble    @LMEMSET00     { use fast dbra mode 68010+     }
+{$endif CPUCOLDFIRE}
 
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE4
@@ -278,6 +280,7 @@ begin
     bne       @LMOVE3
     bra       @LMOVE5
 
+{$ifndef CPUCOLDFIRE}
   @LMEMSET00:            { use fast loop mode 68010+ }
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE04
@@ -287,22 +290,13 @@ begin
   @LMOVE01:
     move.b   -(a0),-(a1)   {  (s < d) copy loop }
   @LMOVE02:
-{$ifdef CPUCOLDFIRE}
-    sub.l     #1,d0
-    bmi       @LMOVE01
-{$else}
     dbra      d0,@LMOVE01
-{$endif}
     bra       @LMOVE5
   @LMOVE03:
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
   @LMOVE04:
-{$ifdef CPUCOLDFIRE}
-    sub.l     #1,d0
-    bmi       @LMOVE03
-{$else}
     dbra      d0,@LMOVE03
-{$endif}
+{$endif CPUCOLDFIRE}
   { end fast loop mode }
   @LMOVE5:
   end ['d0','a0','a1'];
