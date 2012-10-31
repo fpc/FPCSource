@@ -494,7 +494,9 @@ regdatavr : avr/avrreg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkavrreg.pp
         cd avr && ..$(PATHSEP)utils$(PATHSEP)mkavrreg$(SRCEXEEXT)
 
-
+regdataarch64 : aarch64/a64reg.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mka64reg.pp
+        cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64reg$(SRCEXEEXT)
 
 # revision.inc rule
 revision.inc :
