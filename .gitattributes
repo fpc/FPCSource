@@ -7,6 +7,7 @@ compiler/Makefile svneol=native#text/plain
 compiler/Makefile.fpc svneol=native#text/plain
 compiler/README.txt svneol=native#text/plain
 compiler/aarch64/a64reg.dat svneol=native#text/plain
+compiler/aarch64/cpuinfo.pas svneol=native#text/plain
 compiler/aarch64/ra64con.inc svneol=native#text/plain
 compiler/aarch64/ra64dwa.inc svneol=native#text/plain
 compiler/aarch64/ra64nor.inc svneol=native#text/plain

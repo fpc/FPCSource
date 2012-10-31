@@ -445,6 +445,11 @@ interface
         optimizecputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
+  {$ifdef aarch64}
+        cputype : cpu_armv8;
+        optimizecputype : cpu_armv8;
+        fputype : fpu_vfp;
+  {$endif aarch64}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
