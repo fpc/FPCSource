@@ -100,6 +100,9 @@ unit cgcpu;
 
      protected
         function fixref(list: TAsmList; var ref: treference): boolean;
+
+        procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
+        procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
      private
         { # Sign or zero extend the register to a full 32-bit value.
             The new value is left in the same register.
@@ -584,6 +587,59 @@ unit cgcpu;
        end;
 
 
+    procedure tcg68k.call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
+      var
+        paraloc1,paraloc2,paraloc3 : tcgpara;
+      begin
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getintparaloc(pocall_default,1,u32inttype,paraloc1);
+        paramanager.getintparaloc(pocall_default,2,u32inttype,paraloc2);
+        paramanager.getintparaloc(pocall_default,3,pasbool8type,paraloc3);
+        a_load_const_cgpara(list,OS_8,0,paraloc3);
+        a_load_const_cgpara(list,size,a,paraloc2);
+        a_load_reg_cgpara(list,OS_32,reg,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
+        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        a_call_name(list,name,false);
+        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
+      end;
+
+
+    procedure tcg68k.call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
+      var
+        paraloc1,paraloc2,paraloc3 : tcgpara;
+      begin
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getintparaloc(pocall_default,1,u32inttype,paraloc1);
+        paramanager.getintparaloc(pocall_default,2,u32inttype,paraloc2);
+        paramanager.getintparaloc(pocall_default,3,pasbool8type,paraloc3);
+        a_load_const_cgpara(list,OS_8,0,paraloc3);
+        a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
+        a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
+        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        a_call_name(list,name,false);
+        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
+      end;
+
 
     procedure tcg68k.a_call_name(list : TAsmList;const s : string; weak: boolean);
       var
@@ -890,6 +946,7 @@ unit cgcpu;
        opcode : tasmop;
        r,r2 : Tregister;
        instr : taicpu;
+       paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
         optimize_op_const(op, a);
         opcode := topcg2tasmop[op];
@@ -942,23 +999,7 @@ unit cgcpu;
           OP_IMUL :
               begin
                 if current_settings.cputype<>cpu_MC68020 then
-                   begin
-                     r:=NR_D0;
-                     r2:=NR_D1;
-                     cg.getcpuregister(list,NR_D0);
-                     cg.getcpuregister(list,NR_D1);
-                     list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, r2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,r, reg);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.ungetcpuregister(list,r);
-                     cg.ungetcpuregister(list,r2);
-
-                   end
+                  call_rtl_mul_const_reg(list,size,a,reg,'FPC_MUL_LONGINT')
                   else
                     begin
                       if (isaddressregister(reg)) then
@@ -979,22 +1020,7 @@ unit cgcpu;
           OP_MUL :
               begin
                  if current_settings.cputype<>cpu_MC68020 then
-                   begin
-                     r:=NR_D0;
-                     r2:=NR_D1;
-                     cg.getcpuregister(list,NR_D0);
-                     cg.getcpuregister(list,NR_D1);
-                     list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, r2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,r, reg);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.ungetcpuregister(list,r);
-                     cg.ungetcpuregister(list,r2);
-                   end
+                   call_rtl_mul_const_reg(list,size,a,reg,'FPC_MUL_DWORD')
                   else
                     begin
                       if (isaddressregister(reg)) then
@@ -1104,6 +1130,7 @@ unit cgcpu;
       var
        hreg1,hreg2,r,r2: tregister;
        instr : taicpu;
+       paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
         case op of
           OP_ADD :
@@ -1186,25 +1213,8 @@ unit cgcpu;
               begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
-                 if current_settings.cputype = cpu_MC68000 then
-                   begin
-                     r:=NR_D0;
-                     r2:=NR_D1;
-                     cg.getcpuregister(list,NR_D0);
-                     cg.getcpuregister(list,NR_D1);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1, r);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,r, reg2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.ungetcpuregister(list,r);
-                     cg.ungetcpuregister(list,r2);
-                   end
+                 if current_settings.cputype<>cpu_MC68020 then
+                   call_rtl_mul_reg_reg(list,reg1,reg2,'FPC_MUL_LONGINT')
                   else
                     begin
 //                     writeln('doing 68020');
@@ -1242,24 +1252,7 @@ unit cgcpu;
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
                  if current_settings.cputype <> cpu_MC68020 then
-                   begin
-                     r:=NR_D0;
-                     r2:=NR_D1;
-                     cg.getcpuregister(list,NR_D0);
-                     cg.getcpuregister(list,NR_D1);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1, r);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.a_call_name(list,'FPC_MUL_DWORD',false);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,r, reg2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     cg.ungetcpuregister(list,r);
-                     cg.ungetcpuregister(list,r2);
-                   end
+                   call_rtl_mul_reg_reg(list,reg1,reg2,'FPC_MUL_DWORD')
                   else
                     begin
                      if (isaddressregister(reg1)) then
