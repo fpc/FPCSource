@@ -338,28 +338,39 @@ function abs(l : longint) : longint;
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Dec(Target);
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Inc(Target);
   end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Target := Source;
   end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Target := Target + Source;
   end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    if Target = Comperand then
+      Target := NewValue;
   end;
