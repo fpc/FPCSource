@@ -642,9 +642,10 @@ unit cgcpu;
         else
          begin
            if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
-              list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
+              list.concat(taicpu.op_const_reg(A_MOVEQ,tcgsize2opsize[size],longint(a),register))
            else
-              list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
+              list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
+           sign_extend(list,size,register);
          end;
       end;
 
@@ -670,11 +671,12 @@ unit cgcpu;
             ) then
           begin
             hreg:=getintregister(list,tosize);
-            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),hreg));
+            list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[tosize],longint(a),hreg));
+            sign_extend(list,tosize,hreg);
             list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href));
           end
         else
-          list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),href));
+          list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
       end;
 
 
