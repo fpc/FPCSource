@@ -85,8 +85,17 @@ unit cpubase;
       first_mm_supreg    = RS_S0;
       first_mm_imreg     = $20;
 
-{ TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
+      { Required parameter alignment when calling a routine declared as
+        stdcall and cdecl. The alignment value should be the one defined
+        by GCC or the target ABI.
+
+        The value of this constant is equal to the constant
+        PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
+      }
+      std_param_align = 4;
+
+      { TODO: Calculate bsstart}
+      regnumber_count_bsstart = 128;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ra64num.inc}
@@ -134,7 +143,7 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+        C_EQ,C_NE,C_HS,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
         C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
       );
 
@@ -142,12 +151,12 @@ unit cpubase;
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
-        'eq','ne','cs','cc','mi','pl','vs','vc','hi','ls',
+        'eq','ne','hs','lo','mi','pl','vs','vc','hi','ls',
         'ge','lt','gt','le','al','nv'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','CS','CC','MI','PL','VS','VC','HI','LS',
+        'EQ','NE','hs','LO','MI','PL','VS','VC','HI','LS',
         'GE','LT','GT','LE','AL','NV'
       );
 
@@ -164,7 +173,7 @@ unit cpubase;
 *****************************************************************************}
 
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
+      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR);
 
       tupdatereg = (UR_None,UR_Update);
 
@@ -172,7 +181,6 @@ unit cpubase;
 
       tshifterop = record
         shiftmode : tshiftmode;
-        rs : tregister;
         shiftimm : byte;
       end;
 
@@ -189,8 +197,8 @@ unit cpubase;
     const
       max_operands = 6;
 
-      maxintregs = 15;
-      maxfpuregs = 8;
+      maxintregs = 32;
+      maxfpuregs = 32;
       maxaddrregs = 0;
 
 {*****************************************************************************
@@ -383,7 +391,7 @@ unit cpubase;
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
-          (C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+          (C_EQ,C_NE,C_HI,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
            C_GE,C_LT,C_GT,C_LE);
       begin
         if f>high(flag_2_cond) then
@@ -425,7 +433,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
+          C_NE,C_EQ,C_LO,C_HI,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
           C_LT,C_GE,C_LE,C_GT,C_None,C_None
         );
       begin
