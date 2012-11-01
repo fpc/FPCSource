@@ -948,6 +948,9 @@ interface
 {$ifdef JVM}
        pbestrealtype : ^tdef = @s64floattype;
 {$endif JVM}
+{$ifdef AARCH64}
+       pbestrealtype : ^tdef = @s64floattype;
+{$endif AARCH64}
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
     function make_dllmangledname(const dllname,importname:TSymStr;
