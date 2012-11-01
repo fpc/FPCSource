@@ -34,7 +34,7 @@ procedure fpc_cpuinit;
   end;
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame : pointer; assembler;
+function get_frame : pointer; assembler;nostackframe;
   asm
     move.l a6,d0
   end;
@@ -69,10 +69,17 @@ function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-function Sptr : pointer; assembler;
+function Sptr : pointer; assembler;nostackframe;
 asm
   move.l sp,d0
-end ['d0'];
+end;
+
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+function get_pc_addr : pointer;assembler;nostackframe;
+asm
+  move.l (sp),d0
+end;
+
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
