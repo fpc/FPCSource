@@ -3,17 +3,10 @@
  
      Contains:   Low Memory Accessor Interfaces.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1993-2008 by Apple Computer, Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -254,7 +252,7 @@ uses MacTypes,Files;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMemTop: Ptr; external name '_LMGetMemTop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -266,7 +264,7 @@ function LMGetMemTop: Ptr; external name '_LMGetMemTop';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetMemTop( value: Ptr ); external name '_LMSetMemTop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -278,7 +276,7 @@ procedure LMSetMemTop( value: Ptr ); external name '_LMSetMemTop';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufPtr: Ptr; external name '_LMGetBufPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -290,7 +288,7 @@ function LMGetBufPtr: Ptr; external name '_LMGetBufPtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBufPtr( value: Ptr ); external name '_LMSetBufPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -302,7 +300,7 @@ procedure LMSetBufPtr( value: Ptr ); external name '_LMSetBufPtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetHeapEnd: Ptr; external name '_LMGetHeapEnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -314,7 +312,7 @@ function LMGetHeapEnd: Ptr; external name '_LMGetHeapEnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetHeapEnd( value: Ptr ); external name '_LMSetHeapEnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -326,7 +324,7 @@ procedure LMSetHeapEnd( value: Ptr ); external name '_LMSetHeapEnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCPUFlag: UInt8; external name '_LMGetCPUFlag';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -338,7 +336,7 @@ function LMGetCPUFlag: UInt8; external name '_LMGetCPUFlag';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCPUFlag( value: ByteParameter ); external name '_LMSetCPUFlag';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -350,7 +348,7 @@ procedure LMSetCPUFlag( value: ByteParameter ); external name '_LMSetCPUFlag';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetRndSeed: SInt32; external name '_LMGetRndSeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -362,7 +360,7 @@ function LMGetRndSeed: SInt32; external name '_LMGetRndSeed';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetRndSeed( value: SInt32 ); external name '_LMSetRndSeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -374,7 +372,7 @@ procedure LMSetRndSeed( value: SInt32 ); external name '_LMSetRndSeed';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSEvtEnb: UInt8; external name '_LMGetSEvtEnb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -386,7 +384,7 @@ function LMGetSEvtEnb: UInt8; external name '_LMGetSEvtEnb';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSEvtEnb( value: ByteParameter ); external name '_LMSetSEvtEnb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -400,7 +398,7 @@ procedure LMSetSEvtEnb( value: ByteParameter ); external name '_LMSetSEvtEnb';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBootDrive: SInt16; external name '_LMGetBootDrive';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -412,7 +410,7 @@ function LMGetBootDrive: SInt16; external name '_LMGetBootDrive';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBootDrive( value: SInt16 ); external name '_LMSetBootDrive';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -425,7 +423,7 @@ procedure LMSetBootDrive( value: SInt16 ); external name '_LMSetBootDrive';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSdVolume: UInt8; external name '_LMGetSdVolume';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -437,7 +435,7 @@ function LMGetSdVolume: UInt8; external name '_LMGetSdVolume';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSdVolume( value: ByteParameter ); external name '_LMSetSdVolume';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -449,7 +447,7 @@ procedure LMSetSdVolume( value: ByteParameter ); external name '_LMSetSdVolume';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSoundPtr: Ptr; external name '_LMGetSoundPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -461,7 +459,7 @@ function LMGetSoundPtr: Ptr; external name '_LMGetSoundPtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSoundPtr( value: Ptr ); external name '_LMSetSoundPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -473,7 +471,7 @@ procedure LMSetSoundPtr( value: Ptr ); external name '_LMSetSoundPtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSoundBase: Ptr; external name '_LMGetSoundBase';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -485,7 +483,7 @@ function LMGetSoundBase: Ptr; external name '_LMGetSoundBase';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSoundBase( value: Ptr ); external name '_LMSetSoundBase';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -497,7 +495,7 @@ procedure LMSetSoundBase( value: Ptr ); external name '_LMSetSoundBase';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSoundLevel: UInt8; external name '_LMGetSoundLevel';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -509,7 +507,7 @@ function LMGetSoundLevel: UInt8; external name '_LMGetSoundLevel';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSoundLevel( value: ByteParameter ); external name '_LMSetSoundLevel';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -521,7 +519,7 @@ procedure LMSetSoundLevel( value: ByteParameter ); external name '_LMSetSoundLev
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurPitch: SInt16; external name '_LMGetCurPitch';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -533,7 +531,7 @@ function LMGetCurPitch: SInt16; external name '_LMGetCurPitch';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -722,7 +720,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetScrDmpEnb: UInt8; external name '_LMGetScrDmpEnb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -734,7 +732,7 @@ function LMGetScrDmpEnb: UInt8; external name '_LMGetScrDmpEnb';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetScrDmpEnb( value: ByteParameter ); external name '_LMSetScrDmpEnb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -746,7 +744,7 @@ procedure LMSetScrDmpEnb( value: ByteParameter ); external name '_LMSetScrDmpEnb
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgFNum: SInt32; external name '_LMGetBufTgFNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -758,7 +756,7 @@ function LMGetBufTgFNum: SInt32; external name '_LMGetBufTgFNum';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBufTgFNum( value: SInt32 ); external name '_LMSetBufTgFNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -770,7 +768,7 @@ procedure LMSetBufTgFNum( value: SInt32 ); external name '_LMSetBufTgFNum';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgFFlg: SInt16; external name '_LMGetBufTgFFlg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -782,7 +780,7 @@ function LMGetBufTgFFlg: SInt16; external name '_LMGetBufTgFFlg';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBufTgFFlg( value: SInt16 ); external name '_LMSetBufTgFFlg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -794,7 +792,7 @@ procedure LMSetBufTgFFlg( value: SInt16 ); external name '_LMSetBufTgFFlg';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgFBkNum: SInt16; external name '_LMGetBufTgFBkNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -806,7 +804,7 @@ function LMGetBufTgFBkNum: SInt16; external name '_LMGetBufTgFBkNum';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBufTgFBkNum( value: SInt16 ); external name '_LMSetBufTgFBkNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -818,7 +816,7 @@ procedure LMSetBufTgFBkNum( value: SInt16 ); external name '_LMSetBufTgFBkNum';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgDate: SInt32; external name '_LMGetBufTgDate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -830,7 +828,7 @@ function LMGetBufTgDate: SInt32; external name '_LMGetBufTgDate';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetBufTgDate( value: SInt32 ); external name '_LMSetBufTgDate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -842,7 +840,7 @@ procedure LMSetBufTgDate( value: SInt32 ); external name '_LMSetBufTgDate';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMinStack: SInt32; external name '_LMGetMinStack';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -854,7 +852,7 @@ function LMGetMinStack: SInt32; external name '_LMGetMinStack';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetMinStack( value: SInt32 ); external name '_LMSetMinStack';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -866,7 +864,7 @@ procedure LMSetMinStack( value: SInt32 ); external name '_LMSetMinStack';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetDefltStack: SInt32; external name '_LMGetDefltStack';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -878,7 +876,7 @@ function LMGetDefltStack: SInt32; external name '_LMGetDefltStack';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetDefltStack( value: SInt32 ); external name '_LMSetDefltStack';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -890,7 +888,7 @@ procedure LMSetDefltStack( value: SInt32 ); external name '_LMSetDefltStack';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetGZRootHnd: Handle; external name '_LMGetGZRootHnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -902,7 +900,7 @@ function LMGetGZRootHnd: Handle; external name '_LMGetGZRootHnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetGZRootHnd( value: Handle ); external name '_LMSetGZRootHnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -914,7 +912,7 @@ procedure LMSetGZRootHnd( value: Handle ); external name '_LMSetGZRootHnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetGZMoveHnd: Handle; external name '_LMGetGZMoveHnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -926,7 +924,7 @@ function LMGetGZMoveHnd: Handle; external name '_LMGetGZMoveHnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetGZMoveHnd( value: Handle ); external name '_LMSetGZMoveHnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -938,7 +936,7 @@ procedure LMSetGZMoveHnd( value: Handle ); external name '_LMSetGZMoveHnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetToExtFS: UniversalProcPtr; external name '_LMGetToExtFS';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -950,7 +948,7 @@ function LMGetToExtFS: UniversalProcPtr; external name '_LMGetToExtFS';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetToExtFS( value: UniversalProcPtr ); external name '_LMSetToExtFS';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -962,7 +960,7 @@ procedure LMSetToExtFS( value: UniversalProcPtr ); external name '_LMSetToExtFS'
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetJStash: UniversalProcPtr; external name '_LMGetJStash';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -974,7 +972,7 @@ function LMGetJStash: UniversalProcPtr; external name '_LMGetJStash';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetJStash( value: UniversalProcPtr ); external name '_LMSetJStash';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -986,7 +984,7 @@ procedure LMSetJStash( value: UniversalProcPtr ); external name '_LMSetJStash';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurApRefNum: FSIORefNum; external name '_LMGetCurApRefNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -998,7 +996,7 @@ function LMGetCurApRefNum: FSIORefNum; external name '_LMGetCurApRefNum';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCurApRefNum( value: FSIORefNum ); external name '_LMSetCurApRefNum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1015,7 +1013,7 @@ procedure LMSetCurApRefNum( value: FSIORefNum ); external name '_LMSetCurApRefNu
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurStackBase: Ptr; external name '_LMGetCurStackBase';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1030,7 +1028,7 @@ function LMGetCurStackBase: Ptr; external name '_LMGetCurStackBase';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCurStackBase( value: Ptr ); external name '_LMSetCurStackBase';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1042,7 +1040,7 @@ procedure LMSetCurStackBase( value: Ptr ); external name '_LMSetCurStackBase';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurPageOption: SInt16; external name '_LMGetCurPageOption';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1054,7 +1052,7 @@ function LMGetCurPageOption: SInt16; external name '_LMGetCurPageOption';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCurPageOption( value: SInt16 ); external name '_LMSetCurPageOption';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1066,7 +1064,7 @@ procedure LMSetCurPageOption( value: SInt16 ); external name '_LMSetCurPageOptio
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetPrintErr: SInt16; external name '_LMGetPrintErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1078,7 +1076,7 @@ function LMGetPrintErr: SInt16; external name '_LMGetPrintErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetPrintErr( value: SInt16 ); external name '_LMSetPrintErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1096,7 +1094,7 @@ procedure LMSetPrintErr( value: SInt16 ); external name '_LMSetPrintErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetApFontID: SInt16; external name '_LMGetApFontID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1112,7 +1110,7 @@ function LMGetApFontID: SInt16; external name '_LMGetApFontID';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetApFontID( value: SInt16 ); external name '_LMSetApFontID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1125,7 +1123,7 @@ procedure LMSetApFontID( value: SInt16 ); external name '_LMSetApFontID';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetOneOne: SInt32; external name '_LMGetOneOne';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1137,7 +1135,7 @@ function LMGetOneOne: SInt32; external name '_LMGetOneOne';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetOneOne( value: SInt32 ); external name '_LMSetOneOne';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1149,7 +1147,7 @@ procedure LMSetOneOne( value: SInt32 ); external name '_LMSetOneOne';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMinusOne: SInt32; external name '_LMGetMinusOne';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1161,7 +1159,7 @@ function LMGetMinusOne: SInt32; external name '_LMGetMinusOne';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetMinusOne( value: SInt32 ); external name '_LMSetMinusOne';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1175,7 +1173,7 @@ procedure LMSetMinusOne( value: SInt32 ); external name '_LMSetMinusOne';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysMap: SInt16; external name '_LMGetSysMap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1187,7 +1185,7 @@ function LMGetSysMap: SInt16; external name '_LMGetSysMap';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSysMap( value: SInt16 ); external name '_LMSetSysMap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1199,7 +1197,7 @@ procedure LMSetSysMap( value: SInt16 ); external name '_LMSetSysMap';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetResLoad: UInt8; external name '_LMGetResLoad';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1211,7 +1209,7 @@ function LMGetResLoad: UInt8; external name '_LMGetResLoad';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetResLoad( value: ByteParameter ); external name '_LMSetResLoad';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1223,7 +1221,7 @@ procedure LMSetResLoad( value: ByteParameter ); external name '_LMSetResLoad';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetResErr: SInt16; external name '_LMGetResErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1235,7 +1233,7 @@ function LMGetResErr: SInt16; external name '_LMGetResErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetResErr( value: SInt16 ); external name '_LMSetResErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1247,7 +1245,7 @@ procedure LMSetResErr( value: SInt16 ); external name '_LMSetResErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetTmpResLoad: UInt8; external name '_LMGetTmpResLoad';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1259,7 +1257,7 @@ function LMGetTmpResLoad: UInt8; external name '_LMGetTmpResLoad';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetTmpResLoad( value: ByteParameter ); external name '_LMSetTmpResLoad';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1271,7 +1269,7 @@ procedure LMSetTmpResLoad( value: ByteParameter ); external name '_LMSetTmpResLo
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetIntlSpec: Ptr; external name '_LMGetIntlSpec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1283,7 +1281,7 @@ function LMGetIntlSpec: Ptr; external name '_LMGetIntlSpec';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetIntlSpec( value: Ptr ); external name '_LMSetIntlSpec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { LMGetWordRedraw and LMSetWordRedraw moved to TextEdit.h }
@@ -1301,7 +1299,7 @@ procedure LMSetIntlSpec( value: Ptr ); external name '_LMSetIntlSpec';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysFontFam: SInt16; external name '_LMGetSysFontFam';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1319,7 +1317,7 @@ function LMGetSysFontFam: SInt16; external name '_LMGetSysFontFam';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSysFontFam( value: SInt16 ); external name '_LMSetSysFontFam';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1335,7 +1333,7 @@ procedure LMSetSysFontFam( value: SInt16 ); external name '_LMSetSysFontFam';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysFontSize: SInt16; external name '_LMGetSysFontSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1351,7 +1349,7 @@ function LMGetSysFontSize: SInt16; external name '_LMGetSysFontSize';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSysFontSize( value: SInt16 ); external name '_LMSetSysFontSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {*************************************************************************************
@@ -1369,7 +1367,7 @@ procedure LMSetSysFontSize( value: SInt16 ); external name '_LMSetSysFontSize';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurApName: StringPtr; external name '_LMGetCurApName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1381,7 +1379,7 @@ function LMGetCurApName: StringPtr; external name '_LMGetCurApName';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetCurApName( curApNameValue: ConstStr31Param ); external name '_LMSetCurApName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1397,7 +1395,7 @@ procedure LMSetCurApName( curApNameValue: ConstStr31Param ); external name '_LMS
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysResName: StringPtr; external name '_LMGetSysResName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1413,7 +1411,7 @@ function LMGetSysResName: StringPtr; external name '_LMGetSysResName';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSysResName( sysResNameValue: ConstStr15Param ); external name '_LMSetSysResName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1431,7 +1429,7 @@ procedure LMSetSysResName( sysResNameValue: ConstStr15Param ); external name '_L
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetFinderName: StringPtr; external name '_LMGetFinderName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1447,7 +1445,7 @@ function LMGetFinderName: StringPtr; external name '_LMGetFinderName';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetFinderName( finderNameValue: ConstStr15Param ); external name '_LMSetFinderName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1465,7 +1463,7 @@ procedure LMSetFinderName( finderNameValue: ConstStr15Param ); external name '_L
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetToolScratch: Ptr; external name '_LMGetToolScratch';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1483,7 +1481,7 @@ function LMGetToolScratch: Ptr; external name '_LMGetToolScratch';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetToolScratch( toolScratchValue: {const} UnivPtr ); external name '_LMSetToolScratch';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {*************************************************************************************
@@ -1501,7 +1499,7 @@ procedure LMSetToolScratch( toolScratchValue: {const} UnivPtr ); external name '
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetLvl2DT( vectorNumber: SInt16 ): UniversalProcPtr; external name '_LMGetLvl2DT';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1513,7 +1511,7 @@ function LMGetLvl2DT( vectorNumber: SInt16 ): UniversalProcPtr; external name '_
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetLvl2DT( Lvl2DTValue: UniversalProcPtr; vectorNumber: SInt16 ); external name '_LMSetLvl2DT';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {*************************************************************************************
@@ -1538,7 +1536,7 @@ procedure LMSetLvl2DT( Lvl2DTValue: UniversalProcPtr; vectorNumber: SInt16 ); ex
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetHighHeapMark: Ptr; external name '_LMGetHighHeapMark';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1550,7 +1548,7 @@ function LMGetHighHeapMark: Ptr; external name '_LMGetHighHeapMark';
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 procedure LMSetHighHeapMark( value: Ptr ); external name '_LMSetHighHeapMark';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { accesses "StkLowPt"}
@@ -1563,7 +1561,7 @@ procedure LMSetHighHeapMark( value: Ptr ); external name '_LMSetHighHeapMark';
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetStackLowPoint: Ptr; external name '_LMGetStackLowPoint';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1575,7 +1573,7 @@ function LMGetStackLowPoint: Ptr; external name '_LMGetStackLowPoint';
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 procedure LMSetStackLowPoint( value: Ptr ); external name '_LMSetStackLowPoint';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { accesses "FmtDefaults"}
@@ -1588,7 +1586,7 @@ procedure LMSetStackLowPoint( value: Ptr ); external name '_LMSetStackLowPoint';
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetDiskFormatingHFSDefaults: Ptr; external name '_LMGetDiskFormatingHFSDefaults';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1600,7 +1598,7 @@ function LMGetDiskFormatingHFSDefaults: Ptr; external name '_LMGetDiskFormatingH
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 procedure LMSetDiskFormatingHFSDefaults( value: Ptr ); external name '_LMSetDiskFormatingHFSDefaults';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}

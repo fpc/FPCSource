@@ -1,10 +1,11 @@
 {	CFLocale.h
-	Copyright (c) 2002-2009, Apple Inc. All rights reserved.
+	Copyright (c) 2002-2012, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -80,6 +81,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -89,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -104,6 +107,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +117,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -176,7 +182,8 @@ uses MacTypes,CFBase,CFArray,CFDictionary;
 
 
 type
-	CFLocaleRef = ^SInt32; { an opaque type }
+	CFLocaleRef = ^__CFLocale; { an opaque type }
+	__CFLocale = record end;
 
 function CFLocaleGetTypeID: CFTypeID; external name '_CFLocaleGetTypeID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -220,12 +227,12 @@ function CFLocaleCopyISOCurrencyCodes: CFArrayRef; external name '_CFLocaleCopyI
 	// represent other financial instruments.
 
 function CFLocaleCopyCommonISOCurrencyCodes: CFArrayRef; external name '_CFLocaleCopyCommonISOCurrencyCodes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
 	// Returns an array of CFStrings that represents ISO currency codes for
 	// currencies in common use.
 
 function CFLocaleCopyPreferredLanguages: CFArrayRef; external name '_CFLocaleCopyPreferredLanguages';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
 	// Returns the array of canonicalized CFString locale IDs that the user prefers.
 
 function CFLocaleCreateCanonicalLanguageIdentifierFromString( allocator: CFAllocatorRef; localeIdentifier: CFStringRef ): CFStringRef; external name '_CFLocaleCreateCanonicalLanguageIdentifierFromString';
@@ -243,15 +250,15 @@ function CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes( allocato
 	// Map a Mac OS LangCode and RegionCode to the canonical locale identifier.
 
 function CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode( allocator: CFAllocatorRef; lcid: UInt32 ): CFStringRef; external name '_CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 	// Map a Windows LCID to the canonical locale identifier.
 
 function CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier( localeIdentifier: CFStringRef ): UInt32; external name '_CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 	// Map a locale identifier to a Windows LCID.
 
 type
-	CFLocaleLanguageDirection = SIGNEDLONG;
+	CFLocaleLanguageDirection = CFIndex;
 const
 	kCFLocaleLanguageDirectionUnknown = 0;
 	kCFLocaleLanguageDirectionLeftToRight = 1;
@@ -260,10 +267,10 @@ const
 	kCFLocaleLanguageDirectionBottomToTop = 4;
 
 function CFLocaleGetLanguageCharacterDirection( isoLangCode: CFStringRef ): CFLocaleLanguageDirection; external name '_CFLocaleGetLanguageCharacterDirection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 function CFLocaleGetLanguageLineDirection( isoLangCode: CFStringRef ): CFLocaleLanguageDirection; external name '_CFLocaleGetLanguageLineDirection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 function CFLocaleCreateComponentsFromLocaleIdentifier( allocator: CFAllocatorRef; localeID: CFStringRef ): CFDictionaryRef; external name '_CFLocaleCreateComponentsFromLocaleIdentifier';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -311,7 +318,7 @@ function CFLocaleCopyDisplayNameForPropertyValue( displayLocale: CFLocaleRef; ke
 
 
 var kCFLocaleCurrentLocaleDidChangeNotification: CFStringRef; external name '_kCFLocaleCurrentLocaleDidChangeNotification'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
 
 
 // Locale Keys
@@ -347,15 +354,15 @@ var kCFLocaleCurrencySymbol: CFStringRef; external name '_kCFLocaleCurrencySymbo
 var kCFLocaleCurrencyCode: CFStringRef; external name '_kCFLocaleCurrencyCode'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *) // ISO 3-letter currency code
 var kCFLocaleCollatorIdentifier: CFStringRef; external name '_kCFLocaleCollatorIdentifier'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFLocaleQuotationBeginDelimiterKey: CFStringRef; external name '_kCFLocaleQuotationBeginDelimiterKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFLocaleQuotationEndDelimiterKey: CFStringRef; external name '_kCFLocaleQuotationEndDelimiterKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFLocaleAlternateQuotationBeginDelimiterKey: CFStringRef; external name '_kCFLocaleAlternateQuotationBeginDelimiterKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFLocaleAlternateQuotationEndDelimiterKey: CFStringRef; external name '_kCFLocaleAlternateQuotationEndDelimiterKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 // Values for kCFLocaleCalendarIdentifier
 var kCFGregorianCalendar: CFStringRef; external name '_kCFGregorianCalendar'; (* attribute const *)
@@ -373,13 +380,13 @@ var kCFIslamicCivilCalendar: CFStringRef; external name '_kCFIslamicCivilCalenda
 var kCFJapaneseCalendar: CFStringRef; external name '_kCFJapaneseCalendar'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 var kCFRepublicOfChinaCalendar: CFStringRef; external name '_kCFRepublicOfChinaCalendar'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFPersianCalendar: CFStringRef; external name '_kCFPersianCalendar'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFIndianCalendar: CFStringRef; external name '_kCFIndianCalendar'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 var kCFISO8601Calendar: CFStringRef; external name '_kCFISO8601Calendar'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

@@ -1,8 +1,9 @@
 {	CFXMLNode.h
-	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -174,7 +180,8 @@ const
 	kCFXMLNodeCurrentVersion = 1;
 
 type
-	CFXMLNodeRef = ^SInt32; { an opaque type }
+	CFXMLNodeRef = ^__CFXMLNode; { an opaque type }
+	__CFXMLNode = record end;
 	CFXMLNodeRefPtr = ^CFXMLNodeRef;
 	CFXMLTreeRef = CFTreeRef;
 
@@ -200,7 +207,7 @@ type
 
 { Type codes for the different possible XML nodes; this list may grow.}
 type
-	CFXMLNodeTypeCode = SIGNEDLONG;
+	CFXMLNodeTypeCode = CFIndex;
 const
 	kCFXMLNodeTypeDocument = 1;
 	kCFXMLNodeTypeElement = 2;
@@ -224,7 +231,7 @@ type
 		attributes: CFDictionaryRef;
 		attributeOrder: CFArrayRef;
 		isEmpty: Boolean;
-		_reserved1,_reserved2,_reserved3: SInt8;
+		_reserved: array [0..3-1] of SInt8;
 	end;
 
 type
@@ -283,7 +290,7 @@ type
 	end;
 
 type
-	CFXMLEntityTypeCode = SIGNEDLONG;
+	CFXMLEntityTypeCode = CFIndex;
 const
 	kCFXMLEntityTypeParameter = 0;							{  Implies parsed, internal  }
 	kCFXMLEntityTypeParsedInternal = 1;
@@ -330,25 +337,33 @@ function CFXMLNodeGetTypeID: CFTypeID; external name '_CFXMLNodeGetTypeID';
 
 { Creates a new node based on xmlType, dataString, and additionalInfoPtr.  version (together with xmlType) determines the expected structure of additionalInfoPtr }
 function CFXMLNodeCreate( alloc: CFAllocatorRef; xmlType: CFXMLNodeTypeCode; dataString: CFStringRef; additionalInfoPtr: {const} UnivPtr; version: CFIndex ): CFXMLNodeRef; external name '_CFXMLNodeCreate';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Creates a copy of origNode (which may not be NULL). }
 function CFXMLNodeCreateCopy( alloc: CFAllocatorRef; origNode: CFXMLNodeRef ): CFXMLNodeRef; external name '_CFXMLNodeCreateCopy';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLNodeGetTypeCode( node: CFXMLNodeRef ): CFXMLNodeTypeCode; external name '_CFXMLNodeGetTypeCode';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLNodeGetString( node: CFXMLNodeRef ): CFStringRef; external name '_CFXMLNodeGetString';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLNodeGetInfoPtr( node: CFXMLNodeRef ): UnivPtr; external name '_CFXMLNodeGetInfoPtr';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLNodeGetVersion( node: CFXMLNodeRef ): CFIndex; external name '_CFXMLNodeGetVersion';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { CFXMLTreeRef }
 
 { Creates a childless, parentless tree from node }
 function CFXMLTreeCreateWithNode( allocator: CFAllocatorRef; node: CFXMLNodeRef ): CFXMLTreeRef; external name '_CFXMLTreeCreateWithNode';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Extracts and returns the node stored in xmlTree }
 function CFXMLTreeGetNode( xmlTree: CFXMLTreeRef ): CFXMLNodeRef; external name '_CFXMLTreeGetNode';
+(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

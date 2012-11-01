@@ -1,8 +1,9 @@
 {	CFCharacterSet.h
-	Copyright (c) 1999-2009, Apple, Inc. All rights reserved.
+	Copyright (c) 1999-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -202,7 +208,8 @@ uses MacTypes,CFBase,CFData;
 	This is the type of a reference to immutable CFCharacterSets.
 }
 type
-	CFCharacterSetRef = ^SInt32; { an opaque type }
+	CFCharacterSetRef = ^__CFCharacterSet; { an opaque type }
+	__CFCharacterSet = record end;
 	CFCharacterSetRefPtr = ^CFCharacterSetRef;
 
 {!
@@ -218,7 +225,7 @@ type
         Type of the predefined CFCharacterSet selector values.
 }
 type
-	CFCharacterSetPredefinedSet = SIGNEDLONG;
+	CFCharacterSetPredefinedSet = CFIndex;
 const
 	kCFCharacterSetControl = 1; { Control character set (Unicode General Category Cc and Cf) }
 	kCFCharacterSetWhitespace = 2; { Whitespace character set (Unicode General Category Zs and U0009 CHARACTER TABULATION) }
@@ -304,7 +311,7 @@ function CFCharacterSetCreateWithCharactersInString( alloc: CFAllocatorRef; theS
                 the character set is filled with.  The bitmap
                 representation could contain all the Unicode character
                 range starting from BMP to Plane 16.  The first 8192 bytes
-                of the data represents the BMP range.  The BMP range 8192
+                of the data represent the BMP range.  The BMP range 8192
                 bytes can be followed by zero to sixteen 8192 byte
                 bitmaps, each one with the plane index byte prepended.
                 For example, the bitmap representing the BMP and Plane 2

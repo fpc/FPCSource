@@ -1,7 +1,8 @@
 { CoreGraphics - CGBitmapContext.h
- * Copyright (c) 2000-2008 Apple Inc.
- * All rights reserved. }
+   Copyright (c) 2000-2011 Apple Inc.
+   All rights reserved. }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -77,6 +78,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -86,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -101,6 +104,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -110,6 +114,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -120,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -168,10 +174,10 @@ uses MacTypes,CGColorSpace,CGImage,CGBase,CGContext;
 
 {$ALIGN POWER}
 
+
 { The callback for releasing the data supplied to
    `CGBitmapContextCreateWithData'. }
 
-{$ifc TARGET_OS_MAC}
 type
 	CGBitmapContextReleaseDataCallback = procedure( releaseInfo: UnivPtr; data: UnivPtr );
 
@@ -192,82 +198,96 @@ type
    non-NULL, it is called when the context is freed with `releaseInfo' and
    `data' as arguments. }
 
-function CGBitmapContextCreateWithData(data: UnivPtr; width: size_t; height: size_t; bitsPerComponent: size_t; bytesPerRow: size_t; colorspace: CGColorSpaceRef; bitmapInfo: CGBitmapInfo; releaseCallback: CGBitmapContextReleaseDataCallback; releaseInfo: UnivPtr): CGContextRef; external name '_CGBitmapContextCreateWithData'; (* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
-{$endc}
+function CGBitmapContextCreateWithData( data: univPtr; width: size_t; height: size_t; bitsPerComponent: size_t; bytesPerRow: size_t; colorspace: CGColorSpaceRef; bitmapInfo: CGBitmapInfo; releaseCallback: CGBitmapContextReleaseDataCallback; releaseInfo: UnivPtr ): CGContextRef; external name '_CGBitmapContextCreateWithData';
+(* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
 
-{ Create a bitmap context.  The context draws into a bitmap which is
- * `width' pixels wide and `height' pixels high.  The number of components
- * for each pixel is specified by `colorspace', which also may specify a
- * destination color profile. The number of bits for each component of a
- * pixel is specified by `bitsPerComponent', which must be 1, 2, 4, or 8.
- * Each row of the bitmap consists of `bytesPerRow' bytes, which must be at
- * least `(width * bitsPerComponent * number of components + 7)/8' bytes.
- * `data' points a block of memory at least `bytesPerRow * height' bytes.
- * `bitmapInfo' specifies whether the bitmap should contain an alpha
- * channel and how it's to be generated, along with whether the components
- * are floating-point or integer. }
+{ Create a bitmap context. The context draws into a bitmap which is `width'
+   pixels wide and `height' pixels high. The number of components for each
+   pixel is specified by `space', which may also specify a destination color
+   profile. The number of bits for each component of a pixel is specified by
+   `bitsPerComponent'. The number of bytes per pixel is equal to
+   `(bitsPerComponent * number of components + 7)/8'. Each row of the bitmap
+   consists of `bytesPerRow' bytes, which must be at least `width * bytes
+   per pixel' bytes; in addition, `bytesPerRow' must be an integer multiple
+   of the number of bytes per pixel. `data', if non-NULL, points to a block
+   of memory at least `bytesPerRow * height' bytes. If `data' is NULL, the
+   data for context is allocated automatically and freed when the context is
+   deallocated. `bitmapInfo' specifies whether the bitmap should contain an
+   alpha channel and how it's to be generated, along with whether the
+   components are floating-point or integer. }
 
 function CGBitmapContextCreate( data: UnivPtr; width: size_t; height: size_t; bitsPerComponent: size_t; bytesPerRow: size_t; colorspace: CGColorSpaceRef; bitmapInfo: CGBitmapInfo ): CGContextRef; external name '_CGBitmapContextCreate';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return the data associated with the bitmap context `c', or NULL if `c'
- * is not a bitmap context. }
+{ Return the data associated with the bitmap context `context', or NULL if
+   `context' is not a bitmap context. }
 
-function CGBitmapContextGetData( c: CGContextRef ): UnivPtr; external name '_CGBitmapContextGetData'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetData( context: CGContextRef ): UnivPtr; external name '_CGBitmapContextGetData';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the width of the bitmap context `c', or 0 if `c' is not a bitmap
- * context. }
+{ Return the width of the bitmap context `context', or 0 if `context' is
+   not a bitmap context. }
 
-function CGBitmapContextGetWidth( c: CGContextRef ): size_t; external name '_CGBitmapContextGetWidth'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetWidth( context: CGContextRef ): size_t; external name '_CGBitmapContextGetWidth';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the height of the bitmap context `c', or 0 if `c' is not a bitmap
- * context. }
+{ Return the height of the bitmap context `context', or 0 if `context' is
+   not a bitmap context. }
 
-function CGBitmapContextGetHeight( c: CGContextRef ): size_t; external name '_CGBitmapContextGetHeight'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetHeight( context: CGContextRef ): size_t; external name '_CGBitmapContextGetHeight';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the bits per component of the bitmap context `c', or 0 if `c' is
- * not a bitmap context. }
+{ Return the bits per component of the bitmap context `context', or 0 if
+   `context' is not a bitmap context. }
 
-function CGBitmapContextGetBitsPerComponent( c: CGContextRef ): size_t; external name '_CGBitmapContextGetBitsPerComponent'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetBitsPerComponent( context: CGContextRef ): size_t; external name '_CGBitmapContextGetBitsPerComponent';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the bits per pixel of the bitmap context `c', or 0 if `c' is not
- * a bitmap context. }
+{ Return the bits per pixel of the bitmap context `context', or 0 if
+   `context' is not a bitmap context. }
 
-function CGBitmapContextGetBitsPerPixel( c: CGContextRef ): size_t; external name '_CGBitmapContextGetBitsPerPixel'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetBitsPerPixel( context: CGContextRef ): size_t; external name '_CGBitmapContextGetBitsPerPixel';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the bytes per row of the bitmap context `c', or 0 if `c' is not a
- * bitmap context. }
+{ Return the bytes per row of the bitmap context `context', or 0 if
+   `context' is not a bitmap context. }
 
-function CGBitmapContextGetBytesPerRow( c: CGContextRef ): size_t; external name '_CGBitmapContextGetBytesPerRow'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetBytesPerRow( context: CGContextRef ): size_t; external name '_CGBitmapContextGetBytesPerRow';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the colorspace of the bitmap context `c', or NULL if `c' is not a
- * bitmap context. }
+{ Return the color space of the bitmap context `context', or NULL if
+   `context' is not a bitmap context. }
 
-function CGBitmapContextGetColorSpace( c: CGContextRef ): CGColorSpaceRef; external name '_CGBitmapContextGetColorSpace'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetColorSpace( context: CGContextRef ): CGColorSpaceRef; external name '_CGBitmapContextGetColorSpace';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the alpha info of the bitmap context `c', or kCGImageAlphaNone if
- * `c' is not a bitmap context. }
+{ Return the alpha info of the bitmap context `context', or
+   "kCGImageAlphaNone" if `context' is not a bitmap context. }
 
-function CGBitmapContextGetAlphaInfo( c: CGContextRef ): CGImageAlphaInfo; external name '_CGBitmapContextGetAlphaInfo'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGBitmapContextGetAlphaInfo( context: CGContextRef ): CGImageAlphaInfo; external name '_CGBitmapContextGetAlphaInfo';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Return the bitmap info of the bitmap context `c', or 0 if `c' is not a
- * bitmap context. }
+{ Return the bitmap info of the bitmap context `context', or 0 if `context'
+   is not a bitmap context. }
 
-function CGBitmapContextGetBitmapInfo( c: CGContextRef ): CGBitmapInfo; external name '_CGBitmapContextGetBitmapInfo'; (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+function CGBitmapContextGetBitmapInfo( context: CGContextRef ): CGBitmapInfo; external name '_CGBitmapContextGetBitmapInfo';
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
-{ Return an image containing a snapshot of the bitmap context `c'.  If
- * context is not a bitmap context, or if the image cannot be created for
- * any reason, this function returns NULL.  This is a "copy" operation ---
- * subsequent changes to context will not affect the contents of the
- * returned image.
- *
- * Note that in some cases the copy will actually follow "copy-on-write"
- * semantics, so that the actual physical copy of the bits will only occur
- * if the underlying data in the bitmap context is modified.  As a
- * consequence, you may wish to use the resulting image and release it
- * before performing more drawing into the bitmap context; in this way, the
- * actual physical copy of the data may be avoided. }
+{ Return an image containing a snapshot of the bitmap context `context'. If
+   context is not a bitmap context, or if the image cannot be created for
+   any reason, this function returns NULL. This is a "copy" operation ---
+   subsequent changes to context will not affect the contents of the
+   returned image.
 
-function CGBitmapContextCreateImage( c: CGContextRef ): CGImageRef; external name '_CGBitmapContextCreateImage'; (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+   Note that in some cases the copy will actually follow "copy-on-write"
+   semantics, so that the actual physical copy of the bits will only occur
+   if the underlying data in the bitmap context is modified. As a
+   consequence, you may wish to use the resulting image and release it
+   before performing more drawing into the bitmap context; in this way, the
+   actual physical copy of the data may be avoided. }
+
+function CGBitmapContextCreateImage( context: CGContextRef ): CGImageRef; external name '_CGBitmapContextCreateImage';
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

@@ -1,11 +1,12 @@
 {
  * ImageIO - CGImageDestination.h
- * Copyright (c) 2004 Apple Computer, Inc. All rights reserved.
+ * Copyright (c) 2004-2010 Apple Inc. All rights reserved.
  *
  }
 
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
-{	 Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -82,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -91,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -106,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -125,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -168,17 +174,16 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes, CFArray, CFBase, CFData, CFDictionary, CFURL, CGDataConsumer, CGImage, CGImageSource;
+uses MacTypes, CFArray, CFBase, CFData, CFDictionary, CFError, CFURL, CGDataConsumer, CGImage, CGImageSource, CGImageMetadata;
 {$endc} {not MACOSALLINCLUDE}
 
-
-{$ifc TARGET_OS_MAC}
 
 {$ALIGN POWER}
 
 
 type
-	CGImageDestinationRef = ^SInt32; { an opaque type }
+	CGImageDestinationRef = ^OpaqueCGImageDestinationRef; { an opaque type }
+	OpaqueCGImageDestinationRef = record end;
 
 
 {* Properties which may be passed to "CGImageDestinationAddImage"
@@ -194,7 +199,7 @@ type
  * desired. }
 
 var kCGImageDestinationLossyCompressionQuality: CFStringRef; external name '_kCGImageDestinationLossyCompressionQuality'; (* attribute const *)
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { The desired background color to composite against when writing 
@@ -204,18 +209,18 @@ var kCGImageDestinationLossyCompressionQuality: CFStringRef; external name '_kCG
  * will be used if needed. }
 
 var kCGImageDestinationBackgroundColor: CFStringRef; external name '_kCGImageDestinationBackgroundColor'; (* attribute const *)
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Return the CFTypeID for CGImageDestinations. }
 
 function CGImageDestinationGetTypeID: CFTypeID; external name '_CGImageDestinationGetTypeID';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Return an array of supported type identifiers. }
 
 function CGImageDestinationCopyTypeIdentifiers: CFArrayRef; external name '_CGImageDestinationCopyTypeIdentifiers';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Create an image destination writing to the data consumer `consumer'.
  * The parameter `type' specifies the type identifier of the resulting
@@ -225,7 +230,7 @@ function CGImageDestinationCopyTypeIdentifiers: CFArrayRef; external name '_CGIm
  * for this parameter. }
 
 function CGImageDestinationCreateWithDataConsumer( consumer: CGDataConsumerRef; typ: CFStringRef; count: size_t; options: CFDictionaryRef ): CGImageDestinationRef; external name '_CGImageDestinationCreateWithDataConsumer';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Create an image destination writing to `data'. The parameter `type'
  * specifies the type identifier of the resulting image file.  The
@@ -234,7 +239,7 @@ function CGImageDestinationCreateWithDataConsumer( consumer: CGDataConsumerRef; 
  * for future use; currently, you should pass NULL for this parameter. }
 
 function CGImageDestinationCreateWithData( data: CFMutableDataRef; typ: CFStringRef; count: size_t; options: CFDictionaryRef ): CGImageDestinationRef; external name '_CGImageDestinationCreateWithData';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Create an image destination writing to `url'. The parameter `type'
  * specifies the type identifier of the resulting image file.  The
@@ -244,13 +249,13 @@ function CGImageDestinationCreateWithData( data: CFMutableDataRef; typ: CFString
  * Note that if `url' already exists, it will be overwritten. }
 
 function CGImageDestinationCreateWithURL( url: CFURLRef; typ: CFStringRef; count: size_t; options: CFDictionaryRef ): CGImageDestinationRef; external name '_CGImageDestinationCreateWithURL';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Specify the dictionary `properties' of properties which apply to all
  * images in the image destination `idst'. }
 
 procedure CGImageDestinationSetProperties( idst: CGImageDestinationRef; properties: CFDictionaryRef ); external name '_CGImageDestinationSetProperties';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Set the next image in the image destination `idst' to be `image' with
  * optional properties specified in `properties'.  An error is logged if
@@ -258,7 +263,7 @@ procedure CGImageDestinationSetProperties( idst: CGImageDestinationRef; properti
  * destination. }
 
 procedure CGImageDestinationAddImage( idst: CGImageDestinationRef; image: CGImageRef; properties: CFDictionaryRef ); external name '_CGImageDestinationAddImage';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Set the next image in the image destination `idst' to be the image at
  * `index' in the image source `isrc'.  The index is zero-based. The
@@ -268,7 +273,7 @@ procedure CGImageDestinationAddImage( idst: CGImageDestinationRef; image: CGImag
  * removed. }
 
 procedure CGImageDestinationAddImageFromSource( idst: CGImageDestinationRef; isrc: CGImageSourceRef; index: size_t; properties: CFDictionaryRef ); external name '_CGImageDestinationAddImageFromSource';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { Write everything to the destination data, url or consumer of the image
  * destination `idst'.  You must call this function or the image
@@ -277,7 +282,75 @@ procedure CGImageDestinationAddImageFromSource( idst: CGImageDestinationRef; isr
  * if the image was successfully written; false otherwise. }
 
 function CGImageDestinationFinalize( idst: CGImageDestinationRef ): CBool; external name '_CGImageDestinationFinalize';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
+
+{$ifc TARGET_OS_MAC}
+{ Set the next image in the image destination `idst' to be `image' with
+ * metadata properties specified in `metadata'. An error is logged if more
+ * images are added than specified in the original count of the image
+ * destination. }
+procedure CGImageDestinationAddImageAndMetadata( idst: CGImageDestinationRef; image: CGImageRef; metadata: CGImageMetadataRef; options: CFDictionaryRef ); external name '_CGImageDestinationAddImageAndMetadata';
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{*
+ ** Keys which may be used in the 'options' dictionary of
+ ** "CGImageDestinationCopyImageSource" to effect the output.
+ *}
+
+{ Set the metadata tags for the image destination. If present, the value of
+ * this key is a CGImageMetadataRef. By default, all EXIF, IPTC, and XMP tags
+ * will be replaced. Use kCGImageDestinationMergeMetadata to merge the tags
+ * with the existing tags in the image source.
+ }
+var kCGImageDestinationMetadata: CFStringRef; external name '_kCGImageDestinationMetadata'; (* attribute const *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{ If true, The metadata will be copied from the source and merged with the tags
+ * specified in kCGImageDestinationMetadata. If a tag does not exist in the 
+ * source, it will be added. If the tag exists in the source, it will be 
+ * updated. A metadata tag can be removed by setting the tag's value to 
+ * kCFNull. If present, the value of this key is a CFBoooleanRef. The default
+ * is kCFBooleanFalse.
+ } 
+var kCGImageDestinationMergeMetadata: CFStringRef; external name '_kCGImageDestinationMergeMetadata'; (* attribute const *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{ XMP data will not be written to the destination. If used in conjunction with 
+ * kCGImageDestinationMetadata, EXIF and/or IPTC tags will be preserved, but 
+ * an XMP packet will not be written to the file. If present, the value for 
+ * this key is a CFBooleanRef. The default is kCFBooleanFalse.
+ }
+var kCGImageMetadataShouldExcludeXMP: CFStringRef; external name '_kCGImageMetadataShouldExcludeXMP'; (* attribute const *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{ Updates the DateTime parameters of the image metadata. Only values
+ * present in the original image will updated. If present, the value should
+ * be a CFStringRef or a CFDateRef. If CFString, the value must be in 
+ * Exif DateTime or ISO 8601 DateTime format. This option is mutually
+ * exclusive with kCGImageDestinationMetadata.
+ }
+var kCGImageDestinationDateTime: CFStringRef; external name '_kCGImageDestinationDateTime'; (* attribute const *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{ Updates the orientation in the image metadata. The image data itself will
+ * not be rotated. If present, the value should be a CFNumberRef from 1 to 8. 
+ * This option is mutually exclusive with kCGImageDestinationMetadata.
+ }
+var kCGImageDestinationOrientation: CFStringRef; external name '_kCGImageDestinationOrientation'; (* attribute const *)
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+{ Losslessly copies the contents of the image source, 'isrc', to the 
+ * destination, 'idst'. The image data will not be modified. The image's 
+ * metadata can be modified by adding the keys and values defined above to 
+ * 'options'. No other images should be added to the image destination. 
+ * CGImageDestinationFinalize() should not be called afterward -
+ * the result is saved to the destination when this function returns. 
+ * The image type of the destination must match the image source. Returns true
+ * if the operation was successful. If an error occurs, false will be returned 
+ * and 'err' will be set to a CFErrorRef. Not all image formats are supported 
+ * for this operation. }
+function CGImageDestinationCopyImageSource( idst: CGImageDestinationRef; isrc: CGImageSourceRef; options: CFDictionaryRef; var err: CFErrorRef ): CBool; external name '_CGImageDestinationCopyImageSource';
+(* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

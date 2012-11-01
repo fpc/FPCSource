@@ -11,8 +11,9 @@
 					 http://www.freepascal.org/bugs.html
  
 }
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -431,6 +437,22 @@ var kCFProxyAutoConfigurationURLKey: CFStringRef; external name '_kCFProxyAutoCo
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
 
 {
+ *  kCFProxyAutoConfigurationJavaScriptKey
+ *  
+ *  Discussion:
+ *	Key for the proxy's PAC script
+ *	The value is a CFString that contains the full JavaScript soure text for the PAC file.
+ *  
+ *  Availability:
+ *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
+ *	CarbonLib:		not available
+ *	Non-Carbon CFM:   not available
+ }
+var kCFProxyAutoConfigurationJavaScriptKey: CFStringRef; external name '_kCFProxyAutoConfigurationJavaScriptKey'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_3_0) *)
+
+
+{
  *  kCFProxyUsernameKey
  *  
  *  Discussion:
@@ -533,7 +555,13 @@ var kCFProxyTypeFTP: CFStringRef; external name '_kCFProxyTypeFTP'; (* attribute
  }
 var kCFProxyTypeAutoConfigurationURL: CFStringRef; external name '_kCFProxyTypeAutoConfigurationURL'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
-
+{
+ *
+ *
+ }
+var kCFProxyTypeAutoConfigurationJavaScript: CFStringRef; external name '_kCFProxyTypeAutoConfigurationJavaScript'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_3_0) *)
+	
 {
  *  kCFProxyAutoConfigHTTPResponse
  *  
@@ -748,7 +776,7 @@ var kCFNetworkProxiesSOCKSProxy: CFStringRef; external name '_kCFNetworkProxiesS
 var kCFNetworkProxiesProxyAutoConfigEnable: CFStringRef; external name '_kCFNetworkProxiesProxyAutoConfigEnable'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_2_0) *)
 {
- *  kCFNetworkProxiesSOCKSProxy
+ *  kCFNetworkProxiesProxyAutoConfigURLString
  *  
  *  Discussion:
  *	Key for the url which indicates the location of the ProxyAutoConfig (PAC) file; value is a
@@ -756,6 +784,16 @@ var kCFNetworkProxiesProxyAutoConfigEnable: CFStringRef; external name '_kCFNetw
  }
 var kCFNetworkProxiesProxyAutoConfigURLString: CFStringRef; external name '_kCFNetworkProxiesProxyAutoConfigURLString'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_2_0) *)
+{
+ * kCFNetworkProxiesProxyAutoConfigJavaScript
+ *
+ * Discussion:
+ * Key for the string which is the full JavaScript source of the ProxyAutoConfig (PAC) script;  value is a
+ * CFString with is the full text source of the PAC script.
+ }
+var kCFNetworkProxiesProxyAutoConfigJavaScript: CFStringRef; external name '_kCFNetworkProxiesProxyAutoConfigJavaScript'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_3_0) *)
+	
 {
  *  kCFNetworkProxiesProxyAutoDiscoveryEnable
  *  

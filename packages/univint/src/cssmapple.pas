@@ -22,7 +22,9 @@
  *
  * cssmapple.h -- CSSM features specific to Apple's Implementation
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -107,6 +110,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -141,6 +147,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -426,6 +433,7 @@ const
 	CSSM_ERRCODE_INSUFFICIENT_CLIENT_IDENTIFICATION = $00e3;
 	CSSM_ERRCODE_DEVICE_RESET = $00e4;
 	CSSM_ERRCODE_DEVICE_FAILED = $00e5;
+	CSSM_ERRCODE_IN_DARK_WAKE = $00e6;
 
 const
 	CSSMERR_CSSM_NO_USER_INTERACTION = CSSM_CSSM_BASE_ERROR + CSSM_ERRCODE_NO_USER_INTERACTION;
@@ -464,6 +472,12 @@ const
 	CSSMERR_CL_DEVICE_FAILED = CSSM_CL_BASE_ERROR + CSSM_ERRCODE_DEVICE_FAILED;
 	CSSMERR_DL_DEVICE_FAILED = CSSM_DL_BASE_ERROR + CSSM_ERRCODE_DEVICE_FAILED;
 	CSSMERR_TP_DEVICE_FAILED = CSSM_TP_BASE_ERROR + CSSM_ERRCODE_DEVICE_FAILED;
+	CSSMERR_CSSM_IN_DARK_WAKE = CSSM_CSSM_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
+	CSSMERR_AC_IN_DARK_WAKE = CSSM_AC_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
+	CSSMERR_CSP_IN_DARK_WAKE = CSSM_CSP_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
+	CSSMERR_CL_IN_DARK_WAKE = CSSM_CL_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
+	CSSMERR_DL_IN_DARK_WAKE = CSSM_DL_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
+	CSSMERR_TP_IN_DARK_WAKE = CSSM_TP_BASE_ERROR + CSSM_ERRCODE_IN_DARK_WAKE;
 
 { AppleCSPDL, AppleCSP private error codes. }
 const
@@ -594,7 +608,7 @@ const
 	CSSMERR_APPLETP_SMIME_EMAIL_ADDRS_NOT_FOUND = CSSM_TP_PRIVATE_ERROR + 24;
 	{ Appropriate S/MIME ExtendedKeyUsage not found }
 	CSSMERR_APPLETP_SMIME_BAD_EXT_KEY_USE = CSSM_TP_PRIVATE_ERROR + 25;
-	{ S/MIME KeyUsage incompatiblity }
+	{ S/MIME KeyUsage incompatibility }
 	CSSMERR_APPLETP_SMIME_BAD_KEY_USE = CSSM_TP_PRIVATE_ERROR + 26;
 	{ S/MIME, cert with KeyUsage flagged !critical }
 	CSSMERR_APPLETP_SMIME_KEYUSAGE_NOT_CRITICAL = CSSM_TP_PRIVATE_ERROR + 27;
@@ -658,6 +672,10 @@ const
 	CSSMERR_APPLETP_INVALID_EMPTY_SUBJECT = CSSM_TP_PRIVATE_ERROR + 55;
 	{ unknown critical Qualified Cert Statement ID }
 	CSSMERR_APPLETP_UNKNOWN_QUAL_CERT_STATEMENT = CSSM_TP_PRIVATE_ERROR + 56;
+	{ Missing required extension }
+	CSSMERR_APPLETP_MISSING_REQUIRED_EXTENSION = CSSM_TP_PRIVATE_ERROR + 57;
+	{ Extended key usage not marked critical }
+	CSSMERR_APPLETP_EXT_KEYUSAGE_NOT_CRITICAL = CSSM_TP_PRIVATE_ERROR + 58;
 
 { Apple .mac TP private error codes. }
 const

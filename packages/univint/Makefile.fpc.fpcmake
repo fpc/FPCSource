@@ -97,7 +97,9 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEData
   UniversalAccess Video WSMethodInvocation WSProtocolHandler WSTypes cblas \
   certextensions cssmapple cssmconfig cssmerr cssmkrapi cssmtype \
   fenv fp gliContexts gliDispatch gluContext kern_return macgl macglext \
-  macglu mach_error vBLAS vDSP x509defs xattr 
+  macglu mach_error vBLAS vDSP x509defs xattr \
+  AudioHardwareBase.pas AudioHardwareDeprecated.pas CGImageMetadata.pas CSIdentityBase.pas \
+  CVPixelBufferIOSurface.pas CaptiveNetwork.pas DictionaryServices.pas QLThumbnail.pas
 exampledirs=examples
 
 [libs]

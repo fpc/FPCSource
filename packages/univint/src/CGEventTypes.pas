@@ -3,6 +3,7 @@
    All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -176,7 +182,7 @@ uses MacTypes,MacOSXPosix,CGRemoteOperation,CGBase;
    A typical event in Mac OS X originates when the user manipulates an input
    device such as a mouse or a keyboard. The device driver associated with
    that device, through the I/O Kit, creates a low-level event, puts it in
-   the window server’s event queue, and notifies the window server. The
+   the window serverís event queue, and notifies the window server. The
    window server creates a Quartz event, annotates the event, and dispatches
    the event to the appropriate run-loop port of the target process. There
    the event is picked up by the Carbon Event Manager and forwarded to the
@@ -188,7 +194,8 @@ uses MacTypes,MacOSXPosix,CGRemoteOperation,CGBase;
    that all Core Foundation types have in common. }
 
 type
-	CGEventRef = ^SInt32; { an opaque type }
+	CGEventRef = ^__CGEvent; { an opaque type }
+	__CGEvent = record end;
 
 { Constants that specify buttons on a one, two, or three-button mouse. }
 const
@@ -213,7 +220,7 @@ type
 Uncomment when IOKit is translated
 
 const { Masks for the bits in event flags }
-{ device-independent modifier key bits }
+{ Device-independent modifier key bits. }
 	kCGEventFlagMaskAlphaShift = NX_ALPHASHIFTMASK;
 	kCGEventFlagMaskShift = NX_SHIFTMASK;
 	kCGEventFlagMaskControl = NX_CONTROLMASK;
@@ -231,8 +238,7 @@ const { Masks for the bits in event flags }
 	kCGEventFlagMaskNonCoalesced = NX_NONCOALSESCEDMASK;
 *)
 type
-	CGEventFlags = UInt64;	    { Flags for events }
-
+	CGEventFlags = UInt64;      { Flags for events }
 
 { Constants that specify the different types of input events. }
 
@@ -380,7 +386,13 @@ const
 
   { This field is not used. }
 	kCGScrollWheelEventPointDeltaAxis3 = 98;
-
+    
+  {  }
+	kCGScrollWheelEventScrollPhase = 99;
+    
+  { rdar://11259169 }
+	kCGScrollWheelEventScrollCount = 100;
+    
   { Key to access an integer field that indicates whether the event should
      be ignored by the Inkwell subsystem. If the value is non-zero, the
      event should be ignored. }
@@ -512,6 +524,10 @@ const
      when the scrolling data is pixel-based and zero when the scrolling data
      is line-based. }
 	kCGScrollWheelEventIsContinuous = 88;
+  
+  { Added in 10.5; made public in 10.7 }
+	kCGMouseEventWindowUnderMousePointer = 91;
+	kCGMouseEventWindowUnderMousePointerThatCanHandleThisEvent = 92;
 type
 	CGEventField = UInt32;
 
@@ -554,18 +570,22 @@ type
 {
 Generate an event mask for a single type of event.
 #define CGEventMaskBit(eventType)	((CGEventMask)1 << (eventType))
+}
 
-An event mask that represents all event types.
+{ Generate an event mask for a single type of event.
 #define kCGEventMaskForAllEvents	(~(CGEventMask)0)
 }
 
+const
+	kCGEventMaskForAllEvents = UInt64($FFFFFFFFFFFFFFFF);
 
-{ An opaque type that represents state within the client application that’s
+{ An opaque type that represents state within the client application thatís
    associated with an event tap. }
 type
-	CGEventTapProxy = ^SInt32; { an opaque type }
+	CGEventTapProxy = ^__CGEventTapProxy; { an opaque type }
+	__CGEventTapProxy = record end;
 
-{ A client-supplied callback function that’s invoked whenever an associated
+{ A client-supplied callback function thatís invoked whenever an associated
    event tap receives a Quartz event.
 
    The callback is passed a proxy for the tap, the event type, the incoming
@@ -591,9 +611,8 @@ const
 const
 	kCGNotifyEventTapRemoved = 'com.apple.coregraphics.eventTapRemoved';
 
-{
- * Structure used to report information on event taps
- }
+{ The structure used to report information about event taps. }
+
 type
 	CGEventTapInformationPtr = ^CGEventTapInformation;
 	CGEventTapInformation = record
@@ -611,19 +630,20 @@ type
 		avgUsecLatency: Float32;		{ Average latency in microseconds }
 		maxUsecLatency: Float32;		{ Maximum latency in microseconds }
 	end;
+	__CGEventTapInformation = CGEventTapInformation;
 
 { An opaque type that represents the source of a Quartz event. }
 type
-	CGEventSourceRef = ^SInt32; { an opaque type }
+	CGEventSourceRef = ^__CGEventSource; { an opaque type }
+	__CGEventSource = record end;
 
-type
-	CGEventSourceStateID = UInt32;
 { Constants that specify the possible source states of an event source. }
 const
 	kCGEventSourceStatePrivate = -1;
 	kCGEventSourceStateCombinedSessionState = 0;
 	kCGEventSourceStateHIDSystemState = 1;
-
+type
+	CGEventSourceStateID = UInt32;
 
 { A code that represents the type of keyboard used with a specified event
    source. }

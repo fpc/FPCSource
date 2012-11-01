@@ -11,8 +11,9 @@
 					 http://www.freepascal.org/bugs.html
  
 }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -177,7 +183,7 @@ interface
 uses MacTypes,CFBase,CFData,CFArray,CFRunLoop,CFStream;
 {$endc} {not MACOSALLINCLUDE}
 
-{$ALIGN POWER}
+{$ALIGN MAC68K}
 
 {
  *  CFHostRef
@@ -186,7 +192,8 @@ uses MacTypes,CFBase,CFData,CFArray,CFRunLoop,CFStream;
  *	This is the type of a reference to a host name or address lookup.
  }
 type
-	CFHostRef = ^SInt32; { an opaque type }
+	CFHostRef = ^__CFHost; { an opaque type }
+	__CFHost = record end;
 
 {
  *  kCFStreamErrorDomainNetDB
@@ -514,7 +521,7 @@ function CFHostStartInfoResolution( theHost: CFHostRef; info: CFHostInfoType; er
  *	CarbonLib:		not available
  *	Non-Carbon CFM:   not available
  }
-function CFHostGetAddressing( theHost: CFHostRef; var hasBeenResolved: Boolean ): CFArrayRef; external name '_CFHostGetAddressing';
+function CFHostGetAddressing( theHost: CFHostRef; hasBeenResolved: BooleanPtr { can be NULL } ): CFArrayRef; external name '_CFHostGetAddressing';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_3,__IPHONE_2_0) *)
 
 
@@ -550,7 +557,7 @@ function CFHostGetAddressing( theHost: CFHostRef; var hasBeenResolved: Boolean )
  *	CarbonLib:		not available
  *	Non-Carbon CFM:   not available
  }
-function CFHostGetNames( theHost: CFHostRef; var hasBeenResolved: Boolean ): CFArrayRef; external name '_CFHostGetNames';
+function CFHostGetNames( theHost: CFHostRef; hasBeenResolved: BooleanPtr { can be NULL } ): CFArrayRef; external name '_CFHostGetNames';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_3,__IPHONE_2_0) *)
 
 

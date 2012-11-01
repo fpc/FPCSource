@@ -2,18 +2,12 @@
      File:       CarbonCore/Multiprocessing.h
  
      Contains:   Multiprocessing interfaces
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1995-2008 DayStar Digital, Inc.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1995-2011 DayStar Digital, Inc.
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -443,35 +442,35 @@ const
 
 
 {
- *  MPProcessors()
+ *  MPProcessors()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPProcessors: ItemCount; external name '_MPProcessors';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { The physical total.}
 
 {
- *  MPProcessorsScheduled()
+ *  MPProcessorsScheduled()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPProcessorsScheduled: ItemCount; external name '_MPProcessorsScheduled';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Those currently in use.}
@@ -499,110 +498,110 @@ type
 	TaskProc = function( parameter: UnivPtr ): OSStatus;
 
 {
- *  MPCreateTask()
+ *  MPCreateTask()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPCreateTask( entryPoint: TaskProc; parameter: UnivPtr; stackSize: ByteCount; notifyQueue: MPQueueID; terminationParameter1: UnivPtr; terminationParameter2: UnivPtr; options: MPTaskOptions; task: MPTaskIDPtr ): OSStatus; external name '_MPCreateTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPTerminateTask()
+ *  MPTerminateTask()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPTerminateTask( task: MPTaskID; terminationStatus: OSStatus ): OSStatus; external name '_MPTerminateTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetTaskWeight()
+ *  MPSetTaskWeight()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetTaskWeight( task: MPTaskID; weight: MPTaskWeight ): OSStatus; external name '_MPSetTaskWeight';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPTaskIsPreemptive()
+ *  MPTaskIsPreemptive()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPTaskIsPreemptive( taskID: MPTaskID ): Boolean; external name '_MPTaskIsPreemptive';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { May be kInvalidID.}
 
 {
- *  MPExit()
+ *  MPExit()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 procedure MPExit( status: OSStatus ); external name '_MPExit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPYield()
+ *  MPYield()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 procedure MPYield; external name '_MPYield';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPCurrentTaskID()
+ *  MPCurrentTaskID()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPCurrentTaskID: MPTaskID; external name '_MPCurrentTaskID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -617,7 +616,7 @@ function MPCurrentTaskID: MPTaskID; external name '_MPCurrentTaskID';
  *    Non-Carbon CFM:   in MPLibrary 2.3 and later
  }
 function MPSetTaskType( task: MPTaskID; taskType: OSType ): OSStatus; external name '_MPSetTaskType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { -------------------------------------------------------------------------------------------}
@@ -630,63 +629,63 @@ function MPSetTaskType( task: MPTaskID; taskType: OSType ): OSStatus; external n
 
 
 {
- *  MPAllocateTaskStorageIndex()
+ *  MPAllocateTaskStorageIndex()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPAllocateTaskStorageIndex( var taskIndex: TaskStorageIndex ): OSStatus; external name '_MPAllocateTaskStorageIndex';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeallocateTaskStorageIndex()
+ *  MPDeallocateTaskStorageIndex()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPDeallocateTaskStorageIndex( taskIndex: TaskStorageIndex ): OSStatus; external name '_MPDeallocateTaskStorageIndex';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetTaskStorageValue()
+ *  MPSetTaskStorageValue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetTaskStorageValue( taskIndex: TaskStorageIndex; value: TaskStorageValue ): OSStatus; external name '_MPSetTaskStorageValue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPGetTaskStorageValue()
+ *  MPGetTaskStorageValue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPGetTaskStorageValue( taskIndex: TaskStorageIndex ): TaskStorageValue; external name '_MPGetTaskStorageValue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -698,267 +697,268 @@ function MPGetTaskStorageValue( taskIndex: TaskStorageIndex ): TaskStorageValue;
 
 
 {
- *  MPCreateQueue()
+ *  MPCreateQueue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPCreateQueue( var queue: MPQueueID ): OSStatus; external name '_MPCreateQueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteQueue()
+ *  MPDeleteQueue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPDeleteQueue( queue: MPQueueID ): OSStatus; external name '_MPDeleteQueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPNotifyQueue()
+ *  MPNotifyQueue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPNotifyQueue( queue: MPQueueID; param1: UnivPtr; param2: UnivPtr; param3: UnivPtr ): OSStatus; external name '_MPNotifyQueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPWaitOnQueue()
+ *  MPWaitOnQueue()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPWaitOnQueue( queue: MPQueueID; var param1: UnivPtr; var param2: UnivPtr; var param3: UnivPtr; timeout: Duration ): OSStatus; external name '_MPWaitOnQueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetQueueReserve()
+ *  MPSetQueueReserve()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetQueueReserve( queue: MPQueueID; count: ItemCount ): OSStatus; external name '_MPSetQueueReserve';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { -------------------------------------------------------------------------------------------}
 
 
 {
- *  MPCreateSemaphore()
+ *  MPCreateSemaphore()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPCreateSemaphore( maximumValue: MPSemaphoreCount; initialValue: MPSemaphoreCount; var semaphore: MPSemaphoreID ): OSStatus; external name '_MPCreateSemaphore';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteSemaphore()
+ *  MPDeleteSemaphore()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPDeleteSemaphore( semaphore: MPSemaphoreID ): OSStatus; external name '_MPDeleteSemaphore';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSignalSemaphore()
+ *  MPSignalSemaphore()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPSignalSemaphore( semaphore: MPSemaphoreID ): OSStatus; external name '_MPSignalSemaphore';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPWaitOnSemaphore()
+ *  MPWaitOnSemaphore()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPWaitOnSemaphore( semaphore: MPSemaphoreID; timeout: Duration ): OSStatus; external name '_MPWaitOnSemaphore';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
+
 
 
 { -------------------------------------------------------------------------------------------}
 
 
 {
- *  MPCreateCriticalRegion()
+ *  MPCreateCriticalRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPCreateCriticalRegion( var criticalRegion: MPCriticalRegionID ): OSStatus; external name '_MPCreateCriticalRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteCriticalRegion()
+ *  MPDeleteCriticalRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPDeleteCriticalRegion( criticalRegion: MPCriticalRegionID ): OSStatus; external name '_MPDeleteCriticalRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPEnterCriticalRegion()
+ *  MPEnterCriticalRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPEnterCriticalRegion( criticalRegion: MPCriticalRegionID; timeout: Duration ): OSStatus; external name '_MPEnterCriticalRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPExitCriticalRegion()
+ *  MPExitCriticalRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPExitCriticalRegion( criticalRegion: MPCriticalRegionID ): OSStatus; external name '_MPExitCriticalRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { -------------------------------------------------------------------------------------------}
 
 
 {
- *  MPCreateEvent()
+ *  MPCreateEvent()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPCreateEvent( var event: MPEventID ): OSStatus; external name '_MPCreateEvent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteEvent()
+ *  MPDeleteEvent()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPDeleteEvent( event: MPEventID ): OSStatus; external name '_MPDeleteEvent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetEvent()
+ *  MPSetEvent()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetEvent( event: MPEventID; flags: MPEventFlags ): OSStatus; external name '_MPSetEvent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPWaitForEvent()
+ *  MPWaitForEvent()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPWaitForEvent( event: MPEventID; flags: MPEventFlagsPtr; timeout: Duration ): OSStatus; external name '_MPWaitForEvent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -981,67 +981,67 @@ function MPWaitForEvent( event: MPEventID; flags: MPEventFlagsPtr; timeout: Dura
  *    Non-Carbon CFM:   in MPLibrary 2.1 and later
  }
 function MPCreateNotification( var notificationID: MPNotificationID ): OSStatus; external name '_MPCreateNotification';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteNotification()
+ *  MPDeleteNotification()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.1 and later
  }
 function MPDeleteNotification( notificationID: MPNotificationID ): OSStatus; external name '_MPDeleteNotification';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPModifyNotification()
+ *  MPModifyNotification()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.1 and later
  }
 function MPModifyNotification( notificationID: MPNotificationID; anID: MPOpaqueID; notifyParam1: UnivPtr; notifyParam2: UnivPtr; notifyParam3: UnivPtr ): OSStatus; external name '_MPModifyNotification';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPModifyNotificationParameters()
+ *  MPModifyNotificationParameters()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.3 and later
  }
 function MPModifyNotificationParameters( notificationID: MPNotificationID; kind: MPOpaqueIDClass; notifyParam1: UnivPtr; notifyParam2: UnivPtr; notifyParam3: UnivPtr ): OSStatus; external name '_MPModifyNotificationParameters';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPCauseNotification()
+ *  MPCauseNotification()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.1 and later
  }
 function MPCauseNotification( notificationID: MPNotificationID ): OSStatus; external name '_MPCauseNotification';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1066,18 +1066,18 @@ const
 
 
 {
- *  MPDelayUntil()
+ *  MPDelayUntil()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPDelayUntil( var expirationTime: AbsoluteTime ): OSStatus; external name '_MPDelayUntil';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1091,78 +1091,78 @@ function MPDelayUntil( var expirationTime: AbsoluteTime ): OSStatus; external na
 
 
 {
- *  MPCreateTimer()
+ *  MPCreateTimer()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPCreateTimer( var timerID: MPTimerID ): OSStatus; external name '_MPCreateTimer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDeleteTimer()
+ *  MPDeleteTimer()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPDeleteTimer( timerID: MPTimerID ): OSStatus; external name '_MPDeleteTimer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetTimerNotify()
+ *  MPSetTimerNotify()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetTimerNotify( timerID: MPTimerID; anID: MPOpaqueID; notifyParam1: UnivPtr; notifyParam2: UnivPtr; notifyParam3: UnivPtr ): OSStatus; external name '_MPSetTimerNotify';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPArmTimer()
+ *  MPArmTimer()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPArmTimer( timerID: MPTimerID; var expirationTime: AbsoluteTime; options: OptionBits ): OSStatus; external name '_MPArmTimer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPCancelTimer()
+ *  MPCancelTimer()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPCancelTimer( timerID: MPTimerID; timeRemaining: AbsoluteTimePtr ): OSStatus; external name '_MPCancelTimer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1205,100 +1205,100 @@ const
 
 
 {
- *  MPAllocateAligned()
+ *  MPAllocateAligned()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPAllocateAligned( size: ByteCount; alignment: UInt8; options: OptionBits ): LogicalAddress; external name '_MPAllocateAligned';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { ! MPAllocateAligned is new in version 2.0.}
 
 {
- *  MPAllocate()
+ *  MPAllocate()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function MPAllocate( size: ByteCount ): LogicalAddress; external name '_MPAllocate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Use MPAllocateAligned instead.}
 
 {
- *  MPFree()
+ *  MPFree()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 procedure MPFree( objct: LogicalAddress ); external name '_MPFree';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPGetAllocatedBlockSize()
+ *  MPGetAllocatedBlockSize()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPGetAllocatedBlockSize( objct: LogicalAddress ): ByteCount; external name '_MPGetAllocatedBlockSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { -------------------------------------------------------------------------------------------}
 
 
 {
- *  MPBlockCopy()
+ *  MPBlockCopy()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 procedure MPBlockCopy( source: LogicalAddress; destination: LogicalAddress; size: ByteCount ); external name '_MPBlockCopy';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPBlockClear()
+ *  MPBlockClear()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 procedure MPBlockClear( address: LogicalAddress; size: ByteCount ); external name '_MPBlockClear';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1309,12 +1309,12 @@ procedure MPBlockClear( address: LogicalAddress; size: ByteCount ); external nam
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only]
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 procedure MPDataToCode( address: LogicalAddress; size: ByteCount ); external name '_MPDataToCode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { NOTE:    MPDataToCode is not supported for 64-bit applications. Use mprotect(2) instead.}
@@ -1464,78 +1464,78 @@ type
 
 
 {
- *  MPSetExceptionHandler()
+ *  MPSetExceptionHandler()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetExceptionHandler( task: MPTaskID; exceptionQ: MPQueueID ): OSStatus; external name '_MPSetExceptionHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPDisposeTaskException()
+ *  MPDisposeTaskException()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPDisposeTaskException( task: MPTaskID; action: OptionBits ): OSStatus; external name '_MPDisposeTaskException';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPExtractTaskState()
+ *  MPExtractTaskState()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPExtractTaskState( task: MPTaskID; kind: MPTaskStateKind; info: UnivPtr ): OSStatus; external name '_MPExtractTaskState';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPSetTaskState()
+ *  MPSetTaskState()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPSetTaskState( task: MPTaskID; kind: MPTaskStateKind; info: UnivPtr ): OSStatus; external name '_MPSetTaskState';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPThrowException()
+ *  MPThrowException()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPThrowException( task: MPTaskID; kind: MPExceptionKind ): OSStatus; external name '_MPThrowException';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { -------------------------------------------------------------------------------------------}
@@ -1550,33 +1550,33 @@ const
 
 
 {
- *  MPRegisterDebugger()
+ *  MPRegisterDebugger()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPRegisterDebugger( queue: MPQueueID; level: MPDebuggerLevel ): OSStatus; external name '_MPRegisterDebugger';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPUnregisterDebugger()
+ *  MPUnregisterDebugger()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPUnregisterDebugger( queue: MPQueueID ): OSStatus; external name '_MPUnregisterDebugger';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1600,7 +1600,7 @@ const
 
 
 {
- *  MPRemoteCall()
+ *  MPRemoteCall()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Calls a nonreentrant function and blocks the current task.
@@ -1629,7 +1629,8 @@ const
  *    shared library. Even these functions may switch to 68K mode if
  *    the operands to them are not aligned. If you need to access
  *    system software functions from a preemptive task, you must do so
- *    using the MPRemoteCall function.
+ *    using the MPRemoteCall function. %%     @deprecated Use blocks to
+ *    make a call on anothed dispatch queue() and block on the result.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -1654,16 +1655,20 @@ const
  *      values.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPRemoteCall( remoteProc: MPRemoteProcedure; parameter: UnivPtr; context: MPRemoteContext ): UnivPtr; external name '_MPRemoteCall';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  MPRemoteCallCFM()
+ *  MPRemoteCallCFM()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    No longer applicable now that the Multiprocessing Utilities have
+ *    been deprecated.
  *  
  *  Summary:
  *    Calls a nonreentrant function and blocks the current task.
@@ -1711,12 +1716,12 @@ function MPRemoteCall( remoteProc: MPRemoteProcedure; parameter: UnivPtr; contex
  *      values.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   in MPLibrary 2.0 and later
  }
 function MPRemoteCallCFM( remoteProc: MPRemoteProcedure; parameter: UnivPtr; context: MPRemoteContext ): UnivPtr; external name '_MPRemoteCallCFM';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1784,18 +1789,18 @@ function MPRemoteCallCFM( remoteProc: MPRemoteProcedure; parameter: UnivPtr; con
 
 
 {
- *  _MPIsFullyInitialized()
+ *  _MPIsFullyInitialized()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function _MPIsFullyInitialized: Boolean; external name '__MPIsFullyInitialized';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 type
@@ -1812,15 +1817,15 @@ const
 
 
 {
- *  _MPLibraryVersion()
+ *  _MPLibraryVersion()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Ptr; minor: UInt32Ptr; release: UInt32Ptr; revision: UInt32Ptr ); external name '__MPLibraryVersion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1877,15 +1882,15 @@ procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Pt
 {$endc}  {CALL_NOT_IN_CARBON}
 
 {
- *  _MPLibraryIsCompatible()
+ *  _MPLibraryIsCompatible()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MPLibrary 1.0 and later
  }
 function _MPLibraryIsCompatible( versionCString: ConstCStringPtr; major: UInt32; minor: UInt32; release: UInt32; revision: UInt32 ): Boolean; external name '__MPLibraryIsCompatible';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
    ¤

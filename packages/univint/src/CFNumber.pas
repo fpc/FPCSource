@@ -1,8 +1,9 @@
 {	CFNumber.h
-	Copyright (c) 1999-2009, Apple, Inc. All rights reserved.
+	Copyright (c) 1999-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,7 +177,8 @@ uses MacTypes,CFBase;
 
 
 type
-	CFBooleanRef = ^SInt32; { an opaque type }
+	CFBooleanRef = ^__CFBoolean; { an opaque type }
+	__CFBoolean = record end;
 	CFBooleanRefPtr = ^CFBooleanRef;
 
 var kCFBooleanTrue: CFBooleanRef; external name '_kCFBooleanTrue'; (* attribute const *)
@@ -182,7 +189,7 @@ function CFBooleanGetTypeID: CFTypeID; external name '_CFBooleanGetTypeID';
 function CFBooleanGetValue( value: CFBooleanRef ): Boolean; external name '_CFBooleanGetValue';
 
 type
-	CFNumberType = SIGNEDLONG;
+	CFNumberType = CFIndex;
 const
 																{  Types from MacTypes.h  }
 	kCFNumberSInt8Type = 1;
@@ -202,15 +209,16 @@ const
 	kCFNumberCFIndexType = 14;
   kCFNumberMaxType_MAC_OS_X_VERSION_PRE_10_5 = 14;
 {#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED}
-  kCFNumberNSIntegerType = 15; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-  kCFNumberCGFloatType = 16; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+  kCFNumberNSIntegerType = 15; (* CF_AVAILABLE_STARTING(10_5, 2_0) *)
+  kCFNumberCGFloatType = 16; (* CF_AVAILABLE_STARTING(10_5, 2_0) *)
   kCFNumberMaxType = 16;
 {#else
  kCFNumberMaxType = 14
 #endif}
 
 type
-	CFNumberRef = ^SInt32; { an opaque type }
+	CFNumberRef = ^__CFNumber; { an opaque type }
+	__CFNumber = record end;
 	CFNumberRefPtr = ^CFNumberRef;
 
 var kCFNumberPositiveInfinity: CFNumberRef; external name '_kCFNumberPositiveInfinity'; (* attribute const *)

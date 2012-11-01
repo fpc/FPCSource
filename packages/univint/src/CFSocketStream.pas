@@ -11,9 +11,10 @@
 					 http://www.freepascal.org/bugs.html
  
 }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -180,6 +186,41 @@ uses MacTypes,CFStream,CFBase,CFHost,CFNetServices;
 
 {$ALIGN POWER}
 
+
+{$ifc not TARGET_OS_MAC}
+{
+ *  kCFStreamPropertySSLContext 
+ *
+ * The SSLContextRef used for both read and write operations on a
+ * CFSocketStream.
+ *
+ * CFReadStreamCopyProperty or CFWriteStreamCopyProperty return an
+ * appropriately reference counted SSLContextRef.  If the stream has
+ * not yet been opened, this SSLContext may be configured directly
+ * using the appropriate SecureTransport APIs.
+ *
+ * CFReadStreamSetProperty or CFWriteStreamSetProperty will allow you
+ * to specify an SSLContextRef for a stream.  If the stream has not
+ * been opened, the SSLContextRef will replace any existing
+ * SSLContextRef and be used in the initial stream handshake.  If the
+ * stream has been opened without SSL enabled, setting this property
+ * will initiate an SSL handshake over the existing socket.
+ *
+ * If an SSL settings dictionary was set via
+ * kCFStreamPropertySSLSettings, a SSLContextRef is created internally
+ * and configured as per the dictionary.  However, if an SSLContextRef
+ * is set after this, its configuration will take precedence over the
+ * previously configured context.
+ *
+ * Reconfiguring an SSLContext after the stream it is bound to has
+ * opened is unsupported.
+ *
+ * Note that this property is currently only supported on iOS 5.0 and
+ * later.
+ }
+var kCFStreamPropertySSLContext: CFStringRef; external name '_kCFStreamPropertySSLContext'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_NA, __IPHONE_5_0) *)
+{$endc} { not TARGET_OS_MAC}
 
 {
  *  kCFStreamPropertySSLPeerTrust
@@ -378,6 +419,54 @@ var kCFStreamSSLAllowsExpiredRoots: CFStringRef; external name '_kCFStreamSSLAll
 var kCFStreamSSLAllowsAnyRoot: CFStringRef; external name '_kCFStreamSSLAllowsAnyRoot'; (* attribute const *)
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4,__MAC_10_6,__IPHONE_NA,__IPHONE_NA) *)
 {$endc} {TARGET_OS_MAC}
+
+{	kCFStreamNetworkServiceType
+ *
+ * Discussion:
+ * Property key to specify the type of service for the stream.  This
+ * allows the system to properly handle the request with respect to
+ * routing, suspension behavior and other networking related attributes
+ * appropriate for the given service type.  The service types supported
+ * are documented below.  Most streams should not need to set this
+ * property.
+ }
+var kCFStreamNetworkServiceType: CFStringRef; external name '_kCFStreamNetworkServiceType'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)
+
+{ supported network service types: }
+var kCFStreamNetworkServiceTypeVoIP: CFStringRef; external name '_kCFStreamNetworkServiceTypeVoIP'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)		// voice over IP control
+var kCFStreamNetworkServiceTypeVideo: CFStringRef; external name '_kCFStreamNetworkServiceTypeVideo'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)		// interactive video
+var kCFStreamNetworkServiceTypeBackground: CFStringRef; external name '_kCFStreamNetworkServiceTypeBackground'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)	// background
+var kCFStreamNetworkServiceTypeVoice: CFStringRef; external name '_kCFStreamNetworkServiceTypeVoice'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)		// interactive voice data
+
+{
+ *  kCFStreamPropertyNoCellular
+ *  
+ *  Discussion:
+ *  Stream property value, for both set and copy operations.
+ *  The value is a CFBooleanRef which indicates whether the connection
+ *  is allowed to use the build in celluar radios.  A value of kCFBooleanTrue 
+ *  disallows use of cellular interfaces.  kCFBooleanFalse (the default)
+ *  allows use of cellular interfaces.
+ *  
+ }
+var kCFStreamPropertyNoCellular: CFStringRef; external name '_kCFStreamPropertyNoCellular'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_5_0) *)
+
+{	kCFStreamPropertyConnectionIsCellular
+ *
+ * Discussion:
+ * Stream property key for copy operations.  Returns a CFBooleanRef value
+ * of kCFBooleanTrue if the stream has connected using the built in cellular radios.
+ * It returns kCFBooleanFalse if the stream is conneceted over a non-cellular
+ * interface or has not yet established a connection.
+ }
+var kCFStreamPropertyConnectionIsCellular: CFStringRef; external name '_kCFStreamPropertyConnectionIsCellular'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 {
  *  kCFStreamErrorDomainWinSock

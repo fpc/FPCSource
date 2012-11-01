@@ -3,7 +3,7 @@
  
      Contains:   Parameter constants for Apple AudioUnits
  
-     Copyright:  (c) 2002-2008 by Apple Inc., all rights reserved.
+     Copyright:  (c) 2002-2008 by Apple, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,7 +11,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{	  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -182,8 +188,6 @@ uses MacTypes;
 
 //#pragma mark General Declarations
 
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
 { ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The following specifies the equivalent parameterID's for the Group scope for standard
 MIDI Controllers. This list is not exhaustive. It represents the parameters, and their corresponding 
@@ -194,6 +198,7 @@ Group scope parameter IDs from 0 < 512 are reserved for mapping MIDI controllers
 const
 	kAUGroupParameterID_Volume = 7;	// value 0 < 128
 	kAUGroupParameterID_Sustain = 64; 	// value 0-63 (off), 64-127 (on)
+	kAUGroupParameterID_Sostenuto = 66; 	// value 0-63 (off), 64-127 (on)
 	kAUGroupParameterID_AllNotesOff = 123;	// value ignored
 	kAUGroupParameterID_ModWheel = 1;	// value 0 < 128
 	kAUGroupParameterID_PitchBend = $E0;	// value -8192 - 8191
@@ -215,8 +220,6 @@ const
 	
 	kAUGroupParameterID_KeyPressure_FirstKey = 256;	// value 0 < 128
 	kAUGroupParameterID_KeyPressure_LastKey = 383;	// value 0 < 128	
-
-
 { ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Supporting the kAUGroupParameterID_KeyPressure parameter indicates to hosts that your audio unit
 supports polyphonic "aftertouch" key pressure. 
@@ -229,99 +232,6 @@ key number plus 256. For example, the aftertouch parameter ID for MIDI key #60 (
 	60 + kAUGroupParameterID_KeyPressure_FirstKey = 316
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ }
 
-// Parameters for all Panner AudioUnits
-const
-	kPannerParam_Gain = 0;			// 0 .. 1
-	
-	kPannerParam_Azimuth = 1;		// -180 .. +180 degrees
-	kPannerParam_Elevation = 2;		// -90 .. +90 degrees
-	kPannerParam_Distance = 3;		// 0 .. 1
-	
-	kPannerParam_CoordScale = 4;	// 0.01 .. 1000 meters
-	kPannerParam_RefDistance = 5;	// 0.01 .. 1000 meters
-
-{$endc}	{ not TARGET_OS_IPHONE }
-
-//#pragma mark Apple Specific
-
-// Parameters for the AUMixer3D unit
-// only some of these parameters are available in the embedded implementation of this AU
-const
-// Input, Degrees, -180->180, 0
-	k3DMixerParam_Azimuth = 0;
-        
-		// Input, Degrees, -90->90, 0
-	k3DMixerParam_Elevation = 1;
-        
-		// Input, Metres, 0->10000, 1
-	k3DMixerParam_Distance = 2;
-        
-		// Input/Output, dB, -120->20, 0
-	k3DMixerParam_Gain = 3;
-	
-		// Input, rate scaler	0.5 -> 2.0
-	k3DMixerParam_PlaybackRate = 4;
-
-// Parameters for the AUMultiChannelMixer unit
-const
-	kMultiChannelMixerParam_Volume = 0;
-	kMultiChannelMixerParam_Enable = 1;
-
-		// read-only
-	// these report level in dB, as do the other mixers
-	kMultiChannelMixerParam_PreAveragePower = 1000;
-	kMultiChannelMixerParam_PrePeakHoldLevel = 2000;
-	kMultiChannelMixerParam_PostAveragePower = 3000;
-	kMultiChannelMixerParam_PostPeakHoldLevel = 4000;
-
-// Output Units
-// Parameters for the AudioDeviceOutput, DefaultOutputUnit, and SystemOutputUnit units
-const
-// Global, LinearGain, 0->1, 1
-	kHALOutputParam_Volume = 14;
-
-// Parameters for the AUTimePitch, AUTimePitch (offline), AUPitch units
-const
-	kTimePitchParam_Rate = 0;
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
-	kTimePitchParam_Pitch = 1;
-	kTimePitchParam_EffectBlend = 2;		// only for the AUPitch unit
-{$endc} { not TARGET_OS_IPHONE }
-
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
-const
-// Input, Dry/Wet equal-power blend, %	  0.0 -> 100.0
-	k3DMixerParam_ReverbBlend = 5;
-
-		// Global, dB,		-40.0 -> +40.0
-	k3DMixerParam_GlobalReverbGain = 6;
-	
-		// Input, Lowpass filter attenuation at 5KHz :		decibels -100.0dB -> 0.0dB
-		// smaller values make sound more muffled; a value of 0.0 indicates no filtering
-	k3DMixerParam_OcclusionAttenuation = 7;
-	
-		// Input, Lowpass filter attenuation at 5KHz :		decibels -100.0dB -> 0.0dB
-		// smaller values make sound more muffled; a value of 0.0 indicates no filtering
-	k3DMixerParam_ObstructionAttenuation = 8;
-	
-		// read-only
-		//
-		// For each of the following, use the parameter ID plus the channel number
-		// to get the specific parameter ID for a given channel.
-		// For example, k3DMixerParam_PostAveragePower indicates the left channel
-		// while k3DMixerParam_PostAveragePower + 1 indicates the right channel.
-	k3DMixerParam_PreAveragePower = 1000;
-	k3DMixerParam_PrePeakHoldLevel = 2000;
-	k3DMixerParam_PostAveragePower = 3000;
-	k3DMixerParam_PostPeakHoldLevel = 4000;
-{$endc} { not TARGET_OS_IPHONE }
-
-//#pragma mark Apple Specific - Desktop
-
-//#if !TARGET_OS_IPHONE
-{$ifc not TARGET_OS_IPHONE}
 { ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The following sections specify the parameter IDs for the audio units included in Mac OS X.
 Host applications can use these IDs to directly address these parameters without first discovering 
@@ -336,6 +246,139 @@ When displaying to the user information about a parameter, a host application sh
 get the parameter information from the audio unit itself.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ }
 
+{$ifc not TARGET_OS_IPHONE}
+// Parameters for all Panner AudioUnits
+const
+// Global, Linear, 0->1, 1
+	kPannerParam_Gain = 0;			
+	
+        // Global, Degrees, -180->180, 0
+	kPannerParam_Azimuth = 1;		
+        // Global, Degrees, -90->90, 0
+	kPannerParam_Elevation = 2;	
+		
+        // Global, Linear, 0->1, 1
+	kPannerParam_Distance = 3;		// 0 .. 1
+	
+        // Global, Meters, 0.01->1000, 1
+	kPannerParam_CoordScale = 4;	
+        // Global, Meters, 0.01->1000, 1
+	kPannerParam_RefDistance = 5;
+{$endc} {not TARGET_OS_IPHONE}
+
+//#pragma mark Apple Specific
+
+// Parameters for the AUMixer3D unit
+const
+// Input, Degrees, -180->180, 0
+	k3DMixerParam_Azimuth = 0;
+        
+		// Input, Degrees, -90->90, 0
+	k3DMixerParam_Elevation = 1;
+        
+		// Input, Metres, 0->10000, 0
+	k3DMixerParam_Distance = 2;
+        
+		// Input/Output, dB, -120->20, 0
+	k3DMixerParam_Gain = 3;
+	
+		// Input, rate scaler	0.5 -> 2.0
+	k3DMixerParam_PlaybackRate = 4;
+
+{$ifc not TARGET_OS_IPHONE}
+		// Desktop specific 3D mixer parameters
+
+// Input, Dry/Wet equal-power blend, %	  0.0 -> 100.0
+	k3DMixerParam_ReverbBlend = 5;
+
+		// Global, dB,		-40.0 -> +40.0
+	k3DMixerParam_GlobalReverbGain = 6;
+	
+		// Input, Lowpass filter attenuation at 5KHz :		decibels -100.0dB -> 0.0dB
+		// smaller values make both direct and reverb sound more muffled; a value of 0.0 indicates no filtering
+		// Occlusion is a filter applied to the sound prior to the reverb send
+	k3DMixerParam_OcclusionAttenuation = 7;
+	
+		// Input, Lowpass filter attenuation at 5KHz :		decibels -100.0dB -> 0.0dB
+		// smaller values make direct sound more muffled; a value of 0.0 indicates no filtering
+		// Obstruction is a filter applied to the "direct" part of the sound (so is post reverb send)
+	k3DMixerParam_ObstructionAttenuation = 8;
+	
+		// Input/Output, dB, -120->20, 0
+	k3DMixerParam_MinGain = 9;
+	
+		// Input/Output, dB, -120->20, 0
+	k3DMixerParam_MaxGain = 10;
+
+		// read-only
+		//
+		// For each of the following, use the parameter ID plus the channel number
+		// to get the specific parameter ID for a given channel.
+		// For example, k3DMixerParam_PostAveragePower indicates the left channel
+		// while k3DMixerParam_PostAveragePower + 1 indicates the right channel.
+	k3DMixerParam_PreAveragePower = 1000;
+	k3DMixerParam_PrePeakHoldLevel = 2000;
+	k3DMixerParam_PostAveragePower = 3000;
+	k3DMixerParam_PostPeakHoldLevel = 4000;
+{$endc} { not TARGET_OS_IPHONE }
+
+// Parameters for the AUMultiChannelMixer unit
+// these are available for both desktop and iphone
+const
+// Global, Linear Gain, 0->1, 1
+	kMultiChannelMixerParam_Volume = 0;
+		// Global, Boolean, 0->1, 1
+	kMultiChannelMixerParam_Enable = 1;
+		// Global, Pan
+	kMultiChannelMixerParam_Pan = 2;			// -1 - 0 - 1, only valid when output is not mono
+													// relationship to mix matrix: last one in wins
+
+		// read-only
+	// these report level in dB, as do the other mixers
+	kMultiChannelMixerParam_PreAveragePower = 1000;
+	kMultiChannelMixerParam_PrePeakHoldLevel = 2000;
+	kMultiChannelMixerParam_PostAveragePower = 3000;
+	kMultiChannelMixerParam_PostPeakHoldLevel = 4000;
+
+// Music Device
+// Parameters for the AUSampler unit
+const
+// Global, dB, -90->12, 0
+	kAUSamplerParam_Gain = 900;
+    
+		// Global, Semitones, -24->24, 0
+	kAUSamplerParam_CoarseTuning = 901;
+
+		// Global, Cents, -99->99, 0
+	kAUSamplerParam_FineTuning = 902;
+
+		// Global, -1.0->1.0, 0
+	kAUSamplerParam_Pan = 903;
+
+// Output Units
+// Parameters for the AudioDeviceOutput, DefaultOutputUnit, and SystemOutputUnit units
+const
+// Global, LinearGain, 0->1, 1
+	kHALOutputParam_Volume = 14;
+
+// Parameters for the AUTimePitch, AUTimePitch (offline), AUPitch units
+const
+	kTimePitchParam_Rate = 0;
+{$ifc not TARGET_OS_IPHONE}
+	kTimePitchParam_Pitch = 1;
+	kTimePitchParam_EffectBlend = 2;		// only for the AUPitch unit
+{$endif} {TARGET_OS_IPHONE}
+
+// Parameters for AUNewTimePitch
+const
+// Global, rate, 1/32 -> 32.0, 1.0
+	kNewTimePitchParam_Rate = 0;
+		// Global, Cents, -2400 -> 2400, 1.0
+	kNewTimePitchParam_Pitch = 1;
+		// Global, generic, 3.0 -> 32.0, 8.0
+	kNewTimePitchParam_Overlap = 4;
+		// Global, Boolean, 0->1, 1
+	kNewTimePitchParam_EnablePeakLocking = 6;
 
 // Effect units
 // The values for some effect unit parameters depend on the audio unit's sample rate.
@@ -349,11 +392,6 @@ const
 
 		// Global, Cents, 100->12000, 600
 	kBandpassParam_Bandwidth = 1;
-
-// Some parameters for the AUGraphicEQ unit
-const
-// Global, Indexed, currently either 10 or 31
-	kGraphicEQParam_NumberOfBands = 10000;
 
 // Parameters for the AUHipass unit
 const
@@ -397,6 +435,103 @@ const
 		
 		// Global, dB, -20->20, 0
 	kParametricEQParam_Gain = 2;
+
+// Parameters for the AUPeakLimiter unit
+const
+// Global, Secs, 0.001->0.03, 0.012
+	kLimiterParam_AttackTime = 0;
+		
+		// Global, Secs, 0.001->0.06, 0.024
+	kLimiterParam_DecayTime = 1;
+		
+		// Global, dB, -40->40, 0
+	kLimiterParam_PreGain = 2;
+
+// Parameters for the AUDynamicsProcessor unit
+const
+// Global, dB, -40->20, -20
+	kDynamicsProcessorParam_Threshold = 0;
+		
+		// Global, dB, 0.1->40.0, 5
+	kDynamicsProcessorParam_HeadRoom = 1;
+		
+		// Global, rate, 1->50.0, 2
+	kDynamicsProcessorParam_ExpansionRatio = 2;
+		
+		// Global, dB
+	kDynamicsProcessorParam_ExpansionThreshold = 3;
+		
+		// Global, secs, 0.0001->0.2, 0.001
+	kDynamicsProcessorParam_AttackTime = 4;
+		
+		// Global, secs, 0.01->3, 0.05
+	kDynamicsProcessorParam_ReleaseTime = 5;
+		
+		// Global, dB, -40->40, 0
+	kDynamicsProcessorParam_MasterGain = 6;
+	
+		// Global, dB, read-only parameter
+	kDynamicsProcessorParam_CompressionAmount = 1000;
+	kDynamicsProcessorParam_InputAmplitude = 2000;
+	kDynamicsProcessorParam_OutputAmplitude = 3000;
+
+
+// Parameters for the AUVarispeed unit
+const
+// Global, Rate, 0.25 -> 4.0, 1.0
+	kVarispeedParam_PlaybackRate = 0;
+		// Global, Cents, -2400 -> 2400, 0.0
+	kVarispeedParam_PlaybackCents = 1;
+
+
+// Parameters for the Distortion unit 
+const
+// Global, Milliseconds, 0.1 -> 500, 0.1
+	kDistortionParam_Delay = 0;
+		// Global, Rate, 0.1 -> 50, 1.0
+	kDistortionParam_Decay = 1;
+		// Global, Percent, 0 -> 100, 50
+	kDistortionParam_DelayMix = 2;
+	
+		// Global, Percent, 0 -> 100
+	kDistortionParam_Decimation = 3;
+		// Global, Percent, 0 -> 100, 0
+	kDistortionParam_Rounding = 4;
+		// Global, Percent, 0 -> 100, 50
+	kDistortionParam_DecimationMix = 5;
+	
+		// Global, Linear Gain, 0 -> 1, 1
+	kDistortionParam_LinearTerm = 6;  
+		// Global, Linear Gain, 0 -> 20, 0
+	kDistortionParam_SquaredTerm = 7;	
+		// Global, Linear Gain, 0 -> 20, 0
+	kDistortionParam_CubicTerm = 8;  
+		// Global, Percent, 0 -> 100, 50
+	kDistortionParam_PolynomialMix = 9;
+	
+		// Global, Hertz, 0.5 -> 8000, 100
+	kDistortionParam_RingModFreq1 = 10;
+		// Global, Hertz, 0.5 -> 8000, 100
+	kDistortionParam_RingModFreq2 = 11;
+		// Global, Percent, 0 -> 100, 50
+	kDistortionParam_RingModBalance = 12;
+		// Global, Percent, 0 -> 100, 0
+	kDistortionParam_RingModMix = 13;
+				
+		// Global, dB, -80 -> 20, -6
+	kDistortionParam_SoftClipGain = 14;
+		
+		// Global, Percent, 0 -> 100, 50
+	kDistortionParam_FinalMix = 15;
+
+//#pragma mark Apple Specific - Desktop
+
+{$ifc not TARGET_OS_IPHONE}
+
+// Some parameters for the AUGraphicEQ unit
+const
+// Global, Indexed, currently either 10 or 31
+	kGraphicEQParam_NumberOfBands = 10000;
 
 // Parameters for the AUMatrixReverb unit
 const
@@ -465,104 +600,110 @@ const
 		// Global, Hz, 10->(SampleRate/2), 15000
 	kDelayParam_LopassCutoff = 3;
 
-// Parameters for the AUPeakLimiter unit
-const
-// Global, Secs, 0.001->0.03, 0.012
-	kLimiterParam_AttackTime = 0;
-		
-		// Global, Secs, 0.001->0.06, 0.024
-	kLimiterParam_DecayTime = 1;
-		
-		// Global, dB, -40->40, 0
-	kLimiterParam_PreGain = 2;
-
-
-// Parameters for the AUDynamicsProcessor unit
-const
-// Global, dB, -40->20, -20
-	kDynamicsProcessorParam_Threshold = 0;
-		
-		// Global, dB, 0.1->40.0, 5
-	kDynamicsProcessorParam_HeadRoom = 1;
-		
-		// Global, rate, 1->50.0, 2
-	kDynamicsProcessorParam_ExpansionRatio = 2;
-		
-		// Global, dB
-	kDynamicsProcessorParam_ExpansionThreshold = 3;
-		
-		// Global, secs, 0.0001->0.2, 0.001
-	kDynamicsProcessorParam_AttackTime = 4;
-		
-		// Global, secs, 0.01->3, 0.05
-	kDynamicsProcessorParam_ReleaseTime = 5;
-		
-		// Global, dB, -40->40, 0
-	kDynamicsProcessorParam_MasterGain = 6;
-	
-		// Global, dB, read-only parameter
-	kDynamicsProcessorParam_CompressionAmount = 1000;
-	kDynamicsProcessorParam_InputAmplitude = 2000;
-	kDynamicsProcessorParam_OutputAmplitude = 3000;
-
-
 // Parameters for the AUMultibandCompressor unit
 const
+// Global, dB, -40 -> 40, 0
 	kMultibandCompressorParam_Pregain = 0;
+		// Global, dB, -40 -> 40, 0
 	kMultibandCompressorParam_Postgain = 1;
+		// Global, Hertz, 20 -> (SampleRate/2), 120.0
 	kMultibandCompressorParam_Crossover1 = 2;
+		// Global, Hertz, 20 -> (SampleRate/2), 700.0
 	kMultibandCompressorParam_Crossover2 = 3;
+		// Global, Hertz, 20 -> (SampleRate/2), 3000.0
 	kMultibandCompressorParam_Crossover3 = 4;
+		// Global, dB, -100.0 -> 0.0, -22.0
 	kMultibandCompressorParam_Threshold1 = 5;
+		// Global, dB, -100.0 -> 0.0, -32.0
 	kMultibandCompressorParam_Threshold2 = 6;
+		// Global, dB, -100.0 -> 0.0, -33.0
 	kMultibandCompressorParam_Threshold3 = 7;
+		// Global, dB, -100.0 -> 0.0, -36.0
 	kMultibandCompressorParam_Threshold4 = 8;
+		// Global, dB, 0.1 -> 40.0, 5.0
 	kMultibandCompressorParam_Headroom1 = 9;
+		// Global, dB, 0.1 -> 40.0, 12.0
 	kMultibandCompressorParam_Headroom2 = 10;
+		// Global, dB, 0.1 -> 40.0, 5.0
 	kMultibandCompressorParam_Headroom3 = 11;
+		// Global, dB, 0.1 -> 40.0, 7.5
 	kMultibandCompressorParam_Headroom4 = 12;
+		// Global, Secs, 0.001 -> 0.200, 0.080
 	kMultibandCompressorParam_AttackTime = 13;
+		// Global, Secs, 0.010 -> 3.0, 0.120
 	kMultibandCompressorParam_ReleaseTime = 14;
+		// Global, dB, -20 -> 20, 0
 	kMultibandCompressorParam_EQ1 = 15;
+		// Global, dB, -20 -> 20, 0
 	kMultibandCompressorParam_EQ2 = 16;
+		// Global, dB, -20 -> 20, 0
 	kMultibandCompressorParam_EQ3 = 17;
+		// Global, dB, -20 -> 20, 0
 	kMultibandCompressorParam_EQ4 = 18;
 	
 	// read-only parameters
+		// Global, dB, 0 -> 20
 	kMultibandCompressorParam_CompressionAmount1 = 1000;
+		// Global, dB, 0 -> 20
 	kMultibandCompressorParam_CompressionAmount2 = 2000;
+		// Global, dB, 0 -> 20
 	kMultibandCompressorParam_CompressionAmount3 = 3000;
+		// Global, dB, 0 -> 20
 	kMultibandCompressorParam_CompressionAmount4 = 4000;
-	kMultibandCompressorParam_InputAmplitude1 = 5000;
-	kMultibandCompressorParam_InputAmplitude2 = 6000;
-	kMultibandCompressorParam_InputAmplitude3 = 7000;
-	kMultibandCompressorParam_InputAmplitude4 = 8000;
-	kMultibandCompressorParam_OutputAmplitude1 = 9000;
-	kMultibandCompressorParam_OutputAmplitude2 = 10000;
-	kMultibandCompressorParam_OutputAmplitude3 = 11000;
-	kMultibandCompressorParam_OutputAmplitude4 = 12000;
 
-// Parameters for the AUVarispeed unit
-const
-	kVarispeedParam_PlaybackRate = 0;
-	kVarispeedParam_PlaybackCents = 1;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_InputAmplitude1 = 5000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_InputAmplitude2 = 6000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_InputAmplitude3 = 7000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_InputAmplitude4 = 8000;
+
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_OutputAmplitude1 = 9000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_OutputAmplitude2 = 10000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_OutputAmplitude3 = 11000;
+		// Global, dB, -120 -> 20
+	kMultibandCompressorParam_OutputAmplitude4 = 12000;
 
 // Parameters for the AUFilter unit
 const
+// Global, indexed, 0 -> 1, 0
 	kMultibandFilter_LowFilterType = 0;
+		// Global, Hertz, 10 -> (SampleRate/2), 100
 	kMultibandFilter_LowFrequency = 1;
+		// Global, dB, -18 -> +18, 0
 	kMultibandFilter_LowGain = 2;
+
+		// Global, Hertz, 10 -> (SampleRate/2), 100
 	kMultibandFilter_CenterFreq1 = 3;
+		// Global, dB, -18 -> +18, 0
 	kMultibandFilter_CenterGain1 = 4;
+		// Global, Octaves, 0.05 -> 3.0, 2.0
 	kMultibandFilter_Bandwidth1 = 5;
+	
+		// Global, Hertz, 10 -> (SampleRate/2), 100
 	kMultibandFilter_CenterFreq2 = 6;
+		// Global, dB, -18 -> +18, 0
 	kMultibandFilter_CenterGain2 = 7;
+		// Global, Octaves, 0.05 -> 3.0, 2.0
 	kMultibandFilter_Bandwidth2 = 8;
+	
+		// Global, Hertz, 10 -> (SampleRate/2), 100
 	kMultibandFilter_CenterFreq3 = 9;
+		// Global, dB, -18 -> +18, 0
 	kMultibandFilter_CenterGain3 = 10;
+		// Global, Octaves, 0.05 -> 3.0, 2.0
 	kMultibandFilter_Bandwidth3 = 11;
+
+		// Global, indexed, 0 -> 1, 0
 	kMultibandFilter_HighFilterType = 12;
+		// Global, Hertz, 10 -> (SampleRate/2), 100
 	kMultibandFilter_HighFrequency = 13;
+		// Global, dB, -18 -> +18, 0
 	kMultibandFilter_HighGain = 14;
 
 // Mixer Units
@@ -606,11 +747,13 @@ const
 
 // Parameters for the AUNetReceive unit
 const
+// Global, indexed, 0 -> 5, read only
 	kAUNetReceiveParam_Status = 0;
 	kAUNetReceiveParam_NumParameters = 1;
 
 // Parameters for the AUNetSend unit
 const
+// Global, indexed, 0 -> 5, read only
 	kAUNetSendParam_Status = 0;
 	kAUNetSendParam_NumParameters = 1;
 
@@ -624,33 +767,21 @@ const
 	kAUNetStatus_Connecting = 4;
 	kAUNetStatus_Listening = 5;
 
-// Parameters for the Distortion unit 
-const
-	kDistortionParam_Delay = 0;
-	kDistortionParam_Decay = 1;
-	kDistortionParam_DelayMix = 2;
-	kDistortionParam_Decimation = 3;
-	kDistortionParam_Rounding = 4;
-	kDistortionParam_DecimationMix = 5;
-	kDistortionParam_LinearTerm = 6;
-	kDistortionParam_SquaredTerm = 7;
-	kDistortionParam_CubicTerm = 8;
-	kDistortionParam_PolynomialMix = 9;
-	kDistortionParam_RingModFreq1 = 10;
-	kDistortionParam_RingModFreq2 = 11;
-	kDistortionParam_RingModBalance = 12;
-	kDistortionParam_RingModMix = 13;
-	kDistortionParam_SoftClipGain = 14;
-	kDistortionParam_FinalMix = 15;
-
 // Parameters for AURogerBeep
 const
+// Global, dB, -80 -> 0, -6
 	kRogerBeepParam_InGateThreshold = 0;
+		// Global, Milliseconds, 0 -> 1000, 1000
 	kRogerBeepParam_InGateThresholdTime = 1;
+		// Global, dB, -80 -> 0, -6
 	kRogerBeepParam_OutGateThreshold = 2;
+		// Global, Milliseconds, 0 -> 1000, 1000
 	kRogerBeepParam_OutGateThresholdTime = 3;
+		// Global, indexed, 0 -> 2, 2
 	kRogerBeepParam_Sensitivity = 4;
+		// Global, indexed, 0 -> 2, 0
 	kRogerBeepParam_RogerType = 5;
+		// Global, dB, -80 -> 20, -6
 	kRogerBeepParam_RogerGain = 6;
 
 // Music Device
@@ -690,7 +821,23 @@ const
 // See the MusicDevice.h header file for more about using the extended control semantics 
 // of this API.	
 
-{$endc} { not TARGET_OS_IPHONE }
+// Parameters for the AURoundTripAACParam unit
+const
+// Global, indexed : AAC, AAC HE, AAC HEv2, AAC ELD
+	kRoundTripAACParam_Format = 0;
+	
+		// Global, indexed
+	kRoundTripAACParam_EncodingStrategy = 1;
+
+		// Global, indexed
+	kRoundTripAACParam_RateOrQuality = 2;
+	
+		// These are deprecated:
+	kRoundTripAACParam_BitRate = 1;
+	kRoundTripAACParam_Quality = 2;
+	kRoundTripAACParam_CompressedFormatSampleRate = 3;
+{$endc} {not TARGET_OS_IPHONE}
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

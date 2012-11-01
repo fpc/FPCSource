@@ -80,6 +80,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -104,6 +106,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -173,7 +178,8 @@ uses MacTypes,CFBase,CFData,CFString,CGBase,CGDataProvider;
 
 
 type
-	CGColorSpaceRef = ^SInt32; { an opaque type }
+	CGColorSpaceRef = ^OpaqueCGColorSpaceRef; { an opaque type }
+	OpaqueCGColorSpaceRef = record end;
 
 type
 	TristimulusValue = array[0..2] of CGFloat;
@@ -209,18 +215,18 @@ const
 {$ifc TARGET_OS_MAC}
 { The name of the "Generic" gray color space. }
 
-var kCGColorSpaceGenericGray: CFStringRef; external name '_kCGColorSpaceGenericGray'; (* attribute const *) (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+var kCGColorSpaceGenericGray: CFStringRef; external name '_kCGColorSpaceGenericGray'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { The name of the "Generic" RGB color space. }
 
-var kCGColorSpaceGenericRGB: CFStringRef; external name '_kCGColorSpaceGenericRGB'; (* attribute const *) (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+var kCGColorSpaceGenericRGB: CFStringRef; external name '_kCGColorSpaceGenericRGB'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { The name of the "Generic" CMYK color space. }
 
-var kCGColorSpaceGenericCMYK: CFStringRef; external name '_kCGColorSpaceGenericCMYK'; (* attribute const *) (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
-
-{ The name of the "Generic" linear RGB color space. This is the same as
-   `kCGColorSpaceGenericRGB' but with a 1.0 gamma. }
+var kCGColorSpaceGenericCMYK: CFStringRef; external name '_kCGColorSpaceGenericCMYK'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { The name of the "Generic" linear RGB color space. This is the same as
    `kCGColorSpaceGenericRGB' but with a 1.0 gamma. }
@@ -252,17 +258,20 @@ var kCGColorSpaceGenericGrayGamma2_2: CFStringRef; external name '_kCGColorSpace
 
 {* Device-dependent color spaces.  *}
 
-{ Create a DeviceGray colorspace. }
+{ Create a DeviceGray color space. }
 
 function CGColorSpaceCreateDeviceGray: CGColorSpaceRef; external name '_CGColorSpaceCreateDeviceGray';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Create a DeviceRGB colorspace. }
+{ Create a DeviceRGB color space. }
 
 function CGColorSpaceCreateDeviceRGB: CGColorSpaceRef; external name '_CGColorSpaceCreateDeviceRGB';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Create a DeviceCMYK colorspace. }
+{ Create a DeviceCMYK color space. }
 
 function CGColorSpaceCreateDeviceCMYK: CGColorSpaceRef; external name '_CGColorSpaceCreateDeviceCMYK';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {* Device-independent color spaces. *}
 
@@ -273,6 +282,7 @@ function CGColorSpaceCreateDeviceCMYK: CGColorSpaceRef; external name '_CGColorS
    `gamma' defines the gamma for the gray component. }
 
 function CGColorSpaceCreateCalibratedGray( const (*var*) whitePoint: TristimulusValue; const (*var*) blackPoint: TristimulusValue; gamma: CGFloat ): CGColorSpaceRef; external name '_CGColorSpaceCreateCalibratedGray';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Create a calibrated RGB color space. `whitePoint' is an array of 3
    numbers specifying the tristimulus value, in the CIE 1931 XYZ-space, of
@@ -284,7 +294,8 @@ function CGColorSpaceCreateCalibratedGray( const (*var*) whitePoint: Tristimulus
    the color space with respect to the final XYZ representation. }
 
 function CGColorSpaceCreateCalibratedRGB( const (*var*) whitePoint: TristimulusValue; const (*var*) blackPoint: TristimulusValue; const (*var*) gamma: RedGreenBlueValue; const (*var*) matrix: Single9 ): CGColorSpaceRef; external name '_CGColorSpaceCreateCalibratedRGB';
-
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
+    
 { Create an L*a*b* color space. `whitePoint' is an array of 3 numbers
    specifying the tristimulus value, in the CIE 1931 XYZ-space, of the
    diffuse white point. `blackPoint' is an array of 3 numbers specifying the
@@ -293,20 +304,7 @@ function CGColorSpaceCreateCalibratedRGB( const (*var*) whitePoint: TristimulusV
    for the a* and b* components of the color space. }
 
 function CGColorSpaceCreateLab(const (*var*) whitePoint: TristimulusValue; const (*var*) blackPoint: TristimulusValue; const (*var*) range: Single4): CGColorSpaceRef; external name '_CGColorSpaceCreateLab';
-
-{ Create an ICC-based colorspace.  `nComponents' specifies the number of
- * color components in the color space defined by the ICC profile data.
- * This must match the number of components actually in the ICC profile,
- * and must be 1, 3, or 4.  `range' is an array of 2*nComponents numbers
- * specifying the minimum and maximum valid values of the corresponding
- * color components, so that for color component k, range[2*k] <= c[k] <=
- * range[2*k+1], where c[k] is the k'th color component.  `profile' is a
- * data provider specifying the ICC profile.  `alternate' specifies an
- * alternate colorspace to be used in case the ICC profile is not
- * supported.  It must have `nComponents' color components. If `alternate'
- * is NULL, then the color space used will be DeviceGray, DeviceRGB, or
- * DeviceCMYK, depending on whether `nComponents' is 1, 3, or 4,
- * respectively. }
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Create an ICC-based color space using the ICC profile specified by
    `data'. }
@@ -328,6 +326,7 @@ function CGColorSpaceCreateWithICCProfile( data: CFDataRef ): CGColorSpaceRef; e
    on whether `nComponents' is 1, 3, or 4, respectively. }
 
 function CGColorSpaceCreateICCBased( nComponents: size_t; {const} range: {variable-size-array} CGFloatPtr; profile: CGDataProviderRef; alternate: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceCreateICCBased';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {* Special colorspaces. *}
 
@@ -342,6 +341,7 @@ function CGColorSpaceCreateICCBased( nComponents: size_t; {const} range: {variab
    component in the base color space. }
 
 function CGColorSpaceCreateIndexed( baseSpace: CGColorSpaceRef; lastIndex: size_t; colorTable: UInt8Ptr ): CGColorSpaceRef; external name '_CGColorSpaceCreateIndexed';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Create a pattern color space. `baseSpace' is the underlying color space
    of the pattern color space. For colored patterns, `baseSpace' should be
@@ -349,28 +349,33 @@ function CGColorSpaceCreateIndexed( baseSpace: CGColorSpaceRef; lastIndex: size_
    colors which will be painted through the pattern. }
 
 function CGColorSpaceCreatePattern( baseSpace: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceCreatePattern';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {$ifc TARGET_OS_MAC}
 { Create a color space using `ref', a platform-specific color space
    reference. For MacOS X, `ref' should be a CMProfileRef. }
 
-function CGColorSpaceCreateWithPlatformColorSpace( platformColorSpaceReference: UnivPtr ): CGColorSpaceRef; external name '_CGColorSpaceCreateWithPlatformColorSpace';
+function CGColorSpaceCreateWithPlatformColorSpace( ref: {const} UnivPtr ): CGColorSpaceRef; external name '_CGColorSpaceCreateWithPlatformColorSpace';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
+{$endc}
 
 { Create a color space using `name' as the identifier for the color
    space. }
 
-function CGColorSpaceCreateWithName( name: CFStringRef ): CGColorSpaceRef; external name '_CGColorSpaceCreateWithName'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
-{$endc}
+function CGColorSpaceCreateWithName( name: CFStringRef ): CGColorSpaceRef; external name '_CGColorSpaceCreateWithName';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{* Retaining & releasing colorspaces. *}
+{ Equivalent to `CFRetain(space)', except it doesn't crash (as CFRetain
+   does) if `space' is NULL. }
 
-{ Equivalent to `CFRetain(cs)'. }
+function CGColorSpaceRetain( space: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceRetain';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-function CGColorSpaceRetain( cs: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceRetain';
+{ Equivalent to `CFRelease(space)', except it doesn't crash (as CFRelease
+   does) if `space' is NULL. }
 
-{ Equivalent to `CFRelease(cs)'. }
-
-procedure CGColorSpaceRelease( cs: CGColorSpaceRef ); external name '_CGColorSpaceRelease';
+procedure CGColorSpaceRelease( space: CGColorSpaceRef ); external name '_CGColorSpaceRelease';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {$ifc TARGET_OS_MAC}
 { Return the name used to create the color space `space', or NULL if the
@@ -384,11 +389,13 @@ function CGColorSpaceCopyName( space: CGColorSpaceRef ): CFStringRef; external n
 
 { Return the CFTypeID for CGColorSpaces. }
 
-function CGColorSpaceGetTypeID: CFTypeID; external name '_CGColorSpaceGetTypeID'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function CGColorSpaceGetTypeID: CFTypeID; external name '_CGColorSpaceGetTypeID';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Return the number of color components in the color space `space'. }
 
 function CGColorSpaceGetNumberOfComponents( space: CGColorSpaceRef ): size_t; external name '_CGColorSpaceGetNumberOfComponents';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the color space model of `space'. }
 

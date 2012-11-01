@@ -3,9 +3,7 @@
  
      Contains:   FSEventStream API
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 2006-2008 by Apple Computer, Inc.  All rights reserved
+     Copyright:  © 2006-2011 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {   Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -390,7 +394,24 @@ const
    * it and can issue an F_GETPATH fcntl() to find the current path.
    }
 	kFSEventStreamCreateFlagWatchRoot = $00000004;
+
+  {
+   * Don't send events that were triggered by the current process. This
+   * is useful for reducing the volume of events that are sent. It is
+   * only useful if your process might modify the file system hierarchy
+   * beneath the path(s) being monitored. Note: this has no effect on
+   * historical events, i.e., those delivered before the HistoryDone
+   * sentinel event.
+   }
 	kFSEventStreamCreateFlagIgnoreSelf = $00000008;
+
+  {
+   * Request file-level notifications.  Your stream will receive events
+   * about individual files in the hierarchy you're watching instead of
+   * only receiving directory level notifications.  Use this flag with
+   * care as it will generate significantly more events than without it.
+   }
+	kFSEventStreamCreateFlagFileEvents = $00000010;
 
 
 {
@@ -507,7 +528,19 @@ const
    * unmounting a volume could uncover an arbitrarily large directory
    * hierarchy, although Mac OS X never does that.
    }
-	kFSEventStreamEventFlagUnmount = $00000080;
+	kFSEventStreamEventFlagUnmount = $00000080; { These flags are only set if you specified the FileEvents}
+                                        { flags when creating the stream.}
+	kFSEventStreamEventFlagItemCreated = $00000100;
+	kFSEventStreamEventFlagItemRemoved = $00000200;
+	kFSEventStreamEventFlagItemInodeMetaMod = $00000400;
+	kFSEventStreamEventFlagItemRenamed = $00000800;
+	kFSEventStreamEventFlagItemModified = $00001000;
+	kFSEventStreamEventFlagItemFinderInfoMod = $00002000;
+	kFSEventStreamEventFlagItemChangeOwner = $00004000;
+	kFSEventStreamEventFlagItemXattrMod = $00008000;
+	kFSEventStreamEventFlagItemIsFile = $00010000;
+	kFSEventStreamEventFlagItemIsDir = $00020000;
+	kFSEventStreamEventFlagItemIsSymlink = $00040000;
 
 
 {
@@ -534,7 +567,8 @@ const
  *    This is the type of a reference to an FSEventStream.
  }
 type
-	FSEventStreamRef = ^SInt32; { an opaque type }
+	FSEventStreamRef = ^__FSEventStream; { an opaque type }
+	__FSEventStream = record end;
 
 {
  *  ConstFSEventStreamRef
@@ -719,7 +753,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamCreate( allocator: CFAllocatorRef; callback: FSEventStreamCallback; context: FSEventStreamContextPtr { can be NULL }; pathsToWatch: CFArrayRef; sinceWhen: FSEventStreamEventId; latency: CFTimeInterval; flags: FSEventStreamCreateFlags ): FSEventStreamRef; external name '_FSEventStreamCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -795,7 +829,7 @@ function FSEventStreamCreate( allocator: CFAllocatorRef; callback: FSEventStream
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamCreateRelativeToDevice( allocator: CFAllocatorRef; callback: FSEventStreamCallback; var context: FSEventStreamContext; deviceToWatch: dev_t; pathsToWatchRelativeToDevice: CFArrayRef; sinceWhen: FSEventStreamEventId; latency: CFTimeInterval; flags: FSEventStreamCreateFlags ): FSEventStreamRef; external name '_FSEventStreamCreateRelativeToDevice';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -824,7 +858,7 @@ function FSEventStreamCreateRelativeToDevice( allocator: CFAllocatorRef; callbac
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamGetLatestEventId( streamRef: ConstFSEventStreamRef ): FSEventStreamEventId; external name '_FSEventStreamGetLatestEventId';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -848,7 +882,7 @@ function FSEventStreamGetLatestEventId( streamRef: ConstFSEventStreamRef ): FSEv
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamGetDeviceBeingWatched( streamRef: ConstFSEventStreamRef ): dev_t; external name '_FSEventStreamGetDeviceBeingWatched';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -873,7 +907,7 @@ function FSEventStreamGetDeviceBeingWatched( streamRef: ConstFSEventStreamRef ):
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamCopyPathsBeingWatched( streamRef: ConstFSEventStreamRef ): CFArrayRef; external name '_FSEventStreamCopyPathsBeingWatched';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -893,7 +927,7 @@ function FSEventStreamCopyPathsBeingWatched( streamRef: ConstFSEventStreamRef ):
  *    Non-Carbon CFM:   not available
  }
 function FSEventsGetCurrentEventId: FSEventStreamEventId; external name '_FSEventsGetCurrentEventId';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -929,7 +963,7 @@ function FSEventsGetCurrentEventId: FSEventStreamEventId; external name '_FSEven
  *    Non-Carbon CFM:   not available
  }
 function FSEventsCopyUUIDForDevice( dev: dev_t ): CFUUIDRef; external name '_FSEventsCopyUUIDForDevice';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -966,7 +1000,7 @@ function FSEventsCopyUUIDForDevice( dev: dev_t ): CFUUIDRef; external name '_FSE
  *    Non-Carbon CFM:   not available
  }
 function FSEventsGetLastEventIdForDeviceBeforeTime( dev: dev_t; time: CFAbsoluteTime ): FSEventStreamEventId; external name '_FSEventsGetLastEventIdForDeviceBeforeTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -993,7 +1027,7 @@ function FSEventsGetLastEventIdForDeviceBeforeTime( dev: dev_t; time: CFAbsolute
  *    Non-Carbon CFM:   not available
  }
 function FSEventsPurgeEventsForDeviceUpToEventId( dev: dev_t; eventId: FSEventStreamEventId ): Boolean; external name '_FSEventsPurgeEventsForDeviceUpToEventId';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1017,7 +1051,7 @@ function FSEventsPurgeEventsForDeviceUpToEventId( dev: dev_t; eventId: FSEventSt
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamRetain( streamRef: FSEventStreamRef ); external name '_FSEventStreamRetain';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1039,7 +1073,7 @@ procedure FSEventStreamRetain( streamRef: FSEventStreamRef ); external name '_FS
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamRelease( streamRef: FSEventStreamRef ); external name '_FSEventStreamRelease';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1075,7 +1109,7 @@ procedure FSEventStreamRelease( streamRef: FSEventStreamRef ); external name '_F
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamScheduleWithRunLoop( streamRef: FSEventStreamRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_FSEventStreamScheduleWithRunLoop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1102,7 +1136,7 @@ procedure FSEventStreamScheduleWithRunLoop( streamRef: FSEventStreamRef; runLoop
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamUnscheduleFromRunLoop( streamRef: FSEventStreamRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_FSEventStreamUnscheduleFromRunLoop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1142,7 +1176,7 @@ procedure FSEventStreamUnscheduleFromRunLoop( streamRef: FSEventStreamRef; runLo
 Requires translation of libdispatch headers
 procedure FSEventStreamSetDispatchQueue( streamRef: FSEventStreamRef; q: dispatch_queue_t ); external name '_FSEventStreamSetDispatchQueue';
 *)
-// AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER;
+// __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA);
 
 
 {
@@ -1167,7 +1201,7 @@ procedure FSEventStreamSetDispatchQueue( streamRef: FSEventStreamRef; q: dispatc
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamInvalidate( streamRef: FSEventStreamRef ); external name '_FSEventStreamInvalidate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1200,7 +1234,7 @@ procedure FSEventStreamInvalidate( streamRef: FSEventStreamRef ); external name 
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamStart( streamRef: FSEventStreamRef ): Boolean; external name '_FSEventStreamStart';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1230,7 +1264,7 @@ function FSEventStreamStart( streamRef: FSEventStreamRef ): Boolean; external na
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamFlushAsync( streamRef: FSEventStreamRef ): FSEventStreamEventId; external name '_FSEventStreamFlushAsync';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1257,7 +1291,7 @@ function FSEventStreamFlushAsync( streamRef: FSEventStreamRef ): FSEventStreamEv
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamFlushSync( streamRef: FSEventStreamRef ); external name '_FSEventStreamFlushSync';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1282,7 +1316,7 @@ procedure FSEventStreamFlushSync( streamRef: FSEventStreamRef ); external name '
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamStop( streamRef: FSEventStreamRef ); external name '_FSEventStreamStop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1306,7 +1340,7 @@ procedure FSEventStreamStop( streamRef: FSEventStreamRef ); external name '_FSEv
  *    Non-Carbon CFM:   not available
  }
 procedure FSEventStreamShow( streamRef: ConstFSEventStreamRef ); external name '_FSEventStreamShow';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1326,7 +1360,7 @@ procedure FSEventStreamShow( streamRef: ConstFSEventStreamRef ); external name '
  *    Non-Carbon CFM:   not available
  }
 function FSEventStreamCopyDescription( streamRef: ConstFSEventStreamRef ): CFStringRef; external name '_FSEventStreamCopyDescription';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {$endc} {TARGET_OS_MAC}

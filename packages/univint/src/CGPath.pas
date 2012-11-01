@@ -1,8 +1,9 @@
 { CoreGraphics - CGPath.h
- * Copyright (c) 2001-2008 Apple Inc.
- * All rights reserved. }
+   Copyright (c) 2001-2011 Apple Inc.
+   All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,10 +177,30 @@ uses MacTypes,CGBase,CGAffineTransforms,CFBase,CGGeometry;
 
 
 type
-	CGMutablePathRef = ^SInt32; { an opaque type }
+	CGMutablePathRef = ^OpaqueCGMutablePathRef; { an opaque type }
+	OpaqueCGMutablePathRef = record end;
 type
-	CGPathRef = ^SInt32; { an opaque type }
+	CGPathRef = ^OpaqueCGPathRef; { an opaque type }
+	OpaqueCGPathRef = record end;
 
+
+{ Line join styles. }
+
+type
+	CGLineJoin = SInt32;
+const
+	kCGLineJoinMiter = 0;
+	kCGLineJoinRound = 1;
+	kCGLineJoinBevel = 2;
+
+{ Line cap styles. }
+
+type
+	CGLineCap = SInt32;
+const
+	kCGLineCapButt = 0;
+	kCGLineCapRound = 1;
+	kCGLineCapSquare = 2;
 
 { Return the CFTypeID for CGPathRefs. }
 
@@ -191,10 +217,63 @@ function CGPathCreateMutable: CGMutablePathRef; external name '_CGPathCreateMuta
 function CGPathCreateCopy( path: CGPathRef ): CGPathRef; external name '_CGPathCreateCopy';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
+{ Create a copy of `path' transformed by `transform'. }
+
+function CGPathCreateCopyByTransformingPath( path: CGPathRef; const (*var*) transform: CGAffineTransform ): CGPathRef; external name '_CGPathCreateCopyByTransformingPath';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
 { Create a mutable copy of `path'. }
 
 function CGPathCreateMutableCopy( path: CGPathRef ): CGMutablePathRef; external name '_CGPathCreateMutableCopy';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
+
+{ Create a mutable copy of `path' transformed by `transform'. }
+
+function CGPathCreateMutableCopyByTransformingPath( path: CGPathRef; const (*var*) transform: CGAffineTransform ): CGMutablePathRef; external name '_CGPathCreateMutableCopyByTransformingPath';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
+{ Return a path representing a rectangle bounded by `rect'. The rectangle
+   forms a complete subpath of the path --- that is, it begins with a "move
+   to" and ends with a "close subpath" --- oriented in the clockwise
+   direction. If `transform' is non-NULL, then the lines representing the
+   rectangle will be transformed by `transform' before they are added to the
+   path. }
+
+function CGPathCreateWithRect( rect: CGRect; transform: {const} CGAffineTransformPtr ): CGPathRef; external name '_CGPathCreateWithRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_4_0) *)
+
+{ Return a path representing an ellipse bounded by `rect'. The ellipse is
+   approximated by a sequence of Bézier curves. The center of the ellipse is
+   the midpoint of `rect'. If `rect' is square, then the ellipse will be
+   circular with radius equal to one-half the width (equivalently, one-half
+   the height) of `rect'. If `rect' is rectangular, then the major- and
+   minor-axes will be the `width' and `height' of rect. The ellipse forms a
+   complete subpath of the path --- that is, it begins with a "move to" and
+   ends with a "close subpath" --- oriented in the clockwise direction. If
+   `transform' is non-NULL, then the constructed Bézier curves representing
+   the ellipse will be transformed by `transform' before they are added to
+   the path. }
+
+function CGPathCreateWithEllipseInRect( rect: CGRect; transform: {const} CGAffineTransformPtr): CGPathRef; external name '_CGPathCreateWithEllipseInRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
+{ Create a dashed path from `path'. The parameters `phase', `lengths', and
+   `count' have the same meaning as the corresponding parameters for
+   `CGContextSetLineDash'. If `transform' is non-NULL, then the elements of
+   the constructed path will be transformed by `transform' before they are
+   added to the path. }
+
+function CGPathCreateCopyByDashingPath( path: CGPathRef; transform: {const} CGAffineTransformPtr; phase: CGFloat; {const} lengths: {variable-size-array} CGFloatPtr; count: size_t ): CGPathRef; external name '_CGPathCreateCopyByDashingPath';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
+{ Create a stroked path from `path'. The parameters `lineWidth', `lineCap',
+   `lineJoin', and `miterLimit' have the same meaning as the corresponding
+   CGContext parameters. If `transform' is non-NULL, then the elements of
+   the constructed path will be transformed by `transform' before they are
+   added to the path. }
+
+function CGPathCreateCopyByStrokingPath( path: CGPathRef; transform: {const} CGAffineTransformPtr; lineWidth: CGFloat; lineCap: CGLineCap; lineJoin: CGLineJoin; miterLimit: CGFloat ): CGPathRef; external name '_CGPathCreateCopyByStrokingPath';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
 
 { Equivalent to `CFRetain(path)', except it doesn't crash (as CFRetain
    does) if `path' is NULL. }
@@ -235,7 +314,7 @@ procedure CGPathAddLineToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr;
 procedure CGPathAddQuadCurveToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; cpx: CGFloat; cpy: CGFloat; x: CGFloat; y: CGFloat ); external name '_CGPathAddQuadCurveToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-{ Append a cubic B�zier curve from the current point to `(x,y)' with
+{ Append a cubic Bézier curve from the current point to `(x,y)' with
    control points `(cp1x, cp1y)' and `(cp2x, cp2y)' in `path' and move the
    current point to `(x, y)'. If `m' is non-NULL, then transform all points
    by `m' first. }
@@ -272,37 +351,63 @@ procedure CGPathAddLines( path: CGMutablePathRef; m: CGAffineTransformPtr; {cons
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add an ellipse (an oval) inside `rect' to `path'. The ellipse is
-   approximated by a sequence of B�zier curves. The center of the ellipse is
+   approximated by a sequence of Bézier curves. The center of the ellipse is
    the midpoint of `rect'. If `rect' is square, then the ellipse will be
    circular with radius equal to one-half the width (equivalently, one-half
    the height) of `rect'. If `rect' is rectangular, then the major- and
    minor-axes will be the `width' and `height' of rect. The ellipse forms a
    complete subpath of `path' --- that is, it begins with a "move to" and
    ends with a "close subpath" --- oriented in the clockwise direction. If
-   `m' is non-NULL, then the constructed B�zier curves representing the
+   `m' is non-NULL, then the constructed Bézier curves representing the
    ellipse will be transformed by `m' before they are added to `path'. }
 
 procedure CGPathAddEllipseInRect( path: CGMutablePathRef; m: CGAffineTransformPtr; rect: CGRect ); external name '_CGPathAddEllipseInRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 { Add an arc of a circle to `path', possibly preceded by a straight line
-   segment. The arc is approximated by a sequence of B�zier curves. `(x, y)'
+   segment. The arc is approximated by a sequence of Bézier curves. The
+   center of the arc is `(x,y)'; `radius' is its radius. `startAngle' is the
+   angle to the first endpoint of the arc, measured counter-clockwise from
+   the positive x-axis. `startAngle + delta' is the angle to the second
+   endpoint of the arc. If `delta' is positive, then the arc is drawn
+   counter-clockwise; if negative, clockwise. `startAngle' and `delta' are
+   measured in radians. If `matrix' is non-NULL, then the constructed Bézier
+   curves representing the arc will be transformed by `matrix' before they
+   are added to the path. }
+
+procedure CGPathAddRelativeArc( path: CGMutablePathRef; matrix: {const} CGAffineTransformPtr; x: CGFloat; y: CGFloat; radius: CGFloat; startAngle: CGFloat; delta: CGFloat ); external name '_CGPathAddRelativeArc';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
+{ Add an arc of a circle to `path', possibly preceded by a straight line
+   segment. The arc is approximated by a sequence of Bézier curves. `(x, y)'
    is the center of the arc; `radius' is its radius; `startAngle' is the
    angle to the first endpoint of the arc; `endAngle' is the angle to the
    second endpoint of the arc; and `clockwise' is true if the arc is to be
    drawn clockwise, false otherwise. `startAngle' and `endAngle' are
-   measured in radians. If `m' is non-NULL, then the constructed B�zier
+   measured in radians. If `m' is non-NULL, then the constructed Bézier
    curves representing the arc will be transformed by `m' before they are
-   added to `path'. }
+   added to `path'.
+
+   Note that using values very near 2π can be problematic. For example,
+   setting `startAngle' to 0, `endAngle' to 2π, and `clockwise' to true will
+   draw nothing. (It's easy to see this by considering, instead of 0 and 2π,
+   the values ε and 2π - ε, where ε is very small.) Due to round-off error,
+   however, it's possible that passing the value `2 * M_PI' to approximate
+   2π will numerically equal to 2π + δ, for some small δ; this will cause a
+   full circle to be drawn.
+
+   If you want a full circle to be drawn clockwise, you should set
+   `startAngle' to 2π, `endAngle' to 0, and `clockwise' to true. This avoids
+   the instability problems discussed above. }
 
 procedure CGPathAddArc( path: CGMutablePathRef; m: CGAffineTransformPtr; x: CGFloat; y: CGFloat; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: CBool ); external name '_CGPathAddArc';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add an arc of a circle to `path', possibly preceded by a straight line
-   segment. The arc is approximated by a sequence of B�zier curves. `radius'
+   segment. The arc is approximated by a sequence of Bézier curves. `radius'
    is the radius of the arc. The resulting arc is tangent to the line from
    the current point of `path' to `(x1, y1)', and the line from `(x1, y1)'
-   to `(x2, y2)'. If `m' is non-NULL, then the constructed B�zier curves
+   to `(x2, y2)'. If `m' is non-NULL, then the constructed Bézier curves
    representing the arc will be transformed by `m' before they are added to
    `path'. }
 
@@ -335,7 +440,7 @@ function CGPathGetCurrentPoint( path: CGPathRef ): CGPoint; external name '_CGPa
 
 { Return the bounding box of `path'. The bounding box is the smallest
    rectangle completely enclosing all points in the path, including control
-   points for B�zier cubic and quadratic curves. If the path is empty, then
+   points for Bézier cubic and quadratic curves. If the path is empty, then
    return `CGRectNull'. }
 
 function CGPathGetBoundingBox( path: CGPathRef ): CGRect; external name '_CGPathGetBoundingBox';
@@ -343,11 +448,11 @@ function CGPathGetBoundingBox( path: CGPathRef ): CGRect; external name '_CGPath
 
 { Return the path bounding box of `path'. The path bounding box is the
    smallest rectangle completely enclosing all points in the path, *not*
-   including control points for B�zier cubic and quadratic curves. If the
+   including control points for Bézier cubic and quadratic curves. If the
    path is empty, then return `CGRectNull'. }
 
 function CGPathGetPathBoundingBox( path: CGPathRef ): CGRect; external name '_CGPathGetPathBoundingBox';
-(* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
+(* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
 
 { Return true if `point' is contained in `path'; false otherwise. A point
    is contained in a path if it is inside the painted region when the path

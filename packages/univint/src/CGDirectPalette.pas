@@ -1,8 +1,9 @@
 { CoreGraphics - CGDirectPalette.h
-   Copyright (c) 2000-2008 Apple Inc.
+   Copyright (c) 2000-2011 Apple Inc.
    All rights reserved. }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -170,6 +176,7 @@ uses MacTypes,CGDirectDisplay;
 {$ALIGN POWER}
 
 
+{ These types are deprecated; don't use them. }
 { A value in the interval [0, 1]. }
 type
 	CGPaletteBlendFraction = Float32;
@@ -203,6 +210,7 @@ type
  * Release the palette using CGPaletteRelease().
  }
 function CGPaletteCreateDefaultColorPalette: CGDirectPaletteRef; external name '_CGPaletteCreateDefaultColorPalette';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Create a copy of the display's current palette, if any.
@@ -210,18 +218,21 @@ function CGPaletteCreateDefaultColorPalette: CGDirectPaletteRef; external name '
  * Release the palette using CGPaletteRelease().
  }
 function CGPaletteCreateWithDisplay( display: CGDirectDisplayID ): CGDirectPaletteRef; external name '_CGPaletteCreateWithDisplay';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Create a new palette with a capacity as specified.  Entries are initialized from
  * the default color palette.  Release the palette using CGPaletteRelease().
  }
 function CGPaletteCreateWithCapacity( capacity: CGTableCount ): CGDirectPaletteRef; external name '_CGPaletteCreateWithCapacity';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Create a new palette with a capacity and contents as specified.
  * Release the palette using CGPaletteRelease().
  }
 function CGPaletteCreateWithSamples( var sampleTable: CGDeviceColor; sampleCount: CGTableCount ): CGDirectPaletteRef; external name '_CGPaletteCreateWithSamples';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Convenience function:
@@ -229,16 +240,19 @@ function CGPaletteCreateWithSamples( var sampleTable: CGDeviceColor; sampleCount
  * Release the palette using CGPaletteRelease().
  }
 function CGPaletteCreateWithByteSamples( var sampleTable: CGDeviceByteColor; sampleCount: CGTableCount ): CGDirectPaletteRef; external name '_CGPaletteCreateWithByteSamples';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Release a palette
  }
 procedure CGPaletteRelease( palette: CGDirectPaletteRef ); external name '_CGPaletteRelease';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Get the color value at the specified index
  }
 function CGPaletteGetColorAtIndex( palette: CGDirectPaletteRef; index: CGTableCount ): CGDeviceColor; external name '_CGPaletteGetColorAtIndex';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Get the index for the specified color value
@@ -246,33 +260,39 @@ function CGPaletteGetColorAtIndex( palette: CGDirectPaletteRef; index: CGTableCo
  * lowest RMS error to the specified color.
  }
 function CGPaletteGetIndexForColor( palette: CGDirectPaletteRef; color: CGDeviceColor ): CGTableCount; external name '_CGPaletteGetIndexForColor';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Get the number of samples in the palette
  }
 function CGPaletteGetNumberOfSamples( palette: CGDirectPaletteRef ): CGTableCount; external name '_CGPaletteGetNumberOfSamples';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
  * Set the color value at the specified index
  }
 procedure CGPaletteSetColorAtIndex( palette: CGDirectPaletteRef; color: CGDeviceColor; index: CGTableCount ); external name '_CGPaletteSetColorAtIndex';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Copy a palette
  }
 function CGPaletteCreateCopy( palette: CGDirectPaletteRef ): CGDirectPaletteRef; external name '_CGPaletteCreateCopy';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Compare two palettes
  }
 function CGPaletteIsEqualToPalette( palette1: CGDirectPaletteRef; palette2: CGDirectPaletteRef ): Boolean; external name '_CGPaletteIsEqualToPalette';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  * Create a new palette blended with a fraction of a device color.
  * Free the resulting palette with CGPaletteRelease()
  }
 function CGPaletteCreateFromPaletteBlendedWithColor( palette: CGDirectPaletteRef; fraction: CGPaletteBlendFraction; color: CGDeviceColor ): CGDirectPaletteRef; external name '_CGPaletteCreateFromPaletteBlendedWithColor';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

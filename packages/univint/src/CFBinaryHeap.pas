@@ -1,8 +1,9 @@
 {	CFBinaryHeap.h
-	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -244,7 +250,8 @@ type
 	This is the type of a reference to CFBinaryHeaps.
 }
 type
-	CFBinaryHeapRef = ^SInt32; { an opaque 32-bit type }
+	CFBinaryHeapRef = ^__CFBinaryHeap; { an opaque type }
+	__CFBinaryHeap = record end;
 
 {!
 	@function CFBinaryHeapGetTypeID
@@ -305,7 +312,7 @@ function CFBinaryHeapGetTypeID: CFTypeID; external name '_CFBinaryHeapGetTypeID'
 		the behavior is undefined. If any of the values put into the
 		binary heap is not one understood by one of the callback functions
 		the behavior when that callback function is used is undefined.
-  @param compareContext A pointer to a CFBinaryHeapCompareContext structure.
+        @param compareContext A pointer to a CFBinaryHeapCompareContext structure.
 	@result A reference to the new CFBinaryHeap.
 }
 function CFBinaryHeapCreate( allocator: CFAllocatorRef; capacity: CFIndex; callBacks: CFBinaryHeapCallBacksPtr; const (*var*) compareContext: CFBinaryHeapCompareContext ): CFBinaryHeapRef; external name '_CFBinaryHeapCreate';
@@ -349,7 +356,7 @@ function CFBinaryHeapCreate( allocator: CFAllocatorRef; capacity: CFIndex; callB
 		be the same as the given binary heap. The new binary heap uses the same
 		callbacks as the binary heap to be copied. If this parameter is
 		not a valid CFBinaryHeap, the behavior is undefined.
-	@result A reference to the new binary heap.
+	@result A reference to the new mutable binary heap.
 }
 function CFBinaryHeapCreateCopy( allocator: CFAllocatorRef; capacity: CFIndex; heap: CFBinaryHeapRef ): CFBinaryHeapRef; external name '_CFBinaryHeapCreateCopy';
 
@@ -453,7 +460,7 @@ procedure CFBinaryHeapApplyFunction( heap: CFBinaryHeapRef; applier: CFBinaryHea
 
 {!
 	@function CFBinaryHeapAddValue
-	 Adds the value to the binary heap.
+	Adds the value to the binary heap.
 	@param heap The binary heap to which the value is to be added. If this parameter is not a
 	 valid mutable CFBinaryHeap, the behavior is undefined.
 #if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4

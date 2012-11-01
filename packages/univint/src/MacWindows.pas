@@ -3,7 +3,7 @@
  
      Contains:   Window Manager Interfaces
  
-     Version:    HIToolbox-437~1
+     Version:    HIToolbox-624~3
  
      Copyright:  © 1997-2008 by Apple Inc., all rights reserved
  
@@ -16,6 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -91,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +102,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +118,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +139,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -705,17 +711,16 @@ const
 	kHIWindowBitCompositing = 20;
 
   {
-   * This window's context should be scaled to match the display scale
-   * factor. This attribute can only be used when
-   * kHIWindowBitCompositing is also enabled. When this attribute is
-   * enabled, you may not draw with QuickDraw in the window. If this
-   * attribute is enabled and if the scale factor is something other
-   * than 1.0, the window's scale mode will be
-   * kHIWindowScaleModeFrameworkScaled. You may only specify this
-   * attribute at window creation time. Available for all windows in
-   * Mac OS X 10.4 and later.
+   * This window's backing store can be scaled as necessary for high
+   * resolution drawing. This attribute is only consulted/respected if
+   * the app's Info.plist includes NSHighResolutionCapable with a value
+   * of true. This attribute can only be used when
+   * kHIWindowBitCompositing is also enabled for the window. When this
+   * attribute is enabled, you may not draw with QuickDraw in the
+   * window. You may only specify this attribute at window creation
+   * time. Available for all windows in 10.7.4 and later.
    }
-	kHIWindowBitFrameworkScaled = 21;
+	kHIWindowBitHighResolutionCapable = 21;
 
   {
    * This window has no shadow. Available for all windows on Mac OS X.
@@ -826,6 +831,34 @@ const
    * attribute is automatically given to all compositing windows.
    }
 	kHIWindowBitAutoCalibration = 36;
+
+  {
+   * Indicates that this window can become fullscreen, and causes the
+   * enter fullscreen title bar button to be added to the window's
+   * title bar. Including this bit on a window causes HIToolbox to add
+   * appropriate Enter/Exit Full Screen menu items to the app's menus,
+   * which HIToolbox will update appropriately. Only supported for
+   * windows of kDocumentWindowClass. Available in Mac OS X 10.7 and
+   * later.
+   }
+	kHIWindowBitFullScreenPrimary = 45;
+
+  {
+   * Indicates that this window can coexist on a fullscreen space with
+   * a fullscreen window of another application, but is not capable of
+   * becoming fullscreen itself.
+   * This window attribute is used in conjunction with the
+   * kHIWindowCanJoinAllSpaces Availability option to allow the window
+   * to move across FullScreen workspaces. For applications that are
+   * BackgroundOnly or UIElements, this is the default behavior when
+   * kHIWindowCanJoinAllSpaces is also set. For other applications,
+   * kHIWindowBitFullScreenAuxiliary must be specified, and is
+   * supported for window classes including kUtilityWindowClass, and
+   * kFloatingWindowClass with a WindowActivationScope of
+   * kWindowActivationScopeIndependent or kWindowActivationScopeNone.
+   * Available in Mac OS X 10.7 and later.
+   }
+	kHIWindowBitFullScreenAuxiliary = 46;
 
 
 {
@@ -982,9 +1015,9 @@ const
 	kWindowIgnoreClicksAttribute = (1 shl (kHIWindowBitIgnoreClicks - 1));
 
   {
-   * See kHIWindowBitFrameworkScaled.
+   * See kHIWindowBitHighResolutionCapable.
    }
-	kWindowFrameworkScaledAttribute = (1 shl (kHIWindowBitFrameworkScaled - 1));
+	kWindowHighResolutionCapableAttribute = (1 shl (kHIWindowBitHighResolutionCapable - 1));
 
   {
    * The minimum set of window attributes commonly used by document
@@ -1007,6 +1040,31 @@ const
 type
 	WindowAttributes = OptionBits;
   WindowAttributes_fix = WindowAttributes; { used as field type when a record declaration contains a WindowAttributes field identifier }
+
+{
+ *  Summary:
+ *    DEPRECATED Window attribute bits.
+ }
+const
+{
+   * DEPRECATED name and functionality. Replaced conceptually by
+   * kHIWindowBitHighResolutionCapable.
+   }
+	kHIWindowBitFrameworkScaled = kHIWindowBitHighResolutionCapable;
+
+
+{
+ *  Summary:
+ *    DEPRECATED Window attribute bitmasks.
+ }
+const
+{
+   * DEPRECATED name and functionality. Replaced conceptually by
+   * kWindowHighResolutionCapableAttribute.
+   }
+	kWindowFrameworkScaledAttribute = kWindowHighResolutionCapableAttribute;
+
+
 {——————————————————————————————————————————————————————————————————————————————————————}
 { • Window Definition Type                                                             }
 {——————————————————————————————————————————————————————————————————————————————————————}
@@ -2685,7 +2743,8 @@ function AreFloatingWindowsVisible: Boolean; external name '_AreFloatingWindowsV
 {$endc} {not TARGET_CPU_64}
 
 type
-	WindowGroupRef = ^SInt32; { an opaque 32-bit type }
+	WindowGroupRef = ^OpaqueWindowGroupRef; { an opaque type }
+	OpaqueWindowGroupRef = record end;
 	WindowGroupRefPtr = ^WindowGroupRef;  { when a var xx:WindowGroupRef parameter can be nil, it is changed to xx: WindowGroupRefPtr }
 { may be passed as the "behindWindow" parameter to NewCWindow and SendBehind}
 const
@@ -4405,7 +4464,13 @@ type
 	HIWindowDepth = UInt32;
 {$ifc not TARGET_CPU_64}
 {
- *  HIWindowSetDepth()
+ *  HIWindowSetDepth()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    This API is not actually functional in Mac OS X 10.6 or Mac OS X
+ *    10.7 and should not be used. Applications that need to control
+ *    the backing store depth of their windows should use NSWindows and
+ *    the [NSWindow setDepthLimit:] API.
  *  
  *  Summary:
  *    Sets the depth of a window's backing store.
@@ -4429,12 +4494,12 @@ type
  *      kHIWindowDepth32Bit, 64Bit, or Float.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.6 and later in Carbon.framework [32-bit only]
+ *    Mac OS X:         in version 10.6 and later in Carbon.framework [32-bit only] but deprecated in 10.7
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
 function HIWindowSetDepth( inWindow: WindowRef; inDepth: HIWindowDepth ): OSStatus; external name '_HIWindowSetDepth';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
 {
@@ -4624,6 +4689,7 @@ function MacFindWindow( thePoint: Point; var window: WindowRef ): WindowPartCode
 {$endc} {TARGET_OS_MAC}
 function FindWindow( thePoint: Point; var window: WindowRef ): WindowPartCode; external name '_FindWindow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  BringToFront()
@@ -6134,7 +6200,11 @@ type
 const
 {
    * Finder-like zoom rectangles. Use with TransitionWindow and Show or
-   * Hide transition actions
+   * Hide transition actions. In Mac OS X 10.7 and later, this effect
+   * can also be used with the Resize transition action to show the
+   * standard animation effect for zooming a window to a new size. The
+   * combination of the Zoom effect and the Resize action is only
+   * recommended for use with compositing windows.
    }
 	kWindowZoomTransitionEffect = 1;
 
@@ -6207,10 +6277,14 @@ const
 	kWindowMoveTransitionAction = 3;
 
   {
-   * Resizes the window. Use with the Slide transition effect. The
-   * inRect parameter is the global coordinates of the window's new
-   * structure bounds; inRect must be non-NULL. Available in Mac OS X,
-   * and in CarbonLib 1.5 and later.
+   * Resizes the window. Use with the Slide transition effect. In Mac
+   * OS X 10.7 and later, the Zoom transition effect is also supported
+   * with this action, for use by applications that respond to a zoom
+   * box click by resizing the window programmatically without calling
+   * the ZoomWindow or ZoomWindowIdeal APIs. The inRect parameter is
+   * the global coordinates of the window's new structure bounds;
+   * inRect must be non-NULL. Available in Mac OS X, and in CarbonLib
+   * 1.5 and later.
    }
 	kWindowResizeTransitionAction = 4;
 
@@ -7306,7 +7380,11 @@ function IsWindowInStandardState( inWindow: WindowRef; {const} inIdealSize: Poin
  *    track the window’s zoom state reliably. The Window Manager
  *    provides the GetWindowIdealUserState and SetWindowIdealUserState
  *    APIs to access a window's current ideal user state, previously
- *    recorded by ZoomWindowIdeal.
+ *    recorded by ZoomWindowIdeal. 
+ *    
+ *    In Mac OS X 10.7 and later, the ZoomWindowIdeal API automatically
+ *    uses an animation to resize the window to its new size, if the
+ *    window uses composited mode.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -9609,6 +9687,44 @@ function HIWindowInvalidateShadow( inWindow: WindowRef ): OSStatus; external nam
 {——————————————————————————————————————————————————————————————————————————————————————}
 { • Window Scaling for Resolution Independence                                         }
 {——————————————————————————————————————————————————————————————————————————————————————}
+{
+ *  HIWindowGetBackingScaleFactor()
+ *  
+ *  Summary:
+ *    Returns the scale factor representing the number of backing store
+ *    pixels corresponding to each linear unit in window space on this
+ *    WindowRef.
+ *  
+ *  Discussion:
+ *    This is generally only necessary when building a bitmap context
+ *    or image whose resolution needs to match that of a particular
+ *    WindowRef. Note that a WindowRef's backing scale factor can
+ *    change over time, such as when the window moves from one display
+ *    to another, or when a display's resolution changes, so clients
+ *    should not cache the value returned by this function.
+ *    HIWindowGetBackingScaleFactor is only available on Mac OS X
+ *    Version 10.7.3 and later.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inWindow:
+ *      The WindowRef whose backing scale factor to provide.
+ *  
+ *  Result:
+ *    The backing scale factor of the window.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.7 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.7 and later
+ *    Non-Carbon CFM:   not available
+ }
+function HIWindowGetBackingScaleFactor( inWindow: WindowRef ): CGFloat; external name '_HIWindowGetBackingScaleFactor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+
 {$endc} {not TARGET_CPU_64}
 
 
@@ -9644,7 +9760,7 @@ const
 
 {$ifc not TARGET_CPU_64}
 {
- *  HIWindowGetScaleMode()
+ *  HIWindowGetScaleMode()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Provides the window's scale mode and the application's display
@@ -9658,6 +9774,12 @@ const
  *    window can use the scale mode and display scale factor to help
  *    draw or layout properly for a particular scale mode.
  *  
+ *    This function is deprecated and should not be used by
+ *    applications targeting Mac OS X 10.7 or later. Please use an
+ *    appropriate AppKit API instead. Clients desiring high resolution
+ *    windows should switch to use NSWindows instead of Carbon
+ *    WindowRefs.
+ *
  *  Mac OS X threading:
  *    Not thread safe
  *  
@@ -9667,25 +9789,83 @@ const
  *      The WindowRef whose scale mode to provide.
  *    
  *    outMode:
- *      On exit, an HIWindowScaleMode indicating the window's scale
- *      mode.
+ *      On exit, this is always kHIWindowScaleModeUnscaled.
  *    
  *    outScaleFactor:
- *      On exit, a float indicating the display scale factor for the
- *      application. You may pass NULL if you are not interested in
- *      acquiring the scale factor; it is provided only as a
- *      convenience.
+ *      On exit, this is always 1.0.
  *  
  *  Result:
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
+ *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only] but deprecated in 10.7
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
  *    Non-Carbon CFM:   not available
  }
 function HIWindowGetScaleMode( inWindow: WindowRef; var outMode: HIWindowScaleMode; outScaleFactor: CGFloatPtr { can be NULL } ): OSStatus; external name '_HIWindowGetScaleMode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
+
+
+{——————————————————————————————————————————————————————————————————————————————————————}
+{ • Window FullScreen Transition                                                       }
+{——————————————————————————————————————————————————————————————————————————————————————}
+{
+ *  HIWindowToggleFullScreen()
+ *  
+ *  Summary:
+ *    Causes a window to enter or exit fullscreen.
+ *  
+ *  Discussion:
+ *    If the window is not already fullscreen and the window is capable
+ *    of becoming fullscreen -- see kHIWindowBitFullScreenPrimary --
+ *    the window will enter fullscreen. Otherwise, if the window is
+ *    already fullscreen, the window will exit fullscreen.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inWindow:
+ *      The window whose fullscreen state to toggle.
+ *  
+ *  Result:
+ *    An operating system result code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.7 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIWindowToggleFullScreen( inWindow: WindowRef ): OSStatus; external name '_HIWindowToggleFullScreen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+
+{
+ *  HIWindowIsFullScreen()
+ *  
+ *  Summary:
+ *    Returns whether the window is fullscreen.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inWindow:
+ *      The window whose fullscreen state to query.
+ *  
+ *  Result:
+ *    A Boolean indicating whether the window is fullscreen: True means
+ *    fullscreen, and false means not fullscreen.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.7 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIWindowIsFullScreen( inWindow: WindowRef ): Boolean; external name '_HIWindowIsFullScreen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 {——————————————————————————————————————————————————————————————————————————————————————}

@@ -13,7 +13,8 @@
  
                      http://www.freepascal.org/bugs.html
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -229,6 +235,9 @@ Define the Kind IDs for Universal and Standard Printing Dialog Extensions.
 {$definec kPMFaxModemPDEKindID CFSTRP('com.apple.print.pde.FaxModemKind')}
 {$endc}
 {$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPMFaxAddressesPDEKindID CFSTRP('com.apple.print.pde.FaxAddressesKind')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPMPaperHandlingPDEKindID CFSTRP('com.apple.print.pde.PaperHandlingKind')}
 {$endc}
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -236,6 +245,9 @@ Define the Kind IDs for Universal and Standard Printing Dialog Extensions.
 {$endc}
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPMSummaryPanelKindID CFSTRP('com.apple.print.pde.SummaryKind')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPMUniPrinterPDEKindID CFSTRP('com.apple.print.pde.UniPrinterKind')}
 {$endc}
 { Unimplemented Universal }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -246,6 +258,9 @@ Define the Kind IDs for Universal and Standard Printing Dialog Extensions.
 {$endc}
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPMRotationScalingPDEKindID CFSTRP('com.apple.print.pde.RotationScalingKind')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPMUnsupportedPDEKindID CFSTRP('com.apple.print.pde.UnsupportedPDEKind')}
 {$endc}
 { Implemented Standard }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -267,12 +282,19 @@ Define the Kind IDs for Universal and Standard Printing Dialog Extensions.
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPMQualityMediaPDEKindID CFSTRP('com.apple.print.pde.QualityMediaPDEKind')}
 {$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPMMediaQualityPDEKindID CFSTRP('com.apple.print.pde.MediaQualityPDEKind')}
+{$endc}
 
 { Key to represent information about display order for Cocoa summary info }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec SUMMARY_DISPLAY_ORDER CFSTRP('Summary Display Order')}
 {$endc}
 
+{  Boolean key in the Bundle's Info.plist file that sepecifies whether the PDEPanels created by the Bundle are Sandbox compatible }
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPMSandboxCompatiblePDEs CFSTRP('PMSandboxCompatiblePDEs')}
+{$endc}
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Type Definitions
