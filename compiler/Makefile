@@ -3612,7 +3612,10 @@ insdatx86 : $(COMPILER_UNITTARGETDIR) x86/x86ins.dat
 insdatarm : arm/armins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
 	cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmins$(SRCEXEEXT)
-insdat: insdatx86 insdatarm
+insdataarch64 : aarch64/a64ins.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mka64ins.pp
+	cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64ins$(SRCEXEEXT)
+insdat: insdatx86 insdatarm insdataarch64
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
 	cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmreg$(SRCEXEEXT)
