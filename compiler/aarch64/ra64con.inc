@@ -224,3 +224,4 @@ NR_H31 = tregister($0403001F);
 NR_S31 = tregister($0409001F);
 NR_D31 = tregister($040a001F);
 NR_Q31 = tregister($0405001F);
+NR_NZCV = tregister($05000000);

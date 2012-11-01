@@ -13,6 +13,7 @@ compiler/aarch64/a64nop.inc svneol=native#text/plain
 compiler/aarch64/a64op.inc svneol=native#text/plain
 compiler/aarch64/a64reg.dat svneol=native#text/plain
 compiler/aarch64/a64tab.inc svneol=native#text/plain
+compiler/aarch64/cpubase.pas svneol=native#text/plain
 compiler/aarch64/cpuinfo.pas svneol=native#text/plain
 compiler/aarch64/ra64con.inc svneol=native#text/plain
 compiler/aarch64/ra64dwa.inc svneol=native#text/plain
