@@ -214,11 +214,13 @@ interface
 {$ifdef arm}
        { ARM only }
        ,top_regset
-       ,top_shifterop
        ,top_conditioncode
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
+{$if defined(arm) or defined(aarch64)}
+       ,top_shifterop
+{$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
        { m68k only }
        ,top_regset
@@ -259,11 +261,13 @@ interface
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-          top_shifterop : (shifterop : pshifterop);
           top_conditioncode : (cc : TAsmCond);
           top_modeflags : (modeflags : tcpumodeflags);
           top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
       {$endif arm}
+      {$if defined(arm) or defined(aarch64)}
+          top_shifterop : (shifterop : pshifterop);
+      {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
