@@ -337,6 +337,10 @@ begin
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
+      
+      { TI - Stellaris something }
+      ct_lm4f120h5,
+      
       ct_sc32442b,
       ct_thumb2bare:
         begin

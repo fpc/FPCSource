@@ -53,7 +53,7 @@ Type
 Const
    cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5];
    cpu_thumb = [];
-   cpu_thumb2 = [cpu_armv7m];
+   cpu_thumb2 = [cpu_armv7m,cpu_armv7em];
 
 Type
    tfputype =
@@ -195,6 +195,9 @@ Type
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
+      
+      { TI Stellaris }
+      ct_lm4f120h5,
       
       { SAMSUNG }
       ct_sc32442b,
@@ -1020,6 +1023,16 @@ Const
         sramsize:$00010000
         ),
         
+        // ct_lm4f120h5,
+        (
+    	controllertypestr:'LM4F120H5';
+        controllerunitstr:'LM4F120';
+        flashbase:$00000000;
+        flashsize:$00040000;
+        srambase:$20000000;
+        sramsize:$00008000
+        ),
+        
         //ct_SC32442b,
         (
     	controllertypestr:'SC32442B';
@@ -1067,6 +1080,7 @@ Const
        CPUARM_HAS_EDSP,       { CPU supports the PLD,STRD,LDRD,MCRR and MRRC instructions }
        CPUARM_HAS_REV,        { CPU supports the REV instruction                          }
        CPUARM_HAS_RBIT,       { CPU supports the RBIT instruction                         }
+       CPUARM_HAS_DMB,        { CPU has memory barrier instructions (DMB, DSB, ISB)       }
        CPUARM_HAS_LDREX,
        CPUARM_HAS_IDIV
       );
@@ -1086,11 +1100,11 @@ Const
        { cpu_armv6t2  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
        { cpu_armv6z   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
        { the identifier armv7 is should not be used, it is considered being equal to armv7a }
-       { cpu_armv7    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
-       { cpu_armv7a   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
-       { cpu_armv7r   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
-       { cpu_armv7m   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV],
-       { cpu_armv7em  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV]
+       { cpu_armv7    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7a   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7r   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7m   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV,CPUARM_HAS_DMB],
+       { cpu_armv7em  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV,CPUARM_HAS_DMB]
      );
 
 Implementation

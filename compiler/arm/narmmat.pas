@@ -79,11 +79,11 @@ implementation
           ) and
           not(is_64bitint(resultdef)) then
           result:=nil
-        else if (current_settings.cputype in [cpu_armv7m]) and
+        else if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
           (nodetype=divn) and
           not(is_64bitint(resultdef)) then
           result:=nil
-        else if (current_settings.cputype in [cpu_armv7m]) and
+        else if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
           (nodetype=modn) and
           not(is_64bitint(resultdef)) then
           begin
@@ -198,7 +198,7 @@ implementation
         secondpass(left);
         secondpass(right);
 
-        if (current_settings.cputype in [cpu_armv7m]) and
+        if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
            (nodetype=divn) and
            not(is_64bitint(resultdef)) then
           begin

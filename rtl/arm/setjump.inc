@@ -27,7 +27,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
     {$endif}
     {$endif}
 
-    {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
     stmia	r0!, {v1-v6, sl, fp}
     mov	   r2, sp
     stmia	r0!, {r2, lr}
@@ -44,7 +44,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
 
 procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc;
   asm
-    {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
     mov     ip, r0
     movs    r0, r1
     it eq
