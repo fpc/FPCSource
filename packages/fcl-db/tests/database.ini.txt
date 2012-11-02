@@ -138,6 +138,11 @@ name=pubs
 ; user and password blank
 user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=mssqlserver:1433
+; You can also specify the instance after a backslash, e.g.
+; hostname=127.0.0.1\SQLEXPRESS
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; Sybase ASE database
@@ -145,8 +150,11 @@ hostname=127.0.0.1
 connector=sql
 connectorparams=sybase
 name=testdb
-usser=sa
+user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=bigbadserver:5000
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; TDBf: DBase/FoxPro database:
