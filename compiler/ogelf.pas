@@ -176,7 +176,7 @@ interface
          phdrseg: TElfSegment;
          shstrtabsect: TElfObjSection;
          symtab: TElfSymtab;
-         shoffset: longint;
+         shoffset: aword;
          gotwritten: boolean;
          { dynamic linking }
          dynamiclink: boolean;
@@ -2511,6 +2511,40 @@ implementation
 
         if dynamiclink then
           WriteDynamicSymbolsHash;
+
+        { Create .shstrtab section, which is needed in both exe and .dbg files }
+        shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0);
+        shstrtabsect.SecOptions:=[oso_debug_copy];
+        AttachSection(shstrtabsect);
+
+        { Create the static symtable (.symtab and .strtab) }
+        if (cs_link_separate_dbg_file in current_settings.globalswitches) or
+          not(cs_link_strip in current_settings.globalswitches) then
+          begin
+            symtab:=TElfSymtab.Create(internalObjData,esk_exe);
+            symtab.SecOptions:=[oso_debug];
+            symtab.fstrsec.SecOptions:=[oso_debug];
+            AttachSection(symtab);
+            AttachSection(symtab.fstrsec);
+          end;
+
+        { Re-enable sections which end up to contain some data
+          (.got, .rel[a].dyn, .rel[a].plt (includes .rel[a].iplt) and .hash }
+        if gotobjsec.size<>0 then
+          Exclude(gotobjsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(dynrelocsec) and (dynrelocsec.size<>0) then
+          Exclude(dynrelocsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(pltrelocsec) and (pltrelocsec.size>0) then
+          Exclude(pltrelocsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(ipltrelocsec) and (ipltrelocsec.size>0) then
+          Exclude(ipltrelocsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(hashobjsec) then
+          Exclude(hashobjsec.ExeSection.SecOptions,oso_disabled);
+
+        RemoveDisabledSections;
+        MapSectionsToSegments;
+        if dynamiclink then
+          FinishDynamicTags;
       end;
 
 
@@ -2522,60 +2556,17 @@ implementation
         objsec: TObjSection;
         tempmempos: qword;
       begin
-        { If using -Xg, .shstrtab needs oso_debug flag, otherwise it won't be written
-          to .dbg file. RemoveDebugInfo will then destroy ExeSection named .shstrtab,
-          objsection remains intact but its contents must be rewritten. }
-        if Assigned(shstrtabsect) then
+        { Remove any existing .shstrtab contents }
+        if (shstrtabsect.size>0) then
           begin
             shstrtabsect.ReleaseData;
             shstrtabsect.Size:=0;
             shstrtabsect.SecOptions:=[oso_data];
-          end
-        else
-          shstrtabsect:=TElfObjSection.create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0);
-        if (cs_link_separate_dbg_file in current_settings.globalswitches) then
-          shstrtabsect.SecOptions:=[oso_debug];
-        AttachSection(shstrtabsect);
-        shstrtabsect.writezeros(1);
-
-        if (not gotwritten) then
-          begin
-            { Create the static symtable (.symtab and .strtab) }
-            if (cs_link_separate_dbg_file in current_settings.globalswitches) or
-              not(cs_link_strip in current_settings.globalswitches) then
-              begin
-                symtab:=TElfSymtab.Create(internalObjData,esk_exe);
-                symtab.SecOptions:=[oso_debug];
-                symtab.fstrsec.SecOptions:=[oso_debug];
-                AttachSection(symtab);
-                AttachSection(symtab.fstrsec);
-              end;
-
-            { Re-enable sections which end up to contain some data
-              (.got, .rel[a].dyn, .rel[a].plt (includes .rel[a].iplt) and .hash }
-            if gotobjsec.size<>0 then
-              Exclude(gotobjsec.ExeSection.SecOptions,oso_disabled);
-            if assigned(dynrelocsec) and (dynrelocsec.size<>0) then
-              Exclude(dynrelocsec.ExeSection.SecOptions,oso_disabled);
-            if assigned(pltrelocsec) and (pltrelocsec.size>0) then
-              Exclude(pltrelocsec.ExeSection.SecOptions,oso_disabled);
-            if assigned(ipltrelocsec) and (ipltrelocsec.size>0) then
-              Exclude(ipltrelocsec.ExeSection.SecOptions,oso_disabled);
-            if assigned(hashobjsec) then
-              Exclude(hashobjsec.ExeSection.SecOptions,oso_disabled);
           end;
-
-        RemoveDisabledSections;
-
-        SegmentList.Clear;
-        textseg:=nil;
-        dataseg:=nil;
-        phdrseg:=nil;
-        noteseg:=nil;
-        MapSectionsToSegments;
 
         { Assign section indices and fill .shstrtab
           List of sections cannot be modified after this point. }
+        shstrtabsect.writezeros(1);
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TElfExeSection(ExeSectionList[i]);
@@ -2585,9 +2576,6 @@ implementation
 
         if dynamiclink then
           begin
-            if (not gotwritten) then
-              FinishDynamicTags;
-
             { fixup sh_link/sh_info members of various dynamic sections }
             TElfExeSection(hashobjsec.ExeSection).shlink:=TElfExeSection(dynsymtable.ExeSection).secshidx;
             i:=TElfExeSection(dynsymtable.fstrsec.ExeSection).secshidx;
