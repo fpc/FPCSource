@@ -361,7 +361,8 @@ var
   dbclose: procedure(dbproc:PDBPROCESS); cdecl;
   {$ENDIF}
 
-  DefaultDBLibLibraryName: String = DBLIBDLL;
+  DefaultDBLibLibraryName: string = DBLIBDLL;
+  DBLibLoadedLibrary: string = '';
 {$ENDIF}
 
 {$IFDEF ntwdblib}
@@ -378,7 +379,7 @@ procedure dbwinexit;
 function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
 
-procedure InitialiseDBLib(LibraryName : string = '');
+function InitialiseDBLib(const LibraryName : shortstring = ''): integer;
 procedure ReleaseDBLib;
 
 implementation
@@ -389,10 +390,11 @@ uses SysUtils, Dynlibs;
 var DBLibLibraryHandle: TLibHandle;
     RefCount: integer;
 
-procedure InitialiseDBLib(LibraryName : string);
+function InitialiseDBLib(const LibraryName : shortstring): integer;
 var libname : string;
 begin
   inc(RefCount);
+  Result:=RefCount;
   if RefCount = 1 then
   begin
     if LibraryName='' then
@@ -406,6 +408,7 @@ begin
       raise EInOutError.CreateFmt('Can not load DB-Lib client library "%s". Check your installation.'+LineEnding+'%s',
                                   [libname, SysErrorMessage(GetLastOSError)]);
     end;
+    DBLibLoadedLibrary := libname;
 
    pointer(dbinit) := GetProcedureAddress(DBLibLibraryHandle,'dbinit');
    pointer(dblogin) := GetProcedureAddress(DBLibLibraryHandle,'dblogin');
@@ -463,7 +466,10 @@ begin
   begin
     dbexit;{$IFDEF WINDOWS}dbwinexit;{$ENDIF}
     if UnloadLibrary(DBLibLibraryHandle) then
-      DBLibLibraryHandle := NilHandle
+    begin
+      DBLibLibraryHandle := NilHandle;
+      DBLibLoadedLibrary := '';
+    end
     else
       inc(RefCount);
   end;
