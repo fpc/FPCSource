@@ -98,6 +98,7 @@ type
     function GetSchemaInfoSQL(SchemaType:TSchemaType; SchemaObjectName, SchemaObjectPattern:string):string; override;
   public
     constructor Create(AOwner : TComponent); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
     //property TDS:integer read Ftds;
@@ -138,11 +139,15 @@ type
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName: string; override;
   end;
 
   { TSybaseConnectionDef }
 
-  TSybaseConnectionDef = Class(TConnectionDef)
+  TSybaseConnectionDef = Class(TMSSQLConnectionDef)
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
@@ -885,6 +890,22 @@ begin
   end;
 end;
 
+function TMSSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    InitialiseDBLib(DBLibLibraryName);
+    case InfoType of
+      citClientName:
+        Result:=TMSSQLConnectionDef.LoadedLibraryName;
+    else
+      Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    ReleaseDBLib;
+  end;
+end;
+
 
 { TMSSQLConnectionDef }
 
@@ -901,6 +922,26 @@ end;
 class function TMSSQLConnectionDef.Description: String;
 begin
    Result:='Connect to MS SQL Server via Microsoft client library or via FreeTDS db-lib';
+end;
+
+class function TMSSQLConnectionDef.DefaultLibraryName: String;
+begin
+  Result:=DBLibLibraryName;
+end;
+
+class function TMSSQLConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=@InitialiseDBLib;
+end;
+
+class function TMSSQLConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=@ReleaseDBLib;
+end;
+
+class function TMSSQLConnectionDef.LoadedLibraryName: string;
+begin
+  Result:=DBLibLoadedLibrary;
 end;
 
 
