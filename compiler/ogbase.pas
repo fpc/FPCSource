@@ -270,7 +270,7 @@ interface
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
-       function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
+       function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
        function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;
@@ -947,84 +947,6 @@ implementation
         MemObjSections.Stop;
 {$endif}
         inherited destroy;
-      end;
-
-
-    function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
-      const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-          'code',
-          'Data',
-          'Data',
-          'roData',
-          'bss',
-          'threadvar',
-          'pdata',
-          'stub',
-          'data_nonlazy',
-          'data_lazy',
-          'init_func',
-          'term_func',
-          'stab','stabstr',
-          'iData2','iData4','iData5','iData6','iData7','eData',
-          'eh_frame',
-          'debug_frame','debug_info','debug_line','debug_abbrev',
-          'fpc',
-          'toc',
-          'init',
-          'fini',
-          'objc_class',
-          'objc_meta_class',
-          'objc_cat_cls_meth',
-          'objc_cat_inst_meth',
-          'objc_protocol',
-          'objc_string_object',
-          'objc_cls_meth',
-          'objc_inst_meth',
-          'objc_cls_refs',
-          'objc_message_refs',
-          'objc_symbols',
-          'objc_category',
-          'objc_class_vars',
-          'objc_instance_vars',
-          'objc_module_info',
-          'objc_class_names',
-          'objc_meth_var_types',
-          'objc_meth_var_names',
-          'objc_selector_strs',
-          'objc_protocol_ext',
-          'objc_class_ext',
-          'objc_property',
-          'objc_image_info',
-          'objc_cstring_object',
-          'objc_sel_fixup',
-          '__DATA,__objc_data',
-          '__DATA,__objc_const',
-          '.objc_superrefs',
-          '__DATA, __datacoal_nt,coalesced',
-          '.objc_classlist',
-          '.objc_nlclasslist',
-          '.objc_catlist',
-          '.obcj_nlcatlist',
-          '.objc_protolist'
-        );
-      var
-        sep : string[3];
-      begin
-        if aname<>'' then
-          begin
-            case aorder of
-              secorder_begin :
-                sep:='.b_';
-              secorder_end :
-                sep:='.z_';
-              else
-                sep:='.n_';
-            end;
-            result:=secnames[atype]+sep+aname
-          end
-        else
-          result:=secnames[atype];
       end;
 
 
