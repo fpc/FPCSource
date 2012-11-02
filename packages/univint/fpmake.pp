@@ -366,7 +366,6 @@ begin
     T:=P.Targets.AddImplicitUnit('osacomp.pas');
     T:=P.Targets.AddImplicitUnit('osageneric.pas');
     T:=P.Targets.AddImplicitUnit('osutils.pas');
-    T:=P.Targets.AddImplicitUnit('objc.pas');
     T:=P.Targets.AddImplicitUnit('opentransport.pas');
     T:=P.Targets.AddImplicitUnit('opentransportprotocol.pas');
     T:=P.Targets.AddImplicitUnit('opentransportproviders.pas');
@@ -935,6 +934,7 @@ begin
           AddInclude('src/HITextViews.pas');
           AddInclude('src/IBCarbonRuntime.pas');
           AddInclude('src/HIToolbox.pas');
+          AddInclude('src/ObjCRuntime.pas');
         end;
 
     P.ExamplePath.Add('examples');

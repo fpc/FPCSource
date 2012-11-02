@@ -348,7 +348,7 @@ uses
   OSAComp,
   OSAGeneric,
   OSUtils,
-  ObjC,
+  ObjCRuntime,
   OpenTransport,
   OpenTransportProtocol,
   OpenTransportProviders,
