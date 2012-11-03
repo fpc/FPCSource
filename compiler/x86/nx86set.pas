@@ -61,11 +61,7 @@ implementation
 
     function tx86casenode.has_jumptable : boolean;
       begin
-{$ifdef i386}
         has_jumptable:=true;
-{$else}
-        has_jumptable:=false;
-{$endif}
       end;
 
 
