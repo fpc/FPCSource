@@ -2814,6 +2814,11 @@ implementation
                begin
                  p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern));
                  consume(_CSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CCHAR :
@@ -2826,6 +2831,11 @@ implementation
                begin
                  p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CWCHAR:
@@ -2842,7 +2852,7 @@ implementation
                  if try_to_consume(_LKLAMMER) then
                   begin
                     p1:=factor(true,false);
-                    if token in [_CARET,_POINT,_LECKKLAMMER] then
+                    if token in postfixoperator_tokens then
                      begin
                        again:=true;
                        postfixoperators(p1,again,getaddr);
@@ -2852,7 +2862,7 @@ implementation
                   end
                  else
                   p1:=factor(true,false);
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -2875,9 +2885,9 @@ implementation
                  consume(_LKLAMMER);
                  p1:=comp_expr(true,false);
                  consume(_RKLAMMER);
-                 { it's not a good solution     }
-                 { but (a+b)^ makes some problems  }
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 { it's not a good solution
+                   but (a+b)^ makes some problems  }
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);

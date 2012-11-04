@@ -299,6 +299,8 @@ const
   tokenlenmin = 1;
   tokenlenmax = 18;
 
+  postfixoperator_tokens = [_CARET,_POINT,_LECKKLAMMER];
+
   { last operator which can be overloaded, the first_overloaded should
     be declared directly after NOTOKEN }
   first_overloaded = succ(NOTOKEN);
