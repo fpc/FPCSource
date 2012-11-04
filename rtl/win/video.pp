@@ -746,4 +746,13 @@ end;
 initialization
   SetVideoDriver(SysVideoDriver);
   TargetEntry;
+
+finalization
+  if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
+    begin
+      FreeMem (OrigScreen, OrigScreenSize);
+      OrigScreen := nil;
+      OrigScreenSize := 0;
+    end;
+
 end.
