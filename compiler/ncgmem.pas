@@ -791,13 +791,15 @@ implementation
                   internalerror(2002032218);
               end;
 
-              { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resultdef) then
                 offsetdec:=1
               else
                 offsetdec:=2;
               location.reference.alignment:=offsetdec;
-              dec(location.reference.offset,offsetdec);
+
+              { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
+              if not(cs_zerobasedstrings in current_settings.localswitches) then
+                dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
            begin

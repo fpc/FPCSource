@@ -189,6 +189,9 @@ interface
     {# true if p is an unicode string def }
     function is_unicodestring(p : tdef) : boolean;
 
+    {# true if p is an unicode/wide/ansistring string def }
+    function is_dynamicstring(p : tdef) : boolean;
+
     {# returns true if p is a wide or unicode string type }
     function is_wide_or_unicode_string(p : tdef) : boolean;
 
@@ -674,6 +677,13 @@ implementation
       begin
          is_widestring:=(p.typ=stringdef) and
                         (tstringdef(p).stringtype=st_widestring);
+      end;
+
+
+    function is_dynamicstring(p: tdef): boolean;
+      begin
+         is_dynamicstring:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype in [st_ansistring,st_widestring,st_unicodestring]);
       end;
 
 

@@ -1469,6 +1469,11 @@ unit scandir;
       begin
       end;
 
+    procedure dir_zerobasesstrings;
+      begin
+        do_localswitch(cs_zerobasedstrings);
+      end;
+
 
 {****************************************************************************
                          Initialize Directives
@@ -1593,6 +1598,7 @@ unit scandir;
         AddDirective('Z1',directive_all, @dir_z1);
         AddDirective('Z2',directive_all, @dir_z2);
         AddDirective('Z4',directive_all, @dir_z4);
+        AddDirective('ZEROBASEDSTRINGS',directive_all, @dir_zerobasesstrings);
       end;
 
 end.

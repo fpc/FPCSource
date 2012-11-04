@@ -2175,10 +2175,13 @@ implementation
                       begin
                         if inlinenumber=in_low_x then
                           begin
-                            result:=cordconstnode.create(0,u8inttype,false);
+                            if is_dynamicstring(left.resultdef) and
+                              not(cs_zerobasedstrings in current_settings.localswitches) then
+                              result:=cordconstnode.create(1,u8inttype,false)
+                            else
+                              result:=cordconstnode.create(0,u8inttype,false);
                           end
-                        else if not is_ansistring(left.resultdef) and
-                                not is_wide_or_unicode_string(left.resultdef) then
+                        else if not is_dynamicstring(left.resultdef) then
                           result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true)
                       end;
                   end;
@@ -2918,9 +2921,15 @@ implementation
                               set_varstate(left,vs_read,[]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
-                           else if is_ansistring(left.resultdef) or
-                                   is_wide_or_unicode_string(left.resultdef) then
-                             CGMessage(type_e_mismatch)
+                           else if is_dynamicstring(left.resultdef) then
+                              begin
+                                result:=cinlinenode.create(in_length_x,false,left);
+                                if cs_zerobasedstrings in current_settings.localswitches then
+                                  result:=caddnode.create(subn,result,cordconstnode.create(1,sinttype,false));
+                                { make sure the left node doesn't get disposed, since it's }
+                                { reused in the new node (JM)                              }
+                                left:=nil;
+                              end
                          end;
                      end;
                     else

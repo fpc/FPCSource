@@ -136,7 +136,8 @@ interface
          { macpas specific}
          cs_external_var, cs_externally_visible,
          { jvm specific }
-         cs_check_var_copyout
+         cs_check_var_copyout,
+         cs_zerobasedstrings
        );
        tlocalswitches = set of tlocalswitch;
 

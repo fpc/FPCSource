@@ -1,4 +1,4 @@
-{
+ {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
