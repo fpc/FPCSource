@@ -1992,6 +1992,7 @@ unit cgcpu;
   var
    hreg1, hreg2 : tregister;
    opcode : tasmop;
+   instr : taicpu;
   begin
 //    writeln('a_op64_reg_reg');
     opcode := topcg2tasmop[op];
@@ -2046,6 +2047,34 @@ unit cgcpu;
                  internalerror(20020817);
             list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reglo,regdst.reglo));
             list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reghi,regdst.reghi));
+        end;
+      OP_NEG:
+        begin
+          if isaddressregister(regdst.reglo) or
+              isaddressregister(regdst.reghi) then
+            internalerror(2012110402);
+          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
+          cg.add_move_instruction(instr);
+          list.concat(instr);
+          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
+          cg.add_move_instruction(instr);
+          list.concat(instr);
+          list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
+          list.concat(taicpu.op_reg(A_NEGX,S_L,regdst.reghi));
+        end;
+      OP_NOT:
+        begin
+          if isaddressregister(regdst.reglo) or
+              isaddressregister(regdst.reghi) then
+            internalerror(2012110401);
+          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
+          cg.add_move_instruction(instr);
+          list.concat(instr);
+          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
+          cg.add_move_instruction(instr);
+          list.concat(instr);
+          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
+          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
         end;
     end; { end case }
   end;
@@ -2104,6 +2133,9 @@ unit cgcpu;
             list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,regdst.reglo));
             list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reghi));
         end;
+      { these should have been handled already by earlier passes }
+      OP_NOT, OP_NEG:
+        internalerror(2012110403);
     end; { end case }
   end;
 
