@@ -62,7 +62,7 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
   var
     t : single;
   asm
-    movsd dword ptr t,xmm0
+    movss dword ptr t,xmm0
     fld dword ptr t
     fsincos
     fstp dword ptr [cosinus]
