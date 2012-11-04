@@ -1490,7 +1490,8 @@ unit cgcpu;
          hl2: tasmlabel;
          popaddress : boolean;
          srcref,dstref : treference;
-
+         alignsize : tcgsize;
+         orglen : tcgint;
       begin
          popaddress := false;
 
@@ -1503,6 +1504,8 @@ unit cgcpu;
          hregister := getintregister(list,OS_INT);
 //         if delsource then
 //            reference_release(list,source);
+
+         orglen:=len;
 
          { from 12 bytes movs is being used }
          if {(not loadref) and} ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
@@ -1522,7 +1525,14 @@ unit cgcpu;
               { move a word }
               if len>1 then
                 begin
-                   a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
+                   if (orglen<source.alignment) and
+                       (source.base=NR_FRAME_POINTER_REG) and
+                       (source.offset>0) then
+                     { copy of param to local location }
+                     alignsize:=int_cgsize(source.alignment)
+                   else
+                     alignsize:=OS_16;
+                   a_load_ref_reg(list,alignsize,OS_16,srcref,hregister);
                    a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
@@ -1531,7 +1541,14 @@ unit cgcpu;
               { move a single byte }
               if len>0 then
                 begin
-                   a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
+                   if (orglen<source.alignment) and
+                       (source.base=NR_FRAME_POINTER_REG) and
+                       (source.offset>0) then
+                     { copy of param to local location }
+                     alignsize:=int_cgsize(source.alignment)
+                   else
+                     alignsize:=OS_8;
+                   a_load_ref_reg(list,alignsize,OS_8,srcref,hregister);
                    a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
            end
