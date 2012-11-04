@@ -2058,17 +2058,17 @@ unit cgcpu;
            hreg:=cg.getintregister(list,OS_INT);
            list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
            list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_ADDX,S_L,hreg,regdst.reglo));
+           list.concat(taicpu.op_reg_reg(A_ADDX,S_L,hreg,regdst.reghi));
          end;
       OP_AND :
           begin
             list.concat(taicpu.op_const_reg(A_AND,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_AND,S_L,highvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_AND,S_L,highvalue,regdst.reghi));
           end;
       OP_OR :
           begin
             list.concat(taicpu.op_const_reg(A_OR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reghi));
           end;
       { this is handled in 1st pass for 32-bit cpus (helper call) }
       OP_IDIV,OP_DIV,
@@ -2080,12 +2080,12 @@ unit cgcpu;
            hreg:=cg.getintregister(list,OS_INT);
            list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
            list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_SUBX,S_L,hreg,regdst.reglo));
+           list.concat(taicpu.op_reg_reg(A_SUBX,S_L,hreg,regdst.reghi));
          end;
       OP_XOR:
         begin
             list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reghi));
         end;
     end; { end case }
   end;
