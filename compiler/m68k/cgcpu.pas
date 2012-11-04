@@ -521,7 +521,27 @@ unit cgcpu;
              begin
                if (ref.base<>NR_NO) then
                  begin
-                   if assigned(ref.symbol) and (ref.index=NR_NO) then
+                   if assigned(ref.symbol) then
+                     begin
+                       hreg:=cg.getaddressregister(list);
+                       reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                       if ref.index<>NR_NO then
+                         begin
+                           idxreg:=getaddressregister(list);
+                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,idxreg));
+                           list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,idxreg));
+                           ref.index:=idxreg;
+                         end
+                       else
+                         ref.index:=ref.base;
+                       ref.base:=hreg;
+                       ref.offset:=0;
+                       ref.symbol:=nil;
+                     end;
+                   { once the above is verified to work the below code can be
+                     removed }
+                   {if assigned(ref.symbol) and (ref.index=NR_NO) then
                      begin
                        hreg:=cg.getaddressregister(list);
                        reference_reset_symbol(href,ref.symbol,0,ref.alignment);
@@ -534,10 +554,10 @@ unit cgcpu;
                      begin
                        hreg:=getaddressregister(list);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg,ref.index));
+                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,hreg));
                        ref.base:=hreg;
                        ref.index:=NR_NO;
-                     end;
+                     end;}
                    {if (ref.index <> NR_NO) and assigned(ref.symbol) then
                       internalerror(2002081403);}
                    { base + reg }
