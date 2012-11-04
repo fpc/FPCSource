@@ -47,7 +47,8 @@ type
 procedure SetHeapExtraInfo(size : ptruint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
 
 { Redirection of the output to a file }
-procedure SetHeapTraceOutput(const name : string);
+procedure SetHeapTraceOutput(const name : string);overload;
+procedure SetHeapTraceOutput(var ATextOutput : Text);overload;
 
 const
   { tracing level
@@ -154,7 +155,7 @@ type
   end;
 
 var
-  useownfile : boolean;
+  useownfile, useowntextoutput : boolean;
   ownfile : text;
 {$ifdef EXTRA}
   error_file : text;
@@ -163,6 +164,7 @@ var
   main_relo_todolist: ppheap_mem_info;
   orphaned_info: theap_info;
   todo_lock: trtlcriticalsection;
+  textoutput : ^text;
 threadvar
   heap_info: theap_info;
 
@@ -411,7 +413,7 @@ begin
         if useownfile then
           writeln(ownfile,'error in linked list of heap_mem_info')
         else
-          writeln(stderr,'error in linked list of heap_mem_info');
+          writeln(textoutput^,'error in linked list of heap_mem_info');
         RunError(204);
       end;
      if pp=p then
@@ -422,7 +424,7 @@ begin
        if useownfile then
          writeln(ownfile,'error in linked list of heap_mem_info')
        else
-         writeln(stderr,'error in linked list of heap_mem_info');
+         writeln(textoutput^,'error in linked list of heap_mem_info');
    end;
 end;
 
@@ -578,7 +580,7 @@ begin
   if useownfile then
     ptext:=@ownfile
   else
-    ptext:=@stderr;
+    ptext:=textoutput;
   inc(loc_info^.freemem_size,size);
   inc(loc_info^.freemem8_size,(size+7) and not 7);
   if not quicktrace then
@@ -773,7 +775,7 @@ begin
      if useownfile then
        dump_wrong_size(pp,l,ownfile)
      else
-       dump_wrong_size(pp,l,stderr);
+       dump_wrong_size(pp,l,textoutput^);
 
 {$ifdef EXTRA}
      dump_wrong_size(pp,l,error_file);
@@ -832,7 +834,7 @@ begin
      if useownfile then
        dump_error(pp,ownfile)
      else
-       dump_error(pp,stderr);
+       dump_error(pp,textoutput^);
 {$ifdef EXTRA}
      dump_error(pp,error_file);
 {$endif EXTRA}
@@ -1014,7 +1016,7 @@ begin
   if useownfile then
     ptext:=@ownfile
   else
-    ptext:=@stderr;
+    ptext:=textoutput;
 
 {$ifdef go32v2}
   if ptruint(p)<$1000 then
@@ -1184,7 +1186,7 @@ begin
   if useownfile then
     ptext:=@ownfile
   else
-    ptext:=@stderr;
+    ptext:=textoutput;
   pp:=loc_info^.heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',
@@ -1366,7 +1368,7 @@ begin
        Rewrite(ownfile);
        if IOResult<>0 then
          begin
-           Writeln(stderr,'[heaptrc] Unable to open "',name,'", writing output to stderr instead.');
+           Writeln(textoutput^,'[heaptrc] Unable to open "',name,'", writing output to stderr instead.');
            useownfile:=false;
            exit;
          end;
@@ -1376,6 +1378,12 @@ begin
    for i:=0 to Paramcount do
      write(ownfile,paramstr(i),' ');
    writeln(ownfile);
+end;
+
+procedure SetHeapTraceOutput(var ATextOutput : Text);
+Begin
+  useowntextoutput := True;
+  textoutput := @ATextOutput;
 end;
 
 procedure SetHeapExtraInfo( size : ptruint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
@@ -1411,6 +1419,8 @@ const
 
 procedure TraceInit;
 begin
+  textoutput := @stderr;
+  useowntextoutput := false;
   MakeCRC32Tbl;
   main_orig_todolist := @heap_info.heap_free_todo;
   main_relo_todolist := nil;
@@ -1454,8 +1464,8 @@ begin
          end
        else
          begin
-           Writeln(stderr,'No heap dump by heaptrc unit');
-           Writeln(stderr,'Exitcode = ',exitcode);
+           Writeln(textoutput^,'No heap dump by heaptrc unit');
+           Writeln(textoutput^,'Exitcode = ',exitcode);
          end;
        if useownfile then
          begin
@@ -1478,6 +1488,11 @@ begin
        useownfile:=false;
        close(ownfile);
      end;
+  if useowntextoutput then
+  begin
+    useowntextoutput := false;
+    close(textoutput^);
+  end;
 end;
 
 {$if defined(win32) or defined(win64)}
