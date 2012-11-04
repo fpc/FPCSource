@@ -16,12 +16,12 @@
 
 procedure TStream.ReadNotImplemented;
 begin
-  raise EStreamError.CreateFmt(SStreamNoReading, [ClassName]) at get_caller_addr(get_frame);
+  raise EStreamError.CreateFmt(SStreamNoReading, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TStream.WriteNotImplemented;
 begin
-  raise EStreamError.CreateFmt(SStreamNoWriting, [ClassName]) at get_caller_addr(get_frame);
+  raise EStreamError.CreateFmt(SStreamNoWriting, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 function TStream.Read(var Buffer; Count: Longint): Longint;
@@ -154,7 +154,7 @@ end;
   procedure TStream.InvalidSeek;
 
   begin
-    raise EStreamError.CreateFmt(SStreamInvalidSeek, [ClassName]) at get_caller_addr(get_frame);
+    raise EStreamError.CreateFmt(SStreamInvalidSeek, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
   end;
 
   procedure TStream.FakeSeekForward(Offset: Int64;  const Origin: TSeekOrigin; const Pos: Int64);

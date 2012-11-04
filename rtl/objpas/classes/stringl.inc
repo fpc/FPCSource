@@ -434,13 +434,13 @@ end;
 
 Procedure TStrings.Error(const Msg: string; Data: Integer);
 begin
-  Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
 Procedure TStrings.Error(const Msg: pstring; Data: Integer);
 begin
-  Raise EStringListError.CreateFmt(Msg^,[Data]) at get_caller_addr(get_frame);
+  Raise EStringListError.CreateFmt(Msg^,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 

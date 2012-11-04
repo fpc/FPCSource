@@ -1342,13 +1342,13 @@ end;
 
 procedure EvaluationError(const Msg: String);
 begin
-  raise EXPathEvaluationError.Create(Msg) at get_caller_addr(get_frame);
+  raise EXPathEvaluationError.Create(Msg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure EvaluationError(const Msg: String; const Args: array of const);
 begin
   raise EXPathEvaluationError.CreateFmt(Msg, Args)
-    at get_caller_addr(get_frame);
+    at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
@@ -1370,7 +1370,7 @@ end;
 
 procedure TXPathVariable.Error(const Msg: String; const Args: array of const);
 begin
-  raise Exception.CreateFmt(Msg, Args) at get_caller_addr(get_frame);
+  raise Exception.CreateFmt(Msg, Args) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
@@ -1788,7 +1788,7 @@ end;
 
 procedure TXPathScanner.Error(const Msg: String);
 begin
-  raise Exception.Create(Msg) at get_caller_addr(get_frame);
+  raise Exception.Create(Msg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TXPathScanner.ParsePredicates(var Dest: TXPathNodeArray);

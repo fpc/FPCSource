@@ -526,7 +526,7 @@ end;
 
 class procedure TFPSList.Error(const Msg: string; Data: PtrInt);
 begin
-  raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPSList.Exchange(Index1, Index2: Integer);
