@@ -43,15 +43,20 @@ _start:
            the outermost frame obviously.  */
         sub.l %fp, %fp
 
-        /* Extract the arguments as encoded on the stack and set up the
-           arguments for `main': argc, argv.  envp will be determined
-           later in __libc_start_main.  */
-        move.l 8(%sp), %d0
-        move.l %d0, operatingsystem_parameter_envp
-        move.l 4(%sp), %d0
-        move.l %d0, operatingsystem_parameter_argv
+        /* Extract the arguments as encoded on the stack.  */
         move.l (%sp), %d0
         move.l %d0, operatingsystem_parameter_argc
+        lea.l 4(%sp), %a0
+        move.l %a0, operatingsystem_parameter_argv
+        lea.l 4(%sp,%d0.l*4), %a0
+        move.l %a0, operatingsystem_parameter_envp
+
+#        move.l 8(%sp), %d0
+#        move.l %d0, operatingsystem_parameter_envp
+#        move.l 4(%sp), %d0
+#        move.l %d0, operatingsystem_parameter_argv
+#        move.l (%sp), %d0
+#        move.l %d0, operatingsystem_parameter_argc
 
         jbsr PASCALMAIN
 
