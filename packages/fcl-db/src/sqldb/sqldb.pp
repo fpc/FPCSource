@@ -1633,7 +1633,7 @@ var FieldNamesQuoteChars : TQuoteChars;
       begin
       UpdateWherePart(sql_where,x);
 
-      if (pfInUpdate in Fields[x].ProviderFlags) then
+      if (pfInUpdate in Fields[x].ProviderFlags) and (not Fields[x].ReadOnly) then
         sql_set := sql_set +FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] +'=:"' + fields[x].FieldName + '",';
       end;
 
@@ -1656,7 +1656,7 @@ var FieldNamesQuoteChars : TQuoteChars;
     sql_values := '';
     for x := 0 to Fields.Count -1 do
       begin
-      if (not fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) then
+      if (not Fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) and (not Fields[x].ReadOnly) then
         begin
         sql_fields := sql_fields + FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] + ',';
         sql_values := sql_values + ':"' + fields[x].FieldName + '",';

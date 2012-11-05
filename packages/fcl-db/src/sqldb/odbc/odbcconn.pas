@@ -1076,7 +1076,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
-  AutoIncAttr: SQLINTEGER;
+  AutoIncAttr, Updatable: SQLINTEGER;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -1182,6 +1182,7 @@ begin
     // only one column per table can have identity attr.
     if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
+      AutoIncAttr:=0;
       ODBCCheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
                         i,                          // column number
@@ -1195,6 +1196,18 @@ begin
       if (AutoIncAttr=SQL_TRUE) and (FieldType=ftInteger) then
         FieldType:=ftAutoInc;
     end;
+
+    Updatable:=0;
+    ODBCCheckResult(
+      SQLColAttribute(ODBCCursor.FSTMTHandle,
+                      i,
+                      SQL_DESC_UPDATABLE,
+                      nil,
+                      0,
+                      nil,
+                      @Updatable),
+      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get updatable attribute for column %d.',[i]
+    );
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
     begin
@@ -1233,7 +1246,10 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i);
+    with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
+    begin
+      if Updatable = 0{SQL_ATTR_READONLY} then Attributes := Attributes + [faReadonly];
+    end;
   end;
 end;
 

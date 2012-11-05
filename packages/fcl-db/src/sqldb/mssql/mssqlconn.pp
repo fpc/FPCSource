@@ -643,7 +643,8 @@ begin
 }
     with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
     begin
-      //if col.Updatable = 0 then Attributes := Attributes + [faReadonly];
+      // identity, timestamp and calculated column are not updatable
+      if col.Updatable = 0 then Attributes := Attributes + [faReadonly];
       case FieldType of
         ftBCD,
         ftFmtBCD: Precision := col.Precision;

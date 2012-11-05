@@ -2203,8 +2203,6 @@ Var ABuff        : TRecordBuffer;
     i            : integer;
     blobbuf      : tbufblobfield;
     NullMask     : pbyte;
-    li           : longint;
-    StoreReadOnly: boolean;
     ABookmark    : PBufBookmark;
 
 begin
@@ -2227,16 +2225,7 @@ begin
     begin
     if assigned(FAutoIncField) then
       begin
-      li := FAutoIncValue;
-      // In principle all TAutoIncfields are read-only, but in theory it is
-      // possible to set readonly to false.
-      StoreReadOnly:=FAutoIncField.ReadOnly;
-      FAutoIncField.ReadOnly:=false;
-      try
-        FAutoIncField.SetData(@li);
-      finally
-        FAutoIncField.ReadOnly:=FAutoIncField.ReadOnly;
-      end;
+      FAutoIncField.AsInteger := FAutoIncValue;
       inc(FAutoIncValue);
       end;
 
