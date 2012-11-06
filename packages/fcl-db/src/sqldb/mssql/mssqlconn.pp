@@ -593,6 +593,7 @@ begin
     SQLBINARY:           Result:=ftBytes;
     SQLVARBINARY:        Result:=ftVarBytes;
     SYBUNIQUE:           Result:=ftGuid;
+    SYBVARIANT:          Result:=ftBlob;
   else
     DatabaseErrorFmt('Unsupported SQL DataType %d "%s"', [SQLDataType, dbprtype(SQLDataType)]);
     Result:=ftUnknown;
@@ -807,15 +808,14 @@ var data: PByte;
     datalen: DBINT;
     srctype: INT;
 begin
-  //see also LoadField
+  // see also LoadField
   srctype:=dbcoltype(FDBProc, FieldDef.FieldNo);
   data:=dbdata(FDBProc, FieldDef.FieldNo);
   datalen:=dbdatlen(FDBProc, FieldDef.FieldNo);
 
   ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, datalen);
-
-  ABlobBuf^.BlobBuffer^.Size :=
-    dbconvert(FDBProc, srctype, data , datalen, srctype, ABlobBuf^.BlobBuffer^.Buffer, datalen);
+  Move(data^, ABlobBuf^.BlobBuffer^.Buffer^, datalen);
+  ABlobBuf^.BlobBuffer^.Size := datalen;
 end;
 
 procedure TMSSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
