@@ -592,8 +592,9 @@ begin
   Result:=0;
   If (FSize>0) and (FPosition<Fsize) and (FPosition>=0) then
     begin
-    Result:=FSize-FPosition;
-    If Result>Count then Result:=Count;
+    Result:=Count;
+    If (Result>(FSize-FPosition)) then
+      Result:=(FSize-FPosition);
     Move ((FMemory+FPosition)^,Buffer,Result);
     FPosition:=Fposition+Result;
     end;
