@@ -1146,7 +1146,6 @@ end;
 procedure TCustomVLCMediaPlayer.HandleVLCEvent(e: Plibvlc_event_t);
 
 begin
-  Writeln('Enter : ',Ord(e^._type));
   FECS.Enter;
   try
     case libvlc_event_e(e^._type) of
@@ -1162,40 +1161,33 @@ begin
       libvlc_MediaPlayerEndReached       : DoOnEOF;
       libvlc_MediaPlayerEncounteredError : DoOnError;
       libvlc_MediaPlayerTimeChanged      : begin
-                                           Writeln('A');
                                            DoOnTimeChanged(e^.media_player_time_changed.new_time);
                                            end;
       libvlc_MediaPlayerPositionChanged  : begin
-                                           Writeln('AA');
                                            DoOnPositionChanged(e^.media_player_position_changed.new_position);
       end;
       libvlc_MediaPlayerSeekableChanged  : begin
-                                           Writeln('AAA');
                                            DoOnSeekableChanged(e^.media_player_seekable_changed.new_seekable<>0);
       end;
       libvlc_MediaPlayerPausableChanged  : begin
-                                           Writeln('AAAA');
                                            DoOnPausableChanged(e^.media_player_pausable_changed.new_pausable<>0) ;
       end;
       libvlc_MediaPlayerTitleChanged     : begin
-                                           Writeln('AAAAA');
                                            DoOnTitleChanged(e^.media_player_title_changed.new_title);
       end;
       libvlc_MediaPlayerSnapshotTaken    : begin
-                                           Writeln('AAAAAA');
                                            DoOnSnapShot(e^.media_player_snapshot_taken.psz_filename);
       end;
       libvlc_MediaPlayerLengthChanged    : begin
-                                           Writeln('AAAAAAA');
                                            DoOnLengthChanged(e^.media_player_length_changed.new_length);
       end;
     else
-      Writeln('Unknown event type ',e^._type);
+      // Not sure what to do here. 
+      // Writeln('Unknown event type ',e^._type);
     end;
   finally
     FECS.Leave;
   end;
-  Writeln('Leave');
 end;
 
 destructor TCustomVLCMediaPlayer.Destroy;
