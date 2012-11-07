@@ -2506,6 +2506,7 @@ packages/fcl-sdo/examples/load-embedded-schema/project.pas svneol=native#text/pl
 packages/fcl-sdo/examples/simple/simple.pas svneol=native#text/plain
 packages/fcl-sdo/examples/xsd2pas/xsd2pas.lpi svneol=native#text/plain
 packages/fcl-sdo/examples/xsd2pas/xsd2pas.pas svneol=native#text/plain
+packages/fcl-sdo/fpmake.pp svneol=native#text/plain
 packages/fcl-sdo/src/base/pas_generator.pas svneol=native#text/plain
 packages/fcl-sdo/src/base/sdo.pas svneol=native#text/plain
 packages/fcl-sdo/src/base/sdo_binary_streamer.pas svneol=native#text/plain

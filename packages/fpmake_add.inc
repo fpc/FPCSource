@@ -24,6 +24,7 @@
   add_fcl_process;
   add_fcl_registry;
   add_fcl_res;
+  add_fcl_sdo;
   add_fcl_stl;
   add_fcl_web;
   add_fcl_xml;
@@ -60,6 +61,7 @@
   add_libpng;
   add_librsvg;
   add_libsee;
+  add_libvlc;
   add_libxml;
   add_lua;
   add_mad;
@@ -74,8 +76,8 @@
   add_oggvorbis;
   add_openal;
   add_opencl;
-  add_opengl;
   add_opengles;
+  add_opengl;
   add_openssl;
   add_oracle;
   add_os2units;
