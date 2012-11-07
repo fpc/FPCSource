@@ -475,7 +475,7 @@ type
   TSQLConnectionClass = Class of TSQLConnection;
 
   { TConnectionDef }
-  TLibraryLoadFunction = Function (Const S : ShortString) : Integer;
+  TLibraryLoadFunction = Function (Const S : AnsiString) : Integer;
   TLibraryUnLoadFunction = Procedure;
   TConnectionDef = Class(TPersistent)
     Class Function TypeName : String; virtual;

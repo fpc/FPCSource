@@ -1596,8 +1596,8 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-Function InitialiseMysql(Const LibraryName : String) : Integer;
-Function InitialiseMysql(Const LibraryName : String; argc: cint; argv:PPchar = Nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(Const LibraryName : AnsiString) : Integer;
+Function InitialiseMysql(Const LibraryName : AnsiString; argc: cint; argv:PPchar = Nil; groups:PPchar = nil) : Integer;
 Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Procedure ReleaseMysql;
 
@@ -1617,7 +1617,7 @@ ResourceString
 var 
   RefCount : integer;
 
-Function TryInitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups: PPchar) : Integer;
+Function TryInitialiseMysql(Const LibraryName: AnsiString; argc: cint; argv: PPchar; groups: PPchar) : Integer;
 
 begin
   Result := 0;
@@ -1756,13 +1756,13 @@ begin
   Result := RefCount;
 end;
 
-Function InitialiseMysql(Const LibraryName: String) : Integer;
+Function InitialiseMysql(Const LibraryName: AnsiString) : Integer;
 
 begin
   Result:=InitialiseMySQL(LibraryName,-1,Nil,Nil);
 end;
 
-Function InitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups:PPchar) : Integer;
+Function InitialiseMysql(Const LibraryName: AnsiString; argc: cint; argv: PPchar; groups:PPchar) : Integer;
 
 begin
   Result := TryInitialiseMysql(LibraryName,argc,argv,groups);

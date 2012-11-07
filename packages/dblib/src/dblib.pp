@@ -380,7 +380,7 @@ procedure dbwinexit;
 function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
 
-function InitialiseDBLib(const LibraryName : shortstring = ''): integer;
+function InitialiseDBLib(const LibraryName : ansistring): integer;
 procedure ReleaseDBLib;
 
 implementation
@@ -391,7 +391,7 @@ uses SysUtils, Dynlibs;
 var DBLibLibraryHandle: TLibHandle;
     RefCount: integer;
 
-function InitialiseDBLib(const LibraryName : shortstring): integer;
+function InitialiseDBLib(const LibraryName : ansistring): integer;
 var libname : string;
 begin
   inc(RefCount);

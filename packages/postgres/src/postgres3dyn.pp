@@ -218,7 +218,7 @@ var
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
 
-Function InitialisePostgres3(Const libpath : shortstring) : integer;
+Function InitialisePostgres3(Const libpath : ansistring) : integer;
 Procedure InitialisePostgres3;
 Procedure ReleasePostgres3;
 
@@ -247,7 +247,7 @@ begin
 end;
 
 
-function InitialisePostgres3(Const libpath : shortstring) : Integer;
+function InitialisePostgres3(Const libpath : ansistring) : Integer;
 
 begin
   inc(RefCount);
