@@ -938,6 +938,10 @@ implementation
       { only necessary for the JVM target currently }
       if not (target_info.system in systems_jvm) then
         exit;
+      { skip if any errors have occurred, since then this can only cause more
+        errors }
+      if ErrorCount<>0 then
+        exit;
       replace_scanner('synthetic_impl',sstate);
       add_synthetic_method_implementations_for_st(st);
       for i:=0 to st.deflist.count-1 do
