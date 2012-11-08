@@ -247,6 +247,7 @@ interface
     function  try_search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
+    function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     { searches for the helper definition that's currently active for pd }
@@ -3213,37 +3214,46 @@ implementation
     function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        hashedid   : THashedIDString;
         srsym      : tsym;
-        orgpd      : tabstractrecorddef;
         srsymtable : tsymtable;
       begin
         { in case this is a formal class, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
           pd:=find_real_class_definition(tobjectdef(pd),true);
+
         if search_objectpascal_helper(pd, pd, s, result, srsymtable) then
           exit;
-        hashedid.id:=s;
-        orgpd:=pd;
-        while assigned(pd) do
-         begin
-           srsym:=tsym(pd.symtable.FindWithHash(hashedid));
-           if assigned(srsym) then
-            begin
-              search_struct_member:=srsym;
-              exit;
-            end;
-           if pd.typ=objectdef then
-             pd:=tobjectdef(pd).childof
-           else
-             pd:=nil;
-         end;
+
+        result:=search_struct_member_no_helper(pd,s);
+        if assigned(result) then
+          exit;
 
         { not found, now look for class helpers }
         if is_objcclass(pd) then
-          search_objc_helper(tobjectdef(orgpd),s,result,srsymtable)
-        else
-          result:=nil;
+          search_objc_helper(tobjectdef(pd),s,result,srsymtable)
+      end;
+
+
+    function search_struct_member_no_helper(pd: tabstractrecorddef; const s: string): tsym;
+      var
+        hashedid   : THashedIDString;
+        srsym      : tsym;
+      begin
+        hashedid.id:=s;
+        while assigned(pd) do
+         begin
+            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                result:=srsym;
+                exit;
+              end;
+            if pd.typ=objectdef then
+              pd:=tobjectdef(pd).childof
+            else
+              pd:=nil;
+          end;
+        result:=nil;
       end;
 
 
