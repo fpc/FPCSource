@@ -118,6 +118,7 @@ interface
          shentsize: longword;
          shoffset: aword;
          shstrndx: longword;
+         symtabndx: longword;
          shstrtab: PChar;
          strtab: PChar;
          shstrtablen: longword;
@@ -216,7 +217,9 @@ interface
          pltrelocsec,
          ipltrelocsec,
          dynrelocsec: TElfObjSection;
+         dynreloclist: TFPObjectList;
          tlsseg: TElfSegment;
+         relative_reloc_count: longint;
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
@@ -315,6 +318,7 @@ implementation
 {$endif x86_64}
 
       SHN_UNDEF     = 0;
+      SHN_LORESERVE = $FF00;
       SHN_ABS       = $fff1;
       SHN_COMMON    = $fff2;
 
@@ -1568,16 +1572,8 @@ implementation
               Continue
             else if sym.st_shndx=SHN_COMMON then
               bind:=AB_COMMON
-            else if (sym.st_shndx>=nsects) or
-              (
-                (sym.st_shndx>0) and
-                (FSecTbl[sym.st_shndx].sec=nil) and
-                (not dynobj)
-              ) then
-              begin
-                writeln(objdata.name,' ',i);
-                InternalError(2012060206)
-              end
+            else if (sym.st_shndx>=nsects) then
+              InternalError(2012060206)
             else
               case (sym.st_info shr 4) of
                 STB_LOCAL:
@@ -1592,6 +1588,19 @@ implementation
               else
                 InternalError(2012060207);
               end;
+
+            { Ignore section symbol if we didn't create the corresponding objsection
+              (examples are SHT_GROUP or .note.GNU-stack sections). }
+            if (sym.st_shndx>0) and (sym.st_shndx<SHN_LORESERVE) and
+              (FSecTbl[sym.st_shndx].sec=nil) and
+              (not dynobj) then
+              if ((sym.st_info and $0F)=STT_SECTION) then
+                Continue
+              else
+                begin
+                  writeln(objdata.name,' ',i);
+                  InternalError(2012110701)
+                end;
 
             case (sym.st_info and $0F) of
               STT_NOTYPE:
@@ -1802,7 +1811,7 @@ implementation
 
     function TElfObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
       var
-        i,j,symtabndx,strndx,dynndx,
+        i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
         objsec: TElfObjSection;
         shdrs: array of TElfsechdr;
@@ -1854,7 +1863,7 @@ implementation
           Note that is is legal to have no symtable.
           For DSO, locate .dynsym instead, this one is near the beginning, but
           overall number of sections won't be big. }
-        symtabndx:=-1;
+        symtabndx:=0;
         for i:=nsects-1 downto 1 do
           begin
             if (shdrs[i].sh_type<>symsectypes[dynobj]) then
@@ -1879,6 +1888,9 @@ implementation
             symtabndx:=i;
             break;
           end;
+
+        if symtabndx=0 then
+          InternalError(2012110706);
 
         if dynobj then
           begin
@@ -2031,6 +2043,7 @@ implementation
         neededlist.Free;
         segmentlist.Free;
         dynsymlist.Free;
+        dynreloclist.Free;
         if assigned(dynsymnames) then
           FreeMem(dynsymnames);
         inherited Destroy;
@@ -2629,8 +2642,25 @@ implementation
         i,j: longint;
         exesec: TExeSection;
         seg: TElfSegment;
+        objreloc: TObjRelocation;
       begin
         gotwritten:=true;
+        { If target does not support sorted relocations, it is expected to write the
+          entire .rel[a].dyn section during FixupRelocations. Otherwise, only RELATIVE ones
+          should be written, space for non-relative relocations should remain. }
+        if assigned(dynrelocsec) and (relative_reloc_count>0) then
+          begin
+            if (dynrelocsec.size+(dynreloclist.count*dynrelocsec.shentsize)<>dynrelsize) then
+              InternalError(2012110601);
+            { Write out non-RELATIVE dynamic relocations
+              TODO: additional sorting? }
+            for i:=0 to dynreloclist.count-1 do
+              begin
+                objreloc:=TObjRelocation(dynreloclist[i]);
+                WriteDynRelocEntry(objreloc.dataoffset,objreloc.ftype,objreloc.symbol.exesymbol.dynindex,0);
+              end;
+          end;
+
         { sanity checks }
         if assigned(gotobjsec) and (gotsize<>gotobjsec.size) then
           InternalError(2012092501);
@@ -2743,6 +2773,8 @@ implementation
 
         dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true);
         dynrelocsec.SecOptions:=[oso_keep];
+
+        dynreloclist:=TFPObjectList.Create(true);
       end;
 
 
@@ -2902,6 +2934,7 @@ implementation
       pltreltags: array[boolean] of longword=(DT_REL,DT_RELA);
       relsztags:  array[boolean] of longword=(DT_RELSZ,DT_RELASZ);
       relenttags: array[boolean] of longword=(DT_RELENT,DT_RELAENT);
+      relcnttags: array[boolean] of longword=(DT_RELCOUNT,DT_RELACOUNT);
 
     procedure TElfExeOutput.FinishDynamicTags;
       begin
@@ -2924,6 +2957,8 @@ implementation
             writeDynTag(relsztags[relocs_use_addend],dynrelocsec.Size);
             writeDynTag(relenttags[relocs_use_addend],dynrelocsec.shentsize);
           end;
+        if (relative_reloc_count>0) then
+          writeDynTag(relcnttags[relocs_use_addend],relative_reloc_count);
         writeDynTag(DT_NULL,0);
       end;
 
