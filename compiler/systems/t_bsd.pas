@@ -413,7 +413,7 @@ begin
         end
       else if iPhoneOSVersionMin<>'' then
         begin
-          LinkRes.Add('-ios_version_min');
+          LinkRes.Add('-iphoneos_version_min');
           LinkRes.Add(iPhoneOSVersionMin);
         end;
     end;
