@@ -319,6 +319,13 @@ interface
 
        features : tfeatures;
 
+       { prefix added to automatically generated setters/getters. If empty,
+         no getters/setters will be automatically generated except if required
+         for visibility reasons (but in that case the names will be mangled so
+         they are unique) }
+       prop_auto_getter_prefix,
+       prop_auto_setter_prefix : string;
+
     const
        DLLsource : boolean = false;
 
@@ -1335,28 +1342,42 @@ implementation
 
     function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
       var
-        tok   : string;
+        tok,
+        value : string;
+        setstr: string[2];
+        equalspos: longint;
         doset,
+        gotvalue,
         found : boolean;
         opt   : ttargetswitch;
       begin
         result:=true;
-        uppervar(s);
         repeat
           tok:=GetToken(s,',');
           if tok='' then
            break;
-          if Copy(tok,1,2)='NO' then
+          setstr:=upper(copy(tok,1,2));
+          if setstr='NO' then
             begin
               delete(tok,1,2);
               doset:=false;
             end
           else
             doset:=true;
+          { value specified? }
+          gotvalue:=false;
+          equalspos:=pos('=',tok);
+          if equalspos<>0 then
+            begin
+              value:=copy(tok,equalspos+1,length(tok));
+              delete(tok,equalspos,length(tok));
+              gotvalue:=true;
+            end;
           found:=false;
+          uppervar(tok);
           for opt:=low(ttargetswitch) to high(ttargetswitch) do
             begin
-              if TargetSwitchStr[opt]=tok then
+              if TargetSwitchStr[opt].name=tok then
                 begin
                   found:=true;
                   break;
@@ -1364,10 +1385,35 @@ implementation
             end;
           if found then
             begin
-              if doset then
-                include(a,opt)
+              if not TargetSwitchStr[opt].hasvalue then
+                begin
+                  if gotvalue then
+                    result:=false;
+                  if doset then
+                    include(a,opt)
+                  else
+                    exclude(a,opt)
+                end
               else
-                exclude(a,opt);
+                begin
+                  if not gotvalue or
+                     not doset then
+                    result:=false
+                  else
+                    begin
+                      case opt of
+                        ts_auto_getter_prefix:
+                          prop_auto_getter_prefix:=value;
+                        ts_auto_setter_predix:
+                          prop_auto_setter_prefix:=value;
+                        else
+                          begin
+                            writeln('Internalerror 2012053001');
+                            halt(1);
+                          end;
+                      end;
+                    end;
+                end;
             end
           else
             result:=false;

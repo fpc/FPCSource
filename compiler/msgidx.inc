@@ -419,6 +419,9 @@ const
   parser_e_method_lower_visibility=03322;
   parser_w_nostackframe_without_assembler=03323;
   parser_e_nostackframe_with_locals=03324;
+  parser_e_cannot_generate_property_getter_setter=03325;
+  parser_w_overriding_property_getter_setter=03326;
+  parser_w_case_difference_auto_property_getter_setter_prefix=03327;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -957,9 +960,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 67227;
+  MsgTxtSize = 67784;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,325,120,87,56,125,26,202,63,
+    26,92,328,120,87,56,125,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

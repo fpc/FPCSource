@@ -1523,7 +1523,8 @@ const
      (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr'),
      (mask:po_java_nonvirtual; str: 'Java non-virtual method'),
      (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution'),
-     (mask:po_rtlproc;         str: 'RTL procedure')
+     (mask:po_rtlproc;         str: 'RTL procedure'),
+     (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler')
   );
 var
   proctypeoption  : tproctypeoption;

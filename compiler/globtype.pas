@@ -221,8 +221,11 @@ interface
            of the current class, then this virtual method may already have
            initialized that field with another value and the constructor
            initialization will result in data loss }
-         ts_jvm_enum_field_init
-
+         ts_jvm_enum_field_init,
+         { when automatically generating getters/setters for properties, use
+           these strings as prefixes for the generated getters/setter names }
+         ts_auto_getter_prefix,
+         ts_auto_setter_predix
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -271,6 +274,11 @@ interface
           flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
        end;
 
+       ttargetswitchinfo = record
+          name: string[22];
+          hasvalue: boolean;
+       end;
+
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[11] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
@@ -286,10 +294,14 @@ interface
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
-       TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
-         'SMALLTOC',
-         'COMPACTINTARRAYINIT',
-         'ENUMFIELDINIT');
+       TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
+         (name: '';                    hasvalue: false),
+         (name: 'SMALLTOC';            hasvalue: false),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false),
+         (name:  'ENUMFIELDINIT';      hasvalue: false),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true )
+       );
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

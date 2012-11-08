@@ -390,7 +390,7 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 #
 # Parser
 #
-# 03324 is the last used one
+# 03327 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1446,12 +1446,31 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 % for the current instance inside another constructor.
 parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
-% \end{description}
 parser_w_nostackframe_without_assembler=03323_W_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
 % nostackframe call modifier is supposed to be used in conjunction with assembler.
 parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
 % nostackframe call modifier used without assembler modifier
 % might still generate local stack needs.
+parser_e_cannot_generate_property_getter_setter=03325_E_Cannot generate property getter/setter $1 because its name clashes with existing identifier $2
+% Automatically generated getters/setters cannot have the same name as existing
+% identifiers, because this may change the behaviour of existing code.
+parser_w_overriding_property_getter_setter=03326_W_Automatically generated property getter/setter $1 overrides the same-named getter/setter in class $2
+% Automatically generated property getters/setters on the JVM platform are virtual methods, because
+% the JVM does not support non-virtual methods that can be changed in child classes. This means
+% that if a child class changes an inherited property definition, the behaviour of that property
+% can change compared to native targets since even if a variable is declared as the parent type,
+% by calling the virtual method the getter from the child will be used. This is different from
+% the behaviour on native targets or when not activating automatically generated setters/getters,
+% because in that case only the declared type of a variable influences the property behaviour.
+parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Case mismatch between declared property getter/setter $1 and automatically constructed name $2, not changing declared name
+% If a property's specified getter/setter already corresponded to the naming convention specified
+% by the automatic getter/setter generation setting except in terms of upper/lowercase, the
+% compiler will print a warning because it cannot necessarily change that other declaration itself
+% not can it add one using the correct case (it could conflict with the original declaration).
+% Manually correct the case of the getter/setter to conform to the desired coding rules.
+% \var{TChild} overrides
+%
+% \end{description}
 %
 # Type Checking
 #
@@ -3359,8 +3378,10 @@ J*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
-K*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
+J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*2Cv_Var/out parameter copy-out checking
+J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
+J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file

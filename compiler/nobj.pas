@@ -423,13 +423,21 @@ implementation
                   { Give a note if the new visibility is lower. For a higher
                     visibility update the vmt info }
                   if vmtentryvis>pd.visibility then
+                    begin
+                      if po_auto_raised_visibility in vmtpd.procoptions then
+                        begin
+                          if updatevalues then
+                            pd.visibility:=vmtentryvis;
+                        end
+                      else
 {$ifdef jvm}
-                    MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
+                        MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
 {$else jvm}
-                    MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
+                        MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
 {$endif jvm}
-                         pd.fullprocname(false),
-                         visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
+                          pd.fullprocname(false),
+                          visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
+                      end
                   else if pd.visibility>vmtentryvis then
                     begin
                       if updatevalues then

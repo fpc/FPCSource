@@ -334,6 +334,9 @@ implementation
          hdef : tdef;
          arraytype : tdef;
          def : tdef;
+{$ifdef jvm}
+         orgaccesspd : tprocdef;
+{$endif}
          pt : tnode;
          sc : TFPObjectList;
          paranr : word;
@@ -532,6 +535,7 @@ implementation
                           else
                             begin
 {$ifdef jvm}
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_read].procdef);
                               { if the visibility of the getter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
@@ -541,6 +545,9 @@ implementation
                                   p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
                                   p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
                                 end;
+                              if (prop_auto_getter_prefix<>'') and
+                                 (p.propaccesslist[palt_read].firstsym^.sym.RealName<>prop_auto_getter_prefix+p.RealName) then
+                                jvm_create_getter_for_property(p,orgaccesspd);
 {$endif jvm}
                             end;
                         end;
@@ -563,8 +570,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_getter_for_property(p);
+                             if (prop_auto_getter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_getter_for_property(p,nil);
 {$endif}
                            end
                           else
@@ -608,7 +616,8 @@ implementation
                           else
                             begin
 {$ifdef jvm}
-                              { if the visibility of the getter is lower than
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_write].procdef);
+                              { if the visibility of the setter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
                                 property is visible }
@@ -617,6 +626,9 @@ implementation
                                   p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
                                   p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
                                 end;
+                              if (prop_auto_setter_prefix<>'') and
+                                 (sym.RealName<>prop_auto_setter_prefix+p.RealName) then
+                                jvm_create_setter_for_property(p,orgaccesspd);
 {$endif jvm}
                             end;
                         end;
@@ -639,8 +651,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_setter_for_property(p);
+                             if (prop_auto_setter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_setter_for_property(p,nil);
 {$endif}
                            end
                           else
