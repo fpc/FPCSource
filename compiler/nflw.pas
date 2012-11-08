@@ -749,7 +749,7 @@ implementation
 
         loopbody:=internalstatements(loopbodystatement);
         { for-in loop variable := enumerator.current }
-        if getpropaccesslist(enumerator_current,palt_read,propaccesslist) then
+        if enumerator_current.getpropaccesslist(palt_read,propaccesslist) then
           begin
              case propaccesslist.firstsym^.sym.typ of
                fieldvarsym :

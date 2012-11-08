@@ -286,6 +286,12 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
+          function getpropaccesslist(pap:tpropaccesslisttypes;out plist:tpropaccesslist):boolean;
+          { copies the settings of the current propertysym to p; a bit like
+            a form of getcopy, but without the name }
+          procedure makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
+          procedure add_accessor_parameters(readprocdef, writeprocdef: tprocdef);
+          procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
        end;
 
        tconstvalue = record
@@ -1184,6 +1190,86 @@ implementation
         else
         if ppo_hasparameters in propoptions then
           tparasymtable(parast).deref
+      end;
+
+
+    function tpropertysym.getpropaccesslist(pap:tpropaccesslisttypes;out plist:tpropaccesslist):boolean;
+    var
+      hpropsym : tpropertysym;
+    begin
+      result:=false;
+      { find property in the overridden list }
+      hpropsym:=self;
+      repeat
+        plist:=hpropsym.propaccesslist[pap];
+        if not plist.empty then
+          begin
+            result:=true;
+            exit;
+          end;
+        hpropsym:=hpropsym.overriddenpropsym;
+      until not assigned(hpropsym);
+    end;
+
+
+    procedure tpropertysym.add_accessor_parameters(readprocdef, writeprocdef: tprocdef);
+      var
+        i: integer;
+        orig, hparavs: tparavarsym;
+      begin
+        for i := 0 to parast.SymList.Count - 1 do
+          begin
+            orig:=tparavarsym(parast.SymList[i]);
+            if assigned(readprocdef) then
+              begin
+                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                readprocdef.parast.insert(hparavs);
+              end;
+            if assigned(writeprocdef) then
+              begin
+                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                writeprocdef.parast.insert(hparavs);
+              end;
+          end;
+      end;
+
+
+    procedure tpropertysym.add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
+      var
+        hparavs: tparavarsym;
+      begin
+        inc(paranr);
+        if assigned(readprocdef) then
+          begin
+            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            readprocdef.parast.insert(hparavs);
+          end;
+        if assigned(writeprocdef) then
+          begin
+            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            writeprocdef.parast.insert(hparavs);
+          end;
+      end;
+
+
+
+    procedure tpropertysym.makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
+      begin
+        { inherit all type related entries }
+        p.indexdef:=indexdef;
+        p.propdef:=propdef;
+        p.index:=index;
+        p.default:=default;
+        p.propoptions:=propoptions;
+        paranr:=0;
+        if ppo_hasparameters in propoptions then
+          begin
+            p.parast:=parast.getcopy;
+            p.add_accessor_parameters(readprocdef,writeprocdef);
+            paranr:=p.parast.SymList.Count;
+          end;
+        if ppo_indexed in p.propoptions then
+          p.add_index_parameter(paranr,readprocdef,writeprocdef);
       end;
 
 

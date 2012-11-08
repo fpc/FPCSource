@@ -1090,7 +1090,7 @@ implementation
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              if getpropaccesslist(propsym,palt_write,propaccesslist) then
+              if propsym.getpropaccesslist(palt_write,propaccesslist) then
                 begin
                    sym:=propaccesslist.firstsym^.sym;
                    case sym.typ of
@@ -1142,7 +1142,7 @@ implementation
            end
          else
            begin
-              if getpropaccesslist(propsym,palt_read,propaccesslist) then
+              if propsym.getpropaccesslist(palt_read,propaccesslist) then
                 begin
                    sym := propaccesslist.firstsym^.sym;
                    case sym.typ of

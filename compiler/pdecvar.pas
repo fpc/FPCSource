@@ -325,32 +325,6 @@ implementation
                 end;
             end;
 
-          procedure add_parameters(p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              i: integer;
-              orig, hparavs: tparavarsym;
-            begin
-              for i := 0 to p.parast.SymList.Count - 1 do
-                begin
-                  orig:=tparavarsym(p.parast.SymList[i]);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  readprocdef.parast.insert(hparavs);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  writeprocdef.parast.insert(hparavs);
-                end;
-            end;
-
-          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              hparavs: tparavarsym;
-            begin
-              inc(paranr);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              readprocdef.parast.insert(hparavs);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              writeprocdef.parast.insert(hparavs);
-            end;
-
       var
          sym : tsym;
          srsymtable: tsymtable;
@@ -457,7 +431,7 @@ implementation
                 index parameter doesn't count (PFV) }
               if paranr>0 then
                 begin
-                  add_parameters(p,readprocdef,writeprocdef);
+                  p.add_accessor_parameters(readprocdef,writeprocdef);
                   include(p.propoptions,ppo_hasparameters);
                 end;
            end;
@@ -499,7 +473,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                   p.add_index_parameter(paranr,readprocdef,writeprocdef);
                    pt.free;
                 end;
            end
@@ -514,21 +488,9 @@ implementation
                  (overridden.typ=propertysym) and
                  not(is_dispinterface(astruct)) then
                 begin
+                  tpropertysym(overridden).makeduplicate(p,readprocdef,writeprocdef,paranr);
                   p.overriddenpropsym:=tpropertysym(overridden);
-                  { inherit all type related entries }
-                  p.indexdef:=tpropertysym(overridden).indexdef;
-                  p.propdef:=tpropertysym(overridden).propdef;
-                  p.index:=tpropertysym(overridden).index;
-                  p.default:=tpropertysym(overridden).default;
-                  p.propoptions:=tpropertysym(overridden).propoptions + [ppo_overrides];
-                  if ppo_hasparameters in p.propoptions then
-                    begin
-                      p.parast:=tpropertysym(overridden).parast.getcopy;
-                      add_parameters(p,readprocdef,writeprocdef);
-                      paranr:=p.parast.SymList.Count;
-                    end;
-                  if ppo_indexed in p.propoptions then
-                    add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                  include(p.propoptions,ppo_overrides);
                 end
               else
                 begin

@@ -94,7 +94,6 @@ interface
       containing no code }
     function has_no_code(n : tnode) : boolean;
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -884,25 +883,6 @@ implementation
         else
           result:=cordconstnode.create(value,def,cs_check_range in current_settings.localswitches);
       end;
-
-
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
-    var
-      hpropsym : tpropertysym;
-    begin
-      result:=false;
-      { find property in the overridden list }
-      hpropsym:=propsym;
-      repeat
-        propaccesslist:=hpropsym.propaccesslist[pap];
-        if not propaccesslist.empty then
-          begin
-            result:=true;
-            exit;
-          end;
-        hpropsym:=hpropsym.overriddenpropsym;
-      until not assigned(hpropsym);
-    end;
 
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);

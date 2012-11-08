@@ -1590,10 +1590,10 @@ const
      (mask:vo_is_msgsel;str:'MsgSel'),
      (mask:vo_is_weak_external;str:'WeakExternal'),
      (mask:vo_is_first_field;str:'IsFirstField'),
-     (mask:vo_volatile;str:'Volatile'),
-     (mask:vo_has_section;str:'HasSection'),
-     (mask:vo_force_finalize;str:'ForceFinalize'),
-     (mask:vo_is_default_var;str:'DefaultIntrinsicVar')
+     (mask:vo_volatile;        str:'Volatile'),
+     (mask:vo_has_section;     str:'HasSection'),
+     (mask:vo_force_finalize;  str:'ForceFinalize'),
+     (mask:vo_is_default_var;  str:'DefaultIntrinsicVar')
   );
 var
   i : longint;
