@@ -40,7 +40,7 @@ implementation
 
     TElfExeOutput386=class(TElfExeOutput)
     private
-      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
+      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
     protected
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
@@ -209,6 +209,7 @@ implementation
             objsym.refs:=objsym.refs or symref_plt;
           end;
 
+        R_386_TLS_IE,
         R_386_GOT32:
           begin
             sym:=ObjReloc.symbol.exesymbol;
@@ -266,7 +267,7 @@ implementation
                    (objreloc.symbol.exesymbol.dynindex<>0)) then
                   InternalError(2012101201);
                 if (oso_executable in objsec.SecOptions) or
-                   not (oso_write in objsec.SecOptions) then
+                  not (oso_write in objsec.SecOptions) then
                   hastextrelocs:=True;
                 dynrelocsec.alloc(dynrelocsec.shentsize);
                 objreloc.flags:=objreloc.flags or rf_dynamic;
@@ -276,11 +277,11 @@ implementation
     end;
 
 
-  procedure TElfExeOutput386.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
+  procedure TElfExeOutput386.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
     var
-      gotoff,dynidx,tmp:aword;
+      gotoff,tmp:aword;
     begin
-      gotoff:=exesym.gotoffset;
+      gotoff:=objsym.exesymbol.gotoffset;
       if gotoff=0 then
         InternalError(2012060902);
 
@@ -288,12 +289,18 @@ implementation
       { TODO: only data symbols must get here }
       if gotoff=gotobjsec.Data.size+sizeof(pint) then
         begin
-          dynidx:=exesym.dynindex;
           gotobjsec.write(relocval,sizeof(pint));
 
           tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
-          if (dynidx>0) then
-            WriteDynRelocEntry(tmp,R_386_GLOB_DAT,dynidx,0)
+          if (objsym.exesymbol.dynindex>0) then
+            begin
+              if (reltyp=R_386_TLS_IE) then
+                if IsSharedLibrary then
+                  WriteDynRelocEntry(tmp,R_386_TLS_TPOFF,objsym.exesymbol.dynindex,0)
+                else
+              else
+                WriteDynRelocEntry(tmp,R_386_GLOB_DAT,objsym.exesymbol.dynindex,0)
+            end
           else if IsSharedLibrary then
             WriteDynRelocEntry(tmp,R_386_RELATIVE,0,relocval);
         end;
@@ -309,6 +316,7 @@ implementation
       relocsec : TObjSection;
       data: TDynamicArray;
       reltyp: byte;
+      PC: aword;
     begin
       data:=objsec.data;
       for i:=0 to objsec.ObjRelocations.Count-1 do
@@ -359,21 +367,22 @@ implementation
               internalerror(2012060703);
             end;
 
+          PC:=objsec.mempos+objreloc.dataoffset;
           { TODO: if relocsec=nil, relocations must be copied to .rel.dyn section }
           if (relocsec=nil) or (relocsec.used) then
             case reltyp of
               R_386_PC32:
                 begin
                   if (objreloc.flags and rf_dynamic)<>0 then
-                    WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_PC32,objreloc.symbol.exesymbol.dynindex,0)
+                    WriteDynRelocEntry(PC,R_386_PC32,objreloc.symbol.exesymbol.dynindex,0)
                   else
-                    address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                    address:=address+relocval-PC;
                 end;
 
               R_386_PLT32:
                 begin
                   { If target is in current object, treat as RELOC_RELATIVE }
-                  address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                  address:=address+relocval-PC;
                 end;
 
               R_386_32:
@@ -385,11 +394,11 @@ implementation
                          (objreloc.symbol.exesymbol.dynindex=0) then
                         begin
                           address:=address+relocval;
-                          WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_RELATIVE,0,address);
+                          WriteDynRelocEntry(PC,R_386_RELATIVE,0,address);
                         end
                       else
                         { Don't modify address in this case, as it serves as addend for RTLD }
-                        WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_386_32,objreloc.symbol.exesymbol.dynindex,0);
+                        WriteDynRelocEntry(PC,R_386_32,objreloc.symbol.exesymbol.dynindex,0);
                     end
                   else
                     address:=address+relocval;
@@ -397,12 +406,12 @@ implementation
 
               R_386_GOTPC:
                 begin
-                  address:=address+gotsymbol.address-(objsec.mempos+objreloc.dataoffset);
+                  address:=address+gotsymbol.address-PC;
                 end;
 
               R_386_GOT32:
                 begin
-                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol.exesymbol);
+                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
 
                   relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint)-gotsymbol.address;
                   address:=address+relocval;
@@ -413,9 +422,44 @@ implementation
                   address:=address+relocval-gotsymbol.address;
                 end;
 
+
+              R_386_TLS_IE:
+                begin
+                  relocval:=-(tlsseg.MemPos+tlsseg.MemSize-relocval);
+                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
+
+                  { Resolves to *absolute* offset of GOT slot }
+                  relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint);
+                  address:=address+relocval;
+                end;
+
+              R_386_TLS_LE_32,
+              R_386_TLS_LE:
+                begin
+                  if IsSharedLibrary then
+                    begin
+                      {
+                      if reltyp=R_386_TLS_LE_32 then
+                        begin
+                          WriteDynRelocEntry(PC,R_386_TLS_TPOFF32,symbol.exesymbol.dynindex,0);
+                          address:=tlsseg.MemPos-relocval;
+                        end;
+                      else
+                        begin
+                          WriteDynRelocEntry(PC,R_386_TLS_TPOFF,symbol.exesymbol.dynindex,0);
+                          address:=address-tlsseg.MemPos;
+                        end;
+                       }
+                    end
+                  else if (reltyp=R_386_TLS_LE) then
+                    address:=-(tlsseg.MemPos+tlsseg.MemSize-relocval)
+                  else
+                    address:=tlsseg.MemPos+tlsseg.MemSize-relocval;
+                end;
+
               else
                 begin
-                  writeln(objreloc.typ);
+                  writeln(reltyp);
                   internalerror(200604014);
                 end;
             end
