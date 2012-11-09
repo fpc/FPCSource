@@ -399,7 +399,6 @@ implementation
           oldblock_type := block_type;
           block_type := bt_body;
           do_member_read(od,false,constrpd.procsym,p1,again,[]);
-          p1.Free;
           block_type:=oldblock_type;
 
           { Add attribute to attribute list which will be added
