@@ -99,6 +99,8 @@ interface
          FGroupStack : TFPObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
+         procedure Load_Group;
+         procedure Load_EndGroup;
          procedure ParseScript_Handle;
          procedure ParseScript_PostCheck;
          procedure ParseScript_Load;
@@ -1055,6 +1057,22 @@ Implementation
       end;
 
 
+    procedure TInternalLinker.Load_Group;
+      var
+        group: TStaticLibrary;
+      begin
+        group:=TStaticLibrary.create_group;
+        TFPObjectList(FGroupStack.Last).Add(group);
+        FGroupStack.Add(group.GroupMembers);
+      end;
+
+
+    procedure TInternalLinker.Load_EndGroup;
+      begin
+        FGroupStack.Delete(FGroupStack.Count-1);
+      end;
+
+
     procedure TInternalLinker.ParseScript_Handle;
       var
         s, para, keyword : String;
@@ -1093,7 +1111,9 @@ Implementation
                (keyword<>'EXESECTION') and
                (keyword<>'ENDEXESECTION') and
                (keyword<>'OBJSECTION') and
-               (keyword<>'HEADER')
+               (keyword<>'HEADER') and
+               (keyword<>'GROUP') and
+               (keyword<>'ENDGROUP')
                then
               Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
                 +'" internal linker script');
@@ -1179,6 +1199,10 @@ Implementation
               UseStabs:=true
             else if keyword='READSTATICLIBRARY' then
               Load_ReadStaticLibrary(para)
+            else if keyword='GROUP' then
+              Load_Group
+            else if keyword='ENDGROUP' then
+              Load_EndGroup
             else
               handled:=false;
             if handled then
@@ -1353,10 +1377,10 @@ Implementation
         Message1(exec_i_linking,outputname);
         FlushOutput;
 
+        exeoutput:=CExeOutput.Create;
+
 { TODO: Load custom linker script}
         DefaultLinkScript;
-
-        exeoutput:=CExeOutput.Create;
 
         if (cs_link_map in current_settings.globalswitches) then
           exemap:=texemap.create(current_module.mapfilename);
