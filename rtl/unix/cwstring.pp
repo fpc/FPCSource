@@ -30,7 +30,6 @@ implementation
 {$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$if defined(haiku)}
    {$linklib textencoding}
-   {$linklib locale}
  {$else}
    {$linklib iconv}
  {$endif}
@@ -162,7 +161,7 @@ type
   nl_item = cint;
 
 {$ifdef haiku}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'root' name 'nl_langinfo';
 {$else}
   {$ifndef beos}
   function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
