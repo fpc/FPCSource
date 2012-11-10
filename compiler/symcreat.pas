@@ -977,9 +977,7 @@ implementation
              { not true for the "main" procedure, whose localsymtable is the staticsymtable }
              (tprocdef(def).localst.symtabletype=localsymtable) then
             add_synthetic_method_implementations(tprocdef(def).localst)
-          else if (def.typ=objectdef) then
-            add_synthetic_method_implementations(tobjectdef(def).symtable)
-          else if (is_javaclass(def) and
+          else if ((def.typ=objectdef) and
               not(oo_is_external in tobjectdef(def).objectoptions)) or
               (def.typ=recorddef) then
            begin
