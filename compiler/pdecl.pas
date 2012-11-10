@@ -870,8 +870,9 @@ implementation
                generictypelist.free;
              end;
 
-           if Assigned(current_rtticlassattributesdef) then
-             internalerror(202105250);
+           if assigned(current_rtticlassattributesdef) and (current_rtticlassattributesdef.get_attribute_count>0) then
+             Message1(scan_e_unresolved_attribute,trtti_attribute(current_rtticlassattributesdef.rtti_attributes[0]).typesym.prettyname);
+
          until ((token<>_ID) and (token<>_LECKKLAMMER)) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
