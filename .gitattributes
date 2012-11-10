@@ -10485,6 +10485,7 @@ tests/test/tclassattribute3.pp svneol=native#text/plain
 tests/test/tclassattribute4.pp svneol=native#text/plain
 tests/test/tclassattribute5.pp svneol=native#text/plain
 tests/test/tclassattribute6.pp svneol=native#text/plain
+tests/test/tclassattribute7.pp svneol=native#text/plain
 tests/test/tclassinfo1.pp svneol=native#text/pascal
 tests/test/tclrprop.pp svneol=native#text/plain
 tests/test/tcmov1.pp svneol=native#text/plain

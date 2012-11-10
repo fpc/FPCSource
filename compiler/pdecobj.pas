@@ -1231,6 +1231,8 @@ implementation
               end;
             _END :
               begin
+                if assigned(current_rttiattributesdef) and (current_rttiattributesdef.get_attribute_count>0) then
+                  Message1(scan_e_unresolved_attribute,trtti_attribute(current_rttiattributesdef.rtti_attributes[0]).typesym.prettyname);
                 consume(_END);
                 break;
               end;

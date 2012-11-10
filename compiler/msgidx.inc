@@ -113,6 +113,7 @@ const
   scanner_f_illegal_utf8_bom=02089;
   scanner_w_directive_ignored_on_target=02090;
   scan_w_unavailable_system_codepage=02091;
+  scan_e_unresolved_attribute=02092;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -943,9 +944,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 65908;
+  MsgTxtSize = 65951;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,322,118,87,56,116,26,202,63,
+    26,93,322,118,87,56,116,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02091 is the last used one
+# 02092 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -386,6 +386,8 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 % The compiler is compiled with support for several codepages built-in.
 % The codepage of the operation system is not in that list. You will need to recompile
 % the compiler with support for this codepage.
+scan_e_unresolved_attribute=02092_E_Unresolved custom attribute: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
 % \end{description}
 #
 # Parser
