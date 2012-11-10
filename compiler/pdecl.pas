@@ -478,14 +478,14 @@ implementation
            generictypelist:=nil;
            generictokenbuf:=nil;
 
-           { fpc generic declaration? }
-           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
-
            { class attribute definitions? }
            while token=_LECKKLAMMER do
              begin
                parse_rttiattributes(current_rtticlassattributesdef);
              end;
+
+           { fpc generic declaration? }
+           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
 
            typename:=pattern;
            orgtypename:=orgpattern;
