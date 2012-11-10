@@ -36,6 +36,7 @@ interface
 
       TJVMParaManager=class(TParaManager)
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
@@ -73,10 +74,24 @@ implementation
       begin
         { we don't need a separate high parameter, since all arrays in Java
           have an implicit associated length }
-        if not is_open_array(def) then
+        if not is_open_array(def) and
+           not is_array_of_const(def) then
           result:=inherited
         else
           result:=false;
+      end;
+
+
+    function TJVMParaManager.keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        { even though these don't need a high parameter (see push_high_param),
+          we do have to keep the original parameter's array length because it's
+          used by the compiler (to determine the size of the array to construct
+          to pass to an array of const parameter)  }
+        if not is_array_of_const(def) then
+          result:=inherited
+        else
+          result:=true;
       end;
 
 

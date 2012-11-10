@@ -50,6 +50,7 @@ unit paramgr;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           function push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function keep_para_array_range(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           { Returns true if a parameter is too large to copy and only
             the address is pushed
@@ -194,6 +195,12 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
+      end;
+
+
+    function tparamanager.keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        result:=push_high_param(varspez,def,calloption);
       end;
 
 

@@ -822,7 +822,7 @@ implementation
                     not(parasym.univpara) then
                    begin
                       { Process open parameters }
-                      if paramanager.push_high_param(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
+                      if paramanager.keep_para_array_range(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
                        begin
                          { insert type conv but hold the ranges of the array }
                          olddef:=left.resultdef;

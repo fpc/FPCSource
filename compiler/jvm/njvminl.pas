@@ -89,7 +89,8 @@ implementation
       begin
         typecheckpass(left);
         if is_open_array(left.resultdef) or
-           is_dynamic_array(left.resultdef) then
+           is_dynamic_array(left.resultdef) or
+           is_array_of_const(left.resultdef) then
           begin
             resultdef:=s32inttype;
             result:=nil;
@@ -102,7 +103,8 @@ implementation
       begin
         typecheckpass(left);
         if is_dynamic_array(left.resultdef) or
-           is_open_array(left.resultdef) then
+           is_open_array(left.resultdef) or
+           is_array_of_const(left.resultdef) then
           begin
             { replace with pred(length(arr)) }
             result:=cinlinenode.create(in_pred_x,false,
@@ -629,7 +631,8 @@ implementation
     procedure tjvminlinenode.second_length;
       begin
         if is_dynamic_array(left.resultdef) or
-           is_open_array(left.resultdef) then
+           is_open_array(left.resultdef) or
+           is_array_of_const(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_S32);
             location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
