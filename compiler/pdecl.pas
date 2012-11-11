@@ -366,6 +366,19 @@ implementation
          consume(_SEMICOLON);
       end;
 
+    function find_create_constructor(objdef: tobjectdef): tsymentry;
+      begin
+         while assigned(objdef) do
+           begin
+             result:=objdef.symtable.Find('CREATE');
+             if assigned(result) then
+               exit;
+             objdef:=objdef.childof;
+           end;
+         // A class without a constructor called 'create'?!?
+         internalerror(2012111101);
+      end;
+
     procedure parse_rttiattributes(var rtti_attributes: trtti_attributesdef);
       var
         p, p1: tnode;
@@ -373,6 +386,7 @@ implementation
         again: boolean;
         od: tobjectdef;
         classattrdef: tobjectdef;
+        constrsym: tsymentry;
         constrpd: tprocdef;
         typesym: ttypesym;
         oldblock_type: tblock_type;
@@ -390,7 +404,10 @@ implementation
             incompatibletypes(od,classattrdef);
 
           { Search the tprocdef of the constructor which has to be called. }
-          constrpd := od.find_procdef_bytype(potype_constructor);
+          constrsym := find_create_constructor(od);
+          if constrsym.typ<>procsym then
+            internalerror(2012102301);
+          constrpd:=tprocsym(constrsym).find_procdef_bytype(potype_constructor);
 
           { Parse the attribute-parameters as if it is a list of parameters from
             a call to the constrpd constructor in an execution-block. }
