@@ -6227,8 +6227,8 @@ end;
 
 procedure TBuildEngine.Clean(APackage: TPackage; AllTargets: boolean);
 var
-//  ACPU: TCpu;
-//  AOS: TOS;
+  ACPU: TCpu;
+  AOS: TOS;
   DirectoryList : TStringList;
 begin
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
@@ -6242,8 +6242,12 @@ begin
         // being renamed and such. See also bug 19655
         DirectoryList := TStringList.Create;
         try
-          DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
-          DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+          for ACPU:=low(TCpu) to high(TCpu) do
+            for AOS:=low(TOS) to high(TOS) do
+              begin
+                DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+                DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+              end;
           CmdRemoveTrees(DirectoryList);
         finally
           DirectoryList.Free;
