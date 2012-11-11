@@ -10966,7 +10966,7 @@ end;
 Function ListView_GetCheckState( hwndLV : hwnd; i : WPARAM):UINT;
 
 Begin
- Result:=(SendMessage((hwndLV), LVM_GETITEMSTATE, (i), LVIS_STATEIMAGEMASK) shl 12) -1;
+ Result:=(SendMessage((hwndLV), LVM_GETITEMSTATE, (i), LVIS_STATEIMAGEMASK) shr 12) -1;
 end;
 
 
