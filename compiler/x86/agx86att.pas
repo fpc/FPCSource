@@ -346,6 +346,10 @@ interface
                                 owner.AsmWrite(gas_opsize2str[S_YMM]);
                                 break;
                               end;
+                           0: begin
+                                owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+                                break;
+                              end;
                 end;
               end;
             end;
