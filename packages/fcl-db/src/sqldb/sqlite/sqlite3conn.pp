@@ -86,7 +86,7 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     // New methods
     procedure execsql(const asql: string);
-    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override; // Differs from SQLDB.
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     function StrToStatementType(s : string) : TStatementType; override;
@@ -122,8 +122,10 @@ implementation
 uses
   dbconst, sysutils, dateutils, FmtBCD;
 
+{$IF NOT DECLARED(JulianEpoch)} // sysutils/datih.inc
 const
-  JulianDateShift = 2415018.5; //distance from "julian day 0" (January 1, 4713 BC 12:00AM) to "1899-12-30 00:00AM"
+  JulianEpoch = TDateTime(-2415018.5); // "julian day 0" is January 1, 4713 BC 12:00AM
+{$ENDIF}
 
 type
 
@@ -139,7 +141,7 @@ type
    fparambinding: array of Integer;
    procedure checkerror(const aerror: integer);
    procedure bindparams(AParams : TParams);
-   Procedure Prepare(Buf : String; APArams : TParams);
+   Procedure Prepare(Buf : String; AParams : TParams);
    Procedure UnPrepare;
    Procedure Execute;
    Function Fetch : Boolean;
@@ -178,37 +180,34 @@ Procedure TSQLite3Cursor.bindparams(AParams : TParams);
 Var
   I : Integer;
   P : TParam;  
-  pc : pchar;
   str1: string;
-  cu1: currency;
   do1: double;
-  parms : array of Integer;
   wstr1: widestring;
   
 begin
-  for I:=1  to high(fparambinding)+1 do 
+  for I:=1 to high(fparambinding)+1 do
     begin
-    P:=aparams[fparambinding[I-1]];
-    if P.isnull then 
+    P:=AParams[fparambinding[I-1]];
+    if P.IsNull then
       checkerror(sqlite3_bind_null(fstatement,I))
     else 
       case P.datatype of
-        ftinteger,
-        ftboolean,
-        ftsmallint: checkerror(sqlite3_bind_int(fstatement,I,p.asinteger));
-        ftword:     checkerror(sqlite3_bind_int(fstatement,I,P.asword));
-        ftlargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.aslargeint));
-        ftbcd,
-        ftfloat,
-        ftcurrency:
+        ftInteger,
+        ftBoolean,
+        ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
+        ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
+        ftLargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
+        ftBcd,
+        ftFloat,
+        ftCurrency:
                 begin
                 do1:= P.AsFloat;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
-        ftdatetime,
-        ftdate,
-        fttime: begin
-                do1:= P.AsFloat + JulianDateShift;
+        ftDateTime,
+        ftDate,
+        ftTime: begin
+                do1:= P.AsFloat - JulianEpoch;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
         ftFMTBcd:
@@ -216,9 +215,9 @@ begin
                 str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
                 checkerror(sqlite3_bind_text(fstatement, I, PChar(str1), length(str1), sqlite3_destructor_type(SQLITE_TRANSIENT)));
                 end;
-        ftstring,
+        ftString,
         ftFixedChar,
-        ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
+        ftMemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
                 checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end;
@@ -239,12 +238,12 @@ begin
     end;   
 end;
 
-Procedure TSQLite3Cursor.Prepare(Buf : String; APArams : TParams);
+Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
 
 begin
-  if assigned(aparams) and (aparams.count > 0) then 
-    buf := aparams.parsesql(buf,false,false,false,psinterbase,fparambinding);
-  checkerror(sqlite3_prepare(fhandle,pchar(buf),length(buf),@fstatement,@ftail));
+  if assigned(AParams) and (AParams.Count > 0) then
+    Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+  checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
   FPrepared:=True;
 end;
 
@@ -414,7 +413,6 @@ var
  FN,FD : string;
  ft1   : tfieldtype;
  size1, size2 : integer;
- ar1   : TStringArray;
  fi    : integer;
  st    : psqlite3_stmt;
 
@@ -621,7 +619,7 @@ begin
                begin
                PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
                if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
-                  PDateTime(buffer)^ := PDateTime(buffer)^ - JulianDateShift; //backward compatibility hack
+                  PDateTime(buffer)^ := PDateTime(buffer)^ + JulianEpoch; //backward compatibility hack
                end;
     ftFixedChar,
     ftString: begin
@@ -956,7 +954,7 @@ var S1, S2: AnsiString;
 begin
   SetString(S1, data1, len1);
   SetString(S2, data2, len2);
-  Result := WideCompareStr(UTF8Decode(S1), UTF8Decode(S2));
+  Result := UnicodeCompareStr(UTF8Decode(S1), UTF8Decode(S2));
 end;
 
 procedure TSQLite3Connection.CreateCollation(const CollationName: string;
