@@ -930,7 +930,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite;
+    InitializeSqlite(SQLiteLibraryName);
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
