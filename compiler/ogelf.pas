@@ -440,6 +440,8 @@ implementation
       DT_VERNEED   = $6ffffffe;
       DT_VERNEEDNUM = $6fffffff;
 
+      GRP_COMDAT = 1;
+
       type
       { Structures which are written directly to the output file }
         TElf32header=packed record
@@ -1653,6 +1655,7 @@ implementation
       var
         shdr: TElfsechdr absolute hdr;
         sec: TElfObjSection;
+        sym: TElfSymbol;
         secname: string;
       begin
         case shdr.sh_type of
@@ -1718,13 +1721,39 @@ implementation
               (shdr.sh_entsize=sizeof(longword)) and
               ((shdr.sh_size mod shdr.sh_entsize)=0) then
               begin
-                { we need a dummy section to load the corresponding symbol later on }
-                secname:=string(PChar(@shstrtab[shdr.sh_name]));
-                sec:=TElfObjSection.create_ext(objdata,secname,
-                  shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize);
-                sec.index:=index;
-                FSecTbl[index].sec:=sec;
-              end;
+                { Groups are identified by name of symbol pointed to by
+                  sh_link and sh_info, not by sh_name. This symbol
+                  may as well be STT_SECTION symbol of this section,
+                  in which case we end up using sh_name. }
+                if dynobj then
+                  InternalError(2012110801);
+                if (shdr.sh_link<>symtabndx) then
+                  InternalError(2012110703);
+                if (shdr.sh_info>=syms) then
+                  InternalError(2012110704);
+
+                FReader.Seek(symtaboffset+shdr.sh_info*sizeof(TElfSymbol));
+                FReader.Read(sym,sizeof(TElfSymbol));
+                MaybeSwapElfSymbol(sym);
+                if sym.st_name>=strtablen then
+                  InternalError(2012110705);
+                if (sym.st_shndx=index) and (sym.st_info=((STB_LOCAL shl 4) or STT_SECTION)) then
+                  secname:=string(PChar(@shstrtab[shdr.sh_name]))
+                else
+                  secname:=string(PChar(@strtab[sym.st_name]));
+
+                { Postpone further processing until all sections are loaded,
+                  we'll need to access correct section header.
+                  Since ABI requires SHT_GROUP sections to come first in the file,
+                  we assume that group number x has header index x+1.
+                  If we ever encounter files where this is not true, we'll have
+                  to maintain a separate index. }
+                objdata.CreateSectionGroup(secname);
+                if (index<>objdata.GroupsList.Count) then
+                  InternalError(2012110802);
+              end
+            else
+              InternalError(2012110706);
         else
           InternalError(2012072603);
         end;
@@ -1813,8 +1842,11 @@ implementation
       var
         i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
-        objsec: TElfObjSection;
+        objsec: TObjSection;
         shdrs: array of TElfsechdr;
+        grp: TObjSectionGroup;
+        tmp: longword;
+        count: longint;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -1986,7 +2018,7 @@ implementation
         { finish relocations }
         for i:=0 to objdata.ObjSectionList.Count-1 do
           begin
-            objsec:=TElfObjSection(objdata.ObjsectionList[i]);
+            objsec:=TObjSection(objdata.ObjsectionList[i]);
             { skip debug sections }
             if (oso_debug in objsec.SecOptions) and
                (cs_link_strip in current_settings.globalswitches) and
@@ -1995,6 +2027,40 @@ implementation
 
             if FSecTbl[objsec.index].relocpos>0 then
               LoadRelocations(FSecTbl[objsec.index]);
+          end;
+
+        { finish processing section groups, if any }
+        if Assigned(objdata.GroupsList) then
+          begin
+            for i:=0 to objdata.GroupsList.Count-1 do
+              begin
+                grp:=TObjSectionGroup(objData.GroupsList[i]);
+                FReader.Seek(shdrs[i+1].sh_offset);
+                { first dword is flags }
+                FReader.Read(tmp,sizeof(longword));
+                if source_info.endian<>target_info.endian then
+                  tmp:=SwapEndian(tmp);
+                if (tmp and GRP_COMDAT)<>0 then
+                  grp.IsComdat:=true;
+
+                count:=(shdrs[i+1].sh_size div sizeof(longword))-1;
+                SetLength(grp.members,count);
+                for j:=0 to count-1 do
+                  begin
+                    FReader.Read(tmp,sizeof(longword));
+                    if source_info.endian<>target_info.endian then
+                      tmp:=SwapEndian(tmp);
+                    if (tmp>=nsects) then
+                      InternalError(2012110805);
+                    objsec:=FSecTbl[tmp].sec;
+                    if (objsec=nil) then
+                      InternalError(2012110806);
+                    if (TElfObjSection(objsec).shflags and SHF_GROUP)=0 then
+                      InternalError(2012110807);
+                    grp.members[j]:=objsec;
+                    objsec.Group:=grp;
+                  end;
+              end;
           end;
 
         result:=True;
@@ -2405,7 +2471,11 @@ implementation
           TExeSymbol(dynsymlist[i]).dynindex:=i+1;
 
         { Drop unresolved symbols that aren't referenced, assign dynamic
-          indices to remaining ones. }
+          indices to remaining ones, but not if linking with -Xt.
+          TODO: behavior of .so with -Xt ? }
+        if (cs_link_staticflag in current_settings.globalswitches) then
+          UnresolvedExeSymbols.Clear
+        else
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);

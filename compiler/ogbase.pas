@@ -201,6 +201,8 @@ interface
         property typ: TObjRelocationType read GetType write SetType;
      end;
 
+     TObjSectionGroup = class;
+
      TObjSection = class(TFPHashObject)
      private
        FData       : TDynamicArray;
@@ -216,6 +218,7 @@ interface
        Size,
        DataPos,
        MemPos     : aword;
+       Group      : TObjSectionGroup;
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
        ObjRelocations : TFPObjectList;
@@ -245,6 +248,12 @@ interface
      end;
      TObjSectionClass = class of TObjSection;
 
+     TObjSectionGroup = class(TFPHashObject)
+     public
+       members: array of TObjSection;
+       iscomdat: boolean;
+     end;
+
      TString80 = string[80];
 
      TObjData = class(TLinkedListItem)
@@ -258,6 +267,7 @@ interface
        { Special info sections that are written to during object generation }
        FStabsObjSec,
        FStabStrObjSec : TObjSection;
+       FGroupsList : TFPHashObjectList;
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
@@ -275,6 +285,7 @@ interface
        function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;
        function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
+       function  createsectiongroup(const aname:string):TObjSectionGroup;
        procedure CreateDebugSections;virtual;
        function  findsection(const aname:string):TObjSection;
        procedure setsection(asec:TObjSection);
@@ -300,6 +311,7 @@ interface
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
        property ObjSectionList:TFPHashObjectList read FObjSectionList;
+       property GroupsList:TFPHashObjectList read FGroupsList;
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
      end;
@@ -483,6 +495,7 @@ interface
         EntrySym  : TObjSymbol;
         SectionDataAlign,
         SectionMemAlign : aword;
+        ComdatGroups : TFPHashList;
         FixedSectionAlign : boolean;
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
@@ -938,6 +951,8 @@ implementation
 {$ifdef MEMDEBUG}
         MemObjSymbols.Stop;
 {$endif}
+        GroupsList.free;
+
         { Sections }
 {$ifdef MEMDEBUG}
         MemObjSections.Start;
@@ -1070,6 +1085,14 @@ implementation
             result.ObjData:=self;
           end;
         FCurrObjSec:=result;
+      end;
+
+
+    function TObjData.CreateSectionGroup(const aname:string):TObjSectionGroup;
+      begin
+        if FGroupsList=nil then
+          FGroupsList:=TFPHashObjectList.Create(true);
+        result:=TObjSectionGroup.Create(FGroupsList,aname);
       end;
 
 
@@ -1638,6 +1661,7 @@ implementation
         FProvidedObjSymbols:=TFPObjectList.Create(false);
         FIndirectObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
+        ComdatGroups:=TFPHashList.Create;
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
@@ -1664,6 +1688,7 @@ implementation
         CommonObjSymbols.free;
         ExeVTableList.free;
         FExeSectionList.free;
+        ComdatGroups.free;
         ObjDatalist.free;
         FWriter.free;
         inherited destroy;
@@ -2229,6 +2254,7 @@ implementation
           hs     : string;
           exesym : TExeSymbol;
           objsym : TObjSymbol;
+          grp    : TObjSectionGroup;
         begin
           for j:=0 to ObjData.ObjSymbolList.Count-1 do
             begin
@@ -2256,6 +2282,30 @@ implementation
                     end;
                   continue;
                 end;
+
+              { If this symbol comes from COMDAT group, see if a group with
+                matching signature is already included. }
+              if assigned(objsym.objsection) and
+                 assigned(objsym.objsection.group) then
+                begin
+                  grp:=objsym.objsection.group;
+                  if grp.IsComdat then
+                    begin
+                      if ComdatGroups.Find(grp.name)=nil then
+                        ComdatGroups.Add(grp.name,grp)
+                      else
+                        begin
+                          { Undefine the symbol, causing relocations to it from same
+                            objdata to be redirected to the symbol in the actually
+                            linked group. }
+                          if objsym.bind=AB_GLOBAL then
+                            objsym.bind:=AB_EXTERNAL;
+                          { AB_WEAK_EXTERNAL remains unchanged }
+                          objsym.objsection:=nil;
+                        end;
+                    end;
+                end;
+
               { Search for existing exesymbol }
               exesym:=texesymbol(FExeSymbolList.Find(objsym.name));
               if not assigned(exesym) then
