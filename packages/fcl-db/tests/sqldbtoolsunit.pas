@@ -19,10 +19,12 @@ uses
   ,mssqlconn
   ;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+type
+  TSQLDBType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
 const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
-      DBTypesNames : Array [TSQLDBTypes] of String[19] =
+      DBTypesNames : Array [TSQLDBType] of String[19] =
         ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
@@ -99,134 +101,67 @@ type
     property Query : TSQLQuery read FQuery;
   end;
 
-var SQLDbType : TSQLDBTypes;
+var SQLDbType : TSQLDBType;
+    SQLServerType : TSQLServerType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
     
 implementation
 
 uses StrUtils;
 
+type
+  TSQLServerTypesMapItem = record
+    s: string;
+    t: TSQLServerType;
+  end;
+
+const
+  // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
+  SQLServerTypesMap : array [0..7] of TSQLServerTypesMapItem = (
+    (s: 'Firebird'; t: ssFirebird),
+    (s: 'Interbase'; t: ssInterbase),
+    (s: 'Microsoft SQL Server'; t: ssMSSQL),
+    (s: 'MySQL'; t: ssMySQL),
+    (s: 'Oracle'; t: ssOracle),
+    (s: 'PostgreSQL'; t: ssPostgreSQL),
+    (s: 'SQLite3'; t: ssSQLite),
+    (s: 'ASE'; t: ssSybase)
+  );
+
+  // fall back mapping
+  SQLDBTypeToServerTypeMap : array[TSQLDbType] of TSQLServerType =
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssInterbase,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+
+
 { TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFConnection;
-var i : TSQLDBTypes;
-    t : integer;
+var t : TSQLDBType;
+    i : integer;
+    s : string;
 begin
-  for i := low(DBTypesNames) to high(DBTypesNames) do
-    if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
+  for t := low(DBTypesNames) to high(DBTypesNames) do
+    if UpperCase(dbconnectorparams) = DBTypesNames[t] then SQLDbType := t;
 
-  FieldtypeDefinitions := FieldtypeDefinitionsConst;
-    
-  if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
-  if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
-  if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
-  if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
-  if SQLDbType = MYSQL55 then Fconnection := tMySQL55Connection.Create(nil);
-  if SQLDbType in [mysql40,mysql41] then
-    begin
-    // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
-    // fields on insertion. So to test properly, we have to do the same
-    for t := 0 to testValuesCount-1 do
-      testStringValues[t] := TrimRight(testStringValues[t]);
-    end;
-  if SQLDbType in MySQLdbTypes then
-    begin
-    //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
-    FieldtypeDefinitions[ftBoolean] := '';
-    FieldtypeDefinitions[ftFloat] := 'DOUBLE';
-    // Use 'DATETIME' for datetime-fields instead of timestamp, because
-    // mysql's timestamps are only valid in the range 1970-2038.
-    // Downside is that fields defined as 'TIMESTAMP' aren't tested
-    FieldtypeDefinitions[ftDateTime] := 'DATETIME';
-    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-    FieldtypeDefinitions[ftMemo] := 'TEXT';
-    end;
-  if SQLDbType = sqlite3 then
-    begin
-    Fconnection := TSQLite3Connection.Create(nil);
-    FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
-    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-    FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
-    end;
-  if SQLDbType = POSTGRESQL then
-    begin
-    Fconnection := tPQConnection.Create(nil);
-    FieldtypeDefinitions[ftCurrency] := 'MONEY';
-    FieldtypeDefinitions[ftBlob] := 'BYTEA';
-    FieldtypeDefinitions[ftMemo] := 'TEXT';
-    FieldtypeDefinitions[ftGraphic] := '';
-    end;
-  if SQLDbType = INTERBASE then
-    begin
-    Fconnection := tIBConnection.Create(nil);
-    FieldtypeDefinitions[ftBoolean] := '';
-    FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
-    end;
-  if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
+  if SQLDbType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
+  if SQLDbType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
+  if SQLDbType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
+  if SQLDbType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
+  if SQLDbType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
+  if SQLDbType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
+  if SQLDbType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
+  if SQLDbType = INTERBASE then Fconnection := TIBConnection.Create(nil);
+  if SQLDbType = ODBC then Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  if SQLDbType in [MSSQL,Sybase] then
-    // todo: Sybase: copied over MSSQL; verify correctness
-    begin
-    Fconnection := TMSSQLConnection.Create(nil);
-    FieldtypeDefinitions[ftBoolean] := 'BIT';
-    FieldtypeDefinitions[ftCurrency]:= 'MONEY';
-    FieldtypeDefinitions[ftDate]    := 'DATETIME';
-    FieldtypeDefinitions[ftTime]    := '';
-    FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
-    FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
-    FieldtypeDefinitions[ftBlob]    := 'IMAGE';
-    FieldtypeDefinitions[ftMemo]    := 'TEXT';
-    FieldtypeDefinitions[ftGraphic] := '';
-    end;
-
-  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc] then
-    begin
-    // Some DB's do not support milliseconds in datetime and time fields.
-    for t := 0 to testValuesCount-1 do
-      begin
-      testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
-      testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
-      if length(testValues[ftDateTime,t]) > 19 then
-        testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
-      end;
-    end;
-  if SQLDbType in [postgresql,interbase,mssql,sybase] then
-    begin
-    // Some db's do not support times > 24:00:00
-    testTimeValues[3]:='13:25:15.000';
-    testValues[ftTime,3]:='13:25:15.000';
-    if SQLDbType = interbase then
-      begin
-      // Firebird does not support time = 24:00:00
-      testTimeValues[2]:='23:00:00.000';
-      testValues[ftTime,2]:='23:00:00.000';
-      end;
-    end;
-
-  // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
-  // Here we assume, that locale on client side is same as locale on server
-  if SQLDbType in [postgresql] then
-    for t := 0 to testValuesCount-1 do
-      testValues[ftCurrency,t] := QuotedStr(CurrToStr(testCurrencyValues[t]));
-
-  // SQLite does not support fixed length CHAR datatype
-  // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
-  // MSSQL set SET ANSI_PADDING ON
-  // todo: verify Sybase behaviour
-  if SQLDbType in [sqlite3] then
-    for t := 0 to testValuesCount-1 do
-      testValues[ftFixedChar,t] := PadRight(testValues[ftFixedChar,t], 10);
-
+  if SQLDbType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
+  if SQLDbType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
 
   if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
   with Fconnection do
-    begin
+  begin
     DatabaseName := dbname;
     UserName := dbuser;
     Password := dbpassword;
@@ -237,15 +172,129 @@ begin
       // Note: pagesize parameter has influence on behavior. We're using
       // Firebird default here.
       if not(fileexists(dbname)) then
-        FConnection.CreateDB; //Create testdb
+        CreateDB; //Create testdb
     end;
 
     if length(dbQuoteChars)>1 then
       begin
-        FieldNameQuoteChars:=dbquotechars;
+      FieldNameQuoteChars:=dbquotechars;
       end;
+
     Open;
+  end;
+
+  // determine remote SQL Server to which we are connected
+  s := Fconnection.GetConnectionInfo(citServerType);
+  if s = '' then
+    SQLServerType := SQLDbTypeToServerTypeMap[SQLDbType] // if citServerType isn't implemented
+  else
+    for i := low(SQLServerTypesMap) to high(SQLServerTypesMap) do
+      if SQLServerTypesMap[i].s = s then
+        SQLServerType := SQLServerTypesMap[i].t;
+
+  FieldtypeDefinitions := FieldtypeDefinitionsConst;
+
+  case SQLServerType of
+    ssFirebird, ssInterbase:
+      begin
+      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
+      end;
+    ssMSSQL, ssSybase:
+      // todo: Sybase: copied over MSSQL; verify correctness
+      begin
+      FieldtypeDefinitions[ftBoolean] := 'BIT';
+      FieldtypeDefinitions[ftCurrency]:= 'MONEY';
+      FieldtypeDefinitions[ftDate]    := 'DATETIME';
+      FieldtypeDefinitions[ftTime]    := '';
+      FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
+      FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
+      FieldtypeDefinitions[ftBlob]    := 'IMAGE';
+      FieldtypeDefinitions[ftMemo]    := 'TEXT';
+      FieldtypeDefinitions[ftGraphic] := '';
+      end;
+    ssMySQL:
+      begin
+      //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
+      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftFloat] := 'DOUBLE';
+      // Use 'DATETIME' for datetime-fields instead of timestamp, because
+      // mysql's timestamps are only valid in the range 1970-2038.
+      // Downside is that fields defined as 'TIMESTAMP' aren't tested
+      FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+      FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
+      FieldtypeDefinitions[ftMemo] := 'TEXT';
+      end;
+    ssOracle:
+      begin
+      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftTime]    := 'TIMESTAMP';
+      FieldtypeDefinitions[ftMemo]    := 'CLOB';
+      end;
+    ssPostgreSQL:
+      begin
+      FieldtypeDefinitions[ftCurrency] := 'MONEY';
+      FieldtypeDefinitions[ftBlob] := 'BYTEA';
+      FieldtypeDefinitions[ftMemo] := 'TEXT';
+      FieldtypeDefinitions[ftGraphic] := '';
+      end;
+    ssSQLite:
+      begin
+      FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+      FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
+      FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
+      end;
+  end;
+
+  if SQLDbType in [mysql40,mysql41] then
+    begin
+    // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
+    // fields on insertion. So to test properly, we have to do the same
+    for i := 0 to testValuesCount-1 do
+      testStringValues[i] := TrimRight(testStringValues[i]);
     end;
+
+  if SQLServerType in [ssMySQL] then
+    begin
+    // Some DB's do not support milliseconds in datetime and time fields.
+    for i := 0 to testValuesCount-1 do
+      begin
+      testTimeValues[i] := copy(testTimeValues[i],1,8)+'.000';
+      testValues[ftTime,i] := copy(testTimeValues[i],1,8)+'.000';
+      if length(testValues[ftDateTime,i]) > 19 then
+        testValues[ftDateTime,i] := copy(testValues[ftDateTime,i],1,19)+'.000';
+      end;
+    end;
+
+  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssPostgreSQL, ssSybase] then
+    begin
+    // Some db's do not support times > 24:00:00
+    testTimeValues[3]:='13:25:15.000';
+    testValues[ftTime,3]:='13:25:15.000';
+    if SQLServerType in [ssFirebird, ssInterbase] then
+      begin
+      // Firebird does not support time = 24:00:00
+      testTimeValues[2]:='23:00:00.000';
+      testValues[ftTime,2]:='23:00:00.000';
+      end;
+    end;
+
+  // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
+  // Here we assume, that locale on client side is same as locale on server
+  if SQLServerType in [ssPostgreSQL] then
+    for i := 0 to testValuesCount-1 do
+      testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
+
+  // SQLite does not support fixed length CHAR datatype
+  // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
+  // MSSQL set SET ANSI_PADDING ON
+  // todo: verify Sybase behaviour
+  if SQLServerType in [ssSQLite] then
+    for i := 0 to testValuesCount-1 do
+      testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
 end;
 
 procedure TSQLDBConnector.CreateFTransaction;
@@ -285,11 +334,11 @@ begin
   try
     Ftransaction.StartTransaction;
     TryDropIfExist('FPDEV');
-    Fconnection.ExecuteDirect('create table FPDEV (       ' +
-                              '  ID INT NOT NULL,           ' +
-                              '  NAME VARCHAR(50),          ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+    Fconnection.ExecuteDirect('create table FPDEV (' +
+                              '  ID INT NOT NULL,  ' +
+                              '  NAME VARCHAR(50), ' +
+                              '  PRIMARY KEY (ID)  ' +
+                              ')');
 
     FTransaction.CommitRetaining;
 

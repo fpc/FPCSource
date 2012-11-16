@@ -1036,7 +1036,7 @@ end;
 
 procedure TTestFieldTypes.RunTest;
 begin
-//  if (SQLDbType in TSQLDBTypes) then
+//  if (SQLDbType in TSQLDBType) then
     inherited RunTest;
 end;
 
