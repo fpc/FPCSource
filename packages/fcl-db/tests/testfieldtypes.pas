@@ -218,14 +218,13 @@ begin
       script.append('create table b (id int);');
       ExecuteScript;
       // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
-
+      if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
       end;
   finally
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
   end;
 end;
 
@@ -293,7 +292,7 @@ var
 
 begin
   with TSQLDBConnector(DBConnector) do begin
-    if SQLDbType = INTERBASE then
+    if SQLConnType = INTERBASE then
     begin
       //Interbase internal storage of exact numeric data types based on precision:
       // 1-4 (smallint), 5-9 (integer), 10-18 (int64)
@@ -436,7 +435,7 @@ var
   i             : byte;
 
 begin
-  if SQLDbType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLConnType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -466,7 +465,7 @@ begin
   TestFieldDeclaration(ftDate,8);
 
   for i := 0 to testDateValuesCount-1 do
-    if SQLDbType=oracle then
+    if SQLConnType=oracle then
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testDateValues[i] + ''',''YYYY-MM-DD''))')
     else
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testDateValues[i] + ''')');
@@ -641,7 +640,7 @@ begin
   TestFieldDeclaration(ftDateTime,8);
 
   for i := 0 to testValuesCount-1 do
-    if SQLDbType=oracle then
+    if SQLConnType=oracle then
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
     else
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
@@ -825,7 +824,7 @@ end;
 
 procedure TTestFieldTypes.TestVarBytesParamQuery;
 begin
-  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, SQLDbType<>mssql);
+  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, SQLConnType<>mssql);
 end;
 
 procedure TTestFieldTypes.TestBooleanParamQuery;
@@ -856,7 +855,7 @@ begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 '+ASQLTypeDecl+')');
 
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -1036,7 +1035,7 @@ end;
 
 procedure TTestFieldTypes.RunTest;
 begin
-//  if (SQLDbType in TSQLDBType) then
+//  if (SQLConnType in TSQLConnType) then
     inherited RunTest;
 end;
 
@@ -1221,7 +1220,7 @@ end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
 begin
-  if not(SQLDbType in [postgresql,interbase,oracle]) then Ignore(STestNotApplicable);
+  if not(SQLConnType in [postgresql,interbase,oracle]) then Ignore(STestNotApplicable);
   with TSQLDBConnector(DBConnector) do
     begin
     // This only works with databases that supports 'insert into .. returning'
@@ -1239,17 +1238,17 @@ procedure TTestFieldTypes.TestOpenStoredProc;
 begin
   with TSQLDBConnector(DBConnector) do
   begin
-    if SQLDbType in MySQLdbTypes then
+    if SQLConnType in MySQLConnTypes then
     begin
       Connection.ExecuteDirect('create procedure FPDEV_PROC() select 1 union select 2;');
       Query.SQL.Text:='call FPDEV_PROC';
     end
-    else if SQLDbType = interbase then
+    else if SQLConnType = interbase then
     begin
       Connection.ExecuteDirect('create procedure FPDEV_PROC returns (r integer) as begin r=1; end');
       Query.SQL.Text:='execute procedure FPDEV_PROC';
     end
-    else if SQLDbType = mssql then
+    else if SQLConnType = mssql then
     begin
       Connection.ExecuteDirect('create procedure FPDEV_PROC as select 1 union select 2;');
       Query.SQL.Text:='execute FPDEV_PROC';
@@ -1265,7 +1264,7 @@ begin
       Query.Open;
       AssertEquals(1, Query.Fields[0].AsInteger);
       Query.Next;
-      if not(SQLDbType in [interbase]) then
+      if not(SQLConnType in [interbase]) then
       begin
         AssertFalse('Eof after 1st row', Query.Eof);
         AssertEquals(2, Query.Fields[0].AsInteger);
@@ -1290,7 +1289,7 @@ begin
   // at least one row must be returned
   with TSQLDBConnector(DBConnector) do
   begin
-    case SQLDbType of
+    case SQLConnType of
       sqlite3:
         statements := TTestStatements.Create('pragma table_info(FPDEV)');
       interbase:
@@ -1303,7 +1302,7 @@ begin
       mssql:
         statements := TTestStatements.Create(CTE_SELECT  (*MS SQL 2005*));
       else
-        if SQLdbType in MySQLdbTypes then
+        if SQLConnType in MySQLConnTypes then
           statements := TTestStatements.Create(
             'check table FPDEV',  // bug 14519
             'show tables from '+Connection.DatabaseName  // bug 16842
@@ -1328,7 +1327,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLDbType in MySQLdbTypes) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLConnType in MySQLConnTypes) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
@@ -1621,7 +1620,7 @@ begin
     Close;
 
     // tests parsing of WHERE ... LIMIT
-    case sqlDBtype of
+    case SQLConnType of
       interbase : SQL.Text:='select first 1 NAME from FPDEV where NAME=''TestName21''';
       mssql     : SQL.Text:='select top 1 NAME from FPDEV where NAME=''TestName21''';
       else        SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
@@ -1639,7 +1638,7 @@ begin
 
     // tests parsing SELECT with quoted identifiers (MySQL requires sql-mode=ANSI_QUOTES)
     SQL.Text:='SELECT"ID"FROM"FPDEV"ORDER BY"ID"';
-    if sqlDBtype in [postgresql] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    if SQLConnType in [postgresql] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
     Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
@@ -1672,7 +1671,7 @@ begin
     AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
     query.Close;
     AssertTrue(query.RowsAffected<>0); // It should return -1 or the same as the last time it was called.
-    if (SQLDbType = sqlite3) then  // sqlite doesn't count the rowsaffected if there is no where-clause
+    if (SQLConnType = sqlite3) then  // sqlite doesn't count the rowsaffected if there is no where-clause
       Query.SQL.Text := 'delete from FPDEV2 where 1'
     else
       Query.SQL.Text := 'delete from FPDEV2';
@@ -1756,7 +1755,7 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
-  if SQLDbType in [interbase,postgresql,mssql] then Ignore('This test does not apply to this db-engine, since it has no double field-type');
+  if SQLConnType in [interbase,postgresql,mssql] then Ignore('This test does not apply to this db-engine, since it has no double field-type');
 
   with TSQLDBConnector(DBConnector) do
     begin
@@ -1802,7 +1801,7 @@ begin
     begin
     FieldNames := TStringList.Create;
     try
-      if SQLDbType in MySQLdbTypes then
+      if SQLConnType in MySQLConnTypes then
         Connection.GetFieldNames('FPDEV',FieldNames)
       else
         Connection.GetFieldNames('fpDEv',FieldNames);
@@ -1871,7 +1870,7 @@ procedure TTestFieldTypes.TestSQLClob;
   end;
 var datatype: string;
 begin
-  if sqlDBType=sqlite3 then
+  if SQLConnType=sqlite3 then
     datatype:='CLOB'
   else
     datatype:=FieldtypeDefinitions[ftMemo];
@@ -1891,7 +1890,7 @@ procedure TTestFieldTypes.TestSQLLargeint;
   end;
 var datatype: string;
 begin
-  if sqlDBType=sqlite3 then
+  if SQLConnType=sqlite3 then
     datatype:='LARGEINT'
   else
     datatype:='BIGINT';
@@ -1918,7 +1917,7 @@ procedure TTestFieldTypes.TestSQLInterval;
   end;
 var datatype: string;
 begin
-  if sqlDBType = postgresql then
+  if SQLConnType = postgresql then
   begin
     datatype:='INTERVAL';
     testIntervalValuesCount := 5;
@@ -1928,9 +1927,9 @@ begin
     datatype:=FieldtypeDefinitions[ftTime];
     if datatype = '' then
       Ignore(STestNotApplicable);
-    if sqlDBType = sqlite3 then
+    if SQLConnType = sqlite3 then
       testIntervalValuesCount := 5
-    else if sqlDBType in MySQLdbTypes then
+    else if SQLConnType in MySQLConnTypes then
       testIntervalValuesCount := 4
     else
       testIntervalValuesCount := 3;
@@ -1944,28 +1943,28 @@ var datatype, values: string;
     i: integer;
     updatable: boolean;
 begin
-  if sqlDBType in MySQLdbTypes then
+  if SQLConnType in MySQLConnTypes then
   begin
     datatype:='INT AUTO_INCREMENT PRIMARY KEY';
     values:='VALUES(DEFAULT)';
     fieldtype:=ftAutoInc;
     updatable:=true;
   end
-  else if sqlDBType = sqlite3 then
+  else if SQLConnType = sqlite3 then
   begin
     datatype:='INTEGER PRIMARY KEY';
     values:='DEFAULT VALUES';
     fieldtype:=ftInteger;
     updatable:=true;
   end
-  else if sqlDBType = postgresql then
+  else if SQLConnType = postgresql then
   begin
     datatype:='SERIAL';
     values:='DEFAULT VALUES';
     fieldtype:=ftInteger;
     updatable:=true;
   end
-  else if sqlDBType = mssql then
+  else if SQLConnType = mssql then
   begin
     datatype:='INTEGER IDENTITY';
     values:='DEFAULT VALUES';
@@ -2041,7 +2040,7 @@ begin
                               ')                            ');
 
   // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
   ds := TSQLDBConnector(DBConnector).Query;
   ds.sql.Text:='select * from FPDEV2';
@@ -2065,12 +2064,12 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
-  if SQLDbType in [mssql] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
+  if SQLConnType in [mssql] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLDbType=interbase then
+    if SQLConnType=interbase then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2089,7 +2088,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLDbType=interbase then
+      if SQLConnType=interbase then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;
@@ -2140,7 +2139,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if not(SQLDbType in [postgresql,odbc,oracle]) then
+  if not(SQLConnType in [postgresql,odbc,oracle]) then
     Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
