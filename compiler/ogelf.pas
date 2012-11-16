@@ -271,10 +271,26 @@ implementation
       symbolresize = 200*18;
 
     const
-      { ELFHeader.file_class }
-      ELFCLASSNONE  = 0;
-      ELFCLASS32    = 1;
-      ELFCLASS64    = 2;
+      EI_MAG0    = 0;
+        ELFMAG0  = $7F;
+      EI_MAG1    = 1;
+        ELFMAG1  = ord('E');
+      EI_MAG2    = 2;
+        ELFMAG2  = ord('L');
+      EI_MAG3    = 3;
+        ELFMAG3  = ord('F');
+      EI_CLASS   = 4;
+        ELFCLASSNONE  = 0;
+        ELFCLASS32    = 1;
+        ELFCLASS64    = 2;
+      EI_DATA    = 5;
+        ELFDATANONE   = 0;
+        ELFDATA2LSB   = 1;
+        ELFDATA2MSB   = 2;
+      EI_VERSION = 6;
+      EI_OSABI   = 7;
+      EI_ABIVERSION = 8;
+      EI_PAD     = 9;
 
       { ELFHeader.e_type }
       ET_NONE       = 0;
@@ -445,11 +461,7 @@ implementation
       type
       { Structures which are written directly to the output file }
         TElf32header=packed record
-          magic             : array[0..3] of byte;
-          file_class        : byte;
-          data_encoding     : byte;
-          file_version      : byte;
-          padding           : array[$07..$0f] of byte;
+          e_ident           : array[0..15] of byte;
           e_type            : word;
           e_machine         : word;
           e_version         : longword;
@@ -508,11 +520,7 @@ implementation
 
 
         telf64header=packed record
-          magic             : array[0..3] of byte;
-          file_class        : byte;
-          data_encoding     : byte;
-          file_version      : byte;
-          padding           : array[$07..$0f] of byte;
+          e_ident           : array[0..15] of byte;
           e_type            : word;
           e_machine         : word;
           e_version         : longword;
@@ -1435,17 +1443,17 @@ implementation
 
            { Write ELF Header }
            fillchar(header,sizeof(header),0);
-           header.magic[0]:=$7f; { = #127'ELF' }
-           header.magic[1]:=$45;
-           header.magic[2]:=$4c;
-           header.magic[3]:=$46;
-           header.file_class:=ELFCLASS;
+           header.e_ident[EI_MAG0]:=ELFMAG0; { = #127'ELF' }
+           header.e_ident[EI_MAG1]:=ELFMAG1;
+           header.e_ident[EI_MAG2]:=ELFMAG2;
+           header.e_ident[EI_MAG3]:=ELFMAG3;
+           header.e_ident[EI_CLASS]:=ELFCLASS;
            if target_info.endian=endian_big then
-             header.data_encoding:=2
+             header.e_ident[EI_DATA]:=ELFDATA2MSB
            else
-             header.data_encoding:=1;
+             header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
-           header.file_version:=1;
+           header.e_ident[EI_VERSION]:=1;
            header.e_type:=ET_REL;
            header.e_machine:=ELFMACHINE;
 {$ifdef arm}
@@ -1771,23 +1779,23 @@ implementation
             InputError('Can''t read ELF header');
             exit;
           end;
-        if (header.magic[0]<>$7f) or (header.magic[1]<>$45) or
-           (header.magic[2]<>$4c) or (header.magic[3]<>$46) then
+        if (header.e_ident[EI_MAG0]<>ELFMAG0) or (header.e_ident[EI_MAG1]<>ELFMAG1) or
+           (header.e_ident[EI_MAG2]<>ELFMAG2) or (header.e_ident[EI_MAG3]<>ELFMAG3) then
           begin
             InputError('Illegal ELF magic');
             exit;
           end;
-        if (header.file_version<>1) then
+        if (header.e_ident[EI_VERSION]<>1) then
           begin
             InputError('Unknown ELF file version');
             exit;
           end;
-        if (header.file_class<>ELFCLASS) then
+        if (header.e_ident[EI_CLASS]<>ELFCLASS) then
           begin
             InputError('Wrong ELF file class (32/64 bit mismatch)');
             exit;
           end;
-        if (header.data_encoding<>1+ord(target_info.endian=endian_big)) then
+        if (header.e_ident[EI_DATA]<>1+ord(target_info.endian=endian_big)) then
           begin
             InputError('ELF endianness does not match target');
             exit;
@@ -2074,8 +2082,8 @@ implementation
         result:=false;
         if AReader.Read(header,sizeof(header)) then
           begin;
-            if (header.magic[0]=$7f) and (header.magic[1]=$45) and
-               (header.magic[2]=$4c) and (header.magic[3]=$46) then
+            if (header.e_ident[EI_MAG0]=ELFMAG0) and (header.e_ident[EI_MAG1]=ELFMAG1) and
+               (header.e_ident[EI_MAG2]=ELFMAG2) and (header.e_ident[EI_MAG3]=ELFMAG3) then
             { TODO: check additional fields }
               result:=true;
           end;
@@ -2138,17 +2146,17 @@ implementation
         header: TElfHeader;
       begin
         FillChar(header,sizeof(header),0);
-        header.magic[0]:=$7f; { = #127'ELF' }
-        header.magic[1]:=$45;
-        header.magic[2]:=$4c;
-        header.magic[3]:=$46;
-        header.file_class:=ELFCLASS;
+        header.e_ident[EI_MAG0]:=ELFMAG0; { = #127'ELF' }
+        header.e_ident[EI_MAG1]:=ELFMAG1;
+        header.e_ident[EI_MAG2]:=ELFMAG2;
+        header.e_ident[EI_MAG3]:=ELFMAG3;
+        header.e_ident[EI_CLASS]:=ELFCLASS;
         if target_info.endian=endian_big then
-          header.data_encoding:=2
+          header.e_ident[EI_DATA]:=ELFDATA2MSB
         else
-          header.data_encoding:=1;
+          header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
-        header.file_version:=1;
+        header.e_ident[EI_VERSION]:=1;
         if IsSharedLibrary then
           header.e_type:=ET_DYN
         else
