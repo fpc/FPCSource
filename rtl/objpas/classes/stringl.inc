@@ -868,6 +868,7 @@ begin
   BeginUpdate;
   Obj:=Objects[CurIndex];
   Str:=Strings[CurIndex];
+  Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
   Delete(Curindex);
   InsertObject(NewIndex,Str,Obj);
   EndUpdate;
