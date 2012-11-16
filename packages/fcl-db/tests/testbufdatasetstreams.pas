@@ -571,8 +571,8 @@ begin
   ADataset.Close;
 
   ADataset.LoadFromFile(TestXMLFileName,dfXML);
-  AssertEquals(ADataset.FieldByName('ID').AsInteger,1);
-  AssertEquals(ADataset.FieldByName('NAME').AsString,'TestName1');
+  AssertEquals(1, ADataset.FieldByName('ID').AsInteger);
+  AssertEquals('TestName1', ADataset.FieldByName('NAME').AsString);
   ADataset.Close;
 end;
 
