@@ -2729,7 +2729,7 @@ begin
     With Stream do
       try
         Len := Size;
-        SetLength(Result,Len div 2);
+        SetLength(Result, (Len+1) div 2);
         if Len > 0 then
           ReadBuffer(Result[1] ,Len);
       finally
