@@ -153,7 +153,7 @@ begin
   if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
   if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
-  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
   if SQLConnType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
   if SQLConnType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
