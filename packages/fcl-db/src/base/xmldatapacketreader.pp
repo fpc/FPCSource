@@ -65,7 +65,7 @@ implementation
 uses xmlwrite, xmlread, base64;
 
 const
-  XMLFieldtypenames : Array [TFieldType] of String[15] =
+  XMLFieldtypenames : Array [TFieldType] of String[16] =
     (
       'Unknown',
       'string',
@@ -90,8 +90,8 @@ const
       'bin.hex:Ole',
       'bin.hex:Graphics',
       '',
-      'string',
-      'string',
+      'string',             // ftFixedChar
+      'string',             // ftWideString
       'i8',
       '',
       '',
@@ -105,8 +105,8 @@ const
       '',
       '',
       'fixedFMT',
-      '',
-      ''
+      'string',             // ftFixedWideChar
+      'bin.hex:WideText'    // ftWideMemo
     );
 
 resourcestring
@@ -351,13 +351,13 @@ begin
        AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
        if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
          s := DecodeStringBase64(s);
-       if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo] then
+       if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo, ftWideMemo] then
         begin
         ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
-        AField.SetData(@ABufBlobField);
         ABufBlobField.BlobBuffer^.Size:=length(s);
         ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
         move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
+        AField.SetData(@ABufBlobField);
         end
       else
         AField.AsString := s;  // set it to the filterbuffer
