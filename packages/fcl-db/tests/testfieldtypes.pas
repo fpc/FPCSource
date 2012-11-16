@@ -1016,8 +1016,8 @@ begin
     Open;
     AssertEquals(1,FieldCount);
     AssertTrue(CompareText('FT',fields[0].FieldName)=0);
-    AssertEquals(ADataSize,fields[0].DataSize);
-    AssertTrue(ADatatype=fields[0].DataType);
+    AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
+    AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
     Close;
     end;
 end;

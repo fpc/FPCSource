@@ -2212,8 +2212,8 @@ begin
   if not assigned (AFld) then
     Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
 {$endif fpc}
-  CheckTrue(Afld.DataType = AFieldType);
-  CheckEquals(ADatasize,Afld.DataSize );
+  CheckEquals(ord(AFieldType), ord(AFld.DataType), 'DataType');
+  CheckEquals(ADatasize, AFld.DataSize, 'DataSize');
 end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
