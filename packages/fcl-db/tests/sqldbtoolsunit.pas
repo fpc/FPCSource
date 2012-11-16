@@ -282,6 +282,14 @@ begin
       end;
     end;
 
+  if SQLServerType in [ssMSSQL, ssSybase] then
+    // Some DB's do not support datetime values before 1753-01-01
+    for i := 18 to testValuesCount-1 do
+      begin
+      testValues[ftDate,i] := testValues[ftDate,0];
+      testValues[ftDateTime,i] := testValues[ftDateTime,0];
+      end;
+
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
   if SQLServerType in [ssPostgreSQL] then
