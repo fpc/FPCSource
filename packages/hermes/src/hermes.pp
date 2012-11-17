@@ -249,6 +249,8 @@ const
   PROC_GENERIC = 1;
   PROC_X86_PENTIUM = 2;
   PROC_MMX_PENTIUM = 4;
+  PROC_SSE2 = 8;
+  PROC_X86_64 = 16;
   HERMES_CONVERT_GENERIC = 65536;
 
 {$I hermconf.inc}
@@ -446,6 +448,9 @@ var
   {$I i386/headi386.inc}
   {$I i386/headmmx.inc}
 {$ENDIF I386_ASSEMBLER}
+{$IFDEF X86_64_ASSEMBLER}
+  {$I x86_64/headx86_64.inc}
+{$ENDIF X86_64_ASSEMBLER}
 {$I factconv.inc}
 {$I hermes_list.inc}
 {$I hermes_utility.inc}
