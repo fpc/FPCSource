@@ -863,6 +863,9 @@ Type
     FUnixPaths: Boolean;
     FNoFPCCfg: Boolean;
     FUseEnvironment: Boolean;
+    function GetBuildCPU: TCpu;
+    function GetBuildOS: TOS;
+    function GetBuildString: String;
     function GetFPDocOutputDir: String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
@@ -889,6 +892,7 @@ Type
     Constructor Create;
     Procedure InitDefaults;
     Function HaveOptions: Boolean;
+    function IsBuildDifferentFromTarget: boolean;
     procedure CompilerDefaults; virtual;
     Procedure LocalInit(Const AFileName : String);
     Procedure LoadFromFile(Const AFileName : String);
@@ -899,6 +903,9 @@ Type
     Property Target : String Read FTarget Write SetTarget;
     Property OS : TOS Read FOS Write SetOS;
     Property CPU : TCPU Read FCPU Write SetCPU;
+    Property BuildString : String read GetBuildString;
+    Property BuildOS : TOS read GetBuildOS;
+    Property BuildCPU : TCpu read GetBuildCPU;
     Property Mode : TCompilerMode Read FMode Write FMode;
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
     Property Options : TStrings Read GetOptions Write SetOptions;    // Default compiler options.
@@ -3476,6 +3483,20 @@ begin
     Result:=IncludeTrailingPathDelimiter(FixPath('.'+PathDelim+'docs'));
 end;
 
+function TCustomDefaults.GetBuildCPU: TCpu;
+begin
+  result := StringToCPU({$I %FPCTARGETCPU%});
+end;
+
+function TCustomDefaults.GetBuildOS: TOS;
+begin
+  result := StringToOS({$I %FPCTARGETOS%});
+end;
+
+function TCustomDefaults.GetBuildString: String;
+begin
+  result := MakeTargetString(BuildCPU, BuildOS);
+end;
 
 function TCustomDefaults.GetGlobalUnitDir: String;
 begin
@@ -3609,6 +3630,11 @@ end;
 function TCustomDefaults.HaveOptions: Boolean;
 begin
   Result:=Assigned(FOptions);
+end;
+
+function TCustomDefaults.IsBuildDifferentFromTarget: boolean;
+begin
+  result := (OS<>BuildOS) or (CPU<>BuildCPU);
 end;
 
 
@@ -3865,6 +3891,7 @@ begin
   GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
   GlobalDictionary.AddVariable('bininstalldir',Defaults.BinInstallDir);
   GlobalDictionary.AddVariable('Target',Defaults.Target);
+  GlobalDictionary.AddVariable('BuildString',Defaults.BuildString);
   GlobalDictionary.AddVariable('Prefix',Defaults.Prefix);
   CreatePackages;
 end;
