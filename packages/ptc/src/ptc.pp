@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.12';
+  PTCPAS_VERSION = 'PTCPas 0.99.13';
 
 type
   PUint8  = ^Uint8;
@@ -113,7 +113,7 @@ uses
 
 {$IF defined(WIN32) OR defined(WIN64)}
 uses
-  Windows, p_ddraw;
+  Windows, p_ddraw, glext;
 {$ENDIF defined(WIN32) OR defined(WIN64)}
 
 {$IFDEF WinCE}
@@ -123,7 +123,7 @@ uses
 
 {$IFDEF UNIX}
 uses
-  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym
+  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym, xkblib
   {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
   , xrandr
   {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
@@ -136,6 +136,9 @@ uses
   {$IFDEF ENABLE_X11_EXTENSION_XSHM}
   , xshm, ipc
   {$ENDIF ENABLE_X11_EXTENSION_XSHM}
+  {$IFDEF ENABLE_X11_EXTENSION_GLX}
+  , glx
+  {$ENDIF ENABLE_X11_EXTENSION_GLX}
   ;
 {$ENDIF UNIX}
 
@@ -198,6 +201,9 @@ end;
 {$INCLUDE win32/directx/primaryd.inc}
 {$INCLUDE win32/directx/directxconsoled.inc}
 {$INCLUDE win32/gdi/win32dibd.inc}
+{$INCLUDE win32/gdi/win32modesetterd.inc}
+{$INCLUDE win32/gdi/win32openglwindowd.inc}
+{$INCLUDE win32/gdi/gdihookd.inc}
 {$INCLUDE win32/gdi/gdiconsoled.inc}
 
 {$INCLUDE win32/base/cursor.inc}
@@ -215,6 +221,9 @@ end;
 {$INCLUDE win32/directx/primary.inc}
 {$INCLUDE win32/directx/directxconsolei.inc}
 {$INCLUDE win32/gdi/win32dibi.inc}
+{$INCLUDE win32/gdi/win32modesetteri.inc}
+{$INCLUDE win32/gdi/win32openglwindowi.inc}
+{$INCLUDE win32/gdi/gdihooki.inc}
 {$INCLUDE win32/gdi/gdiconsolei.inc}
 {$ENDIF defined(Win32) OR defined(Win64)}
 

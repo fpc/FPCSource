@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ type
     constructor Create(AWidth, AHeight: Integer; AFormat: IPTCFormat);
     constructor Create(AMode: IPTCMode);
 {    procedure Assign(const mode: TPTCMode);}
-    function Equals(AMode: IPTCMode): Boolean;
+    function Equals(AMode: IPTCMode): Boolean; reintroduce;
 {    property Valid: Boolean read GetValid;
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;

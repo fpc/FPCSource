@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -139,6 +139,22 @@ begin
 	end;
       end;
     end;
+    WM_PALETTECHANGED:
+      begin
+        LOG('TDirectXHook WM_PALETTECHANGED');
+        if Windows.HWND(wParam) <> hWnd then
+        begin
+          LOG('not our window');
+          if FConsole.FPrimary.Active then
+          begin
+            FConsole.FPrimary.ResetPalette;
+          end;
+        end;
+      end;
+    WM_QUERYNEWPALETTE:
+      begin
+        LOG('TDirectXHook WM_QUERYNEWPALETTE');
+      end;
     WM_CLOSE: begin
       LOG('TDirectXHook WM_CLOSE');
 

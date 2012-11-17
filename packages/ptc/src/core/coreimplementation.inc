@@ -11,6 +11,7 @@
 {$INCLUDE copyi.inc}
 {$INCLUDE clipperi.inc}
 {$INCLUDE basesurfacei.inc}
+{$INCLUDE openglattributesi.inc}
 {$INCLUDE baseconsolei.inc}
 {$INCLUDE surfacei.inc}
 {$INCLUDE timeri.inc}

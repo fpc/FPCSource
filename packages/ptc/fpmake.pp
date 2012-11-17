@@ -2,8 +2,6 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-// Note this package is currently not compiled and a mess.
-
 uses fpmkunit;
 
 Var
@@ -46,6 +44,7 @@ begin
 
   P.Dependencies.Add('hermes');
   P.Dependencies.Add('x11',AllUnixOSes);
+  P.Dependencies.Add('opengl',AllUnixOSes + [win32, win64]);
   P.Dependencies.Add('fcl-base');
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
@@ -89,6 +88,8 @@ begin
       AddInclude('baseconsolei.inc');
       AddInclude('surfacei.inc');
       AddInclude('timeri.inc');
+      AddInclude('openglattributesd.inc');
+      AddInclude('openglattributesi.inc');
       AddInclude('includes.inc',allunixoses+[WinCE]);
       AddInclude('extensions.inc',allunixoses);
       AddInclude('x11modesd.inc',allunixoses);
@@ -107,6 +108,8 @@ begin
       AddInclude('x11dga1displayi.inc',allunixoses);
       AddInclude('x11dga2displayi.inc',allunixoses);
       AddInclude('x11consolei.inc',allunixoses);
+      AddInclude('glxfbconfigd.inc',allunixoses);
+      AddInclude('glxfbconfigi.inc',allunixoses);
       AddInclude('consolei.inc');
       AddUnit('p_gx',[Wince]);
       AddUnit('textfx2',[Go32v2]);
@@ -149,10 +152,13 @@ begin
     P.Targets.AddExampleProgram('mojo.pp');
     P.Targets.AddExampleProgram('land.pp');
     P.Targets.AddExampleProgram('keyboard2.pp');
+    P.Targets.AddExampleProgram('keyboard3.pp');
     P.Targets.AddExampleProgram('clear.pp');
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
     P.Targets.AddExampleProgram('tunnel3d.pp');
+    P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
+    P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
     P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}

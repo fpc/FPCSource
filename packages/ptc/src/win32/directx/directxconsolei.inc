@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -313,18 +313,14 @@ begin
   if AOption = 'grab mouse' then
   begin
     if FOpen and (not FFullscreen) then
-    begin
       FWindow.ConfineCursor(True);
-    end;
     FGrabMouse := True;
     exit;
   end;
   if AOption = 'ungrab mouse' then
   begin
     if FOpen and (not FFullscreen) then
-    begin
       FWindow.ConfineCursor(False);
-    end;
     FGrabMouse := False;
     exit;
   end;
@@ -1028,16 +1024,14 @@ begin
                                     FTitle,
                                     WS_EX_TOPMOST,
                                     DWord(WS_POPUP or WS_SYSMENU or WS_VISIBLE), // fpc windows RTL bug - WS_POPUP should be a DWord!!!
+                                    CS_VREDRAW or CS_HREDRAW,
                                     SW_NORMAL,
                                     0, 0,
                                     GetSystemMetrics(SM_CXSCREEN),
                                     GetSystemMetrics(SM_CYSCREEN),
-                                    False, False)
+                                    False, False, FCursor)
   else
     FWindow := TWin32Window.Create(window);
-
-  { set window cursor }
-  FWindow.Cursor(FCursor);
 
   if FCursor then
     FWin32Cursor.Show
@@ -1147,12 +1141,11 @@ begin
       extended := WS_EX_TOPMOST;
     case FWindowMode of
       RESIZABLE: FWindow := TWin32Window.Create('PTC_DIRECTX_WINDOWED_RESIZABLE', FTitle,
-                                              extended, WS_OVERLAPPEDWINDOW or WS_VISIBLE, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False);
+                                              extended, WS_OVERLAPPEDWINDOW or WS_VISIBLE, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor);
       FIXED: FWindow := TWin32Window.Create('PTC_DIRECTX_WINDOWED_FIXED', FTitle,
-                                              extended, WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False);
+                                              extended, WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor);
     end;
   end;
-  FWindow.Cursor(FCursor);
   FDisplay.cooperative(FWindow.handle, False);
 end;
 

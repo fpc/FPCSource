@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -38,8 +38,8 @@ begin
   FDisplayWidth := GetSystemMetrics(SM_CXSCREEN);
   FDisplayHeight := GetSystemMetrics(SM_CYSCREEN);
 
-  FDefaultWidth := 320;
-  FDefaultHeight := 200;
+  FDefaultWidth := 640;
+  FDefaultHeight := 480;
   FDefaultFormat := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
 
   FCopy := TPTCCopy.Create;
@@ -47,6 +47,11 @@ begin
   FArea := TPTCArea.Create;
   FClip := TPTCArea.Create;
   FPalette := TPTCPalette.Create;
+  FWin32Cursor := TWin32Cursor.Create;
+
+  FFullscreen := True;
+
+  FModeSetter := TWin32ModeSetter.Create;
 
   FOpen := False;
 
@@ -65,11 +70,14 @@ begin
 
   {...}
 
+  FModeSetter.Free;
+
   FWin32DIB.Free;
   FWindow.Free;
   FEventQueue.Free;
   FCopy.Free;
   FClear.Free;
+  FWin32Cursor.Free;
 
   inherited Destroy;
 end;
@@ -99,50 +107,125 @@ begin
   if FOpen then
     Close;
 
+  case FCursorMode of
+    CURSOR_DEFAULT:
+      FCursor := not FFullScreen;
+    CURSOR_SHOW:
+      FCursor := True;
+    CURSOR_HIDE:
+      FCursor := False;
+  end;
+
+  if FFullscreen then
+  begin
+    FModeSetter.Save;
+    FModeSetter.Open(AWidth, AHeight, AFormat);
+  end;
+
 (*  FWindow := TWin32Window.Create('PTC_GDI_FULLSCREEN',
                                  ATitle,
                                  WS_EX_TOPMOST,
                                  DWord(WS_POPUP or WS_SYSMENU or WS_VISIBLE), // fpc windows RTL bug - WS_POPUP should be a DWord!!!
+                                 CS_HREDRAW or CS_VREDRAW,
                                  SW_NORMAL,
                                  0, 0,
                                  GetSystemMetrics(SM_CXSCREEN),
                                  GetSystemMetrics(SM_CYSCREEN),
                                  False, False);*)
 
-  FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_FIXED',
-                                 ATitle,
-                                 0,
-                                 WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX,
-                                 SW_NORMAL,
-                                 CW_USEDEFAULT, CW_USEDEFAULT,
-                                 AWidth, AHeight,
-                                 {m_center_window}False,
-                                 False);
-
 (*  FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_RESIZABLE',
                                  ATitle,
                                  0,
                                  WS_OVERLAPPEDWINDOW or WS_VISIBLE,
+                                 CS_HREDRAW or CS_VREDRAW,
                                  SW_NORMAL,
                                  CW_USEDEFAULT, CW_USEDEFAULT,
                                  AWidth, AHeight,
                                  {m_center_window}False,
                                  False);*)
 
+  if FFullscreen then
+  begin
+    if FUseOpenGL then
+      FWindow := TWin32OpenGLWindow.Create('PTC_OPENGL_FULLSCREEN',
+                                           ATitle,
+                                           WS_EX_TOPMOST or WS_EX_APPWINDOW,
+                                           WS_VISIBLE or WS_POPUP or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+                                           CS_HREDRAW or CS_VREDRAW or CS_OWNDC,
+                                           SW_NORMAL,
+                                           CW_USEDEFAULT, CW_USEDEFAULT,
+                                           AWidth, AHeight,
+                                           {m_center_window}False,
+                                           False,
+                                           FCursor,
+                                           FOpenGLAttributes)
+    else
+      FWindow := TWin32Window.Create('PTC_GDI_FULLSCREEN',
+                                     ATitle,
+                                     WS_EX_TOPMOST or WS_EX_APPWINDOW,
+                                     WS_VISIBLE or WS_POPUP,
+                                     CS_HREDRAW or CS_VREDRAW,
+                                     SW_NORMAL,
+                                     CW_USEDEFAULT, CW_USEDEFAULT,
+                                     AWidth, AHeight,
+                                     {m_center_window}False,
+                                     False,
+                                     FCursor);
+  end
+  else
+  begin
+    if FUseOpenGL then
+      FWindow := TWin32OpenGLWindow.Create('PTC_OPENGL_WINDOWED_FIXED',
+                                           ATitle,
+                                           0,
+                                           WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+                                           CS_HREDRAW or CS_VREDRAW or CS_OWNDC,
+                                           SW_NORMAL,
+                                           CW_USEDEFAULT, CW_USEDEFAULT,
+                                           AWidth, AHeight,
+                                           {m_center_window}False,
+                                           False,
+                                           FCursor,
+                                           FOpenGLAttributes)
+    else
+      FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_FIXED',
+                                     ATitle,
+                                     0,
+                                     WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX,
+                                     CS_HREDRAW or CS_VREDRAW,
+                                     SW_NORMAL,
+                                     CW_USEDEFAULT, CW_USEDEFAULT,
+                                     AWidth, AHeight,
+                                     {m_center_window}False,
+                                     False,
+                                     FCursor);
+  end;
+
   FWin32DIB := TWin32DIB.Create(AWidth, AHeight);
 
   FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
+  FreeAndNil(FHook);
   FreeAndNil(FEventQueue);
   FEventQueue := TEventQueue.Create;
+  FHook := TGDIHook.Create(Self, FWindow.Handle, FWindow.Thread, FCursor, {AManaged}True, FFullScreen);
   FKeyboard := TWin32Keyboard.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue);
-  FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, {FFullScreen}False, AWidth, AHeight);
+  FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, FFullScreen, AWidth, AHeight);
+  if FFullscreen then
+    FMouse.SetWindowArea(0, 0, AWidth, AHeight);
 
   tmpArea := TPTCArea.Create(0, 0, AWidth, AHeight);
   FArea := tmpArea;
   FClip := tmpArea;
 
   FWindow.Update;
+
+  { hide/show cursor globally if running fullscreen }
+  if FFullscreen then
+    if FCursor then
+      FWin32Cursor.Show
+    else
+      FWin32Cursor.Hide;
 
   FTitle := ATitle;
 
@@ -156,8 +239,16 @@ begin
 
   {...}
 
+  if FFullscreen then
+  begin
+    FModeSetter.Close;
+    FModeSetter.Restore;
+    FWin32Cursor.Show;
+  end;
+
   FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
+  FreeAndNil(FHook);
 
   FreeAndNil(FWin32DIB);
   FreeAndNil(FWindow);
@@ -273,22 +364,25 @@ begin
 
   case FCursorMode of
     CURSOR_DEFAULT:
-      FCursor := {Not FFullScreen}True;
+      FCursor := not FFullScreen;
     CURSOR_SHOW:
       FCursor := True;
     CURSOR_HIDE:
       FCursor := False;
   end;
 
+  { update hook cursor }
+  FHook.Cursor(FCursor);
+
   { update window cursor }
   FWindow.Cursor(FCursor);
 
   { hide/show cursor globally if running fullscreen }
-{  if FFullscreen then
+  if FFullscreen then
     if FCursor then
-      Win32Cursor_resurrect
+      FWin32Cursor.Show
     else
-      Win32Cursor_kill;}
+      FWin32Cursor.Hide;
 end;
 
 procedure TGDIConsole.Clear;
@@ -334,6 +428,21 @@ function TGDIConsole.Option(const AOption: String): Boolean;
 begin
   LOG('console option', AOption);
   Result := True;
+  if AOption = 'default output' then
+  begin
+    FFullscreen := False;
+    exit;
+  end;
+  if AOption = 'windowed output' then
+  begin
+    FFullscreen := False;
+    exit;
+  end;
+  if AOption = 'fullscreen output' then
+  begin
+    FFullscreen := True;
+    exit;
+  end;
   if AOption = 'default cursor' then
   begin
     FCursorMode := CURSOR_DEFAULT;
@@ -354,12 +463,16 @@ begin
   end;
   if AOption = 'grab mouse' then
   begin
-    FWindow.ConfineCursor(true);
+    if FOpen and (not FFullscreen) then
+      FWindow.ConfineCursor(True);
+    FGrabMouse := True;
     exit;
   end;
   if AOption = 'ungrab mouse' then
   begin
-    FWindow.ConfineCursor(false);
+    if FOpen and (not FFullscreen) then
+      FWindow.ConfineCursor(False);
+    FGrabMouse := False;
     exit;
   end;
 
@@ -537,6 +650,58 @@ function TGDIConsole.GetInformation: string;
 begin
   CheckOpen('TGDIConsole.GetInformation');
   Result := ''; // todo...
+end;
+
+function TGDIConsole.GetOpenGL_Enabled: Boolean;
+begin
+  Result := FUseOpenGL;
+end;
+
+procedure TGDIConsole.SetOpenGL_Enabled(AValue: Boolean);
+begin
+  if FOpen then
+    raise TPTCError.Create('Value of UseOpenGL cannot be modified while the console is open');
+  FUseOpenGL := AValue;
+end;
+
+procedure TGDIConsole.OpenGL_SwapBuffers;
+begin
+  SwapBuffers(wglGetCurrentDC);
+end;
+
+procedure TGDIConsole.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  LOG('SetSwapInterval(' + IntToStr(AInterval) + ')');
+  if AInterval < 0 then
+    raise TPTCError.Create('Invalid swap interval');
+  LOG('checking if WGL_EXT_swap_control is supported');
+  if Load_WGL_EXT_swap_control then
+  begin
+    LOG('using WGL_EXT_swap_control');
+    LOG('wglSwapIntervalEXT(' + IntToStr(AInterval) + ')');
+    if not wglSwapIntervalEXT(AInterval) then
+	  LOG('wglSwapIntervalEXT failed');
+  end
+  else
+    LOG('no supported extensions found for setting the swap interval');
+end;
+
+function TGDIConsole.OpenGL_GetSwapInterval: Integer;
+begin
+  LOG('GetSwapInterval');
+  LOG('checking if WGL_EXT_swap_control is supported');
+  if Load_WGL_EXT_swap_control then
+  begin
+    LOG('using WGL_EXT_swap_control');
+    LOG('wglGetSwapIntervalEXT()');
+    Result := wglGetSwapIntervalEXT();
+    LOG('wglGetSwapIntervalEXT() result', Result);
+  end
+  else
+  begin
+    LOG('no supported extensions found for setting the swap interval, assuming the swap interval is 0');
+    Result := 0;
+  end;
 end;
 
 procedure TGDIConsole.CheckOpen(const AMessage: String);

@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -29,6 +29,11 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
+
+{$WARNING this should be in the windows unit}
+const
+  VK_OEM_COMMA = $BC;
+  VK_OEM_PERIOD = $BE;
 
 constructor TWin32Keyboard.Create(AWindow: HWND; AThread: DWord; AMultithreaded: Boolean; AEventQueue: TEventQueue);
 begin
@@ -133,6 +138,14 @@ begin
     KeyCode := wParam;
     if wParam = VK_RETURN then
       KeyCode := PTCKEY_ENTER;
+    if wParam = VK_INSERT then
+      KeyCode := PTCKEY_INSERT;
+    if wParam = VK_DELETE then
+      KeyCode := PTCKEY_DELETE;
+    if wParam = VK_OEM_COMMA then
+      KeyCode := PTCKEY_COMMA;
+    if wParam = VK_OEM_PERIOD then
+      KeyCode := PTCKEY_PERIOD;
 
     { handle key repeat count }
     for i := 1 to lParam and $FFFF do

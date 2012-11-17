@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -483,22 +483,27 @@ begin
 end;
 
 procedure TDirectXPrimary.Palette(APalette: IPTCPalette);
+begin
+  Block;
+
+  FPalette.Load(APalette.Data);
+  ResetPalette;
+end;
+
+procedure TDirectXPrimary.ResetPalette;
 var
   data: PUint32;
   temp: array [0..255] of PALETTEENTRY;
   I: Integer;
   DDP: IDirectDrawPalette;
 begin
-  Block;
-
-  FPalette.Load(APalette.Data);
   if not FFormat.Indexed then
   begin
     LOG('palette set in direct color');
   end
   else
   begin
-    data := APalette.Data;
+    data := FPalette.Data;
     for I := 0 to 255 do
     begin
       temp[I].peRed := (data[I] and $00FF0000) shr 16;
