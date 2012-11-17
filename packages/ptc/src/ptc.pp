@@ -39,7 +39,7 @@
 {$IFDEF UNIX}
 
   { X11 extensions we want to enable at compile time }
-  {$INCLUDE x11/extensions.inc}
+  {$INCLUDE x11/x11extensions.inc}
 
   {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
     {$DEFINE ENABLE_X11_EXTENSION_XF86DGA}
@@ -232,7 +232,7 @@ end;
 {$ENDIF WinCE}
 
 {$IFDEF UNIX}
-{$INCLUDE x11/includes.inc}
+{$INCLUDE x11/x11includes.inc}
 {$ENDIF UNIX}
 
 {$INCLUDE core/consolei.inc}

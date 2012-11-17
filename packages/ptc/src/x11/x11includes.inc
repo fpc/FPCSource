@@ -1,16 +1,16 @@
 {$INCLUDE x11modesd.inc}
 {$INCLUDE x11imaged.inc}
-{$INCLUDE glxfbconfigd.inc}
+{$INCLUDE x11glxfbconfigd.inc}
 {$INCLUDE x11displayd.inc}
 {$INCLUDE x11windowdisplayd.inc}
 {$INCLUDE x11dga1displayd.inc}
 {$INCLUDE x11dga2displayd.inc}
 {$INCLUDE x11consoled.inc}
 
-{$INCLUDE check.inc}
+{$INCLUDE x11check.inc}
 {$INCLUDE x11modesi.inc}
 {$INCLUDE x11imagei.inc}
-{$INCLUDE glxfbconfigi.inc}
+{$INCLUDE x11glxfbconfigi.inc}
 {$INCLUDE x11displayi.inc}
 {$INCLUDE x11windowdisplayi.inc}
 {$INCLUDE x11dga1displayi.inc}

@@ -30,7 +30,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$INCLUDE xunikey.inc}
+{$INCLUDE x11unikey.inc}
 
 constructor TX11Display.Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags);
 begin
