@@ -18,12 +18,12 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 
-    P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Nikolay Nikolov';
-    P.License := 'Library: GPL2, header: LGPL with modification, ';
+    P.Author := 'Nikolay Nikolov (translation to Pascal), Christian Nentwich (original C version)';
+    P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Library for pixel graphics conversion';
-    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.NeedLibC := false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
