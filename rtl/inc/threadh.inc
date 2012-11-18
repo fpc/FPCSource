@@ -46,7 +46,6 @@ type
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
   TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
   TRTLCreateEventHandler    = function:PRTLEvent;
-  TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
   // semaphores stuff
   TSempahoreInitHandler     = function: Pointer;
   TSemaphoreDestroyHandler  = procedure (const sem: Pointer);
@@ -87,7 +86,6 @@ type
     RTLEventSetEvent       : TRTLEventHandler;
     RTLEventResetEvent     : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
-    RTLEventSync           : TRTLEventSyncHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
     // semaphores stuff
     SemaphoreInit          : TSempahoreInitHandler;
@@ -163,5 +161,4 @@ procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
-procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
