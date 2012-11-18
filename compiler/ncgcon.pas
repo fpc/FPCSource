@@ -81,7 +81,7 @@ implementation
 
 
 {*****************************************************************************
-                           TCGREALCONSTNODE
+                           TCGDATACONSTNODE
 *****************************************************************************}
 
     procedure tcgdataconstnode.pass_generate_code;
@@ -93,7 +93,7 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(maxalign));
         current_asmdata.getdatalabel(l);
         maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,l.name,const_align(maxalign));
+        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(maxalign));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
         data.seek(0);
         for i:=0 to data.size-1 do
