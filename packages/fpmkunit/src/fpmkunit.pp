@@ -855,6 +855,7 @@ Type
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FSkipCrossPrograms: boolean;
     FThreadsAmount: integer;
     FRemoveTree: String;
     FRemoveDir: String;
@@ -949,6 +950,7 @@ Type
     Property BuildMode: TBuildMode read FBuildMode write FBuildMode;
     // Installation optioms
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
+    Property SkipCrossPrograms: boolean read FSkipCrossPrograms write FSkipCrossPrograms;
   end;
 
   { TBasicDefaults }
@@ -1042,7 +1044,8 @@ Type
     Function  DependencyOK(ADependency : TDependency) : Boolean;
     // Target commands
     Function  GetCompilerCommand(APackage : TPackage; ATarget : TTarget; Env: TStrings) : String;
-    Function  TargetOK(ATarget : TTarget) : Boolean;
+    Function  TargetOK(ATarget : TTarget; ACPU: TCPU; AOS: TOS) : Boolean;
+    Function  TargetInstallOK(ATarget : TTarget;ACPU:TCPU; AOS : TOS) : Boolean;
     Function  NeedsCompile(APackage:TPackage; ATarget : TTarget) : Boolean;
     Procedure Compile(APackage:TPackage; ATarget : TTarget);  virtual;
     Procedure MaybeCompile(APackage:TPackage; ATarget: TTarget);
@@ -1228,6 +1231,7 @@ Function OSesToString(OSes: TOSes) : String;
 Function CPUToString(CPU: TCPU) : String;
 Function CPUSToString(CPUS: TCPUS) : String;
 Function StringToOS(const S : String) : TOS;
+function IsDifferentFromBuild(ACpu: TCPU; AOs: TOs): boolean;
 //Function StringToOSes(const S : String) : TOSes;
 Function StringToCPU(const S : String) : TCPU;
 Function StringToCPUS(const S : String) : TCPUS;
@@ -1407,6 +1411,7 @@ ResourceString
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
   SHelpInstExamples   = 'Install the example-sources.';
+  SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
   sHelpThreads        = 'Enable the indicated amount of worker threads.';
@@ -1440,6 +1445,7 @@ Const
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
   KeyInstallExamples    = 'InstallExamples';
+  KeySkipCrossProdrams  = 'SkipCrossPrograms';
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
@@ -1863,6 +1869,11 @@ begin
   Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
 end;
 *)
+
+function IsDifferentFromBuild(ACpu: TCPU; AOs: TOs): boolean;
+begin
+  result := (AOs<>Defaults.BuildOS) or (ACpu<>Defaults.BuildCPU);
+end;
 
 Function StringToCPU(const S : String) : TCPU;
 
@@ -2931,7 +2942,7 @@ begin
       For I:=0 to FTargets.Count-1 do
         begin
           T:=FTargets.TargetItems[I];
-          if (T.TargetType in Types) and (T.Install) then
+          if (T.TargetType in Types) and Installer.BuildEngine.TargetInstallOK(T, ACPU, AOS) then
             T.GetInstallFiles(List, OU, OB, ACPU, AOS);
         end;
     end;
@@ -3634,7 +3645,7 @@ end;
 
 function TCustomDefaults.IsBuildDifferentFromTarget: boolean;
 begin
-  result := (OS<>BuildOS) or (CPU<>BuildCPU);
+  result := IsDifferentFromBuild(CPU,OS);
 end;
 
 
@@ -3765,6 +3776,8 @@ begin
         Values[KeyUseEnv]:='Y';
       if FInstallExamples then
           Values[KeyInstallExamples]:='Y';
+      if FSkipCrossPrograms then
+        Values[KeySkipCrossProdrams]:='Y';
       end;
     L.SaveToStream(S);
   Finally
@@ -3823,6 +3836,7 @@ begin
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
+      FSkipCrossPrograms:=(Upcase(Values[KeySkipCrossProdrams])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       FUseEnvironment:=(Upcase(Values[KeyUseEnv])='Y');
 
@@ -4151,6 +4165,8 @@ begin
       DefaultsFileName:=OptionArg(I)
     else if CheckOption(I,'ie','installexamples') then
       Defaults.InstallExamples:=true
+    else if CheckOption(I,'sp','skipcrossprograms') then
+      Defaults.SkipCrossPrograms:=true
     else if CheckOption(I,'bu','buildunit') then
       Defaults.BuildMode:=bmBuildUnit
     else if CheckOption(I,'io','ignoreinvalidoption') then
@@ -4219,6 +4235,7 @@ begin
 {$endif}
   LogOption('ie','installexamples',SHelpInstExamples);
   LogOption('bu','buildunit',SHelpUseBuildUnit);
+  LogOption('sp','skipcrossprograms',SHelpSkipCrossProgs);
   LogArgOption('C','cpu',SHelpCPU);
   LogArgOption('O','os',SHelpOS);
   LogArgOption('t','target',SHelpTarget);
@@ -5318,10 +5335,19 @@ begin
   Result:=(Defaults.CPU in ADependency.CPUs) and (Defaults.OS in ADependency.OSes);
 end;
 
-
-Function TBuildEngine.TargetOK(ATarget : TTarget) : Boolean;
+function TBuildEngine.TargetOK(ATarget: TTarget; ACPU: TCPU; AOS: TOS): Boolean;
 begin
-  Result:=(Defaults.CPU in ATarget.CPUs) and (Defaults.OS in ATarget.OSes);
+  if Defaults.SkipCrossPrograms and
+     (ATarget.TargetType in ProgramTargets) and
+     IsDifferentFromBuild(ACPU, AOS) then
+    result := False
+  else
+    Result:=(ACPU in ATarget.CPUs) and (AOS in ATarget.OSes);
+end;
+
+function TBuildEngine.TargetInstallOK(ATarget: TTarget; ACPU: TCPU; AOS: TOS): Boolean;
+begin
+  result := TargetOK(ATarget, ACPU, AOS) and ATarget.Install;
 end;
 
 
@@ -5375,7 +5401,7 @@ begin
     Exit;
 
   // Files which should not be compiled on this target can not trigger a compile.
-  if not TargetOK(ATarget) then
+  if not TargetOK(ATarget, Defaults.CPU, Defaults.OS) then
     Exit;
 
   // Check output file
@@ -5516,7 +5542,7 @@ begin
           T:=TTarget(D.Target);
           if Assigned(T) and (T<>ATarget) then
             begin
-              if TargetOK(T) then
+              if TargetOK(T, Defaults.CPU, Defaults.OS) then
                 begin
                   // We don't need to compile implicit units, they are only
                   // used for dependency checking
@@ -5808,7 +5834,7 @@ Var
     For I:=0 to APackage.Targets.Count-1 do
       begin
         T:=APackage.Targets.TargetItems[i];
-        if (T.TargetType = ttUnit) and (TargetOK(T)) then
+        if (T.TargetType = ttUnit) and (TargetOK(T, Defaults.CPU, Defaults.OS)) then
           begin
             If Assigned(T.AfterCompile) then
               T.AfterCompile(T);
@@ -5819,7 +5845,7 @@ Var
 
   procedure ProcessCompileTarget;
   begin
-    if TargetOK(T) then
+    if TargetOK(T, Defaults.CPU, Defaults.OS) then
       begin
         if T.State=tsNeutral then
           MaybeCompile(APackage,T);
@@ -6860,8 +6886,6 @@ end;
 
 procedure TTarget.GetInstallFiles(List: TStrings; const APrefixU, APrefixB: String; ACPU: TCPU; AOS : TOS);
 begin
-  If not(ACPU in CPUs) or not(AOS in OSes) then
-    exit;
   If Not (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
