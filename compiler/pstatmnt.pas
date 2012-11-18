@@ -752,7 +752,7 @@ implementation
          else
           begin
             p.free;
-            Message(parser_e_false_with_expr);
+            Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             { try to recover from error }
             if try_to_consume(_COMMA) then
              begin

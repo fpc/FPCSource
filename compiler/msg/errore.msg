@@ -640,7 +640,7 @@ parser_e_expr_have_to_be_destructor_call=03077_E_Expression must be destructor c
 parser_e_invalid_record_const=03078_E_Illegal order of record elements
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_Expression type must be class or record type
+parser_e_false_with_expr=03079_E_Expression type must be class or record type, got $1
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
