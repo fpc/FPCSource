@@ -2845,12 +2845,14 @@ begin
   def_system_macro('CPUX64');
   { not supported for now, afaik (FK)
    def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
-  { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+  { normally, win64 doesn't support the legacy fpu }
   if target_info.system=system_x86_64_win64 then
     begin
       def_system_macro('FPC_CURRENCY_IS_INT64');
       def_system_macro('FPC_COMP_IS_INT64');
     end;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 {$endif}
 {$ifdef sparc}
   def_system_macro('CPUSPARC');
@@ -3233,10 +3235,12 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$ifdef x86_64}
-      { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+      { normally, win64 doesn't support the legacy fpu }
       if target_info.system=system_x86_64_win64 then
         undef_system_macro('FPC_HAS_TYPE_EXTENDED')
       else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;

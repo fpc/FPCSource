@@ -220,13 +220,15 @@ implementation
         tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
-        if target_info.system<>system_x86_64_win64 then
-          s64currencytype:=tfloatdef.create(s64currency)
-        else
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+        if target_info.system=system_x86_64_win64 then
           begin
             s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
             pbestrealtype:=@s64floattype;
-          end;
+          end
+        else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
+          s64currencytype:=tfloatdef.create(s64currency);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
@@ -303,7 +305,9 @@ implementation
               addtype('CExtended',pbestrealtype^);
           end;
 {$ifdef x86}
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system<>system_x86_64_win64 then
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
           addtype('Comp',tfloatdef.create(s64comp));
 {$endif x86}
         addtype('Currency',s64currencytype);
@@ -440,8 +444,10 @@ implementation
       var
         oldcurrentmodule : tmodule;
       begin
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
           pbestrealtype:=@s64floattype;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=current_module;
         set_current_module(nil);
