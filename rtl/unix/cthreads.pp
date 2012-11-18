@@ -463,7 +463,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
             res := pthread_mutex_init(@CS,@MAttr)
           else
             { No recursive mutex support :/ }
-            res := pthread_mutex_init(@CS,NIL);
+            fpc_threaderror
         end
       else
         res:= pthread_mutex_init(@CS,NIL);
