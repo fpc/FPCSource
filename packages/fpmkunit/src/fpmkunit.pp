@@ -194,6 +194,7 @@ Const
   SharedLibExt = '.so';
   DLLExt  = '.dll';
   ExeExt  = '.exe';
+  DbgExt  = '.dbg';
   ZipExt  = '.zip';
 
   FPMakePPFile = 'fpmake.pp';
@@ -534,6 +535,7 @@ Type
     Function GetRSTFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
+    Function GetProgramDebugFileName(AOS : TOS) : String; Virtual;
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
@@ -6831,6 +6833,12 @@ begin
 end;
 
 
+function TTarget.GetProgramDebugFileName(AOS: TOS): String;
+begin
+  result := Name + DbgExt;
+end;
+
+
 function TTarget.GetOutputFileName(AOs: TOS): String;
 begin
   if TargetType in UnitTargets then
@@ -6877,7 +6885,11 @@ begin
         List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
+    begin
     List.Add(APrefixB + GetProgramFileName(AOS));
+    if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
+      List.Add(APrefixB + GetProgramDebugFileName(AOS));
+    end;
   If ResourceStrings then
     List.Add(APrefixU + RSTFileName);
   // Maybe add later ?  AddConditionalStrings(List,CleanFiles);
