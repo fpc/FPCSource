@@ -1683,6 +1683,8 @@ else
 	$(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
 endif
 	-$(DEL) $(LOCALFPMAKE)
+	-$(DEL) fpmake.o
+	-$(DEL) fpmake.dbg
 endif
 install:	fpmake
 ifdef UNIXHier
