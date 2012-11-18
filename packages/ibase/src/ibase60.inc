@@ -2504,7 +2504,7 @@ begin
     if (LibHandle=nilhandle) then
       Exit;
     inc(RefCount);
-    IBaseLoadedLibrary:=LibraryName;
+    LoadedLibrary:=LibraryName;
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
     pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');
@@ -2726,7 +2726,7 @@ begin
     begin
     Dec(RefCount);
     LibHandle := NilHandle;
-    IBaseLoadedLibrary:='';
+    LoadedLibrary:='';
     end;
 end;
 
