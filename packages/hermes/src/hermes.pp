@@ -35,7 +35,9 @@ unit Hermes;
 {$MODE objfpc}
 
 {$IF defined(cpui386) and not defined(noassembler)}
-  {$DEFINE I386_ASSEMBLER}
+  {$IF defined(linux) or defined(win32) or defined(go32v2) or defined(freebsd) or defined(haiku) or defined(beos)}
+    {$DEFINE I386_ASSEMBLER}
+  {$ENDIF}
 {$ENDIF}
 
 {$IF defined(cpux86_64) and not defined(noassembler)}
