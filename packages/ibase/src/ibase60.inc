@@ -2463,10 +2463,8 @@ function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 function InitialiseIBase60 : integer;
 procedure ReleaseIBase60;
 
-var
-  IBaseLibraryHandle : TLibHandle;
-  IBaseLoadedLibrary : AnsiString;
-
+Function IBaseLibraryHandle : TLibHandle;
+Function IBaseLoadedLibrary : AnsiString;
 {$ENDIF}
 
 implementation
@@ -2481,6 +2479,20 @@ ResourceString
   
 var 
   RefCount : integer;
+  LoadedLibrary : AnsiString;
+  LibHandle : TLibHandle;
+  
+Function IBaseLibraryHandle : TLibHandle;
+
+begin
+  result:=LibHandle;
+end;
+
+Function IBaseLoadedLibrary : AnsiString;
+  
+begin
+  Result:=LoadedLibrary;
+end;  
 
 Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
@@ -2488,8 +2500,8 @@ begin
   Result := 0;
   if (RefCount=0) then
     begin
-    IBaseLibraryHandle:=LoadLibrary(LibraryName);
-    if (IBaseLibraryHandle=nilhandle) then
+    LibHandle:=LoadLibrary(LibraryName);
+    if (LibHandle=nilhandle) then
       Exit;
     inc(RefCount);
     IBaseLoadedLibrary:=LibraryName;
@@ -2710,10 +2722,10 @@ Procedure ReleaseIBase60;
 begin
   if RefCount>1 then
     Dec(RefCount)
-  else if UnloadLibrary(IBaseLibraryHandle) then 
+  else if UnloadLibrary(LibHandle) then 
     begin
     Dec(RefCount);
-    IBaseLibraryHandle := NilHandle;
+    LibHandle := NilHandle;
     IBaseLoadedLibrary:='';
     end;
 end;
