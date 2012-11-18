@@ -10,15 +10,15 @@ version=2.7.1
 units=hermes
 
 [compiler]
-options_i386_linux=-dI386_ASSEMBLER
-options_i386_win32=-dI386_ASSEMBLER
-options_i386_go32v2=-dI386_ASSEMBLER
-options_i386_freebsd=-dI386_ASSEMBLER
-options_i386_haiku=-dI386_ASSEMBLER
-options_i386_beos=-dI386_ASSEMBLER
-options_x86_64_linux=-dX86_64_ASSEMBLER
-options_x86_64_win64=-dX86_64_ASSEMBLER
-options_x86_64_freebsd=-dX86_64_ASSEMBLER
+#options_i386_linux=-dI386_ASSEMBLER
+#options_i386_win32=-dI386_ASSEMBLER
+#options_i386_go32v2=-dI386_ASSEMBLER
+#options_i386_freebsd=-dI386_ASSEMBLER
+#options_i386_haiku=-dI386_ASSEMBLER
+#options_i386_beos=-dI386_ASSEMBLER
+#options_x86_64_linux=-dX86_64_ASSEMBLER
+#options_x86_64_win64=-dX86_64_ASSEMBLER
+#options_x86_64_freebsd=-dX86_64_ASSEMBLER
 
 unitdir=
 targetdir=.

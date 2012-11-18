@@ -34,6 +34,14 @@ unit Hermes;
 
 {$MODE objfpc}
 
+{$IF defined(cpui386) and not defined(noassembler)}
+  {$DEFINE I386_ASSEMBLER}
+{$ENDIF}
+
+{$IF defined(cpux86_64) and not defined(noassembler)}
+  {$DEFINE X86_64_ASSEMBLER}
+{$ENDIF}
+
 interface
 
 const
