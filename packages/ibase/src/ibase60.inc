@@ -2463,7 +2463,9 @@ function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 function InitialiseIBase60 : integer;
 procedure ReleaseIBase60;
 
-var IBaseLibraryHandle : TLibHandle;
+var
+  IBaseLibraryHandle : TLibHandle;
+  IBaseLoadedLibrary : AnsiString;
 
 {$ENDIF}
 
@@ -2479,7 +2481,6 @@ ResourceString
   
 var 
   RefCount : integer;
-  LoadedLibrary : String;
 
 Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
@@ -2491,7 +2492,7 @@ begin
     if (IBaseLibraryHandle=nilhandle) then
       Exit;
     inc(RefCount);
-    LoadedLibrary:=LibraryName;
+    IBaseLoadedLibrary:=LibraryName;
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
     pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');
@@ -2695,11 +2696,11 @@ begin
   Result := TryInitialiseIBase60(LibraryName);
   If Result = 0 then
     Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>LoadedLibrary) then
+  else If (LibraryName<>IBaseLoadedLibrary) then
     begin
     Dec(RefCount);
     Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[IBaseLoadedLibrary]);
     end;
 end;
 
@@ -2713,7 +2714,7 @@ begin
     begin
     Dec(RefCount);
     IBaseLibraryHandle := NilHandle;
-    LoadedLibrary:='';
+    IBaseLoadedLibrary:='';
     end;
 end;
 
