@@ -971,10 +971,12 @@ implementation
           {user} [oso_Data,oso_load,oso_write,oso_keep],
           {code} [oso_Data,oso_load,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
-{ TODO: Fix sec_rodata be read-only-with-relocs}
+{ Readonly data with relocations must be initially writable for some targets.
+  Moreover, e.g. for ELF it depends on whether the executable is linked statically or
+  dynamically. Here we declare it writable, target-specific descendants must provide
+  further handling. }
           {roData} [oso_Data,oso_load,oso_write,oso_keep],
-{ TODO: Fix sec_rodata_norel be read-only/constant}
-          {roData_norel} [oso_Data,oso_load,oso_write,oso_keep],
+          {roData_norel} [oso_Data,oso_load,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
           {threadvar} [oso_load,oso_write
 {$ifdef FPC_USE_TLS_DIRECTORY}

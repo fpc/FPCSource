@@ -121,6 +121,7 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+         function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
@@ -481,7 +482,7 @@ implementation
        StrsMaxGrow   = 8192;
 
        coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-          '.text','.data','.data','.data','.bss','.tls',
+          '.text','.data','.rdata','.rdata','.bss','.tls',
           '.pdata',{pdata}
           '.text', {stub}
           '.data',
@@ -1001,6 +1002,11 @@ const pemagic : array[0..3] of byte = (
           result:=aname
         else
           begin
+            { non-PECOFF targets lack rodata support.
+              TODO: WinCE likely supports it, but needs testing. }
+            if (atype in [sec_rodata,sec_rodata_norel]) and
+               not (target_info.system in systems_windows) then
+              atype:=sec_data;
             secname:=coffsecnames[atype];
             if create_smartlink_sections and
                (aname<>'') then
@@ -1018,6 +1024,20 @@ const pemagic : array[0..3] of byte = (
             else
               result:=secname;
           end;
+      end;
+
+
+    function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
+      begin
+        if (aType in [sec_rodata,sec_rodata_norel]) then
+          begin
+            { TODO: WinCE needs testing }
+            if (target_info.system in systems_windows) then
+              aType:=sec_rodata_norel
+            else
+              aType:=sec_data;
+          end;
+        result:=inherited sectiontype2options(aType);
       end;
 
 

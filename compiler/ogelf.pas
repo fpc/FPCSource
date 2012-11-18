@@ -961,11 +961,8 @@ implementation
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-{$ifdef userodata}
+          { TODO: sec_rodata is still writable }
           '.text','.data','.data','.rodata','.bss','.threadvar',
-{$else userodata}
-          '.text','.data','.data','.data','.bss','.threadvar',
-{$endif userodata}
           '.pdata',
           '.text', { darwin stubs }
           '__DATA,__nl_symbol_ptr',
