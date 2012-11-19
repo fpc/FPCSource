@@ -91,7 +91,7 @@ const
       'bin.hex:Graphics',
       '',
       'string',             // ftFixedChar
-      'string',             // ftWideString
+      'string.uni',         // ftWideString
       'i8',
       '',
       '',
@@ -105,7 +105,7 @@ const
       '',
       '',
       'fixedFMT',
-      'string',             // ftFixedWideChar
+      'string.uni',         // ftFixedWideChar
       'bin.hex:WideText'    // ftWideMemo
     );
 
