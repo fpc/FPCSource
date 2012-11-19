@@ -1241,7 +1241,7 @@ end;
 
 function TFPSMap.Find(AKey: Pointer; out Index: Integer): Boolean;
 { Searches for the first item <= Key, returns True if exact match,
-  sets index to the index f the found string. }
+  sets index to the index of the found string. }
 var
   I,L,R,Dir: Integer;
 begin
