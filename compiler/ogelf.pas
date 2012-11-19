@@ -58,6 +58,7 @@ interface
          kind: TElfSymtabKind;
          fstrsec: TObjSection;
          symidx: longint;
+         tlsbase: aword;
          constructor create(aObjData:TObjData;aKind:TElfSymtabKind);reintroduce;
          procedure writeSymbol(objsym:TObjSymbol;nameidx:longword=0);
          procedure writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
@@ -184,6 +185,7 @@ interface
          dynsymnames: Plongword;
          dynsymtable: TElfSymtab;
          interpobjsec: TObjSection;
+         FInterpreter: pshortstring;
          dynamicsec,
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
@@ -239,6 +241,7 @@ interface
          procedure DataPos_ExeSection(const aname:string);override;
          function writeData:boolean;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
+         property interpreter:pshortstring read FInterpreter write FInterpreter;
        end;
 
      var
@@ -1159,10 +1162,10 @@ implementation
         else
           elfsym.st_name:=nameidx;
         elfsym.st_size:=objsym.size;
+        elfsym.st_value:=objsym.address;
         case objsym.bind of
           AB_LOCAL :
             begin
-              elfsym.st_value:=objsym.address;
               elfsym.st_info:=STB_LOCAL shl 4;
               inc(shinfo);
             end;
@@ -1175,19 +1178,13 @@ implementation
           AB_EXTERNAL :
             elfsym.st_info:=STB_GLOBAL shl 4;
           AB_WEAK_EXTERNAL :
-            begin
-              elfsym.st_info:=STB_WEAK shl 4;
-              elfsym.st_value:=objsym.address;
-            end;
+            elfsym.st_info:=STB_WEAK shl 4;
           AB_GLOBAL :
-            begin
-              elfsym.st_value:=objsym.address;
-              elfsym.st_info:=STB_GLOBAL shl 4;
-            end;
+            elfsym.st_info:=STB_GLOBAL shl 4;
+        else
+          InternalError(2012111801);
         end;
-        if (objsym.bind<>AB_EXTERNAL) {and
-           not(assigned(objsym.objsection) and
-           not(oso_data in objsym.objsection.secoptions))} then
+        if (objsym.bind<>AB_EXTERNAL) then
           begin
             case objsym.typ of
               AT_FUNCTION :
@@ -1198,6 +1195,7 @@ implementation
                 elfsym.st_info:=elfsym.st_info or STT_TLS;
               AT_GNU_IFUNC:
                 elfsym.st_info:=elfsym.st_info or STT_GNU_IFUNC;
+            { other types are implicitly mapped to STT_NOTYPE }
             end;
           end;
         if objsym.bind<>AB_COMMON then
@@ -1206,7 +1204,9 @@ implementation
               begin
                 if assigned(objsym.objsection) and assigned(objsym.objsection.ExeSection) then
                   begin
-                    if (oso_plt in objsym.objsection.SecOptions) then
+                    if (objsym.typ=AT_TLS) then
+                      elfsym.st_value:=elfsym.st_value-tlsbase
+                    else if (oso_plt in objsym.objsection.SecOptions) then
                       elfsym.st_value:=0
                     else
                       elfsym.st_shndx:=TElfExeSection(objsym.objsection.ExeSection).secshidx;
@@ -1302,9 +1302,7 @@ implementation
       begin
         with data do
          begin
-           { filename entry }
-           symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
-           { section }
+           { section symbols }
            ObjSectionList.ForEachCall(@section_write_symbol,nil);
            { First the Local Symbols, this is required by ELF. The localsyms
              count stored in shinfo is used to skip the local symbols
@@ -1414,8 +1412,9 @@ implementation
            if (target_info.system in systems_linux) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
-           { insert filename as first in strtab }
+           { symbol for filename }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
+           symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }
@@ -1453,10 +1452,6 @@ implementation
            header.e_ident[EI_VERSION]:=1;
            header.e_type:=ET_REL;
            header.e_machine:=ELFMACHINE;
-{$ifdef arm}
-           if (current_settings.fputype=fpu_soft) then
-             header.e_flags:=$600;
-{$endif arm}
            header.e_version:=1;
            header.e_shoff:=shoffset;
            header.e_shstrndx:=shstrtabsect.index;
@@ -2117,6 +2112,7 @@ implementation
         dynreloclist.Free;
         if assigned(dynsymnames) then
           FreeMem(dynsymnames);
+        stringdispose(FInterpreter);
         inherited Destroy;
       end;
 
@@ -2159,10 +2155,6 @@ implementation
         else
           header.e_type:=ET_EXEC;
         header.e_machine:=ELFMACHINE;
-{$ifdef arm}
-        if (current_settings.fputype=fpu_soft) then
-          header.e_flags:=$600;
-{$endif arm}
         header.e_version:=1;
         header.e_phoff:=sizeof(TElfHeader);
         header.e_shoff:=shoffset;
@@ -2232,6 +2224,8 @@ implementation
         sec: TElfExeSection;
         exesym: TExeSymbol;
       begin
+        if assigned(tlsseg) then
+          symtab.tlsbase:=tlsseg.MemPos;
         for i:=0 to ExeSectionList.Count-1 do
           begin
             sec:=TElfExeSection(ExeSectionList[i]);
@@ -2680,6 +2674,8 @@ implementation
               begin
                 dynrelocsec.size:=0;
                 { write actual .dynsym content (needs valid symbol addresses) }
+                if assigned(tlsseg) then
+                  dynsymtable.tlsbase:=tlsseg.MemPos;
                 dynsymtable.size:=sizeof(TElfsymbol);
                 for i:=0 to dynsymlist.count-1 do
                   dynsymtable.writeSymbol(TExeSymbol(dynsymlist[i]).objsymbol,dynsymnames[i]);
@@ -2828,12 +2824,7 @@ implementation
         if not IsSharedLibrary then
           begin
             interpobjsec:=internalObjData.createsection('.interp',1,[oso_data,oso_load,oso_keep]);
-            { TODO: supply target-specific default }
-{$ifdef x86_64}
-            interpobjsec.writestr('/lib64/ld-linux-x86-64.so.2');
-{$else}
-            interpobjsec.writestr('/lib/ld-linux.so.2');
-{$endif x86_64}
+            interpobjsec.writestr(interpreter^);
           end;
 
         hashobjsec:=TElfObjSection.create_ext(internalObjData,'.hash',

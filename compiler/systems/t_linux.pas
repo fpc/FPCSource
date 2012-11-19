@@ -1216,6 +1216,8 @@ begin
       AddSharedLibrary('c');
     end;
 
+  TElfExeOutput(exeoutput).interpreter:=stringdup(dynlinker);
+
   { add objectfiles, start with prt0 always }
   if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
     LinkScript.Concat('READOBJECT '+ maybequoted(FindObjectFile(prtobj,'',false)));
