@@ -628,6 +628,7 @@ begin
                 int1:=FieldDef.Size;
               if int1 > 0 then 
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
+              PAnsiChar(buffer + int1)^ := #0;
               end;
     ftFmtBCD: begin
               int1:= sqlite3_column_bytes(st,fnum);
@@ -648,11 +649,12 @@ begin
     ftFixedWideChar,
     ftWideString:
       begin
-      int1 := sqlite3_column_bytes16(st,fnum)+2; //The value returned does not include the zero terminator at the end of the string
-      if int1>(FieldDef.Size+1)*2 then
-        int1:=(FieldDef.Size+1)*2;
+      int1 := sqlite3_column_bytes16(st,fnum); //The value returned does not include the zero terminator at the end of the string
+      if int1>FieldDef.Size*2 then
+        int1:=FieldDef.Size*2;
       if int1 > 0 then
         move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
+      PWideChar(buffer + int1)^ := #0;
       end;
     ftVarBytes,
     ftBytes:
