@@ -246,6 +246,8 @@ begin
       FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
+      FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
   end;
 

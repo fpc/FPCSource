@@ -313,6 +313,8 @@ begin
   testValues[ftDate] := testDateValues;
   testValues[ftBlob] := testStringValues;
   testValues[ftMemo] := testStringValues;
+  testValues[ftWideString] := testStringValues;
+  testValues[ftWideMemo] := testStringValues;
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
