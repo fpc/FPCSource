@@ -158,8 +158,12 @@ unit optcse;
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
-              their complexity is probably <= 1 anyways }
-            not(n.nodetype in [temprefn,callparan]) and
+              their complexity is probably <= 1 anyways
+
+              neither add setelementn nodes because the compiler sometimes depends on the fact
+              that a certain node stays a setelementn, this does not hurt either because
+              setelementn nodes itself generate no real code (except moving data into register) }
+            not(n.nodetype in [temprefn,callparan,setelementn]) and
 
             { node worth to add?
 
