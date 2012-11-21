@@ -118,7 +118,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -881,6 +881,7 @@ Type
     function GetUnitInstallDir: String;
     procedure SetLocalUnitDir(const AValue: String);
     procedure SetGlobalUnitDir(const AValue: String);
+    procedure IntSetBaseInstallDir(const AValue: String);
     procedure SetBaseInstallDir(const AValue: String);
     procedure SetCPU(const AValue: TCPU);
     procedure SetOptions(const AValue: TStrings);
@@ -995,6 +996,7 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+    FZipper: TZipper;
   Protected
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; const Args : Array of const);
@@ -1081,6 +1083,7 @@ Type
     // Packages commands
     Procedure Compile(Packages : TPackages);
     Procedure Install(Packages : TPackages);
+    Procedure ZipInstall(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
@@ -1132,6 +1135,7 @@ Type
     Procedure Compile(Force : Boolean); virtual;
     Procedure Clean(AllTargets: boolean); virtual;
     Procedure Install; virtual;
+    Procedure ZipInstall; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
   Public
@@ -3539,18 +3543,28 @@ begin
     FGlobalUnitDir:='';
 end;
 
-
-procedure TCustomDefaults.SetBaseInstallDir(const AValue: String);
+procedure TCustomDefaults.IntSetBaseInstallDir(const AValue: String);
 begin
-  // Use ExpandFileName to support ~/ expansion
   if AValue<>'' then
-    FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+    FBaseInstallDir:=IncludeTrailingPathDelimiter(AValue)
   else
     FBaseInstallDir:='';
   GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
   GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
   BinInstallDir:='';
   ExamplesInstallDir:='';
+end;
+
+
+procedure TCustomDefaults.SetBaseInstallDir(const AValue: String);
+begin
+  // There must be a possibility to skip ExpandFileName. So that the files
+  // can be written into an archive with a relative path.
+  if AValue<>'' then
+    // Use ExpandFileName to support ~/ expansion
+    IntSetBaseInstallDir(ExpandFileName(AValue))
+  else
+    IntSetBaseInstallDir(AValue);
 end;
 
 
@@ -4117,6 +4131,8 @@ begin
       FRunMode:=rmBuild
     else if CheckCommand(I,'i','install') then
       FRunMode:=rmInstall
+    else if CheckCommand(I,'zi','zipinstall') then
+      FRunMode:=rmZipInstall
     else if CheckCommand(I,'c','clean') then
       FRunMode:=rmClean
     else if CheckCommand(I,'dc','distclean') then
@@ -4282,6 +4298,11 @@ begin
   BuildEngine.Install(Packages);
 end;
 
+procedure TCustomInstaller.ZipInstall;
+begin
+  BuildEngine.ZipInstall(Packages);
+end;
+
 
 procedure TCustomInstaller.Archive;
 begin
@@ -4315,6 +4336,7 @@ begin
       rmCompile : Compile(False);
       rmBuild   : Compile(True);
       rmInstall : Install;
+      rmZipInstall : ZipInstall;
       rmArchive : Archive;
       rmClean    : Clean(False);
       rmDistClean: Clean(True);
@@ -4636,8 +4658,25 @@ Var
   Args : String;
   I : Integer;
   DestFileName : String;
-
 begin
+  // When the files should be written to an archive, add them
+  if assigned(FZipper) then
+    begin
+      For I:=0 to List.Count-1 do
+        if List.Names[i]<>'' then
+          begin
+            if IsRelativePath(list.ValueFromIndex[i]) then
+              DestFileName:=DestDir+list.ValueFromIndex[i]
+            else
+              DestFileName:=list.ValueFromIndex[i];
+            FZipper.Entries.AddFileEntry(List.names[i], DestFileName);
+          end
+        else
+          FZipper.Entries.AddFileEntry(List[i], DestDir+ExtractFileName(List[i]));
+      Exit;
+    end;
+
+  // Copy the files to their new location on disk
   CmdCreateDir(DestDir);
   If (Defaults.Copy<>'') then
     begin
@@ -6553,6 +6592,39 @@ begin
       else
         log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
     end;
+  If Assigned(AfterInstall) then
+    AfterInstall(Self);
+end;
+
+procedure TBuildEngine.ZipInstall(Packages: TPackages);
+var
+  I : Integer;
+  P : TPackage;
+begin
+  If Assigned(BeforeInstall) then
+    BeforeInstall(Self);
+
+  FZipper := TZipper.Create;
+  try
+    Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
+    For I:=0 to Packages.Count-1 do
+      begin
+        P:=Packages.PackageItems[i];
+        If PackageOK(P) then
+          begin
+            FZipper.FileName := P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
+            Install(P);
+            FZipper.ZipAllFiles;
+            FZipper.Clear;
+            log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+          end
+        else
+          log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
+      end;
+  finally
+    FZipper.Free;
+  end;
+
   If Assigned(AfterInstall) then
     AfterInstall(Self);
 end;
