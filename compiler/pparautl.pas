@@ -114,7 +114,9 @@ implementation
               paranr:=paranr_parentfp_delphi_cc;
             { Generate frame pointer. It can't be put in a register since it
               must be accessable from nested routines }
-            if not(target_info.system in systems_fpnestedstruct) then
+            if not(target_info.system in systems_fpnestedstruct) or
+               { in case of errors, prevent invalid type cast }
+               (pd.owner.defowner.typ<>procdef) then
               begin
                 vs:=tparavarsym.create('$parentfp',paranr,vs_value
                       ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
