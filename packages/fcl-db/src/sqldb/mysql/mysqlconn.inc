@@ -122,7 +122,7 @@ Type
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
-    Function GetLastInsertID: int64;
+    Function GetInsertID: int64;
     procedure CreateDB; override;
     procedure DropDB; override;
     Property ServerInfo : String Read FServerInfo;
@@ -297,7 +297,7 @@ begin
   Result := mysql_stat(FMYSQL);
 end;
 
-function TConnectionName.GetLastinsertID: Int64;
+function TConnectionName.GetInsertID: Int64;
 begin
   CheckConnected;
   Result:=mysql_insert_id(GetHandle);
