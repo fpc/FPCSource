@@ -34,6 +34,16 @@ unit Hermes;
 
 {$MODE objfpc}
 
+{$if defined(darwin) and defined(cpui386)}
+{ darwin/i386 requires a 16 byte aligned stack, and inserts code for that on
+  entry in assembler routines (unless they are declared with "nostackframe").
+  These assembler routines manually create their own stack frame and hardcode
+  parameter offsets without using nostackframe, so they can never work on
+  Darwin.
+}
+{$define noassembler}
+{$endif}
+
 {$IF defined(cpui386) and not defined(noassembler)}
   {$IF defined(linux) or defined(win32) or defined(go32v2) or defined(freebsd) or defined(haiku) or defined(beos)}
     {$DEFINE I386_ASSEMBLER}
