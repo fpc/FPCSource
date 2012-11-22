@@ -1278,7 +1278,7 @@ implementation
           { use append_labelentry_dataptr_rel instead }
           internalerror(2007020210);
         append_labelentry_dataptr_common(attr);
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetreltype,sym))
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym))
       end;
 
 
