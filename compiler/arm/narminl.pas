@@ -369,14 +369,12 @@ implementation
 
     procedure tarminlinenode.second_abs_long;
       var
-        hregister : tregister;
         opsize : tcgsize;
         hp : taicpu;
       begin
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-        hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
