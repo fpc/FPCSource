@@ -498,7 +498,7 @@ implementation
     function tparamanager.use_fixed_stack: boolean;
       begin
 {$ifdef i386}
-        result := (target_info.system in [system_i386_darwin,system_i386_iphonesim]);
+        result := target_info.stackalign > 4;
 {$else i386}
 {$ifdef cputargethasfixedstack}
         result := true;
