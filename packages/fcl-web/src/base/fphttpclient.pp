@@ -835,7 +835,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Stream : TStream);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Get(AURL,Stream);
     finally
@@ -847,7 +847,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; const LocalFileName : String);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Get(AURL,LocalFileName);
     finally
@@ -859,7 +859,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Response : TStrings);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Get(AURL,Response);
     finally
@@ -871,7 +871,7 @@ end;
 Class Function TFPCustomHTTPClient.SimpleGet(Const AURL : String) : String;
  
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Result:=Get(AURL);
     finally
@@ -925,7 +925,7 @@ end;
 Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const Response: TStream);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Post(URL,Response);
     finally
@@ -937,7 +937,7 @@ end;
 Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; Response : TStrings);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Post(URL,Response);
     finally
@@ -949,7 +949,7 @@ end;
 Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const LocalFileName: String);
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Post(URL,LocalFileName);
     finally
@@ -961,7 +961,7 @@ end;
 Class function TFPCustomHTTPClient.SimplePost(const URL: string) : String;
 
 begin
-  With TFPCustomHTTPClient.Create(Nil) do
+  With Self.Create(nil) do
     try
       Result:=Post(URL);
     finally
@@ -1047,7 +1047,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; const Response: TStream);
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       FormPost(URL,FormData,Response);
     Finally
@@ -1059,7 +1059,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStream);
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       FormPost(URL,FormData,Response);
     Finally
@@ -1071,7 +1071,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; const Response: TStrings);
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       FormPost(URL,FormData,Response);
     Finally
@@ -1082,7 +1082,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       FormPost(URL,FormData,Response);
     Finally
@@ -1093,7 +1093,7 @@ end;
 Class function TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string): String;
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       Result:=FormPost(URL,FormData);
     Finally
@@ -1104,7 +1104,7 @@ end;
 Class function TFPCustomHTTPClient.SimpleFormPost(const URL: string; FormData : TStrings): String;
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       Result:=FormPost(URL,FormData);
     Finally
@@ -1149,7 +1149,7 @@ end;
 Class Procedure TFPCustomHTTPClient.SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
 
 begin
-  With TFPCustomHTTPClient.Create(nil) do
+  With Self.Create(nil) do
     try
       FileFormPost(AURL,AFieldName,AFileName,Response);
     Finally
