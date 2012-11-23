@@ -824,7 +824,7 @@ end;
 
 procedure TTestFieldTypes.TestVarBytesParamQuery;
 begin
-  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, SQLConnType<>mssql);
+  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, not(SQLServerType in [ssMSSQL, ssSybase]));
 end;
 
 procedure TTestFieldTypes.TestBooleanParamQuery;
@@ -1238,25 +1238,27 @@ procedure TTestFieldTypes.TestOpenStoredProc;
 begin
   with TSQLDBConnector(DBConnector) do
   begin
-    if SQLConnType in MySQLConnTypes then
-    begin
-      Connection.ExecuteDirect('create procedure FPDEV_PROC() select 1 union select 2;');
-      Query.SQL.Text:='call FPDEV_PROC';
-    end
-    else if SQLConnType = interbase then
-    begin
-      Connection.ExecuteDirect('create procedure FPDEV_PROC returns (r integer) as begin r=1; end');
-      Query.SQL.Text:='execute procedure FPDEV_PROC';
-    end
-    else if SQLConnType = mssql then
-    begin
-      Connection.ExecuteDirect('create procedure FPDEV_PROC as select 1 union select 2;');
-      Query.SQL.Text:='execute FPDEV_PROC';
-    end
-    else
-    begin
-      Ignore('This test does not apply to this sqldb-connection type, since it does not support selectable stored procedures.');
-      Exit;
+    case SQLServerType of
+      ssMySQL:
+        begin
+        Connection.ExecuteDirect('create procedure FPDEV_PROC() select 1 union select 2;');
+        Query.SQL.Text:='call FPDEV_PROC';
+        end;
+      ssFirebird, ssInterbase:
+        begin
+        Connection.ExecuteDirect('create procedure FPDEV_PROC returns (r integer) as begin r=1; end');
+        Query.SQL.Text:='execute procedure FPDEV_PROC';
+        end;
+      ssMSSQL, ssSybase:
+        begin
+        Connection.ExecuteDirect('create procedure FPDEV_PROC as select 1 union select 2;');
+        Query.SQL.Text:='execute FPDEV_PROC';
+        end;
+      else
+        begin
+        Ignore('This test does not apply to this sqldb-connection type, since it does not support selectable stored procedures.');
+        Exit;
+        end;
     end;
     Transaction.CommitRetaining;
 
@@ -1620,10 +1622,13 @@ begin
     Close;
 
     // tests parsing of WHERE ... LIMIT
-    case SQLConnType of
-      interbase : SQL.Text:='select first 1 NAME from FPDEV where NAME=''TestName21''';
-      mssql     : SQL.Text:='select top 1 NAME from FPDEV where NAME=''TestName21''';
-      else        SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
+    case SQLServerType of
+      ssFirebird, ssInterbase:
+        SQL.Text:='select first 1 NAME from FPDEV where NAME=''TestName21''';
+      ssMSSQL, ssSybase:
+        SQL.Text:='select top 1 NAME from FPDEV where NAME=''TestName21''';
+      else
+        SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
     end;
     Open;
     CheckTrue(CanModify, SQL.Text);
@@ -1638,7 +1643,7 @@ begin
 
     // tests parsing SELECT with quoted identifiers (MySQL requires sql-mode=ANSI_QUOTES)
     SQL.Text:='SELECT"ID"FROM"FPDEV"ORDER BY"ID"';
-    if SQLConnType in [postgresql] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    if SQLServerType in [ssPostgreSQL] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
     Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
@@ -1755,7 +1760,7 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
-  if SQLConnType in [interbase,postgresql,mssql] then Ignore('This test does not apply to this db-engine, since it has no double field-type');
+  if not(SQLServerType in [ssMySQL, ssSQLite]) then Ignore('This test does not apply to this db-engine, since it has no double field-type');
 
   with TSQLDBConnector(DBConnector) do
     begin
@@ -2064,7 +2069,7 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
-  if SQLConnType in [mssql] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
+  if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
