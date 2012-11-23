@@ -90,12 +90,22 @@ Type
     Procedure Get(Const AURL : String; const LocalFileName : String);
     Procedure Get(Const AURL : String; Response : TStrings);
     Function Get(Const AURL : String) : String;
+    // Simple class methods
+    Class Procedure SimpleGet(Const AURL : String; Stream : TStream);
+    Class Procedure SimpleGet(Const AURL : String; const LocalFileName : String);
+    Class Procedure SimpleGet(Const AURL : String; Response : TStrings);
+    Class Function SimpleGet(Const AURL : String) : String;
     // Simple post
     // Post URL, and Requestbody. Return response in Stream, File, TstringList or String;
     procedure Post(const URL: string; const Response: TStream);
     procedure Post(const URL: string; Response : TStrings);
     procedure Post(const URL: string; const LocalFileName: String);
     function Post(const URL: string) : String;
+    // Simple class methods.
+    Class procedure SimplePost(const URL: string; const Response: TStream);
+    Class procedure SimplePost(const URL: string; Response : TStrings);
+    Class procedure SimplePost(const URL: string; const LocalFileName: String);
+    Class function SimplePost(const URL: string) : String;
     // Post Form data (www-urlencoded).
     // Formdata in string (urlencoded) or TStrings (plain text) format.
     // Form data will be inserted in the requestbody.
@@ -106,8 +116,17 @@ Type
     Procedure FormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
     function FormPost(const URL, FormData: string): String;
     function FormPost(const URL: string; FormData : TStrings): String;
+    // Simple form 
+    Class Procedure SimpleFormPost(const URL, FormData: string; const Response: TStream);
+    Class Procedure SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStream);
+    Class Procedure SimpleFormPost(const URL, FormData: string; const Response: TStrings);
+    Class Procedure SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
+    Class function SimpleFormPost(const URL, FormData: string): String;
+    Class function SimpleFormPost(const URL: string; FormData : TStrings): String;
     // Post a file
     Procedure FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+    // Simple form of Posting a file
+    Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
@@ -812,15 +831,66 @@ begin
   end;
 end;
 
+
+Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Stream : TStream);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Get(AURL,Stream);
+    finally
+      Free;
+    end;
+end;
+
+
+Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; const LocalFileName : String);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Get(AURL,LocalFileName);
+    finally
+      Free;
+    end;
+end;
+
+
+Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Response : TStrings);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Get(AURL,Response);
+    finally
+      Free;
+    end;
+end;
+
+
+Class Function TFPCustomHTTPClient.SimpleGet(Const AURL : String) : String;
+ 
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Result:=Get(AURL);
+    finally
+      Free;
+    end;
+end;
+
+
 procedure TFPCustomHTTPClient.Post(const URL: string; const Response: TStream);
 begin
   DoMethod('POST',URL,Response,[]);
 end;
 
+
 procedure TFPCustomHTTPClient.Post(const URL: string; Response: TStrings);
 begin
   Response.Text:=Post(URL);
 end;
+
 
 procedure TFPCustomHTTPClient.Post(const URL: string;
   const LocalFileName: String);
@@ -837,6 +907,7 @@ begin
   end;
 end;
 
+
 function TFPCustomHTTPClient.Post(const URL: string): String;
 Var
   SS : TStringStream;
@@ -849,6 +920,56 @@ begin
     SS.Free;
   end;
 end;
+
+
+Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const Response: TStream);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Post(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+
+Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; Response : TStrings);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Post(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+
+Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const LocalFileName: String);
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Post(URL,LocalFileName);
+    finally
+      Free;
+    end;
+end;
+
+
+Class function TFPCustomHTTPClient.SimplePost(const URL: string) : String;
+
+begin
+  With TFPCustomHTTPClient.Create(Nil) do
+    try
+      Result:=Post(URL);
+    finally
+      Free;
+    end;
+end;
+
+
 
 procedure TFPCustomHTTPClient.FormPost(const URL, FormData: string;
   const Response: TStream);
@@ -922,6 +1043,76 @@ begin
   end;
 end;
 
+
+Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; const Response: TStream);
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      FormPost(URL,FormData,Response);
+    Finally
+      Free;
+    end;
+end;
+
+
+Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStream);
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      FormPost(URL,FormData,Response);
+    Finally
+      Free;
+    end;
+end;
+
+
+Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; const Response: TStrings);
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      FormPost(URL,FormData,Response);
+    Finally
+      Free;
+    end;
+end;
+
+Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      FormPost(URL,FormData,Response);
+    Finally
+      Free;
+    end;
+end;
+
+Class function TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string): String;
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      Result:=FormPost(URL,FormData);
+    Finally
+      Free;
+    end;
+end;
+
+Class function TFPCustomHTTPClient.SimpleFormPost(const URL: string; FormData : TStrings): String;
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      Result:=FormPost(URL,FormData);
+    Finally
+      Free;
+    end;
+end;
+
+
 procedure TFPCustomHTTPClient.FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
 
 Var
@@ -953,6 +1144,19 @@ begin
    SS.Free;
   end;
 end;
+
+
+Class Procedure TFPCustomHTTPClient.SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+
+begin
+  With TFPCustomHTTPClient.Create(nil) do
+    try
+      FileFormPost(AURL,AFieldName,AFileName,Response);
+    Finally
+      Free;
+    end;
+end;
+
 
 end.
 
