@@ -289,7 +289,9 @@ Var
 
 begin
   D:=URI.Path;
-  If (D[1]<>'/') then
+  If Length(D) = 0 then
+    D := '/'
+  else  If (D[1]<>'/') then
     D:='/'+D;
   If (D[Length(D)]<>'/') then
     D:=D+'/';
