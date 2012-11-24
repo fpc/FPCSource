@@ -219,6 +219,13 @@
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
 
+{ Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
+  (but there we don't support it)
+}
+{$ifdef cpu64bitaddr}
+{$define NoDbgStabs}
+{$endif}
+
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
 {$endif}

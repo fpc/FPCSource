@@ -3015,7 +3015,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11052 is the last used one
+# 11053 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3153,6 +3153,8 @@ option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEP
 % digits from 0-9.
 option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
+option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
+% Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
 
 
 %\end{description}

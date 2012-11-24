@@ -3098,7 +3098,8 @@ begin
 
   { maybe override debug info format }
   if (paratargetdbg<>dbg_none) then
-    set_target_dbg(paratargetdbg);
+    if not set_target_dbg(paratargetdbg) then
+      Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in init_settings.globalswitches) and
