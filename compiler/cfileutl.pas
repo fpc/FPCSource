@@ -708,6 +708,8 @@ end;
         P: PChar;
       begin
         Result := s;
+        { make result unique since we're going to change it via a pchar }
+        uniquestring(result);
         L := Length(Result);
         if L=0 then
           exit;
