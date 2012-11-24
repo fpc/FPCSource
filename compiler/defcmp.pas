@@ -1376,10 +1376,12 @@ implementation
                      if assigned(tsetdef(def_from).elementdef) and
                         assigned(tsetdef(def_to).elementdef) then
                       begin
-                        { sets with the same element base type and the same range are equal }
+                        { sets with the same size (packset setting), element
+                          base type and the same range are equal }
                         if equal_defs(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
-                          (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
-                          (tsetdef(def_from).setmax=tsetdef(def_to).setmax) then
+                           (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
+                           (tsetdef(def_from).setmax=tsetdef(def_to).setmax) and
+                           (def_from.size=def_to.size) then
                           eq:=te_equal
                         else if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
                           begin
