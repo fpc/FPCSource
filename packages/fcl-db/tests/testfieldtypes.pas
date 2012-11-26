@@ -1769,8 +1769,6 @@ procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
   // Tests rev.8703: "Fixed MySQL ftLargeInt support"; count() returns BIGINT values
-  if not(SQLServerType in [ssMySQL, ssSQLite]) then Ignore('This test does not apply to this db-engine, since it has no double field-type');
-
   with TSQLDBConnector(DBConnector) do
     begin
     try
@@ -1782,23 +1780,23 @@ begin
       Connection.ExecuteDirect('create table TTTXY (  ' +
                                 '  ID INT NOT NULL,   ' +
                                 '  NP INT NOT NULL,   ' +
-                                '  X DOUBLE,          ' +
-                                '  Y DOUBLE,          ' +
                                 '  PRIMARY KEY (ID,NP)' +
                                 ')                    ');
+      Transaction.CommitRetaining;
       for i := 0 to 7 do
         begin
         connection.ExecuteDirect('insert into TTTOBJ(ID,NAME) values ('+inttostr(i)+',''A'+inttostr(i)+''')');
-        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',1,1,1)');
-        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',2,2,2)');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP) values ('+inttostr(i)+',1)');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP) values ('+inttostr(i)+',2)');
         end;
-      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ as OBJ, TTTXY as XY where (OBJ.ID=XY.ID) group by OBJ.ID';
+      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ as OBJ, TTTXY as XY where OBJ.ID=XY.ID group by OBJ.ID, OBJ.NAME';
       query.Prepare;
       query.open;
       query.close;
     finally
       Connection.ExecuteDirect('drop table TTTXY');
       Connection.ExecuteDirect('drop table TTTOBJ');
+      Transaction.CommitRetaining;
     end
   end;
 end;
