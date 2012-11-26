@@ -780,7 +780,7 @@ type TNumericRecord = record
      end;
 
 var
-  x,i,j         : integer;
+  x,i           : integer;
   s             : string;
   li            : Longint;
   CurrBuff      : pchar;
@@ -814,18 +814,22 @@ begin
       result := true;
 
       case FieldDef.DataType of
-        ftInteger, ftSmallint, ftLargeInt, ftFloat :
-          begin
-          i := PQfsize(res, x);
-          case i of               // postgres returns big-endian numbers
-            sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
-            sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
-            sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^);
-          else
-            for j := 1 to i do
-              pchar(Buffer)[j-1] := CurrBuff[i-j];
+        ftInteger, ftSmallint, ftLargeInt :
+          case PQfsize(res, x) of  // postgres returns big-endian numbers
+            sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^); // INT8
+            sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^); // INT4
+            sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^); // INT2
           end; {case}
-          end;
+        ftFloat :
+          case PQfsize(res, x) of  // postgres returns big-endian numbers
+            sizeof(int64) :  // FLOAT8
+              pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
+            sizeof(integer) :  // FLOAT4
+              begin
+              li := BEtoN(pinteger(CurrBuff)^);
+              pdouble(buffer)^ := psingle(@li)^
+              end;
+          end; {case}
         ftString, ftFixedChar :
           begin
           case PQftype(res, x) of
