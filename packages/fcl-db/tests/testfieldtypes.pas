@@ -115,6 +115,7 @@ type
     procedure TestSQLLargeint;
     procedure TestSQLInterval;
     procedure TestSQLIdentity;
+    procedure TestSQLReal;
   end;
 
 implementation
@@ -2028,6 +2029,33 @@ begin
     end;
     Close;
   end;
+end;
+
+function TestSQLReal_GetSQLText(const i: integer) : string;
+begin
+  if i < 20 then // first 20 values fit into MySQL FLOAT data type
+    Result := FloatToStr(testFloatValues[i], DBConnector.FormatSettings)
+  else
+    Result := 'NULL';
+end;
+procedure TTestFieldTypes.TestSQLReal;
+  procedure CheckFieldValue(AField:TField; i: integer);
+  begin
+    if i < 20 then
+      AssertEquals(testFloatValues[i], AField.AsFloat)
+    else
+      AssertTrue(AField.IsNull);
+  end;
+var datatype: string;
+begin
+  case SQLServerType of
+    ssFirebird, ssInterbase,
+    ssMySQL:
+      datatype:='FLOAT';
+    else
+      datatype:='REAL';
+  end;
+  TestSQLFieldType(ftFloat, datatype, sizeof(double), @TestSQLReal_GetSQLText, @CheckFieldValue);
 end;
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;

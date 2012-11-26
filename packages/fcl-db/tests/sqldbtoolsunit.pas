@@ -35,7 +35,7 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           'INTEGER',
           '',
           'BOOLEAN',
-          'FLOAT',
+          'DOUBLE PRECISION', // ftFloat
           '',             // ftCurrency
           'DECIMAL(18,4)',// ftBCD
           'DATE',
@@ -43,7 +43,7 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           'TIMESTAMP',    // ftDateTime
           '',
           '',
-          '',
+          '',             // ftAutoInc
           'BLOB',         // ftBlob
           'BLOB',         // ftMemo
           'BLOB',         // ftGraphic
@@ -205,6 +205,7 @@ begin
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftCurrency]:= 'MONEY';
+      FieldtypeDefinitions[ftFloat]   := 'FLOAT';
       FieldtypeDefinitions[ftDate]    := 'DATETIME';
       FieldtypeDefinitions[ftTime]    := '';
       FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
@@ -218,7 +219,6 @@ begin
       begin
       //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftFloat] := 'DOUBLE';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
       // Downside is that fields defined as 'TIMESTAMP' aren't tested
