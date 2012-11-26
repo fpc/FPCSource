@@ -89,6 +89,7 @@ type
     procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
+    procedure TestLargeIntParamQuery;
     procedure TestTimeParamQuery;
     procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
@@ -786,6 +787,11 @@ begin
   TestXXParamQuery(ftInteger,'INT',testIntValuesCount);
 end;
 
+procedure TTestFieldTypes.TestLargeIntParamQuery;
+begin
+  TestXXParamQuery(ftLargeInt,FieldtypeDefinitionsConst[ftLargeInt],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestFmtBCDParamQuery;
 begin
   TestXXParamQuery(ftFMTBcd,FieldtypeDefinitionsConst[ftFMTBcd],testValuesCount);
@@ -871,6 +877,7 @@ begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
         ftInteger: Params.ParamByName('field1').asInteger := testIntValues[i];
+        ftLargeInt: Params.ParamByName('field1').AsLargeInt := testLargeIntValues[i];
         ftBoolean: Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
@@ -907,6 +914,7 @@ begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
+        ftLargeInt: AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
         ftBoolean: AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
         ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
