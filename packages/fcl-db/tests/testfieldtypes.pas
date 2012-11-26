@@ -1513,11 +1513,11 @@ const
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                              '  ID INT NOT NULL          , ' +
-                              '  NAME VARCHAR(16000),       ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+    Connection.ExecuteDirect('create table FPDEV2 (  ' +
+                              '  ID INT NOT NULL ,   ' +
+                              '  NAME VARCHAR(16000),' +
+                              '  PRIMARY KEY (ID)    ' +
+                              ')                     ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     query.sql.Text:='select * from FPDEV2';
@@ -1535,11 +1535,11 @@ procedure TTestFieldTypes.TestNumericNames;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                              '  '+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[1]+' INT NOT NULL, ' +
-                              '  '+connection.FieldNameQuoteChars[0]+'3TEST'+connection.FieldNameQuoteChars[1]+' VARCHAR(10), ' +
+    Connection.ExecuteDirect('create table FPDEV2 (' +
+                              '  '+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[1]+' INT NOT NULL,' +
+                              '  '+connection.FieldNameQuoteChars[0]+'3TEST'+connection.FieldNameQuoteChars[1]+' VARCHAR(10),' +
                               '  PRIMARY KEY ('+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[0]+') ' +
-                              ')                            ');
+                              ') ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     with query do
@@ -1570,11 +1570,11 @@ begin
   with TSQLDBConnector(DBConnector) do
     begin
     AssertEquals(-1,query.RowsAffected);
-    Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                              '  ID INT NOT NULL            , ' +
-                              '  '+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+' VARCHAR(250),  ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+    Connection.ExecuteDirect('create table FPDEV2 (' +
+                              '  ID INT NOT NULL,  ' +
+                              '  '+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+' VARCHAR(250), ' +
+                              '  PRIMARY KEY (ID)  ' +
+                              ')                   ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     Connection.ExecuteDirect('insert into FPDEV2(ID,'+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+') values (1,''test1'')');
@@ -1663,11 +1663,11 @@ begin
   with TSQLDBConnector(DBConnector) do
     begin
     AssertEquals(-1,query.RowsAffected);
-    Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                              '  ID INT NOT NULL            , ' +
-                              '  NAME VARCHAR(250),         ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+    Connection.ExecuteDirect('create table FPDEV2 (' +
+                              '  ID INT NOT NULL,  ' +
+                              '  NAME VARCHAR(250),' +
+                              '  PRIMARY KEY (ID)  ' +
+                              ')                   ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
@@ -1768,23 +1768,24 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
+  // Tests rev.8703: "Fixed MySQL ftLargeInt support"; count() returns BIGINT values
   if not(SQLServerType in [ssMySQL, ssSQLite]) then Ignore('This test does not apply to this db-engine, since it has no double field-type');
 
   with TSQLDBConnector(DBConnector) do
     begin
     try
-      Connection.ExecuteDirect('create table TTTOBJ (         ' +
-                                '  ID INT NOT NULL,           ' +
-                                '  NAME VARCHAR(250),         ' +
-                                '  PRIMARY KEY (ID)           ' +
-                                ')                            ');
-      Connection.ExecuteDirect('create table TTTXY (          ' +
-                                '  ID INT NOT NULL,           ' +
-                                '  NP INT NOT NULL,           ' +
-                                '  X DOUBLE,                  ' +
-                                '  Y DOUBLE,                  ' +
-                                '  PRIMARY KEY (ID,NP)        ' +
-                                ')                            ');
+      Connection.ExecuteDirect('create table TTTOBJ ( ' +
+                                '  ID INT NOT NULL,   ' +
+                                '  NAME VARCHAR(250), ' +
+                                '  PRIMARY KEY (ID)   ' +
+                                ')                    ');
+      Connection.ExecuteDirect('create table TTTXY (  ' +
+                                '  ID INT NOT NULL,   ' +
+                                '  NP INT NOT NULL,   ' +
+                                '  X DOUBLE,          ' +
+                                '  Y DOUBLE,          ' +
+                                '  PRIMARY KEY (ID,NP)' +
+                                ')                    ');
       for i := 0 to 7 do
         begin
         connection.ExecuteDirect('insert into TTTOBJ(ID,NAME) values ('+inttostr(i)+',''A'+inttostr(i)+''')');
@@ -1798,8 +1799,8 @@ begin
     finally
       Connection.ExecuteDirect('drop table TTTXY');
       Connection.ExecuteDirect('drop table TTTOBJ');
-      end
-    end;
+    end
+  end;
 end;
 
 procedure TTestFieldTypes.TestCrossStringDateParam;
@@ -2050,11 +2051,11 @@ procedure TTestFieldTypes.TestMultipleFieldPKIndexDefs;
 var ds : TSQLQuery;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (' +
-                              '  ID1 INT NOT NULL,           ' +
-                              '  ID2 INT NOT NULL,           ' +
-                              '  NAME VARCHAR(50),           ' +
-                              '  PRIMARY KEY (ID1, ID2)      ' +
-                              ')                            ');
+                              '  ID1 INT NOT NULL,     ' +
+                              '  ID2 INT NOT NULL,     ' +
+                              '  NAME VARCHAR(50),     ' +
+                              '  PRIMARY KEY (ID1, ID2)' +
+                              ')                       ');
 
   // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
   if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
@@ -2081,6 +2082,7 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
+  // Tests rev.6481: "Do not use a new connection for every statement that is executed";
   if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
