@@ -33,7 +33,7 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           'VARCHAR(10)',
           'SMALLINT',
           'INTEGER',
-          '',
+          '',             // ftWord
           'BOOLEAN',
           'DOUBLE PRECISION', // ftFloat
           '',             // ftCurrency
@@ -41,8 +41,8 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           'DATE',
           'TIME',
           'TIMESTAMP',    // ftDateTime
-          '',
-          '',
+          '',             // ftBytes
+          '',             // ftVarBytes
           '',             // ftAutoInc
           'BLOB',         // ftBlob
           'BLOB',         // ftMemo
@@ -53,7 +53,7 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           '',
           '',
           'CHAR(10)',     // ftFixedChar
-          '',
+          '',             // ftWideString
           'BIGINT',       // ftLargeInt
           '',
           '',
@@ -67,8 +67,8 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           '',             // ftGuid
           'TIMESTAMP',    // ftTimestamp
           'NUMERIC(18,6)',// ftFmtBCD
-          '',
-          ''
+          '',             // ftFixedWideChar
+          ''              // ftWideMemo
         );
              
 
@@ -195,17 +195,22 @@ begin
   FieldtypeDefinitions := FieldtypeDefinitionsConst;
 
   case SQLServerType of
-    ssFirebird, ssInterbase:
+    ssFirebird:
       begin
       FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
+      FieldtypeDefinitions[ftMemo]    := 'BLOB SUB_TYPE TEXT';
+      end;
+    ssInterbase:
+      begin
+      FieldtypeDefinitions[ftMemo]     := 'BLOB SUB_TYPE TEXT';
+      FieldtypeDefinitions[ftLargeInt] := 'NUMERIC(18,0)';
       end;
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
-      FieldtypeDefinitions[ftCurrency]:= 'MONEY';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
+      FieldtypeDefinitions[ftCurrency]:= 'MONEY';
       FieldtypeDefinitions[ftDate]    := 'DATETIME';
       FieldtypeDefinitions[ftTime]    := '';
       FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
@@ -218,14 +223,14 @@ begin
     ssMySQL:
       begin
       //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
-      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
       // Downside is that fields defined as 'TIMESTAMP' aren't tested
       FieldtypeDefinitions[ftDateTime] := 'DATETIME';
-      FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+      FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-      FieldtypeDefinitions[ftMemo] := 'TEXT';
+      FieldtypeDefinitions[ftMemo]     := 'TEXT';
       end;
     ssOracle:
       begin

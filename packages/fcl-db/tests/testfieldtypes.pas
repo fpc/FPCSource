@@ -1237,7 +1237,7 @@ end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
 begin
-  if not(SQLConnType in [postgresql,interbase,oracle]) then Ignore(STestNotApplicable);
+  if not(SQLServerType in [ssFirebird, ssOracle, ssPostgreSQL]) then Ignore(STestNotApplicable);
   with TSQLDBConnector(DBConnector) do
     begin
     // This only works with databases that supports 'insert into .. returning'
@@ -1308,26 +1308,25 @@ begin
   // at least one row must be returned
   with TSQLDBConnector(DBConnector) do
   begin
-    case SQLConnType of
-      sqlite3:
+    case SQLServerType of
+      ssSQLite:
         statements := TTestStatements.Create('pragma table_info(FPDEV)');
-      interbase:
+      ssFirebird:
         statements := TTestStatements.Create(
           CTE_SELECT (*FB 2.1*),
           'EXECUTE BLOCK RETURNS (U VARCHAR(255)) AS BEGIN SELECT rdb$get_context(''SYSTEM'',''CURRENT_USER'') FROM rdb$database INTO U; SUSPEND; END' (*FB 2.0*)
         );
-      postgresql:
+      ssPostgreSQL:
         statements := TTestStatements.Create(CTE_SELECT);
-      mssql:
+      ssMSSQL:
         statements := TTestStatements.Create(CTE_SELECT  (*MS SQL 2005*));
+      ssMySQL:
+        statements := TTestStatements.Create(
+          'check table FPDEV',  // bug 14519
+          'show tables from '+Connection.DatabaseName  // bug 16842
+        )
       else
-        if SQLConnType in MySQLConnTypes then
-          statements := TTestStatements.Create(
-            'check table FPDEV',  // bug 14519
-            'show tables from '+Connection.DatabaseName  // bug 16842
-          )
-        else
-          Ignore(STestNotApplicable);
+        Ignore(STestNotApplicable);
     end;
 
     for s in statements do
@@ -1798,7 +1797,7 @@ begin
         connection.ExecuteDirect('insert into TTTXY(ID,NP) values ('+inttostr(i)+',1)');
         connection.ExecuteDirect('insert into TTTXY(ID,NP) values ('+inttostr(i)+',2)');
         end;
-      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ as OBJ, TTTXY as XY where OBJ.ID=XY.ID group by OBJ.ID, OBJ.NAME';
+      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ OBJ, TTTXY XY where OBJ.ID=XY.ID group by OBJ.ID, OBJ.NAME';
       query.Prepare;
       query.open;
       query.close;
