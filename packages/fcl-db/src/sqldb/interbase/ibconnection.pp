@@ -19,6 +19,12 @@ const
   MAXBLOBSEGMENTSIZE = 65535; //Maximum number of bytes that fit in a blob segment.
 
 type
+  TDatabaseInfo = record
+    Dialect             : integer; //Dialect set in database
+    ODSMajorVersion     : integer; //On-Disk Structure version of file
+    ServerVersion       : string;  //Representation of major.minor (.build)
+    ServerVersionString : string;  //Complete version string, including name, platform
+  end;
 
   EIBDatabaseError = class(EDatabaseError)
     public
@@ -48,22 +54,31 @@ type
 
   TIBConnection = class (TSQLConnection)
   private
-    FSQLDatabaseHandle   : pointer;
-    FStatus              : array [0..19] of ISC_STATUS;
-    FDialect             : integer;
-    FDBDialect           : integer;
-    FBLobSegmentSize     : word; //required for backward compatibilty; not used
+    FSQLDatabaseHandle     : pointer;
+    FStatus                : array [0..19] of ISC_STATUS;
+    FDatabaseInfo          : TDatabaseInfo;
+    FDialect               : integer;
+    FBlobSegmentSize       : word; //required for backward compatibilty; not used
 
     procedure ConnectFB;
-    function GetDialect: integer;
+
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
+
+    // Metadata:
+    procedure GetDatabaseInfo; //Queries for various information from server once connected
+    procedure ResetDatabaseInfo; //Useful when disconnecting
+    function GetDialect: integer;
+    function GetODSMajorVersion: integer;
+    function ParseServerVersion(const CompleteVersion: string): string; //Extract version info from complete version identification string
+
+    // conversion methods
     procedure TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
       var TrType : TFieldType; var TrLen : word);
-    // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
+
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
@@ -99,10 +114,11 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure DropDB; override;
     //Segment size is not used in the code; property kept for backward compatibility
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
-    function GetDBDialect: integer;
+    property ODSMajorVersion : integer read GetODSMajorVersion; //ODS major version number; influences database compatibility/feature level.
   published
     property DatabaseName;
     property Dialect : integer read GetDialect write FDialect stored IsDialectStored default DEFDIALECT;
@@ -121,6 +137,7 @@ type
     Class Function DefaultLibraryName : String; override;
     Class Function LoadFunction : TLibraryLoadFunction; override;
     Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName: string; override;
   end;
                   
 implementation
@@ -131,6 +148,7 @@ uses
 const
   SQL_BOOLEAN_INTERBASE = 590;
   SQL_BOOLEAN_FIREBIRD = 32764;
+  INVALID_DATA = -1;
 
 type
   TTm = packed record
@@ -173,9 +191,9 @@ constructor TIBConnection.Create(AOwner : TComponent);
 begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
-  FBLobSegmentSize := 65535; //Shows we're using the maximum segment size
-  FDialect := -1;
-  FDBDialect := -1;
+  FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
+  FDialect := INVALID_DATA;
+  ResetDatabaseInfo;
 end;
 
 
@@ -267,6 +285,8 @@ begin
     if isc_rollback_retaining(@Status[0], @TransactionHandle) <> 0 then
       CheckError('RollBackRetaining', Status);
 end;
+
+
 procedure TIBConnection.DropDB;
 
 begin
@@ -285,6 +305,7 @@ begin
   ReleaseIBase60;
 {$EndIf}
 end;
+
 
 procedure TIBConnection.CreateDB;
 
@@ -324,7 +345,6 @@ begin
 end;
 
 procedure TIBConnection.DoInternalConnect;
-
 begin
 {$IfDef LinkDynamically}
   InitialiseIBase60;
@@ -336,10 +356,10 @@ end;
 
 procedure TIBConnection.DoInternalDisconnect;
 begin
-  FDialect := -1;
-  FDBDialect := -1;
+  FDialect := INVALID_DATA;
   if not Connected then
   begin
+    ResetDatabaseInfo;
     FSQLDatabaseHandle := nil;
     Exit;
   end;
@@ -351,39 +371,163 @@ begin
 {$EndIf}
 end;
 
+function TIBConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  result:='';
+  {$IFDEF LinkDynamically}
+  InitialiseIBase60;
+  {$ENDIF}
+  try
+    case InfoType of
+      citServerType:
+        // Firebird returns own name in ServerVersion; Interbase 7.5 doesn't.
+        if pos('FIREBIRD',UpperCase(FDatabaseInfo.ServerVersionString))=0 then
+          result := 'Interbase'
+        else
+          result := 'Firebird';
+      citServerVersion:
+        // Firebird returns major.minor, Interbase major.minor.build
+        result := FDatabaseInfo.ServerVersion;
+      citServerVersionString:
+        result := FDatabaseInfo.ServerVersionString;
+      citClientName:
+        result:=TIBConnectionDef.LoadedLibraryName;
+    else
+      //including citClientVersion, for which no single IB+FB and Win+*nux solution exists
+      result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    {$IFDEF LinkDynamically}
+    ReleaseIBase60;
+    {$ENDIF}
+  end;
+end;
 
-function TIBConnection.GetDBDialect: integer;
+procedure TIBConnection.GetDatabaseInfo;
+// Asks server for multiple values
+const
+  ResBufHigh = 512; //hopefully enough to include version string as well.
 var
   x : integer;
   Len : integer;
-  Buffer : array [0..1] of byte;
-  ResBuf : array [0..39] of byte;
+  ReqBuf : array [0..3] of byte;
+  ResBuf : array [0..ResBufHigh] of byte; // should be big enough for version string etc
 begin
-  result := -1;
+  ResetDatabaseInfo;
   if Connected then
-    begin
-    Buffer[0] := isc_info_db_sql_dialect;
-    Buffer[1] := isc_info_end;
-    if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
-      pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
-        CheckError('SetDBDialect', FStatus);
+  begin
+    ReqBuf[0] := isc_info_ods_version;
+    ReqBuf[1] := isc_info_version;
+    ReqBuf[2] := isc_info_db_sql_dialect;
+    ReqBuf[3] := isc_info_end;
+    if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(ReqBuf),
+      pchar(@ReqBuf[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
+        CheckError('CacheServerInfo', FStatus);
     x := 0;
-    while x < 40 do
+    while x < ResBufHigh+1 do
       case ResBuf[x] of
         isc_info_db_sql_dialect :
           begin
           Inc(x);
           Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
           Inc(x, 2);
-          Result := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          FDatabaseInfo.Dialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
           Inc(x, Len);
           end;
-        isc_info_end : Break;
+        isc_info_ods_version :
+          begin
+          Inc(x);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Inc(x, 2);
+          FDatabaseInfo.ODSMajorVersion := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          Inc(x, Len);
+          end;
+        isc_info_version :
+          begin
+          Inc(x);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Inc(x, 2);
+          SetString(FDatabaseInfo.ServerVersionString, PAnsiChar(@ResBuf[x + 2]), Len-2);
+          FDatabaseInfo.ServerVersion := ParseServerVersion(FDatabaseInfo.ServerVersionString);
+          Inc(x, Len);
+          end;
+        isc_info_end, isc_info_error : Break;
+        isc_info_truncated : Break; //result buffer too small; fix your code!
       else
         inc(x);
       end;
-    end;
+  end;
 end;
+
+procedure TIBConnection.ResetDatabaseInfo;
+begin
+  FDatabaseInfo.Dialect:=0;
+  FDatabaseInfo.ODSMajorVersion:=0;
+  FDatabaseInfo.ServerVersion:='';
+  FDatabaseInfo.ServerVersionString:=''; // don't confuse applications with 'Firebird' or 'Interbase'
+end;
+
+
+function TIBConnection.GetODSMajorVersion: integer;
+begin
+  result:=FDatabaseInfo.ODSMajorVersion;
+end;
+
+function TIBConnection.ParseServerVersion(const CompleteVersion: string): string;
+// String representation of integer version number derived from
+// major.minor.build => should give e.g. 020501
+const
+  Delimiter = '.';
+  DigitsPerNumber = 2;
+  MaxNumbers = 3;
+var
+  BeginPos,EndPos,StartLook,i: integer;
+  NumericPart: string;
+  Version: integer;
+begin
+  result := '';
+  // Ignore 6.x version number in front of "Firebird"
+  StartLook := Pos('Firebird', CompleteVersion);
+  if StartLook = 0 then
+    StartLook := 1;
+  BeginPos := 0;
+  // Catch all numerics + decimal point:
+  for i := StartLook to Length(CompleteVersion) do
+  begin
+    if (BeginPos > 0) and
+      ((CompleteVersion[i] < '0') or (CompleteVersion[i] > '9')) and (CompleteVersion[i] <> '.') then
+    begin
+      EndPos := i - 1;
+      break;
+    end;
+    if (BeginPos = 0) and
+      (CompleteVersion[i] >= '0') and (CompleteVersion[i] <= '9') then
+    begin
+      BeginPos := i;
+    end;
+  end;
+  if BeginPos > 0 then
+  begin
+    NumericPart := copy(CompleteVersion, BeginPos, 1+EndPos-BeginPos);
+    BeginPos := 1;
+    for i := 1 to MaxNumbers do
+    begin
+      EndPos := PosEx(Delimiter,NumericPart,BeginPos);
+      if EndPos > 0 then
+      begin
+        result := result + rightstr(StringOfChar('0',DigitsPerNumber)+copy(NumericPart,BeginPos,EndPos-BeginPos),DigitsPerNumber);
+        BeginPos := EndPos+1;
+      end
+      else
+      begin
+        result := result + rightstr(StringOfChar('0',DigitsPerNumber)+copy(NumericPart,BeginPos,Length(NumericPart)),DigitsPerNumber);
+        break;
+      end;
+    end;
+    result := leftstr(result + StringOfChar('0',DigitsPerNumber * MaxNumbers), DigitsPerNumber * MaxNumbers);
+  end;
+end;
+
 
 procedure TIBConnection.ConnectFB;
 var
@@ -413,12 +557,12 @@ end;
 
 function TIBConnection.GetDialect: integer;
 begin
-  if FDialect = -1 then
+  if FDialect = INVALID_DATA then
   begin
-    if FDBDialect = -1 then
+    if FDatabaseInfo.Dialect=0 then
       Result := DEFDIALECT
     else
-      Result := FDBDialect;
+      Result := FDatabaseInfo.Dialect;
   end else
     Result := FDialect;
 end;
@@ -655,21 +799,20 @@ begin
         Dispose(aSQLDA^.SQLVar[x].sqlind);
         aSQLDA^.SQLVar[x].sqlind := nil;
         end
-        
       end;
 {$pop}
 end;
 
 function TIBConnection.IsDialectStored: boolean;
 begin
-  result := (FDialect<>-1);
+  result := (FDialect<>INVALID_DATA);
 end;
 
 procedure TIBConnection.DoConnect;
 const NoQuotes: TQuoteChars = (' ',' ');
 begin
   inherited DoConnect;
-  FDBDialect := GetDBDialect;
+  GetDatabaseInfo; //Get db dialect, db metadata
   if Dialect < 3 then
     FieldNameQuoteChars := NoQuotes
   else
@@ -752,8 +895,8 @@ begin
   with cursor as TIBCursor do
   begin
     if FStatementType = stExecProcedure then
-      //it is not recommended fetch from non-select statement, i.e. statement which have no cursor
-      //starting from Firebird 2.5 it leads to error 'Invalid cursor reference'
+      //do not fetch from a non-select statement, i.e. statement which has no cursor
+      //on Firebird 2.5+ it leads to error 'Invalid cursor reference'
       if SQLDA^.SQLD = 0 then
         retcode := 100 //no more rows to retrieve
       else
@@ -1471,6 +1614,15 @@ end;
 class function TIBConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
 begin
   Result:=@ReleaseIBase60
+end;
+
+class function TIBConnectionDef.LoadedLibraryName: string;
+begin
+  {$IfDef LinkDynamically}
+  Result:=IBaseLoadedLibrary;
+  {$else}
+  Result:='';
+  {$endif}
 end;
 
 initialization
