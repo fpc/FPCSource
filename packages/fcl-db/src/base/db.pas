@@ -820,6 +820,7 @@ type
     function GetAsBCD: TBCD; override;
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
@@ -828,6 +829,7 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
@@ -1064,7 +1066,7 @@ type
 
 { TFields }
 
-  Tfields = Class(TObject)
+  TFields = Class(TObject)
     Private
       FDataset : TDataset;
       FFieldList : TFpList;
@@ -1765,7 +1767,7 @@ type
   TMasterParamsDataLink = Class(TMasterDataLink)
   Private
     FParams : TParams;
-    Procedure SetParams(AVAlue : TParams);
+    Procedure SetParams(AValue : TParams);
   Protected
     Procedure DoMasterDisable; override;
     Procedure DoMasterChange; override;

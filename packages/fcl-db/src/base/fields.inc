@@ -2578,6 +2578,15 @@ begin
     Result := 0;
 end;
 
+function TFMTBCDField.GetAsLargeInt: LargeInt;
+var bcd: TBCD;
+begin
+  if GetData(@bcd) then
+    Result := BCDToInteger(bcd)
+  else
+    Result := 0;
+end;
+
 function TFMTBCDField.GetAsLongint: Longint;
 begin
   Result := round(GetAsFloat);
@@ -2669,12 +2678,15 @@ begin
   SetAsBCD(DoubleToBCD(AValue));
 end;
 
+procedure TFMTBCDField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsBCD(IntegerToBCD(AValue));
+end;
 
 procedure TFMTBCDField.SetAsLongint(AValue: Longint);
 begin
   SetAsBCD(IntegerToBCD(AValue));
 end;
-
 
 procedure TFMTBCDField.SetAsString(const AValue: string);
 begin
