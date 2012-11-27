@@ -103,15 +103,13 @@ implementation
                   case sym.typ of
                     fieldvarsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_load,sym);
                         def:=tfieldvarsym(sym).vardef;
                       end;
                     procsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_call,sym);
                       end;
                     else
