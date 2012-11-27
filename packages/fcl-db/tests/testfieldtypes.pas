@@ -88,6 +88,7 @@ type
     procedure TestStringParamQuery;
     procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
+    procedure TestSmallIntParamQuery;
     procedure TestIntParamQuery;
     procedure TestLargeIntParamQuery;
     procedure TestTimeParamQuery;
@@ -783,6 +784,11 @@ begin
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 end;
 
+procedure TTestFieldTypes.TestSmallIntParamQuery;
+begin
+  TestXXParamQuery(ftSmallInt,FieldtypeDefinitions[ftSmallInt],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestIntParamQuery;
 begin
   TestXXParamQuery(ftInteger,'INT',testIntValuesCount);
@@ -790,12 +796,12 @@ end;
 
 procedure TTestFieldTypes.TestLargeIntParamQuery;
 begin
-  TestXXParamQuery(ftLargeInt,FieldtypeDefinitionsConst[ftLargeInt],testValuesCount);
+  TestXXParamQuery(ftLargeInt,FieldtypeDefinitions[ftLargeInt],testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestFmtBCDParamQuery;
 begin
-  TestXXParamQuery(ftFMTBcd,FieldtypeDefinitionsConst[ftFMTBcd],testValuesCount);
+  TestXXParamQuery(ftFMTBcd,FieldtypeDefinitions[ftFMTBcd],testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestDateParamQuery;
@@ -877,7 +883,8 @@ begin
       begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
-        ftInteger: Params.ParamByName('field1').asInteger := testIntValues[i];
+        ftSmallInt: Params.ParamByName('field1').AsSmallInt := testSmallIntValues[i];
+        ftInteger: Params.ParamByName('field1').AsInteger := testIntValues[i];
         ftLargeInt: Params.ParamByName('field1').AsLargeInt := testLargeIntValues[i];
         ftBoolean: Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
@@ -914,6 +921,7 @@ begin
       begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
+        ftSmallInt: AssertEquals(testSmallIntValues[i],FieldByName('FIELD1').AsInteger);
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftLargeInt: AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
         ftBoolean: AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
