@@ -476,36 +476,38 @@ begin
   // exists. And while this exeption is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
-    if SQLConnType = INTERBASE then
-      begin
-      // This only works with Firebird 2+
-      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
-        'then execute statement ''drop table ' + ATAbleName + ';'';end');
-      FTransaction.CommitRetaining;
-      end;
-    if SQLConnType = mssql then
-      begin
-      // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
-      // which leads to the rollback not referring to the right transaction=>SQL error
-      // Use SQL92 ISO standard INFORMATION_SCHEMA:
-      FConnection.ExecuteDirect(
-        'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
-        'begin '+
-        'drop table ' + ATAbleName + ' '+
-        'end');
-      FTransaction.CommitRetaining;
-      end;
-    if SQLConnType = sybase then
-      begin
-      // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
-      // which leads to the rollback not referring to the right transaction=>SQL error
-      // Can't use SQL standard information_schema; instead query sysobjects for User tables
-      FConnection.ExecuteDirect(
-        'if exists (select * from sysobjects where type = ''U'' and name=''' + ATableName + ''') '+
-        'begin '+
-        'drop table ' + ATAbleName + ' '+
-        'end');
-      end;
+    case SQLServerType of
+      ssFirebird:
+        begin
+        // This only works with Firebird 2+
+        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+          'then execute statement ''drop table ' + ATableName + ';'';end');
+        FTransaction.CommitRetaining;
+        end;
+      ssMSSQL:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Use SQL92 ISO standard INFORMATION_SCHEMA:
+        FConnection.ExecuteDirect(
+          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        FTransaction.CommitRetaining;
+        end;
+      ssSybase:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Can't use SQL standard information_schema; instead query sysobjects for User tables
+        FConnection.ExecuteDirect(
+          'if exists (select * from sysobjects where type = ''U'' and name=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        end;
+    end;
   except
     FTransaction.RollbackRetaining;
   end;
