@@ -221,13 +221,13 @@ begin
       script.append('create table b (id int);');
       ExecuteScript;
       // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+      TSQLDBConnector(DBConnector).CommitDDL;
       end;
   finally
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    TSQLDBConnector(DBConnector).CommitDDL;
   end;
 end;
 
@@ -260,8 +260,8 @@ procedure TTestFieldTypes.TestLargeRecordSize;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  if UpperCase(dbconnectorparams)='INTERBASE' then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -305,7 +305,7 @@ begin
     else
       s := ', N19_0 NUMERIC(19,0)';
     Connection.ExecuteDirect('create table FPDEV2 (FT NUMERIC(18,4), N4_2 NUMERIC(4,2), N9_3 NUMERIC(9,3), N9_5 NUMERIC(9,5), N18_0 NUMERIC(18,0), N18_3 NUMERIC(18,3), N18_5 NUMERIC(18,5)' + s + ')');
-    Transaction.CommitRetaining;
+    CommitDDL;
 
     with Query do
     begin
@@ -473,8 +473,6 @@ begin
     else
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testDateValues[i] + ''')');
 
-//  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
-
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
@@ -494,7 +492,7 @@ var s : string;
 
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For interbase
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
 
@@ -540,8 +538,6 @@ begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (Null)');
 
-//  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
-
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
@@ -585,8 +581,6 @@ begin
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
-
-//  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -693,8 +687,8 @@ end;
 procedure TTestFieldTypes.TestNullValues;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FIELD1) values (1)');
 
@@ -714,8 +708,8 @@ procedure TTestFieldTypes.TestParamQuery;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT, FIELD3 INT, DECOY VARCHAR(30))');
 
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -867,8 +861,8 @@ begin
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 '+ASQLTypeDecl+')');
 
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -977,8 +971,8 @@ end;
 procedure TTestFieldTypes.TestAggregates;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (1,1)');
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (2,3)');
@@ -1018,7 +1012,7 @@ begin
   begin
     Connection.ExecuteDirect('create table FPDEV2 (FT ' +ASQLTypeDecl+ ')');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    Transaction.CommitRetaining;
+    CommitDDL;
   end;
 end;
 
@@ -1526,8 +1520,9 @@ begin
                               '  NAME VARCHAR(16000),' +
                               '  PRIMARY KEY (ID)    ' +
                               ')                     ');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
     Query.InsertRecord([1,FieldValue]);
@@ -1548,8 +1543,9 @@ begin
                               '  '+connection.FieldNameQuoteChars[0]+'3TEST'+connection.FieldNameQuoteChars[1]+' VARCHAR(10),' +
                               '  PRIMARY KEY ('+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[0]+') ' +
                               ') ');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+
     with query do
       begin
       SQL.Text:='select * from FPDEV2';
@@ -1583,8 +1579,9 @@ begin
                               '  '+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+' VARCHAR(250), ' +
                               '  PRIMARY KEY (ID)  ' +
                               ')                   ');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+
     Connection.ExecuteDirect('insert into FPDEV2(ID,'+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+') values (1,''test1'')');
     Query.SQL.Text := 'select * from FPDEV2';
     Query.Open;
@@ -1676,8 +1673,9 @@ begin
                               '  NAME VARCHAR(250),' +
                               '  PRIMARY KEY (ID)  ' +
                               ')                   ');
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+
     Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
     Query.ExecSQL;
     AssertEquals(1,query.RowsAffected);
@@ -1736,7 +1734,7 @@ begin
     begin
     Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int,vchar varchar(10))');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    TSQLDBConnector(DBConnector).CommitDDL;
 
     Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:vchar)';
     query.params[0].asinteger := 1;
@@ -1759,7 +1757,7 @@ begin
     begin
     Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int, id3 int, id4 int,id5 int,id6 int,id7 int,id8 int, id9 int, id10 int, id11 int)');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    TSQLDBConnector(DBConnector).CommitDDL;
 
     Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:id3,:id4,:id5,:id6,:id7,:id8,:id9,:id10,:id11)';
     for i := 0 to 10 do
@@ -2089,9 +2087,8 @@ begin
                               '  NAME VARCHAR(50),     ' +
                               '  PRIMARY KEY (ID1, ID2)' +
                               ')                       ');
-
   // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  if SQLConnType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  TSQLDBConnector(DBConnector).CommitDDL;
 
   ds := TSQLDBConnector(DBConnector).Query;
   ds.sql.Text:='select * from FPDEV2';
@@ -2130,7 +2127,7 @@ begin
     ExecSQL;
     try
       // Firebird/Interbase needs a commit after DDL:
-      TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+      TSQLDBConnector(DBConnector).CommitDDL;
 
       SQL.Text := 'INSERT INTO FPDEV_TEMP(id) values (5)';
       ExecSQL;
@@ -2144,7 +2141,7 @@ begin
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;
-        TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+        TSQLDBConnector(DBConnector).CommitDDL;
         end;
     end;
     end;

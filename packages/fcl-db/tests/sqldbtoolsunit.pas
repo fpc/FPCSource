@@ -96,6 +96,7 @@ type
   public
     destructor Destroy; override;
     constructor Create; override;
+    procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
     property Query : TSQLQuery read FQuery;
@@ -151,7 +152,11 @@ begin
   if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
   if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
   if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
-  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
+  if SQLConnType = ODBC then
+    begin
+    Fconnection := TODBCConnection.Create(nil);
+    Fconnection.Params.Append('AutoCommit=false');
+    end;
   {$IFNDEF Win64}
   if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
@@ -176,9 +181,7 @@ begin
     end;
 
     if length(dbQuoteChars)>1 then
-      begin
-      FieldNameQuoteChars:=dbquotechars;
-      end;
+      FieldNameQuoteChars:=dbQuoteChars;
 
     Open;
   end;
@@ -494,7 +497,6 @@ begin
           'begin '+
           'drop table ' + ATableName + ' '+
           'end');
-        FTransaction.CommitRetaining;
         end;
       ssSybase:
         begin
@@ -513,6 +515,14 @@ begin
   end;
 end;
 
+procedure TSQLDBConnector.CommitDDL;
+begin
+  // Commits schema definition and manipulation statements;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  if SQLServerType in [ssFirebird, ssInterbase] then
+    Transaction.CommitRetaining;
+end;
+
 destructor TSQLDBConnector.Destroy;
 begin
   if assigned(FTransaction) then
@@ -523,7 +533,7 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      if Ftransaction.Active then Ftransaction.Rollback;
     end; // try
     end;
   inherited Destroy;
