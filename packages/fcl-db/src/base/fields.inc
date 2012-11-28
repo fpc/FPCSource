@@ -1797,6 +1797,11 @@ begin
     Result:=Null;
 end;
 
+function TFloatField.GetAsLargeInt: LargeInt;
+begin
+  Result:=Round(GetAsFloat);
+end;
+
 function TFloatField.GetAsLongint: Longint;
 
 begin
@@ -1862,6 +1867,11 @@ begin
     SetData(@Avalue)
   else
     RangeError(AValue,FMinValue,FMaxValue);
+end;
+
+procedure TFloatField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsFloat(AValue);
 end;
 
 procedure TFloatField.SetAsLongint(AValue: Longint);

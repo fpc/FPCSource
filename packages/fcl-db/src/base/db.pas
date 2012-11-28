@@ -633,12 +633,14 @@ type
     procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
     function GetAsLongint: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
