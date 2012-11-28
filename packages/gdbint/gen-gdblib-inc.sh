@@ -217,9 +217,9 @@ BEGIN {
     if ( list[i] ~ /^-l/ ) {
       print "#Looking for shared libs"
       systemlib = gensub (/-l([^ ]*)/,"lib\\1.a ","g",list[i]);
-      print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
+      print "systemlib=`find " libdir " -maxdepth 1 -iname " systemlib " -print 2> /dev/null `" ;
       print "if [ \"${systemlib}\" != \"\" ]; then";
-      print "  echo System lib found: ${systemlib%%[$IFS]*}";
+      print "  echo System lib found: ${systemlib}";
       print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
       print "else";
       print "  echo Library " systemlib " not found, shared library assumed";
@@ -232,9 +232,9 @@ END {
   for (i=1;i<=nb; i++) {
     systemlib = "lib" list[i] ".a";
     print "echo Adding system library " systemlib;
-    print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
+    print "systemlib=`find " libdir " -maxdepth 1 -iname " systemlib " -print 2> /dev/null `" ;
     print "if [ \"${systemlib}\" != \"\" ]; then";
-    print "  echo System lib found: ${systemlib%%[$IFS]*}";
+    print "  echo System lib found: ${systemlib}";
     print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
     print "else";
     print "  echo Library " systemlib " not found, shared library assumed";
