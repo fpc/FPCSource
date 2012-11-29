@@ -99,7 +99,7 @@ begin
       begin
       O:=TObject(FObservers[i]);
       If O.GetInterface(SGUIDObserver,Obs) then
-        Obs.FPOObservedChanged(Self,AOperation,Data);
+        Obs.FPOObservedChanged(ASender,AOperation,Data);
       end;
 end;
 
