@@ -447,12 +447,12 @@ type
     procedure AssignTo(Dest: TPersistent); virtual;
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
-    Procedure FPOAttachObserver(AObserver : TObject);
-    Procedure FPODetachObserver(AObserver : TObject);
-    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
   public
     Destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
     function  GetNamePath: string; virtual; {dynamic;}
   end;
 
