@@ -139,7 +139,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_win64_gorc;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
