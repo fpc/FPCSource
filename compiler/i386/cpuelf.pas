@@ -45,7 +45,7 @@ implementation
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
       procedure WriteIndirectPLTEntry(exesym:TExeSymbol);override;
-      procedure GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);override;
+      procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);override;
       procedure DoRelocationFixup(objsec:TObjSection);override;
     end;
 
@@ -191,12 +191,13 @@ implementation
     end;
 
 
-  procedure TElfExeOutput386.GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);
+  procedure TElfExeOutput386.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
       objsym:TObjSymbol;
-      sym:TExeSymbol;
+      objreloc:TObjRelocation;
       reltyp:byte;
     begin
+      objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
         reltyp:=ElfTarget.encodereloc(ObjReloc)
       else
@@ -209,30 +210,15 @@ implementation
             objsym.refs:=objsym.refs or symref_plt;
           end;
 
-        R_386_TLS_IE,
+        R_386_TLS_IE:
+          begin
+
+            AllocGOTSlot(objreloc.symbol);
+          end;
+
         R_386_GOT32:
           begin
-            sym:=ObjReloc.symbol.exesymbol;
-
-            { Although local symbols should not be accessed through GOT,
-              this isn't strictly forbidden. In this case we need to fake up
-              the exesym to store the GOT offset in it.
-              TODO: name collision; maybe use a different symbol list object? }
-            if sym=nil then
-              begin
-                sym:=TExeSymbol.Create(ExeSymbolList,objreloc.symbol.name+'*local*');
-                sym.objsymbol:=objreloc.symbol;
-                objreloc.symbol.exesymbol:=sym;
-              end;
-            if sym.GotOffset>0 then
-              exit;
-            gotobjsec.alloc(sizeof(pint));
-            sym.GotOffset:=gotobjsec.size;
-            { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
-              imported/exported symbols need GLOB_DAT instead. For executables,
-              only the latter applies. }
-            if IsSharedLibrary or (sym.dynindex>0) then
-              dynrelocsec.alloc(dynrelocsec.shentsize);
+            AllocGOTSlot(objreloc.symbol);
           end;
 
         R_386_32:

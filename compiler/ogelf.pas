@@ -222,11 +222,12 @@ interface
          dynreloclist: TFPObjectList;
          tlsseg: TElfSegment;
          relative_reloc_count: longint;
+         procedure AllocGOTSlot(objsym: TObjSymbol);
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
          procedure WriteIndirectPLTEntry(exesym:TExeSymbol);virtual;
-         procedure GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);virtual;abstract;
+         procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);virtual;abstract;
        public
          constructor Create;override;
          destructor Destroy;override;
@@ -2316,6 +2317,34 @@ implementation
       end;
 
 
+    procedure TElfExeOutput.AllocGOTSlot(objsym:TObjSymbol);
+      var
+        exesym: TExeSymbol;
+      begin
+        exesym:=objsym.exesymbol;
+
+        { Although local symbols should not be accessed through GOT,
+          this isn't strictly forbidden. In this case we need to fake up
+          the exesym to store the GOT offset in it.
+          TODO: name collision; maybe use a different symbol list object? }
+        if exesym=nil then
+          begin
+            exesym:=TExeSymbol.Create(ExeSymbolList,objsym.name+'*local*');
+            exesym.objsymbol:=objsym;
+            objsym.exesymbol:=exesym;
+          end;
+        if exesym.GotOffset>0 then
+          exit;
+        gotobjsec.alloc(sizeof(pint));
+        exesym.GotOffset:=gotobjsec.size;
+        { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
+          imported/exported symbols need GLOB_DAT instead. For executables,
+          only the latter applies. }
+        if IsSharedLibrary or (exesym.dynindex>0) then
+          dynrelocsec.alloc(dynrelocsec.shentsize);
+      end;
+
+
     procedure TElfExeOutput.PrepareGOT;
       var
         i,j,k: longint;
@@ -2333,8 +2362,12 @@ implementation
                   continue;
                 if not objsec.Used then
                   internalerror(2012060901);
-                for k:=0 to objsec.ObjRelocations.Count-1 do
-                  GOTRelocPass1(objsec,TObjRelocation(objsec.ObjRelocations[k]));
+                k:=0;
+                while k<objsec.ObjRelocations.Count do
+                  begin
+                    GOTRelocPass1(objsec,k);
+                    inc(k);
+                  end;
               end;
           end;
         { remember sizes for sanity checking }

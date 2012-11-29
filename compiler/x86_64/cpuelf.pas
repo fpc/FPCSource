@@ -48,7 +48,7 @@ implementation
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
       procedure WriteIndirectPLTEntry(exesym:TExeSymbol);override;
-      procedure GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);override;
+      procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);override;
       procedure DoRelocationFixup(objsec:TObjSection);override;
     end;
 
@@ -217,12 +217,13 @@ implementation
     end;
 
 
-  procedure TElfExeOutputx86_64.GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);
+  procedure TElfExeOutputx86_64.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
       objsym:TObjSymbol;
-      sym:TExeSymbol;
+      objreloc:TObjRelocation;
       reltyp:byte;
     begin
+      objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
         reltyp:=ElfTarget.encodereloc(ObjReloc)
       else
@@ -239,20 +240,14 @@ implementation
       end;
 
       case reltyp of
-        R_X86_64_GOT32,
-        R_X86_64_GOT64,
-        R_X86_64_GOTTPOFF,
-        R_X86_64_GOTPCREL,
-        R_X86_64_GOTPCREL64:
+        R_X86_64_GOTTPOFF:
           begin
-            sym:=ObjReloc.symbol.exesymbol;
             { TLS IE to locally defined symbol, convert into LE so GOT entry isn't needed
               (Is TLS IE allowed in shared libs at all? Yes it is, when lib is accessing
                a threadvar in main program or in other *statically* loaded lib; TLS IE access to
                own threadvars may render library not loadable dynamically) }
 (*
-            if (reltyp=R_X86_64_GOTTPOFF) and not
-              (IsSharedLibrary or (sym.dynindex>0)) then
+            if not (IsSharedLibrary or (sym.dynindex>0)) then
               begin
                 if not IsValidIEtoLE(objsec,ObjReloc) then
                   Comment(v_error,'Cannot transform TLS IE to LE');
@@ -261,29 +256,17 @@ implementation
                 exit;
               end;
 *)
-            { Although local symbols should not be accessed through GOT,
-              this isn't strictly forbidden. In this case we need to fake up
-              the exesym to store the GOT offset in it.
-              TODO: name collision; maybe use a different symbol list object? }
-            if sym=nil then
-              begin
-                sym:=TExeSymbol.Create(ExeSymbolList,objreloc.symbol.name+'*local*');
-                sym.objsymbol:=objreloc.symbol;
-                objreloc.symbol.exesymbol:=sym;
-              end;
-            if sym.GotOffset>0 then
-              exit;
-            gotobjsec.alloc(sizeof(pint));
-            sym.GotOffset:=gotobjsec.size;
-            { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
-              imported/exported symbols need GLOB_DAT instead. For executables,
-              only the latter applies. }
-            if IsSharedLibrary or (sym.dynindex>0) then
-              begin
-                dynrelocsec.alloc(dynrelocsec.shentsize);
-                if (sym.dynindex=0) and (reltyp<>R_X86_64_GOTTPOFF) then
-                  Inc(relative_reloc_count);
-              end;
+            AllocGOTSlot(objreloc.symbol);
+          end;
+
+        R_X86_64_GOT32,
+        R_X86_64_GOT64,
+        R_X86_64_GOTPCREL,
+        R_X86_64_GOTPCREL64:
+          begin
+            AllocGOTSlot(objreloc.symbol);
+            if IsSharedLibrary and (objreloc.symbol.exesymbol.dynindex=0) then
+              Inc(relative_reloc_count);
           end;
 
         //R_X86_64_TLSGD,
