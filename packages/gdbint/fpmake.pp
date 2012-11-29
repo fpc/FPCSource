@@ -58,7 +58,7 @@ begin
   // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
   // is performed.
   if GdbLibFound and
-     (Defaults.IsBuildDifferentFromTarget
+     (not Defaults.IsBuildDifferentFromTarget
        or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (Defaults.BuildOS=win32) and (Defaults.BuildCPU=i386))) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
