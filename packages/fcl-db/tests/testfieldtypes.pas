@@ -50,11 +50,11 @@ type
     procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
     procedure TestMultipleFieldPKIndexDefs;
+    procedure TestGetIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
     procedure TestSetBlobAsStringParam;
     procedure TestNonNullableParams;
-    procedure TestGetIndexDefs;
     procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
@@ -567,12 +567,6 @@ begin
     end;
 end;
 
-procedure TTestFieldTypes.TestSetBlobAsStringParam;
-
-begin
-  TestSetBlobAsParam(1);
-end;
-
 
 procedure TTestFieldTypes.TestBlob;
 
@@ -803,6 +797,11 @@ begin
   TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount);
 end;
 
+procedure TTestFieldTypes.TestCrossStringDateParam;
+begin
+  TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,True);
+end;
+
 procedure TTestFieldTypes.TestTimeParamQuery;
 begin
   TestXXParamQuery(ftTime,FieldtypeDefinitions[ftTime],testValuesCount);
@@ -939,10 +938,12 @@ begin
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 end;
 
+
 procedure TTestFieldTypes.TestSetBlobAsParam(asWhat: integer);
+const
+  TestValue='Test deze BLob';
 var
   ASQL          : TSQLQuery;
-
 begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
@@ -952,9 +953,9 @@ begin
     begin
     sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
     case asWhat of
-      0: Params.ParamByName('blobParam').AsMemo := 'Test deze BLob';
-      1: Params.ParamByName('blobParam').AsString := 'Test deze BLob';
-      2: Params.ParamByName('blobParam').AsBlob := 'Test deze BLob';
+      0: Params.ParamByName('blobParam').AsMemo := TestValue;
+      1: Params.ParamByName('blobParam').AsString := TestValue;
+      2: Params.ParamByName('blobParam').AsBlob := TestValue;
     end;
     ExecSQL;
     end;
@@ -963,10 +964,28 @@ begin
     begin
     Open;
     if not eof then
-      AssertEquals('Test deze BLob',fields[0].AsString);
+      AssertEquals(TestValue, Fields[0].AsString);
     close;
     end;
 end;
+
+procedure TTestFieldTypes.TestSetBlobAsMemoParam;
+begin
+  // Firebird/Interbase ODBC driver : if parameter of ValueType=SQL_C_CHAR is bind to BLOB column
+  // driver interprets character data as hexadecimal string and performs conversion ('FF10'=#255#16)
+  TestSetBlobAsParam(0);
+end;
+
+procedure TTestFieldTypes.TestSetBlobAsStringParam;
+begin
+  TestSetBlobAsParam(1);
+end;
+
+procedure TTestFieldTypes.TestSetBlobAsBlobParam;
+begin
+  TestSetBlobAsParam(2);
+end;
+
 
 procedure TTestFieldTypes.TestAggregates;
 begin
@@ -1030,24 +1049,6 @@ begin
     AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
     Close;
     end;
-end;
-
-procedure TTestFieldTypes.SetUp;
-begin
-  InitialiseDBConnector;
-end;
-
-procedure TTestFieldTypes.TearDown;
-begin
-  if assigned(DBConnector) then
-    TSQLDBConnector(DBConnector).Transaction.Rollback;
-  FreeDBConnector;
-end;
-
-procedure TTestFieldTypes.RunTest;
-begin
-//  if (SQLConnType in TSQLConnType) then
-    inherited RunTest;
 end;
 
 procedure TTestFieldTypes.TestQueryAfterReconnect;
@@ -1807,11 +1808,6 @@ begin
   end;
 end;
 
-procedure TTestFieldTypes.TestCrossStringDateParam;
-begin
-  TestXXParamQuery(ftDate,'DATE',testDateValuesCount,True);
-end;
-
 procedure TTestFieldTypes.TestGetFieldNames;
 var FieldNames : TStringList;
 begin
@@ -2066,6 +2062,11 @@ end;
 procedure TTestFieldTypes.TestUpdateIndexDefs;
 var ds : TSQLQuery;
 begin
+  // Firebird/Interbase ODBC driver returns for :
+  //   SQLPrimaryKeys (PK_NAME): RDB$RELATION_CONSTRAINTS(RDB$CONSTRAINT_NAME)
+  //   SQLStatistics (INDEX_NAME): RDB$INDICES(RDB$INDEX_NAME)
+  // these two names can differ (when PRIMARY KEY is created without giving constraint name),
+  // therefore two indexes may be created instead of one (see TODBCConnection.UpdateIndexDefs)
   ds := DBConnector.GetNDataset(1) as TSQLQuery;
   ds.Prepare;
   ds.ServerIndexDefs.Update;
@@ -2099,16 +2100,32 @@ begin
   Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
 end;
 
+procedure TTestFieldTypes.TestGetIndexDefs;
 
-procedure TTestFieldTypes.TestSetBlobAsMemoParam;
+var ds : TSQLQuery;
+    inddefs : TIndexDefs;
+
 begin
-  TestSetBlobAsParam(0);
+  ds := DBConnector.GetNDataset(1) as TSQLQuery;
+  ds.Open;
+  AssertEquals('ServerIndexDefs.Count', 1, ds.ServerIndexDefs.Count);
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary]);
+  AssertEquals('ixPrimary', 1, inddefs.count);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
+  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  inddefs.Free;
+
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary,ixUnique]);
+  AssertEquals('ixPrimary,ixUnique', 1, inddefs.count);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
+  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  inddefs.Free;
+
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixDescending]);
+  AssertEquals('ixDescending', 0, inddefs.count);
+  inddefs.Free;
 end;
 
-procedure TTestFieldTypes.TestSetBlobAsBlobParam;
-begin
-  TestSetBlobAsParam(2);
-end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
@@ -2145,32 +2162,6 @@ begin
         end;
     end;
     end;
-end;
-
-procedure TTestFieldTypes.TestGetIndexDefs;
-
-var ds : TSQLQuery;
-    inddefs : TIndexDefs;
-
-begin
-  ds := DBConnector.GetNDataset(1) as TSQLQuery;
-  ds.Open;
-  AssertEquals('ServerIndexDefs.Count', 1, ds.ServerIndexDefs.Count);
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary]);
-  AssertEquals('ixPrimary', 1, inddefs.count);
-  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
-  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
-  inddefs.Free;
-
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary,ixUnique]);
-  AssertEquals('ixPrimary,ixUnique', 1, inddefs.count);
-  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
-  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
-  inddefs.Free;
-
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixDescending]);
-  AssertEquals('ixDescending', 0, inddefs.count);
-  inddefs.Free;
 end;
 
 procedure TTestFieldTypes.TestDblQuoteEscComments;
@@ -2258,6 +2249,26 @@ begin
     AssertTrue(PassException);
     end;
 end;
+
+
+procedure TTestFieldTypes.SetUp;
+begin
+  InitialiseDBConnector;
+end;
+
+procedure TTestFieldTypes.TearDown;
+begin
+  if assigned(DBConnector) then
+    TSQLDBConnector(DBConnector).Transaction.Rollback;
+  FreeDBConnector;
+end;
+
+procedure TTestFieldTypes.RunTest;
+begin
+//  if (SQLConnType in TSQLConnType) then
+    inherited RunTest;
+end;
+
 
 initialization
   if uppercase(dbconnectorname)='SQL' then RegisterTest(TTestFieldTypes);
