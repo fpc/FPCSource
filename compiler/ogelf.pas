@@ -1536,10 +1536,11 @@ implementation
             if relsym>=syms then
               InternalError(2012060204);
             p:=TObjSymbol(FSymTbl[relsym]);
-            if assigned(p) then
+            { Some relocations (e.g. R_ARM_V4BX) don't use a symbol at all }
+            if assigned(p) or (relsym=0) then
               begin
                 objrel:=TObjRelocation.CreateRaw(rel.address-secrec.sec.mempos,p,reltyp);
-                if relocs_use_addend then
+                if (secrec.relentsize=3*sizeof(pint)) then
                   objrel.orgsize:=rel.addend;
                 { perform target-specific actions }
                 ElfTarget.loadreloc(objrel);
@@ -3036,6 +3037,8 @@ implementation
       relcnttags: array[boolean] of longword=(DT_RELCOUNT,DT_RELACOUNT);
 
     procedure TElfExeOutput.FinishDynamicTags;
+      var
+        rela: boolean;
       begin
         if assigned(dynsymtable) then
           writeDynTag(DT_STRSZ,dynsymtable.fstrsec.size);
@@ -3046,18 +3049,19 @@ implementation
         if Assigned(pltrelocsec) and (pltrelocsec.size>0) then
           begin
             writeDynTag(DT_PLTRELSZ,pltrelocsec.Size);
-            writeDynTag(DT_PLTREL,pltreltags[relocs_use_addend]);
+            writeDynTag(DT_PLTREL,pltreltags[pltrelocsec.shtype=SHT_RELA]);
             writeDynTag(DT_JMPREL,pltrelocsec);
           end;
 
         if Assigned(dynrelocsec) and (dynrelocsec.size>0) then
           begin
-            writeDynTag(pltreltags[relocs_use_addend],dynrelocsec);
-            writeDynTag(relsztags[relocs_use_addend],dynrelocsec.Size);
-            writeDynTag(relenttags[relocs_use_addend],dynrelocsec.shentsize);
+            rela:=(dynrelocsec.shtype=SHT_RELA);
+            writeDynTag(pltreltags[rela],dynrelocsec);
+            writeDynTag(relsztags[rela],dynrelocsec.Size);
+            writeDynTag(relenttags[rela],dynrelocsec.shentsize);
+            if (relative_reloc_count>0) then
+              writeDynTag(relcnttags[rela],relative_reloc_count);
           end;
-        if (relative_reloc_count>0) then
-          writeDynTag(relcnttags[relocs_use_addend],relative_reloc_count);
         writeDynTag(DT_NULL,0);
       end;
 

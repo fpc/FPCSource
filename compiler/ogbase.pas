@@ -121,6 +121,8 @@ interface
       rf_raw = 1;
       { relocation must be added to dynamic list }
       rf_dynamic = 2;
+      { relocation target is absent/irrelevant (e.g. R_ARM_V4BX) }
+      rf_nosymbol = 4;
 
     type
       TObjSectionOption = (
@@ -708,8 +710,7 @@ implementation
 
     constructor TObjRelocation.CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
       begin
-        if not assigned(s) then
-          internalerror(2012091701);
+        { nil symbol is allowed here }
         DataOffset:=ADataOffset;
         Symbol:=s;
         ObjSection:=nil;
@@ -1465,6 +1466,7 @@ implementation
                 EntryArray[VTableIdx].OrgRelocType:=objreloc.ftype;
                 EntryArray[VTableIdx].OrgRelocFlags:=objreloc.flags;
                 objreloc.typ:=RELOC_ZERO;
+                objreloc.flags:=objreloc.flags or rf_nosymbol;
                 break;
               end;
           end;
@@ -2991,7 +2993,7 @@ implementation
           refobjsec : TObjSection;
         begin
           { Disabled Relocation to 0  }
-          if objreloc.typ=RELOC_ZERO then
+          if (objreloc.flags and rf_nosymbol)<>0 then
             exit;
           if assigned(objreloc.symbol) then
             begin
