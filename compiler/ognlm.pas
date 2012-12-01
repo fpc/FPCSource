@@ -283,7 +283,6 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
-         procedure DataPos_ExeSection(const aname:string);override;
          procedure NLMwriteString (const s : string; terminateWithZero : boolean);
          procedure objNLMwriteString (const s : string; terminateWithZero : boolean);
          procedure ParseScript (linkscript:TCmdStrList); override;
@@ -390,7 +389,6 @@ end;
         MaxMemPos:=$7FFFFFFF;
         SectionMemAlign:=$0;
         SectionDataAlign:=0;
-        RelocSection := true;  // always needed for NLM's
         nlmImports := TFPHashObjectList.create(true);
         nlmImpNames := TFPHashObjectList.create(false);
         NlmSymbols := TDynamicArray.create(4096);
@@ -399,14 +397,10 @@ end;
 
     destructor TNLMexeoutput.destroy;
       begin
-        if assigned(nlmImports) then
-          nlmImports.Free;
-        if assigned(nlmImpNames) then
-          nlmImpNames.Free;
-        if assigned(nlmSymbols) then
-          nlmSymbols.Free;
-        if assigned(FexportFunctionOffsets) then
-          FexportFunctionOffsets.Free;
+        nlmImports.Free;
+        nlmImpNames.Free;
+        nlmSymbols.Free;
+        FexportFunctionOffsets.Free;
         inherited destroy;
       end;
 
@@ -1167,7 +1161,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         targetSectionName : string;
 
       begin
-        if not RelocSection or FRelocsGenerated then
+        if FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -1247,12 +1241,6 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
             GenerateImports;
           if aname='.data' then
             currMemPos := 0;  // both, data and code in the nlm have a start offset of 0
-          inherited;
-        end;
-
-
-      procedure TNLMexeoutput.DataPos_ExeSection(const aname:string);
-        begin
           inherited;
         end;
 
