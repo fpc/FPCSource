@@ -1283,6 +1283,7 @@ implementation
             Add('  .rdata BLOCK(__section_alignment__) :');
             Add('  {');
             Add('    *(.rdata)');
+            Add('    *(.rdata.*)');
             add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
             Add('    *(SORT(.rdata$*))');
             Add('    *(.eh_frame)');
