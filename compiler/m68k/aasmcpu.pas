@@ -530,7 +530,7 @@ type
             result:=operand_read;
           A_CLR, A_SXX:
             result:=operand_write;
-          A_NEG, A_EXT, A_EXTB, A_NOT:
+          A_NEG, A_EXT, A_EXTB, A_NOT, A_NEGX:
             result:=operand_readwrite;
           else begin
 { TODO: FIX ME!!! remove ugly debug code ... }
