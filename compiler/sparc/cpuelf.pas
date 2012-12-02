@@ -28,14 +28,8 @@ interface
 implementation
 
   uses
-    verbose,
+    verbose,elfbase,
     systems,ogbase,ogelf,assemble;
-
-  type
-    TElfTargetSparc=class(TElfTarget)
-      class function encodereloc(objrel:TObjRelocation):byte;override;
-      class procedure loadreloc(objrel:TObjRelocation);override;
-    end;
 
   const
     { Relocation types }
@@ -68,10 +62,10 @@ implementation
 
 
 {****************************************************************************
-                               TElfTargetSparc
+                               ELF Target methods
 ****************************************************************************}
 
-   class function TElfTargetSparc.encodereloc(objrel:TObjRelocation):byte;
+   function elf_sparc_encodereloc(objrel:TObjRelocation):byte;
      begin
        case objrel.typ of
          RELOC_NONE :
@@ -86,7 +80,7 @@ implementation
      end;
 
 
-   class procedure TElfTargetSparc.loadreloc(objrel:TObjRelocation);
+   procedure elf_sparc.loadreloc(objrel:TObjRelocation);
      begin
      end;
 
@@ -97,6 +91,17 @@ implementation
 *****************************************************************************}
 
   const
+    elf_target_sparc: TElfTarget =
+      (
+        max_page_size:     $8000; // fixme
+        exe_image_base:    $8000; // fixme
+        machine_code:      EM_SPARC;
+        relocs_use_addend: false;
+        encodereloc:       @elf_sparc_encodeReloc;
+        loadreloc:         @elf_sparc_loadReloc;
+        loadsection:       nil;
+      );
+
     as_sparc_elf32_info : tasminfo =
        (
          id     : as_sparc_elf32;
@@ -114,7 +119,7 @@ implementation
 
 initialization
   RegisterAssembler(as_sparc_elf32_info,TElfAssembler);
-  ElfTarget:=TElfTargetSparc;
+  ElfTarget:=elf_target_sparc;
 
 end.
 

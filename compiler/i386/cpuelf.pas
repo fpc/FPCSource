@@ -29,15 +29,10 @@ implementation
 
   uses
     globtype,cclasses,
-    verbose,
-    systems,ogbase,ogelf,assemble;
+    verbose,elfbase,
+    systems,aasmbase,ogbase,ogelf,assemble;
 
   type
-    TElfTarget386=class(TElfTarget)
-      class function encodereloc(objrel:TObjRelocation):byte;override;
-      class procedure loadreloc(objrel:TObjRelocation);override;
-    end;
-
     TElfExeOutput386=class(TElfExeOutput)
     private
       procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
@@ -97,10 +92,10 @@ implementation
 
 
 {****************************************************************************
-                               TElfTarget386
+                               ELF Target methods
 ****************************************************************************}
 
-  class function TElfTarget386.encodereloc(objrel:TObjRelocation):byte;
+  function elf_i386_encodereloc(objrel:TObjRelocation):byte;
     begin
       case objrel.typ of
         RELOC_NONE :
@@ -122,7 +117,7 @@ implementation
     end;
 
 
-  class procedure TElfTarget386.loadreloc(objrel:TObjRelocation);
+  procedure elf_i386_loadreloc(objrel:TObjRelocation);
     begin
     end;
 
@@ -179,7 +174,7 @@ implementation
       pltrelocsec.writeReloc_internal(gotpltobjsec,got_offset,sizeof(pint),RELOC_ABSOLUTE);
       got_offset:=(exesym.dynindex shl 8) or R_386_JUMP_SLOT;
       pltrelocsec.write(got_offset,sizeof(pint));
-      if relocs_use_addend then
+      if ElfTarget.relocs_use_addend then
         pltrelocsec.writezeros(sizeof(pint));
     end;
 
@@ -325,7 +320,7 @@ implementation
           else
             reltyp:=objreloc.ftype;
 
-          if relocs_use_addend then
+          if ElfTarget.relocs_use_addend then
             address:=objreloc.orgsize
           else
             begin
@@ -463,6 +458,17 @@ implementation
 *****************************************************************************}
 
   const
+    elf_target_i386 : TElfTarget =
+      (
+        max_page_size:     $1000;
+        exe_image_base:    $8048000;
+        machine_code:      EM_386;
+        relocs_use_addend: false;
+        encodereloc:       @elf_i386_encodeReloc;
+        loadreloc:         @elf_i386_loadReloc;
+        loadsection:       nil;
+      );
+
     as_i386_elf32_info : tasminfo =
        (
          id     : as_i386_elf32;
@@ -483,7 +489,7 @@ implementation
 initialization
   RegisterAssembler(as_i386_elf32_info,TElfAssembler);
   ElfExeOutputClass:=TElfExeOutput386;
-  ElfTarget:=TElfTarget386;
+  ElfTarget:=elf_target_i386;
 
 end.
 

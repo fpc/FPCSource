@@ -102,14 +102,6 @@ interface
          constructor create(smart:boolean);override;
        end;
 
-       TElfTarget=class(TObject)
-       public
-         class function encodereloc(objrel:TObjRelocation):byte;virtual;abstract;
-         class procedure loadreloc(objrel:TObjRelocation);virtual;abstract;
-       end;
-
-       TElfTargetClass=class of TElfTarget;
-
        PSectionRec=^TSectionRec;
        TSectionRec=record
          sec: TObjSection;
@@ -151,6 +143,21 @@ interface
          function  ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;override;
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
        end;
+
+       TEncodeRelocProc=function(objrel:TObjRelocation):byte;
+       TLoadRelocProc=procedure(objrel:TObjRelocation);
+       TLoadSectionProc=function(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
+
+       TElfTarget=record
+         max_page_size: longword;
+         exe_image_base: longword;
+         machine_code: word;
+         relocs_use_addend: boolean;
+         encodereloc: TEncodeRelocProc;
+         loadreloc: TLoadRelocProc;
+         loadsection: TLoadSectionProc;
+       end;
+
 
        TElfExeSection=class(TExeSection)
        public
@@ -258,20 +265,12 @@ interface
 
      var
        ElfExeOutputClass: TExeOutputClass;
-       ElfTarget: TElfTargetClass;
+       ElfTarget: TElfTarget;
 
      const
        { Bits of TObjSymbol.refs field }
        symref_plt = 1;
 
-{TODO: should become property of back-end }
-{$ifdef x86_64}
-     const
-       relocs_use_addend:Boolean=True;
-{$else x86_64}
-     const
-       relocs_use_addend:Boolean=False;
-{$endif x86_64}
 
 
 implementation
@@ -284,31 +283,6 @@ implementation
 
     const
       symbolresize = 200*18;
-
-{$ifdef sparc}
-      ELFMACHINE = EM_SPARC;
-{$endif sparc}
-{$ifdef i386}
-      ELFMACHINE = EM_386;
-{$endif i386}
-{$ifdef m68k}
-      ELFMACHINE = EM_M68K;
-{$endif m68k}
-{$ifdef powerpc}
-      ELFMACHINE = EM_PPC;
-{$endif powerpc}
-{$ifdef powerpc64}
-      ELFMACHINE = EM_PPC; // TODO
-{$endif}
-{$ifdef mips}
-      ELFMACHINE = EM_MIPS;
-{$endif}
-{$ifdef arm}
-      ELFMACHINE = EM_ARM;
-{$endif arm}
-{$ifdef x86_64}
-      ELFMACHINE = EM_X86_64;
-{$endif x86_64}
 
 {$ifdef cpu64bitaddr}
       const
@@ -340,16 +314,6 @@ implementation
           result:=(sym shl 8) or typ;
         end;
 {$endif cpu64bitaddr}
-
-{$ifdef x86_64}
-      const
-        ELF_MAXPAGESIZE:longint=$200000;
-        TEXT_SEGMENT_START:longint=$400000;
-{$else x86_64}
-      const
-        ELF_MAXPAGESIZE:longint=$1000;
-        TEXT_SEGMENT_START:longint=$8048000;
-{$endif x86_64}
 
       procedure MayBeSwapHeader(var h : telf32header);
         begin
@@ -619,11 +583,11 @@ implementation
     constructor TElfObjSection.create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
       begin
         create_ext(aobjdata,
-          relsec_prefix[relocs_use_addend]+aname,
-          relsec_shtype[relocs_use_addend],
+          relsec_prefix[ElfTarget.relocs_use_addend]+aname,
+          relsec_shtype[ElfTarget.relocs_use_addend],
           SHF_ALLOC*ord(allocflag),
           sizeof(pint),
-          (2+ord(relocs_use_addend))*sizeof(pint));
+          (2+ord(ElfTarget.relocs_use_addend))*sizeof(pint));
       end;
 
 
@@ -638,7 +602,7 @@ implementation
           dec(offset,len)
         else if reltype<>RELOC_ABSOLUTE then
           InternalError(2012062401);
-        if relocs_use_addend then
+        if ElfTarget.relocs_use_addend then
           begin
             reloc.orgsize:=offset;
             offset:=0;
@@ -799,7 +763,7 @@ implementation
             objreloc.size:=len;
             if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
               dec(data,len);
-            if relocs_use_addend then
+            if ElfTarget.relocs_use_addend then
               begin
                 objreloc.orgsize:=data;
                 data:=0;
@@ -1029,13 +993,13 @@ implementation
         objsec,target:TElfObjSection;
       begin
         shstrtabsect.writezeros(1);
-        prefixlen:=length('.rel')+ord(relocs_use_addend);
+        prefixlen:=length('.rel')+ord(ElfTarget.relocs_use_addend);
         for i:=0 to data.ObjSectionList.Count-1 do
           begin
             objsec:=TElfObjSection(data.ObjSectionList[i]);
             { Alias section names into names of corresponding reloc sections,
               this is allowed by ELF specs and saves good half of .shstrtab space. }
-            if objsec.shtype=relsec_shtype[relocs_use_addend] then
+            if objsec.shtype=relsec_shtype[ElfTarget.relocs_use_addend] then
               begin
                 target:=TElfObjSection(data.ObjSectionList[objsec.shinfo-1]);
                 if (target.ObjRelocations.Count=0) or
@@ -1148,7 +1112,7 @@ implementation
 
            header.e_ident[EI_VERSION]:=1;
            header.e_type:=ET_REL;
-           header.e_machine:=ELFMACHINE;
+           header.e_machine:=ElfTarget.machine_code;
            header.e_version:=1;
            header.e_shoff:=shoffset;
            header.e_shstrndx:=shstrtabsect.index;
@@ -1239,7 +1203,8 @@ implementation
                 if (secrec.relentsize=3*sizeof(pint)) then
                   objrel.orgsize:=rel.addend;
                 { perform target-specific actions }
-                ElfTarget.loadreloc(objrel);
+                if Assigned(ElfTarget.loadreloc) then
+                  ElfTarget.loadreloc(objrel);
                 secrec.sec.ObjRelocations.add(objrel);
               end
             else
@@ -1453,7 +1418,9 @@ implementation
             else
               InternalError(2012110706);
         else
-          InternalError(2012072603);
+          if not (assigned(ElfTarget.loadsection) and
+            ElfTarget.loadsection(self,objdata,shdr,index)) then
+            InternalError(2012072603);
         end;
         FLoaded[index]:=True;
       end;
@@ -1496,7 +1463,7 @@ implementation
             InputError('Unknown ELF data version');
             exit;
           end;
-        if (header.e_machine<>ELFMACHINE) then
+        if (header.e_machine<>ElfTarget.machine_code) then
           begin
             InputError('ELF file is for different CPU');
             exit;
@@ -1850,7 +1817,7 @@ implementation
           header.e_type:=ET_DYN
         else
           header.e_type:=ET_EXEC;
-        header.e_machine:=ELFMACHINE;
+        header.e_machine:=ElfTarget.machine_code;
         header.e_version:=1;
         header.e_phoff:=sizeof(TElfHeader);
         header.e_shoff:=shoffset;
@@ -1966,8 +1933,8 @@ implementation
             seg.Add(interpobjsec.ExeSection);
           end;
 
-        textseg:=CreateSegment(PT_LOAD,PF_X or PF_R,ELF_MAXPAGESIZE);
-        dataseg:=CreateSegment(PT_LOAD,PF_R or PF_W,ELF_MAXPAGESIZE);
+        textseg:=CreateSegment(PT_LOAD,PF_X or PF_R,ElfTarget.max_page_size);
+        dataseg:=CreateSegment(PT_LOAD,PF_R or PF_W,ElfTarget.max_page_size);
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TExeSection(ExeSectionList[i]);
@@ -2347,7 +2314,7 @@ implementation
         if IsSharedLibrary then
           CurrMemPos:=0
         else
-          CurrMemPos:=TEXT_SEGMENT_START;
+          CurrMemPos:=ElfTarget.exe_image_base;
         textseg.MemPos:=CurrMemPos;
         if assigned(phdrseg) then
           begin
@@ -2357,7 +2324,7 @@ implementation
         CurrMemPos:=CurrMemPos+sizeof(TElfHeader)+segmentlist.count*sizeof(TElfproghdr);
         MemPos_Segment(textseg);
         CurrMemPos:=Align(CurrMemPos,SectionDataAlign); {! Data,not MemAlign}
-        CurrMemPos:=CurrMemPos+ELF_MAXPAGESIZE;
+        CurrMemPos:=CurrMemPos+ElfTarget.max_page_size;
         dataseg.MemPos:=CurrMemPos;
         MemPos_Segment(dataseg);
         { Mempos of unmapped sections is forced to zero, but we have to set positions

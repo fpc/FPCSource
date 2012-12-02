@@ -29,15 +29,10 @@ implementation
 
   uses
     globtype,cutils,cclasses,
-    verbose,
+    verbose,elfbase,
     systems,aasmbase,ogbase,ogelf,assemble;
 
   type
-    TElfTargetx86_64=class(TElfTarget)
-      class function encodereloc(objrel:TObjRelocation):byte;override;
-      class procedure loadreloc(objrel:TObjRelocation);override;
-    end;
-
     TElfExeOutputx86_64=class(TElfExeOutput)
     private
       function RelocName(reltyp:byte):string;
@@ -148,10 +143,10 @@ implementation
 
 
 {****************************************************************************
-                              TELFTargetx86_64
+                              ELF Target methods
 ****************************************************************************}
 
-  class function TElfTargetx86_64.encodereloc(objrel:TObjRelocation):byte;
+  function elf_x86_64_encodereloc(objrel:TObjRelocation):byte;
     begin
       case objrel.typ of
         RELOC_NONE :
@@ -185,7 +180,7 @@ implementation
     end;
 
 
-  class procedure TElfTargetx86_64.loadreloc(objrel:TObjRelocation);
+  procedure elf_x86_64_loadreloc(objrel:TObjRelocation);
     begin
     end;
 
@@ -381,7 +376,7 @@ implementation
           else
             InternalError(2012092103);
 
-          if relocs_use_addend then
+          if ElfTarget.relocs_use_addend then
             address:=objreloc.orgsize
           else
             begin
@@ -547,7 +542,7 @@ implementation
       pltrelocsec.writeReloc_internal(gotpltobjsec,gotpltobjsec.size-sizeof(pint),sizeof(pint),RELOC_ABSOLUTE);
       got_offset:=(qword(exesym.dynindex) shl 32) or R_X86_64_JUMP_SLOT;
       pltrelocsec.write(got_offset,sizeof(pint));
-      if relocs_use_addend then
+      if ElfTarget.relocs_use_addend then
         pltrelocsec.writezeros(sizeof(pint));
     end;
 
@@ -585,7 +580,7 @@ implementation
       ipltrelocsec.writeReloc_internal(gotpltobjsec,gotpltobjsec.size-sizeof(pint),sizeof(pint),RELOC_ABSOLUTE);
       tmp:=R_X86_64_IRELATIVE;
       ipltrelocsec.write(tmp,sizeof(pint));
-      if relocs_use_addend then
+      if ElfTarget.relocs_use_addend then
         ipltrelocsec.writeReloc_internal(targetsym.objsection,targetsym.offset,sizeof(pint),RELOC_ABSOLUTE);
     end;
 
@@ -594,6 +589,18 @@ implementation
 *****************************************************************************}
 
   const
+    elf_target_x86_64: TElfTarget =
+      (
+        max_page_size:     $200000;
+        exe_image_base:    $400000;
+        machine_code:      EM_X86_64;
+        relocs_use_addend: true;
+        encodereloc:       @elf_x86_64_encodeReloc;
+        loadreloc:         @elf_x86_64_loadReloc;
+        loadsection:       nil;
+      );
+
+
     as_x86_64_elf64_info : tasminfo =
       (
         id     : as_x86_64_elf64;
@@ -610,7 +617,7 @@ implementation
 
 initialization
   RegisterAssembler(as_x86_64_elf64_info,TElfAssembler);
-  ElfTarget:=TElfTargetx86_64;
+  ElfTarget:=elf_target_x86_64;
   ElfExeOutputClass:=TElfExeOutputx86_64;
 
 end.
