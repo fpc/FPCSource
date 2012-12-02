@@ -171,6 +171,7 @@ compiler/dbgstabs.pas svneol=native#text/plain
 compiler/dbgstabx.pas svneol=native#text/plain
 compiler/defcmp.pas svneol=native#text/plain
 compiler/defutil.pas svneol=native#text/plain
+compiler/elfbase.pas svneol=native#text/plain
 compiler/export.pas svneol=native#text/plain
 compiler/expunix.pas svneol=native#text/plain
 compiler/finput.pas svneol=native#text/plain
