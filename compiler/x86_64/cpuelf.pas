@@ -35,10 +35,7 @@ implementation
   type
     TElfExeOutputx86_64=class(TElfExeOutput)
     private
-      function RelocName(reltyp:byte):string;
       procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
-      procedure ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-      procedure ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
     protected
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
@@ -185,11 +182,7 @@ implementation
     end;
 
 
-{****************************************************************************
-                               TELFExeOutputx86_64
-****************************************************************************}
-
-  function TElfExeOutputx86_64.RelocName(reltyp:byte):string;
+  function elf_x86_64_relocname(reltyp:byte):string;
     begin
       if reltyp<=high(relocprops) then
         result:=relocprops[reltyp].name
@@ -197,20 +190,9 @@ implementation
         result:='unknown ('+tostr(reltyp)+')';
     end;
 
-
-  procedure TElfExeOutputx86_64.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-    begin
-      { TODO: include objsec properties into message }
-      Comment(v_error,'Relocation '+RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
-    end;
-
-
-  procedure TElfExeOutputx86_64.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-    begin
-      { TODO: include objsec properties into message }
-      Comment(v_error,'Relocation truncated to fit: '+RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
-    end;
-
+{****************************************************************************
+                               TELFExeOutputx86_64
+****************************************************************************}
 
   procedure TElfExeOutputx86_64.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
@@ -595,6 +577,7 @@ implementation
         exe_image_base:    $400000;
         machine_code:      EM_X86_64;
         relocs_use_addend: true;
+        relocname:         @elf_x86_64_relocName;
         encodereloc:       @elf_x86_64_encodeReloc;
         loadreloc:         @elf_x86_64_loadReloc;
         loadsection:       nil;

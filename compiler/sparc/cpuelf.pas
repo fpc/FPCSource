@@ -80,6 +80,12 @@ implementation
      end;
 
 
+   function elf_sparc_relocname(reltyp:byte):string;
+     begin
+       result:='TODO';
+     end;
+
+
    procedure elf_sparc.loadreloc(objrel:TObjRelocation);
      begin
      end;
@@ -97,6 +103,7 @@ implementation
         exe_image_base:    $8000; // fixme
         machine_code:      EM_SPARC;
         relocs_use_addend: false;
+        relocname:         @elf_sparc_relocName;
         encodereloc:       @elf_sparc_encodeReloc;
         loadreloc:         @elf_sparc_loadReloc;
         loadsection:       nil;

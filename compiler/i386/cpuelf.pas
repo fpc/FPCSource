@@ -122,6 +122,11 @@ implementation
     end;
 
 
+  function elf_i386_relocname(reltyp:byte):string;
+    begin
+      result:='TODO';
+    end;
+
 {****************************************************************************
                                TElfExeOutput386
 ****************************************************************************}
@@ -464,6 +469,7 @@ implementation
         exe_image_base:    $8048000;
         machine_code:      EM_386;
         relocs_use_addend: false;
+        relocname:         @elf_i386_relocName;
         encodereloc:       @elf_i386_encodeReloc;
         loadreloc:         @elf_i386_loadReloc;
         loadsection:       nil;

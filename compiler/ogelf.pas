@@ -144,6 +144,7 @@ interface
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
        end;
 
+       TRelocNameProc=function(reltyp:byte):string;
        TEncodeRelocProc=function(objrel:TObjRelocation):byte;
        TLoadRelocProc=procedure(objrel:TObjRelocation);
        TLoadSectionProc=function(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
@@ -153,6 +154,7 @@ interface
          exe_image_base: longword;
          machine_code: word;
          relocs_use_addend: boolean;
+         relocname: TRelocNameProc;
          encodereloc: TEncodeRelocProc;
          loadreloc: TLoadRelocProc;
          loadsection: TLoadSectionProc;
@@ -246,6 +248,8 @@ interface
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
          procedure WriteIndirectPLTEntry(exesym:TExeSymbol);virtual;
          procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);virtual;abstract;
+         procedure ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+         procedure ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
        public
          constructor Create;override;
          destructor Destroy;override;
@@ -2811,6 +2815,20 @@ implementation
             if (sym.objsymbol.bind=AB_WEAK_EXTERNAL) or IsSharedLibrary then
               sym.state:=symstate_defined;
           end;
+      end;
+
+
+    procedure TElfExeOutput.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+      begin
+        { TODO: include objsec properties into message }
+        Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
+      end;
+
+
+    procedure TElfExeOutput.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+      begin
+        { TODO: include objsec properties into message }
+        Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
       end;
 
 
