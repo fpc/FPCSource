@@ -153,17 +153,8 @@ type
 
 
 Const
-  BaseGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
-  BaseGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
-
-  GUIDObserved : TGUID = BaseGUIDObserved;
-  GUIDObserver : TGUID = BaseGUIDObserver;
-
-  // String is needed for testing
-  SGUIDObserver = BaseGUIDObserver;
-  SGUIDObserved = BaseGUIDObserved;
-
-
+  SGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
+  SGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
 
 Type
   // Notification operations :
@@ -173,7 +164,7 @@ Type
 
   { IFPObserved }
 
-  IFPObserved = Interface [BaseGUIDObserved]
+  IFPObserved = Interface [SGUIDObserved]
     // attach a new observer
     Procedure FPOAttachObserver(AObserver : TObject);
     // Detach an observer
@@ -184,7 +175,7 @@ Type
 
   { IFPObserver }
 
-  IFPObserver = Interface  [BaseGUIDObserver]
+  IFPObserver = Interface  [SGUIDObserver]
     // Called by observed when observers are notified.
     Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
   end;
