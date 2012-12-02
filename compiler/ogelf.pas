@@ -39,6 +39,12 @@ interface
        owbase;
 
     type
+{$ifdef cpu64bitaddr}
+      TElfsechdr = TElf64sechdr;
+{$else cpu64bitaddr}
+      TElfsechdr = TElf32sechdr;
+{$endif cpu64bitaddr}
+
        TElfObjSection = class(TObjSection)
        public
           shstridx,
@@ -112,11 +118,14 @@ interface
          relentsize: longint;
        end;
 
+       TElfsecheaderarray=array of TElfsechdr;
+
        TElfObjInput=class(TObjInput)
        private
          FSecTbl: PSectionRec;
          FSymTbl: PPointer;
          FLoaded: PBoolean;
+         shdrs: TElfsecheaderarray;
          nsects: longword;
          shentsize: longword;
          shoffset: aword;
@@ -132,10 +141,10 @@ interface
          symversions: PWord;
          dynobj: boolean;
          function LoadHeader:word;
-         procedure LoadSection(const hdr;index:longint;objdata:TObjData);
+         procedure LoadSection(const shdr:TElfsechdr;index:longint;objdata:TObjData);
          procedure LoadRelocations(const secrec:TSectionRec);
          procedure LoadSymbols(objdata:TObjData;count,locals:longword);
-         procedure LoadDynamic(const hdr;objdata:TObjData);
+         procedure LoadDynamic(const shdr:TElfsechdr;objdata:TObjData);
        public
          constructor Create;override;
          destructor Destroy;override;
@@ -308,7 +317,6 @@ implementation
         telfheader = telf64header;
         telfreloc = telf64reloc;
         telfsymbol = telf64symbol;
-        telfsechdr = telf64sechdr;
         telfproghdr = telf64proghdr;
         telfdyn = telf64dyn;
 
@@ -324,7 +332,6 @@ implementation
         telfheader = telf32header;
         telfreloc = telf32reloc;
         telfsymbol = telf32symbol;
-        telfsechdr = telf32sechdr;
         telfproghdr = telf32proghdr;
         telfdyn = telf32dyn;
 
@@ -1342,13 +1349,15 @@ implementation
       end;
 
 
-    procedure TElfObjInput.LoadSection(const hdr;index:longint;objdata:tobjdata);
+    procedure TElfObjInput.LoadSection(const shdr:TElfsechdr;index:longint;objdata:tobjdata);
       var
-        shdr: TElfsechdr absolute hdr;
         sec: TElfObjSection;
         sym: TElfSymbol;
         secname: string;
       begin
+        if shdr.sh_name>=shstrtablen then
+          InternalError(2012060210);
+
         case shdr.sh_type of
           SHT_NULL:
             {ignore};
@@ -1357,8 +1366,6 @@ implementation
             .shstrtab and .strtab are processed separately and don't appear here. }
           SHT_PROGBITS,SHT_NOBITS,SHT_NOTE,SHT_STRTAB:
             begin
-              if shdr.sh_name>=shstrtablen then
-                InternalError(2012060210);
               secname:=string(PChar(@shstrtab[shdr.sh_name]));
 
               sec:=TElfObjSection.create_ext(objdata,secname,
@@ -1503,9 +1510,8 @@ implementation
       end;
 
 
-    procedure TElfObjInput.LoadDynamic(const hdr;objdata:TObjData);
+    procedure TElfObjInput.LoadDynamic(const shdr:TElfsechdr;objdata:TObjData);
       var
-        shdr: TElfsechdr absolute hdr;
         dt: TElfDyn;
         i: longint;
       begin
@@ -1534,7 +1540,6 @@ implementation
         i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
         objsec: TObjSection;
-        shdrs: array of TElfsechdr;
         grp: TObjSectionGroup;
         tmp: longword;
         count: longint;
