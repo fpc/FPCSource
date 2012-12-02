@@ -2277,7 +2277,7 @@ Var
                     end;
                   If thousand And (Digits[N]<>'-') Then
                     Begin
-                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
+                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) and (N > 1) Then
                       Begin
                       Buf[0] := FormatSettings.ThousandSeparator;
                       Inc(Buf);
