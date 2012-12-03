@@ -28,11 +28,13 @@ interface
     uses
       cpubase,
       aasmtai,aasmdata,aasmcpu,assemble,aggas,
-      cgutils;
+      cgutils,globtype;
 
     type
       TGasSPARC=class(TGnuAssembler)
         constructor create(smart: boolean); override;
+        {# Constructs the command line for calling the assembler }
+        function MakeCmdLine: TCmdStr; override;
       end;
 
      TSPARCInstrWriter=class(TCPUInstrWriter)
@@ -44,7 +46,7 @@ interface
 implementation
 
     uses
-      cutils,systems,procinfo,
+      cutils,systems,globals,cpuinfo,procinfo,
       verbose,itcpugas,cgbase;
 
 
@@ -56,6 +58,27 @@ implementation
       begin
         inherited create(smart);
         InstrWriter := TSPARCInstrWriter.create(self);
+      end;
+
+
+    function TGasSPARC.MakeCmdLine: TCmdStr;
+      begin
+         result := Inherited MakeCmdLine;
+
+         { ARCH selection }
+         // Note for casual readers: gas (GNU as) uses -Av7, -Av8, -Av9 etc. on SPARC,
+         // rather than variants of the -m option used by most other CPUs. Solaris as
+         // uses -xarch=v7, -xarch=v8 etc., that form is not supported here since there
+         // are probably other incompatibilties between the GNU and Solaris binutils
+         // that need to be reviewed.
+         //
+         // v9 is required as the default since the RTL started using membar at 2.2.2.
+         case current_settings.cputype of
+           cpu_SPARC_V7: Replace(result,'$ARCH','-Av7');
+           cpu_SPARC_V8: Replace(result,'$ARCH','-Av8')
+         else
+           Replace(result,'$ARCH','-Av9')
+         end
       end;
 
 
@@ -243,7 +266,7 @@ implementation
 {$ifdef FPC_SPARC_V8_ONLY}
            asmcmd : '$PIC -o $OBJ $ASM';
 {$else}
-           asmcmd : '$PIC -Av9 -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
 {$endif}
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
@@ -257,7 +280,7 @@ implementation
            id     : as_ggas;
            idtxt  : 'GAS';
            asmbin : 'gas';
-           asmcmd : '$PIC -Av9 -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';

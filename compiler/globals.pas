@@ -418,8 +418,8 @@ interface
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
-        cputype : cpu_SPARC_V8;
-        optimizecputype : cpu_SPARC_V8;
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
