@@ -678,9 +678,13 @@ const
   MemIssue   = $20;
   Sync       = $40;
 
+{$if not(defined(SPARCV7)) and not(defined(SPARCV8))}
+{$define CPUSPARC_HAS_MEMBAR}
+{$endif}
+
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifdef FPC_HAS_MEMBAR}
+{$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1
   membar LoadLoad
 .L1:
@@ -694,7 +698,7 @@ end;
 
 procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifdef FPC_HAS_MEMBAR}
+{$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1
   membar LoadLoad + LoadStore + StoreLoad + StoreStore
 .L1:
@@ -703,7 +707,7 @@ end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifdef FPC_HAS_MEMBAR}
+{$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1
   stbar
 .L1:
