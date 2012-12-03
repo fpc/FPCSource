@@ -558,7 +558,6 @@ implementation
                   result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
           end;
-
       end;
 
 
