@@ -99,7 +99,7 @@ unit cpugas;
          result := Inherited MakeCmdLine;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
-         { ACH selection }
+         { ARCH selection }
          Replace(result,'$ARCH','-march='+cputypestr[mips_cpu]);
       end;
 
