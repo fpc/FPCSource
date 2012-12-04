@@ -695,7 +695,7 @@ function TODBCConnection.StartDBTransaction(trans: TSQLHandle; AParams:string): 
 var AutoCommit: SQLINTEGER;
 begin
   // set some connection attributes
-  if StrToBoolDef(Params.Values['AUTOCOMMIT'], True) then
+  if StrToBoolDef(Params.Values['AUTOCOMMIT'], False) then
     AutoCommit := SQL_AUTOCOMMIT_ON
   else
     AutoCommit := SQL_AUTOCOMMIT_OFF;
