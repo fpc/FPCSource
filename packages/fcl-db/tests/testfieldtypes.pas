@@ -187,7 +187,7 @@ begin
     AFld3.FieldName := 'CALCFLD';
     AFld3.DataSet := ds;
     Afld3.FieldKind := fkCalculated;
-    AFld3.ProviderFlags := [];
+    AFld3.ProviderFlags := [];  // do not include calculated fields into generated sql insert/update
 
     Open;
     Edit;
@@ -1912,7 +1912,7 @@ begin
 end;
 
 var testIntervalValuesCount: integer;
-const testIntervalValues: array[0..4] of shortstring = ('00:00:00.000','00:00:01.000','23:59:59.000','838:59:59.000','1000:00:00.000');
+const testIntervalValues: array[0..5] of shortstring = ('00:00:00.000','00:00:01.000','23:59:59.000','99:59:59.000','838:59:59.000','1000:00:00.000');
 // Placed here, as long as bug 18702 is not solved
 function TestSQLInterval_GetSQLText(const a: integer) : string;
 begin
@@ -1934,7 +1934,7 @@ begin
   if SQLConnType = postgresql then
   begin
     datatype:='INTERVAL';
-    testIntervalValuesCount := 5;
+    testIntervalValuesCount := 6;
   end
   else
   begin
@@ -1942,9 +1942,10 @@ begin
     if datatype = '' then
       Ignore(STestNotApplicable);
     if SQLServerType = ssSQLite then
-      testIntervalValuesCount := 5
+      testIntervalValuesCount := 6
     else if SQLServerType = ssMySQL then
-      testIntervalValuesCount := 4
+      // MySQL ODBC driver does not correctly handles time values >= '100:00:00'
+      testIntervalValuesCount := 5
     else
       testIntervalValuesCount := 3;
   end;
