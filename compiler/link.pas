@@ -98,7 +98,7 @@ interface
          FImportLibraryList : TFPHashObjectList;
          FGroupStack : TFPObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
-         procedure Load_ReadStaticLibrary(const para:TCmdStr);
+         procedure Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean=false);
          procedure Load_Group;
          procedure Load_EndGroup;
          procedure ParseScript_Handle;
@@ -954,7 +954,7 @@ Implementation
               end
             else if src.token in [tkIDENT,tkLITERAL] then
               begin
-                Load_ReadStaticLibrary(src.tokenstr);
+                Load_ReadStaticLibrary(src.tokenstr,asneeded);
                 src.nextToken;
               end
             else if src.CheckFor('-') then
@@ -1017,12 +1017,13 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr);
+    procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
         objreader : TArObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
         ScriptLexer: TScriptLexer;
+        stmt:TStaticLibrary;
       begin
 { TODO: Cleanup ignoring of   FPC generated libimp*.a files}
         { Don't load import libraries }
@@ -1040,8 +1041,9 @@ Implementation
               objdata:=objinput.newObjData(para);
               if objinput.ReadObjData(objreader,objdata) then
                 begin
-                  TFPObjectList(FGroupStack.Last).Add(TStaticLibrary.create_object(objdata));
-                  //exeoutput.addobjdata(objdata);
+                  stmt:=TStaticLibrary.create_object(objdata);
+                  stmt.AsNeeded:=asneededflag;
+                  TFPObjectList(FGroupStack.Last).Add(stmt);
                 end;
               objinput.Free;
               objreader.Free;
