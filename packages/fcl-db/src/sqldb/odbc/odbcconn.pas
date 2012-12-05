@@ -833,11 +833,11 @@ begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size+1, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
-    ftInteger,ftWord,ftAutoInc:     // mapped to TLongintField
+    ftInteger,ftWord,ftAutoInc:   // mapped to TLongintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SLONG, buffer, SizeOf(Longint), @StrLenOrInd);
     ftLargeint:           // mapped to TLargeintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SBIGINT, buffer, SizeOf(Largeint), @StrLenOrInd);
-    ftFloat:              // mapped to TFloatField
+    ftFloat,ftCurrency:   // mapped to TFloatField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_DOUBLE, buffer, SizeOf(Double), @StrLenOrInd);
     ftTime:               // mapped to TTimeField
     begin
@@ -1078,7 +1078,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
-  AutoIncAttr, Updatable: SQLINTEGER;
+  AutoIncAttr, Updatable, FixedPrecScale: SQLINTEGER;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -1210,6 +1210,22 @@ begin
                       @Updatable),
       SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get updatable attribute for column %d.',[i]
     );
+
+    if FieldType in [ftFloat] then
+    begin
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle,
+                        i,
+                        SQL_DESC_FIXED_PREC_SCALE,
+                        nil,
+                        0,
+                        nil,
+                        @FixedPrecScale),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get money attribute for column %d.',[i]
+      );
+      if FixedPrecScale=SQL_TRUE then
+        FieldType:=ftCurrency;
+    end;
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
     begin
