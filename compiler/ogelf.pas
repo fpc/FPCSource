@@ -1588,11 +1588,10 @@ implementation
             break;
           end;
 
-        if symtabndx=0 then
-          InternalError(2012110706);
-
         if dynobj then
           begin
+            if symtabndx=0 then
+              InternalError(2012110707);
             { Locate .dynamic and version sections. Expect a single one of a kind. }
             dynndx:=0;
             versymndx:=0;
@@ -2416,9 +2415,10 @@ implementation
       begin
         gotwritten:=true;
         { If target does not support sorted relocations, it is expected to write the
-          entire .rel[a].dyn section during FixupRelocations. Otherwise, only RELATIVE ones
-          should be written, space for non-relative relocations should remain. }
-        if assigned(dynrelocsec) and (relative_reloc_count>0) then
+          entire .rel[a].dyn section during FixupRelocations, and leave dynreloclist empty.
+          Otherwise, only RELATIVE ones should be written, space for non-relative relocations
+          should remain. }
+        if assigned(dynrelocsec) then
           begin
             if (dynrelocsec.size+(dynreloclist.count*dynrelocsec.shentsize)<>dynrelsize) then
               InternalError(2012110601);
