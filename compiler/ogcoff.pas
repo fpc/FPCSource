@@ -179,7 +179,7 @@ interface
        public
          constructor createcoff(awin32:boolean);
          destructor destroy;override;
-         function  ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;override;
+         function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
        end;
 
        TDJCoffObjInput = class(TCoffObjInput)
@@ -1750,7 +1750,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function  TCoffObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
+    function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
         secalign : shortint;
         strpos,
@@ -1765,6 +1765,7 @@ const pemagic : array[0..3] of byte = (
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
+        objdata:=CObjData.Create(InputFileName);
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         with TCoffObjData(objdata) do

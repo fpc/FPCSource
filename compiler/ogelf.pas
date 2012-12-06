@@ -140,7 +140,7 @@ interface
        public
          constructor Create;override;
          destructor Destroy;override;
-         function  ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;override;
+         function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
        end;
 
@@ -254,7 +254,7 @@ interface
          constructor Create;override;
          destructor Destroy;override;
          procedure Load_Start;override;
-         procedure Load_DynamicObject(ObjData:TObjData);override;
+         procedure Load_DynamicObject(ObjData:TObjData;asneeded:boolean);override;
          procedure Order_Start;override;
          procedure Order_end;override;
          procedure AfterUnusedSectionRemoval;override;
@@ -1506,7 +1506,7 @@ implementation
       end;
 
 
-    function TElfObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
+    function TElfObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
         i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
@@ -1531,6 +1531,8 @@ implementation
 
         if shentsize<>sizeof(TElfsechdr) then
           InternalError(2012062701);
+
+        objdata:=CObjData.Create(InputFilename);
 
         FSecTbl:=AllocMem(nsects*sizeof(TSectionRec));
         FLoaded:=AllocMem(nsects*sizeof(boolean));
@@ -2063,15 +2065,15 @@ implementation
       end;
 
 
-    procedure TElfExeOutput.Load_DynamicObject(objdata:TObjData);
+    procedure TElfExeOutput.Load_DynamicObject(objdata:TObjData;asneeded:boolean);
       var
         i: longint;
         exesym: TExeSymbol;
         objsym: TObjSymbol;
+        needed: boolean;
       begin
         Comment(v_debug,'Dynamic object: '+objdata.name);
-        if neededlist.Find(objdata.name)=nil then
-          neededlist.Add(objdata.name,objdata);
+        needed:=false;
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
@@ -2082,8 +2084,12 @@ implementation
               begin
                 exesym.State:=symstate_defined;
                 exesym.dynindex:=dynsymlist.Add(exesym)+1;
+                needed:=true;
               end;
           end;
+        if (needed or (not asneeded)) and
+          (neededlist.Find(objdata.name)=nil) then
+          neededlist.Add(objdata.name,objdata);
       end;
 
 

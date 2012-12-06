@@ -1004,7 +1004,6 @@ Implementation
         fn:=FindObjectFile(para,'',false);
         Comment(V_Tried,'Reading object '+fn);
         objinput:=CObjInput.Create;
-        objdata:=objinput.newObjData(para);
         objreader:=TObjectreader.create;
         if objreader.openfile(fn) then
           begin
@@ -1038,7 +1037,6 @@ Implementation
             begin
               { may be a regular object as well as a dynamic one }
               objinput:=CObjInput.Create;
-              objdata:=objinput.newObjData(para);
               if objinput.ReadObjData(objreader,objdata) then
                 begin
                   stmt:=TStaticLibrary.create_object(objdata);

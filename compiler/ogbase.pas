@@ -350,9 +350,7 @@ interface
         procedure ReadSectionContent(Data:TObjData);
       public
         constructor create;virtual;
-        destructor  destroy;override;
-        function  newObjData(const n:string):TObjData;
-        function  ReadObjData(AReader:TObjectreader;Data:TObjData):boolean;virtual;abstract;
+        function  ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;virtual;abstract;
         class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
       end;
@@ -522,7 +520,7 @@ interface
         procedure Load_ProvideSymbol(const aname:string);virtual;
         procedure Load_IsSharedLibrary;
         procedure Load_ImageBase(const avalue:string);
-        procedure Load_DynamicObject(ObjData:TObjData);virtual;
+        procedure Load_DynamicObject(ObjData:TObjData;asneeded:boolean);virtual;
         procedure Order_Start;virtual;
         procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
@@ -1815,7 +1813,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.Load_DynamicObject(ObjData:TObjData);
+    procedure TExeOutput.Load_DynamicObject(ObjData:TObjData;asneeded:boolean);
       begin
       end;
 
@@ -2410,7 +2408,6 @@ implementation
                                     '('+exesym.Name+')');
                                 end;
                               objinput:=lib.ObjInputClass.Create;
-                              objdata:=objinput.newObjData(lib.ArReader.FileName);
                               objinput.ReadObjData(lib.ArReader,objdata);
                               objinput.free;
                               AddObjData(objdata);
@@ -2436,7 +2433,7 @@ implementation
               lkObject:
                 { TODO: ownership of objdata }
                 //if lib.objdata.is_dynamic then
-                  Load_DynamicObject(lib.objdata);
+                  Load_DynamicObject(lib.objdata,lib.AsNeeded);
                 {else
                   begin
                     AddObjData(lib.objdata);
@@ -3247,18 +3244,6 @@ implementation
 
     constructor TObjInput.create;
       begin
-      end;
-
-
-    destructor TObjInput.destroy;
-      begin
-        inherited destroy;
-      end;
-
-
-    function TObjInput.newObjData(const n:string):TObjData;
-      begin
-        result:=CObjData.create(n);
       end;
 
 
