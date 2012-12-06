@@ -209,6 +209,8 @@ interface
     DT_VERDEFNUM = $6ffffffd;
     DT_VERNEED   = $6ffffffe;
     DT_VERNEEDNUM = $6fffffff;
+    { GNU extension to Solaris versioning scheme }
+    DT_VERSYM     = $6ffffff0;
 
     GRP_COMDAT = 1;
 
@@ -343,7 +345,7 @@ interface
 
     { The following records are same for 32 and 64 bit ELF files }
     TElfVerdef=record
-      vd_version: word;      { =1 }
+      vd_version: word;      { =VER_DEF_CURRENT }
       vd_flags:   word;
       vd_ndx:     word;
       vd_cnt:     word;      { number of verdaux records }
@@ -372,6 +374,21 @@ interface
       vna_name:  longword;
       vna_next:  longword;
     end;
+
+  const
+    VERSYM_VERSION = $7FFF;
+    VERSYM_HIDDEN  = $8000;
+    VER_NDX_LOCAL = 0;
+    VER_NDX_GLOBAL = 1;
+
+    { TElfverdef.vd_version }
+    VER_DEF_CURRENT = 1;
+    { TElfverneed.vn_version }
+    VER_NEED_CURRENT = 1;
+    { TElfverdef.vn_flags }
+    VER_FLG_BASE = 1;
+    VER_FLG_WEAK = 2;
+    VER_FLG_INFO = 4;
 
 
 implementation
