@@ -1333,7 +1333,7 @@ implementation
         { optimize constant expressions }
         if (left.nodetype=ordconstn) then
           begin
-             if tordconstnode(left).value.uvalue=1 then
+             if tordconstnode(left).value.uvalue<>0 then
                begin
                   if assigned(right) then
                     result:=right

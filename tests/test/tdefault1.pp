@@ -92,7 +92,7 @@ begin
   if Default(LongBool) then
     Halt(15);
 {$ifdef fpc}
-  if not Default(QWordBool) then
+  if Default(QWordBool) then
     Halt(16);
 {$endif}
   (* comma types *)
