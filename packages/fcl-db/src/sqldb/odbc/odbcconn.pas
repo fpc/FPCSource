@@ -303,10 +303,14 @@ end;
 
 function TODBCConnection.StrToStatementType(s : string) : TStatementType;
 begin
-  S:=Lowercase(s);
-  if s = 'transform' then Result:=stSelect //MS Access
-  else if s = 'exec' then Result:=stExecProcedure
-  else Result := inherited StrToStatementType(s);
+  case Lowercase(s) of
+    'transform': // MS Access
+      Result := stSelect;
+    'exec', 'call':
+      Result := stExecProcedure;
+    else
+      Result := inherited StrToStatementType(s);
+  end;
 end;
 
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
