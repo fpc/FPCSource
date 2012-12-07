@@ -152,11 +152,7 @@ begin
   if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
   if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
   if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
-  if SQLConnType = ODBC then
-    begin
-    Fconnection := TODBCConnection.Create(nil);
-    Fconnection.Params.Append('AutoCommit=false');
-    end;
+  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
   if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
