@@ -142,6 +142,8 @@ interface
          destructor Destroy;override;
          function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
+         function CreateSection(const shdr:TElfsechdr;index:longint;objdata:TObjData;
+           out secname:string):TElfObjSection;
        end;
 
        TRelocNameProc=function(reltyp:byte):string;
@@ -1318,6 +1320,22 @@ implementation
       end;
 
 
+    function TElfObjInput.CreateSection(const shdr:TElfsechdr;index:longint;objdata:tobjdata;
+        out secname:string):TElfObjSection;
+      begin
+        secname:=string(PChar(@shstrtab[shdr.sh_name]));
+
+        result:=TElfObjSection.create_ext(objdata,secname,
+          shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize);
+
+        result.index:=index;
+        result.DataPos:=shdr.sh_offset;
+        result.MemPos:=shdr.sh_addr;
+        result.Size:=shdr.sh_size;
+        FSecTbl[index].sec:=result;
+      end;
+
+
     procedure TElfObjInput.LoadSection(const shdr:TElfsechdr;index:longint;objdata:tobjdata);
       var
         sec: TElfObjSection;
@@ -1333,12 +1351,10 @@ implementation
 
           { SHT_STRTAB may appear for .stabstr and other debug sections.
             .shstrtab and .strtab are processed separately and don't appear here. }
-          SHT_PROGBITS,SHT_NOBITS,SHT_NOTE,SHT_STRTAB:
+          SHT_PROGBITS,SHT_NOBITS,SHT_NOTE,SHT_STRTAB,
+          SHT_INIT_ARRAY,SHT_FINI_ARRAY,SHT_PREINIT_ARRAY:
             begin
-              secname:=string(PChar(@shstrtab[shdr.sh_name]));
-
-              sec:=TElfObjSection.create_ext(objdata,secname,
-                shdr.sh_type,shdr.sh_flags,shdr.sh_addralign,shdr.sh_entsize);
+              sec:=CreateSection(shdr,index,objdata,secname);
 
               if (Length(secname)>3) and (secname[2] in ['d','f','n','s']) then
                 begin
@@ -1360,12 +1376,6 @@ implementation
 
               if (shdr.sh_type=SHT_NOTE) and (shdr.sh_size<>0) then
                 sec.SecOptions:=[oso_keep];
-
-              sec.index:=index;
-              sec.DataPos:=shdr.sh_offset;
-              sec.MemPos:=shdr.sh_addr;
-              sec.Size:=shdr.sh_size;
-              FSecTbl[index].sec:=sec;
             end;
 
           SHT_REL,SHT_RELA:
