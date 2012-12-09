@@ -789,6 +789,10 @@ begin
                   case tx86operand(operands[2]).opsize of
                     S_L :
                       opsize:=S_WL;
+{$ifdef x86_64}
+                    S_Q :
+                      opsize:=S_WQ;
+{$endif}
                   end;
                 S_B :
                   begin
@@ -797,6 +801,10 @@ begin
                         opsize:=S_BW;
                       S_L :
                         opsize:=S_BL;
+{$ifdef x86_64}
+                      S_Q :
+                        opsize:=S_BQ;
+{$endif}
                     end;
                   end;
               end;
