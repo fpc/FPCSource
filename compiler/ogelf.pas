@@ -244,7 +244,7 @@ interface
          dynreloclist: TFPObjectList;
          tlsseg: TElfSegment;
          relative_reloc_count: longint;
-         procedure AllocGOTSlot(objsym: TObjSymbol);
+         function AllocGOTSlot(objsym: TObjSymbol):boolean;
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
@@ -1994,10 +1994,11 @@ implementation
       end;
 
 
-    procedure TElfExeOutput.AllocGOTSlot(objsym:TObjSymbol);
+    function TElfExeOutput.AllocGOTSlot(objsym:TObjSymbol):boolean;
       var
         exesym: TExeSymbol;
       begin
+        result:=false;
         exesym:=objsym.exesymbol;
 
         { Although local symbols should not be accessed through GOT,
@@ -2019,6 +2020,7 @@ implementation
           only the latter applies. }
         if IsSharedLibrary or (exesym.dynindex>0) then
           dynrelocsec.alloc(dynrelocsec.shentsize);
+        result:=true;
       end;
 
 

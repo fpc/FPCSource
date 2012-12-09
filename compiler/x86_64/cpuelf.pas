@@ -241,9 +241,9 @@ implementation
         R_X86_64_GOTPCREL,
         R_X86_64_GOTPCREL64:
           begin
-            AllocGOTSlot(objreloc.symbol);
-            if IsSharedLibrary and (objreloc.symbol.exesymbol.dynindex=0) then
-              Inc(relative_reloc_count);
+            if AllocGOTSlot(objreloc.symbol) then
+              if IsSharedLibrary and (objreloc.symbol.exesymbol.dynindex=0) then
+                Inc(relative_reloc_count);
           end;
 
         //R_X86_64_TLSGD,
