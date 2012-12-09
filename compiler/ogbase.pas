@@ -382,11 +382,19 @@ interface
         function  VTableRef(VTableIdx:Longint):TObjRelocation;
       end;
 
-      TSymbolState = (symstate_undefined,symstate_defined,symstate_common,symstate_defweak,symstate_dynamic);
+      TSymbolState = (
+        symstate_undefined,
+        symstate_undefweak,  // undefined but has only weak refs - don't complain
+        symstate_defined,
+        symstate_defweak,
+        symstate_common,
+        symstate_dynamic     // a matching symbol has been seen in .so
+      );
 
       TExeSymbol = class(TFPHashObject)
         ObjSymbol  : TObjSymbol;
         State      : TSymbolState;
+        used       : boolean;
         { Used for vmt references optimization }
         VTable     : TExeVTable;
         { fields for ELF linking }
@@ -497,6 +505,7 @@ interface
         SectionMemAlign : aword;
         ComdatGroups : TFPHashList;
         FixedSectionAlign : boolean;
+        AllowUndefinedSymbols : boolean;
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
@@ -2230,7 +2239,7 @@ implementation
         for i:=0 to UnresolvedExeSymbols.count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if exesym.State<>symstate_undefined then
+            if not (exesym.State in [symstate_undefined,symstate_undefweak]) then
               UnresolvedExeSymbols[i]:=nil;
           end;
         UnresolvedExeSymbols.Pack;
@@ -2333,13 +2342,19 @@ implementation
                     { Register unresolved symbols only the first time they
                       are registered }
                     if exesym.ObjSymbol=objsym then
-                      UnresolvedExeSymbols.Add(exesym);
+                      UnresolvedExeSymbols.Add(exesym)
+                    { Normal reference removes any existing "weakness" }
+                    else if exesym.state=symstate_undefweak then
+                      begin
+                        exesym.state:=symstate_undefined;
+                        exesym.ObjSymbol:=objsym;
+                      end;
                   end;
                 AB_COMMON :
                   begin
                     { A COMMON definition overrides weak one.
                       Also select the symbol with largest size. }
-                    if (exesym.State in [symstate_undefined,symstate_defweak]) or
+                    if (exesym.State in [symstate_undefined,symstate_undefweak,symstate_defweak]) or
                        ((exesym.State=symstate_common) and (objsym.size>exesym.ObjSymbol.size)) then
                       begin
                         exesym.ObjSymbol:=objsym;
@@ -2357,11 +2372,14 @@ implementation
                       begin
                         ExternalObjSymbols.add(objsym);
                         if exesym.ObjSymbol=objsym then
-                          UnresolvedExeSymbols.Add(exesym);
+                          begin
+                            UnresolvedExeSymbols.Add(exesym);
+                            exesym.state:=symstate_undefweak;
+                          end;
                       end
                     else                                   { a weak definition }
                       begin
-                        if exesym.State=symstate_undefined then
+                        if exesym.State in [symstate_undefined,symstate_undefweak] then
                           begin
                             exesym.ObjSymbol:=objsym;
                             exesym.state:=symstate_defweak;
@@ -2390,7 +2408,7 @@ implementation
                     begin
                       exesym:=TExeSymbol(UnresolvedExeSymbols[j]);
                       { Check first if the symbol is still undefined }
-                      if (exesym.State=symstate_undefined) and (exesym.ObjSymbol.bind<>AB_WEAK_EXTERNAL) then
+                      if (exesym.State=symstate_undefined) then
                         begin
                           if lib.ArReader.OpenFile(exesym.name) then
                             begin
@@ -2678,13 +2696,13 @@ implementation
         exesym : TExeSymbol;
       begin
         { Print list of Unresolved External symbols }
-        for i:=0 to UnresolvedExeSymbols.count-1 do
-          begin
-            exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if (exesym.State<>symstate_defined) and
-               (exesym.objsymbol.bind<>AB_WEAK_EXTERNAL) then
-              Comment(V_Error,'Undefined symbol: '+exesym.name);
-          end;
+        if not AllowUndefinedSymbols then
+          for i:=0 to UnresolvedExeSymbols.count-1 do
+            begin
+              exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
+              if (exesym.State=symstate_undefined) then
+                Comment(V_Error,'Undefined symbol: '+exesym.name);
+            end;
 
         {
           Fixing up symbols is done in the following steps:
@@ -2997,16 +3015,13 @@ implementation
               objsym:=objreloc.symbol;
               if objsym.bind<>AB_LOCAL then
                 begin
-                  if not(assigned(objsym.exesymbol) and
-                         (objsym.exesymbol.State in [symstate_defined,symstate_dynamic,symstate_defweak])) then
+                  if not assigned(objsym.exesymbol) then
                     internalerror(200603063);
+                  objsym.exesymbol.used:=true;
                   objsym:=objsym.exesymbol.objsymbol;
                 end;
               if not assigned(objsym.objsection) then
-                begin
-                  objsym.exesymbol.state:=symstate_dynamic;
-                  exit;
-                end
+                exit
               else
                 refobjsec:=objsym.objsection;
             end

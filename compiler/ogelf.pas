@@ -2089,7 +2089,7 @@ implementation
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if exesym.State<>symstate_undefined then
+            if not (exesym.State in [symstate_undefined,symstate_undefweak]) then
               continue;
             objsym:=TObjSymbol(objdata.ObjSymbolList.Find(exesym.name));
             if assigned(objsym) then
@@ -2167,14 +2167,14 @@ implementation
         objsym:TObjSymbol;
         objsec: TObjSection;
       begin
-        { Unused section removal changes state of referenced exesymbols
-          to symstate_dynamic. Remaining ones can be removed. }
+        { Unused section removal sets Used property of referenced exesymbols.
+          Remaining ones can be removed. }
         for i:=0 to dynsymlist.count-1 do
           begin
             exesym:=TExeSymbol(dynsymlist[i]);
             if assigned(exesym.ObjSymbol.ObjSection) then  // an exported symbol
               continue;
-            if exesym.state<>symstate_dynamic then
+            if not exesym.used then
               begin
                 dynsymlist[i]:=nil;
                 exesym.dynindex:=0;
@@ -2194,7 +2194,7 @@ implementation
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
             exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if exesym.state=symstate_dynamic then
+            if exesym.used then
               begin
                 if exesym.dynindex<>0 then
                   InternalError(2012062301);
@@ -2809,6 +2809,7 @@ implementation
         exportlist: TCmdStrList;
         sym: TExeSymbol;
       begin
+        AllowUndefinedSymbols:=IsSharedLibrary;
         { add exported symbols to dynamic list }
         exportlist:=texportlibunix(exportlib).exportedsymnames;
         if not exportlist.empty then
@@ -2823,16 +2824,6 @@ implementation
             else
               InternalError(2012071801);
           until exportlist.empty;
-
-        { Mark unresolved weak symbols as defined, they will become dynamic further on.
-          If compiling a .so, make all symbols dynamic, since shared library may reference
-          symbols from executable which does not participate in linking. }
-        for i:=0 to UnresolvedExeSymbols.Count-1 do
-          begin
-            sym:=TExeSymbol(UnresolvedExeSymbols[i]);
-            if (sym.objsymbol.bind=AB_WEAK_EXTERNAL) or IsSharedLibrary then
-              sym.state:=symstate_defined;
-          end;
       end;
 
 
