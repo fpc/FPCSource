@@ -539,8 +539,6 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-  { Threading support }
-  fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,

@@ -100,7 +100,7 @@ begin
   end;
 end;
 
-procedure InitThreadVars(RelocProc : Pointer);
+procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 
 begin
    { initialize threadvars }

@@ -105,7 +105,7 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
-procedure InitThreadVars(RelocProc : Pointer);
+procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 procedure InitThread(stklen:SizeUInt);
 procedure DoneThread;
 
