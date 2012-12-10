@@ -443,6 +443,60 @@ begin
   FNormalKeys[$FF and XK_z] := Integer(PTCKEY_Z);
 end;
 
+procedure TX11Display.HandleKeyEvent(const e: TXKeyEvent);
+var
+  sym: TKeySym;
+  sym_modded: TKeySym; { modifiers like shift are taken into account here }
+  press: Boolean;
+  alt, shift, ctrl: Boolean;
+  uni: Integer;
+  key: TPTCKeyEvent;
+  buf: array [1..16] of Char;
+begin
+  sym := XLookupKeySym(@e, 0);
+  XLookupString(@e, @buf, SizeOf(buf), @sym_modded, nil);
+//  Writeln('sym_modded = ', sym_modded);
+  uni := X11ConvertKeySymToUnicode(sym_modded);
+  alt := (e.state and Mod1Mask) <> 0;
+  shift := (e.state and ShiftMask) <> 0;
+  ctrl := (e.state and ControlMask) <> 0;
+  if e._type = KeyPress then
+    press := True
+  else
+    press := False;
+
+  // XK_ISO_Left_Tab is Shift-Tab
+  if sym_modded = XK_ISO_Left_Tab then
+  begin
+    sym_modded := XK_Tab;
+    uni := 9;
+    shift := True;
+  end;
+
+  // Hack, used for handling the code of Shift-Key combinations
+  case sym_modded shr 8 of
+    0:
+      begin
+        if FNormalKeys[sym_modded and $FF] = 0 then
+          sym_modded := sym;
+      end;
+    $FF:
+      begin
+        if FFunctionKeys[sym_modded and $FF] = 0 then
+          sym_modded := sym;
+      end;
+  end;
+
+  key := nil;
+  case sym_modded shr 8 of
+    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
+    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
+    else
+      key := TPTCKeyEvent.Create;
+  end;
+  FEventQueue.AddEvent(key);
+end;
+
 procedure TX11Display.OpenGL_SwapBuffers;
 begin
   raise TPTCError.Create('Not in OpenGL mode');

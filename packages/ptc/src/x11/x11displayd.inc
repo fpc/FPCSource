@@ -89,6 +89,7 @@ type
     function GetPitch: Integer; virtual; abstract;
     function GetFormat: IPTCFormat;
     function GetArea: IPTCArea;
+    procedure HandleKeyEvent(const e: TXKeyEvent);
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); virtual;
     destructor Destroy; override;

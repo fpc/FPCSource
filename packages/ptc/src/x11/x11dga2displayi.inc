@@ -417,42 +417,9 @@ var
   var
     XDGAKeyEvent: TXDGAKeyEvent absolute e;
     XKeyEvent: TXKeyEvent;
-    sym: TKeySym;
-    sym_modded: TKeySym; { modifiers like shift are taken into account here }
-    press: Boolean;
-    alt, shift, ctrl: Boolean;
-    uni: Integer;
-    key: TPTCKeyEvent;
-    buf: array [1..16] of Char;
   begin
     XDGAKeyEventToXKeyEvent(@XDGAKeyEvent, @XKeyEvent);
-    sym := XLookupKeySym(@XKeyEvent, 0);
-    XLookupString(@XKeyEvent, @buf, SizeOf(buf), @sym_modded, nil);
-    uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (XDGAKeyEvent.state and Mod1Mask) <> 0;
-    shift := (XDGAKeyEvent.state and ShiftMask) <> 0;
-    ctrl := (XDGAKeyEvent.state and ControlMask) <> 0;
-    if XDGAKeyEvent._type = (KeyPress + FXDGAEventBase) then
-      press := True
-    else
-      press := False;
-
-    // XK_ISO_Left_Tab is Shift-Tab
-    if sym_modded = XK_ISO_Left_Tab then
-    begin
-      sym_modded := XK_Tab;
-      uni := 9;
-      shift := True;
-    end;
-
-    key := nil;
-    case sym_modded shr 8 of
-      0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      else
-        key := TPTCKeyEvent.Create;
-    end;
-    FEventQueue.AddEvent(key);
+    HandleKeyEvent(XKeyEvent);
   end;
 
 begin

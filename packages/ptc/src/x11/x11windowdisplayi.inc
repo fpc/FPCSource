@@ -430,46 +430,6 @@ var
     Result := False;
   end;
 
-  procedure HandleKeyEvent;
-  var
-    sym: TKeySym;
-    sym_modded: TKeySym; { modifiers like shift are taken into account here }
-    press: Boolean;
-    alt, shift, ctrl: Boolean;
-    uni: Integer;
-    key: TPTCKeyEvent;
-    buf: array [1..16] of Char;
-  begin
-    sym := XLookupKeySym(@e.xkey, 0);
-    XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, nil);
-//    Writeln('sym_modded = ', sym_modded);
-    uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (e.xkey.state and Mod1Mask) <> 0;
-    shift := (e.xkey.state and ShiftMask) <> 0;
-    ctrl := (e.xkey.state and ControlMask) <> 0;
-    if e._type = KeyPress then
-      press := True
-    else
-      press := False;
-
-    // XK_ISO_Left_Tab is Shift-Tab
-    if sym_modded = XK_ISO_Left_Tab then
-    begin
-      sym_modded := XK_Tab;
-      uni := 9;
-      shift := True;
-    end;
-
-    key := nil;
-    case sym_modded shr 8 of
-      0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      else
-        key := TPTCKeyEvent.Create;
-    end;
-    FEventQueue.AddEvent(key);
-  end;
-
   procedure HandleMouseEvent;
   var
     x, y: cint;
@@ -591,7 +551,7 @@ begin
         if e.xexpose.count = 0 then
           Draw;
       end;
-      KeyPress, KeyRelease: HandleKeyEvent;
+      KeyPress, KeyRelease: HandleKeyEvent(e.xkey);
       ButtonPress, ButtonRelease, MotionNotify: HandleMouseEvent;
     end;
   end;
