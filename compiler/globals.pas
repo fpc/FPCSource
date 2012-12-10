@@ -260,6 +260,7 @@ interface
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
+       SetPEOptFlagsSetExplicity,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -269,6 +270,7 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peoptflags,
        peflags : longint;
        minstacksize,
        maxstacksize,
@@ -1605,6 +1607,7 @@ implementation
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
+        SetPEOptFlagsSetExplicity:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;

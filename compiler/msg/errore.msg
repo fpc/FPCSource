@@ -386,6 +386,8 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 % The compiler is compiled with support for several codepages built-in.
 % The codepage of the operation system is not in that list. You will need to recompile
 % the compiler with support for this codepage.
+scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the target OS
+% The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
 % \end{description}
 #
 # Parser

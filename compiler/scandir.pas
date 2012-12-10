@@ -1089,8 +1089,17 @@ unit scandir;
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
-        peflags:=current_scanner.readval;
+        peflags:=peflags or current_scanner.readval;
         SetPEFlagsSetExplicity:=true;
+      end;
+
+    procedure dir_setpeoptflags;
+      begin
+        if not (target_info.system in (systems_all_windows)) then
+          Message(scan_w_setpeoptflags_not_support);
+        current_scanner.skipspace;
+        peoptflags:=peoptflags or current_scanner.readval;
+        SetPEOptFlagsSetExplicity:=true;
       end;
 
     procedure dir_smartlink;
@@ -1573,6 +1582,7 @@ unit scandir;
         AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
         AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
+        AddDirective('SETPEOPTFLAGS', directive_all, @dir_setpeoptflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);

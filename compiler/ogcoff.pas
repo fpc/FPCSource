@@ -2309,7 +2309,12 @@ const pemagic : array[0..3] of byte = (
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
-            peoptheader.DllCharacteristics:=0;
+
+            if SetPEOptFlagsSetExplicity then
+              peoptheader.DllCharacteristics:=peoptflags
+            else
+              peoptheader.DllCharacteristics:=0;
+
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
             if MinStackSizeSetExplicity then
