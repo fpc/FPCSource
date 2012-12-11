@@ -2007,6 +2007,9 @@ begin
 end;
 
 procedure TTestBufDatasetDBBasics.TestIndexEditRecord;
+// Tests index sorting for string field type by
+// editing an existing record in the middle
+// with a value at the end of the alphabet
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
@@ -2019,22 +2022,25 @@ begin
     AFieldType:=ftString;
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     IndexName:='testindex';
-    open;
+    open; //Record 0
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
-    next;
-    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    next; //Now on record 1
+    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString,'Record 0 must be smaller than record 1 with asc sorted index');
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
-    next;
-    CheckTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
-    prior;
-    
+    next; //Now on record 2
+    CheckTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0,'Record 1 must be smaller than record 2 with asc sorted index');
+
+    prior; //Now on record 1
     edit;
-    FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
+    FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ'; //should be sorted last
     post;
-    prior;
+
+    prior; // Now on record 0
+    // Check ZZZ is sorted on/after record 0
     CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0, 'Prior>');
     next;
-    next;
+    next; // Now on record 2
+    // Check ZZZ is sorted on/before record 2
     CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0, 'Next<');
     close;
     end;
