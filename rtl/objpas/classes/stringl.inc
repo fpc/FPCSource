@@ -1260,14 +1260,17 @@ end;
 
 
 procedure TStringList.SetCaseSensitive(b : boolean);
-  begin
-        if b<>FCaseSensitive then
-          begin
-                FCaseSensitive:=b;
-            if FSorted then
-              sort;
-          end;
-  end;
+begin
+  if b=FCaseSensitive then
+    Exit;
+  FCaseSensitive:=b;
+  if FSorted then
+    begin
+    FForceSort:=True;
+    sort;
+    FForceSort:=False;
+    end;
+end;
 
 
 Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
@@ -1338,7 +1341,7 @@ end;
 Procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
-  If Not Sorted and (FCount>1) then
+  If (FForceSort or (Not Sorted)) and (FCount>1) then
     begin
     Changing;
     QuickSort(0,FCount-1, CompareFn);

@@ -725,6 +725,7 @@ type
     FDuplicates: TDuplicates;
     FCaseSensitive : Boolean;
     FSorted: Boolean;
+    FForceSort : Boolean;
     FOwnsObjects : Boolean;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
