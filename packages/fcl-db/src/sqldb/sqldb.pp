@@ -1140,8 +1140,7 @@ begin
         Log(detPrepare,FSQLBuf);
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
       end;
-    if (FCursor.FStatementType in [stSelect,stExecProcedure]) then
-      FCursor.FInitFieldDef := True;
+    FCursor.FInitFieldDef := FCursor.FSelectable;
     end;
 end;
 
@@ -1165,7 +1164,7 @@ end;
 
 function TCustomSQLQuery.Fetch : boolean;
 begin
-  if not (Fcursor.FStatementType in [stSelect,stExecProcedure]) then
+  if not FCursor.FSelectable then
     Exit;
 
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
@@ -1204,7 +1203,7 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if not IsReadFromPacket then
     begin
-    if StatementType in [stSelect,stExecProcedure] then FreeFldBuffers;
+    if assigned(FCursor) and FCursor.FSelectable then FreeFldBuffers;
     // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
     if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
     end;
@@ -1430,58 +1429,63 @@ begin
     end
   else
     Prepare;
-  if FCursor.FStatementType in [stSelect,stExecProcedure] then
-    begin
-    if not ReadFromFile then
-      begin
-      // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
-      // which do not allow processing multiple recordsets at a time. (Microsoft
-      // calls this MARS, see bug 13241)
-      if DefaultFields and FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
-        UpdateServerIndexDefs;
-      Execute;
-      // InternalInitFieldDef is only called after a prepare. i.e. not twice if
-      // a dataset is opened - closed - opened.
-      if FCursor.FInitFieldDef then InternalInitFieldDefs;
-      if DefaultFields then
-        begin
-        CreateFields;
 
-        if FUpdateable and (not IsUniDirectional) then
+  if not FCursor.FSelectable then
+    DatabaseError(SErrNoSelectStatement,Self);
+
+  if not ReadFromFile then
+    begin
+    // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
+    // which do not allow processing multiple recordsets at a time. (Microsoft
+    // calls this MARS, see bug 13241)
+    if DefaultFields and FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
+      UpdateServerIndexDefs;
+
+    Execute;
+    if not FCursor.FSelectable then
+      DatabaseError(SErrNoSelectStatement,Self);
+
+    // InternalInitFieldDef is only called after a prepare. i.e. not twice if
+    // a dataset is opened - closed - opened.
+    if FCursor.FInitFieldDef then InternalInitFieldDefs;
+    if DefaultFields then
+      begin
+      CreateFields;
+
+      if FUpdateable and (not IsUniDirectional) then
+        begin
+        if FusePrimaryKeyAsKey then
           begin
-          if FusePrimaryKeyAsKey then
+          for tel := 0 to ServerIndexDefs.count-1 do
             begin
-            for tel := 0 to ServerIndexDefs.count-1 do
+            if ixPrimary in ServerIndexDefs[tel].options then
               begin
-              if ixPrimary in ServerIndexDefs[tel].options then
-                begin
-                  IndexFields := TStringList.Create;
-                  ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
-                  for fieldc := 0 to IndexFields.Count-1 do
-                    begin
-                    F := Findfield(IndexFields[fieldc]);
-                    if F <> nil then
-                      F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                    end;
-                  IndexFields.Free;
-                end;
+                IndexFields := TStringList.Create;
+                ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
+                for fieldc := 0 to IndexFields.Count-1 do
+                  begin
+                  F := Findfield(IndexFields[fieldc]);
+                  if F <> nil then
+                    F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                  end;
+                IndexFields.Free;
               end;
             end;
           end;
-        end
-      else
-        BindFields(True);
+        end;
       end
     else
       BindFields(True);
-    if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
-      begin
-      if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
-         (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
-      end
     end
   else
-    DatabaseError(SErrNoSelectStatement,Self);
+    BindFields(True);
+
+  if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
+    begin
+    if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
+       (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
+    end;
+
   inherited InternalOpen;
 end;
 
