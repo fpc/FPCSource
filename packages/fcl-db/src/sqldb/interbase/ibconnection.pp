@@ -742,8 +742,9 @@ begin
       isc_info_sql_stmt_delete: FStatementType := stDelete;
       isc_info_sql_stmt_exec_procedure: FStatementType := stExecProcedure;
     end;
+    FSelectable := FStatementType in [stSelect,stExecProcedure];
 
-    if FStatementType in [stSelect,stExecProcedure] then
+    if FSelectable then
       begin
       if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);

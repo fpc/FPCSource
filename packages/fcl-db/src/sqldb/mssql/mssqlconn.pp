@@ -178,7 +178,6 @@ type
     FQuery: string;                                   // :ParamNames converted to $1,$2,..,$n
     FParamReplaceString: string;
   protected
-    FCanOpen: boolean;                                // can return rows?
     FRowsAffected: integer;
     function ReplaceParams(AParams: TParams): string; // replaces parameters placeholders $1,$2,..$n in FQuery with supplied values in AParams
     procedure Prepare(Buf: string; AParams: TParams);
@@ -608,17 +607,17 @@ begin
 
   res := SUCCEED;
   repeat
-    c.FCanOpen := dbcmdrow(FDBProc)=SUCCEED;
+    c.FSelectable := dbcmdrow(FDBProc)=SUCCEED;
     c.FRowsAffected := dbcount(FDBProc);
     if assigned(dbiscount) and not dbiscount(FDBProc) then
       c.FRowsAffected := -1;
 
-    if not c.FCanOpen then  //Sybase stored proc.
+    if not c.FSelectable then  //Sybase stored proc.
     begin
       repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
       res := CheckError( dbresults(FDBProc) );
     end;
-  until c.FCanOpen or (res = NO_MORE_RESULTS) or (res = FAIL);
+  until c.FSelectable or (res = NO_MORE_RESULTS) or (res = FAIL);
 
   if res = NO_MORE_RESULTS then
     Fstatus := NO_MORE_ROWS

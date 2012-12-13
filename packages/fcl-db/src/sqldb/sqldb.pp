@@ -53,6 +53,7 @@ type
   TSQLCursor = Class(TSQLHandle)
   public
     FPrepared      : Boolean;
+    FSelectable    : Boolean;
     FInitFieldDef  : Boolean;
     FStatementType : TStatementType;
     FSchemaType    : TSchemaType;
@@ -1124,6 +1125,7 @@ begin
     // unpredictable results.
     if not assigned(fcursor) then
       FCursor := Db.AllocateCursorHandle;
+    FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
     FCursor.FStatementType:=StmType;
     FCursor.FSchemaType := FSchemaType;
     if ServerFiltered then
@@ -1422,6 +1424,7 @@ begin
     begin
     if not assigned(fcursor) then
       FCursor := TSQLConnection(Database).AllocateCursorHandle;
+    FCursor.FSelectable:=True;
     FCursor.FStatementType:=stSelect;
     FUpdateable:=True;
     end

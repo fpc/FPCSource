@@ -711,6 +711,7 @@ begin
 //      atransaction.Rollback;
       raise E;
       end;
+    FSelectable := assigned(res) and (PQresultStatus(res)=PGRES_TUPLES_OK);
     end;
 end;
 

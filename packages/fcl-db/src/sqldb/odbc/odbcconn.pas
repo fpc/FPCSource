@@ -747,6 +747,7 @@ const
 var
   ODBCCursor:TODBCCursor;
   Res:SQLRETURN;
+  ColumnCount:SQLSMALLINT;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -764,6 +765,11 @@ begin
     end; {case}
 
     if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+
+    if ODBCSucces(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
+      ODBCCursor.FSelectable:=ColumnCount>0
+    else
+      ODBCCursor.FSelectable:=False;
 
   finally
     // free parameter buffers
