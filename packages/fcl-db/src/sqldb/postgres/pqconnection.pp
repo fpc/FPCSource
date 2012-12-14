@@ -49,7 +49,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    procedure CheckResultError(res: PPGresult; conn:PPGconn; ErrMsg: string);
+    procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function GetPQDatabaseError(res : PPGresult;ErrMsg: string):EPQDatabaseError;
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
@@ -348,7 +348,7 @@ begin
 
 end;
 
-procedure TPQConnection.CheckResultError(res: PPGresult; conn: PPGconn;
+procedure TPQConnection.CheckResultError(var res: PPGresult; conn: PPGconn;
   ErrMsg: string);
 var
   E: EPQDatabaseError;
@@ -358,6 +358,7 @@ begin
     begin
     E:=GetPQDatabaseError(res,ErrMsg);
     pqclear(res);
+    res:=nil;
     if assigned(conn) then
       PQFinish(conn);
     raise E;
@@ -481,7 +482,6 @@ begin
 end;
 
 Procedure TPQConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
-
 begin
   FreeAndNil(cursor);
 end;
@@ -591,26 +591,22 @@ begin
 end;
 
 procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
-var
-  E: EPQDatabaseError;
-
 begin
-  with (cursor as TPQCursor) do if FPrepared then
+  with (cursor as TPQCursor) do
     begin
-    if not tr.ErrorOccured then
+    PQclear(res);
+    res:=nil;
+    if FPrepared then
       begin
-      PQclear(res);
-      res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+      if not tr.ErrorOccured then
         begin
-          E:=GetPQDatabaseError(res,SErrPrepareFailed);
-          pqclear(res);
-          raise E;
-        end
-      else
-        pqclear(res);
+        res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
+        CheckResultError(res,nil,SErrPrepareFailed);
+        PQclear(res);
+        res:=nil;
+        end;
+      FPrepared := False;
       end;
-    FPrepared := False;
     end;
 end;
 
@@ -628,9 +624,9 @@ var ar  : array of pchar;
 begin
   with cursor as TPQCursor do
     begin
+    PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
-      pqclear(res);
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         l:=Aparams.count;
@@ -694,23 +690,22 @@ begin
       else
         s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
-      if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+      if (PQresultStatus(res) in [PGRES_COMMAND_OK]) then
         begin
-          pqclear(res); 
-          res:=nil;
+        PQclear(res);
+        res:=nil;
         end;
       end;
+
     if assigned(res) and not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
-      E:=GetPQDatabaseError(res,SErrExecuteFailed);
-      pqclear(res);
-
       tr.ErrorOccured := True;
 // Don't perform the rollback, only make it possible to do a rollback.
 // The other databases also don't do this.
 //      atransaction.Rollback;
-      raise E;
+      CheckResultError(res,nil,SErrExecuteFailed);
       end;
+
     FSelectable := assigned(res) and (PQresultStatus(res)=PGRES_TUPLES_OK);
     end;
 end;

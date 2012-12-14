@@ -1316,7 +1316,7 @@ begin
           'EXECUTE BLOCK RETURNS (U VARCHAR(255)) AS BEGIN SELECT rdb$get_context(''SYSTEM'',''CURRENT_USER'') FROM rdb$database INTO U; SUSPEND; END' (*FB 2.0*)
         );
       ssPostgreSQL:
-        statements := TTestStatements.Create(CTE_SELECT);
+        statements := TTestStatements.Create(CTE_SELECT, 'EXPLAIN '+CTE_SELECT);
       ssMSSQL:
         statements := TTestStatements.Create(CTE_SELECT  (*MS SQL 2005*));
       ssMySQL:
