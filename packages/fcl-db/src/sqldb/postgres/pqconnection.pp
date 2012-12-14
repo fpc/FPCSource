@@ -117,6 +117,7 @@ ResourceString
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
   SErrPrepareFailed = 'Preparation of query failed.';
+  SErrUnPrepareFailed = 'Unpreparation of query failed.';
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
@@ -601,7 +602,7 @@ begin
       if not tr.ErrorOccured then
         begin
         res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
-        CheckResultError(res,nil,SErrPrepareFailed);
+        CheckResultError(res,nil,SErrUnPrepareFailed);
         PQclear(res);
         res:=nil;
         end;
