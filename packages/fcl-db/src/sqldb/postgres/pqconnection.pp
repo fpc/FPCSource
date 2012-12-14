@@ -357,7 +357,7 @@ begin
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     E:=GetPQDatabaseError(res,ErrMsg);
-    pqclear(res);
+    PQclear(res);
     res:=nil;
     if assigned(conn) then
       PQFinish(conn);
@@ -497,7 +497,7 @@ procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
-      'text',     // ftString
+      'text',      // ftString
       'smallint',  // ftSmallint
       'int',       // ftInteger
       'int',       // ftWord
@@ -556,10 +556,10 @@ begin
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
       s := 'prepare '+StmtName+' ';
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         s := s + '(';
-        for i := 0 to AParams.count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+        for i := 0 to AParams.Count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
           s := s + TypeStrings[AParams[i].DataType] + ','
         else
           begin
@@ -572,7 +572,7 @@ begin
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      res := pqexec(tr.PGConn,pchar(s));
+      res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
       // override the statement type derrived by parsing the query.
@@ -586,7 +586,7 @@ begin
       FPrepared := True;
       end
     else
-      statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
     end;
 end;
 
@@ -600,7 +600,7 @@ begin
       begin
       if not tr.ErrorOccured then
         begin
-        res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
+        res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
         CheckResultError(res,nil,SErrPrepareFailed);
         PQclear(res);
         res:=nil;
@@ -619,7 +619,6 @@ var ar  : array of pchar;
     ParamNames,
     ParamValues : array of string;
     cash: int64;
-    E: EPQDatabaseError;
 
 begin
   with cursor as TPQCursor do
@@ -627,13 +626,13 @@ begin
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
-        l:=Aparams.count;
+        l:=AParams.Count;
         setlength(ar,l);
         setlength(lengths,l);
         setlength(formats,l);
-        for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
+        for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
             ftDateTime:
@@ -665,8 +664,8 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar(StmtName),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
-        for i := 0 to AParams.count -1 do
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
+        for i := 0 to AParams.Count -1 do
           FreeMem(ar[i]);
         end
       else
@@ -676,20 +675,20 @@ begin
       begin
       tr := TPQTrans(aTransaction.Handle);
 
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         setlength(ParamNames,AParams.Count);
         setlength(ParamValues,AParams.Count);
-        for i := 0 to AParams.count -1 do
+        for i := 0 to AParams.Count -1 do
           begin
-          ParamNames[AParams.count-i-1] := '$'+inttostr(AParams[i].index+1);
-          ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+          ParamNames[AParams.Count-i-1] := '$'+inttostr(AParams[i].index+1);
+          ParamValues[AParams.Count-i-1] := GetAsSQLText(AParams[i]);
           end;
-        s := stringsreplace(statement,ParamNames,ParamValues,[rfReplaceAll]);
+        s := stringsreplace(Statement,ParamNames,ParamValues,[rfReplaceAll]);
         end
       else
         s := Statement;
-      res := pqexec(tr.PGConn,pchar(s));
+      res := PQexec(tr.PGConn,pchar(s));
       if (PQresultStatus(res) in [PGRES_COMMAND_OK]) then
         begin
         PQclear(res);
