@@ -414,7 +414,7 @@ type
     procedure SetData(const index: string; const AValue: Pointer); virtual;
     function GetData(const index: string):Pointer; virtual;
   Public
-    function ForEachCall(aMethod: TDataIteratorMethod): THTDataNode; virtual;
+    function ForEachCall(aMethod: TDataIteratorMethod): Pointer; virtual;
     procedure Add(const aKey: string; AItem: pointer); virtual;
     property Items[const index: string]: Pointer read GetData write SetData; default;
   end;
@@ -435,7 +435,7 @@ type
     procedure SetData(const Index, AValue: string); virtual;
     function GetData(const index: string): String; virtual;
   Public
-    function ForEachCall(aMethod: TStringIteratorMethod): THTStringNode; virtual;
+    function ForEachCall(aMethod: TStringIteratorMethod): String; virtual;
     procedure Add(const aKey,aItem: string); virtual;
     property Items[const index: string]: String read GetData write SetData; default;
   end;
@@ -467,7 +467,7 @@ type
   Public
     constructor Create(AOwnsObjects : Boolean = True);
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction; AOwnsObjects : Boolean = True);
-    function ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode; virtual;
+    function ForEachCall(aMethod: TObjectIteratorMethod): TObject; virtual;
     procedure Add(const aKey: string; AItem : TObject); virtual;
     property Items[const index: string]: TObject read GetData write SetData; default;
     Property OwnsObjects : Boolean Read FOwnsObjects Write FOwnsObjects;
@@ -2234,7 +2234,7 @@ begin
   Result:=THTDataNode.CreateWith(aKey);
 end;
 
-function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): THTDataNode;
+function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): Pointer;
 var
   i, j: Longword;
   continue: boolean;
@@ -2252,7 +2252,7 @@ begin
           aMethod(THTDataNode(Chain(i)[j]).Data, THTDataNode(Chain(i)[j]).Key, continue);
           if not continue then
           begin
-            Result := THTDataNode(Chain(i)[j]);
+            Result := THTDataNode(Chain(i)[j]).Data;
             Exit;
           end;
         end;
@@ -2311,12 +2311,12 @@ begin
 end;
 
 
-function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): THTStringNode;
+function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): String;
 var
   i, j: Longword;
   continue: boolean;
 begin
-  Result := nil;
+  Result := '';
   continue := true;
   if FHashTableSize>0 then
    for i := 0 to FHashTableSize-1 do
@@ -2329,7 +2329,7 @@ begin
           aMethod(THTStringNode(Chain(i)[j]).Data, THTStringNode(Chain(i)[j]).Key, continue);
           if not continue then
           begin
-            Result := THTStringNode(Chain(i)[j]);
+            Result := THTStringNode(Chain(i)[j]).Data;
             Exit;
           end;
         end;
@@ -2384,7 +2384,7 @@ begin
 end;
 
 
-function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode;
+function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): TObject;
 var
   i, j: Longword;
   continue: boolean;
@@ -2402,7 +2402,7 @@ begin
           aMethod(THTObjectNode(Chain(i)[j]).Data, THTObjectNode(Chain(i)[j]).Key, continue);
           if not continue then
           begin
-            Result := THTObjectNode(Chain(i)[j]);
+            Result := THTObjectNode(Chain(i)[j]).Data;
             Exit;
           end;
         end;
