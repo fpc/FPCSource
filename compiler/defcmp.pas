@@ -206,6 +206,7 @@ implementation
          hpd : tprocdef;
          i : longint;
          diff : boolean;
+         symfrom,symto : tsym;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -277,7 +278,11 @@ implementation
                begin
                  if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
                    internalerror(2012091302);
-                 if tstoreddef(def_from).genericparas[i]<>tstoreddef(def_to).genericparas[i] then
+                 symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
+                 symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
+                 if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                   internalerror(2012121401);
+                 if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
                    diff:=true;
                  if diff then
                    break;

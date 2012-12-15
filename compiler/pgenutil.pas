@@ -662,6 +662,8 @@ uses
             else
               include(def.defoptions,df_specialization);
             st.insert(generictype);
+            include(generictype.symoptions,sp_generic_para);
+            def.genericparas.add(generictype.name,generictype);
           end;
        end;
 
