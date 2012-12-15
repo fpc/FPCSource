@@ -2319,7 +2319,7 @@ cg_d_autoinlining=06055_DL_Auto inlining: $1
 #
 # Assembler reader
 #
-# 07124 is the last used one
+# 07125 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2617,6 +2617,10 @@ asmr_w_check_mem_operand_negative_offset=07123_W_Check "$1: offset of memory ope
 % probably an error in the assembler statement
 asmr_w_check_mem_operand_automap_multiple_size=07124_W_Check "$1: size of memory operand is empty, but es exists different definitions of the memory size =>> map to $2 (smallest option)"
 % The size of memory operand is empty and we have different definitions of possible memory sizes. Check it!
+asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference expression: "$1"
+% FPU, vector and sometimes integer registers cannot be used in memory reference
+% expressions, due to limitations of the cpu architecture or simple because
+% it is not meaningful.
 
 #
 # Assembler/binary writers

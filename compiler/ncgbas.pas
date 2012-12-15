@@ -206,18 +206,19 @@ interface
                         op.reg:=sym.localloc.register;
                       end;
                   end;
+                LOC_FPUREGISTER,
+                LOC_MMXREGISTER,
                 LOC_MMREGISTER :
                   begin
+                    op.typ:=top_reg;
+                    op.reg:=NR_NO;
                     if getoffset then
                       Message(asmr_e_invalid_reference_syntax);
-                    { Subscribed access }
+                    { Using an MM/FPU register in a reference is not possible }
                     if forceref or (sofs<>0) then
-                      internalerror(201001032)
+                      Message1(asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
                     else
-                      begin
-                        op.typ:=top_reg;
-                        op.reg:=sym.localloc.register;
-                      end;
+                      op.reg:=sym.localloc.register;
                   end;
                 LOC_INVALID :
                   begin
