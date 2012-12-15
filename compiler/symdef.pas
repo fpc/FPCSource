@@ -1439,7 +1439,15 @@ implementation
       var
         prefix : string[4];
       begin
-        if (rt=fullrtti) or (not needs_separate_initrtti) then
+        if rt=extrtti then
+          begin
+            prefix:='EXTR';
+          end
+        else if rt=attribute then
+          begin
+            prefix:='ATTR';
+          end
+        else if (rt=fullrtti) or (not needs_separate_initrtti) then
           begin
             prefix:='RTTI';
             include(defstates,ds_rtti_table_used);

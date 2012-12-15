@@ -28,6 +28,7 @@ interface
     uses
       cclasses,constexp,
       aasmbase,
+      ppu,
       symbase,symconst,symtype,symdef;
 
     type
@@ -45,16 +46,19 @@ interface
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
         procedure write_rtti_name(def:tdef);
         procedure write_rtti_data(def:tdef;rt:trttitype);
+        procedure write_ext_rtti_data(def:tdef);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
         procedure write_header(def: tdef; typekind: byte);
         procedure write_string(const s: string);
         procedure maybe_write_align;
+        procedure write_ext_rtti(def:tdef;rt:trttitype);
       public
         procedure write_rtti(def:tdef;rt:trttitype);
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
+        procedure after_write_unit_extrtti_info(st: TSymtable);
       end;
 
     var
@@ -77,6 +81,8 @@ implementation
     const
        rttidefstate : array[trttitype] of tdefstate =
          (ds_rtti_table_written,ds_init_table_written,
+         { Extended RTTI}
+         symconst.ds_none,symconst.ds_none,
          { Objective-C related, does not pass here }
          symconst.ds_none,symconst.ds_none,
          symconst.ds_none,symconst.ds_none);
@@ -96,6 +102,23 @@ implementation
       begin
         if (tf_requires_proper_alignment in target_info.flags) then
           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+      end;
+
+    procedure TRTTIWriter.write_ext_rtti(def: tdef; rt: trttitype);
+      var
+        extrttilab : tasmsymbol;
+      begin
+        extrttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(extrtti),AB_GLOBAL,AT_DATA);
+
+        new_section(current_asmdata.asmlists[al_ext_rtti],sec_rodata,extrttilab.name,const_align(sizeof(pint)));
+        current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(extrttilab,0));
+
+        // Write reference to 'normal' typedata
+        current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Createname(tstoreddef(def).rtti_mangledname(fullrtti),0));
+
+        write_ext_rtti_data(def);
+        current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol_end.Create(extrttilab));
+        inc(def.owner.ExtRttiCount);
       end;
 
     procedure TRTTIWriter.write_string(const s: string);
@@ -974,6 +997,38 @@ implementation
         end;
       end;
 
+    procedure TRTTIWriter.write_ext_rtti_data(def: tdef);
+
+    var
+      attributecount: byte;
+      attributeindex: byte;
+      attributeslab : tasmsymbol;
+
+    begin
+      attributeslab := nil;
+      if def.typ = objectdef then
+        begin
+          if assigned(tobjectdef(def).rtti_attributesdef) then
+            begin
+              attributecount:=tobjectdef(def).rtti_attributesdef.get_attribute_count;
+              attributeslab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(attribute),AB_GLOBAL,AT_DATA);
+              current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(attributeslab,0));
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(attributecount));
+
+              for attributeindex:=0 to attributecount-1 do
+                begin
+                  current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(tobjectdef(def).rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
+                end;
+            end
+          else
+            attributecount:=0;
+        end
+      else
+        attributecount:=0;
+
+      current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Create_sym(attributeslab));
+    end;
+
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
 
         type Penumsym = ^Tenumsym;
@@ -1252,8 +1307,14 @@ implementation
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
         new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
+        { write reference to extended rtti }
+        if rt=fullrtti then
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tstoreddef(def).rtti_mangledname(extrtti),0));
+
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
+        if rt=fullrtti then
+          write_ext_rtti(def, rt);
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rttilab));
         write_rtti_extrasyms(def,rt,rttilab);
       end;
@@ -1273,6 +1334,23 @@ implementation
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
       end;
+
+    procedure TRTTIWriter.after_write_unit_extrtti_info(st: TSymtable);
+      var
+        startrtti  : TAsmSymbol;
+        s          : string;
+    begin
+      if st.extrtticount>0 then
+        begin
+          startrtti := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+          s := current_module.realmodulename^;
+          current_asmdata.asmlists[al_ext_rtti].insert(Tai_string.Create(s));
+          current_asmdata.asmlists[al_ext_rtti].insert(Tai_const.Create_8bit(length(s)));
+          current_asmdata.asmlists[al_ext_rtti].insert(Tai_const.Create_aint(st.ExtRttiCount));
+          current_asmdata.asmlists[al_ext_rtti].insert(Tai_symbol.Create_global(startrtti,0));
+          current_module.flags:=current_module.flags+uf_extrtti;
+        end;
+    end;
 
 end.
 

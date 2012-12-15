@@ -247,6 +247,19 @@ unit typinfo;
       PPropList = ^TPropList;
       TPropList = array[0..65535] of PPropInfo;
 
+      TClassAttributeData = record
+        AttributeCount: byte;
+        AttributesList: TAttributeProcList;
+      end;
+      PClassAttributeData = ^TClassAttributeData;
+
+      TExtRTTIData = record
+        TypeData: PTypeInfo;
+        AttributeData: PClassAttributeData;
+      end;
+      PExtRTTIData = ^TExtRTTIData;
+
+
    const
       tkAny = [Low(TTypeKind)..High(TTypeKind)];
       tkMethods = [tkMethod];
@@ -361,11 +374,15 @@ function GetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const Value: Pointer);
 procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
+// Extended RTTI
+function GetExtRTTIData(TypeInfo : PTypeInfo) : PExtRTTIData;
+
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
 
-function GetClassAttributeProclist(TypeData: PTypeData): PAttributeProcList;
-function GetClassAttribute(TypeData: PTypeData; AttributeNr: byte): TObject;
+function GetClassAttributeCount(ExtRTTIData: PExtRTTIData): byte;
+function GetClassAttributeProclist(ExtRTTIData: PExtRTTIData): PAttributeProcList;
+function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TObject;
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -417,6 +434,14 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
+function GetExtRTTIData(TypeInfo: PTypeInfo): PExtRTTIData;
+var
+  p: pointer;
+begin
+  p := pointer(TypeInfo) - sizeof(p);
+  result := PExtRTTIData(pointer(p)^);
+end;
+
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
 begin
   if PropInfo^.AttributeCount=0 then
@@ -440,25 +465,32 @@ begin
     end;
 end;
 
-function GetClassAttributeProclist(TypeData: PTypeData): PAttributeProcList;
+
+function GetClassAttributeCount(ExtRTTIData: PExtRTTIData): byte;
 begin
-  if TypeData^.AttributeCount=0 then
-    result := nil
+  if not assigned(ExtRTTIData^.AttributeData) then
+    result := 0
   else
-    begin
-      Result:=PAttributeProcList(aligntoptr(pointer(@TypeData^.UnitName)+byte(TypeData^.UnitName[0])+1));
-    end;
+    result := ExtRTTIData^.AttributeData^.AttributeCount;
 end;
 
-function GetClassAttribute(TypeData: PTypeData; AttributeNr: byte): TObject;
+function GetClassAttributeProclist(ExtRTTIData: PExtRTTIData): PAttributeProcList;
+begin
+  if GetClassAttributeCount(ExtRTTIData) = 0 then
+    result := nil
+  else
+    result := @ExtRTTIData^.AttributeData^.AttributesList;
+end;
+
+function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TObject;
 var
   AttributeProcList: PAttributeProcList;
 begin
-  if AttributeNr>=TypeData^.AttributeCount then
+  if AttributeNr>=GetClassAttributeCount(ExtRTTIData) then
     result := nil
   else
     begin
-      AttributeProcList := GetClassAttributeProclist(TypeData);
+      AttributeProcList := GetClassAttributeProclist(ExtRTTIData);
       result := AttributeProcList^[AttributeNr]();
     end;
 end;

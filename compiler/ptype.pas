@@ -1679,6 +1679,8 @@ implementation
         { no Delphi-style RTTI }
         exit;
 {$endif jvm}
+        if st.symtabletype = globalsymtable then
+          st.extrtticount := 0;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -1733,6 +1735,8 @@ implementation
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);
           end;
+        if st.symtabletype = globalsymtable then
+          RTTIWriter.after_write_unit_extrtti_info(st);
       end;
 
 

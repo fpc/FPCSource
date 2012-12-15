@@ -2124,6 +2124,7 @@ implementation
          cnodeutils.InsertWideInitsTablesTable;
          cnodeutils.InsertResStrTablesTable;
          cnodeutils.InsertMemorySizes;
+         cnodeutils.InsertExtRTTITable;
 
 {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then

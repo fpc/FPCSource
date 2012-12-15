@@ -72,6 +72,7 @@ interface
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable; virtual;
+      class procedure InsertExtRTTITable; virtual;
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
@@ -640,6 +641,36 @@ implementation
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
       current_asmdata.asmlists[al_globals].concatlist(unitinits);
       current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
+      unitinits.free;
+    end;
+
+
+    class procedure tnodeutils.InsertExtRTTITable;
+      var
+        hp : tused_unit;
+        unitinits : TAsmList;
+        count : longint;
+    begin
+      unitinits:=TAsmList.Create;
+      count:=0;
+      hp:=tused_unit(usedunits.first);
+      while assigned(hp) do
+       begin
+         if (hp.u.flags and uf_extrtti) <> 0 then
+           begin
+             unitinits.concat(Tai_const.Createname(make_mangledname('EXTR',hp.u.globalsymtable,''),0));
+             inc(count);
+           end;
+         hp:=tused_unit(hp.next);
+       end;
+      { Insert TableCount,InitCount at start }
+      unitinits.insert(Tai_const.Create_32bit(count));
+      { Add to data segment }
+      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'INITEXTRTTIUNITS',sizeof(pint));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITEXTRTTIUNITS',AT_DATA,0));
+      current_asmdata.asmlists[al_globals].concatlist(unitinits);
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITEXTRTTIUNITS'));
       unitinits.free;
     end;
 

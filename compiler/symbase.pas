@@ -101,6 +101,7 @@ interface
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;
+          extrtticount : integer;
           constructor Create(const s:string);
           destructor  destroy;override;
           procedure freeinstance;override;
