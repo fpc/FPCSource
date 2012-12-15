@@ -855,12 +855,12 @@ implementation
           if i in flags then
             begin
               if not(first) then
-                write(',')
+                write(t,',')
               else
                 first:=false;
               write(i);
             end;
-        write(']');
+        write(t,']');
       end;
 
 
