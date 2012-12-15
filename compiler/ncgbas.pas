@@ -131,7 +131,7 @@ interface
            end;
         end;
 
-      procedure ResolveRef(var op:toper);
+      procedure ResolveRef(const filepos: tfileposinfo; var op:toper);
         var
           sym : tabstractnormalvarsym;
 {$ifdef x86}
@@ -186,7 +186,7 @@ interface
                 LOC_REGISTER :
                   begin
                     if getoffset then
-                      Message(asmr_e_invalid_reference_syntax);
+                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
                     { Subscribed access }
                     if forceref or
                        (sofs<>0) then
@@ -213,10 +213,10 @@ interface
                     op.typ:=top_reg;
                     op.reg:=NR_NO;
                     if getoffset then
-                      Message(asmr_e_invalid_reference_syntax);
+                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
                     { Using an MM/FPU register in a reference is not possible }
                     if forceref or (sofs<>0) then
-                      Message1(asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
+                      MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
                     else
                       op.reg:=sym.localloc.register;
                   end;
@@ -227,7 +227,7 @@ interface
                       result is returned via a complex location
                       (more than one register, ...) }
                     if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                      Message(asmr_e_complex_function_result_location)
+                      MessagePos(filepos,asmr_e_complex_function_result_location)
                     else
                       internalerror(2012082101);
                     { recover }
@@ -285,7 +285,7 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
-                          ResolveRef(taicpu(hp2).oper[i-1]^);
+                          ResolveRef(taicpu(hp2).fileinfo,taicpu(hp2).oper[i-1]^);
                           with taicpu(hp2).oper[i-1]^ do
                            begin
                              case typ of
@@ -329,7 +329,7 @@ interface
 {$endif}
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
-                         ResolveRef(taicpu(hp).oper[i-1]^);
+                         ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^);
 {$ifdef x86}
                       { can only be checked now that all local operands }
                       { have been resolved                              }
