@@ -458,10 +458,9 @@ implementation
       begin
         { for the name the sub reg doesn't matter }
         hr:=r;
-        case getsubreg(hr) of
-          R_SUBMMS,R_SUBMMD,R_SUBMMWHOLE:
-            setsubreg(hr,R_SUBMMX);
-        end;
+        if (getregtype(hr)=R_MMREGISTER) and
+           (getsubreg(hr)<>R_SUBMMY) then
+          setsubreg(hr,R_SUBMMX);
         result:=findreg_by_number_table(hr,regnumber_index);
       end;
 
@@ -478,7 +477,7 @@ implementation
       begin
         if getregtype(r) in [R_MMREGISTER,R_MMXREGISTER] then
           r:=newreg(getregtype(r),getsupreg(r),R_SUBNONE);
-        p:=findreg_by_number_table(r,regnumber_index);
+        p:=findreg_by_number(r);
         if p<>0 then
           result:=std_regname_table[p]
         else
