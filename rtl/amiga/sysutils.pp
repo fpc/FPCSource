@@ -514,8 +514,9 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
+// TODO
 end;
 
 

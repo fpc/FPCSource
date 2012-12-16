@@ -18,7 +18,7 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
+procedure mkdir(s : pchar; len : sizeuint); [IOCheck];
 var
   tmpStr : array[0..255] of char;
   tmpLock: LongInt;
@@ -34,7 +34,7 @@ begin
   UnLock(tmpLock);
 end;
 
-procedure rmdir(const s : string);[IOCheck];
+procedure rmdir(s : pchar; len : sizeuint); [IOCheck];
 var
   tmpStr : array[0..255] of Char;
 begin
@@ -46,7 +46,7 @@ begin
     dosError2InOut(IoErr);
 end;
 
-procedure chdir(const s : string);[IOCheck];
+procedure chdir(s : pchar; len : sizeuint); [IOCheck];
 var
   tmpStr : array[0..255] of Char;
   tmpLock: LongInt;
