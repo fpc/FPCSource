@@ -187,7 +187,9 @@ type
     { type is a specialization of a generic type }
     df_specialization,
     { def has been copied from another def so symtable is not owned }
-    df_copied_def
+    df_copied_def,
+    { def was created as a generic constraint and thus is only "shallow" }
+    df_genconstraint
   );
   tdefoptions=set of tdefoption;
 

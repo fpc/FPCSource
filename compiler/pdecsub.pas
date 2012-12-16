@@ -721,7 +721,7 @@ implementation
             consume(_LSHARPBRACKET);
             genparalist:=tfpobjectlist.create(false);
 
-            if not parse_generic_specialization_types(genparalist,prettyname,specializename,nil) then
+            if not parse_generic_specialization_types(genparalist,nil,prettyname,specializename) then
               srsym:=generrorsym
             else
               begin

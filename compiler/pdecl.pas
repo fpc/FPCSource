@@ -422,7 +422,7 @@ implementation
                  Message(parser_f_no_generic_inside_generic);
 
                consume(_LSHARPBRACKET);
-               generictypelist:=parse_generic_parameters;
+               generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
 
                str(generictypelist.Count,s);

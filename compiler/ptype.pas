@@ -453,7 +453,7 @@ implementation
           begin
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
-            generate_specialization(def,stoParseClassParent in options,'',nil,'');
+            generate_specialization(def,stoParseClassParent in options,'');
           end
         else
           begin
@@ -968,7 +968,7 @@ implementation
                        end;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,name,nil,'');
+                       generate_specialization(def,false,name);
                        { handle nested types }
                        if assigned(def) then
                          post_comp_expr_gendef(def);
@@ -1689,7 +1689,7 @@ implementation
               objectdef :
                 begin
                   { Skip generics and forward defs }
-                  if (df_generic in def.defoptions) or
+                  if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
                   write_persistent_type_info(tobjectdef(def).symtable,is_global);

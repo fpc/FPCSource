@@ -1170,7 +1170,8 @@ const
      (mask:df_unique;         str:'Unique Type'),
      (mask:df_generic;        str:'Generic'),
      (mask:df_specialization; str:'Specialization'),
-     (mask:df_copied_def;     str:'Copied Typedef')
+     (mask:df_copied_def;     str:'Copied Typedef'),
+     (mask:df_genconstraint;  str:'Generic Constraint')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),

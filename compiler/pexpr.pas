@@ -3181,7 +3181,7 @@ implementation
                        check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',parseddef,gensym.RealName);
+                       generate_specialization(gendef,false,'',parseddef,gensym.RealName,p2.fileinfo);
 
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
@@ -3272,7 +3272,7 @@ implementation
                          Internalerror(2011071401);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',nil,'');
+                       generate_specialization(gendef,false,'');
 
                        { we don't need the old p2 anymore }
                        p2.Free;
