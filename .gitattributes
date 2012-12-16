@@ -11692,6 +11692,7 @@ tests/test/units/sysutils/tlocale.pp svneol=native#text/plain
 tests/test/units/sysutils/trwsync.pp svneol=native#text/plain
 tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrtobool.pp svneol=native#text/plain
+tests/test/units/ucomplex/tcsqr1.pp svneol=native#text/pascal
 tests/test/units/variants/tcustomvariant.pp svneol=native#text/plain
 tests/test/units/variants/tvararrayofintf.pp svneol=native#text/plain
 tests/test/uobjc24.pp svneol=native#text/plain
