@@ -469,6 +469,13 @@ implementation
         exe_image_base:    $8048000;
         machine_code:      EM_386;
         relocs_use_addend: false;
+        dyn_reloc_codes: (
+          R_386_RELATIVE,
+          R_386_GLOB_DAT,
+          R_386_JUMP_SLOT,
+          R_386_COPY,
+          R_386_IRELATIVE
+        );
         relocname:         @elf_i386_relocName;
         encodereloc:       @elf_i386_encodeReloc;
         loadreloc:         @elf_i386_loadReloc;

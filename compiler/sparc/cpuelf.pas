@@ -103,6 +103,13 @@ implementation
         exe_image_base:    $8000; // fixme
         machine_code:      EM_SPARC;
         relocs_use_addend: false;
+        dyn_reloc_codes: (
+          R_SPARC_RELATIVE,
+          R_SPARC_GLOB_DAT,
+          R_SPARC_JUMP_SLOT,
+          R_SPARC_COPY,
+          0      // IRELATIVE is absent(?)
+        );
         relocname:         @elf_sparc_relocName;
         encodereloc:       @elf_sparc_encodeReloc;
         loadreloc:         @elf_sparc_loadReloc;

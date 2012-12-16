@@ -393,6 +393,7 @@ implementation
               R_X86_64_PC32,
               R_X86_64_PC64:
                 begin
+                  // TODO: ld rejects PC32 relocations to dynamic symbols, they must use @PLT
                   address:=address+relocval-PC;
                 end;
 
@@ -577,6 +578,13 @@ implementation
         exe_image_base:    $400000;
         machine_code:      EM_X86_64;
         relocs_use_addend: true;
+        dyn_reloc_codes: (
+          R_X86_64_RELATIVE,
+          R_X86_64_GLOB_DAT,
+          R_X86_64_JUMP_SLOT,
+          R_X86_64_COPY,
+          R_X86_64_IRELATIVE
+        );
         relocname:         @elf_x86_64_relocName;
         encodereloc:       @elf_x86_64_encodeReloc;
         loadreloc:         @elf_x86_64_loadReloc;

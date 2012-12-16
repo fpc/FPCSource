@@ -150,12 +150,20 @@ interface
        TEncodeRelocProc=function(objrel:TObjRelocation):byte;
        TLoadRelocProc=procedure(objrel:TObjRelocation);
        TLoadSectionProc=function(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
+       TDynamicReloc=(
+         dr_relative,
+         dr_glob_dat,
+         dr_jump_slot,
+         dr_copy,
+         dr_irelative
+       );
 
        TElfTarget=record
          max_page_size: longword;
          exe_image_base: longword;
          machine_code: word;
          relocs_use_addend: boolean;
+         dyn_reloc_codes: array[TDynamicReloc] of byte;
          relocname: TRelocNameProc;
          encodereloc: TEncodeRelocProc;
          loadreloc: TLoadRelocProc;
@@ -2805,7 +2813,6 @@ implementation
 
     procedure TElfExeOutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
       var
-        i:longint;
         exportlist: TCmdStrList;
         sym: TExeSymbol;
       begin
