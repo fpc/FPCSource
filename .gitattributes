@@ -522,6 +522,7 @@ compiler/pp.lpi svneol=native#text/plain
 compiler/pp.pas svneol=native#text/plain
 compiler/pparautl.pas svneol=native#text/plain
 compiler/ppc68k.lpi svneol=native#text/plain
+compiler/ppcaarch64.lpi svneol=native#text/plain
 compiler/ppcarm.lpi svneol=native#text/plain
 compiler/ppcavr.lpi svneol=native#text/plain
 compiler/ppcgen/aasmcpu.pas svneol=native#text/plain
