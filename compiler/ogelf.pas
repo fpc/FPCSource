@@ -517,6 +517,61 @@ implementation
         end;
 
 
+      procedure MaybeSwapElfverdef(var h: TElfverdef);
+        begin
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                vd_version:=swapendian(vd_version);
+                vd_flags:=swapendian(vd_flags);
+                vd_ndx:=swapendian(vd_ndx);
+                vd_cnt:=swapendian(vd_cnt);
+                vd_hash:=swapendian(vd_hash);
+                vd_aux:=swapendian(vd_aux);
+                vd_next:=swapendian(vd_next);
+              end;
+        end;
+
+
+      procedure MaybeSwapElfverdaux(var h: TElfverdaux);
+        begin
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                vda_name:=swapendian(vda_name);
+                vda_next:=swapendian(vda_next);
+              end;
+        end;
+
+
+      procedure MaybeSwapElfverneed(var h: TElfverneed);
+        begin
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                vn_version:=swapendian(vn_version);
+                vn_cnt:=swapendian(vn_cnt);
+                vn_file:=swapendian(vn_file);
+                vn_aux:=swapendian(vn_aux);
+                vn_next:=swapendian(vn_next);
+              end;
+        end;
+
+
+      procedure MaybeSwapElfvernaux(var h: TElfvernaux);
+        begin
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                vna_hash:=swapendian(vna_hash);
+                vna_flags:=swapendian(vna_flags);
+                vna_other:=swapendian(vna_other);
+                vna_name:=swapendian(vna_name);
+                vna_next:=swapendian(vna_next);
+              end;
+        end;
+
+
 {****************************************************************************
                                 Helpers
 ****************************************************************************}
