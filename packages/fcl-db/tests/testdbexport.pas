@@ -42,7 +42,9 @@ type
     procedure TestDBFExport_DBaseIV;
     procedure TestDBFExport_DBaseVII;
     procedure TestDBFExport_FoxPro;
-    procedure TestCSVExport;
+    procedure TestCSVExport; //tests csv export with default values
+    procedure TestCSVExport_RFC4180WithHeader; //tests csv export with settings that match RFC4180
+    procedure TestCSVExport_TweakSettingsSemicolon; //tests semicolon delimited, custom country values
     procedure TestFixedTextExport;
     procedure TestJSONExport;
     procedure TestRTFExport;
@@ -169,8 +171,9 @@ begin
     ExportFormat:=efDBaseVII;
     ExportSettings.TableFormat:=tfDBaseVII;
     // Use export subtype position to differentiate output filenames:
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -194,8 +197,9 @@ begin
   try
     ExportFormat:=efDBaseIV;
     ExportSettings.TableFormat:=tfDBaseIV;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -219,8 +223,9 @@ begin
   try
     ExportFormat:=efFoxpro;
     ExportSettings.TableFormat:=tfFoxPro;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -246,8 +251,9 @@ begin
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=false;
     ExportSettings.DecimalSeparator:='.'; //override
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -273,8 +279,9 @@ begin
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=false;
     ExportSettings.DecimalSeparator:=char(''); //don't override
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -300,8 +307,9 @@ begin
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=true;
     ExportSettings.DecimalSeparator:='.'; //override
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -327,8 +335,9 @@ begin
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=true;
     ExportSettings.DecimalSeparator:=char(''); //don't override
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -354,8 +363,9 @@ begin
     ExportSettings.ExportFormat:=ADONETCompatible;
     ExportFormat:=efXMLXSDADONet;
     ExportSettings.CreateXSD:=false;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -380,8 +390,9 @@ begin
     ExportSettings.ExportFormat:=ADONETCompatible;
     ExportFormat:=efXMLXSDADONet;
     ExportSettings.CreateXSD:=true;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -402,13 +413,80 @@ var
 begin
   Exporter := TCSVExporter.Create(nil);
   ExportSettings:=TCSVFormatSettings.Create(true);
-  //todo: set settings to match RFC4180 as much as possible as that is the only
-  // sane CSV format to test for (and perhaps Excel-compatible as far as that
-  // can be defined)
   try
     ExportFormat:=efCSV;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestCSVExport_RFC4180WithHeader;
+var
+  Exporter: TCSVExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings: TCSVFormatSettings;
+begin
+  Exporter := TCSVExporter.Create(nil);
+  ExportSettings:=TCSVFormatSettings.Create(true);
+  try
+    ExportSettings.FieldDelimiter:=','; //RFC 4180 specified commas as delimiter
+    ExportSettings.HeaderRow:=true; //...allows an optional header line
+    ExportSettings.StringQuoteChar:='"'; //...requires quoting with " (if quoting)
+    // Fields containing line breaks (CRLF), double quotes,
+    // and commas should be enclosed in double-quotes.
+    // => this probably won't get tested with this test set.
+    ExportFormat:=efCSV;
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestCSVExport_TweakSettingsSemicolon;
+var
+  Exporter: TCSVExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings: TCSVFormatSettings;
+begin
+  Exporter := TCSVExporter.Create(nil);
+  ExportSettings:=TCSVFormatSettings.Create(true);
+  try
+    ExportSettings.FieldDelimiter:=';';
+    ExportSettings.QuoteStrings:=[qsAlways,qsSpace,qsDelimiter]; //quote everything we can
+    ExportSettings.StringQuoteChar:='"'; //try explicit assignment
+    ExportSettings.RowDelimiter:=#10; //Unix/Linux format
+    ExportSettings.BooleanFalse:='onwaar'; //why not a Dutch output format?
+    ExportSettings.BooleanTrue:='waar'; //why not a Dutch output format?
+    ExportSettings.CurrencyDigits:=3;
+    ExportSettings.CurrencySymbol:='€'; //euro sign
+    ExportSettings.DateFormat:='d-mm-yyyy'; //Dutch setting
+    ExportSettings.DateTimeFormat:='d-mm-yyyy hh:nn:ss'; //Dutch setting
+    ExportSettings.DecimalSeparator:=','; //another Dutch setting
+    ExportSettings.TimeFormat:='hh:nn:ss'; //Dutch setting
+    ExportSettings.IntegerFormat:='0000';//Strange but nice ;)
+    ExportFormat:=efCSV;
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -429,8 +507,9 @@ begin
   Exporter := TFixedLengthExporter.Create(nil);
   try
     ExportFormat:=efFixedLengthText;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
     AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
@@ -451,9 +530,9 @@ begin
   ExportSettings:=TSimpleJSONFormatSettings.Create(true);
   try
     ExportFormat:=efJSON;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
-    Exporter.FormatSettings:=ExportSettings;
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) + lowercase(rightstr(TestName,5))+
+     inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];    Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
     AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
@@ -475,8 +554,9 @@ begin
   ExportSettings:=TRTFExportFormatSettings.Create(true);
   try
     ExportFormat:=efRTF;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5))+
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -500,8 +580,9 @@ begin
   try
     ExportSettings.TableName:='ATABLE'; //required for export to succeed
     ExportFormat:=efSQL;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5))+
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -524,8 +605,9 @@ begin
   ExportSettings:=TTeXExportFormatSettings.Create(true);
   try
     ExportFormat:=efTeX;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir +
+      inttostr(ord(ExportFormat)) + lowercase(rightstr(TestName,5))+
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -548,7 +630,8 @@ begin
   ExportSettings:=TSimpleXMLFormatSettings.Create(true);
   try
     ExportFormat:=efXML;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+     lowercase(rightstr(TestName,5)) +
      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
@@ -573,8 +656,9 @@ begin
   try
     ExportSettings.ExportFormat:=DelphiClientDataset;
     ExportFormat:=efXMLXSDClientDataset;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
@@ -598,8 +682,9 @@ begin
   try
     ExportSettings.ExportFormat:=ExcelCompatible;
     ExportFormat:=efXMLXSDExcel;
-    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
-     TDetailedExportExtensions[ExportFormat];
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
     Exporter.FormatSettings:=ExportSettings;
     GenericExportTest(Exporter, ExportFormat);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
