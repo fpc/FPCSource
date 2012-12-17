@@ -28,7 +28,8 @@ uses
   TestDBBasics,
   TestDatasources,
   TestBufDatasetStreams,
-  TestSpecificTBufDataset;
+  TestSpecificTBufDataset,
+  TestDBExport;
 
 {$R *.res}
 

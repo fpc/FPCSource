@@ -1,0 +1,618 @@
+unit TestDBExport;
+
+{
+  Unit tests which are common to all datasets. Tests export to various formats.
+}
+
+{$IFDEF FPC}
+  {$mode Delphi}{$H+}
+{$ENDIF}
+
+interface
+
+uses
+  fpcunit, testregistry,
+  Classes, SysUtils, db, ToolsUnit, bufdataset,
+  fpDBExport, fpXMLXSDExport, fpdbfexport, fpcsvexport, fpfixedexport,
+  fpSimpleXMLExport, fpsimplejsonexport, fpSQLExport,
+  fptexexport, fprtfexport;
+
+
+type
+  TDetailedExportFormats = (efDBaseIII, efDBaseIV, efDBaseVII, efCSV, efFixedLengthText, efFoxpro,
+    efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset, efXMLXSDExcel);
+const
+  TDetailedExportExtensions: array [TDetailedExportFormats] of string[5] =
+    ('.dbf','.dbf','.dbf','.csv','.txt','.dbf','.json','.rtf','.sql','.tex',
+    '.xml','.xml','.xml','.xml','.xml'); //File extension for the corresponding TExportFormat
+type
+  { TTestDBExport }
+  TTestDBExport = class(TTestCase)
+  private
+    FExportTempDir: string; //directory where test files are placed
+    FKeepFilesAfterTest: boolean; //remove files after testing?
+    function FieldSupported(const FieldType: TFieldType;
+      const ExportSubFormat: TDetailedExportFormats): boolean; //Checks if output dataset supports a certain field type
+    procedure GenericExportTest(Exporter: TCustomDatasetExporter; ExportFormat: TDetailedExportFormats);
+    function GetFileSize(const FileName: string): integer; //Gets a file's size
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestDBFExport_DBaseIV;
+    procedure TestDBFExport_DBaseVII;
+    procedure TestDBFExport_FoxPro;
+    procedure TestCSVExport;
+    procedure TestFixedTextExport;
+    procedure TestJSONExport;
+    procedure TestRTFExport;
+    procedure TestSQLExport;
+    procedure TestTeXExport;
+    procedure TestXMLExport; //tests simple xml export
+    procedure TestXSDExport_Access_NoXSD_DecimalOverride; //tests xmlxsd export
+    procedure TestXSDExport_Access_NoXSD_NoDecimalOverride; //tests xmlxsd export
+    procedure TestXSDExport_Access_XSD_DecimalOverride; //tests xmlxsd export
+    procedure TestXSDExport_Access_XSD_NoDecimalOverride; //tests xmlxsd export
+    procedure TestXSDExport_ADONET_NoXSD; //tests xmlxsd export
+    procedure TestXSDExport_ADONET_XSD; //tests xmlxsd export
+    procedure TestXSDExport_DelphiClientDataset; //tests xmlxsd export
+    procedure TestXSDExport_Excel; //tests xmlxsd export
+  end;
+
+implementation
+
+function TTestDBExport.FieldSupported(const FieldType: TFieldType;
+  const ExportSubFormat: TDetailedExportFormats): boolean;
+const
+  DBaseVIIUnsupported=[ftUnknown,ftCurrency,ftBCD,ftTime,ftBytes,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
+  FoxProUnsupported=[ftUnknown,ftTime,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
+begin
+  result:=true;
+  case ExportSubFormat of
+    efDBaseIII: if FieldType in DBaseVIIUnsupported+[ftAutoInc] then result:=false;
+    efDBaseIV: if FieldType in DBaseVIIUnsupported+[ftAutoInc] then result:=false;
+    efDBaseVII: if FieldType in DBaseVIIUnsupported then result:=false;
+    efCSV: result:=true;
+    efFixedLengthText: result:=true; //todo: verify if all fields are really supported. Quick glance would indicate so
+    efFoxpro: if FieldType in FoxProUnsupported then result:=false;
+    efJSON: result:=true;
+    efRTF: result:=true;
+    efSQL: result:=true;
+    efTeX: result:=true;
+    efXML: result:=true;
+    efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset, efXMLXSDExcel: result:=true;
+    else
+    begin
+      result:=false;
+      Fail('Error in test code itself: FieldSupported unknown ExportSubFormat '+inttostr(ord(ExportSubFormat)));
+    end;
+  end;
+end;
+
+procedure TTestDBExport.GenericExportTest(Exporter: TCustomDatasetExporter; ExportFormat: TDetailedExportFormats);
+var
+  FieldMapping: TExportFields;
+  NumberExported: integer;
+  i: integer;
+begin
+  FieldMapping:=TExportFields.Create(Exporter.ExportFields.ItemClass);
+  try
+    Exporter.Dataset := DBConnector.GetFieldDataset;
+    Exporter.Dataset.Open;
+    Exporter.BuildDefaultFieldMap(FieldMapping);
+    // Remove unsupported data types in export from the mapping.
+    // Cannot use FieldMapping[i].Field.DataType as
+    // the field hasn't been set by BindFields yet... assume the
+    // order of original fields and their mapping match
+    for i:=Exporter.Dataset.Fields.Count-1 downto 0 do
+    begin
+      if not FieldSupported(
+        Exporter.Dataset.Fields[i].DataType,
+        ExportFormat) then
+        FieldMapping.Delete(i);
+    end;
+    for i:=0 to FieldMapping.Count-1 do
+    begin
+      Exporter.ExportFields.Add.Assign(FieldMapping[i]);
+    end;
+    NumberExported := Exporter.Execute;
+    Exporter.Dataset.Last;
+    Exporter.Dataset.First;
+    AssertEquals('Number of records exported', NumberExported,
+      Exporter.Dataset.RecordCount);
+    Exporter.Dataset.Close;
+  finally
+    FieldMapping.Free;
+  end;
+end;
+
+function TTestDBExport.GetFileSize(const FileName: string): integer;
+Var
+  F : file of byte;
+begin
+  result:=0;
+  assign (F,FileName);
+  try
+    reset(F);
+    result:=filesize(F);
+  finally
+    close(F);
+  end;
+end;
+
+procedure TTestDBExport.SetUp;
+begin
+  inherited SetUp;
+  InitialiseDBConnector;
+  //DBConnector.StartTest; //is this needed?
+  FExportTempDir:=IncludeTrailingPathDelimiter(ExpandFileName(''))+'exporttests'+PathDelim; //Store output in subdirectory
+  ForceDirectories(FExportTempDir);
+  FKeepFilesAfterTest:=true; //keep test files; consistent with other units right now
+end;
+
+procedure TTestDBExport.TearDown;
+begin
+  inherited TearDown;
+  //DBConnector.StopTest; //is this needed?
+  FreeDBConnector;
+end;
+
+procedure TTestDBExport.TestDBFExport_DBaseVII;
+var
+  Exporter: TFPDBFExport;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TDBFExportFormatSettings;
+begin
+  Exporter := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efDBaseVII;
+    ExportSettings.TableFormat:=tfDBaseVII;
+    // Use export subtype position to differentiate output filenames:
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestDBFExport_DBaseIV;
+var
+  Exporter: TFPDBFExport;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TDBFExportFormatSettings;
+begin
+  Exporter := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efDBaseIV;
+    ExportSettings.TableFormat:=tfDBaseIV;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestDBFExport_FoxPro;
+var
+  Exporter: TFPDBFExport;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TDBFExportFormatSettings;
+begin
+  Exporter := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efFoxpro;
+    ExportSettings.TableFormat:=tfFoxPro;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_Access_NoXSD_DecimalOverride;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=AccessCompatible;
+    ExportFormat:=efXMLXSDAccess;
+    ExportSettings.CreateXSD:=false;
+    ExportSettings.DecimalSeparator:='.'; //override
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_Access_NoXSD_NoDecimalOverride;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=AccessCompatible;
+    ExportFormat:=efXMLXSDAccess;
+    ExportSettings.CreateXSD:=false;
+    ExportSettings.DecimalSeparator:=char(''); //don't override
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_Access_XSD_DecimalOverride;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=AccessCompatible;
+    ExportFormat:=efXMLXSDAccess;
+    ExportSettings.CreateXSD:=true;
+    ExportSettings.DecimalSeparator:='.'; //override
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_Access_XSD_NoDecimalOverride;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=AccessCompatible;
+    ExportFormat:=efXMLXSDAccess;
+    ExportSettings.CreateXSD:=true;
+    ExportSettings.DecimalSeparator:=char(''); //don't override
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_ADONET_NoXSD;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  ExportSettings.ExportFormat:=AccessCompatible;
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=ADONETCompatible;
+    ExportFormat:=efXMLXSDADONet;
+    ExportSettings.CreateXSD:=false;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_ADONET_XSD;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=ADONETCompatible;
+    ExportFormat:=efXMLXSDADONet;
+    ExportSettings.CreateXSD:=true;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestCSVExport;
+var
+  Exporter: TCSVExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings: TCSVFormatSettings;
+begin
+  Exporter := TCSVExporter.Create(nil);
+  ExportSettings:=TCSVFormatSettings.Create(true);
+  //todo: set settings to match RFC4180 as much as possible as that is the only
+  // sane CSV format to test for (and perhaps Excel-compatible as far as that
+  // can be defined)
+  try
+    ExportFormat:=efCSV;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestFixedTextExport;
+var
+  Exporter: TFixedLengthExporter;
+  ExportFormat: TDetailedExportFormats;
+begin
+  Exporter := TFixedLengthExporter.Create(nil);
+  try
+    ExportFormat:=efFixedLengthText;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestJSONExport;
+var
+  Exporter: TSimpleJSONExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TSimpleJSONFormatSettings;
+begin
+  Exporter := TSimpleJSONExporter.Create(nil);
+  ExportSettings:=TSimpleJSONFormatSettings.Create(true);
+  try
+    ExportFormat:=efJSON;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestRTFExport;
+var
+  Exporter: TRTFExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TRTFExportFormatSettings;
+begin
+  Exporter := TRTFExporter.Create(nil);
+  ExportSettings:=TRTFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efRTF;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestSQLExport;
+var
+  Exporter: TSQLExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TSQLFormatSettings;
+begin
+  Exporter := TSQLExporter.Create(nil);
+  ExportSettings:=TSQLFormatSettings.Create(true);
+  try
+    ExportSettings.TableName:='ATABLE'; //required for export to succeed
+    ExportFormat:=efSQL;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestTeXExport;
+var
+  Exporter: TTexExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TTeXExportFormatSettings;
+begin
+  Exporter := TTexExporter.Create(nil);
+  ExportSettings:=TTeXExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efTeX;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXMLExport;
+var
+  Exporter: TSimpleXMLExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TSimpleXMLFormatSettings;
+begin
+  Exporter := TSimpleXMLExporter.Create(nil);
+  ExportSettings:=TSimpleXMLFormatSettings.Create(true);
+  try
+    ExportFormat:=efXML;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_DelphiClientDataset;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=DelphiClientDataset;
+    ExportFormat:=efXMLXSDClientDataset;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestXSDExport_Excel;
+var
+  Exporter: TXMLXSDExporter;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TXMLXSDFormatSettings;
+begin
+  Exporter := TXMLXSDExporter.Create(nil);
+  ExportSettings:=TXMLXSDFormatSettings.Create(true);
+  try
+    ExportSettings.ExportFormat:=ExcelCompatible;
+    ExportFormat:=efXMLXSDExcel;
+    Exporter.FileName := FExportTempDir + 'expt'+inttostr(ord(ExportFormat))+
+     TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+
+initialization
+  RegisterTest(TTestDBExport);
+end.
