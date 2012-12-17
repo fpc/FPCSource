@@ -1005,25 +1005,25 @@ begin
     stTables     : s := 'select '+
                           'relfilenode              as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'nspname                  as schema_name, '+
                           'relname                  as table_name, '+
                           '0                        as table_type '+
                         'from '+
-                          'pg_class '+
+                          'pg_class c left join pg_namespace n on c.relnamespace=n.oid '+
                         'where '+
-                          '(relowner > 1) and relkind=''r''' +
+                          'relkind=''r''' +
                         'order by relname';
 
     stSysTables  : s := 'select '+
                           'relfilenode              as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'nspname                  as schema_name, '+
                           'relname                  as table_name, '+
                           '0                        as table_type '+
                         'from '+
-                          'pg_class '+
+                          'pg_class c left join pg_namespace n on c.relnamespace=n.oid '+
                         'where '+
-                          'relkind=''r''' +
+                          'relkind=''r'' and nspname=''pg_catalog'' ' + // only system tables
                         'order by relname';
     stColumns    : s := 'select '+
                           'a.attnum                 as recno, '+
