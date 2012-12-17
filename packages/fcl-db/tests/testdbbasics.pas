@@ -244,7 +244,10 @@ begin
     begin
     Open;
 
-    CheckEquals(1,RecNo);
+    if IsUniDirectional then
+      CheckEquals(-1,RecNo)
+    else
+      CheckEquals(1,RecNo);
     CheckEquals(1,RecordCount);
 
     CheckEquals(2,FieldCount);
