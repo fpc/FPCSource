@@ -653,6 +653,9 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compiler
 function fpc_int64_to_double(i: int64): double; compilerproc;
 function fpc_qword_to_double(q: qword): double; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+{$ifdef FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
+function fpc_longword_to_double(i: longword): double; compilerproc;
+{$endif FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
 
 function fpc_setjmp(var s : jmp_buf) : longint; compilerproc;
 procedure fpc_longjmp(var s : jmp_buf; value : longint); compilerproc;
