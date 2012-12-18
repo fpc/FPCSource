@@ -38,8 +38,8 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-    Procedure CreateDocumentation(APackage : TFPDocPackage; ParseOnly : Boolean); virtual;
-    Procedure CreateProjectFile(Const AFileName : string);
+    Procedure CreateDocumentation(APackage : TFPDocPackage; ParseOnly : Boolean); virtual; //Writes out documentation in selected format
+    Procedure CreateProjectFile(Const AFileName : string); //Writes out project file with the chosen options
     Procedure LoadProjectFile(Const AFileName: string);
     Property Project : TFPDocProject Read FProject;
     Property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
@@ -189,6 +189,7 @@ var
   WriterClass: TFPDocWriterClass;
 
 begin
+  Cmd:='';
   FCurPackage:=APackage;
   Engine:=TFPDocEngine.Create;
   try

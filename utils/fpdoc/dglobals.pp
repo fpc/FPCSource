@@ -82,6 +82,8 @@ resourcestring
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
   SDocDateGenerated          = 'Documentation generated on: %s';
+  // The next line requires leading/trailing space due to XML comment layout:
+  SDocGeneratedByComment     = ' Generated using FPDoc - (c) 2000-2012 FPC contributors and Sebastian Guenther, sg@freepascal.org ';
   SDocNotes                  = 'Notes';
   
   // Topics
@@ -135,32 +137,37 @@ resourcestring
   SCmdLineHelp     = 'Usage: %s [options]';
   SUsageOption010  = '--content         Create content file for package cross-references';
   SUsageOption020  = '--cputarget=value Set the target CPU for the scanner.';
-  SUsageOption030  = '--descr=name      use name as description file. ';
+  SUsageOption030  = '--descr=file      use file as description file, e.g.: ';
+  SUsageOption035  = '                  --descr=c:\WIP\myzipperdoc.xml';
   SUsageOption040  = '                  This option is allowed more than once';
-  SUsageOption050  = '--format=fmt      Select output format.';
-  SUsageOption060  = '--help            Show this help.';
-  SUsageOption070  = '--hide-protected  Do not show protected methods in overview';
-  SUsageOption080  = '--import=file     Import content file for package cross-references';
-  SUsageOption090  = '--input=cmd       use cmd as input for the parser.';
-  SUsageOption100  = '                  At least one input option is required.';
-  SUsageOption110  = '--lang=lng        Select output language.';
-  SUsageOption120  = '--ostarget=value  Set the target OS for the scanner.';
-  SUsageOption130  = '--output=name     use name as the output name.';
-  SUsageOption140  = '                  Each backend interpretes this as needed.';
-  SUsageOption150  = '--package=name    Set the package name for which to create output';
-  SUsageOption155  = '--project=file    Use file as project file';  
-  SUsageOption160  = '--show-private    Show private methods.';
-  SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
-  SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
-  SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
-  SUsageOption200 =  '--dont-trim	Don''t trim XML contents';
-  SUsageOption210 =  '--write-project=file Do not write documentation, create project file instead';
-  SUsageOption220 =  '--verbose         Write more information on the screen';
-  SUsageOption230 =  '--dry-run         Only parse sources and XML, do not create output';
-  SUsageOption240 =  '--descr-dir=Dir   Add All XML files in Dir to list of description files';
-  SUsageOption250 =  '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
-  SUsageOption260 =  '--write-project=file Write all command-line options to a project file';
-  
+  SUsageOption050  = '--descr-dir=Dir   Add All XML files in Dir to list of description files';
+  SUsageOption060  = '--format=fmt      Select output format.';
+  SUsageOption070  = '--help            Show this help.';
+  SUsageOption080  = '--hide-protected  Do not show protected methods in overview';
+  SUsageOption090  = '--import=file     Import content file for package cross-references';
+  SUsageOption100  = '--input=cmd       use cmd as input for the parser, e.g.:';
+  SUsageOption110  = '           --input=C:\fpc\packages\paszlib\src\zipper.pp';
+  SUsageOption120  = '                  At least one input option is required.';
+  SUsageOption130  = '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
+  SUsageOption140  = '--lang=lng        Select output language.';
+  SUsageOption150  = '--ostarget=value  Set the target OS for the scanner.';
+  SUsageOption160  = '--output=name     use name as the output name.';
+  SUsageOption170  = '                  Each backend interpretes this as needed.';
+  SUsageOption180  = '--package=name    Set the package name for which to create output,';
+  SUsageOption190  = '                  e.g. --package=fcl';
+  SUsageOption200  = '--project=file    Use file as project file';
+  SUsageOption210  = '--show-private    Show private methods.';
+  SUsageOption220  = '--warn-no-node    Warn if no documentation node was found.';
+  SUsageOption230  = '--mo-dir=dir      Set directory where language files reside to dir';
+  SUsageOption240  = '--parse-impl      (Experimental) try to parse implementation too';
+  SUsageOption250  = '--dont-trim       Do not trim XML contents. Useful for preserving';
+  SUsageOption260  = '                  formatting inside e.g <pre> tags';
+  SUsageOption270  = '--write-project=file';
+  SUsageOption280  = '                  Do not write documentation, create project file instead';
+  SUsageOption290  = '--verbose         Write more information on the screen';
+  SUsageOption300  = '--dry-run         Only parse sources and XML, do not create output';
+  SUsageOption310  = '--write-project=file';
+  SUsageOption320  = '                  Write all command-line options to a project file';
 
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
@@ -171,6 +178,7 @@ resourcestring
   SCmdLineOutputOptionMissing = 'Need an output filename, please specify one with --output=<filename>';
   SWritingPages               = 'Writing %d pages...';
   SNeedPackageName            = 'No package name specified. Please specify one using the --package option.';
+  SAvailablePackages          = 'Available packages: ';
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
