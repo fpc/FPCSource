@@ -2136,6 +2136,11 @@ implementation
       begin
          result:=nil;
          include(current_procinfo.flags,pi_do_call);
+         { Loads exception class VMT, therefore may need GOT
+           (generic code only; descendants may need to avoid this check) }
+         if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) then
+           include(current_procinfo.flags,pi_needs_got);
          expectloc:=LOC_VOID;
          if assigned(left) then
            firstpass(left);
