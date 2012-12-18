@@ -1325,6 +1325,15 @@ begin
       Concat('EXESECTION .dynstr');
       Concat('  OBJSECTION .dynstr');
       Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version');
+      Concat('  OBJSECTION .gnu.version');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version_d');
+      Concat('  OBJSECTION .gnu.version_d');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version_r');
+      Concat('  OBJSECTION .gnu.version_r');
+      Concat('ENDEXESECTION');
 {$ifdef x86_64}
       Concat('EXESECTION .rela.dyn');
       Concat('  OBJSECTION .rela.dyn');

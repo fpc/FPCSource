@@ -216,6 +216,11 @@ interface
          dynsymtable: TElfSymtab;
          interpobjsec: TObjSection;
          FInterpreter: pshortstring;
+         verneedcount,
+         verdefcount: longword;
+         symversec,
+         verdefsec,
+         verneedsec,
          dynamicsec,
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
@@ -2340,6 +2345,12 @@ implementation
           Exclude(ipltrelocsec.ExeSection.SecOptions,oso_disabled);
         if assigned(hashobjsec) then
           Exclude(hashobjsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(symversec) and (symversec.size<>0) then
+          Exclude(symversec.ExeSection.SecOptions,oso_disabled);
+        if assigned(verneedsec) and (verneedsec.size<>0) then
+          Exclude(verneedsec.ExeSection.SecOptions,oso_disabled);
+        if assigned(verdefsec) and (verdefsec.size<>0) then
+          Exclude(verneedsec.ExeSection.SecOptions,oso_disabled);
 
         RemoveDisabledSections;
         MapSectionsToSegments;
@@ -2351,6 +2362,7 @@ implementation
     procedure TElfExeOutput.MemPos_Start;
       var
         i,j: longint;
+        dynstrndx,dynsymndx: longword;
         seg: TElfSegment;
         exesec: TElfExeSection;
         objsec: TObjSection;
@@ -2377,19 +2389,27 @@ implementation
         if dynamiclink then
           begin
             { fixup sh_link/sh_info members of various dynamic sections }
-            TElfExeSection(hashobjsec.ExeSection).shlink:=TElfExeSection(dynsymtable.ExeSection).secshidx;
-            i:=TElfExeSection(dynsymtable.fstrsec.ExeSection).secshidx;
-            TElfExeSection(dynamicsec.ExeSection).shlink:=i;
-            TElfExeSection(dynsymtable.ExeSection).shlink:=i;
+            dynstrndx:=TElfExeSection(dynsymtable.fstrsec.ExeSection).secshidx;
+            dynsymndx:=TElfExeSection(dynsymtable.ExeSection).secshidx;
+            TElfExeSection(hashobjsec.ExeSection).shlink:=dynsymndx;
+            TElfExeSection(dynamicsec.ExeSection).shlink:=dynstrndx;
+            TElfExeSection(dynsymtable.ExeSection).shlink:=dynstrndx;
 
             if assigned(pltrelocsec) then
               begin
-                TElfExeSection(pltrelocsec.ExeSection).shlink:=TElfExeSection(dynsymtable.ExeSection).secshidx;
+                TElfExeSection(pltrelocsec.ExeSection).shlink:=dynsymndx;
                 TElfExeSection(pltrelocsec.ExeSection).shinfo:=TElfExeSection(pltobjsec.ExeSection).secshidx;
               end;
 
             if assigned(dynrelocsec) and assigned(dynrelocsec.ExeSection) then
-              TElfExeSection(dynrelocsec.ExeSection).shlink:=TElfExeSection(dynsymtable.ExeSection).secshidx;
+              TElfExeSection(dynrelocsec.ExeSection).shlink:=dynsymndx;
+
+            if symversec.size>0 then
+              TElfExeSection(symversec.ExeSection).shlink:=dynsymndx;
+            if verdefsec.size>0 then
+              TElfExeSection(verdefsec.ExeSection).shlink:=dynstrndx;
+            if verneedsec.size>0 then
+              TElfExeSection(verneedsec.ExeSection).shlink:=dynstrndx;
           end
         else if assigned(ipltrelocsec) then
           TElfExeSection(ipltrelocsec.ExeSection).shinfo:=TElfExeSection(pltobjsec.ExeSection).secshidx;
@@ -2621,6 +2641,16 @@ implementation
         dynrelocsec.SecOptions:=[oso_keep];
 
         dynreloclist:=TFPObjectList.Create(true);
+
+        symversec:=TElfObjSection.create_ext(internalObjData,'.gnu.version',
+          SHT_GNU_VERSYM,SHF_ALLOC,sizeof(word),sizeof(word));
+        symversec.SecOptions:=[oso_keep];
+        verdefsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_d',
+          SHT_GNU_VERDEF,SHF_ALLOC,sizeof(pint),0);
+        verdefsec.SecOptions:=[oso_keep];
+        verneedsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_r',
+          SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0);
+        verneedsec.SecOptions:=[oso_keep];
       end;
 
 
@@ -2807,6 +2837,20 @@ implementation
             writeDynTag(relenttags[rela],dynrelocsec.shentsize);
             if (relative_reloc_count>0) then
               writeDynTag(relcnttags[rela],relative_reloc_count);
+          end;
+        if (verdefcount>0) or (verneedcount>0) then
+          begin
+            if (verdefcount>0) then
+              begin
+                writeDynTag(DT_VERDEF,verdefsec);
+                writeDynTag(DT_VERDEFNUM,verdefcount);
+              end;
+            if (verneedcount>0) then
+              begin
+                writeDynTag(DT_VERNEED,verneedsec);
+                writeDynTag(DT_VERNEEDNUM,verneedcount);
+              end;
+            writeDynTag(DT_VERSYM,symversec);
           end;
         writeDynTag(DT_NULL,0);
       end;
