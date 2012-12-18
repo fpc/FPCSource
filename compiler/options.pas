@@ -132,7 +132,8 @@ const
 
   suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
-                             + [system_i386_beos];
+                             + [system_i386_beos]
+                             + [system_m68k_amiga];
 
 {****************************************************************************
                                  Defines
@@ -3136,14 +3137,14 @@ begin
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$ifdef arm}
+{$if defined(arm) or defined (m68k)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm}
+{$endif arm or m68k}
   then
     begin
 {$ifdef cpufpemu}
       include(init_settings.moduleswitches,cs_fp_emulation);
-      { cs_fp_emulation and fpu_soft are equal on arm }
+      { cs_fp_emulation and fpu_soft are equal on arm and m68k }
       init_settings.fputype:=fpu_soft;
 {$endif cpufpemu}
     end;
@@ -3234,6 +3235,9 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
 {$if not defined(i386) and not defined(x86_64)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+{$endif}
+{$if defined(m68k)}
+      def_system_macro('FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE');
 {$endif}
 {$ifdef x86_64}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
