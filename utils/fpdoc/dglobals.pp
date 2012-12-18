@@ -35,6 +35,7 @@ resourcestring
   SDocPrograms               = 'Programs';
   SDocUnits                  = 'Units';
   SDocUnitTitle              = 'Reference for unit ''%s''';
+  SDocInheritanceHierarchy   = 'Inheritance Hierarchy';
   SDocInterfaceSection       = 'Interface section';
   SDocImplementationSection  = 'Implementation section';
   SDocUsedUnits              = 'Used units';
@@ -462,7 +463,6 @@ begin
     end;
     { No child found, let's create one if we are at the end of the path }
     if DotPos > 0 then
-      // !!!: better throw an exception
       Raise Exception.CreateFmt('Link path does not exist: %s',[APathName]);
     Result := TLinkNode.Create(ChildName, ALinkTo);
     if Assigned(LastChild) then
