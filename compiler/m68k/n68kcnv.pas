@@ -46,7 +46,7 @@ implementation
       cgbase,pass_1,pass_2,procinfo,
       ncon,ncal,
       ncgutil,
-      cpubase,aasmcpu,
+      cpubase,cpuinfo,aasmcpu,
       rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu;
 
 
@@ -61,7 +61,8 @@ implementation
         { In case we are in emulation mode, we must
           always call the helpers
         }
-        if (cs_fp_emulation in current_settings.moduleswitches) then
+        if (cs_fp_emulation in current_settings.moduleswitches)
+           or (current_settings.fputype=fpu_soft) then
           begin
             result := inherited first_int_to_real;
             exit;
