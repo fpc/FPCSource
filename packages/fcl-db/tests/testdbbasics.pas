@@ -141,6 +141,7 @@ type
 
     procedure TestLocate;
     procedure TestLocateCaseIns;
+    procedure TestLocateCaseInsInts;
 
     procedure TestFirst;
     procedure TestIntFilter;
@@ -910,6 +911,8 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestLocateCaseIns;
+// Tests case insensitive locate, also partial key locate, both against string fields.
+// Together with TestLocateCaseInsInts, checks 23509 DBF: locate with loPartialkey behaviour differs depending on index use
 begin
   with DBConnector.GetNDataset(true,13) do
     begin
@@ -923,6 +926,41 @@ begin
 
     CheckFalse(Locate('name',vararrayof(['TestNA']),[loPartialKey]));
     CheckTrue(Locate('name',vararrayof(['TestNA']),[loPartialKey, loCaseInsensitive]));
+    close;
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestLocateCaseInsInts;
+// Tests case insensitive locate, also partial key locate, both against integer fields.
+// Together with TestLocateCaseIns, checks 23509 DBF: locate with loPartialkey behaviour differs depending on index use
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    // To really test bug 23509: we should first have a record that matches greater than for non-string locate:
+    first;
+    insert;
+    fieldbyname('id').AsInteger:=55;
+    fieldbyname('name').AsString:='TestName55';
+    post;
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[loCaseInsensitive]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    // Check specifying partial key doesn't influence search results
+    CheckTrue(Locate('id',vararrayof([5]),[loPartialKey]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[loPartialKey, loCaseInsensitive]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+
     close;
     end;
 end;
