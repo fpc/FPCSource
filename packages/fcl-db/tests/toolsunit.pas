@@ -397,8 +397,6 @@ end;
 
 { TTestDataLink }
 
-{$IFDEF FPC}
-
 procedure TTestDataLink.DataSetScrolled(Distance: Integer);
 begin
   DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
@@ -411,6 +409,7 @@ begin
   inherited DataSetChanged;
 end;
 
+{$IFDEF FPC}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 {$ELSE}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
