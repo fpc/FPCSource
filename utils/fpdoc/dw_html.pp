@@ -2395,7 +2395,7 @@ procedure THTMLWriter.CreateClassHierarchyPage(AList : TStringList; AddUnit : Bo
           end
         end
       else
-        AppendText(CurOutputNode,EN);
+        AppendText(CurOutputNode,E.Nodename);
       LL:=TStringList.Create;
       try
         N:=E.FirstChild;

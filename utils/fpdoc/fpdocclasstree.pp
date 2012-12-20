@@ -16,8 +16,8 @@ Type
     FPackage: TPasPackage;
     FParentObject : TPasClassType;
   Protected
-    function LookForElement(PE: TDomElement; AElement: TPasElement): TDomNode;
-    function NodeMatch(N: TDomNode; AElement: TPasElement): Boolean;
+    function LookForElement(PE: TDomElement; AElement: TPasElement; NoPath : Boolean): TDomNode;
+    function NodeMatch(N: TDomNode; AElement: TPasElement; NoPath : Boolean): Boolean;
     Function AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
   Public
     Constructor Create(APackage : TPasPackage; AObjectKind : TPasObjKind = okClass);
@@ -71,7 +71,7 @@ begin
     end;
 end;
 
-Function TClassTreeBuilder.NodeMatch(N : TDomNode; AElement : TPasElement) : Boolean;
+Function TClassTreeBuilder.NodeMatch(N : TDomNode; AElement : TPasElement; NoPath : Boolean) : Boolean;
 
 Var
   PN,S : String;
@@ -81,23 +81,30 @@ begin
   if Result then
     begin
     S:=N.NodeName;
-    IF Assigned(Aelement.GetModule) then
-      PN:=Aelement.GetModule.PackageName
+    if NoPath then
+      Begin
+      Result:= (CompareText(S,AElement.Name)=0);
+      end
     else
-      PN:=FPackage.Name;
-    S:='#'+PN+'.'+TDomElement(N)['unit']+S;
-    Result:= (CompareText(S,AElement.PathName)=0)
-    end;
+      begin
+      IF Assigned(Aelement.GetModule) then
+        PN:=Aelement.GetModule.PackageName
+      else
+        PN:=FPackage.Name;
+      S:=PN+'.'+TDomElement(N)['unit']+'.'+S;
+      Result:= (CompareText(S,AElement.PathName)=0);
+      end;
+   end;
 end;
 
-Function TClassTreeBuilder.LookForElement(PE : TDomElement; AElement : TPasElement) : TDomNode;
+Function TClassTreeBuilder.LookForElement(PE : TDomElement; AElement : TPasElement; NoPath : boolean) : TDomNode;
 
 Var
   N : TDomNode;
 
 begin
   Result:=PE;
-  While (Result<>Nil) and Not NodeMatch(Result,AElement) do
+  While (Result<>Nil) and Not NodeMatch(Result,AElement,NoPath) do
     Result:=Result.NextSibling;
   If (Result=Nil) then
     if  Assigned(PE) then
@@ -107,7 +114,7 @@ begin
         begin
         if (N.NodeType=ELEMENT_NODE) then
           begin
-          Result:=LookForElement(N as TDomElement,AElement);
+          Result:=LookForElement(N as TDomElement,AElement,NoPath);
           end;
         N:=N.NextSibling;
         end;
@@ -121,11 +128,25 @@ Var
   PE : TDomElement;
   M : TPasModule;
   N : TDomNode;
+  PF : String;
 
 begin
+  PF:=StringOfChar(' ',ACount);
   Result:=Nil;
   If (AElement=Nil) then
-    Result:=FTreeStart
+    begin
+    Result:=FTreeStart;
+    Exit;
+    end
+  else If (AElement is TPasUnresolvedTypeRef) then
+    begin
+    N:=LookForElement(FTreeStart,AElement,True);
+    If (N=Nil) then
+      begin
+      Write('Symbol ',AElement.Name,' is unresolved');
+      PE:=FTreeStart;
+      end
+    end
   else If (AElement is TPasClassType) then
     begin
     if (AElement=FParentObject) then
@@ -135,30 +156,24 @@ begin
       PC:=AElement as TPasClassType;
       PE:=AddToClassTree(PC.AncestorType,ACount+1);
       if PE=Nil then
-        begin
-        Write('Name ',PC.Name,' parent ');
-        if Assigned(PC.AncestorType) then
-          Write('(Name: ',PC.AncestorType.Name,' Type:',PC.ANcestorType.ClassName,')');
-        PE:=FClassTree.CreateElement(PC.AncestorType.Name);
-        FTreeStart.AppendChild(PE);
-        end;
-      N:=LookForElement(PE,PC);
-      If (N<>Nil) then
-        Result:=N as TDomElement
-      else
-        begin
-        Inc(ACount);
-        Result:=FClassTree.CreateElement(AElement.Name);
-        If Not (AElement is TPasUnresolvedTypeRef) then
-          begin
-          M:=AElement.GetModule;
-          if Assigned(M) then
-            Result['unit']:=M.Name;
-          end;
-        PE.AppendChild(Result);
-        end;
-     end;
-    end
+        PE:=FTreeStart;
+      N:=LookForElement(PE,PC,False);
+      end
+    end;
+  If (N<>Nil) then
+    Result:=N as TDomElement
+  else
+    begin
+    Inc(ACount);
+    Result:=FClassTree.CreateElement(AElement.Name);
+    If Not (AElement is TPasUnresolvedTypeRef) then
+      begin
+      M:=AElement.GetModule;
+      if Assigned(M) then
+        Result['unit']:=M.Name;
+      end;
+    PE.AppendChild(Result);
+    end;
 end;
 
 end.
