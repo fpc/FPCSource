@@ -48,6 +48,7 @@ resourcestring
   SDocProceduresAndFunctions = 'Procedures and functions';
   SDocVariables              = 'Variables';
   SDocIdentifierIndex        = 'Index';
+  SDocPackageClassHierarchy  = 'Class hierarchy';
   SDocModuleIndex            = 'Index of all identifiers in unit ''%s''';
   SDocPackageIndex           = 'Index of all identifiers in package ''%s''';
   SDocUnitOverview           = 'Overview of unit ''%s''';

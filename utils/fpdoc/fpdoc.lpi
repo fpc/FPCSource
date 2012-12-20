@@ -31,7 +31,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--project=fpdoc.xml"/>
+        <CommandLineParams Value="--package=me --output=me --input=ct.pp --format=html"/>
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -40,7 +40,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="fpdoc.pp"/>
         <IsPartOfProject Value="True"/>
@@ -116,6 +116,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="mkfpdoc"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="fpdocclasstree.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpdocclasstree"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

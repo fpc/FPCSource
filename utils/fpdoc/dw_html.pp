@@ -32,6 +32,7 @@ const
   // Maybe needed later for topic overview ??
   TopicsSubIndex = 7;
   IndexSubIndex = 8;
+  ClassHierarchySubIndex = 9;
 
   // Subpage indices for classes
   PropertiesByInheritanceSubindex = 1;
@@ -88,7 +89,10 @@ type
     FOnTest: TNotifyEvent;
     FPackage: TPasPackage;
     FCharSet : String;
+    procedure AddElementsFromList(L: TStrings; List: TFPList; UsePathName : Boolean = False);
     procedure AppendTypeDecl(AType: TPasType; TableEl, CodeEl: TDomElement);
+    procedure CreateMinusImage;
+    procedure CreatePlusImage;
     function GetPageCount: Integer;
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
@@ -99,6 +103,7 @@ type
     PageInfos: TObjectList;     // list of TPageInfo objects
 
     Doc: THTMLDocument;
+    HeadElement,
     BodyElement, TitleElement: TDOMElement;
 
     Module: TPasModule;
@@ -233,6 +238,8 @@ type
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
     procedure CreatePackagePageBody;
     procedure CreatePackageIndex;
+    procedure CreatePackageClassHierarchy;
+    procedure CreateClassHierarchyPage(AList: TStringList; AddUnit : Boolean);
     procedure AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
     Procedure CreateTopicPageBody(AElement : TTopicElement);
     procedure CreateModulePageBody(AModule: TPasModule; ASubpageIndex: Integer);
@@ -286,9 +293,12 @@ type
 
 implementation
 
-uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas,chmsitemap;
+uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas, fpdocclasstree,
+  chmsitemap;
 
 {$i css.inc}
+{$i plusimage.inc}
+{$i minusimage.inc}
 
 Function FixHTMLpath(S : String) : STring;
 
@@ -525,6 +535,13 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     end;
   end;
 
+  Function HaveClasses(AModule: TPasModule) : Boolean;
+
+  begin
+    with AModule do
+      Result:=InterfaceSection.Classes.Count>0;
+  end;
+
   procedure ScanModule(AModule: TPasModule; LinkList : TObjectList);
   var
     i, j, k: Integer;
@@ -621,6 +638,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 var
   i: Integer;
   L : TObjectList;
+  H : Boolean;
 
 begin
   inherited ;
@@ -642,6 +660,15 @@ begin
     begin
     AddPage(Package, 0);
     AddPage(Package,IndexSubIndex);
+    I:=0;
+    H:=False;
+    While (I<Package.Modules.Count) and Not H do
+      begin
+      H:=HaveClasses(TPasModule(Package.Modules[i]));
+      Inc(I);
+      end;
+    if H then
+      AddPage(Package,ClassHierarchySubIndex);
     AddTopicPages(Package);
     end;
   L:=TObjectList.Create;
@@ -683,6 +710,7 @@ begin
   Doc.AppendChild(HTMLEl);
 
   HeadEl := Doc.CreateHeadElement;
+  HeadElement:=HeadEl;
   HTMLEl.AppendChild(HeadEl);
   El := Doc.CreateElement('meta');
   HeadEl.AppendChild(El);
@@ -762,6 +790,41 @@ begin
       end;
     end;
   CreateCSSFile;
+  CreatePlusImage;
+  CreateMinusImage;
+end;
+
+procedure THTMLWriter.CreatePlusImage;
+Var
+  TempStream: TMemoryStream;
+
+begin
+  TempStream := TMemoryStream.Create;
+  try
+    DoLog('Creating plus image',[]);
+    TempStream.WriteBuffer(PlusImageData,SizeOf(PlusImageData));
+    TempStream.Position := 0;
+    TempStream.SaveToFile(Engine.output+'plus.png');
+  finally
+    TempStream.Free;
+  end;
+end;
+
+procedure THTMLWriter.CreateMinusImage;
+
+Var
+  TempStream: TMemoryStream;
+
+begin
+  TempStream := TMemoryStream.Create;
+  try
+    DoLog('Creating minus image',[]);
+    TempStream.WriteBuffer(MinusImageData,SizeOf(MinusImageData));
+    TempStream.Position := 0;
+    TempStream.SaveToFile(Engine.output+'minus.png');
+  finally
+    TempStream.Free;
+  end;
 end;
 
 procedure THTMLWriter.CreateCSSFile;
@@ -2003,6 +2066,20 @@ var
       AppendText(ParaEl, ']');
   end;
 
+  procedure AddPackageLink(ALinkSubpageIndex: Integer; const AName: String);
+  begin
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
+    if ALinkSubpageIndex = ASubpageIndex then
+      AppendText(ParaEl, AName)
+    else
+      AppendText(
+        CreateLink(ParaEl, ResolveLinkWithinPackage(Package, ALinkSubpageIndex)),
+        AName);
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
+  end;
+
 begin
   TableEl := CreateEl(BodyElement, 'table');
   TableEl['cellpadding'] := '4';
@@ -2032,17 +2109,8 @@ begin
     end
   else
     begin
-    // Manually add link for package page
-    if FUseMenuBrackets then
-      AppendText(ParaEl, '[');
-    if (IndexSubIndex = ASubpageIndex) then
-      AppendText(ParaEl, SDocIdentifierIndex)
-    else
-      AppendText(
-        CreateLink(ParaEl, ResolveLinkWithinPackage(Package, IndexSubIndex)),
-        SDocIdentifierIndex);
-    if FUseMenuBrackets then
-      AppendText(ParaEl, ']');
+    AddPackageLink(IndexSubIndex, SDocIdentifierIndex);
+    AddPackageLink(ClassHierarchySubIndex, SDocPackageClassHierarchy);
     end;
 
   if Length(SearchPage) > 0 then
@@ -2269,6 +2337,162 @@ begin
     end;
 end;
 
+procedure THTMLWriter.CreateClassHierarchyPage(AList : TStringList; AddUnit : Boolean);
+  Procedure PushClassElement;
+
+  Var
+    H : THTMLElement;
+  begin
+    H:=CreateEl(CurOutputNode, 'li');
+    H['class']:='classtree';
+    PushOutputNode(H);
+    H:=CreateEl(CurOutputNode, 'span');
+    H['class']:='toggletreeclose';
+    H['onclick']:='expandorcollapse(this)';
+    PushOutputNode(h);
+    AppendNbSp(h,1);
+    PopOutputNode;
+  end;
+
+  Procedure PushClassList;
+
+  Var
+    H : THTMLElement;
+  begin
+    H:=CreateEl(CurOutputNode, 'ul');
+    H['class']:='classtreelist';
+    PushOutputNode(h);
+  end;
+
+  Procedure AppendClass(E : TDomElement);
+
+  Var
+    N : TDomNode;
+    P,PM : TPasElement;
+    NN : String;
+    EN : String;
+    LL : TstringList;
+    I,J : Integer;
+
+  begin
+    EN:=Package.Name+'.'+E['unit']+'.'+E.NodeName;
+    J:=AList.IndexOf(EN);
+    If J<>-1 then
+      P:=AList.Objects[J] as TPasElement
+    else
+      P:=Engine.FindElement(EN);
+    PushClassElement;
+    try
+      if (P<>Nil) then
+        begin
+        AppendHyperLink(CurOutputNode,P);
+        PM:=P.Getmodule;
+        if (PM<>Nil) then
+          begin
+          AppendText(CurOutputNode,' (');
+          AppendHyperLink(CurOutputNode,PM);
+          AppendText(CurOutputNode,')');
+          end
+        end
+      else
+        AppendText(CurOutputNode,P.Name);
+      LL:=TStringList.Create;
+      try
+        N:=E.FirstChild;
+        While (N<>Nil) do
+          begin
+          if (N.NodeType=ELEMENT_NODE) then
+            LL.AddObject(N.NodeName,N);
+          N:=N.NextSibling;
+          end;
+        if (LL.Count>0) then
+          begin
+          LL.Sorted:=true;
+          PushClassList;
+          try
+            For I:=0 to LL.Count-1 do
+              AppendClass(LL.Objects[i] as TDomElement);
+          finally
+            PopOutputNode;
+          end;
+          end;
+      finally
+        LL.Free;
+      end;
+    Finally
+      PopOutputNode;
+    end;
+  end;
+
+Var
+  B : TClassTreeBuilder;
+  E : TDomElement;
+  F : TFileStream;
+
+begin
+  PushOutputNode(BodyElement);
+  try
+    B:=TClassTreeBuilder.Create(Package,okClass);
+    try
+      B.BuildTree(AList);
+      // Classes
+      WriteXMLFile(B.ClassTree,'tree.xml');
+      // Dummy TObject
+      E:=B.ClassTree.DocumentElement;
+      PushClassList;
+      try
+        AppendClass(E);
+      finally
+        PopOutputNode;
+      end;
+    finally
+      B.Free;
+    end;
+  finally
+    PopOutputNode;
+  end;
+end;
+
+procedure THTMLWriter.CreatePackageClassHierarchy;
+
+Const
+  SFunc = 'function expandorcollapse (o) {'+sLineBreak+
+          '  o.className = (o.className=="toggletreeclose") ? "toggletreeopen" : "toggletreeclose";'+sLineBreak+
+          '  o.parentNode.className = (o.className=="toggletreeclose") ? "classtree" : "classtreeclosed";'+sLineBreak+
+          '  return false;'+sLineBreak+
+          '}';
+
+Var
+  L : TStringList;
+  I : Integer;
+  M : TPasModule;
+  E : TPasElement;
+  S : String;
+  SE : THTMLElement;
+
+begin
+  SE := Doc.CreateElement('script');
+  AppendText(SE,SFunc);
+  HeadElement.AppendChild(SE);
+  L:=TStringList.Create;
+  try
+    L.Capacity:=PageInfos.Count; // Too much, but that doesn't hurt.
+    For I:=0 to Package.Modules.Count-1 do
+      begin
+      M:=TPasModule(Package.Modules[i]);
+      Self.AddElementsFromList(L,M.InterfaceSection.Classes,True)
+      end;
+    AppendMenuBar(ClassHierarchySubIndex);
+    S:=Package.Name;
+    If Length(S)>0 then
+      Delete(S,1,1);
+    AppendTitle(Format(SDocPackageClassHierarchy, [S]));
+    CreateClassHierarchyPage(L,True);
+  Finally
+    L.Free;
+  end;
+end;
+
 procedure THTMLWriter.CreatePageBody(AElement: TPasElement;
   ASubpageIndex: Integer);
 var
@@ -2289,6 +2513,8 @@ begin
       CreatePackagePageBody
     else if ASubPageIndex=IndexSubIndex then
       CreatePackageIndex  
+    else if ASubPageIndex=ClassHierarchySubIndex then
+      CreatePackageClassHierarchy
     end
   else
     begin
@@ -2409,24 +2635,27 @@ begin
   end;  
 end;
 
+Procedure THTMLWriter.AddElementsFromList(L : TStrings; List : TFPList; UsePathName : Boolean = False);
+
+Var
+  I : Integer;
+  El : TPasElement;
+
+begin
+  For I:=0 to List.Count-1 do
+    begin
+    El:=TPasElement(List[I]);
+    if UsePathName then
+      L.AddObject(El.PathName,El)
+    else
+      L.AddObject(El.Name,El);
+    If el is TPasEnumType then
+      AddElementsFromList(L,TPasEnumType(el).Values);
+    end;
+end;
+
 procedure THTMLWriter.AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
 
-  Procedure AddElementsFromList(L : TStrings; List : TFPList);
-  
-  Var
-    I : Integer;
-    El : TPasElement;
-    
-  begin
-    For I:=0 to List.Count-1 do
-      begin
-      El:=TPasElement(List[I]);
-      L.AddObject(El.Name,El);
-      If el is TPasEnumType then
-        AddElementsFromList(L,TPasEnumType(el).Values);
-      end;
-  end;
-  
 begin
   AddElementsFromList(L,AModule.InterfaceSection.Consts);
   AddElementsFromList(L,AModule.InterfaceSection.Types);

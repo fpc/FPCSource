@@ -23,6 +23,7 @@ uses
 {$endif}
   SysUtils, Classes, Gettext, custapp,
   dGlobals,  // Global definitions, constants.
+  fpdocclasstree, // Class tree builder
   dwriter,   // TFPDocWriter definition.
   dwlinear,  // Linear (abstract) writer
   dw_LaTeX,  // TLaTex writer
