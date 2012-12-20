@@ -18,7 +18,7 @@ Type
   Protected
     function LookForElement(PE: TDomElement; AElement: TPasElement): TDomNode;
     function NodeMatch(N: TDomNode; AElement: TPasElement): Boolean;
-    Function AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
+    Function AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
   Public
     Constructor Create(APackage : TPasPackage; AObjectKind : TPasObjKind = okClass);
     Destructor Destroy; override;
@@ -74,14 +74,18 @@ end;
 Function TClassTreeBuilder.NodeMatch(N : TDomNode; AElement : TPasElement) : Boolean;
 
 Var
-  S : String;
+  PN,S : String;
 
 begin
   Result:=(N.NodeType=ELEMENT_NODE);
   if Result then
     begin
     S:=N.NodeName;
-    S:=FPackage.Name+'.'+TDomElement(N)['unit']+'.'+S;
+    IF Assigned(Aelement.GetModule) then
+      PN:=Aelement.GetModule.PackageName
+    else
+      PN:=FPackage.Name;
+    S:='#'+PN+'.'+TDomElement(N)['unit']+S;
     Result:= (CompareText(S,AElement.PathName)=0)
     end;
 end;
@@ -96,20 +100,21 @@ begin
   While (Result<>Nil) and Not NodeMatch(Result,AElement) do
     Result:=Result.NextSibling;
   If (Result=Nil) then
-    begin
-    N:=PE.FirstChild;
-    While (Result=Nil) and (N<>Nil) do
+    if  Assigned(PE) then
       begin
-      if (N.NodeType=ELEMENT_NODE) then
+      N:=PE.FirstChild;
+      While (Result=Nil) and (N<>Nil) do
         begin
-        Result:=LookForElement(N as TDomElement,AElement);
+        if (N.NodeType=ELEMENT_NODE) then
+          begin
+          Result:=LookForElement(N as TDomElement,AElement);
+          end;
+        N:=N.NextSibling;
         end;
-      N:=N.NextSibling;
       end;
-    end
 end;
 
-Function TClassTreeBuilder.AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
+Function TClassTreeBuilder.AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
 
 Var
   PC : TPasClassType;
@@ -123,14 +128,21 @@ begin
     Result:=FTreeStart
   else If (AElement is TPasClassType) then
     begin
-    Writeln('Doing ',AElement.Name);
     if (AElement=FParentObject) then
       Result:=FTreeStart
     else
       begin
       PC:=AElement as TPasClassType;
-      PE:=AddToClassTree(PC.AncestorType,ACount);
-      N:=LookForElement(PE,AElement);
+      PE:=AddToClassTree(PC.AncestorType,ACount+1);
+      if PE=Nil then
+        begin
+        Write('Name ',PC.Name,' parent ');
+        if Assigned(PC.AncestorType) then
+          Write('(Name: ',PC.AncestorType.Name,' Type:',PC.ANcestorType.ClassName,')');
+        PE:=FClassTree.CreateElement(PC.AncestorType.Name);
+        FTreeStart.AppendChild(PE);
+        end;
+      N:=LookForElement(PE,PC);
       If (N<>Nil) then
         Result:=N as TDomElement
       else
@@ -142,13 +154,6 @@ begin
           M:=AElement.GetModule;
           if Assigned(M) then
             Result['unit']:=M.Name;
-          end;
-        if (PE=FTreeStart) then
-          begin
-          Writeln('Adding to tree start :',AELement.Name);
-          Writeln('Have ancestor : ',PC.AncestorType<>Nil);
-          if (PC.AncestorType<>Nil) then
-            Writeln(PC.AncestorType.ClassName, ' : '+PC.AncestorType.Name);
           end;
         PE.AppendChild(Result);
         end;

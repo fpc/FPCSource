@@ -2395,7 +2395,7 @@ procedure THTMLWriter.CreateClassHierarchyPage(AList : TStringList; AddUnit : Bo
           end
         end
       else
-        AppendText(CurOutputNode,P.Name);
+        AppendText(CurOutputNode,EN);
       LL:=TStringList.Create;
       try
         N:=E.FirstChild;
@@ -2480,7 +2480,8 @@ begin
     For I:=0 to Package.Modules.Count-1 do
       begin
       M:=TPasModule(Package.Modules[i]);
-      Self.AddElementsFromList(L,M.InterfaceSection.Classes,True)
+      if Not (M is TPasExternalModule) then
+        Self.AddElementsFromList(L,M.InterfaceSection.Classes,True)
       end;
     AppendMenuBar(ClassHierarchySubIndex);
     S:=Package.Name;

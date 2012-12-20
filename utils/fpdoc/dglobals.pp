@@ -201,6 +201,8 @@ type
     destructor Destroy; override;
   end;
 
+  TPasExternalClassType = Class(TPasClassType);
+  TPasExternalModule = Class(TPasModule);
 
   { Link entry tree
     TFPDocEngine stores the root of the entry tree in its property
@@ -738,7 +740,7 @@ var
       begin
         if not CreateNew then
           exit;
-        Module := TPasModule.Create(s, HPackage);
+        Module := TPasExternalModule.Create(s, HPackage);
         Module.InterfaceSection := TInterfaceSection.Create('', Module);
         HPackage.Modules.Add(Module);
       end;
@@ -799,7 +801,7 @@ var
     begin
       s:= ResolvePackageModule(AName,HPackage,Module,True);
       // Create node for class
-      Result := TPasClassType.Create(s, Module.InterfaceSection);
+      Result := TPasExternalClassType.Create(s, Module.InterfaceSection);
       Result.ObjKind := okClass;
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
