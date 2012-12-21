@@ -407,7 +407,7 @@ begin
                                else
                                  size := (li-VARHDRSZ) and $FFFF;
                                end;
-                             if size > dsMaxStringSize then size := dsMaxStringSize;
+                             if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftMemo;
@@ -835,7 +835,7 @@ begin
             else
             begin
               li := pqgetlength(res,curtuple,x);
-              if li > dsMaxStringSize then li := dsMaxStringSize;
+              if li > FieldDef.Size then li := FieldDef.Size;
               Move(CurrBuff^, Buffer^, li);
             end;
           end;

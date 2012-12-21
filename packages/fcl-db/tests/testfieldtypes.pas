@@ -1184,7 +1184,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestStringLargerThen8192;
-
+// See also: TestInsertLargeStrFields
 var
   s             : string;
   i             : integer;
@@ -1513,9 +1513,13 @@ begin
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;
+// See also: TestStringLargerThen8192
 const
-  FieldValue='test1';
+  FieldValue1='test1';
+var
+  FieldValue2: string;
 begin
+  FieldValue2:=StringOfChar('t', 16000);
   with TSQLDBConnector(DBConnector) do
     begin
     Connection.ExecuteDirect('create table FPDEV2 (  ' +
@@ -1528,11 +1532,15 @@ begin
 
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
-    Query.InsertRecord([1,FieldValue]);
+    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
+    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(FieldValue, Query.FieldByName('NAME').AsString);
+    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
+    Query.Next;
+    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
+    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
     Query.Close;
     end;
 end;
