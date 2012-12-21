@@ -20,7 +20,7 @@ unit fpmkunit;
 {$H+}
 {$inline on}
 
-{ For target or cpu dependent dependencies add also an overload were you
+{ For target or cpu dependent dependencies also add an overload where you
   can pass only a set of cpus. This is disabled for now because it creates
   an error in the compiler with overload choosing }
 { define cpu_only_overloads}
@@ -2825,6 +2825,7 @@ begin
   FreeAndNil(FSourcePath);
   FreeAndNil(FExamplePath);
   FreeAndNil(FTestPath);
+  FreeAndNil(FCommands);
   FreeAndNil(FObjectPath);
   FreeAndNil(FUnitPath);
   FreeAndNil(FSources);
@@ -6799,7 +6800,7 @@ begin
   FIncludePath:=TConditionalStrings.Create(TConditionalString);
   FObjectPath:=TConditionalStrings.Create(TConditionalString);
   FDependencies:=TDependencies.Create(TDependency);
-  FCommands:=TCOmmands.Create(TCommand);
+  FCommands:=TCommands.Create(TCommand);
 end;
 
 
