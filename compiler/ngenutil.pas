@@ -705,7 +705,7 @@ implementation
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-       if ltvTable.first<>nil then
+       if not ltvTable.Empty then
         begin
           s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
           { end of the list marker }
