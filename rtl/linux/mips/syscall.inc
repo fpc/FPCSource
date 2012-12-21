@@ -23,33 +23,15 @@
   linux flavours
 }
 function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];assembler;
-var
-  temp: longint;
 asm
   li  $2,4002
   syscall
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -64,33 +46,15 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   syscall
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -101,8 +65,6 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -110,25 +72,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -139,8 +85,6 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -149,25 +93,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -178,8 +106,6 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -189,25 +115,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -218,8 +128,6 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -230,25 +138,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
@@ -259,8 +151,6 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -274,25 +164,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 
@@ -304,8 +178,6 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-var
-  temp: longint;
 asm
   move  $v0,$a0
   move  $a0,$a1
@@ -320,25 +192,9 @@ asm
   nop
   beq $7,$0,.LDone
   nop
-  lui   $8,%hi(fpc_threadvar_relocate_proc)
-  addiu   $8,%lo(fpc_threadvar_relocate_proc)
-  lw   $8,0($8)
-  bne  $8,$0,.LThreaded
+  move  $a0,$2
+  jal   SetErrno
   nop
-  lui   $4,%hi(Errno+4)
-  addiu   $4,%lo(Errno+4)
-  sw    $2,0($4)
-  b     .LFailed
-  nop
-.LThreaded:
-  sw   $2,temp
-  lui   $4,%hi(errno)
-  addiu   $4,$4,%lo(errno)
-  jalr   $8
-  nop
-  lw  $8,temp
-  sw  $8,0($2)
-.LFailed:
   li    $2,-1
 .LDone:
 end;
