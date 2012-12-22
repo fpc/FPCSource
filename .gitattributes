@@ -2887,6 +2887,7 @@ packages/fcl-web/src/base/custweb.pp svneol=native#text/plain
 packages/fcl-web/src/base/ezcgi.pp svneol=native#text/plain
 packages/fcl-web/src/base/fcgigate.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpapache.pp svneol=native#text/plain
+packages/fcl-web/src/base/fpapache24.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpcgi.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpdatasetform.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpfcgi.pp svneol=native#text/plain

@@ -9,7 +9,7 @@ version=2.7.1
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb \
       webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver \
-      fphttpclient custhttpapp fphttpapp fpwebfile
+      fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 rsts=fpcgi fphtml fpweb websession cgiapp fphttpserver fphttpclient
 
 # these units are listed separately because they don't work for
@@ -26,7 +26,7 @@ units_win64=custfcgi fpfcgi
 units_aix=custfcgi fpfcgi
 
 [require]
-packages=fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net
+packages=fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net httpd24
 packages_darwin=univint
 packages_iphonesim=univint
 
