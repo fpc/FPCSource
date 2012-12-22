@@ -1580,10 +1580,10 @@ type
     procedure EnableControls;
     function FieldByName(const FieldName: string): TField;
     function FindField(const FieldName: string): TField;
-    function FindFirst: Boolean;
-    function FindLast: Boolean;
-    function FindNext: Boolean;
-    function FindPrior: Boolean;
+    function FindFirst: Boolean; virtual;
+    function FindLast: Boolean; virtual;
+    function FindNext: Boolean; virtual;
+    function FindPrior: Boolean; virtual;
     procedure First;
     procedure FreeBookmark(ABookmark: TBookmark); virtual;
     function GetBookmark: TBookmark; virtual;
