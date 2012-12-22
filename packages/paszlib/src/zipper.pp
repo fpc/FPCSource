@@ -263,14 +263,14 @@ Type
     FAttributes: LongInt;
     FDateTime: TDateTime;
     FDiskFileName: String;
-    FHeaderPos: Longint;
+    FHeaderPos: int64;
     FOS: Byte;
     FSize: Integer;
     FStream: TStream;
     FCompressionLevel: TCompressionlevel;
     function GetArchiveFileName: String;
   Protected
-    Property HdrPos : Longint Read FHeaderPos Write FheaderPos;
+    Property HdrPos : int64 Read FHeaderPos Write FheaderPos;
   Public
     constructor Create(ACollection: TCollection); override;
     function IsDirectory: Boolean;
@@ -1322,9 +1322,9 @@ End;
 Procedure TZipper.BuildZipDirectory;
 
 Var
-   SavePos   : LongInt;
-   HdrPos    : LongInt;
-   CenDirPos : LongInt;
+   SavePos   : int64;
+   HdrPos    : int64;
+   CenDirPos : int64;
    ACount    : Word;
    ZFileName  : ShortString;
 
