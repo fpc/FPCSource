@@ -81,7 +81,7 @@ uses
 {$ELSE}
   UnixType,
 {$ENDIF}
-  ctypes, apr;
+  ctypes, apr24;
 
 const
 {$ifndef fpc}

@@ -34,7 +34,7 @@ begin
 
 //    P.Dependencies.Add('x11');
 
-    T:=P.Targets.AddUnit('apr.pas');
+    T:=P.Targets.AddUnit('apr24.pas');
       with T.Dependencies do
         begin
           AddInclude('apr_errno.inc');
@@ -63,7 +63,7 @@ begin
           AddInclude('http_protocol.inc');
           AddInclude('aprutil/apr_buckets.inc');
           AddInclude('aprutil/apr_uri.inc');
-          AddUnit('apr');
+          AddUnit('apr24');
         end;
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('mod_hello.pp');
