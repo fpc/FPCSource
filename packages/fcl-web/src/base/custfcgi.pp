@@ -395,8 +395,12 @@ begin
     begin
     ACgiVarNr:=HttpToCGI[Index];
     if ACgiVarNr>0 then
-      Result:=FCGIParams.Values[CgiVarNames[ACgiVarNr]]
-    else
+      begin
+        Result:=FCGIParams.Values[CgiVarNames[ACgiVarNr]];
+        if (ACgiVarNr = 5) and                                          //PATH_INFO
+           (length(Result)>=2)and(word(Pointer(@Result[1])^)=$2F2F)then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Result, 1, 1);                                         //Remove the extra first one
+      end else
       Result := '';
     end
   else
@@ -629,23 +633,30 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
   Procedure DumpFCGIRecord (Var Header :FCGI_Header; ContentLength : word; PaddingLength : byte; ResRecord : Pointer);
 
   Var
-    s : string;
+    S, s1, s2 : string;
     I : Integer;
 
   begin
-      Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
+      Writeln(Format('Dumping record, Sizeof(Header)=%d, ContentLength=%d, PaddingLength=%d',[SizeOf(Header),ContentLength,PaddingLength]));
+      S:=''; s1 := '';
       For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+      begin
+        s2 := Format('%:2X ',[PByte(ResRecord)[i]]);
+        if s2[1] = ' ' then s2[1] := '0';
+        s1 := s1 + s2;
+        If PByte(ResRecord)[i]>32 then
+          S:=S+char(PByte(ResRecord)[i])
+        else
+          S:=S+' ';
+        if (I>0) and (((I+1) mod 16) = 0) then
         begin
-        Write(Format('%:3d ',[PByte(ResRecord)[i]]));
-        If PByte(ResRecord)[i]>30 then
-          S:=S+char(PByte(ResRecord)[i]);
-        if (I mod 16) = 0 then
-           begin
-           writeln('  ',S);
-           S:='';
-           end;
+           Writeln(s1 + '  ' + S);
+           S:=''; s1 := '';
         end;
-      Writeln('  ',S)
+      end;
+      if length(s1)<48 then
+        repeat s1 := s1 + ' ' until length(s1)>=48;
+      Writeln(s1 + '  '+S)
   end;
 {$ENDIF DUMPRECORD}
 
