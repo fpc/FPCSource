@@ -47,6 +47,7 @@
   add_httpd13;
   add_httpd20;
   add_httpd22;
+  add_httpd24;
   add_ibase;
   add_iconvenc;
   add_imagemagick;

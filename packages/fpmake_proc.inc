@@ -272,6 +272,12 @@ begin
 {$include httpd22/fpmake.pp}
 end;
 
+procedure add_httpd24;
+begin
+  with Installer do
+{$include httpd24/fpmake.pp}
+end;
+
 procedure add_ibase;
 begin
   with Installer do
