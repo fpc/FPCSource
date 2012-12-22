@@ -26,6 +26,7 @@ begin
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22');
+    P.Dependencies.Add('httpd24');
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
@@ -125,6 +126,12 @@ begin
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache.pp') do
+      begin
+        Dependencies.AddUnit('fphttp');
+        Dependencies.AddUnit('custweb');
+        ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('fpapache24.pp') do
       begin
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
