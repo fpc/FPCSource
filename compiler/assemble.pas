@@ -66,7 +66,7 @@ interface
       }
       TExternalAssembler=class(TAssembler)
       private
-        procedure CreateSmartLinkPath(const s:string);
+        procedure CreateSmartLinkPath(const s:TPathStr);
       protected
       {outfile}
         AsmSize,
@@ -291,7 +291,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+    procedure TExternalAssembler.CreateSmartLinkPath(const s:TPathStr);
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
@@ -307,7 +307,7 @@ Implementation
         end;
 
       var
-        hs  : string;
+        hs  : TPathStr;
       begin
         if PathExists(s,false) then
          begin
