@@ -17,8 +17,6 @@
 { the tk* constants are now declared in system.inc }
 
 type
-  TRTTIProc=procedure(Data,TypeInfo:Pointer);
-
   PRecordElement=^TRecordElement;
   TRecordElement=packed record
     TypeInfo: Pointer;
