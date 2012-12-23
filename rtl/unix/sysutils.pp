@@ -34,6 +34,7 @@ interface
 {$DEFINE HASCREATEGUID}
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+{$DEFINE HAS_GETTICKCOUNT64}
 uses
   Unix,errors,sysconst,Unixtype;
 
@@ -318,6 +319,14 @@ Begin
   Second:=Epoch Mod 60;
 End;
 
+
+function GetTickCount64: QWord;
+var
+  tp: TTimeVal;
+begin
+  fpgettimeofday(@tp, nil);
+  Result := (Int64(tp.tv_sec) * 1000) + (tp.tv_usec div 1000);
+end;
 
 
 

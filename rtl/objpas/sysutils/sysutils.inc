@@ -121,6 +121,28 @@
   {$i dati.inc}
 {$endif}
 
+{$IFNDEF HAS_GETTICKCOUNT}
+function GetTickCount: LongWord;
+begin
+  Result := LongWord(GetTickCount64);
+end;
+{$ENDIF}
+
+{$IFNDEF HAS_GETTICKCOUNT64}
+function GetTickCount64: QWord;
+begin
+{$IFDEF FPU_NONE}
+  {$IFDEF HAS_SYSTIMERTICK}
+  Result := SysTimerTick;
+  {$ELSE}
+  Result := 0;
+  {$ENDIF}
+{$ELSE}
+  Result := Trunc(Now * 24 * 60 * 60 * 1000);
+{$ENDIF}
+end;
+{$ENDIF}
+
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
