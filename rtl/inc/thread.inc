@@ -16,7 +16,9 @@
 
 Var
   CurrentTM : TThreadManager;
+{$ifndef THREADVAR_RELOCATED_ALREADY_DEFINED}
   fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
+{$endif THREADVAR_RELOCATED_ALREADY_DEFINED}
 
 {*****************************************************************************
                            Threadvar initialization

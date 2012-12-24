@@ -46,6 +46,11 @@ function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):i
 function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64; oldfpccall;  external name 'FPC_DOSYS7';
 function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,param8:TSysParam):int64; oldfpccall;  external name 'FPC_DOSYS8';
 
+{ This variable is needed in syscall.inc assembler code }
+var
+  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
+{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
+
 
 {$endif}
 
