@@ -2,6 +2,32 @@ Type
   HKEY = THandle;
   PHKEY = ^HKEY;
   
+{$ifdef windows}
+
+{ Direct mapping to constants in Windows unit }
+
+Const
+  HKEY_CLASSES_ROOT     = Windows.HKEY_CLASSES_ROOT;
+  HKEY_CURRENT_USER     = Windows.HKEY_CURRENT_USER;
+  HKEY_LOCAL_MACHINE    = Windows.HKEY_LOCAL_MACHINE;
+  HKEY_USERS            = Windows.HKEY_USERS;
+  HKEY_PERFORMANCE_DATA = Windows.HKEY_PERFORMANCE_DATA;
+  HKEY_CURRENT_CONFIG   = Windows.HKEY_CURRENT_CONFIG;
+  HKEY_DYN_DATA         = Windows.HKEY_DYN_DATA;
+
+  KEY_ALL_ACCESS         = Windows.KEY_ALL_ACCESS;
+  KEY_CREATE_LINK        = Windows.KEY_CREATE_LINK;
+  KEY_CREATE_SUB_KEY     = Windows.KEY_CREATE_SUB_KEY;
+  KEY_ENUMERATE_SUB_KEYS = Windows.KEY_ENUMERATE_SUB_KEYS;
+  KEY_EXECUTE            = Windows.KEY_EXECUTE;
+  KEY_NOTIFY             = Windows.KEY_NOTIFY;
+  KEY_QUERY_VALUE        = Windows.KEY_QUERY_VALUE;
+  KEY_READ               = Windows.KEY_READ;
+  KEY_SET_VALUE          = Windows.KEY_SET_VALUE;
+  KEY_WRITE              = Windows.KEY_WRITE;
+
+{$else}
+
 Const
   HKEY_CLASSES_ROOT     = HKEY($80000000);
   HKEY_CURRENT_USER     = HKEY($80000001);
@@ -21,3 +47,5 @@ Const
   KEY_READ               = $20019;
   KEY_SET_VALUE          = 2;
   KEY_WRITE              = $20006;
+  
+{$endif windows}

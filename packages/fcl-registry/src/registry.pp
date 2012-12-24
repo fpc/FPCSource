@@ -17,9 +17,7 @@ Uses
     SysUtils,
     inifiles;
 
-{$ifdef XMLREG}
-  {$I regdef.inc}
-{$endif XMLREG}
+{$I regdef.inc}
 
 type
   ERegistryException = class(Exception);
