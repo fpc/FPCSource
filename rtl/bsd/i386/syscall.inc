@@ -31,6 +31,11 @@ These functions are the same over all three BSDs, except that some have a
  {$DEFINE ErrnoWord}
 {$endif}
 
+{ This variable is needed in syscall.inc assembler code }
+var
+  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
+{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
+
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
