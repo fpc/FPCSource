@@ -86,6 +86,8 @@ Type
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
     Property LastURL : DomString Read FLastURL Write FLastURL;
+    // Overriden from fpdocwriter;
+    procedure DescrWriteText(const AText: DOMString); override;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     function InterpretOption(const Cmd, Arg: String): Boolean; override;
@@ -113,8 +115,6 @@ Type
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode);
     Procedure WriteTopicNode(Node : TDocNode; Level : Integer);
-    // Overriden from fpdocwriter;
-    procedure DescrWriteText(const AText: DOMString); override;
   end;
 
 implementation

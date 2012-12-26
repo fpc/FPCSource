@@ -196,7 +196,6 @@ const
   cMax = 100;
 var
   sl: TStringlist;
-  ns: string;
   i: integer;
   lText: string;
 begin
@@ -632,8 +631,6 @@ begin
 end;
 
 function TIPFNewWriter.GetLabel(AElement: TPasElement): String;
-var
-  i: Integer;
 begin
   if AElement.ClassType = TPasUnresolvedTypeRef then
     Result := Engine.ResolveLink(Module, AElement.Name)
@@ -704,7 +701,7 @@ end;
 
 Function TIPFNewWriter.StripText(S : String) : String;
 var
-  I,L: Integer;
+  I: Integer;
 begin
   //Result := S;
   SetLength(Result, 0);

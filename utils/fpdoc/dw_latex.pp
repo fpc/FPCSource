@@ -128,9 +128,9 @@ Type
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
     // TFPDocWriter class methods
-    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Property ImageDir : String Read FImageDir Write FImageDir;
   public
+    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Class Function FileNameExtension : String; override;
   end;
 
