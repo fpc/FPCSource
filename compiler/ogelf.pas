@@ -1185,6 +1185,8 @@ implementation
              header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
            header.e_ident[EI_VERSION]:=1;
+           if target_info.system in systems_openbsd then
+             header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD;
            header.e_type:=ET_REL;
            header.e_machine:=ElfTarget.machine_code;
            header.e_version:=1;
