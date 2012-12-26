@@ -406,14 +406,14 @@ begin
         Pos('):', AElement.Name) + 3, Length(AElement.Name)));
     end else
       Result := LowerCase(AElement.PathName);
-    i := 1;
-    if (Length(Result) > 0) and (Result[1] = '#') then
-    begin
-      while Result[i] <> '.' do
-        Inc(i);
-      Result := Copy(Result, i + 1, Length(Result));
-    end;
-    i := 1;
+    // searching for TPasModule - it is on the 2nd level
+    if Assigned(AElement.Parent) then
+      while Assigned(AElement.Parent.Parent) do
+        AElement := AElement.Parent;
+    // cut off Package Name
+    Result := Copy(Result, Length(AElement.Parent.Name) + 2, MaxInt);
+    // to skip dots in unit name
+    i := Length(AElement.Name);
     while (i <= Length(Result)) and (Result[i] <> '.') do
       Inc(i);
     if (i <= Length(Result)) and (i > 0) then

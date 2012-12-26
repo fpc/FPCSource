@@ -791,7 +791,7 @@ Var
 begin
   Name := CurTokenString;
   NextToken;
-  if CurToken=tkDot then
+  while CurToken=tkDot do
     begin
     ExpectIdentifier;
     Name := Name+'.'+CurTokenString;
@@ -1646,9 +1646,20 @@ end;
 
 // Starts after the "unit" token
 procedure TPasParser.ParseUnit(var Module: TPasModule);
+var
+  AUnitName: String;
 begin
   Module := nil;
-  Module := TPasModule(CreateElement(TPasModule, ExpectIdentifier,
+  AUnitName := ExpectIdentifier;
+  NextToken;
+  while CurToken = tkDot do
+  begin
+    ExpectIdentifier;
+    AUnitName := AUnitName + '.' + CurTokenString;
+    NextToken;
+  end;
+  UngetToken;
+  Module := TPasModule(CreateElement(TPasModule, AUnitName,
     Engine.Package));
   FCurModule:=Module;
   try
@@ -2102,8 +2113,14 @@ begin
     Element:=CheckUnit('System'); // system always implicitely first.    
   Repeat
     AUnitName := ExpectIdentifier; 
-    Element :=CheckUnit(AUnitName);
     NextToken;
+    while CurToken = tkDot do
+    begin
+      ExpectIdentifier;
+      AUnitName := AUnitName + '.' + CurTokenString;
+      NextToken;
+    end;
+    Element := CheckUnit(AUnitName);
     if (CurToken=tkin) then
       begin
       ExpectToken(tkString);
