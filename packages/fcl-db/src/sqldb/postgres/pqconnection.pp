@@ -40,10 +40,17 @@ type
       STATEMENT_POSITION:string;
   end;
 
+  TTranConnection= class
+  protected
+    FPGConn        : PPGConn;
+    FTranActive    : boolean
+  end;
+
   { TPQConnection }
 
   TPQConnection = class (TSQLConnection)
   private
+    FConnectionPool      : array of TTranConnection;
     FCursorCount         : word;
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
@@ -213,6 +220,7 @@ function TPQConnection.RollBack(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
 begin
   result := false;
 
@@ -223,7 +231,13 @@ begin
   CheckResultError(res,tr.PGConn,SErrRollbackFailed);
 
   PQclear(res);
-  PQFinish(tr.PGConn);
+  //make connection available in pool
+  for i:=0 to length(FConnectionPool)-1 do
+    if FConnectionPool[i].FPGConn=tr.PGConn then
+      begin
+      FConnectionPool[i].FTranActive:=false;
+      break;
+      end;
   result := true;
 end;
 
@@ -231,6 +245,7 @@ function TPQConnection.Commit(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
 begin
   result := false;
 
@@ -240,7 +255,13 @@ begin
   CheckResultError(res,tr.PGConn,SErrCommitFailed);
 
   PQclear(res);
-  PQFinish(tr.PGConn);
+  //make connection available in pool
+  for i:=0 to length(FConnectionPool)-1 do
+    if FConnectionPool[i].FPGConn=tr.PGConn then
+      begin
+      FConnectionPool[i].FTranActive:=false;
+      break;
+      end;
   result := true;
 end;
 
@@ -248,28 +269,48 @@ function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) 
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
 begin
+  result:=false;
   tr := trans as TPQTrans;
 
-  tr.PGConn := PQconnectdb(pchar(FConnectString));
-
-  if (PQstatus(tr.PGConn) = CONNECTION_BAD) then
+  //find an unused connection in the pool
+  i:=0;
+  while i<length(FConnectionPool) do
+    if (FConnectionPool[i].FPGConn=nil) or not FConnectionPool[i].FTranActive then
+      break
+    else
+      i:=i+1;
+  if i=length(FConnectionPool) then //create a new connection
     begin
-    result := false;
-    PQFinish(tr.PGConn);
-    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
+    tr.PGConn := PQconnectdb(pchar(FConnectString));
+    if (PQstatus(tr.PGConn) = CONNECTION_BAD) then
+      begin
+      result := false;
+      PQFinish(tr.PGConn);
+      DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
+      end
+    else
+      begin
+      if CharSet <> '' then
+        PQsetClientEncoding(tr.PGConn, pchar(CharSet));
+      //store the new connection
+      SetLength(FConnectionPool,i+1);
+      FConnectionPool[i]:=TTranConnection.Create;
+      FConnectionPool[i].FPGConn:=tr.PGConn;
+      FConnectionPool[i].FTranActive:=true;
+      end;
     end
-  else
+  else //re-use existing connection
     begin
-    if CharSet <> '' then
-      PQsetClientEncoding(tr.PGConn, pchar(CharSet));
-
-    res := PQexec(tr.PGConn, 'BEGIN');
-    CheckResultError(res,tr.PGConn,sErrTransactionFailed);
-
-    PQclear(res);
-    result := true;
+    tr.PGConn:=FConnectionPool[i].FPGConn;
+    FConnectionPool[i].FTranActive:=true;
     end;
+  res := PQexec(tr.PGConn, 'BEGIN');
+  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+
+  PQclear(res);
+  result := true;
 end;
 
 procedure TPQConnection.RollBackRetaining(trans : TSQLHandle);
@@ -334,11 +375,22 @@ begin
 // This only works for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
   if PQparameterStatus<>nil then
     FIntegerDateTimes := PQparameterStatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
+  SetLength(FConnectionPool,1);
+  FConnectionPool[0]:=TTranConnection.Create;
+  FConnectionPool[0].FPGConn:=FSQLDatabaseHandle;
+  FConnectionPool[0].FTranActive:=false;
 end;
 
 procedure TPQConnection.DoInternalDisconnect;
+var i:integer;
 begin
-  PQfinish(FSQLDatabaseHandle);
+  for i:=0 to length(FConnectionPool)-1 do
+    begin
+    if assigned(FConnectionPool[i].FPGConn) then
+      PQfinish(FConnectionPool[i].FPGConn);
+    FConnectionPool[i].Free;
+    end;
+  Setlength(FConnectionPool,0);
 {$IfDef LinkDynamically}
   ReleasePostgres3;
 {$EndIf}
@@ -356,6 +408,7 @@ var
   MESSAGE_DETAIL: string;
   MESSAGE_HINT: string;
   STATEMENT_POSITION: string;
+  i:Integer;
 begin
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
@@ -384,7 +437,17 @@ begin
     PQclear(res);
     res:=nil;
     if assigned(conn) then
+      begin
       PQFinish(conn);
+      //make connection available in pool
+      for i:=0 to length(FConnectionPool)-1 do
+        if FConnectionPool[i].FPGConn=conn then
+          begin
+          FConnectionPool[i].FPGConn:=nil;
+          FConnectionPool[i].FTranActive:=false;
+          break;
+          end;
+      end;
     raise E;
     end;
 end;
@@ -719,8 +782,36 @@ begin
 end;
 
 function TPQConnection.GetHandle: pointer;
+var
+  i:integer;
 begin
-  Result := FSQLDatabaseHandle;
+  result:=nil;
+  if not Connected then
+    exit;
+  //Get any handle that is (still) connected
+  for i:=0 to length(FConnectionPool)-1 do
+    if assigned(FConnectionPool[i].FPGConn) and (PQstatus(FConnectionPool[i].FPGConn)<>CONNECTION_BAD) then
+      begin
+      Result :=FConnectionPool[i].FPGConn;
+      exit;
+      end;
+  //Nothing connected!! Reconnect
+  if assigned(FConnectionPool[0].FPGConn) then
+    PQreset(FConnectionPool[0].FPGConn)
+  else
+    FConnectionPool[0].FPGConn := PQconnectdb(pchar(FConnectString));
+  if (PQstatus(FConnectionPool[0].FPGConn) = CONNECTION_BAD) then
+    begin
+    result := nil;
+    PQFinish(FConnectionPool[0].FPGConn);
+    FConnectionPool[0].FPGConn:=nil;
+    FConnectionPool[0].FTranActive:=false;
+    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(FConnectionPool[0].FPGConn) + ')',self);
+    end
+  else
+    if CharSet <> '' then
+      PQsetClientEncoding(FConnectionPool[0].FPGConn, pchar(CharSet));
+  result:=FConnectionPool[0].FPGConn;
 end;
 
 function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
@@ -1072,7 +1163,7 @@ begin
       citServerVersion,
       citServerVersionString:
         if Connected then
-          Result:=format('%6.6d', [PQserverVersion(FSQLDatabaseHandle)]);
+          Result:=format('%6.6d', [PQserverVersion(GetHandle)]);
       citClientName:
         Result:=TPQConnectionDef.LoadedLibraryName;
     else
