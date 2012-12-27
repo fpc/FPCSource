@@ -19,6 +19,7 @@
 
 program dotest;
 uses
+  sysutils,
   dos,
 {$ifdef macos}
   macutils,
@@ -92,6 +93,7 @@ const
   ExtraCompilerOpts : string = '';
   DelExecutable : TDelExecutables = [];
   RemoteAddr : string = '';
+  RemotePathPrefix : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
   RemoteRshParas : string = '';
@@ -100,7 +102,7 @@ const
   RemoteShellNeedsExport : boolean = false;
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
-  rquote : char = '''';
+  rquote : string = '''';
   UseTimeout : boolean = false;
   emulatorname : string = '';
   TargetCanCompileLibraries : boolean = true;
@@ -610,10 +612,9 @@ end;
 procedure SetTargetDirectoriesStyle;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   TargetHasDosStyleDirectories :=
     (LTarget='emx') or
@@ -672,10 +673,9 @@ end;
 procedure SetUseOSOnly;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   UseOSOnly:= (LTarget='emx') or
               (LTarget='go32v2') or
@@ -686,10 +686,9 @@ end;
 procedure SetTargetCanCompileLibraries;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   { Feel free to add other targets here }
   if (LTarget='go32v2') then
@@ -1237,7 +1236,7 @@ begin
     ExecuteRemote(rshprog,RemoteRshParas+' rm -f '+TestRemoteExe,
                   StartTicks,EndTicks);
   execres:=ExecuteRemote(rcpprog,RemotePara+' '+FileToCopy+' '+
-                         RemoteAddr+':'+TestRemoteExe,StartTicks,EndTicks);
+                         RemotePathPrefix+TestRemoteExe,StartTicks,EndTicks);
   if not execres then
   begin
     Verbose(V_normal, 'Could not copy executable '+FileToCopy);
@@ -1259,7 +1258,7 @@ begin
         else
           pref:='';
         execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+
-                               RemoteAddr+':'+RemoteFile,StartTicks,EndTicks);
+                               RemotePathPrefix+RemoteFile,StartTicks,EndTicks);
         if not execres then
         begin
           Verbose(V_normal, 'Could not copy required file '+LocalFile);
@@ -1493,6 +1492,7 @@ procedure getargs;
     writeln('Options can be:');
     writeln('  !ENV_NAME     parse environment variable ENV_NAME for options');
     writeln('  -A            include ALL tests');
+    writeln('  -ADB          use ADB to run tests');
     writeln('  -B            delete executable before remote upload');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -D            display execution time');
@@ -1527,12 +1527,21 @@ procedure getargs;
     delete(para,1,2);
     case ch of
      'A' :
-       begin
-         DoGraph:=true;
-         DoInteractive:=true;
-         DoKnown:=true;
-         DoAll:=true;
-       end;
+       if UpperCase(para) = 'DB' then
+         begin
+           rshprog:='adb';
+           rcpprog:='adb';
+           rquote:='';
+           if RemoteAddr = '' then
+             RemoteAddr:='1'; // fake remote addr (default device will be used)
+         end
+       else
+         begin
+           DoGraph:=true;
+           DoInteractive:=true;
+           DoKnown:=true;
+           DoAll:=true;
+         end;
 
      'B' : Include(DelExecutable,deBefore);
 
@@ -1672,7 +1681,21 @@ begin
   if (rshprog='plink') and (pos('-load',RemotePara)>0) then
     RemoteRshParas:=RemotePara
   else
-    RemoteRshParas:=RemotePara+' '+RemoteAddr;
+    if rshprog='adb' then
+      begin
+        if RemoteAddr <> '1' then
+          RemotePara:=Trim('-s ' + RemoteAddr + ' ' + RemotePara);
+        RemoteRshParas:=Trim(RemotePara + ' shell');
+      end
+    else
+      RemoteRshParas:=RemotePara+' '+RemoteAddr;
+  if rcpprog = 'adb' then
+    begin
+      RemotePathPrefix:='';
+      RemotePara:=Trim(RemotePara + ' push');
+    end
+  else
+    RemotePathPrefix:=RemoteAddr + ':';
 end;
 
 
