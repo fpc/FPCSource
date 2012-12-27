@@ -241,7 +241,7 @@ end;
 procedure ThreadQueueAppend(aEntry: TThread.PThreadQueueEntry);
 begin
   { do we really need a synchronized call? }
-  if aEntry^.Thread.ThreadID = MainThreadID then begin
+  if GetCurrentThreadID = MainThreadID then begin
     ExecuteThreadQueueEntry(aEntry);
     if not Assigned(aEntry^.SyncEvent) then
       Dispose(aEntry);
@@ -305,6 +305,7 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
     { the Synchronize event is instantiated on demand }
     AThread.InitSynchronizeEvent;
 
+    AThread.FSynchronizeEntry^.Exception := Nil;
     AThread.FSynchronizeEntry^.Method := AMethod;
     ThreadQueueAppend(AThread.FSynchronizeEntry);
 
