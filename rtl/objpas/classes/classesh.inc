@@ -1540,6 +1540,7 @@ type
 { TThread }
 
   EThread = class(Exception);
+  EThreadExternalException = class(EThread);
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
@@ -1548,6 +1549,26 @@ type
     tpTimeCritical);
 
   TThread = class
+  private type
+    PThreadQueueEntry = ^TThreadQueueEntry;
+    TThreadQueueEntry = record
+      Method: TThreadMethod;
+      // uncomment once closures are supported
+      //ThreadProc: TThreadProcedure;
+      Thread: TThread;
+      Exception: Exception;
+      SyncEvent: PRtlEvent;
+      Next: PThreadQueueEntry;
+    end;
+  public type
+    TSystemTimes = record
+      IdleTime: QWord;
+      UserTime: QWord;
+      KernelTime: QWord;
+      NiceTime: QWord;
+    end;
+  private
+    class var FProcessorCount: LongWord;
   private
     FHandle: TThreadID;
     FTerminated: Boolean;
@@ -1557,16 +1578,27 @@ type
     FReturnValue: Integer;
     FOnTerminate: TNotifyEvent;
     FFatalException: TObject;
+    FExternalThread: Boolean;
+    FSynchronizeEntry: PThreadQueueEntry;
+    class function GetCurrentThread: TThread; static;
+    class function GetIsSingleProcessor: Boolean; static; inline;
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
     procedure SetPriority(Value: TThreadPriority);
     procedure SetSuspended(Value: Boolean);
     function GetSuspended: Boolean;
+    procedure InitSynchronizeEvent;
+    procedure DoneSynchronizeEvent;
+    { these two need to be implemented per platform }
+    procedure SysCreate(CreateSuspended: Boolean;
+                             const StackSize: SizeUInt);
+    procedure SysDestroy;
   protected
     FThreadID: TThreadID; // someone might need it for pthread_* calls
     procedure DoTerminate; virtual;
     procedure Execute; virtual; abstract;
     procedure Synchronize(AMethod: TThreadMethod);
+    procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
 {$ifdef windows}
@@ -1594,17 +1626,46 @@ type
     constructor Create(CreateSuspended: Boolean;
                        const StackSize: SizeUInt = DefaultStackSize);
     destructor Destroy; override;
+    { Note: Once closures are supported aProc will be changed to TProc }
+    class function CreateAnonymousThread(aProc: TProcedure): TThread; static;
+    { Use HAS_TTHREAD_NAMETHREADFORDEBUGGING to implement a platform specific
+      variant of the UnicodeString method. The AnsiString method calls the
+      UnicodeString method. If your platform's API only supports AnsiString you
+      can additionally define THREADNAME_IS_ANSISTRING to swap the logic. Then
+      the UnicodeString variant will call the AnsiString variant which can be
+      implemented for a specific platform }
+    class procedure NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID = TThreadID(-1)); static;
+    class procedure NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
+    class procedure SetReturnValue(aValue: Integer); static;
+    class function CheckTerminated: Boolean; static;
+    class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
+    class procedure Queue(aThread: TThread; aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aThread: TThread); static;
+    class procedure SpinWait(aIterations: LongWord); static;
+    class procedure Sleep(aMilliseconds: Cardinal); static;
+    class procedure Yield; static;
+    { use HAS_TTHREAD_GETSYSTEMTIMES to implement a platform specific variant
+      which does not return a zeroed record }
+    class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
+    class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
+    class function GetTickCount64: QWord; static;
     procedure AfterConstruction; override;
     procedure Start;
     procedure Resume; deprecated;
     procedure Suspend; deprecated;
     procedure Terminate;
     function WaitFor: Integer;
-    class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
+    class property CurrentThread: TThread read GetCurrentThread;
+    class property ProcessorCount: LongWord read FProcessorCount;
+    class property IsSingleProcessor: Boolean read GetIsSingleProcessor;
     property FreeOnTerminate: Boolean read FFreeOnTerminate write FFreeOnTerminate;
     property Handle: TThreadID read FHandle;
+    property ExternalThread: Boolean read FExternalThread;
     property Priority: TThreadPriority read GetPriority write SetPriority;
     property Suspended: Boolean read GetSuspended write SetSuspended;
+    property Finished: Boolean read FFinished;
     property ThreadID: TThreadID read FThreadID;
     property OnTerminate: TNotifyEvent read FOnTerminate write FOnTerminate;
     property FatalException: TObject read FFatalException;

@@ -46,14 +46,14 @@ begin
 end;
 
 
-constructor TThread.Create(CreateSuspended: Boolean; const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
 
 begin
  {IsMultiThread := TRUE; }
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 
 begin
 end;

@@ -169,13 +169,12 @@ begin
 end;
 
 { TThread }
-constructor TThread.Create(CreateSuspended: Boolean;
-                           const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 begin
   // lets just hope that the user doesn't create a thread
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
-  inherited Create;
   FSem := CurrentTM.SemaphoreInit();
   if FSem = nil then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
@@ -194,19 +193,15 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
   if (FSem = nil) then
     { exception in constructor }
-    begin
-      inherited destroy;
-      exit;
-    end;
+    exit;
   if (FHandle = TThreadID(0)) then
   { another exception in constructor }
     begin
       CurrentTM.SemaphoreDestroy(FSem);
-      inherited destroy;
       exit;
     end;
   if (FThreadID = GetCurrentThreadID) then
@@ -238,7 +233,6 @@ begin
   { threadvars have been released by cthreads.ThreadMain -> DoneThread, or  }
   { or will be released (in case of FFreeOnTerminate) after this destructor }
   { has exited by ThreadFunc->EndThread->cthreads.CEndThread->DoneThread)   }
-  inherited Destroy;
 end;
 
 procedure TThread.SetSuspended(Value: Boolean);

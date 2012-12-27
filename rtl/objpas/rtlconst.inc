@@ -203,6 +203,7 @@ ResourceString
   SNoTimers                     = 'No timers available';
   SNotOpenErr                   = 'No MCI-device opened';
   SNotPrinting                  = 'Printer is not currently printing';
+  SNoProcGiven                  = 'No procedure given';
   SNoVolumeLabel                = ': [ - No name - ]';
   SNumberExpected               = 'Number expected';
   SOKButton                     = 'OK';
@@ -268,6 +269,7 @@ ResourceString
   SSymbolExpected               = '%s expected';
   SThreadCreateError            = 'Thread creation error: %s';
   SThreadError                  = 'Thread Error: %s (%d)';
+  SThreadExternal               = 'Thread was created from extern';
   STooManyDeleted               = 'Too many rows or columns deleted';
   STooManyImages                = 'Too many images';
   STwoMDIForms                  = 'There is only one MDI window available';

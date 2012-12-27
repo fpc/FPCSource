@@ -18,6 +18,12 @@ const
   { includes 16384 bytes margin for stackchecking }
   DefaultStackSize = 4*1024*1024;
 
+{ every platform can have it's own implementation of GetCPUCount; use the define
+  HAS_GETCPUCOUNT to disable the default implementation which simply returns 1 }
+function GetCPUCount: LongWord;
+
+property CPUCount: LongWord read GetCPUCount;
+
 type
   PEventState = pointer;
   PRTLEvent   = type pointer;   // Windows=thandle, other=pointer to record.
