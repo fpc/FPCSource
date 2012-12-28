@@ -32,6 +32,11 @@
 //#include <kernel/OS.h>
 //#endif
 
+{$ifdef BEOS}
+type
+  area_id   = Longint;
+{$endif}
+
 (**
  * @defgroup apr_mmap MMAP (Memory Map) Routines
  * @ingroup APR 
