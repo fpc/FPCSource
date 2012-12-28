@@ -16,12 +16,14 @@
            Set_Jmp/Long_jmp
  **********************************************************************}
 
+{$warning Fix register handling in case of nostackframe }
+
 Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP'];compilerproc;
 asm
   // Temporarily store a0 into d0
   move.l  a0,d0
   // load S to a0
-  move.l S, a0
+  move.l 4(sp), a0
   // save a0 (now in d0) to offset 40
   move.l d0, 40(a0)
   // save return address (PC)
@@ -32,7 +34,7 @@ asm
   // save SP
   move.l sp, d0
   addq.l #8, d0
-  move.l d0, (a0)
+  move.l d0, 4(a0)
   // save a1
   move.l a1,d0
   move.l d0,44(a0)
@@ -56,6 +58,8 @@ asm
   move d5, 28(a0)
   move d6, 32(a0)
   move d7, 36(a0)
+  // restore a0
+  move.l 40(a0), a0
 
   // return 0
   clr.l d0
@@ -64,7 +68,7 @@ end;
 Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP'];compilerproc;
 asm
   // load S to a0
-  move.l S,a0
+  move.l 4(sp),a0
   // Restore address registers
   // restore a1
   move.l 44(a0),d0
@@ -91,7 +95,7 @@ asm
   move 36(a0),d7
 
   // load value to d0
-  move.l value,d0
+  move.l 8(sp),d0
   // Save temporarily into d1 slot
   move.l d0,12(a0)
   // restore FP

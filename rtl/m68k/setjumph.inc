@@ -26,7 +26,7 @@ Type
       if called from SetJmp or value if called from LongJmp }
     { data registers (d1, d2, d3, d4, d5, d6, d7) }
     { offsets:        12, 16, 20, 24, 28, 32, 36 }
-    dregs : array[0..7] of dword;
+    dregs : array[1..7] of dword;
     { address registers (a0, a1, a2, a3, a4, a5), a6 and a7 are fp and sp respectively }
     { offsets:           40, 44, 48, 52, 56, 60 }
     aregs : array[0..5] of dword;
