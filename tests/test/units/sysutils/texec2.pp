@@ -18,6 +18,7 @@ begin
 
   if ExecuteProcess(cmd,cmdline)<>0 Then
     halt(1);
+  // cleanup
   // test illegal command
   try
     ExecuteProcess('afsdfdas',cmdline)
