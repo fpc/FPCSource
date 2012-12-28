@@ -534,7 +534,6 @@ implementation
          hp,
          refnode  : tnode;
          hdef : tdef;
-         extendeddef : tabstractrecorddef;
          helperdef : tobjectdef;
          hasimplicitderef : boolean;
          withsymtablelist : TFPObjectList;
@@ -579,7 +578,8 @@ implementation
            to call it in case it returns a record/object/... }
          maybe_call_procvar(p,false);
 
-         if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) then
+         if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) or
+           ((p.resultdef.typ=undefineddef) and (df_generic in current_procinfo.procdef.defoptions)) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -660,21 +660,15 @@ implementation
                     valuenode));
                 typecheckpass(refnode);
               end;
-
-            { do we have a helper for this type? }
-            if p.resultdef.typ=classrefdef then
-              extendeddef:=tobjectdef(tclassrefdef(p.resultdef).pointeddef)
-            else
-              extendeddef:=tabstractrecorddef(p.resultdef);
-            search_last_objectpascal_helper(extendeddef,current_structdef,helperdef);
             { Note: the symtable of the helper is pushed after the following
                     "case", the symtables of the helper's parents are passed in
                     the "case" branches }
-
             withsymtablelist:=TFPObjectList.create(true);
             case p.resultdef.typ of
               objectdef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(p.resultdef),tobjectdef(p.resultdef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -687,6 +681,8 @@ implementation
                  end;
               classrefdef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tobjectdef(tclassrefdef(p.resultdef).pointeddef),current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -699,11 +695,23 @@ implementation
                 end;
               recorddef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
                    { push symtables of all parents of the helper in reverse order }
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);
                    { push record symtable }
                    st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);
+                   symtablestack.push(st);
+                   withsymtablelist.add(st);
+                end;
+              undefineddef :
+                begin
+                   if not(df_generic in current_procinfo.procdef.defoptions) then
+                     internalerror(2012122802);
+                   helperdef:=nil;
+                   { push record symtable }
+                   st:=twithsymtable.create(p.resultdef,nil,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;

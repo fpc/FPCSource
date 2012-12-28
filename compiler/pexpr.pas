@@ -2113,6 +2113,22 @@ implementation
          ---------------------------------------------}
 
        procedure factor_read_id(out p1:tnode;var again:boolean);
+
+         function findwithsymtable : boolean;
+           var
+             hp : psymtablestackitem;
+           begin
+             result:=true;
+             hp:=symtablestack.stack;
+             while assigned(hp) do
+               begin
+                 if hp^.symtable.symtabletype=withsymtable then
+                   exit;
+                 hp:=hp^.next;
+               end;
+             result:=false;
+           end;
+
          var
            srsym : tsym;
            srsymtable : TSymtable;
@@ -2192,9 +2208,21 @@ implementation
                            symbol }
                    not (sp_explicitrename in srsym.symoptions) then
                  begin
-                   identifier_not_found(orgstoredpattern);
-                   srsym:=generrorsym;
-                   srsymtable:=nil;
+                   { if a generic is parsed and when we are inside an with block,
+                     a symbol might not be defined }
+                   if (df_generic in current_procinfo.procdef.defoptions) and
+                      findwithsymtable then
+                     begin
+                       { create dummy symbol, it will be freed later on }
+                       srsym:=tsym.create(undefinedsym,'$undefinedsym');
+                       srsymtable:=nil;
+                     end
+                   else
+                     begin
+                       identifier_not_found(orgstoredpattern);
+                       srsym:=generrorsym;
+                       srsymtable:=nil;
+                     end;
                  end;
              end;
 
@@ -2409,6 +2437,14 @@ implementation
                         p1:=clabelnode.create(nil,tlabelsym(srsym));
                         tlabelsym(srsym).code:=p1;
                       end;
+                  end;
+
+                undefinedsym :
+                  begin
+                    p1:=cnothingnode.Create;
+                    p1.resultdef:=tundefineddef.create;
+                    { clean up previously created dummy symbol }
+                    srsym.free;
                   end;
 
                 errorsym :

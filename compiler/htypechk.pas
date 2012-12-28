@@ -1776,6 +1776,17 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
+             nothingn :
+               begin
+                 { generics can generate nothing nodes, just allow everything }
+                 if df_generic in current_procinfo.procdef.defoptions then
+                   result:=true
+                 else if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+
+                 mayberesettypeconvs;
+                 exit;
+               end;
              loadn :
                begin
                  case tloadnode(hp).symtableentry.typ of

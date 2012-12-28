@@ -548,7 +548,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,namespacesym
+    macrosym,namespacesym,undefinedsym
   );
 
   { State of the variable:
@@ -662,7 +662,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','namespace'
+       'macrosym','namespace','undefinedsym'
      );
 
      typName : array[tdeftyp] of string[12] = (

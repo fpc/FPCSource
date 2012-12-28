@@ -2292,7 +2292,8 @@ implementation
                     exit;
                   end;
               end
-            else
+            else if not((srsymtable.symtabletype=withsymtable) and assigned(srsymtable.defowner) and
+              (srsymtable.defowner.typ=undefineddef)) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) then
