@@ -388,10 +388,10 @@ end;
 
 procedure TFPHTTPConnection.SetupSocket;
 begin
-  {$ifdef unix}
+{$if defined(FreeBSD) or defined(Linux)}
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
-  {$endif}
+{$endif}
 end;
 
 Procedure TFPHTTPConnection.InterPretHeader(ARequest : TFPHTTPConnectionRequest; Const AHeader : String);
