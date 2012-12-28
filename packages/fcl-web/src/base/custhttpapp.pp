@@ -48,6 +48,7 @@ Type
       var ARequest: TFPHTTPConnectionRequest;
       var AResponse: TFPHTTPConnectionResponse);
   Private
+    FOnRequestError: TRequestErrorHandler;
     FServer: TEmbeddedHTTPServer;
     function GetAllowConnect: TConnectQuery;
     function GetPort: Word;
@@ -58,6 +59,7 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
   protected
+    procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     Procedure InitRequest(ARequest : TRequest); override;
     Procedure InitResponse(AResponse : TResponse); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -75,6 +77,8 @@ Type
     Property OnAllowConnect : TConnectQuery Read GetAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
     property Threaded : Boolean read GetThreaded Write SetThreaded;
+    // Handle On Request error. If not set, error is logged.
+    Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
   end;
 
   { TCustomHTTPApplication }
@@ -102,14 +106,6 @@ Type
     property Threaded : Boolean read GetThreaded Write SetThreaded;
   end;
 
-ResourceString
-  SNoInputHandle    = 'Failed to open input-handle passed from server. Socket Error: %d';
-  SNoSocket         = 'Failed to open socket. Socket Error: %d';
-  SBindFailed       = 'Failed to bind to port %d. Socket Error: %d';
-  SListenFailed     = 'Failed to listen to port %d. Socket Error: %d';
-  SErrReadingSocket = 'Failed to read data from socket. Error: %d';
-  SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
-  SErrWritingSocket = 'Failed to write data to socket. Error: %d';
 
 Implementation
 
@@ -184,6 +180,19 @@ begin
 end;
 
 { TFPHTTPServerHandler }
+
+procedure TFPHTTPServerHandler.HandleRequestError(Sender: TObject; E: Exception
+  );
+begin
+  Try
+    If Assigned(FOnRequestError) then
+      FOnRequestError(Sender,E)
+    else
+      Log(etError,Format('Error (%s) handling request : %s',[E.ClassName,E.Message]));
+  except
+    // Do not let errors escape
+  end;
+end;
 
 procedure TFPHTTPServerHandler.HTTPHandleRequest(Sender: TObject;
   var ARequest: TFPHTTPConnectionRequest;
@@ -273,6 +282,7 @@ begin
   FServer:=CreateServer;
   FServer.FWebHandler:=Self;
   FServer.OnRequest:=@HTTPHandleRequest;
+  Fserver.OnRequestError:=@HandleRequestError;
 end;
 
 destructor TFPHTTPServerHandler.Destroy;
