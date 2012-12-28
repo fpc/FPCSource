@@ -18,7 +18,7 @@ unit ssockets;
 interface
 
 uses
- SysUtils, Classes, sockets;
+ SysUtils, Classes, ctypes, sockets;
 
 type
 
@@ -40,11 +40,15 @@ type
     constructor Create(ACode: TSocketErrorType; const MsgArgs: array of const);
   end;
 
+  { TSocketStream }
+
   TSocketStream = class(THandleStream)
   Private
+    FReadFlags: Integer;
     FSocketInitialized : Boolean;
     FSocketOptions : TSocketOptions;
     FLastError : integer;
+    FWriteFlags: Integer;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
     function GetLocalAddress: TSockAddr;
@@ -60,6 +64,8 @@ type
     property LocalAddress: TSockAddr read GetLocalAddress;
     property RemoteAddress: TSockAddr read GetRemoteAddress;
     Property LastError : Integer Read FLastError;
+    Property ReadFlags : Integer Read FReadFlags Write FReadFlags;
+    Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
@@ -79,6 +85,12 @@ type
     FOnConnect : TConnectEvent;
     FOnConnectQuery : TConnectQuery;
     Procedure DoOnIdle;
+    Function GetReuseAddress: Boolean;
+    Function GetKeepAlive : Boolean;
+    Function GetLinger : Integer;
+    Procedure SetReuseAddress (AValue : Boolean);
+    Procedure SetKeepAlive (AValue : Boolean);
+    Procedure SetLinger(ALinger : Integer);
   Protected
     FSockType : Longint;
     FBound : Boolean;
@@ -93,6 +105,8 @@ type
     Constructor Create(ASocket : Longint);
     Destructor Destroy; Override;
     Procedure Listen;
+    function  GetSockopt(ALevel,AOptName : cint; var optval; Var optlen : tsocklen): Boolean;
+    function  SetSockopt(ALevel,AOptName : cint; var optval; optlen : tsocklen): Boolean;
     Procedure StartAccepting;
     Procedure StopAccepting;
     Procedure SetNonBlocking;
@@ -105,6 +119,10 @@ type
     Property NonBlocking : Boolean Read FNonBlocking;
     Property Socket : Longint Read FSocket;
     Property SockType : Longint Read FSockType;
+    Property KeepAlive : Boolean Read GetKeepAlive Write SetKeepAlive;
+    Property ReuseAddress : Boolean Read GetReuseAddress Write SetReuseAddress;
+    // -1 means no linger. Any value >=0 sets linger on.
+    Property Linger: Integer Read GetLinger Write Setlinger;
   end;
 
   { TInetServer }
@@ -258,7 +276,7 @@ Var
   Flags : longint;
 
 begin
-  Flags:=0;
+  Flags:=FReadFlags;
   Result:=fprecv(handle,@Buffer,count,flags);
   If Result<0 then
     FLastError:=SocketError
@@ -272,7 +290,7 @@ Var
   Flags : longint;
 
 begin
-  Flags:=0;
+  Flags:=FWriteFlags;
   Result:=fpsend(handle,@Buffer,count,flags);
   If Result<0 then
     FLastError:=SocketError
@@ -339,6 +357,18 @@ begin
     Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
+function TSocketServer.GetSockopt(ALevel, AOptName: cint; Var optval;
+  var optlen: tsocklen): Boolean;
+begin
+  Result:=fpGetSockOpt(FSocket,ALevel,AOptName,@optval,@optlen)<>-1;
+end;
+
+function TSocketServer.SetSockopt(ALevel, AOptName: cint; var optval;
+  optlen: tsocklen): Boolean;
+begin
+  Result:=fpSetSockOpt(FSocket,ALevel,AOptName,@optval,optlen)<>-1;
+end;
+
 Function TSocketServer.GetConnection : TSocketStream;
 
 var
@@ -401,6 +431,55 @@ begin
     FOnIdle(Self);
 end;
 
+function TSocketServer.GetReuseAddress: Boolean;
+Var
+  L : cint;
+  ls : Tsocklen;
+begin
+  L:=0;
+  ls:=0;
+{$IFDEF UNIX}
+  if not GetSockOpt(SOL_SOCKET, SO_REUSEADDR, L, LS) then
+    Raise ESocketError.CreateFmt('Failed to get SO_REUSEADDR to %d: %d',[l,socketerror]);
+  Result:=(L<>0);
+{$ELSE}
+  Result:=True;
+{$ENDIF}
+
+end;
+
+function TSocketServer.GetKeepAlive: Boolean;
+Var
+  L : cint;
+  ls : Tsocklen;
+begin
+  L:=0;
+  ls:=0;
+{$IFDEF UNIX}
+  if Not GetSockOpt(SOL_SOCKET, SO_KEEPALIVE, L, LS) then
+    Raise ESocketError.CreateFmt('Failed to get SO_KEEPALIVE: %d',[socketerror]);
+  Result:=(L<>0);
+{$ELSE}
+  Result:=True;
+{$ENDIF}
+end;
+
+function TSocketServer.GetLinger: Integer;
+Var
+  L : linger;
+  ls : tsocklen;
+
+begin
+  L.l_onoff:=0;
+  l.l_linger:=0;
+  if Not GetSockOpt(SOL_SOCKET, SO_LINGER, l, ls) then
+    Raise ESocketError.CreateFmt('Failed to set linger: %d',[socketerror]);
+  if l.l_onoff=0 then
+    Result:=-1
+  else
+    Result:=l.l_linger;
+end;
+
 Procedure TSocketServer.DoConnect(ASocket : TSocketStream);
 
 begin
@@ -423,6 +502,41 @@ begin
   fpfcntl(FSocket,F_SETFL,O_NONBLOCK);
 {$endif}
   FNonBlocking:=True;
+end;
+
+procedure TSocketServer.SetLinger(ALinger: Integer);
+Var
+  L : linger;
+begin
+  L.l_onoff:=Ord(ALinger>0);
+  if ALinger<0 then
+    l.l_linger:=ALinger
+  else
+    l.l_linger:=0;
+  if Not SetSockOpt(SOL_SOCKET, SO_LINGER, l, SizeOf(L)) then
+    Raise ESocketError.CreateFmt('Failed to set linger: %d',[socketerror]);
+end;
+
+procedure TSocketServer.SetReuseAddress(AValue: Boolean);
+Var
+  L : cint;
+begin
+  L:=Ord(AValue);
+{$IFDEF UNIX}
+  if not SetSockOpt(SOL_SOCKET, SO_REUSEADDR , L, SizeOf(L)) then
+    Raise ESocketError.CreateFmt('Failed to set SO_REUSEADDR to %d: %d',[l,socketerror]);
+{$ENDIF}
+end;
+
+procedure TSocketServer.SetKeepAlive(AValue: Boolean);
+Var
+  L : cint;
+begin
+  L:=Ord(AValue);
+{$IFDEF UNIX}
+  if Not SetSockOpt(SOL_SOCKET, SO_KEEPALIVE, L, SizeOf(L)) then
+    Raise ESocketError.CreateFmt('Failed to set SO_REUSEADDR to %d: %d',[l,socketerror]);
+{$ENDIF}
 end;
 
 { ---------------------------------------------------------------------
