@@ -153,7 +153,7 @@ begin
     T:=P.Targets.AddUnit('fphttpclient.pp');
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('custhttpapp.pp');
-    T.ResourceStrings:=true;
+    // T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
     T:=P.Targets.AddUnit('fpwebfile.pp');
     T.ResourceStrings:=true;
