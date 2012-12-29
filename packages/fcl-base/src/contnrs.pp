@@ -1552,20 +1552,31 @@ var
   i : integer;
   pdest,
   psrc : PHashItem;
+  FOldStr : Pchar;
+
 begin
   NewCount:=0;
   psrc:=@FHashList^[0];
-  pdest:=psrc;
-  For I:=0 To FCount-1 Do
-    begin
-      if assigned(psrc^.Data) then
-        begin
-          pdest^:=psrc^;
-          inc(pdest);
-          inc(NewCount);
-        end;
-      inc(psrc);
-    end;
+  FOldStr:=FStrs;
+  try
+    FStrs:=Nil;
+    FStrCount:=0;
+    FStrCapacity:=0;
+    pdest:=psrc;
+    For I:=0 To FCount-1 Do
+      begin
+        if assigned(psrc^.Data) then
+          begin
+            pdest^:=psrc^;
+            Pdest^.strindex:=AddStr(PShortString(@FOldStr[PDest^.StrIndex])^);
+            inc(pdest);
+            inc(NewCount);
+          end;
+        inc(psrc);
+      end;
+  finally
+    FreeMem(FoldStr);
+  end;
   FCount:=NewCount;
   { We need to ReHash to update the IndexNext }
   ReHash;
