@@ -124,6 +124,8 @@ unit cpupara;
                   end;
               end;
             end;
+          system_i386_freebsd,
+          system_i386_openbsd,
           system_i386_darwin,
           system_i386_iphonesim :
             begin
