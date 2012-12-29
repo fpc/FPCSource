@@ -26,6 +26,8 @@
   AnsiString is defined as a 'silent' pchar :
   a pchar that points to :
 
+  @-16 : Code page indicator.
+  @-12 : Character size (2 bytes)
   @-8  : SizeInt for reference count;
   @-4  : SizeInt for size;
   @    : String + Terminating #0;
