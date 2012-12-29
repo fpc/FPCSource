@@ -1909,7 +1909,9 @@ packages/fcl-base/src/win/fclel.res -text
 packages/fcl-base/src/win/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/wince/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/wtex.pp svneol=native#text/plain
+packages/fcl-base/tests/fclbase-unittests.lpi svneol=native#text/plain
 packages/fcl-base/tests/fclbase-unittests.pp svneol=native#text/plain
+packages/fcl-base/tests/tchashlist.pp svneol=native#text/plain
 packages/fcl-base/tests/tests_fptemplate.pp svneol=native#text/plain
 packages/fcl-base/texts/fptemplate.txt svneol=native#text/plain
 packages/fcl-db/Makefile svneol=native#text/plain
