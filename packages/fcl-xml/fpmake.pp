@@ -29,6 +29,7 @@ begin
     P.Email := '';
     P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -165,7 +166,7 @@ begin
           AddUnit('xmlutils');
         end;
 
- 
+
     P.Sources.AddSrc('src/README.txt');
 
 

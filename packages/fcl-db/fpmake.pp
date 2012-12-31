@@ -32,6 +32,7 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-db';
@@ -62,7 +63,7 @@ begin
     P.IncludePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
     P.IncludePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.IncludePath.Add('src/sdf');
-    P.IncludePath.Add('src/memds');  
+    P.IncludePath.Add('src/memds');
     P.IncludePath.Add('src/sqlite',SqliteOSes);
     P.IncludePath.Add('src/dbase');
     P.SourcePath.Add('src/sql');

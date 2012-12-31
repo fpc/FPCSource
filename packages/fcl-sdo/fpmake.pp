@@ -24,6 +24,8 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'inoussa12@gmail.com';
     P.Description := 'Free Pascal implementation of Service Data Objects';
+    P.OSes:=AllOSes-[embedded];
+
     // P.NeedLibC:= false;
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/das');
@@ -272,7 +274,7 @@ begin
       AddUnit('data_acces_intf');
       AddUnit('sdo_das');
       AddUnit('sdo_das_utils');
-      end;    
+      end;
 {$ifndef ALLPACKAGES}
     Run;
     end;

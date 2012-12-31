@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.Options.Add('-S2h');
     P.SourcePath.Add('src');

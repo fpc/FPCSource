@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/$(OS)');
@@ -107,7 +108,7 @@ begin
     // Windows units
     T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
     T:=P.Targets.addUnit('fpmimetypes.pp');
-   
+
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
     // Install windows resources

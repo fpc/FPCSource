@@ -17,6 +17,7 @@ begin
     P.Directory:='pasjpeg';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes:=P.OSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -145,7 +146,7 @@ begin
     T:=P.Targets.AddImplicitUnit('jutils.pas');
 
     P.Sources.AddSrc('readme.txt');
- 
+
     P.ExamplePath.Add('examples');
 
     P.Targets.AddExampleProgram('cjpeg.pas');

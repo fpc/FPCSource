@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Library for pixel graphics conversion';
     P.NeedLibC := false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
