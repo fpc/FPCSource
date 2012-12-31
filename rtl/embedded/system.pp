@@ -149,7 +149,7 @@ end;
 
 Procedure Randomize;
 Begin
-  RandSeed := 63458; 
+  RandSeed := 63458;
 End;
 
 {$endif FPC_HAS_FEATURE_RANDOM}
@@ -208,7 +208,14 @@ begin
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-  SysInitExceptions;
+  { SysInitExceptions initializes only ExceptObjectstack and ExceptAddrStack
+    with nil since both are located in the bss section, they are zeroed at startup
+    anyways so not calling SysInitExceptions saves some bytes for simple programs. Even for threaded
+    programs this does not matter because in the main thread, the variables are located
+    in bss
+
+    SysInitExceptions;
+  }
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
