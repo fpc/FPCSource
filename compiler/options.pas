@@ -2102,6 +2102,7 @@ var
   line,
   level : longint;
   option_read : boolean;
+  oldfilemode : byte;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
@@ -2116,10 +2117,13 @@ begin
     end;
 { open file }
   Message1(option_using_file,filename);
+  oldfilemode:=filemode;
+  filemode:=0;
   assign(f,ExpandFileName(filename));
   {$push}{$I-}
    reset(f);
   {$pop}
+  filemode:=oldfilemode;
   if ioresult<>0 then
    begin
      Message1(option_unable_open_file,filename);
