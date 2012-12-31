@@ -36,7 +36,11 @@ Type
 Const
   CatchAllExceptions = PtrInt(-1);
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : longint;
