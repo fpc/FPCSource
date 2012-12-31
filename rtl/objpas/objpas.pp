@@ -87,11 +87,11 @@ Var
      Function ParamStr(Param : Integer) : Ansistring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
      Procedure MkDir(s:ansistring);overload;
      Procedure RmDir(s:ansistring);overload;
      Procedure ChDir(s:ansistring);overload;
-{$endif FPC_HAS_FEATURE_FILEIO}
+{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 
 {****************************************************************************
                              Resource strings.
@@ -244,7 +244,7 @@ end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 { xxDirPChar procedures can adjust directory separators in supplied string (at least
   Windows implementation does so). Therefore full copy of argument is needed,
   just passing by value isn't enough because it won't copy a string literal. }
@@ -265,7 +265,7 @@ begin
   UniqueString(s);
   ChDirpchar(pchar(s),length(s));
 end;
-{$endif FPC_HAS_FEATURE_FILEIO}
+{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 
 {$ifdef FPC_HAS_FEATURE_RESOURCES}
 { ---------------------------------------------------------------------
