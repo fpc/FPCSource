@@ -47,7 +47,11 @@ Software IEC/IEEE floating-point rounding mode.
     float_round_up           = 2;
     float_round_to_zero      = 3;
 
-threadvar
+{$ifdef FPC_HAS_FEATURE_THREADING}
+ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   softfloat_exception_mask : Byte;
   softfloat_exception_flags : Byte;
   softfloat_rounding_mode : Byte;
