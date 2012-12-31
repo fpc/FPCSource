@@ -211,28 +211,54 @@ begin
       end
      else if pos('$INSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for cpu:=low(tcputype) to high(tcputype) do
           begin
-            hs:=s;
-            hs1:=cputypestr[cpu];
-            if hs1<>'' then
+            if length(hs1+cputypestr[cpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$INSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if cputypestr[cpu]<>'' then
+              hs1:=hs1+cputypestr[cpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$INSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$FPUINSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for fpu:=low(tfputype) to high(tfputype) do
           begin
-            hs:=s;
-            hs1:=fputypestr[fpu];
-            if hs1<>'' then
+            if length(hs1+fputypestr[fpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if fputypestr[fpu]<>'' then
+              hs1:=hs1+fputypestr[fpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$ABITARGETS',s)>0 then
