@@ -2210,7 +2210,7 @@ implementation
                  begin
                    { if a generic is parsed and when we are inside an with block,
                      a symbol might not be defined }
-                   if (df_generic in current_procinfo.procdef.defoptions) and
+                   if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) and
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
