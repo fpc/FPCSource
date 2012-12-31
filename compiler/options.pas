@@ -285,21 +285,29 @@ begin
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
         {$if defined(arm) or defined(avr)}
+        hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
-{           currently all whole program optimizations are platform-independent
-            if opt in supported_wpoptimizerswitches then
-}
+            if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
               begin
                 hs:=s;
-                hs1:=embedded_controllers[controllertype].ControllerTypeStr;
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$CONTROLLERTYPES',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end
+                Replace(hs,'$CONTROLLERTYPES',hs1);
+                Comment(V_Normal,hs);
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+              hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$CONTROLLERTYPES',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
+          end;
         {$else defined(arm) or defined(avr)}
         {$endif defined(arm) or defined(avr)}
       end
