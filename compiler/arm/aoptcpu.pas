@@ -1074,6 +1074,7 @@ Implementation
                           ...
                         }
                     if (taicpu(p).opcode = A_AND) and
+                       (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
                       begin
@@ -1133,6 +1134,7 @@ Implementation
                       str/ldr reg3,[reg1,const2+/-const1]
                     }
                     if (taicpu(p).opcode in [A_ADD,A_SUB]) and
+                       (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
                       begin
