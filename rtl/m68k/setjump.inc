@@ -103,7 +103,7 @@ asm
   // Save temporarily into d1 slot
   move.l d0,12(a0)
   // restore FP
-{$if define(amiga)}
+{$if defined(amiga)}
   move.l (a0), a5
 {$else}
   move.l (a0), a6
