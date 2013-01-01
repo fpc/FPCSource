@@ -146,8 +146,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
-             DllCmd[1]:='ld $OPT -shared -L. -o $EXE $CATRES'
+             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
+             DllCmd[1]:='ld $TARGET $EMUL $OPT -shared -L. -o $EXE $CATRES'
            end
          else
            begin
@@ -166,22 +166,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
-         DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
+         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -596,6 +596,8 @@ function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr,
+  targetstr,
+  emulstr,
   extdbgbinstr,
   extdbgcmdstr: TCmdStr;
   linkscript: TAsmScript;
@@ -614,6 +616,20 @@ begin
   StripStr:='';
   DynLinkStr:='';
   GCSectionsStr:='';
+  { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
+    to avoid creation of a i386:x86_64 arch binary }
+
+  if target_info.system=system_i386_freebsd then
+    begin
+      targetstr:='-b elf32-i386-freebsd';
+      emulstr:='-m elf_i386_fbsd';
+    end
+  else
+    begin
+      targetstr:='';
+      emulstr:='';
+    end;
+
   if (cs_link_staticflag in current_settings.globalswitches) then
     begin
       if (target_info.system=system_m68k_netbsd) and
@@ -655,6 +671,8 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$TARGET',targetstr);
+  Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -721,6 +739,8 @@ var
   linkscript: TAsmScript;
   binstr,
   cmdstr,
+  targetstr,
+  emulstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
   GCSectionsStr : string[63];
@@ -743,6 +763,20 @@ begin
     else
       GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
+  { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
+    to avoid creation of a i386:x86_64 arch binary }
+
+  if target_info.system=system_i386_freebsd then
+    begin
+      targetstr:='-b elf32-i386-freebsd';
+      emulstr:='-m elf_i386_fbsd';
+    end
+  else
+    begin
+      targetstr:='';
+      emulstr:='';
+    end;
+
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
@@ -755,6 +789,8 @@ begin
   Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$TARGET',targetstr);
+  Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
