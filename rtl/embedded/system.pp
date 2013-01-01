@@ -236,3 +236,4 @@ begin
 //  initunicodestringmanager;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 end.
+
