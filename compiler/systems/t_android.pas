@@ -40,15 +40,16 @@ interface
       procedure setfininame(list: TAsmList; const s: string); override;
     end;
 
+    { tlinkerandroid }
+
     tlinkerandroid=class(texternallinker)
     private
       libctype:(bionic);
-      cprtobj,
-      gprtobj,
       prtobj  : string[80];
       reorder : boolean;
-      linklibc: boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
+      function GetLdOptions: string;
+      function DoLink(IsSharedLib: boolean): boolean;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -124,36 +125,24 @@ const
 {$ifdef i386}      platform_select='';{$endif} {unknown :( }
 
 var
-  defdynlinker: string;
+  s: string;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
-     { when we want to cross-link we need to override default library paths }
-     if length(sysrootpath) > 0 then
-       ExeCmd[1]:=ExeCmd[1]+' -T';
-     ExeCmd[1]:=ExeCmd[1]+' $RES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+     { Specify correct max-page-size and common-page-size to prevent big gaps between sections in resulting executable }
+     s:='ld '+platform_select+'-z max-page-size=0x1000 -z common-page-size=0x1000 $OPT -L. -T $RES -o $EXE';
+     ExeCmd[1]:=s + ' --entry=_fpc_start';
+     DllCmd[1]:=s + ' -shared -soname $SONAME';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
-     defdynlinker:='/system/bin/linker';
      {
        There is only one C library on android, the bionic libc
      }
      libctype:=bionic;
-     if fileexists(sysrootpath+defdynlinker,false) then
-       begin
-         DynamicLinker:=defdynlinker;
-       end
-     else
-       begin
-         { when no dyn. linker is found, we are probably
-           cross compiling, so use the default dyn. linker }
-         DynamicLinker:=defdynlinker;
-       end;
+     DynamicLinker:='/system/bin/linker';
    end;
 end;
 
@@ -173,59 +162,12 @@ Begin
 End;
 
 Procedure TLinkerAndroid.InitSysInitUnitName;
-var
-  csysinitunit,
-  gsysinitunit : string[20];
-  hp           : tmodule;
 begin
-  hp:=tmodule(loaded_units.first);
-  while assigned(hp) do
-   begin
-     linklibc := hp.linkothersharedlibs.find('c');
-     if linklibc then break;
-     hp:=tmodule(hp.next);
-   end;
-  reorder := linklibc and ReOrderEntries;
+  reorder := ReOrderEntries;
   if current_module.islibrary then
-   begin
-     sysinitunit:='dll';
-     csysinitunit:='dll';
-     gsysinitunit:='dll';
-     prtobj:='dllprt0';
-     cprtobj:='dllprt0';
-     gprtobj:='dllprt0';
-   end
+    prtobj:='dllprt0'
   else
-   begin
-     prtobj:='prt0';
-     sysinitunit:='prc';
-     case libctype of
-       bionic:
-         begin
-           cprtobj:='cprt0';
-           gprtobj:='gprt0';
-           csysinitunit:='c';
-           gsysinitunit:='g';
-         end
-       else
-         runerror(2012080901);
-     end;
-   end;
-  if cs_profile in current_settings.moduleswitches then
-   begin
-     prtobj:=gprtobj;
-     sysinitunit:=gsysinitunit;
-     linklibc:=true;
-   end
-  else
-   begin
-     if linklibc then
-      begin
-       prtobj:=cprtobj;
-       sysinitunit:=csysinitunit;
-      end;
-   end;
-  sysinitunit:='si_'+sysinitunit;
+    prtobj:='prt0';
 end;
 
 Function TLinkerAndroid.WriteResponseFile(isdll:boolean) : Boolean;
@@ -233,17 +175,11 @@ Var
   linkres      : TLinkRes;
   i            : longint;
   HPath        : TCmdStrListItem;
-  s,s1,s2      : TCmdStr;
-  found1,
-  found2       : boolean;
-  linksToSharedLibFiles : boolean;
+  s,s1         : TCmdStr;
 begin
   result:=False;
-{ set special options for some targets }
-  if cs_profile in current_settings.moduleswitches then
-   begin
-     AddSharedLibrary('c');
-   end;
+  { Always link to libc }
+  AddSharedLibrary('c');
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
@@ -289,26 +225,17 @@ begin
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
       if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
-       AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
-      { try to add crti and crtbegin if linking to C }
-      if linklibc then
-       begin
-         { crti.o must come first }
-         if librarysearchpath.FindFile('crti.o',false,s) then
-           AddFileName(s);
-         { then the crtbegin* }
-         if cs_create_pic in current_settings.moduleswitches then
-           begin
-             if librarysearchpath.FindFile('crtbeginS.o',false,s) then
-               AddFileName(s);
-           end
-         else
-           if (cs_link_staticflag in current_settings.globalswitches) and
-              librarysearchpath.FindFile('crtbeginT.o',false,s) then
-             AddFileName(s)
-           else if librarysearchpath.FindFile('crtbegin.o',false,s) then
-             AddFileName(s);
-       end;
+        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+      { Add libc startup object file }
+      if isdll then
+        s:='crtbegin_so.o'
+      else
+        if cs_link_staticflag in current_settings.globalswitches then
+          s:='crtbegin_static.o'
+        else
+          s:='crtbegin_dynamic.o';
+      librarysearchpath.FindFile(s,false,s1);
+      AddFileName(s1);
       { main objectfiles }
       while not ObjectFiles.Empty do
        begin
@@ -335,45 +262,24 @@ begin
         ExpandAndApplyOrder(SharedLibFiles);
       // after this point addition of shared libs not allowed.
 
-      { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-        here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-      if (isdll) then
-       begin
-         Add('INPUT(');
-         Add(info.DynamicLinker);
-         Add(')');
-       end;
-      linksToSharedLibFiles := not SharedLibFiles.Empty;
-
       if not SharedLibFiles.Empty then
        begin
-
-         if (SharedLibFiles.Count<>1) or
-            (TCmdStrListItem(SharedLibFiles.First).Str<>'c') or
-            reorder then
+         if (SharedLibFiles.Count<>1) or reorder then
            begin
              Add('INPUT(');
              While not SharedLibFiles.Empty do
               begin
                 S:=SharedLibFiles.GetFirst;
-                if (s<>'c') or reorder then
-                 begin
-                   i:=Pos(target_info.sharedlibext,S);
-                   if i>0 then
-                    Delete(S,i,255);
-                   Add('-l'+s);
-                 end
-                else
-                 begin
-                   linklibc:=true;
-                 end;
+                i:=Pos(target_info.sharedlibext,S);
+                if i>0 then
+                  Delete(S,i,255);
+                Add('-l'+s);
               end;
              Add(')');
-           end
-         else
-           linklibc:=true;
+           end;
+
          if (cs_link_staticflag in current_settings.globalswitches) or
-            (linklibc and not reorder) then
+            (not reorder) then
            begin
              Add('GROUP(');
              { when we have -static for the linker the we also need libgcc }
@@ -384,262 +290,34 @@ begin
                    Add('-lgcc_eh');
                end;
              { be sure that libc is the last lib }
-             if linklibc and not reorder then
+             if not reorder then
                Add('-lc');
              Add(')');
            end;
        end;
 
       { objects which must be at the end }
-      if linklibc then
-       begin
-         if cs_create_pic in current_settings.moduleswitches then
-           found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
-         else
-           found1:=librarysearchpath.FindFile('crtend.o',false,s1);
-         found2:=librarysearchpath.FindFile('crtn.o',false,s2);
-         if found1 or found2 then
-          begin
-            Add('INPUT(');
-            if found1 then
-             AddFileName(s1);
-            if found2 then
-             AddFileName(s2);
-            Add(')');
-          end;
-       end;
+      { Add libc finalization object file }
+      Add('INPUT(');
+      if isdll then
+        s:='crtend_so.o'
+      else
+        s:='crtend_android.o';
+      librarysearchpath.FindFile(s,false,s1);
+      AddFileName(s1);
+      Add(')');
 
-      {Entry point. Only needed for executables, set on the linker command line for
-       shared libraries. }
-      if (not isdll) then
-       if (linksToSharedLibFiles and not linklibc) then
-        add('ENTRY(_dynamic_start)')
-       else
-        add('ENTRY(_start)');
+      { Additions to the linker script }
 
-{$ifdef ARM}
-      if target_info.abi=abi_eabi then
-        begin
-          { from GNU ld (CodeSourcery Sourcery G++ Lite 2007q3-53) 2.18.50.20070820 }
-          add('/* Script for -z combreloc: combine and sort reloc sections */');
-          add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",');
-          add('	      "elf32-littlearm")');
-          add('OUTPUT_ARCH(arm)');
-          add('SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
-          add('SECTIONS');
-          add('{');
-          add('  /* Read-only sections, merged into text segment: */');
-          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
-          add('  .interp         : { *(.interp) }');
-          add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
-          add('  .hash           : { *(.hash) }');
-          add('  .gnu.hash       : { *(.gnu.hash) }');
-          add('  .dynsym         : { *(.dynsym) }');
-          add('  .dynstr         : { *(.dynstr) }');
-          add('  .gnu.version    : { *(.gnu.version) }');
-          add('  .gnu.version_d  : { *(.gnu.version_d) }');
-          add('  .gnu.version_r  : { *(.gnu.version_r) }');
-          add('  .rel.dyn        :');
-          add('    {');
-          add('      *(.rel.init)');
-          add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
-          add('      *(.rel.fini)');
-          add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
-          add('      *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)');
-          add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
-          add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
-          add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
-          add('      *(.rel.ctors)');
-          add('      *(.rel.dtors)');
-          add('      *(.rel.got)');
-          add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
-          add('    }');
-          add('  .rela.dyn       :');
-          add('    {');
-          add('      *(.rela.init)');
-          add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
-          add('      *(.rela.fini)');
-          add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
-          add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
-          add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
-          add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
-          add('      *(.rela.ctors)');
-          add('      *(.rela.dtors)');
-          add('      *(.rela.got)');
-          add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
-          add('    }');
-          add('  .rel.plt        : { *(.rel.plt) }');
-          add('  .rela.plt       : { *(.rela.plt) }');
-          add('  .init           :');
-          add('  {');
-          add('    KEEP (*(.init))');
-          add('  } =0');
-          add('  .plt            : { *(.plt) }');
-          add('  .text           :');
-          add('  {');
-          add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
-          add('    KEEP (*(.text.*personality*))');
-          add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
-          add('    *(.gnu.warning)');
-          add('    *(.glue_7t) *(.glue_7) *(.vfp11_veneer)');
-          add('  } =0');
-          add('  .fini           :');
-          add('  {');
-          add('    KEEP (*(.fini))');
-          add('  } =0');
-          add('  PROVIDE (__etext = .);');
-          add('  PROVIDE (_etext = .);');
-          add('  PROVIDE (etext = .);');
-          add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
-          add('  .rodata1        : { *(.rodata1) }');
-          add('  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) }');
-          add('   __exidx_start = .;');
-          add('  .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }');
-          add('   __exidx_end = .;');
-          add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
-          add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
-          add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }');
-          add('  /* Adjust the address for the data segment.  We want to adjust up to');
-          add('     the same address within the page on the next page up.  */');
-          add('  . = ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1));');
-          add('  /* Exception handling  */');
-          add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
-          add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
-          add('  /* Thread Local Storage sections  */');
-          add('  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
-          add('  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
-          add('  .preinit_array     :');
-          add('  {');
-          add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
-          add('    KEEP (*(.preinit_array))');
-          add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
-          add('  }');
-          add('  .init_array     :');
-          add('  {');
-          add('     PROVIDE_HIDDEN (__init_array_start = .);');
-          add('     KEEP (*(SORT(.init_array.*)))');
-          add('     KEEP (*(.init_array))');
-          add('     PROVIDE_HIDDEN (__init_array_end = .);');
-          add('  }');
-          add('  .fini_array     :');
-          add('  {');
-          add('    PROVIDE_HIDDEN (__fini_array_start = .);');
-          add('    KEEP (*(.fini_array))');
-          add('    KEEP (*(SORT(.fini_array.*)))');
-          add('    PROVIDE_HIDDEN (__fini_array_end = .);');
-          add('  }');
-          add('  .ctors          :');
-          add('  {');
-          add('    /* gcc uses crtbegin.o to find the start of');
-          add('       the constructors, so we make sure it is');
-          add('       first.  Because this is a wildcard, it');
-          add('       doesn''t matter if the user does not');
-          add('       actually link against crtbegin.o; the');
-          add('       linker won''t look for a file to match a');
-          add('       wildcard.  The wildcard also means that it');
-          add('       doesn''t matter which directory crtbegin.o');
-          add('       is in.  */');
-          add('    KEEP (*crtbegin.o(.ctors))');
-          add('    KEEP (*crtbegin?.o(.ctors))');
-          add('    /* We don''t want to include the .ctor section from');
-          add('       the crtend.o file until after the sorted ctors.');
-          add('       The .ctor section from the crtend file contains the');
-          add('       end of ctors marker and it must be last */');
-          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
-          add('    KEEP (*(SORT(.ctors.*)))');
-          add('    KEEP (*(.ctors))');
-          add('  }');
-          add('  .dtors          :');
-          add('  {');
-          add('    KEEP (*crtbegin.o(.dtors))');
-          add('    KEEP (*crtbegin?.o(.dtors))');
-          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
-          add('    KEEP (*(SORT(.dtors.*)))');
-          add('    KEEP (*(.dtors))');
-          add('  }');
-          add('  .jcr            : { KEEP (*(.jcr)) }');
-          add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*) }');
-          add('  .dynamic        : { *(.dynamic) }');
-          add('  .got            : { *(.got.plt) *(.got) }');
-          add('  .data           :');
-          add('  {');
-          add('    __data_start = . ;');
-          add('    *(.data .data.* .gnu.linkonce.d.*)');
-
-          { extra by FPC }
-          add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-
-          add('    KEEP (*(.gnu.linkonce.d.*personality*))');
-          add('    SORT(CONSTRUCTORS)');
-          add('  }');
-          add('  .data1          : { *(.data1) }');
-          add('  _edata = .; PROVIDE (edata = .);');
-          add('  __bss_start = .;');
-          add('  __bss_start__ = .;');
-          add('  .bss            :');
-          add('  {');
-          add('   *(.dynbss)');
-          add('   *(.bss .bss.* .gnu.linkonce.b.*)');
-          add('   *(COMMON)');
-          add('   /* Align here to ensure that the .bss section occupies space up to');
-          add('      _end.  Align after .bss to ensure correct alignment even if the');
-          add('      .bss section disappears because there are no input sections.');
-          add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
-          add('      pad the .data section.  */');
-          add('   . = ALIGN(. != 0 ? 32 / 8 : 1);');
-          add('  }');
-          add('  _bss_end__ = . ; __bss_end__ = . ;');
-          add('  . = ALIGN(32 / 8);');
-          add('  . = ALIGN(32 / 8);');
-          add('  __end__ = . ;');
-          add('  _end = .; PROVIDE (end = .);');
-          add('  /* Stabs debugging sections.  */');
-          add('  .stab          0 : { *(.stab) }');
-          add('  .stabstr       0 : { *(.stabstr) }');
-          add('  .stab.excl     0 : { *(.stab.excl) }');
-          add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
-          add('  .stab.index    0 : { *(.stab.index) }');
-          add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
-          add('  .comment       0 : { *(.comment) }');
-          add('  /* DWARF debug sections.');
-          add('     Symbols in the DWARF debugging sections are relative to the beginning');
-          add('     of the section so we begin them at 0.  */');
-          add('  /* DWARF 1 */');
-          add('  .debug          0 : { *(.debug) }');
-          add('  .line           0 : { *(.line) }');
-          add('  /* GNU DWARF 1 extensions */');
-          add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
-          add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
-          add('  /* DWARF 1.1 and DWARF 2 */');
-          add('  .debug_aranges  0 : { *(.debug_aranges) }');
-          add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
-          add('  /* DWARF 2 */');
-          add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
-          add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
-          add('  .debug_line     0 : { *(.debug_line) }');
-          add('  .debug_frame    0 : { *(.debug_frame) }');
-          add('  .debug_str      0 : { *(.debug_str) }');
-          add('  .debug_loc      0 : { *(.debug_loc) }');
-          add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
-          add('  /* SGI/MIPS DWARF 2 extensions */');
-          add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
-          add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
-          add('  .debug_typenames 0 : { *(.debug_typenames) }');
-          add('  .debug_varnames  0 : { *(.debug_varnames) }');
-          add('  /* DWARF 3 */');
-          add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
-          add('  .debug_ranges   0 : { *(.debug_ranges) }');
-          add('    .stack         0x80000 :');
-          add('  {');
-          add('    _stack = .;');
-          add('    *(.stack)');
-          add('  }');
-          add('  .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) KEEP (*(.gnu.attributes)) }');
-          add('  .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }');
-          add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) }');
-          add('}');
-        end;
-{$endif ARM}
+      add('SECTIONS');
+      add('{');
+      add('  .data           :');
+      add('  {');
+      { extra by FPC }
+      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      add('  }');
+      add('}');
+      add('INSERT BEFORE .data1');
 
       { Write and Close response }
       writetodisk;
@@ -649,63 +327,87 @@ begin
   WriteResponseFile:=True;
 end;
 
-
-function TLinkerAndroid.MakeExecutable:boolean;
-var
-  i : longint;
-  binstr,
-  cmdstr  : TCmdStr;
-  success : boolean;
-  DynLinkStr : string;
-  GCSectionsStr,
-  StaticStr,
-  StripStr   : string[40];
+function tlinkerandroid.GetLdOptions: string;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
-
-{ Create some replacements }
-  StaticStr:='';
-  StripStr:='';
-  GCSectionsStr:='';
-  DynLinkStr:='';
-  if (cs_link_staticflag in current_settings.globalswitches) then
-   StaticStr:='-static';
+  Result:='';
   if (cs_link_strip in current_settings.globalswitches) and
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
-   StripStr:='-s';
+    Result:=Result + ' -s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+    Result:=Result + ' -Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
-   GCSectionsStr:='--gc-sections';
-  If (cs_profile in current_settings.moduleswitches) or
-     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
-   begin
-     DynLinkStr:='--dynamic-linker='+Info.DynamicLinker;
-     if cshared then
-       DynLinkStr:=DynLinkStr+' --shared ';
-     if rlinkpath<>'' then
-       DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
-   End;
+    Result:=Result + ' --gc-sections';
+end;
+
+function tlinkerandroid.DoLink(IsSharedLib: boolean): boolean;
+var
+  i: longint;
+  binstr, cmdstr: TCmdStr;
+  s, opts, outname: string;
+  success: boolean;
+begin
+  Result:=False;
+  if IsSharedLib then
+    outname:=current_module.sharedlibfilename
+  else
+    outname:=current_module.exefilename;
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking, outname);
+
+  opts:='';
+  if (cs_link_strip in current_settings.globalswitches) and
+     not (cs_link_separate_dbg_file in current_settings.globalswitches) then
+    opts:=opts + ' -s';
+  if (cs_link_map in current_settings.globalswitches) then
+    opts:=opts + ' -Map '+maybequoted(ChangeFileExt(outname,'.map'));
+  if create_smartlink_sections then
+    opts:=opts + ' --gc-sections';
+  if (cs_link_staticflag in current_settings.globalswitches) then
+    opts:=opts + ' -static'
+  else
+    if cshared then
+      opts:=opts + ' -call_shared';
+  if rlinkpath<>'' then
+    opts:=opts+' --rpath-link '+rlinkpath;
+
+  if not IsSharedLib then
+    begin
+      if (cs_profile in current_settings.moduleswitches) or
+         ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty))
+      then
+        opts:=opts + ' --dynamic-linker=' + Info.DynamicLinker;
+      { create dynamic symbol table? }
+      if HasExports then
+        opts:=opts+' -E';
+    end;
+
+  opts:=Trim(opts + ' ' + Info.ExtraOptions);
 
 { Write used files and libraries }
-  WriteResponseFile(false);
+  WriteResponseFile(IsSharedLib);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  if IsSharedLib then
+    s:=Info.DllCmd[1]
+  else
+    s:=Info.ExeCmd[1];
+  SplitBinCmd(s, binstr, cmdstr);
+  Replace(cmdstr,'$EXE',maybequoted(outname));
+  Replace(cmdstr,'$OPT',opts);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-  Replace(cmdstr,'$STATIC',StaticStr);
-  Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  if IsSharedLib then
+    Replace(cmdstr,'$SONAME',ExtractFileName(outname));
 
-  { create dynamic symbol table? }
-  if HasExports then
-    cmdstr:=cmdstr+' -E';
+  binstr:=FindUtil(utilsprefix+BinStr);
+  { We should use BFD version of LD, since GOLD version does not support INSERT command in linker scripts }
+  if binstr <> '' then begin
+    { Checking if ld.bfd exists }
+    s:=ChangeFileExt(binstr, '.bfd' + source_info.exeext);
+    if FileExists(s, True) then
+      binstr:=s;
+  end;
 
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  success:=DoExec(binstr,CmdStr,true,false);
 
   { Create external .dbg file with debuginfo }
   if success and (cs_link_separate_dbg_file in current_settings.globalswitches) then
@@ -713,7 +415,7 @@ begin
       for i:=1 to 3 do
         begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+          Replace(cmdstr,'$EXE',maybequoted(outname));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
           Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
           success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
@@ -724,59 +426,19 @@ begin
 
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(outputexedir+Info.ResName);
 
-  MakeExecutable:=success;   { otherwise a recursive call to link method }
+  Result:=success;   { otherwise a recursive call to link method }
 end;
 
+function TLinkerAndroid.MakeExecutable:boolean;
+begin
+  Result:=DoLink(False);
+end;
 
 Function TLinkerAndroid.MakeSharedLibrary:boolean;
-var
-  InitStr,
-  FiniStr,
-  SoNameStr : string[80];
-  binstr,
-  cmdstr  : TCmdStr;
-  success : boolean;
 begin
-  MakeSharedLibrary:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
-
-{ Write used files and libraries }
-  WriteResponseFile(true);
-
- { Create some replacements }
- { note: linux does not use exportlib.initname/fininame due to the custom startup code }
-  InitStr:='-init FPC_SHARED_LIB_START';
-  FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
-
-{ Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-  Replace(cmdstr,'$INIT',InitStr);
-  Replace(cmdstr,'$FINI',FiniStr);
-  Replace(cmdstr,'$SONAME',SoNameStr);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-
-{ Strip the library ? }
-  if success and (cs_link_strip in current_settings.globalswitches) then
-   begin
-     { only remove non global symbols and debugging info for a library }
-     Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
-     SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-   end;
-
-{ Remove ReponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
-
-  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+  Result:=DoLink(True);
 end;
 
 {*****************************************************************************

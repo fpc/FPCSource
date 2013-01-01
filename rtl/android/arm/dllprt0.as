@@ -15,9 +15,6 @@
 
 .file   "dllprt0.as"
 .text
-        .globl  _startlib
-        .type   _startlib,#function
-_startlib:
         .globl  FPC_SHARED_LIB_START
         .type   FPC_SHARED_LIB_START,#function
 FPC_SHARED_LIB_START:
@@ -25,51 +22,51 @@ FPC_SHARED_LIB_START:
         stmfd sp!,{fp, ip, lr, pc}
         sub fp, ip, #4
 
-        /* registers do not contain any of the argc/argv/envp
-        information. They are zero by default anyway, so no
-        need to do anything else */
+        /* Save initial stackpointer */
+        ldr ip,=__stkptr
+        str sp,[ip]
 
-        /* save initial stackpointer */
-        ldr ip, =__stklen
-        str sp, [ip]
+        /* Get environment info from libc */
+        ldr ip,=environ
+        ldr r5,[ip]
+        ldr ip,=operatingsystem_parameter_envp
+        str r5,[ip]
+        
+        /* Register exit handler. It is called only when the main process terminates */
+        ldr r0,=FPC_LIB_EXIT
+        bl atexit
 
         /* call main and exit normally */
         bl PASCALMAIN
         ldmdb fp, {fp, sp, pc}
 
+/* --------------------------------------------------------- */
         .globl  _haltproc
         .type   _haltproc,#function
 _haltproc:
-        /* reload exitcode */
-        ldr r0,=operatingsystem_result
-        ldr r0,[r0]
-        swi 0x900001
-        b _haltproc
-
         .globl  _haltproc_eabi
         .type   _haltproc_eabi,#function
 _haltproc_eabi:
-        /* reload exitcode */
         ldr r0,=operatingsystem_result
         ldr r0,[r0]
-        mov r7,#248
-        swi 0x0
-        b _haltproc_eabi
+        /* Go to libc exit() */
+        b exit
 
+/* --------------------------------------------------------- */
 .data
-
-        .type operatingsystem_parameters,#object
-        .size operatingsystem_parameters,12
-operatingsystem_parameters:
-        .skip 3*4
-        .global operatingsystem_parameter_envp
-        .global operatingsystem_parameter_argc
-        .global operatingsystem_parameter_argv
-        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
-        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
-        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
-
-.bss
-
         .comm __stkptr,4
+        .comm operatingsystem_parameter_envp,4
+operatingsystem_parameter_argc:
+        .global operatingsystem_parameter_argc
+        .long 1
+operatingsystem_parameter_argv:
+        .global operatingsystem_parameter_argv
+        .long EmptyCmdLine
+EmptyCmdLine:
+        .long EmptyCmdStr
+EmptyCmdStr:
+        .ascii "\0"
 
+/* --------------------------------------------------------- */
+      	.section .init_array, "aw"
+	      .long FPC_SHARED_LIB_START
