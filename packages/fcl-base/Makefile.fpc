@@ -28,9 +28,10 @@ units_linux=syncobjs   fptimer
 units_win32=fileinfo syncobjs  fptimer
 units_win64=fileinfo syncobjs  fptimer
 units_wince=fileinfo syncobjs fptimer
-# syncobjs requires GetLastOSError function
+# syncobjs requires GetLastOSError function (not under OS/2 though - different solution there)
 units_netware=syncobjs
 units_netwlibc=syncobjs
+units_os2=syncobjs
 rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]

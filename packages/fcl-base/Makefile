@@ -304,7 +304,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=contnrs inifiles rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils fpexprpars ascii85 fptemplate fpmimetypes  fileinfo syncobjs  fptimer
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=contnrs inifiles rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils fpexprpars ascii85 fptemplate fpmimetypes
+override TARGET_UNITS+=contnrs inifiles rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils fpexprpars ascii85 fptemplate fpmimetypes  syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_UNITS+=contnrs inifiles rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils fpexprpars ascii85 fptemplate fpmimetypes  syncobjs fptimer
