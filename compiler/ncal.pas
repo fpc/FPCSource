@@ -3417,8 +3417,40 @@ implementation
 
 
     function tcallnode.pass_1 : tnode;
+      var
+        para: tcallparanode;
       begin
          result:=nil;
+
+         { can we get rid of the call? }
+         if not(cnf_return_value_used in callnodeflags) and
+           (procdefinition.typ=procdef) and
+           tprocdef(procdefinition).isempty and
+           { allow only certain proc options }
+           ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
+             po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,po_varargs,
+             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,po_has_inlininginfo,
+             po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
+             po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
+           begin
+             { check parameters for side effects }
+             para:=tcallparanode(left);
+             while assigned(para) do
+               begin
+                 if (para.parasym.typ = paravarsym) and
+                    ((para.parasym.refs>0) or
+                     not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                     might_have_sideeffects(para.left)) then
+                     break;
+                  para:=tcallparanode(para.right);
+               end;
+             { finally, remove it if no parameter with side effect has been found }
+             if para=nil then
+               begin
+                 result:=cnothingnode.create;
+                 exit;
+               end;
+           end;
 
          { as pass_1 is never called on the methodpointer node, we must check
            here that it's not a helper type }

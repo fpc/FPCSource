@@ -2389,6 +2389,7 @@ begin
                    end;
                  writeln;
                end;
+             writeln(space,'            Empty : ',getbyte<>0);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;

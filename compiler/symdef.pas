@@ -631,6 +631,8 @@ interface
           synthetickind : tsynthetickind;
           { optional parameter for the synthetic routine generation logic }
           skpara: pointer;
+          { true, if the procedure contains no code }
+          isempty,
           { true, if the procedure is only declared
             (forward procedure) }
           forwarddef,
@@ -4123,6 +4125,8 @@ implementation
          for i:=1 to aliasnamescount do
            aliasnames.insert(ppufile.getstring);
 
+         isempty:=ppufile.getbyte<>0;
+
          { load para symtable }
          parast:=tparasymtable.create(self,level);
          tparasymtable(parast).ppuload(ppufile);
@@ -4277,6 +4281,8 @@ implementation
             ppufile.putstring(item.str);
             item:=TCmdStrListItem(item.next);
           end;
+
+         ppufile.putbyte(ord(isempty));
 
          ppufile.do_crc:=oldintfcrc;
 

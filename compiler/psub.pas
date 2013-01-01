@@ -1185,6 +1185,7 @@ implementation
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
+
 {$ifdef i386}
         procdef.fpu_used:=node_resources_fpu(code);
         if procdef.fpu_used>0 then
@@ -1249,6 +1250,10 @@ implementation
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
           do_optcse(code);
+
+        if (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
+          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
+          procdef.isempty:=true;
 
         { add implicit entry and exit code }
         add_entry_exit_code;
