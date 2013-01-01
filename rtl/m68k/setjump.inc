@@ -30,7 +30,11 @@ asm
   move.l (sp), d0
   move.l d0, 8(a0)
   // save FP
+{$if defined(amiga)}
+  move.l a5, (a0)
+{$else}
   move.l a6, (a0)
+{$endif}
   // save SP
   move.l sp, d0
   addq.l #8, d0
@@ -99,7 +103,11 @@ asm
   // Save temporarily into d1 slot
   move.l d0,12(a0)
   // restore FP
+{$if define(amiga)}
+  move.l (a0), a5
+{$else}
   move.l (a0), a6
+{$endif}
   // restore SP
   move.l 4(a0), sp
   // jump to PC
