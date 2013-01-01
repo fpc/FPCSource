@@ -51,6 +51,8 @@ Type
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
 
+  private
+   function SkipEntryExitMarker(current: tai; var next: tai): boolean;
   protected
     function LookForPostindexedPattern(p: taicpu): boolean;
   End;
@@ -456,9 +458,25 @@ Implementation
     end;
 
 
+  { skip harmless marker marking entry/exit code, so it can be optimized as well }
+  function TCpuAsmOptimizer.SkipEntryExitMarker(current : tai;var next : tai) : boolean;
+    begin
+      result:=true;
+      if current.typ<>ait_marker then
+        exit;
+      next:=current;
+      while GetNextInstruction(next,next) do
+        begin
+          if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
+            exit;
+        end;
+      result:=false;
+    end;
+
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
-      hp1,hp2: tai;
+      hp1,hp2,hp3,hp4: tai;
       i, i2: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
@@ -1380,6 +1398,74 @@ Implementation
                         RemoveRedundantMove(p, hp2, asml);
                       end;
                   end;
+                A_STM:
+                  begin
+                    {
+                      change
+	              stmfd	r13!,[r14]
+	              sub	r13,r13,#4
+	              bl	abc
+	              add	r13,r13,#4
+	              ldmfd	r13!,[r15]
+                      into
+                      b         abc
+                    }
+                    if MatchInstruction(p, A_STM, [C_None], [PF_FD]) and
+                      GetNextInstruction(p, hp1) and
+                      GetNextInstruction(hp1, hp2) and
+                      SkipEntryExitMarker(hp2, hp2) and
+                      GetNextInstruction(hp2, hp3) and
+                      SkipEntryExitMarker(hp3, hp3) and
+                      GetNextInstruction(hp3, hp4) and
+                      (taicpu(p).oper[0]^.typ = top_ref) and
+                      (taicpu(p).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                      (taicpu(p).oper[0]^.ref^.base=NR_NO) and
+                      (taicpu(p).oper[0]^.ref^.offset=0) and
+                      (taicpu(p).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                      (taicpu(p).oper[1]^.typ = top_regset) and
+                      (taicpu(p).oper[1]^.regset^ = [RS_R14]) and
+
+                      MatchInstruction(hp1, A_SUB, [C_None], [PF_NONE]) and
+                      (taicpu(hp1).oper[0]^.typ = top_reg) and
+                      (taicpu(hp1).oper[0]^.reg = NR_STACK_POINTER_REG) and
+                      (taicpu(hp1).oper[1]^.typ = top_reg) and
+                      (taicpu(hp1).oper[1]^.reg = NR_STACK_POINTER_REG) and
+                      (taicpu(hp1).oper[2]^.typ = top_const) and
+
+                      MatchInstruction(hp3, A_ADD, [C_None], [PF_NONE]) and
+                      (taicpu(hp3).oper[0]^.typ = top_reg) and
+                      (taicpu(hp3).oper[0]^.reg = NR_STACK_POINTER_REG) and
+                      (taicpu(hp3).oper[1]^.typ = top_reg) and
+                      (taicpu(hp3).oper[1]^.reg = NR_STACK_POINTER_REG) and
+                      (taicpu(hp3).oper[2]^.typ = top_const) and
+                      (taicpu(hp1).oper[2]^.val = taicpu(hp3).oper[2]^.val) and
+
+                      MatchInstruction(hp2, [A_BL,A_BLX], [C_None], [PF_NONE]) and
+                      (taicpu(hp2).oper[0]^.typ = top_ref) and
+
+                      MatchInstruction(hp4, A_LDM, [C_None], [PF_FD]) and
+                      (taicpu(hp4).oper[0]^.typ = top_ref) and
+                      (taicpu(hp4).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                      (taicpu(hp4).oper[0]^.ref^.base=NR_NO) and
+                      (taicpu(hp4).oper[0]^.ref^.offset=0) and
+                      (taicpu(hp4).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                      (taicpu(hp4).oper[1]^.typ = top_regset) and
+                      (taicpu(hp4).oper[1]^.regset^ = [RS_R15]) then
+                      begin
+                        asml.Remove(p);
+                        asml.Remove(hp1);
+                        asml.Remove(hp3);
+                        asml.Remove(hp4);
+                        taicpu(hp2).opcode:=A_B;
+                        p.free;
+                        hp1.free;
+                        hp3.free;
+                        hp4.free;
+                        p:=hp2;
+                        DebugMsg('Peephole Bl2B done', p);
+                      end;
+                  end;
+
               end;
           end;
       end;
