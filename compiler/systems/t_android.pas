@@ -44,7 +44,6 @@ interface
 
     tlinkerandroid=class(texternallinker)
     private
-      libctype:(bionic);
       prtobj  : string[80];
       reorder : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
@@ -137,11 +136,6 @@ begin
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
-
-     {
-       There is only one C library on android, the bionic libc
-     }
-     libctype:=bionic;
      DynamicLinker:='/system/bin/linker';
    end;
 end;
