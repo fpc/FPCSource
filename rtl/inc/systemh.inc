@@ -1227,6 +1227,7 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
+procedure EmptyMethod;external name 'FPC_AEMPTYMETHOD';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 (* Supposed to return address of previous CtrlBreakHandler *)

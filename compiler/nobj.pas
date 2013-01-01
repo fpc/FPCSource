@@ -71,6 +71,7 @@ interface
         procedure insertmsgstr(p:TObject;arg:pointer);
         procedure insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
+        function RedirectToEmpty(procdef: tprocdef): boolean;
         procedure writenames(list : TAsmList;p : pprocdeftree);
         procedure writeintentry(list : TAsmList;p : pprocdeftree);
         procedure writestrentry(list : TAsmList;p : pprocdeftree);
@@ -113,6 +114,7 @@ implementation
        globals,verbose,systems,
        node,procinfo,
        symbase,symtable,symconst,symtype,defcmp,
+       cgbase,parabase,
        dbgbase,
        ncgrtti,
        wpobase
@@ -1532,6 +1534,31 @@ implementation
     end;
 
 
+    function TVMTWriter.RedirectToEmpty(procdef : tprocdef) : boolean;
+      var
+        i : longint;
+        hp : PCGParaLocation;
+      begin
+        result:=false;
+        if procdef.isempty then
+          begin
+            procdef.init_paraloc_info(calleeside);
+            { we can redirect the call if no memory parameter is passed }
+            for i:=0 to procdef.paras.count-1 do
+              begin
+                hp:=tparavarsym(procdef.paras[i]).paraloc[callerside].Location;
+                while assigned(hp) do
+                  begin
+                    if not(hp^.Loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_FPUREGISTER]) then
+                      exit;
+                    hp:=hp^.Next;
+                  end;
+              end;
+            result:=true;
+          end;
+      end;
+
+
     procedure TVMTWriter.writevirtualmethods(List:TAsmList);
       var
          vmtpd : tprocdef;
@@ -1555,6 +1582,8 @@ implementation
              internalerror(200611083);
            if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
+           else if (cs_opt_level2 in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+             procname:='FPC_EMPTYMETHOD'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));

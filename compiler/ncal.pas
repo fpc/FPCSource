@@ -3423,7 +3423,8 @@ implementation
          result:=nil;
 
          { can we get rid of the call? }
-         if not(cnf_return_value_used in callnodeflags) and
+         if (cs_opt_level2 in current_settings.optimizerswitches) and
+            not(cnf_return_value_used in callnodeflags) and
            (procdefinition.typ=procdef) and
            tprocdef(procdefinition).isempty and
            { allow only certain proc options }
