@@ -366,10 +366,7 @@ begin
 
   if not IsSharedLib then
     begin
-      if (cs_profile in current_settings.moduleswitches) or
-         ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty))
-      then
-        opts:=opts + ' --dynamic-linker=' + Info.DynamicLinker;
+      opts:=opts + ' --dynamic-linker=' + Info.DynamicLinker;
       { create dynamic symbol table? }
       if HasExports then
         opts:=opts+' -E';
