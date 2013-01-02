@@ -145,18 +145,7 @@ end;
 {$endif}
 
 
-{$ifdef FPC_HAS_FEATURE_RANDOM}
-
-Procedure Randomize;
-Begin
-  RandSeed := 63458;
-End;
-
-{$endif FPC_HAS_FEATURE_RANDOM}
-
-
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-
 Function ParamCount: Longint;
 Begin
   Paramcount:=argc-1
@@ -165,15 +154,43 @@ End;
 
 function paramstr(l: longint) : string;
  begin
-   if l=0 then
-     begin
-       paramstr := '';
-     end
-   else
-     paramstr:=strpas(argv[l]);
+   paramstr := '';
  end;
-
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
+
+const
+  QRAN_SHIFT  = 15;
+  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
+  QRAN_MAX    = QRAN_MASK;
+  QRAN_A      = 1664525;
+  QRAN_C      = 1013904223;
+
+{$ifdef FPC_HAS_FEATURE_RANDOM}
+procedure randomize();
+begin
+  RandSeed := 63458;
+end;
+
+procedure randomize(value: integer);
+begin
+  RandSeed := value;
+end;
+
+function random(): integer;
+begin
+  RandSeed := QRAN_A * RandSeed + QRAN_C;
+  random := (RandSeed shr 16) and QRAN_MAX;
+end;
+
+function random(value: integer): integer;
+var
+  a: integer;
+begin
+  RandSeed := QRAN_A * RandSeed + QRAN_C;
+  a := (RandSeed shr 16) and QRAN_MAX;
+  random := (a * value) shr 15;
+end;
+{$endif FPC_HAS_FEATURE_RANDOM}
 
 
 {*****************************************************************************
