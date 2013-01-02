@@ -27,7 +27,7 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris) and not defined(android)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$if defined(haiku)}
    {$linklib textencoding}
    {$linklib locale}
@@ -81,18 +81,9 @@ function wctomb(s: pchar; wc: wchar_t): size_t; cdecl; external clib name 'wctom
 function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mblen';
 {$endif beos}
 
-const
-{ en_US.UTF-8 needs maximally 6 chars, UCS-4/UTF-32 needs 4   }
-{ -> 10 should be enough? Should actually use MB_CUR_MAX, but }
-{ that's a libc macro mapped to internal functions/variables  }
-{ and thus not a stable external API on systems where libc    }
-{ breaks backwards compatibility every now and then           }
-  MB_CUR_MAX = 10;
-
-{$ifndef android} // There is no iconv on Android
 
 const
-{$if defined(linux) or defined(Android)}
+{$if defined(linux)}
   __LC_CTYPE = 0;
   LC_ALL = 6;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
@@ -149,6 +140,13 @@ const
 {$endif AIX}
 {$endif  FPC_LITTLE_ENDIAN}
 
+{ en_US.UTF-8 needs maximally 6 chars, UCS-4/UTF-32 needs 4   }
+{ -> 10 should be enough? Should actually use MB_CUR_MAX, but }
+{ that's a libc macro mapped to internal functions/variables  }
+{ and thus not a stable external API on systems where libc    }
+{ breaks backwards compatibility every now and then           }
+  MB_CUR_MAX = 10;
+
 { Requests for iconvctl }
   ICONV_TRIVIALP          = 0; // int *argument
   ICONV_GET_TRANSLITERATE = 1; // int *argument
@@ -186,7 +184,10 @@ const
 {$endif}
 var 
   iconvctl:function(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;
-  
+
+procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
+
+
 threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
@@ -197,6 +198,7 @@ threadvar
     is not a threadvar and we can't automatically change this in all
     threads }
   current_DefaultSystemCodePage: TSystemCodePage;
+
 
 {$i winiconv.inc}
 
@@ -496,60 +498,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     if free_iconv then
       iconv_close(use_iconv);
   end;
-  
-{$else android}
 
-procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCodePage; len:SizeInt);
-var
-  i : SizeInt;
-  hs : RawByteString;
-begin
-  dest:='';
-  if len = 0 then
-    exit;
-  if (cp = CP_UTF8) or (cp = CP_ACP) then
-    begin
-      // Only UTF-8 is supported for Android
-      SetLength(hs,len*3);
-      i:=UnicodeToUtf8(pchar(hs),length(hs)+1,source,len);
-      if i > 0 then
-        begin
-          SetLength(hs,i-1);
-          dest:=hs;
-        end;
-    end
-  else
-    DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
-end;
-
-procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
-var
-  i : SizeInt;
-  hs : UnicodeString;
-begin
-  // Only UTF-8 is supported for Android
-  dest:='';
-  if len = 0 then
-    exit;
-  if (cp = CP_UTF8) or (cp = CP_ACP) then
-    begin
-      SetLength(hs,len);
-      i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pchar(source),len);
-      if i>0 then
-        begin
-          SetLength(hs,i-1);
-          dest:=hs;
-        end
-      else
-        dest:='';
-    end
-  else
-    DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
-end;
-
-{$endif android}
-
-procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
 function LowerWideString(const s : WideString) : WideString;
   var
@@ -1022,14 +971,9 @@ begin
 end;
 
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
-{$ifndef android}
 var
   langinfo: pchar;
-{$endif android}
 begin
-{$ifdef android}
-  Result := CP_UTF8; // Android has only UTF-8
-{$else}
   langinfo:=nl_langinfo(CODESET);
   { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
     that causes it to return an empty string of UTF-8 locales
@@ -1039,7 +983,6 @@ begin
      (langinfo^=#0) then
     langinfo:='UTF-8';
   Result := iconv2win(ansistring(langinfo));
-{$endif android}
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
@@ -1091,13 +1034,8 @@ begin
       StrLICompAnsiStringProc:=@AnsiStrLIComp;
       StrLowerAnsiStringProc:=@AnsiStrLower;
       StrUpperAnsiStringProc:=@AnsiStrUpper;
-{$ifdef android}
-      ThreadInitProc:=nil;
-      ThreadFiniProc:=nil;
-{$else}
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
-{$endif android}
       { Unicode }
       Unicode2AnsiMoveProc:=@Wide2AnsiMove;
       Ansi2UnicodeMoveProc:=@Ansi2WideMove;
@@ -1111,14 +1049,12 @@ begin
   SetUnicodeStringManager(CWideStringManager);
 end;
 
-{$ifndef android}
 var
   iconvlib:TLibHandle;
-{$endif android}
 
 initialization
   SetCWideStringManager;
-{$ifndef android}
+
   { you have to call setlocale(LC_ALL,'') to initialise the langinfo stuff  }
   { with the information from the environment variables according to POSIX  }
   { (some OSes do this automatically, but e.g. Darwin and Solaris don't)    }
@@ -1128,7 +1064,6 @@ initialization
   iconvlib:=LoadLibrary(libprefix+libiconvname+'.'+SharedSuffix);
   if iconvlib<>0 then
     pointer(iconvctl):=GetProcAddress(iconvlib,iconvctlname);
-{$endif android}
 
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
@@ -1137,16 +1072,12 @@ initialization
   SetStdIOCodePages;
   {$endif FPC_HAS_CPSTRING}
 
-{$ifndef android}
   { init conversion tables for main program }
   InitThread;
-{$endif android}
 finalization
-{$ifndef android}
   { fini conversion tables for main program }
   FiniThread;
   { unload iconv library }
   if iconvlib<>0 then
     FreeLibrary(iconvlib);
-{$endif android}
 end.

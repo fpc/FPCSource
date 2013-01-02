@@ -7221,6 +7221,7 @@ rtl/android/Makefile svneol=native#text/plain
 rtl/android/Makefile.fpc svneol=native#text/plain
 rtl/android/arm/dllprt0.as svneol=native#text/plain
 rtl/android/arm/prt0.as svneol=native#text/plain
+rtl/android/cwstring.pp svneol=native#text/plain
 rtl/android/i386/dllprt0.as svneol=native#text/plain
 rtl/android/i386/prt0.as svneol=native#text/plain
 rtl/android/jvm/Makefile svneol=native#text/plain
