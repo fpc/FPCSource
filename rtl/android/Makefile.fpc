@@ -61,7 +61,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 SYSINIT_UNITS=
 
-LOADERS=prt0 dllprt0 cprt0
+LOADERS=prt0 dllprt0
 
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
