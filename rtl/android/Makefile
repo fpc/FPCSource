@@ -305,7 +305,7 @@ LINUXINC=$(RTL)/linux
 UNITPREFIX=rtl
 CPU_UNITS=
 SYSINIT_UNITS=
-LOADERS=prt0 dllprt0 cprt0
+LOADERS=prt0 dllprt0
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
@@ -3210,8 +3210,6 @@ prt0$(OEXT) : $(ARCH)/prt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
-cprt0$(OEXT) : $(ARCH)/cprt0.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
