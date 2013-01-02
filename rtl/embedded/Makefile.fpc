@@ -7,9 +7,12 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas heapmgr consoleio # macpas iso7185 strings \
+# not all targets include enough features to build all units so
+# the common units which are not compiled for all CPUs are stored in
+# CPU_SPECIFIC_COMMON_UNITS
+units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS)
+# macpas iso7185 strings
 #      dos \
-#       sysutils \
 #       classes math typinfo varutils fmtbcd \
 #       charset ucomplex getopts matrix \
 #       variants types rtlconsts sysconst dateutil
@@ -46,8 +49,10 @@ endif
 
 CPU_UNITS=
 SYSINIT_UNITS=
+CPU_SPECIFIC_COMMON_UNITS=
 
 ifeq ($(ARCH),arm)
+CPU_SPECIFIC_COMMON_UNITS=sysutils sysconst
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn lpc1768 # thumb2_bare
 endif
@@ -144,7 +149,7 @@ objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                    objpas$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

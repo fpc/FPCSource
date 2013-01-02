@@ -7549,6 +7549,7 @@ rtl/embedded/sysheap.inc svneol=native#text/plain
 rtl/embedded/sysos.inc svneol=native#text/plain
 rtl/embedded/sysosh.inc svneol=native#text/plain
 rtl/embedded/system.pp svneol=native#text/plain
+rtl/embedded/sysutils.pp svneol=native#text/pascal
 rtl/emx/Makefile svneol=native#text/plain
 rtl/emx/Makefile.fpc svneol=native#text/plain
 rtl/emx/crt.pas svneol=native#text/plain
