@@ -2114,9 +2114,6 @@ implementation
 
 
     procedure TExeOutput.DataPos_ExeSection(exesec:TExeSection);
-      var
-        i      : longint;
-        objsec : TObjSection;
       begin
         { don't write normal section if writing only debug info }
         if (ExeWriteMode=ewm_dbgonly) and
@@ -2127,20 +2124,7 @@ implementation
           begin
             CurrDataPos:=align_aword(CurrDataPos,DataAlign(exesec));
             exesec.DataPos:=CurrDataPos;
-          end;
-
-        { set position of object ObjSections }
-        for i:=0 to exesec.ObjSectionList.Count-1 do
-          begin
-            objsec:=TObjSection(exesec.ObjSectionList[i]);
-            if (oso_Data in objsec.SecOptions) then
-              begin
-                if not(oso_Data in exesec.SecOptions) then
-                  internalerror(200603043);
-                if not assigned(objsec.Data) then
-                  internalerror(200603044);
-                objsec.setDatapos(CurrDataPos);
-              end;
+            CurrDataPos:=CurrDataPos+exesec.Size;
           end;
       end;
 
@@ -3221,6 +3205,7 @@ implementation
         exesec : TExeSection;
         objsec : TObjSection;
         i,j    : longint;
+        dpos,pad: aword;
       begin
         for j:=0 to ExeSectionList.Count-1 do
           begin
@@ -3242,9 +3227,13 @@ implementation
                       begin
                         if not assigned(objsec.data) then
                           internalerror(200603042);
-                        FWriter.writezeros(objsec.dataalignbytes);
-                        if objsec.DataPos<>FWriter.Size then
+                        dpos:=objsec.MemPos-exesec.MemPos+exesec.DataPos;
+                        pad:=dpos-FWriter.Size;
+                        { objsection must be within SecAlign bytes from the previous one }
+                        if (dpos<FWriter.Size) or
+                          (pad>=max(objsec.SecAlign,1)) then
                           internalerror(200602251);
+                        FWriter.writeZeros(pad);
                         FWriter.writearray(objsec.data);
                       end;
                   end;
