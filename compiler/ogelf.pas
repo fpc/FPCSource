@@ -258,6 +258,8 @@ interface
          tlsseg: TElfSegment;
          relative_reloc_count: longint;
          function AllocGOTSlot(objsym: TObjSymbol):boolean;
+         procedure CreateGOTSection;virtual;
+         procedure make_dynamic_if_undefweak(exesym:TExeSymbol);
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
@@ -289,6 +291,7 @@ interface
      const
        { Bits of TObjSymbol.refs field }
        symref_plt = 1;
+       symref_from_text = 2;
 
 
 
@@ -673,7 +676,10 @@ implementation
         reloc.size:=len;
         ObjRelocations.Add(reloc);
         if reltype=RELOC_RELATIVE then
+{ ARM does not require this adjustment, other CPUs must be checked }
+{$if defined(i386) or defined(x86_64)}
           dec(offset,len)
+{$endif i386 or x86_64}
         else if reltype<>RELOC_ABSOLUTE then
           InternalError(2012062401);
         if ElfTarget.relocs_use_addend then
@@ -919,7 +925,8 @@ implementation
         else
           InternalError(2012111801);
         end;
-        if (objsym.bind<>AB_EXTERNAL) then
+        { External symbols must be NOTYPE in relocatable files }
+        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) then
           begin
             case objsym.typ of
               AT_FUNCTION :
@@ -1369,10 +1376,10 @@ implementation
                 if assigned(symversions) then
                   begin
                     ver:=symversions[i];
-                    if (ver=0) or (ver > $7FFF) then
+                    if (ver=VER_NDX_LOCAL) or (ver>VERSYM_VERSION) then
                       continue;
                   end;
-                if (bind= AB_LOCAL) or (sym.st_shndx=SHN_UNDEF) then
+                if (bind=AB_LOCAL) or (sym.st_shndx=SHN_UNDEF) then
                   continue;
               end;
             { validity of name and objsection has been checked above }
@@ -2064,6 +2071,14 @@ implementation
       end;
 
 
+    procedure TElfExeOutput.make_dynamic_if_undefweak(exesym:TExeSymbol);
+      begin
+        if (exesym.dynindex=0) and (exesym.state=symstate_undefweak) and
+          not (cs_link_staticflag in current_settings.globalswitches) then
+          exesym.dynindex:=dynsymlist.add(exesym)+1;
+      end;
+
+
     function TElfExeOutput.AllocGOTSlot(objsym:TObjSymbol):boolean;
       var
         exesym: TExeSymbol;
@@ -2128,11 +2143,8 @@ implementation
       end;
 
 
-    procedure TElfExeOutput.Load_Start;
+    procedure TElfExeOutput.CreateGOTSection;
       begin
-        inherited Load_Start;
-        dynsymlist:=TFPObjectList.Create(False);
-
         gotpltobjsec:=TElfObjSection.create_ext(internalObjData,'.got.plt',
           SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint),sizeof(pint));
 
@@ -2144,6 +2156,14 @@ implementation
         internalObjData.SetSection(gotpltobjsec);
         gotsymbol:=internalObjData.SymbolDefine('_GLOBAL_OFFSET_TABLE_',AB_GLOBAL,AT_DATA);
         gotpltobjsec.writeZeros(3*sizeof(pint));
+      end;
+
+
+    procedure TElfExeOutput.Load_Start;
+      begin
+        inherited Load_Start;
+        dynsymlist:=TFPObjectList.Create(False);
+        CreateGOTSection;
       end;
 
 
