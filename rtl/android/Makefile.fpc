@@ -110,9 +110,6 @@ prt0$(OEXT) : $(ARCH)/prt0.as
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 
-cprt0$(OEXT) : $(ARCH)/cprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
-
 #
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
