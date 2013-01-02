@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
-      unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
+      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
