@@ -1698,9 +1698,9 @@ Internal canonical NaN format.
 -------------------------------------------------------------------------------
 *}
 TYPE
- commonNaNT = packed record
-   sign: flag;
+ commonNaNT = record
    high, low : bits32;
+   sign: flag;
  end;
 {*
 -------------------------------------------------------------------------------
@@ -2106,9 +2106,9 @@ end;
 | Internal canonical NaN format.
 *----------------------------------------------------------------------------*)
 type
- commonNANT = packed record
-  sign : flag;
+ commonNANT = record
   high, low : bits32;
+  sign : flag;
  end;
 
 (*----------------------------------------------------------------------------
