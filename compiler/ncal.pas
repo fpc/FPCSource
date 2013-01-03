@@ -3422,6 +3422,14 @@ implementation
       begin
          result:=nil;
 
+         { as pass_1 is never called on the methodpointer node, we must check
+           here that it's not a helper type }
+         if assigned(methodpointer) and
+             (methodpointer.nodetype=typen) and
+             is_objectpascal_helper(ttypenode(methodpointer).typedef) and
+             not ttypenode(methodpointer).helperallowed then
+           Message(parser_e_no_category_as_types);
+
          { can we get rid of the call? }
          if (cs_opt_level2 in current_settings.optimizerswitches) and
             not(cnf_return_value_used in callnodeflags) and
@@ -3429,7 +3437,7 @@ implementation
            tprocdef(procdefinition).isempty and
            { allow only certain proc options }
            ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
-             po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,po_varargs,
+             po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
              po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,po_has_inlininginfo,
              po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
              po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
@@ -3440,6 +3448,9 @@ implementation
                begin
                  if (para.parasym.typ = paravarsym) and
                     ((para.parasym.refs>0) or
+                    { array of consts are converted later on so we need to skip them here
+                      else no error detection is done }
+                     is_array_of_const(para.parasym.vardef) or
                      not(cs_opt_dead_values in current_settings.optimizerswitches) or
                      might_have_sideeffects(para.left)) then
                      break;
@@ -3452,14 +3463,6 @@ implementation
                  exit;
                end;
            end;
-
-         { as pass_1 is never called on the methodpointer node, we must check
-           here that it's not a helper type }
-         if assigned(methodpointer) and
-             (methodpointer.nodetype=typen) and
-             is_objectpascal_helper(ttypenode(methodpointer).typedef) and
-             not ttypenode(methodpointer).helperallowed then
-           Message(parser_e_no_category_as_types);
 
          { convert Objective-C calls into a message call }
          if (procdefinition.typ=procdef) and
