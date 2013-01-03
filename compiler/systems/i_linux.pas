@@ -230,7 +230,8 @@ unit i_linux;
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+            flags        : [tf_needs_symbol_size,tf_smartlink_sections,
+                            tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
