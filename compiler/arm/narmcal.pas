@@ -26,7 +26,7 @@ unit narmcal;
 interface
 
     uses
-      symdef,node,ncal,ncgcal;
+      symdef,ncal,ncgcal;
 
     type
        tarmcallnode = class(tcgcallnode)
@@ -38,10 +38,8 @@ implementation
   uses
     verbose,globtype,globals,aasmdata,
     symconst,
-    cgbase,
-    cpubase,cpuinfo,
+    cgbase,cpuinfo,
     ncgutil,
-    paramgr,
     systems;
 
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);

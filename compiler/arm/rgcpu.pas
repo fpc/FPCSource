@@ -63,7 +63,7 @@ unit rgcpu;
   implementation
 
     uses
-      verbose, cutils,globtype,globals,cpuinfo,
+      verbose,globtype,globals,cpuinfo,
       cgobj,
       procinfo;
 

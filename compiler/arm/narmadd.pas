@@ -46,16 +46,13 @@ interface
   implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,
-      constexp,
-      symconst,symdef,paramgr,symtable,symtype,
-      aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,regvars,procinfo,
-      cpupara,
-      ncon,nset,nadd,ncnv,ncal,nmat,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
+      globtype,verbose,globals,
+      constexp,symdef,symtable,symtype,
+      aasmbase,aasmdata,aasmcpu,defutil,htypechk,
+      cgbase,cgutils,
+      cpuinfo,pass_1,procinfo,
+      ncon,nadd,ncnv,ncal,nmat,
+      ncgutil,cgobj,
       hlcgobj
       ;
 

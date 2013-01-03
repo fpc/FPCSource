@@ -26,7 +26,7 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,globtype,globals,verbose,
+  globtype,globals,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
   ogbase,
   symtype,
@@ -270,7 +270,7 @@ uses
 implementation
 
   uses
-    cutils,rgobj,itcpugas,aoptcpu;
+    itcpugas,aoptcpu;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);

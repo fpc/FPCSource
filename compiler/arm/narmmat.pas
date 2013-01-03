@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
@@ -60,7 +60,7 @@ implementation
       pass_2,procinfo,
       ncon,ncnv,ncal,
       cpubase,cpuinfo,
-      ncgutil,cgcpu,
+      ncgutil,
       nadd,pass_1,symdef;
 
 {*****************************************************************************

@@ -27,8 +27,7 @@ interface
 
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem;
+      cgbase,cpubase,nmem,ncgmem;
 
     type
       tarmvecnode = class(tcgvecnode)
@@ -38,12 +37,7 @@ interface
 implementation
 
     uses
-      systems,
-      cutils,verbose,
-      symdef,paramgr,
-      aasmtai,aasmdata,aasmcpu,
-      nld,ncon,nadd,
-      cgutils,cgobj;
+      cutils,verbose,aasmdata,aasmcpu,cgobj;
 
 {*****************************************************************************
                              TARMVECNODE

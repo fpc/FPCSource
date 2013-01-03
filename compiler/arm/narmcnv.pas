@@ -26,7 +26,7 @@ unit narmcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv;
 
     type
        tarmtypeconvnode = class(tcgtypeconvnode)
@@ -58,15 +58,12 @@ interface
 implementation
 
    uses
-      verbose,globtype,globals,systems,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,symtable,
+      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
-      pass_1,pass_2,procinfo,
-      ncon,ncal,
+      pass_1,pass_2,procinfo,ncal,
       ncgutil,
-      cpubase,cpuinfo,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj,cgcpu;
+      cpubase,cpuinfo,aasmcpu,cgobj,hlcgobj,cgcpu;
 
 
 {*****************************************************************************

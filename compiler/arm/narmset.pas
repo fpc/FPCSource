@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,
-      symtype,symdef,
+      symtype,
       cgbase,
       node,nset,pass_1,ncgset;
 
@@ -51,13 +51,9 @@ interface
 implementation
 
     uses
-      systems,
-      verbose,globals,constexp,
-      symconst,defutil,
+      globals,constexp,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      pass_2,
-      ncon,
-      cpubase,cpuinfo,procinfo,
+      cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
       cgcpu,hlcgobj;
 

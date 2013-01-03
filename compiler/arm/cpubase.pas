@@ -32,10 +32,8 @@ unit cpubase;
   interface
 
     uses
-      cutils,cclasses,
       globtype,globals,
       cpuinfo,
-      aasmbase,
       cgbase
       ;
 

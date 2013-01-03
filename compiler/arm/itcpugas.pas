@@ -43,7 +43,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,rgbase;
+      rgbase;
 
     const
       gas_regname_table : TRegNameTable = (

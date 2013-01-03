@@ -47,9 +47,8 @@ unit cpupi;
     uses
        globals,systems,
        cpubase,
-       aasmtai,aasmdata,
        tgobj,
-       symconst,symsym,paramgr,
+       symconst,paramgr,
        cgbase,cgutils,
        cgobj;
 

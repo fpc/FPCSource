@@ -28,9 +28,8 @@ unit cpupara;
 
     uses
        globtype,globals,
-       aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symbase,symtype,symdef,parabase,paramgr;
+       symconst,symtype,symdef,parabase,paramgr;
 
     type
        tarmparamanager = class(tparamanager)
@@ -53,7 +52,6 @@ unit cpupara;
 
     uses
        verbose,systems,cutils,
-       rgobj,
        defutil,symsym,symtable;
 
 

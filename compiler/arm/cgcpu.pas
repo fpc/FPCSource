@@ -32,7 +32,7 @@ unit cgcpu;
        cgbase,cgutils,cgobj,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        parabase,
-       cpubase,cpuinfo,node,cg64f32,rgcpu;
+       cpubase,cpuinfo,cg64f32,rgcpu;
 
 
     type
@@ -186,7 +186,7 @@ unit cgcpu;
 
 
     uses
-       globals,verbose,systems,cutils,sysutils,
+       globals,verbose,systems,cutils,
        aopt,aoptcpu,
        fmodule,
        symconst,symsym,

@@ -58,16 +58,10 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,fmodule,
-      cpuinfo, defutil,
-      symconst,symdef,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,cgutils,
-      pass_1,pass_2,
-      cpubase,paramgr,
-      nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu, hlcgobj;
+      globtype,verbose,globals,
+      cpuinfo, defutil,symdef,aasmdata,aasmcpu,
+      cgbase,cgutils,pass_2,
+      cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
 
 {*****************************************************************************
                               tarminlinenode

@@ -30,7 +30,7 @@ unit agarmgas;
 
     uses
        globtype,
-       aasmtai,aasmdata,
+       aasmtai,
        aggas,
        cpubase,cpuinfo;
 

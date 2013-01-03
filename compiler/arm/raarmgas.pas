@@ -54,19 +54,13 @@ Unit raarmgas;
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
-      systems,
-      { aasm }
-      cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
+      globtype,verbose,
+      systems,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
-      { parser }
-      scanner,
+      symconst,symsym,
       procinfo,
-      itcpugas,
       rabase,rautils,
-      cgbase,cgutils,cgobj
-      ;
+      cgbase,cgutils;
 
 
     function tarmattreader.is_register(const s:string):boolean;

@@ -26,7 +26,7 @@ unit narmcon;
 interface
 
     uses
-      node,ncgcon,cpubase;
+      ncgcon,cpubase;
 
     type
       tarmrealconstnode = class(tcgrealconstnode)
@@ -39,8 +39,7 @@ interface
       verbose,
       globtype,globals,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,
-      symconst,symdef,
+      aasmbase,aasmtai,aasmdata,symdef,
       defutil,
       cgbase,cgutils,
       procinfo,
