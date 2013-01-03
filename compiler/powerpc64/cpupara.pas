@@ -427,7 +427,10 @@ begin
         else begin
           { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
           paraloc^.reference.index := NR_OLD_STACK_POINTER_REG;
-          tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+          { create_paraloc_info_intern might be also called when being outside of
+            code generation so current_procinfo might be not set }
+          if assigned(current_procinfo) then
+            tppcprocinfo(current_procinfo).needs_frame_pointer := true;
         end;
         paraloc^.reference.offset := stack_offset;
 
