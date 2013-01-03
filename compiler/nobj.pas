@@ -114,7 +114,7 @@ implementation
        globals,verbose,systems,
        node,procinfo,
        symbase,symtable,symconst,symtype,defcmp,
-       cgbase,parabase,
+       cgbase,parabase,paramgr,
        dbgbase,
        ncgrtti,
        wpobase
@@ -1542,6 +1542,11 @@ implementation
         result:=false;
         if procdef.isempty then
           begin
+{$ifdef x86}
+            paramanager.create_funcretloc_info(procdef,calleeside);
+            if (procdef.funcretloc[calleeside].Location^.loc=LOC_FPUREGISTER) then
+              exit;
+{$endif x86}
             procdef.init_paraloc_info(calleeside);
             { we can redirect the call if no memory parameter is passed }
             for i:=0 to procdef.paras.count-1 do
