@@ -517,6 +517,7 @@ implementation
                 end;
             end;
 
+          in_aligned_x,
           in_unaligned_x :
             begin
               err:=false;
@@ -524,7 +525,7 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(in_unaligned_x,false,p2);
+              p2:=geninlinenode(l,false,p2);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;

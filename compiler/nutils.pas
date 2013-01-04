@@ -683,6 +683,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
+                    in_aligned_x,
                     in_unaligned_x,
                     in_prefetch_var:
                       begin

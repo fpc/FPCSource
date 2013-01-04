@@ -144,6 +144,13 @@ implementation
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
+            in_aligned_x:
+              begin
+                secondpass(tcallparanode(left).left);
+                location:=tcallparanode(left).left.location;
+                if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+                  location.reference.alignment:=0;
+              end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin

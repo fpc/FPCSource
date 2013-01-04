@@ -2998,6 +2998,7 @@ implementation
                 begin
                 end;
 {$endif SUPPORT_MMX}
+              in_aligned_x,
               in_unaligned_x:
                 begin
                   resultdef:=left.resultdef;
@@ -3472,11 +3473,11 @@ implementation
             begin
               expectloc:=LOC_REGISTER;
             end;
-
          in_prefetch_var:
            begin
              expectloc:=LOC_VOID;
            end;
+         in_aligned_x,
          in_unaligned_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
