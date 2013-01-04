@@ -430,7 +430,10 @@ begin
       open;
       DataEvents := '';
       Resync([rmExact]);
-      CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
+      if IsUniDirectional then
+        CheckEquals('',DataEvents)
+      else
+        CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
       next;
       CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
@@ -716,17 +719,28 @@ begin
 
     lds.Open;
     Open;
-    CheckTrue(FieldByName('ID').CanModify);
+    if IsUniDirectional then
+      // The CanModify property is always False for UniDirectional datasets
+      CheckFalse(FieldByName('ID').CanModify)
+    else
+      CheckTrue(FieldByName('ID').CanModify);
     CheckFalse(FieldByName('LookupFld').CanModify);
     CheckFalse(FieldByName('ID').ReadOnly);
     CheckFalse(FieldByName('LookupFld').ReadOnly);
 
     CheckEquals(1,FieldByName('ID').AsInteger);
-    CheckEquals('TestName1',FieldByName('LookupFld').AsString);
+    if IsUniDirectional then
+      // Lookup fields are not supported by UniDirectional datasets
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName1',FieldByName('LookupFld').AsString);
     Next;
     Next;
     CheckEquals(3,FieldByName('ID').AsInteger);
-    CheckEquals('TestName3',FieldByName('LookupFld').AsString);
+    if IsUniDirectional then
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName3',FieldByName('LookupFld').AsString);
 
     Close;
     lds.Close;
@@ -971,32 +985,38 @@ begin
   with DBConnector.GetNDataset(true,11) do
     begin
     open;
+    // First and Next methods are supported by UniDirectional datasets
     first;
-    edit;
-    FieldValues['id']:=5;
-    post;
-    CheckEquals('TestName1',FieldByName('name').AsString);
-    CheckEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['name']:='FieldValuesTestName';
-    post;
-    CheckEquals('FieldValuesTestName',FieldByName('name').AsString);
-    CheckEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
-    post;
-    CheckEquals('ValuesTestName',FieldByName('name').AsString);
-    CheckEquals(243,FieldByName('id').AsInteger);
-    
-    PassException:=false;
-    try
+    if IsUniDirectional then
+      CheckException(Edit, EDatabaseError)
+    else
+      begin
       edit;
-      FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
-    except
-      on E: EDatabaseError do PassException := True;
-    end;
-    post;
-    CheckTrue(PassException);
+      FieldValues['id']:=5;
+      post;
+      CheckEquals('TestName1',FieldByName('name').AsString);
+      CheckEquals(5,FieldByName('id').AsInteger);
+      edit;
+      FieldValues['name']:='FieldValuesTestName';
+      post;
+      CheckEquals('FieldValuesTestName',FieldByName('name').AsString);
+      CheckEquals(5,FieldByName('id').AsInteger);
+      edit;
+      FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
+      post;
+      CheckEquals('ValuesTestName',FieldByName('name').AsString);
+      CheckEquals(243,FieldByName('id').AsInteger);
+    
+      PassException:=false;
+      try
+        edit;
+        FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
+      except
+        on E: EDatabaseError do PassException := True;
+      end;
+      post;
+      CheckTrue(PassException);
+      end;
     end;
 end;
 
@@ -2188,6 +2208,7 @@ begin
   else
     dataset.fieldbyname('CALCFLD').AsInteger := 1;
   end;
+  CheckTrue(DataSet.State=dsCalcFields, 'State');
 end;
 
 procedure TTestDBBasics.TestCalculatedField;
@@ -2221,10 +2242,16 @@ begin
     CheckEquals(true,FieldByName('CALCFLD').isnull);
     next;
     CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
-    edit;
-    FieldByName('ID').AsInteger := 10;
-    post;
-    CheckEquals(true,FieldByName('CALCFLD').isnull);
+    if IsUniDirectional then
+      // The CanModify property is always False, so attempts to put the dataset into edit mode always fail
+      CheckException(Edit, EDatabaseError)
+    else
+      begin
+      Edit;
+      FieldByName('ID').AsInteger := 10;
+      Post;
+      CheckEquals(true,FieldByName('CALCFLD').isnull);
+      end;
     close;
     AFld1.Free;
     AFld2.Free;

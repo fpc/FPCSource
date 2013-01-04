@@ -139,15 +139,16 @@ var
   OldState: TDatasetState;
 begin
   FCalcBuffer := Buffer; 
-  if not IsUniDirectional and (FState <> dsInternalCalc) then
+  if FState <> dsInternalCalc then
   begin
     OldState := FState;
     FState := dsCalcFields;
     try
       ClearCalcFields(FCalcBuffer);
-      for i := 0 to FFieldList.Count - 1 do
-        if FFieldList[i].FieldKind = fkLookup then
-          FFieldList[i].CalcLookupValue;
+      if not IsUniDirectional then
+        for i := 0 to FFieldList.Count - 1 do
+          if FFieldList[i].FieldKind = fkLookup then
+            FFieldList[i].CalcLookupValue;
     finally
       DoOnCalcFields;
       FState := OldState;
