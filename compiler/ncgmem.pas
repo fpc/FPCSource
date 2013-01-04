@@ -284,6 +284,7 @@ implementation
         paraloc1 : tcgpara;
         tmpref: treference;
         sref: tsubsetreference;
+        offsetcorrection : aint;
       begin
          secondpass(left);
          if codegenerror then
@@ -359,13 +360,19 @@ implementation
                LOC_MMREGISTER,
                LOC_FPUREGISTER:
                  begin
-                   // in case the result is not something that can be put
-                   // into an integer register (e.g.
-                   // function_returning_record().non_regable_field, or
-                   // a function returning a value > sizeof(intreg))
-                   // -> force to memory
+                   { in case the result is not something that can be put
+                     into an integer register (e.g.
+                     function_returning_record().non_regable_field, or
+                     a function returning a value > sizeof(intreg))
+                     -> force to memory
+                   }
+
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
+                      { if the field spans multiple registers, we must force the record into
+                        memory as well }
+                      ((left.location.size in [OS_PAIR,OS_SPAIR]) and
+                       (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
@@ -375,23 +382,41 @@ implementation
                        else
                          location.loc := LOC_CSUBSETREG;
                        location.size:=def_cgsize(resultdef);
-                       location.sreg.subsetreg := left.location.register;
-                       location.sreg.subsetregsize := left.location.size;
+
+                       offsetcorrection:=0;
+                       if (left.location.size in [OS_PAIR,OS_SPAIR]) then
+                         begin
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             begin
+                               location.sreg.subsetreg := left.location.registerhi;
+                               offsetcorrection:=sizeof(aword)*8;
+                             end
+                           else
+                             location.sreg.subsetreg := left.location.register;
+
+                           location.sreg.subsetregsize := OS_INT;
+                         end
+                       else
+                         begin
+                           location.sreg.subsetreg := left.location.register;
+                           location.sreg.subsetregsize := left.location.size;
+                         end;
+
                        if not is_packed_record_or_object(left.resultdef) then
                          begin
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8+offsetcorrection
                            else
-                             location.sreg.startbit := (vs.fieldoffset * 8);
+                             location.sreg.startbit := (vs.fieldoffset * 8)-offsetcorrection;
                            location.sreg.bitlen := tcgsize2size[location.size] * 8;
                          end
                        else
                          begin
                            location.sreg.bitlen := resultdef.packedbitsize;
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset+offsetcorrection
                            else
-                             location.sreg.startbit := vs.fieldoffset;
+                             location.sreg.startbit := vs.fieldoffset-offsetcorrection;
                          end;
                      end;
                  end;

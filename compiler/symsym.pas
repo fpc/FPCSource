@@ -191,7 +191,9 @@ interface
       end;
 
       tfieldvarsym = class(tabstractvarsym)
-          fieldoffset   : asizeint;   { offset in record/object }
+          { offset in record/object, for bitpacked fields the offset is
+            given in bit, else in bytes }
+          fieldoffset   : asizeint;
           externalname  : pshortstring;
 {$ifdef symansistr}
           cachedmangledname: TSymStr; { mangled name for ObjC or Java }
@@ -1504,7 +1506,17 @@ implementation
             not(cs_create_pic in current_settings.moduleswitches)
            ) then
           begin
-            if tstoreddef(vardef).is_intregable then
+            if tstoreddef(vardef).is_intregable and
+              { we could keep all aint*2 records in registers, but this causes
+                too much spilling for CPUs with 8-16 registers so keep only
+                parameters and function results of this type in register because they are normally
+                passed by register anyways
+
+                This can be changed, as soon as we have full ssa (FK) }
+              ((typ=paravarsym) or
+                (vo_is_funcret in varoptions) or
+                (tstoreddef(vardef).typ<>recorddef) or
+                (tstoreddef(vardef).size<=sizeof(aint))) then
               varregable:=vr_intreg
             else
 { $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }

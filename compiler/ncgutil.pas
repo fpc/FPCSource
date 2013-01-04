@@ -984,7 +984,8 @@ implementation
                   { in case of fpu emulation, or abi's that pass fpu values
                     via integer registers }
                   (vardef.typ=floatdef) or
-                   is_methodpointer(vardef)) then
+                   is_methodpointer(vardef) or
+                   is_record(vardef)) then
                 begin
                   case paraloc^.loc of
                     LOC_REGISTER:
@@ -1028,10 +1029,26 @@ implementation
 {$endif cpu64bitalu}
                 begin
                   if assigned(paraloc^.next) then
-                    internalerror(200410105);
-                  unget_para(paraloc^);
-                  gen_alloc_regloc(list,destloc);
-                  cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
+                    begin
+                      if (destloc.size in [OS_PAIR,OS_SPAIR]) and
+                        (para.Size in [OS_PAIR,OS_SPAIR]) then
+                        begin
+                          unget_para(paraloc^);
+                          gen_alloc_regloc(list,destloc);
+                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register,sizeof(aint));
+                          unget_para(paraloc^.Next^);
+                          gen_alloc_regloc(list,destloc);
+                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.Next^,destloc.registerhi,sizeof(aint));
+                        end
+                      else
+                        internalerror(200410105);
+                    end
+                  else
+                    begin
+                      unget_para(paraloc^);
+                      gen_alloc_regloc(list,destloc);
+                      cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
+                    end;
                 end;
             end;
           LOC_FPUREGISTER,

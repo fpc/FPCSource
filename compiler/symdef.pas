@@ -1609,7 +1609,7 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (recsize <= sizeof(asizeint))
+                (recsize <= sizeof(asizeint)*2)
                 and not needs_inittable;
             end;
         end;
