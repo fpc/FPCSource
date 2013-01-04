@@ -1249,11 +1249,15 @@ implementation
              if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
                maybe_call_procvar(p,false);
 
-             { blockn support because a read/write is changed into a blocknode }
-             { with a separate statement for each read/write operation (JM)    }
-             { the same is true for val() if the third parameter is not 32 bit }
+             { blockn support because a read/write is changed into a blocknode
+               with a separate statement for each read/write operation (JM)
+               the same is true for val() if the third parameter is not 32 bit
+
+               goto nodes are created by the compiler for non local exit statements, so
+               include them as well
+             }
              if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn,exitn]) or
+                                   continuen,labeln,blockn,exitn,goton]) or
                 ((p.nodetype=inlinen) and
                  not is_void(p.resultdef)) or
                 ((p.nodetype=calln) and

@@ -226,6 +226,7 @@ implementation
          hdef  : tdef;
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
+         procinfo : tprocinfo;
        begin
          { Properties are not allowed, because the write can
            be different from the read }
@@ -269,6 +270,7 @@ implementation
         err,
         prev_in_args : boolean;
         def : tdef;
+        exit_procinfo: tprocinfo;
       begin
         prev_in_args:=in_args;
         case l of
@@ -298,6 +300,7 @@ implementation
 
           in_exit :
             begin
+              statement_syssym:=nil;
               if try_to_consume(_LKLAMMER) then
                 begin
                   if not (m_mac in current_settings.modeswitches) then
@@ -321,8 +324,40 @@ implementation
                     end
                   else
                     begin
-                      if not (current_procinfo.procdef.procsym.name = pattern) then
-                        Message(parser_e_macpas_exit_wrong_param);
+                      { non local exit ? }
+                      if current_procinfo.procdef.procsym.name<>pattern then
+                        begin
+                          exit_procinfo:=current_procinfo.parent;
+                          while assigned(exit_procinfo) do
+                            begin
+                              if exit_procinfo.procdef.procsym.name=pattern then
+                                break;
+                              exit_procinfo:=exit_procinfo.parent;
+                            end;
+                          if assigned(exit_procinfo) then
+                            begin
+                              if not(assigned(exit_procinfo.nestedexitlabel)) then
+                                begin
+                                  include(exit_procinfo.flags,pi_has_nested_exit);
+                                  exclude(exit_procinfo.procdef.procoptions,po_inline);
+
+                                  exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
+
+                                  { the compiler is responsible to define this label }
+                                  exit_procinfo.nestedexitlabel.defined:=true;
+                                  exit_procinfo.nestedexitlabel.used:=true;
+
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=tlocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
+                                end;
+
+                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel);
+                              tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
+                            end
+                          else
+                            Message(parser_e_macpas_exit_wrong_param);
+                        end;
                       consume(_ID);
                       consume(_RKLAMMER);
                       p1:=nil;
@@ -330,7 +365,8 @@ implementation
                 end
               else
                 p1:=nil;
-              statement_syssym:=cexitnode.create(p1);
+              if not assigned(statement_syssym) then
+                statement_syssym:=cexitnode.create(p1);
             end;
 
           in_break :
@@ -732,6 +768,7 @@ implementation
                   statement_syssym:=cerrornode.create;
                 end;
             end;
+
           in_length_x:
             begin
               consume(_LKLAMMER);

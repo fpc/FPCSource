@@ -564,7 +564,9 @@ interface
          { subroutine contains interprocedural gotos }
          pi_has_global_goto,
          { subroutine contains inherited call }
-         pi_has_inherited
+         pi_has_inherited,
+         { subroutine has nested exit }
+         pi_has_nested_exit
        );
        tprocinfoflags=set of tprocinfoflag;
 

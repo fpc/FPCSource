@@ -144,6 +144,12 @@ implementation
             Message(parser_h_inlining_disabled);
             exit;
           end;
+        if pi_has_nested_exit in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'nested exit');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
         { the compiler cannot handle inherited in inlined subroutines because
           it tries to search for self in the symtable, however, the symtable
           is not available }
@@ -861,6 +867,8 @@ implementation
             maybe_add_constructor_wrapper(code,
               cs_implicit_exceptions in current_settings.moduleswitches);
             addstatement(newstatement,code);
+            if assigned(nestedexitlabel) then
+              addstatement(newstatement,clabelnode.create(cnothingnode.create,nestedexitlabel));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then

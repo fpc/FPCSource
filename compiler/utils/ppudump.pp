@@ -1062,7 +1062,9 @@ const
          (mask:pi_has_global_goto;
          str:' subroutine contains interprocedural goto '),
          (mask:pi_has_inherited;
-         str:' subroutine contains inherited call ')
+         str:' subroutine contains inherited call '),
+         (mask:pi_has_nested_exit;
+         str:' subroutine contains a nested subroutine which calls the exit of the current one ')
   );
 var
   procinfooptions : tprocinfoflags;

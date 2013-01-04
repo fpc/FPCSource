@@ -112,6 +112,9 @@ unit procinfo;
           { label to leave the sub routine }
           CurrExitLabel : tasmlabel;
 
+          { label for nested exits }
+          nestedexitlabel : tlabelsym;
+
           { The code for the routine itself, excluding entry and
             exit code. This is a linked list of tai classes.
           }
