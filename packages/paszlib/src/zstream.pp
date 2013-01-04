@@ -63,6 +63,7 @@ type
           function write(const buffer;count:longint):longint;override;
           procedure flush;
           function get_compressionrate:single;
+          property OnProgress;
         end;
 
         Tdecompressionstream=class(Tcustomzlibstream)
@@ -77,6 +78,7 @@ type
           function read(var buffer;count:longint):longint;override;
           function seek(offset:longint;origin:word):longint;override;
           function get_compressionrate:single;
+          property OnProgress;
         end;
 
         TGZFileStream = Class(TStream)
