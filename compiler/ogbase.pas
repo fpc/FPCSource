@@ -627,6 +627,17 @@ implementation
           result:=((v+a-1) div a) * a;
       end;
 
+
+    procedure MaybeSwapStab(var v:TObjStabEntry);
+      begin
+        if source_info.endian<>target_info.endian then
+          begin
+            v.strpos:=SwapEndian(v.strpos);
+            v.nvalue:=SwapEndian(v.nvalue);
+            v.ndesc:=SwapEndian(v.ndesc);
+          end;
+      end;
+
 {*****************************************************************************
                                  TObjSymbol
 *****************************************************************************}
@@ -1275,19 +1286,14 @@ implementation
 
 
     procedure TObjData.beforewrite;
-      var
-        s : string[1];
-        hstab : TObjStabEntry;
       begin
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
            { Create dummy HdrSym stab, it will be overwritten in AfterWrite }
-           fillchar(hstab,sizeof(hstab),0);
-           StabsSec.Write(hstab,sizeof(hstab));
+           StabsSec.WriteZeros(sizeof(TObjStabEntry));
            { start of stabstr }
-           s:=#0;
-           StabStrSec.write(s[1],length(s));
+           StabStrSec.writeZeros(1);
          end;
       end;
 
@@ -1300,7 +1306,6 @@ implementation
 
     procedure TObjData.afterwrite;
       var
-        s : string[1];
         hstab : TObjStabEntry;
       begin
         FObjSectionList.ForEachCall(@section_afterwrite,nil);
@@ -1309,14 +1314,14 @@ implementation
         if assigned(StabsSec) then
           begin
             { end of stabstr }
-            s:=#0;
-            StabStrSec.write(s[1],length(s));
+            StabStrSec.writeZeros(1);
             { header stab }
             hstab.strpos:=1;
             hstab.ntype:=0;
             hstab.nother:=0;
             hstab.ndesc:=(StabsSec.Size div sizeof(TObjStabEntry))-1;
             hstab.nvalue:=StabStrSec.Size;
+            MaybeSwapStab(hstab);
             StabsSec.Data.seek(0);
             StabsSec.Data.write(hstab,sizeof(hstab));
           end;
@@ -2764,8 +2769,7 @@ implementation
         mergedstabstrsec:=internalObjData.CreateSection(sec_stabstr,'');
 
         { write stab for hdrsym }
-        fillchar(hstab,sizeof(TObjStabEntry),0);
-        mergedstabsec.write(hstab,sizeof(TObjStabEntry));
+        mergedstabsec.writeZeros(sizeof(TObjStabEntry));
         mergestabcnt:=1;
 
         { .stabstr starts with a #0 }
@@ -2788,6 +2792,7 @@ implementation
                     hstabreloc:=nil;
                     skipstab:=false;
                     currstabsec.Data.read(hstab,sizeof(TObjStabEntry));
+                    MaybeSwapStab(hstab);
                     { Only include first hdrsym stab }
                     if hstab.ntype=0 then
                       skipstab:=true;
@@ -2868,6 +2873,7 @@ implementation
                             mergedstabsec.ObjRelocations.Add(hstabreloc);
                           end;
                         { Write updated stab }
+                        MaybeSwapStab(hstab);
                         mergedstabsec.write(hstab,sizeof(hstab));
                         inc(mergestabcnt);
                       end;
@@ -2892,6 +2898,7 @@ implementation
             hstab.nother:=0;
             hstab.ndesc:=word(mergestabcnt-1);
             hstab.nvalue:=mergedstabstrsec.Size;
+            MaybeSwapStab(hstab);
             mergedstabsec.Data.seek(0);
             mergedstabsec.Data.write(hstab,sizeof(hstab));
           end;
