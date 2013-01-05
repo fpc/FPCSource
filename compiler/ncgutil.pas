@@ -937,7 +937,8 @@ implementation
                  ({ in case of fpu emulation, or abi's that pass fpu values
                     via integer registers }
                   (vardef.typ=floatdef) or
-                   is_methodpointer(vardef)) then
+                   is_methodpointer(vardef) or
+                   is_record(vardef)) then
                 begin
                   case paraloc^.loc of
                     LOC_REGISTER:

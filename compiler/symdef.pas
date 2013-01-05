@@ -214,6 +214,8 @@ interface
           function search_enumerator_current: tsym; virtual;
           { JVM }
           function jvm_full_typename(with_package_name: boolean): string;
+          { check if the symtable contains a float field }
+          function contains_float_field : boolean;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -1610,6 +1612,7 @@ implementation
               is_intregable:=
                 ispowerof2(recsize,temp) and
                 (recsize <= sizeof(asizeint)*2)
+                and not trecorddef(self).contains_float_field
                 and not needs_inittable;
             end;
         end;
@@ -3389,6 +3392,23 @@ implementation
         if with_package_name and
            assigned(import_lib) then
           result:=import_lib^+'/'+result;
+      end;
+
+
+    function tabstractrecorddef.contains_float_field: boolean;
+      var
+        i : longint;
+      begin
+        result:=true;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            if tsym(symtable.symlist[i]).typ<>fieldvarsym then
+              continue;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) and
+              tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
+              exit;
+          end;
+        result:=false;
       end;
 
 

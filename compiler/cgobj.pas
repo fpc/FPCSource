@@ -2711,8 +2711,8 @@ implementation
     procedure tcg128.a_load128_const_reg(list: TAsmList; valuelo,
      valuehi: int64; reg: tregister128);
      begin
-       cg.a_load_const_reg(list,OS_32,aint(valuelo),reg.reglo);
-       cg.a_load_const_reg(list,OS_32,aint(valuehi),reg.reghi);
+       cg.a_load_const_reg(list,OS_64,aint(valuelo),reg.reglo);
+       cg.a_load_const_reg(list,OS_64,aint(valuehi),reg.reghi);
      end;
 
 
