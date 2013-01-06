@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
+    P.Dependencies.Add('fcl-res');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
@@ -106,7 +107,7 @@ begin
       T.ResourceStrings:=true;
 
     // Windows units
-    T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('fileinfo.pp');
     T:=P.Targets.addUnit('fpmimetypes.pp');
 
     // Additional sources

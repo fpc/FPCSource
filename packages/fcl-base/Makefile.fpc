@@ -7,7 +7,7 @@ name=fcl-base
 version=2.7.1
 
 [require]
-packages=rtl fpmkunit
+packages=rtl fpmkunit fcl-res
 
 [install]
 fpcpackage=y

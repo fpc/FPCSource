@@ -1873,6 +1873,7 @@ packages/fcl-base/src/contnrs.pp svneol=native#text/plain
 packages/fcl-base/src/custapp.pp svneol=native#text/plain
 packages/fcl-base/src/dummy/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/eventlog.pp svneol=native#text/plain
+packages/fcl-base/src/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/fpexprpars.pp svneol=native#text/plain
 packages/fcl-base/src/fpmimetypes.pp svneol=native#text/plain
 packages/fcl-base/src/fpobserver.pp svneol=native#text/plain
@@ -1906,7 +1907,6 @@ packages/fcl-base/src/win/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/win/fclel.mc -text
 packages/fcl-base/src/win/fclel.rc -text
 packages/fcl-base/src/win/fclel.res -text
-packages/fcl-base/src/win/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/wince/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/wtex.pp svneol=native#text/plain
 packages/fcl-base/tests/fclbase-unittests.lpi svneol=native#text/plain
