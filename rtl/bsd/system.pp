@@ -314,7 +314,12 @@ begin
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+var
+  stackpointer: ptruint;
 begin
+  stackpointer := (ptruint(sptr) + 4095) and not(4095);
+  if stklen > stackpointer then
+    stklen := stackpointer-4096;
   result := stklen;
 end;
 
