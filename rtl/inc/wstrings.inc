@@ -481,7 +481,7 @@ begin
     exit(CompareWord(S1[1],S2[1],MaxI));
 end;
 
-Procedure fpc_WideStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
+Procedure fpc_WideStr_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
 begin
   if (p=nil) or (index>PWideRec(p-WideFirstOff)^.len div 2) or (Index<1) then
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
