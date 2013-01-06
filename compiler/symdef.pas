@@ -1611,8 +1611,10 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (recsize <= sizeof(asizeint)*2)
-                and not trecorddef(self).contains_float_field
+                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
+                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                  and not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint)))
                 and not needs_inittable;
             end;
         end;
