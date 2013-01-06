@@ -1852,6 +1852,8 @@ packages/fcl-base/examples/testsres.pp svneol=native#text/plain
 packages/fcl-base/examples/testtimer.pp svneol=native#text/plain
 packages/fcl-base/examples/testunzip.pp svneol=native#text/plain
 packages/fcl-base/examples/testur.pp svneol=native#text/plain
+packages/fcl-base/examples/testver.pp svneol=native#text/plain
+packages/fcl-base/examples/testver.res -text
 packages/fcl-base/examples/testweb.pp svneol=native#text/plain
 packages/fcl-base/examples/testz.pp svneol=native#text/plain
 packages/fcl-base/examples/testz2.pp svneol=native#text/plain
