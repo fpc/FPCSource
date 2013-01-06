@@ -1408,7 +1408,7 @@ end;
                           Thread support
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_THREADING}
+{$if defined(FPC_HAS_FEATURE_THREADING) and not defined(cpujvm)}
 { Generic threadmanager }
 {$i thread.inc}
 
@@ -1419,7 +1419,7 @@ end;
 { OS Dependent implementation }
 {$i systhrd.inc}
 {$endif DISABLE_NO_THREAD_MANAGER}
-{$endif FPC_HAS_FEATURE_THREADING}
+{$endif FPC_HAS_FEATURE_THREADING and not cpujvm}
 
 
 {*****************************************************************************

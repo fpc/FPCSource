@@ -2579,7 +2579,7 @@ begin
     system_jvm_java32,
     system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
-         f_variants,f_objects,f_threading,f_commandargs,
+         f_variants,f_objects,f_commandargs,
          f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
     else
       target_unsup_features:=[];
