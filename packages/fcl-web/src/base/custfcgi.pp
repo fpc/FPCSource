@@ -50,7 +50,7 @@ Type
 
   TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
   TFastCGIReadEvent = Function (AHandle : THandle; Var ABuf; ACount : Integer) : Integer of Object;
-  TFastCGIWriteEvent = Function (AHandle : THandle; Const ABuf; ACount : Integer) : Integer of Object;
+  TFastCGIWriteEvent = Function (AHandle : THandle; Const ABuf; ACount : Integer; Out ExtendedErrorCode : Integer) : Integer of Object;
 
   TFCGIRequest = Class(TCGIRequest)
   Private
@@ -110,7 +110,6 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
-
 {$ifdef windowspipe}
     FIsWinPipe: Boolean;
 {$endif}
@@ -127,7 +126,7 @@ Type
     function CreateRequest : TFCGIRequest; virtual;
     function CreateResponse(ARequest: TFCGIRequest) : TFCGIResponse; virtual;
     Function DoFastCGIRead(AHandle : THandle; Var ABuf; ACount : Integer) : Integer; virtual;
-    Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer) : Integer; virtual;
+    Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer; Out ExtendedErrorCode : Integer) : Integer; virtual;
     function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
     procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
     function  WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -410,18 +409,21 @@ end;
 { TCGIResponse }
 procedure TFCGIResponse.Write_FCGIRecord(ARecord : PFCGI_Header);
 
-var BytesToWrite : Integer;
+var ErrorCode,
+    BytesToWrite ,
     BytesWritten  : Integer;
     P : PByte;
 begin
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
   P:=PByte(Arecord);
   Repeat
-    BytesWritten:=FOnWrite(TFCGIRequest(Request).Handle, P^, BytesToWrite);
+    BytesWritten:=FOnWrite(TFCGIRequest(Request).Handle, P^, BytesToWrite,ErrorCode);
     If (BytesWritten<0) then
       begin
       // TODO : Better checking for closed connection, EINTR
-      Raise HTTPError.CreateFmt(SErrWritingSocket,[BytesWritten]);
+      IF Assigned(Self.Request) and (Self.Request is TFCGIRequest) then
+        (Self.Request as TFCGIRequest).FKeepConnectionAfterRequest:=False;
+      Raise HTTPError.CreateFmt(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
     Dec(BytesToWrite,BytesWritten);
@@ -835,14 +837,26 @@ begin
 end;
 
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
-  ACount: Integer): Integer;
+  ACount: Integer; Out ExtendedErrorCode : Integer): Integer;
 begin
   {$ifdef windowspipe}
   if FIsWinPipe then
-    Result := FileWrite(AHandle, ABuf, ACount)
+    begin
+    ExtendedErrorCode:=0;
+    Result := FileWrite(AHandle, ABuf, ACount);
+    if (Result<0) then
+      ExtendedErrorCode:=GetLastOSError;
+    end
   else
   {$endif windows}
-    Result := sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+    begin
+    Repeat
+      ExtendedErrorCode:=0;
+      Result:=sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+      if (Result<0) then
+        ExtendedErrorCode:=sockets.socketerror;
+    until (Result>=0) {$ifdef unix} or (ExtendedErrorCode<>ESysEINTR);{$endif}
+    end;
 end;
 
 function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;

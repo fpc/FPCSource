@@ -216,6 +216,7 @@ uses
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
+  SErrSendingContent = 'An error (%s) happened while sending response content: %s';
   SModuleError = 'Module Error';
   SAppEncounteredError = 'The application encountered the following error:';
   SError = 'Error: ';
@@ -467,10 +468,18 @@ end;
 
 procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
-  HandleRequest(ARequest,AResponse);
-  If Not AResponse.ContentSent then
-    AResponse.SendContent;
-  EndRequest(ARequest,AResponse);
+  Try
+    HandleRequest(ARequest,AResponse);
+    If Not AResponse.ContentSent then
+      try
+        AResponse.SendContent;
+      except
+        On E : Exception do
+          Log(etError,Format(SErrSendingContent,[E.ClassName,E.Message]));
+      end;
+  Finally
+    EndRequest(ARequest,AResponse);
+  end;
 end;
 
 constructor TWebHandler.Create(AOwner:TComponent);
