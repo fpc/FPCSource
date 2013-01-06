@@ -245,6 +245,7 @@ interface
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  try_search_system_type(const s: TIDString): ttypesym;
+    function  search_system_proc(const s: TIDString): tprocdef;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
@@ -263,6 +264,7 @@ interface
     { Additionally to searching for a macro, also checks whether it's still }
     { actually defined (could be disable using "undef")                     }
     function  defined_macro(const s : string):boolean;
+    { Look for a system procedure (no overloads supported) }
 
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
@@ -2979,6 +2981,22 @@ implementation
             result:=ttypesym(sym);
           end;
       end;
+
+
+    function  search_system_proc(const s: TIDString): tprocdef;
+      var
+        srsym: tsym;
+        pd: tprocdef;
+      begin
+        srsym:=tsym(systemunit.find(s));
+        if not assigned(srsym) and
+           (cs_compilesystem in current_settings.moduleswitches) then
+          srsym:=tsym(systemunit.Find(upper(s)));
+        if not assigned(srsym) or
+           (srsym.typ<>procsym) then
+          cgmessage1(cg_f_unknown_compilerproc,s);
+        result:=tprocdef(tprocsym(srsym).procdeflist[0]);
+    end;
 
 
     function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;

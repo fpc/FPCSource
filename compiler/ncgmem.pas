@@ -81,7 +81,7 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
@@ -215,6 +215,9 @@ implementation
     procedure tcgderefnode.pass_generate_code;
       var
         paraloc1 : tcgpara;
+        pd : tprocdef;
+        sym : tsym;
+        st : tsymtable;
       begin
          secondpass(left);
          { assume natural alignment, except for packed records }
@@ -262,14 +265,18 @@ implementation
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
           begin
+            if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+               (sym.typ<>procsym) then
+              internalerror(2012010601);
+            pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
-            paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-            cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.getintparaloc(pd,1,paraloc1);
+            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
-            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+            hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
 
@@ -285,6 +292,9 @@ implementation
         tmpref: treference;
         sref: tsubsetreference;
         offsetcorrection : aint;
+        pd : tprocdef;
+        srym : tsym;
+        st : tsymtable;
       begin
          secondpass(left);
          if codegenerror then
@@ -332,12 +342,16 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-                    cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',srym,st) or
+                       (srym.typ<>procsym) then
+                      internalerror(2012010602);
+                    pd:=tprocdef(tprocsym(srym).ProcdefList[0]);
+                    paramanager.getintparaloc(pd,1,paraloc1);
+                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+                    hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                   end;
                end
              else
@@ -655,6 +669,7 @@ implementation
          neglabel : tasmlabel;
          hreg : tregister;
          paraloc1,paraloc2 : tcgpara;
+         pd : tprocdef;
        begin
          { omit range checking when this is an array access to a pointer which has been
            typecasted from an array }
@@ -698,8 +713,9 @@ implementation
          else
           if is_dynamic_array(left.resultdef) then
             begin
-               paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-               paramanager.getintparaloc(pocall_default,2,search_system_type('TDYNARRAYINDEX').typedef,paraloc2);
+               pd:=search_system_proc('fpc_dynarray_rangecheck');
+               paramanager.getintparaloc(pd,1,paraloc1);
+               paramanager.getintparaloc(pd,2,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -719,6 +735,8 @@ implementation
       var
         paraloc1,
         paraloc2: tcgpara;
+        helpername: TIDString;
+        pd: tprocdef;
       begin
         paraloc1.init;
         paraloc2.init;
@@ -728,15 +746,17 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,ptrsinttype,paraloc2);
+              helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
+              pd:=search_system_proc(helpername);
+              paramanager.getintparaloc(pd,1,paraloc1);
+              paramanager.getintparaloc(pd,2,paraloc2);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
 
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
+              cg.a_call_name(current_asmdata.CurrAsmList,helpername,false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end;
 

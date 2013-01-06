@@ -45,7 +45,7 @@ unit cpupara;
             and if the calling conventions for the helper routines of the
             rtl are used.
           }
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -278,20 +278,22 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure ti386paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        def : tdef;
       begin
+        def:=tparavarsym(pd.paras[nr-1]).vardef;
         cgpara.reset;
         cgpara.size:=def_cgsize(def);
         cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=get_para_align(calloption);
+        cgpara.alignment:=get_para_align(pd.proccalloption);
         cgpara.def:=def;
         paraloc:=cgpara.add_location;
         with paraloc^ do
          begin
            size:=OS_INT;
-           if calloption=pocall_register then
+           if pd.proccalloption=pocall_register then
              begin
                if (nr<=length(parasupregs)) then
                  begin

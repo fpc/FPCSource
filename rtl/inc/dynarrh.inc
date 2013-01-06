@@ -30,3 +30,4 @@ type
   end;
   
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
+procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex); compilerproc;

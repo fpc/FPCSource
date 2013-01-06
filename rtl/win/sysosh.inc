@@ -78,3 +78,7 @@ type
 
 var
   LibModuleList: PLibModule = nil;
+
+{$ifdef win64}
+procedure _fpc_local_unwind(frame,target: Pointer);compilerproc;
+{$endif}

@@ -266,6 +266,7 @@ implementation
         endrelocatelab,
         norelocatelab : tasmlabel;
         paraloc1 : tcgpara;
+        pvd : tdef;
       begin
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
@@ -360,8 +361,11 @@ implementation
                         current_asmdata.getjumplabel(norelocatelab);
                         current_asmdata.getjumplabel(endrelocatelab);
                         { make sure hregister can't allocate the register necessary for the parameter }
+                        pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
+                        if pvd.typ<>procvardef then
+                          internalerror(2012120901);
                         paraloc1.init;
-                        paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+                        paramanager.getintparaloc(tprocvardef(pvd),1,paraloc1);
                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,sizeof(pint));
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);

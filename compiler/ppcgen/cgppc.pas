@@ -138,7 +138,7 @@ unit cgppc;
     uses
        {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
-       symconst,symsym,fmodule,
+       symconst,symsym,symtable,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
 { We know that macos_direct_globals is a const boolean
@@ -653,11 +653,13 @@ unit cgppc;
   procedure tcgppcgen.g_profilecode(list: TAsmList);
     var
       paraloc1 : tcgpara;
+      pd : tprocdef;
     begin
       if (target_info.system in [system_powerpc_darwin]) then
         begin
+          pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(pocall_cdecl,1,voidpointertype,paraloc1);
+          paramanager.getintparaloc(pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;

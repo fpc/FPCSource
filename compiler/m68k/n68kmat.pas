@@ -55,7 +55,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,
+      symconst,symdef,symtable,aasmbase,aasmtai,aasmdata,aasmcpu,
       pass_1,pass_2,procinfo,
       ncon,
       cpuinfo,paramgr,defutil,parabase,
@@ -146,18 +146,20 @@ implementation
   procedure tm68kmoddivnode.call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
     var
       paraloc1,paraloc2 : tcgpara;
+      pd : tprocdef;
     begin
+      pd:=search_system_proc(name);
       paraloc1.init;
       paraloc2.init;
-      paramanager.getintparaloc(pocall_default,1,u32inttype,paraloc1);
-      paramanager.getintparaloc(pocall_default,2,u32inttype,paraloc2);
+      paramanager.getintparaloc(pd,1,paraloc1);
+      paramanager.getintparaloc(pd,2,paraloc2);
       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,num,paraloc2);
       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,denum,paraloc1);
       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
       cg.a_call_name(current_asmdata.CurrAsmList,name,false);
-      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
       cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,NR_FUNCTION_RESULT_REG,num);
       paraloc2.done;
@@ -196,9 +198,9 @@ implementation
        begin
          { On MC68000/68010/Coldfire we must pass through RTL routines }
          if signed then
-           call_rtl_divmod_reg_reg(denum,num,'FPC_DIV_LONGINT')
+           call_rtl_divmod_reg_reg(denum,num,'fpc_div_longint')
          else
-           call_rtl_divmod_reg_reg(denum,num,'FPC_DIV_DWORD');
+           call_rtl_divmod_reg_reg(denum,num,'fpc_div_dword');
        end;
    end;
 
@@ -248,9 +250,9 @@ implementation
        begin
          { On MC68000/68010/coldfire we must pass through RTL routines }
          if signed then
-           call_rtl_divmod_reg_reg(denum,num,'FPC_MOD_LONGINT')
+           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_longint')
          else
-           call_rtl_divmod_reg_reg(denum,num,'FPC_MOD_DWORD');
+           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_dword');
        end;
 //      writeln('exits');
     end;

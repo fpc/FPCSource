@@ -189,7 +189,7 @@ unit cgcpu;
        globals,verbose,systems,cutils,
        aopt,aoptcpu,
        fmodule,
-       symconst,symsym,
+       symconst,symsym,symtable,
        tgobj,
        procinfo,cpupi,
        paramgr;
@@ -2098,13 +2098,15 @@ unit cgcpu;
     procedure tcgarm.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
+        pd : tprocdef;
       begin
+        pd:=search_system_proc('MOVE');
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,ptrsinttype,paraloc3);
+        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(pd,2,paraloc2);
+        paramanager.getintparaloc(pd,3,paraloc3);
         a_load_const_cgpara(list,OS_SINT,len,paraloc3);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);

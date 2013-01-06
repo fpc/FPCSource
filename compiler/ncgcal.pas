@@ -688,6 +688,7 @@ implementation
         vmtreg : tregister;
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
+        pd : tprocdef;
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
@@ -981,12 +982,13 @@ implementation
          if (procdefinition.proccalloption=pocall_safecall) and
             (tf_safecall_exceptions in target_info.flags) then
            begin
+             pd:=search_system_proc('fpc_safecallcheck');
              cgpara.init;
-             paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara);
+             paramanager.getintparaloc(pd,1,cgpara);
              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,NR_FUNCTION_RESULT_REG,cgpara);
              paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
-             cgpara.done;
              cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+             cgpara.done;
            end;
 {$endif}
 

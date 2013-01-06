@@ -50,6 +50,8 @@ procedure SetHeapExtraInfo(size : ptruint;fillproc : tfillextrainfoproc;displayp
 procedure SetHeapTraceOutput(const name : string);overload;
 procedure SetHeapTraceOutput(var ATextOutput : Text);overload;
 
+procedure CheckPointer(p : pointer);
+
 const
   { tracing level
     splitted in two if memory is released !! }

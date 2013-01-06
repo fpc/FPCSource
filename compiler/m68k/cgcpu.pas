@@ -140,7 +140,7 @@ unit cgcpu;
 
     uses
        globals,verbose,systems,cutils,
-       symsym,defutil,paramgr,procinfo,
+       symsym,symtable,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu,fmodule;
 
 
@@ -610,13 +610,15 @@ unit cgcpu;
     procedure tcg68k.call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
+        pd : tprocdef;
       begin
+        pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,u32inttype,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,u32inttype,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,pasbool8type,paraloc3);
+        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(pd,2,paraloc2);
+        paramanager.getintparaloc(pd,3,paraloc3);
         a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_const_cgpara(list,size,a,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg,paraloc1);
@@ -637,13 +639,15 @@ unit cgcpu;
     procedure tcg68k.call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
+        pd : tprocdef;
       begin
+       pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,u32inttype,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,u32inttype,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,pasbool8type,paraloc3);
+        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(pd,2,paraloc2);
+        paramanager.getintparaloc(pd,3,paraloc3);
         a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
@@ -1019,7 +1023,7 @@ unit cgcpu;
           OP_IMUL :
               begin
                 if current_settings.cputype<>cpu_MC68020 then
-                  call_rtl_mul_const_reg(list,size,a,reg,'FPC_MUL_LONGINT')
+                  call_rtl_mul_const_reg(list,size,a,reg,'fpc_mul_longint')
                   else
                     begin
                       if (isaddressregister(reg)) then
@@ -1040,7 +1044,7 @@ unit cgcpu;
           OP_MUL :
               begin
                  if current_settings.cputype<>cpu_MC68020 then
-                   call_rtl_mul_const_reg(list,size,a,reg,'FPC_MUL_DWORD')
+                   call_rtl_mul_const_reg(list,size,a,reg,'fpc_mul_dword')
                   else
                     begin
                       if (isaddressregister(reg)) then
@@ -1234,7 +1238,7 @@ unit cgcpu;
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
                  if current_settings.cputype<>cpu_MC68020 then
-                   call_rtl_mul_reg_reg(list,reg1,reg2,'FPC_MUL_LONGINT')
+                   call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_longint')
                   else
                     begin
 //                     writeln('doing 68020');
@@ -1272,7 +1276,7 @@ unit cgcpu;
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
                  if current_settings.cputype <> cpu_MC68020 then
-                   call_rtl_mul_reg_reg(list,reg1,reg2,'FPC_MUL_DWORD')
+                   call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_dword')
                   else
                     begin
                      if (isaddressregister(reg1)) then
