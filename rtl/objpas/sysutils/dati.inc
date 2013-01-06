@@ -894,6 +894,9 @@ var
     StoreStr(pchar(@S[1]), Length(S));
   end ;
 
+Const
+  msec2 = 1 / (24*60*60*1000*2); // Half a millisecond, for rounding.
+
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
@@ -1107,8 +1110,8 @@ begin
 {$ifdef MSWindows}
   eastasiainited:=false;
 {$endif MSWindows}
-  DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
-  DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
+  DecodeDateFully(DateTime+Msec2, Year, Month, Day, DayOfWeek);
+  DecodeTime(DateTime+Msec2, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
   ResultCurrent := @ResultBuffer[0];
   if FormatStr <> '' then
