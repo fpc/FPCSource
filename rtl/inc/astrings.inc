@@ -724,21 +724,6 @@ begin
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE_EQUAL}
 
-{$ifdef VER2_4}
-// obsolete but needed for boostrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : pointer);[Public,Alias : 'FPC_ANSISTR_CHECKZERO'];  compilerproc;
-begin
-  if p=nil then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
-begin
-  if (index>len) or (Index<1) then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-{$else VER2_4}
 {$ifndef FPC_HAS_ANSISTR_CHECKRANGE}
 {$define FPC_HAS_ANSISTR_CHECKRANGE}
 Procedure fpc_AnsiStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
@@ -747,7 +732,6 @@ begin
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 {$endif FPC_HAS_ANSISTR_CHECKRANGE}
-{$endif VER2_4}
 
 {$ifndef FPC_HAS_ANSISTR_SETLENGTH}
 {$define FPC_HAS_ANSISTR_SETLENGTH}

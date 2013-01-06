@@ -232,13 +232,7 @@ Function fpc_CharArray_To_AnsiStr(const arr: array of AnsiChar; {$ifdef FPC_HAS_
 procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByteString)compilerproc;
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
 Procedure fpc_AnsiStr_CheckRange(p : Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
@@ -273,13 +267,7 @@ procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString
 procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
 Procedure fpc_WideStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
 
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
@@ -323,13 +311,7 @@ procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: Ra
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;

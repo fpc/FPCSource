@@ -922,21 +922,6 @@ end;
 {$endif FPC_HAS_UNICODESTR_COMPARE_EQUAL}
 
 
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer);[Public,Alias : 'FPC_UNICODESTR_CHECKZERO']; compilerproc;
-begin
-  if p=nil then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
-begin
-  if (index>len) or (Index<1) then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-{$else VER2_4}
 {$ifndef FPC_HAS_UNICODESTR_RANGECHECK}
 {$define FPC_HAS_UNICODESTR_RANGECHECK}
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
@@ -945,7 +930,6 @@ begin
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 {$endif FPC_HAS_UNICODESTR_RANGECHECK}
-{$endif VER2_4}
 
 
 {$ifndef FPC_HAS_UNICODESTR_SETLENGTH}

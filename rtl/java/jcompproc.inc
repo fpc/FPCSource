@@ -231,11 +231,6 @@ procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByt
 function fpc_ansistr_setchar(const s: RawByteString; const index: longint; const ch: ansichar): RawByteString; compilerproc;
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : jlobject); compilerproc;
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
-{$endif VER2_4}
 
 { special declaration for the JVM }
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
@@ -280,13 +275,7 @@ procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: Ra
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
 //Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
