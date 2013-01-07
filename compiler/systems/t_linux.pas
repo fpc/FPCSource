@@ -1179,9 +1179,12 @@ begin
 end;
 
 
+const
+  relsec_prefix:array[boolean] of TCmdStr = ('rel','rela');
+
 procedure TInternalLinkerLinux.DefaultLinkScript;
 var
-  s,s1,s2:TCmdStr;
+  s,s1,s2,relprefix:TCmdStr;
   found1,found2:boolean;
   linkToSharedLibs:boolean;
 
@@ -1304,6 +1307,8 @@ begin
    else
      LinkScript.Concat('ISSHAREDLIBRARY');
 
+  relprefix:=relsec_prefix[ElfTarget.relocs_use_addend];
+
   with LinkScript do
     begin
       Concat('HEADER');
@@ -1334,25 +1339,14 @@ begin
       Concat('EXESECTION .gnu.version_r');
       Concat('  OBJSECTION .gnu.version_r');
       Concat('ENDEXESECTION');
-{$ifdef x86_64}
-      Concat('EXESECTION .rela.dyn');
-      Concat('  OBJSECTION .rela.dyn');
-{$else}
-      Concat('EXESECTION .rel.dyn');
-      Concat('  OBJSECTION .rel.dyn');
-{$endif}
-
+      Concat('EXESECTION .'+relprefix+'.dyn');
+      Concat('  OBJSECTION .'+relprefix+'.dyn');
       Concat('ENDEXESECTION');
-{$ifdef x86_64}
-      Concat('EXESECTION .rela.plt');
-      Concat('  OBJSECTION .rela.plt');
-      Concat('  PROVIDE __rela_iplt_start');
-      Concat('  OBJSECTION .rela.iplt');
-      Concat('  PROVIDE __rela_iplt_end');
-{$else}
-      Concat('EXESECTION .rel.plt');
-      Concat('  OBJSECTION .rel.plt');
-{$endif}
+      Concat('EXESECTION .'+relprefix+'.plt');
+      Concat('  OBJSECTION .'+relprefix+'.plt');
+      Concat('  PROVIDE __'+relprefix+'_iplt_start');
+      Concat('  OBJSECTION .'+relprefix+'.iplt');
+      Concat('  PROVIDE __'+relprefix+'_iplt_end');
       Concat('ENDEXESECTION');
       Concat('EXESECTION .init');
       Concat('  OBJSECTION .init');
@@ -1386,7 +1380,16 @@ begin
       Concat('EXESECTION .rodata');
       Concat('  OBJSECTION .rodata*');
       Concat('ENDEXESECTION');
-
+{$ifdef arm}
+      Concat('EXESECTION .ARM.extab');
+      Concat('  OBJSECTION .ARM.extab*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .ARM.exidx');
+      Concat('  SYMBOL __exidx_start');
+      Concat('  OBJSECTION .ARM.exidx*');
+      Concat('  SYMBOL __exidx_end');
+      Concat('ENDEXESECTION');
+{$endif}
       Concat('EXESECTION .eh_frame');
       Concat('  OBJSECTION .eh_frame');
       Concat('ENDEXESECTION');
@@ -1436,11 +1439,16 @@ begin
       Concat('  OBJSECTION .dynamic');
       Concat('ENDEXESECTION');
       Concat('EXESECTION .got');
+{$ifdef arm}
+      Concat('  OBJSECTION .got.plt');
+{$endif arm}
       Concat('  OBJSECTION .got');
       Concat('ENDEXESECTION');
+{$ifndef arm}
       Concat('EXESECTION .got.plt');
       Concat('  OBJSECTION .got.plt');
       Concat('ENDEXESECTION');
+{$endif arm}
       Concat('EXESECTION .data');
       Concat('  OBJSECTION .data*');
       Concat('  OBJSECTION .fpc*');
