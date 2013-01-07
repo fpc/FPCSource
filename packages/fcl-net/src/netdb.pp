@@ -536,13 +536,17 @@ Procedure CheckResolveFile;
 
 Var
   F : Integer;
+  N : String;
 
 begin
   If CheckResolveFileAge then
     begin
-    F:=FileAge(ResolveFileName);
+    N:=ResolveFileName;
+    if (N='') then
+      N:=EtcPath + SResolveFile;
+    F:=FileAge(N);
     If ResolveFileAge<F then
-      GetDnsServers(ResolveFileName);
+      GetDnsServers(N);
     end;  
 end;
 
