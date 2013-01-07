@@ -55,11 +55,14 @@ function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 
 Var
   D : Double;
-
 begin
   D:=DateTime * Single(MSecsPerDay);
-  result.Time := Abs(Round(D)) Mod MSecsPerDay;
-  result.Date := DateDelta + Round(D) div MSecsPerDay;
+  if D<0 then
+    D:=D-0.5
+  else
+    D:=D+0.5;
+  result.Time := Abs(Trunc(D)) Mod MSecsPerDay;
+  result.Date := DateDelta + Trunc(D) div MSecsPerDay;
 end;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
