@@ -20,7 +20,7 @@ unit fphttpserver;
 interface
 
 uses
-  Classes, SysUtils, ssockets, httpdefs;
+  Classes, SysUtils, sockets, ssockets, resolve, httpdefs;
 
 Const
   ReadBufLen = 4096;
@@ -36,6 +36,8 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
+    FRemoteAddress: String;
+    FServerPort: String;
     FQueryString : String;
   protected
     function GetFieldValue(Index: Integer): String; override;
@@ -68,6 +70,7 @@ Type
     FBuffer : Ansistring;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
+    Function GetLookupHostNames : Boolean;
   Protected
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
     procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
@@ -81,6 +84,7 @@ Type
     Property Socket : TSocketStream Read FSocket;
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
+    Property LookupHostNames : Boolean Read GetLookupHostNames;
   end;
 
   { TFPHTTPConnectionThread }
@@ -113,6 +117,7 @@ Type
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
+    FLookupHostNames,
     FThreaded: Boolean;
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
@@ -168,6 +173,7 @@ Type
     property AdminMail: string read FAdminMail write FAdminMail;
     property AdminName: string read FAdminName write FAdminName;
     property ServerBanner: string read FServerBanner write FServerBanner;
+    Property LookupHostNames : Boolean Read FLookupHostNames Write FLookupHostNames;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -187,7 +193,6 @@ Type
 
 implementation
 
-uses sockets;
 
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
@@ -259,6 +264,30 @@ begin
   inherited InitRequestVars;
 end;
 
+Function SocketAddrToString(ASocketAddr: TSockAddr): String;
+begin
+  if ASocketAddr.sa_family = AF_INET then
+    Result := NetAddrToStr(ASocketAddr.sin_addr)
+  else // no ipv6 support yet
+    Result := '';
+end;
+
+Function GetHostNameByAddress(const AnAddress: String): String;
+var
+  Resolver: THostResolver;
+begin
+  Result := '';
+  if AnAddress = '' then exit;
+
+  Resolver := THostResolver.Create(nil);
+  try
+    if Resolver.AddressLookup(AnAddress) then
+      Result := Resolver.ResolvedName
+  finally
+    FreeAndNil(Resolver);
+  end;
+end;
+
 procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
 
 begin
@@ -266,22 +295,34 @@ begin
   FContentRead:=true;
 end;
 
+
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
 
 begin
-  if Index=33 then
-    FQueryString:=Value
+  case Index of
+    27 : FRemoteAddress := Value;
+    30 : FServerPort := Value;
+    33 : FQueryString:=Value
   else
     Inherited SetFieldValue(Index,Value);
+  end;  
 end;
 
 Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
 
 begin
-  if Index=33 then
-    Result:=FQueryString
+  case Index of
+    27 : Result := FRemoteAddress;
+    28 : // Remote server name
+         if Assigned(FConnection) and FConnection.LookupHostNames then
+           Result := GetHostNameByAddress(FRemoteAddress) 
+         else
+           Result:='';  
+    30 : Result := FServerPort;
+    33 : Result:=FQueryString
   else
     Result:=Inherited GetFieldValue(Index);
+  end; 
 end;
 
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
@@ -475,6 +516,7 @@ begin
       end;  
     end;
   ARequest.SetContent(S);
+
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
@@ -493,6 +535,8 @@ begin
       if (S<>'') then
         InterPretHeader(Result,S);
     Until (S='');
+    Result.RemoteAddress := SocketAddrToString(FSocket.RemoteAddress);
+    Result.ServerPort := FServer.Port;
   except
     FreeAndNil(Result);
     Raise;
@@ -509,6 +553,15 @@ destructor TFPHTTPConnection.Destroy;
 begin
   FreeAndNil(FSocket);
   Inherited;
+end;
+
+Function TFPHTTPConnection.GetLookupHostNames : Boolean;
+
+begin
+  if Assigned(FServer) then
+    Result:=FServer.LookupHostNames
+  else
+    Result:=False;  
 end;
 
 procedure TFPHTTPConnection.HandleRequest;

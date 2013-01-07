@@ -58,6 +58,8 @@ Type
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    function GetLookupHostNames : Boolean;
+    Procedure SetLookupHostnames(Avalue : Boolean);
   protected
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     Procedure InitRequest(ARequest : TRequest); override;
@@ -79,12 +81,16 @@ Type
     property Threaded : Boolean read GetThreaded Write SetThreaded;
     // Handle On Request error. If not set, error is logged.
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Should addresses be matched to hostnames ? (expensive)
+    Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
   end;
 
   { TCustomHTTPApplication }
 
   TCustomHTTPApplication = Class(TCustomWebApplication)
   private
+    function GetLookupHostNames : Boolean;
+    Procedure SetLookupHostnames(Avalue : Boolean);
     function GetAllowConnect: TConnectQuery;
     function GetPort: Word;
     function GetQueueSize: Word;
@@ -104,6 +110,8 @@ Type
     Property OnAllowConnect : TConnectQuery Read GetAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
     property Threaded : Boolean read GetThreaded Write SetThreaded;
+    // Should addresses be matched to hostnames ? (expensive)
+    Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
   end;
 
 
@@ -128,6 +136,18 @@ uses
 {$endif}
 
 { TCustomHTTPApplication }
+
+function TCustomHTTPApplication.GetLookupHostNames : Boolean;
+
+begin
+  Result:=HTTPHandler.LookupHostNames;
+end;
+
+Procedure TCustomHTTPApplication.SetLookupHostnames(Avalue : Boolean);
+
+begin
+  HTTPHandler.LookupHostNames:=AValue;
+end;
 
 function TCustomHTTPApplication.GetAllowConnect: TConnectQuery;
 begin
@@ -206,6 +226,18 @@ begin
     FServer.Active:=False;
   if Assigned(OnIdle) then
     OnIdle(Self);
+end;
+
+function TFPHTTPServerHandler.GetLookupHostNames : Boolean;
+
+begin
+  Result:=FServer.LookupHostNames;
+end;
+
+Procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue : Boolean);
+
+begin
+  FServer.LookupHostNames:=AValue;
 end;
 
 function TFPHTTPServerHandler.GetAllowConnect: TConnectQuery;
