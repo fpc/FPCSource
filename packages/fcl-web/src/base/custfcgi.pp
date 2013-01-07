@@ -174,7 +174,8 @@ ResourceString
   SErrReadingSocket = 'Failed to read data from socket. Error: %d';
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
-
+  SErrNoRequest     = 'Internal error: No request available when writing data';
+  
 Implementation
 
 {$ifdef CGIDEBUG}
@@ -413,16 +414,20 @@ var ErrorCode,
     BytesToWrite ,
     BytesWritten  : Integer;
     P : PByte;
+    r : TFCGIRequest;
+    
 begin
+  if Not (Assigned(Request) and (Request is TFCGIRequest)) then
+    Raise Exception.Create(SErrNorequest);
+  R:=TFCGIRequest(Request);
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
   P:=PByte(Arecord);
   Repeat
-    BytesWritten:=FOnWrite(TFCGIRequest(Request).Handle, P^, BytesToWrite,ErrorCode);
+    BytesWritten:=FOnWrite(R.Handle, P^, BytesToWrite,ErrorCode);
     If (BytesWritten<0) then
       begin
-      // TODO : Better checking for closed connection, EINTR
-      IF Assigned(Self.Request) and (Self.Request is TFCGIRequest) then
-        (Self.Request as TFCGIRequest).FKeepConnectionAfterRequest:=False;
+      // TODO : Better checking on ErrorCode
+      R.FKeepConnectionAfterRequest:=False;
       Raise HTTPError.CreateFmt(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
