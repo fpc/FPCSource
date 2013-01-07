@@ -79,6 +79,6 @@ type
 var
   LibModuleList: PLibModule = nil;
 
-{$ifdef win64}
+{$if defined(win64) and defined(FPC_USE_WIN64_SEH)}
 procedure _fpc_local_unwind(frame,target: Pointer);compilerproc;
 {$endif}
