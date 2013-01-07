@@ -417,7 +417,7 @@ var ErrorCode,
     r : TFCGIRequest;
     
 begin
-  if Not (Assigned(Request) and (Request is TFCGIRequest)) then
+  if Not (Request is TFCGIRequest) then
     Raise Exception.Create(SErrNorequest);
   R:=TFCGIRequest(Request);
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
