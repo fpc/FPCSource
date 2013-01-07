@@ -370,7 +370,13 @@ unit cgx86;
 
 {$ifdef x86_64}
         { Only 32bit is allowed }
-        if ((ref.offset<low(longint)) or (ref.offset>high(longint))) then
+        { Note that this isn't entirely correct: for RIP-relative targets/memory models,
+          it is actually (offset+@symbol-RIP) that should fit into 32 bits. Since two last
+          members aren't known until link time, ABIs place very pessimistic limits
+          on offset values, e.g. SysV AMD64 allows +/-$1000000 (16 megabytes) }
+        if ((ref.offset<low(longint)) or (ref.offset>high(longint))) or
+           { absolute address is not a common thing in x64, but nevertheless a possible one }
+           ((ref.base=NR_NO) and (ref.index=NR_NO) and (ref.symbol=nil)) then
           begin
             { Load constant value to register }
             hreg:=GetAddressRegister(list);
@@ -382,7 +388,9 @@ unit cgx86;
                 ref.symbol:=nil;
               end;}
             { Add register to reference }
-            if ref.index=NR_NO then
+            if ref.base=NR_NO then
+              ref.base:=hreg
+            else if ref.index=NR_NO then
               ref.index:=hreg
             else
               begin
@@ -1004,17 +1012,6 @@ unit cgx86;
                           end
                         else
                           cgmessage(cg_e_cant_use_far_pointer_there);
-                      system_i386_win32:
-                        if segment=NR_FS then
-                          begin
-                            allocallcpuregisters(list);
-                            a_call_name(list,'GetTls',false);
-                            deallocallcpuregisters(list);
-                            list.concat(Taicpu.op_reg_reg(A_ADD,tcgsize2opsize[OS_ADDR],NR_EAX,r));
-                          end
-                        else
-                          cgmessage(cg_e_cant_use_far_pointer_there);
-
                       else
                         cgmessage(cg_e_cant_use_far_pointer_there);
                     end;
