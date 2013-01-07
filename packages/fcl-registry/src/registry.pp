@@ -17,8 +17,7 @@ Uses
     SysUtils,
     inifiles;
 
-  {$I regdef.inc}
-
+{$I regdef.inc}
 
 type
   ERegistryException = class(Exception);
