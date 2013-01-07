@@ -108,6 +108,9 @@ interface
     SHT_PREINIT_ARRAY = 16;
     SHT_GROUP    = 17;
     SHT_SYMTAB_SHNDX = 18;
+    SHT_GNU_ATTRIBUTES = $6ffffff5;
+    SHT_GNU_HASH = $6ffffff6;
+    SHT_GNU_LIBLIST = $6ffffff7;
     SHT_GNU_verdef = $6ffffffd;
     SHT_GNU_verneed = $6ffffffe;
     SHT_GNU_versym = $6fffffff;

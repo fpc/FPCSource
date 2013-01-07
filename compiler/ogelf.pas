@@ -229,7 +229,6 @@ interface
 
          function AttachSection(objsec:TObjSection):TElfExeSection;
          function CreateSegment(atype,aflags,aalign:longword):TElfSegment;
-         procedure CreatePLT;
          procedure WriteHeader;
          procedure WriteDynamicSymbolsHash;
          procedure WriteDynamicTags;
@@ -261,6 +260,7 @@ interface
          procedure CreateGOTSection;virtual;
          procedure make_dynamic_if_undefweak(exesym:TExeSymbol);
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
+         procedure CreatePLT;virtual;
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
          procedure WriteIndirectPLTEntry(exesym:TExeSymbol);virtual;
@@ -1508,6 +1508,9 @@ implementation
               end
             else
               InternalError(2012110706);
+
+          SHT_GNU_ATTRIBUTES:
+            { TODO: must not be ignored };
         else
           if not (assigned(ElfTarget.loadsection) and
             ElfTarget.loadsection(self,objdata,shdr,index)) then
