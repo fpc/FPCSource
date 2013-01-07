@@ -17,33 +17,57 @@ unit gvector;
 interface
 
 type
-  generic TVector<T>=class
+
+  { TVector }
+
+  generic TVector<T> = class
   private
   type
-    PT=^ T;
-    TArr=array of T;
+    PT = ^ T;
+    TArr = array of T;
   var
     FCapacity:SizeUInt;
     FDataSize:SizeUInt;
     FData:TArr;
 
-    procedure SetValue(Position:SizeUInt; Value:T);inline;
-    function GetValue(Position:SizeUInt):T;inline;
-    function GetMutable(Position:SizeUInt):PT;inline;
-    procedure IncreaseCapacity;inline;
+    procedure SetValue(Position: SizeUInt; const Value: T); inline;
+    function GetValue(Position: SizeUInt):T; inline;
+    function GetMutable(Position: SizeUInt):PT; inline;
+    procedure IncreaseCapacity; inline;
+
+  const
+    // todo: move these constants to implementation when
+    // mantis #0021310 will be fixed.
+    SVectorPositionOutOfRange      = 'Vector position out of range';
+    SAccessingElementOfEmptyVector = 'Accessing element of empty vector';
+
+  type
+    TVectorEnumerator = class
+    private
+      FVector: TVector;
+      FPosition: Integer;
+    public
+      constructor Create(AVector: TVector);
+      function GetCurrent: T; inline;
+      function MoveNext: Boolean; inline;
+      property Current: T read GetCurrent;
+    end;
+
   public
     constructor Create;
-    function Size:SizeUInt;inline;
-    procedure PushBack(Value:T);inline;
-    procedure PopBack;inline;
-    function IsEmpty:boolean;inline;
-    procedure Insert(Position:SizeUInt; Value:T);inline;
-    procedure Erase(Position:SizeUInt);inline;
-    procedure Clear;inline;
-    function Front:T;inline;
-    function Back:T;inline;
-    procedure Reserve(Num:SizeUInt);inline;
-    procedure Resize(Num:SizeUInt);inline;
+    function Size: SizeUInt; inline;
+    procedure PushBack(const Value: T); inline;
+    procedure PopBack; inline;
+    function IsEmpty: boolean; inline;
+    procedure Insert(Position: SizeUInt; const Value: T); inline;
+    procedure Erase(Position: SizeUInt); inline;
+    procedure Clear; inline;
+    function Front: T; inline;
+    function Back: T; inline;
+    procedure Reserve(Num: SizeUInt); inline;
+    procedure Resize(Num: SizeUInt); inline;
+
+    function GetEnumerator: TVectorEnumerator;
 
     property Items[i : SizeUInt]: T read getValue write setValue; default;
     property Mutable[i : SizeUInt]: PT read getMutable;
@@ -51,39 +75,61 @@ end;
 
 implementation
 
+{ TVector.TVectorEnumerator }
+
+constructor TVector.TVectorEnumerator.Create(AVector: TVector);
+begin
+  FVector := AVector;
+  FPosition := -1;
+end;
+
+function TVector.TVectorEnumerator.GetCurrent: T;
+begin
+  Result := FVector[FPosition];
+end;
+
+function TVector.TVectorEnumerator.MoveNext: Boolean;
+begin
+  Result := FPosition < FVector.Size - 1;
+  if Result then
+    inc(FPosition);
+end;
+
+{ TVector }
+
 constructor TVector.Create();
 begin
   FCapacity:=0;
   FDataSize:=0;
 end;
 
-procedure TVector.SetValue(Position:SizeUInt; Value:T);inline;
+procedure TVector.SetValue(Position: SizeUInt; const Value: T);
 begin
-  Assert(position < size, 'Vector position out of range');
+  Assert(position < size, SVectorPositionOutOfRange);
   FData[Position]:=Value;
 end;
 
 function TVector.GetValue(Position:SizeUInt):T;inline;
 begin
-  Assert(position < size, 'Vector position out of range');
+  Assert(position < size, SVectorPositionOutOfRange);
   GetValue:=FData[Position];
 end;
 
 function TVector.GetMutable(Position:SizeUInt):PT;inline;
 begin
-  Assert(position < size, 'Vector position out of range');
+  Assert(position < size, SVectorPositionOutOfRange);
   GetMutable:=@FData[Position];
 end;
 
 function TVector.Front():T;inline;
 begin
-  Assert(size > 0, 'Accessing element of empty vector');
+  Assert(size > 0, SAccessingElementOfEmptyVector);
   Front:=FData[0];
 end;
 
 function TVector.Back():T;inline;
 begin
-  Assert(size > 0, 'Accessing element of empty vector');
+  Assert(size > 0, SAccessingElementOfEmptyVector);
   Back:=FData[FDataSize-1];
 end;
 
@@ -100,7 +146,7 @@ begin
     IsEmpty:=false;
 end;
 
-procedure TVector.PushBack(Value:T);inline;
+procedure TVector.PushBack(const Value: T);
 begin
   if FDataSize=FCapacity then
     IncreaseCapacity;
@@ -117,13 +163,18 @@ begin
   SetLength(FData, FCapacity);
 end;
 
+function TVector.GetEnumerator: TVectorEnumerator;
+begin
+  Result := TVectorEnumerator.Create(self);
+end;
+
 procedure TVector.PopBack();inline;
 begin
   if FDataSize>0 then
     FDataSize:=FDataSize-1;
 end;
 
-procedure TVector.Insert(Position:SizeUInt; Value: T);inline;
+procedure TVector.Insert(Position: SizeUInt; const Value: T);
 var i:SizeUInt;
 begin
   pushBack(Value);
