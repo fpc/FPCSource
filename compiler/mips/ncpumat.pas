@@ -261,6 +261,7 @@ procedure tMIPSELnotnode.second_boolean;
 var
   hl: tasmlabel;
   tmpreg : TRegister;
+  r64: TRegister64;
 begin
   { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -287,11 +288,31 @@ begin
       end;
       LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
       begin
-        tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, tmpreg, left.location.Register, NR_R0));
-        location_reset(location, LOC_REGISTER, OS_INT);
-        location.Register := tmpreg;
+        if is_64bit(resultdef) then
+          begin
+            r64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            r64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            { OR low and high parts together }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,r64.reglo,left.location.register64.reglo,left.location.register64.reghi));
+            { x=0 <=> unsigned(x)<1 }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,r64.reglo,r64.reglo,1));
+            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,r64.reghi);
+            if not is_pasbool(resultdef) then
+              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,r64,r64);
+            location_reset(location,LOC_REGISTER,OS_64);
+            location.Register64:=r64;
+          end
+        else
+          begin
+            tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+            { x=0 <=> unsigned(x)<1 }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU, tmpreg, left.location.Register, 1));
+            if not is_pasbool(resultdef) then
+              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,tmpreg,tmpreg);
+            location_reset(location, LOC_REGISTER, OS_INT);
+            location.Register := tmpreg;
+          end;
       end;
       else
         internalerror(2003042401);
