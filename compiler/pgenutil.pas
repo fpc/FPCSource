@@ -361,6 +361,7 @@ uses
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
+        errorrecovery,
         found,
         first,
         err : boolean;
@@ -392,34 +393,43 @@ uses
         tt:=nil;
 
         { either symname must be given or genericdef needs to be valid }
+        errorrecovery:=false;
         if (symname='') and
             (not assigned(genericdef) or
             not assigned(genericdef.typesym) or
             (genericdef.typesym.typ<>typesym)) then
-           internalerror(2011042701);
+          begin
+            errorrecovery:=true;
+            tt:=generrordef;
+          end;
 
         { Only parse the parameters for recovery or
           for recording in genericbuf }
-        if parse_generic then
+        if parse_generic or errorrecovery then
           begin
             first:=assigned(parsedtype);
             if not first and not try_to_consume(_LT) then
               consume(_LSHARPBRACKET);
             gencount:=0;
-            repeat
-              if not first then
-                begin
-                  pt2:=factor(false,true);
-                  pt2.free;
-                end;
-              first:=false;
-              inc(gencount);
-            until not try_to_consume(_COMMA);
+            { handle "<>" }
+            if (token=_RSHARPBRACKET) or (token=_GT) then
+              Message(type_e_type_id_expected)
+            else
+              repeat
+                if not first then
+                  begin
+                    pt2:=factor(false,true);
+                    pt2.free;
+                  end;
+                first:=false;
+                inc(gencount);
+              until not try_to_consume(_COMMA);
             if not try_to_consume(_GT) then
               consume(_RSHARPBRACKET);
             { we need to return a def that can later pass some checks like
               whether it's an interface or not }
-            if not assigned(tt) or (tt.typ=undefineddef) then
+            if not errorrecovery and
+                (not assigned(tt) or (tt.typ=undefineddef)) then
               begin
                 if (symname='') and (df_generic in genericdef.defoptions) then
                   { this happens in non-Delphi modes }
@@ -476,6 +486,16 @@ uses
 
         if not assigned(parsedtype) and not try_to_consume(_LT) then
           consume(_LSHARPBRACKET);
+
+        { handle "<>" }
+        if (token=_GT) or (token=_RSHARPBRACKET) then
+          begin
+            Message(type_e_type_id_expected);
+            if not try_to_consume(_GT) then
+              try_to_consume(_RSHARPBRACKET);
+            tt:=generrordef;
+            exit;
+          end;
 
         genericdeflist:=TFPObjectList.Create(false);
         poslist:=tfplist.create;
@@ -852,9 +872,12 @@ uses
         allowconstructor,
         doconsume : boolean;
         constraintdata : tgenericconstraintdata;
+        old_block_type : tblock_type;
       begin
         result:=TFPObjectList.Create(false);
         firstidx:=0;
+        old_block_type:=block_type;
+        block_type:=bt_type;
         repeat
           if token=_ID then
             begin
@@ -922,27 +945,28 @@ uses
                       { only types that are inheritable are allowed }
                       if (def.typ<>objectdef) or
                           not (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_javaclass]) then
-                        Message(type_e_class_or_interface_type_expected);
-                      case tobjectdef(def).objecttype of
-                        odt_class,
-                        odt_javaclass:
-                          begin
-                            if gcf_class in constraintdata.flags then
-                              { "class" + concrete class is not allowed }
-                              Message(parser_e_illegal_expression)
-                            else
-                              { do we already have a concrete class? }
-                              if constraintdata.basedef<>generrordef then
+                        Message1(type_e_class_or_interface_type_expected,def.typename)
+                      else
+                        case tobjectdef(def).objecttype of
+                          odt_class,
+                          odt_javaclass:
+                            begin
+                              if gcf_class in constraintdata.flags then
+                                { "class" + concrete class is not allowed }
                                 Message(parser_e_illegal_expression)
                               else
-                                constraintdata.basedef:=def;
-                          end;
-                        odt_interfacecom,
-                        odt_interfacecorba,
-                        odt_interfacejava,
-                        odt_dispinterface:
-                          constraintdata.interfaces.add(def);
-                      end;
+                                { do we already have a concrete class? }
+                                if constraintdata.basedef<>generrordef then
+                                  Message(parser_e_illegal_expression)
+                                else
+                                  constraintdata.basedef:=def;
+                            end;
+                          odt_interfacecom,
+                          odt_interfacecorba,
+                          odt_interfacejava,
+                          odt_dispinterface:
+                            constraintdata.interfaces.add(def);
+                        end;
                     end;
                 end;
                 if doconsume then
@@ -986,6 +1010,7 @@ uses
               constraintdata.free;
             end;
         until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
+        block_type:=old_block_type;
       end;
 
 
