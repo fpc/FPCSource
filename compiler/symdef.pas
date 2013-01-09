@@ -95,6 +95,8 @@ interface
             generic declaration or just a normal type declared inside another
             generic }
           function is_generic:boolean;inline;
+          { same as above for specializations }
+          function is_specialization:boolean;inline;
        private
           savesize  : asizeuint;
        end;
@@ -1638,9 +1640,16 @@ implementation
        generictokenbuf:=tdynamicarray.create(256);
      end;
 
+
    function tstoreddef.is_generic: boolean;
      begin
-       result:=genericparas.count>0;
+       result:=(genericparas.count>0) and (df_generic in defoptions);
+     end;
+
+
+   function tstoreddef.is_specialization: boolean;
+     begin
+       result:=(genericparas.count>0) and (df_specialization in defoptions);
      end;
 
 
