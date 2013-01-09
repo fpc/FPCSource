@@ -412,7 +412,7 @@ uses
               consume(_LSHARPBRACKET);
             gencount:=0;
             { handle "<>" }
-            if (token=_RSHARPBRACKET) or (token=_GT) then
+            if not first and ((token=_RSHARPBRACKET) or (token=_GT)) then
               Message(type_e_type_id_expected)
             else
               repeat
@@ -485,16 +485,17 @@ uses
           end;
 
         if not assigned(parsedtype) and not try_to_consume(_LT) then
-          consume(_LSHARPBRACKET);
-
-        { handle "<>" }
-        if (token=_GT) or (token=_RSHARPBRACKET) then
           begin
-            Message(type_e_type_id_expected);
-            if not try_to_consume(_GT) then
-              try_to_consume(_RSHARPBRACKET);
-            tt:=generrordef;
-            exit;
+            consume(_LSHARPBRACKET);
+            { handle "<>" }
+            if (token=_GT) or (token=_RSHARPBRACKET) then
+              begin
+                Message(type_e_type_id_expected);
+                if not try_to_consume(_GT) then
+                  try_to_consume(_RSHARPBRACKET);
+                tt:=generrordef;
+                exit;
+              end;
           end;
 
         genericdeflist:=TFPObjectList.Create(false);
