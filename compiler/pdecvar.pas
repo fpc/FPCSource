@@ -1558,7 +1558,7 @@ implementation
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype : tdef;
+         hdef,casetype,tmpdef : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
@@ -1633,13 +1633,32 @@ implementation
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
-             if not (vd_class in options) and
-               (is_object(hdef) or is_record(hdef)) and
-               is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(hdef)) then
+             if not (vd_class in options) then
                begin
-                 Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
-                 { for error recovery or compiler will crash later }
-                 hdef:=generrordef;
+                 if hdef.typ=arraydef then
+                   begin
+                     tmpdef:=hdef;
+                     while (tmpdef.typ=arraydef) do
+                       begin
+                         { dynamic arrays are allowed }
+                         if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                           begin
+                             tmpdef:=nil;
+                             break;
+                           end;
+                         tmpdef:=tarraydef(tmpdef).elementdef;
+                       end;
+                   end
+                 else
+                   tmpdef:=hdef;
+                 if assigned(tmpdef) and
+                     (is_object(tmpdef) or is_record(tmpdef)) and
+                     is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(tmpdef)) then
+                   begin
+                     Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
+                     { for error recovery or compiler will crash later }
+                     hdef:=generrordef;
+                   end;
                end;
 
              { Process procvar directives }
