@@ -494,12 +494,12 @@ implementation
                     end
                 else
                   if not is_record(current_structdef) then
-                  internalerror(200305103);
+                    internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
-                addstatement(newstatement,cifnode.create(
+                  addstatement(newstatement,cifnode.create(
                     caddnode.create(equaln,
                         load_self_pointer_node,
                         cnilnode.create),
