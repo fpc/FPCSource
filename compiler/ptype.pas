@@ -444,7 +444,7 @@ implementation
           begin
             if not assigned(srsym) or not (srsym.typ=typesym) then
               begin
-                Message(type_e_type_is_not_completly_defined);
+                Message1(type_e_type_is_not_completly_defined,def.typename);
                 def:=generrordef;
                 dospecialize:=false;
               end;
