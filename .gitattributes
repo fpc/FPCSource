@@ -1795,6 +1795,8 @@ packages/fcl-base/examples/fstream.pp svneol=native#text/plain
 packages/fcl-base/examples/htdump.pp svneol=native#text/plain
 packages/fcl-base/examples/intl/Makefile svneol=native#text/plain
 packages/fcl-base/examples/intl/README.txt svneol=native#text/plain
+packages/fcl-base/examples/intl/restest.cs.mo -text
+packages/fcl-base/examples/intl/restest.cs.po svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.de.mo -text
 packages/fcl-base/examples/intl/restest.de.po svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.fr.mo -text
