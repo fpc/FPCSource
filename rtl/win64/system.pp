@@ -490,6 +490,46 @@ begin
   Exe_entry;
 end;
 
+{$ifdef FPC_SECTION_THREADVARS}
+function fpc_tls_add(addr: pointer): pointer; assembler; nostackframe;
+  [public,alias: 'FPC_TLS_ADD']; compilerproc;
+  asm
+      sub   $56,%rsp                  { 32 spill area + 16 local vars + 8 misalignment }
+  .seh_stackalloc 56
+  .seh_endprologue
+      lea   tls_data_start(%rip),%rax
+      sub   %rax,%rcx
+      cmpb  $0,IsLibrary(%rip)
+      mov   _tls_index(%rip),%eax
+      jnz   .L1
+      mov   %gs:(88),%rdx
+      add   (%rdx,%rax,8),%rcx
+      mov   %rcx,%rax
+      jmp   .L3
+.L1:
+      mov   %rcx,32(%rsp)
+      call  GetLastError
+      mov   %rax,40(%rsp)             { save LastError }
+      mov   _tls_index(%rip),%ecx
+      call  TlsGetValue
+      test  %rax,%rax
+      jnz   .L2
+      { This can happen when a thread existed before DLL was loaded,
+        or if DisableThreadLibraryCalls was called. }
+      call  SysAllocateThreadVars
+      mov   $0x1000000,%rcx
+      call  InitThread
+      mov   _tls_index(%rip),%ecx
+      call  TlsGetValue
+.L2:
+      add   %rax,32(%rsp)
+      mov   40(%rsp),%rcx
+      call  SetLastError
+      mov   32(%rsp),%rax
+.L3:
+      add   $56,%rsp
+  end;
+{$endif FPC_SECTION_THREADVARS}
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
   type

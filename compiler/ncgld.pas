@@ -330,21 +330,41 @@ implementation
                  begin
                     if (tf_section_threadvars in target_info.flags) then
                       begin
-                        if gvs.localloc.loc=LOC_INVALID then
-                          if not(vo_is_weak_external in gvs.varoptions) then
-                            reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                          else
-                            reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                        if target_info.system in [system_i386_win32,system_x86_64_win64] then
+                          begin
+                            paraloc1.init;
+                            pd:=search_system_proc('fpc_tls_add');
+                            paramanager.getintparaloc(pd,1,paraloc1);
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+                            cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href,paraloc1);
+                            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                            paraloc1.done;
+
+                            cg.g_call(current_asmdata.CurrAsmList,'FPC_TLS_ADD');
+                            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                            hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+                            location.reference.base:=hregister;
+                          end
                         else
-                          location:=gvs.localloc;
+                          begin
+                            if gvs.localloc.loc=LOC_INVALID then
+                              if not(vo_is_weak_external in gvs.varoptions) then
+                                reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                              else
+                                reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                            else
+                              location:=gvs.localloc;
 {$ifdef i386}
-                        case target_info.system of
-                          system_i386_linux:
-                            location.reference.segment:=NR_GS;
-                          system_i386_win32:
-                            location.reference.segment:=NR_FS;
-                        end;
+                            case target_info.system of
+                              system_i386_linux:
+                                location.reference.segment:=NR_GS;
+                            end;
 {$endif i386}
+                          end;
                       end
                     else
                       begin

@@ -82,3 +82,7 @@ var
 {$ifdef FPC_USE_WIN64_SEH}
 procedure _fpc_local_unwind(frame,target: Pointer);compilerproc;
 {$endif FPC_USE_WIN64_SEH}
+{$ifdef FPC_SECTION_THREADVARS}
+function fpc_tls_add(addr: pointer):pointer;compilerproc;
+{$endif FPC_SECTION_THREADVARS}
+
