@@ -4075,14 +4075,23 @@ In case not, the value returned can be arbitrary.
                              nexttoken:=_RECKKLAMMER;
                              goto exit_label;
                            end;
+                         '0'..'9' :
+                           begin
+                             { insert the number after the . }
+                             pattern:=pattern+'.';
+                             while c in ['0'..'9'] do
+                              begin
+                                pattern:=pattern+c;
+                                readchar;
+                              end;
+                           end;
+                         else
+                           begin
+                             token:=_INTCONST;
+                             nexttoken:=_POINT;
+                             goto exit_label;
+                           end;
                        end;
-                       { insert the number after the . }
-                       pattern:=pattern+'.';
-                       while c in ['0'..'9'] do
-                        begin
-                          pattern:=pattern+c;
-                          readchar;
-                        end;
                       end;
                   { E can also follow after a point is scanned }
                     if c in ['e','E'] then

@@ -1467,6 +1467,37 @@ implementation
 ****************************************************************************}
 
 
+    function real_const_node_from_pattern(s:string):tnode;
+      var
+        d : bestreal;
+        code : integer;
+        cur : currency;
+      begin
+        val(s,d,code);
+        if code<>0 then
+         begin
+           Message(parser_e_error_in_real);
+           d:=1.0;
+         end;
+{$ifdef FPC_REAL2REAL_FIXED}
+        if current_settings.fputype=fpu_none then
+          Message(parser_e_unsupported_real);
+        if (current_settings.minfpconstprec=s32real) and
+           (d = single(d)) then
+          result:=crealconstnode.create(d,s32floattype)
+        else if (current_settings.minfpconstprec=s64real) and
+                (d = double(d)) then
+          result:=crealconstnode.create(d,s64floattype)
+        else
+{$endif FPC_REAL2REAL_FIXED}
+          result:=crealconstnode.create(d,pbestrealtype^);
+{$ifdef FPC_HAS_STR_CURRENCY}
+        val(pattern,cur,code);
+        if code=0 then
+          trealconstnode(result).value_currency:=cur;
+{$endif FPC_HAS_STR_CURRENCY}
+      end;
+
 {---------------------------------------------
                PostFixOperators
 ---------------------------------------------}
@@ -1657,10 +1688,15 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     haderror,
      nodechanged    : boolean;
      calltype: tdispcalltype;
+     valstr,expstr : string;
+     intval : qword;
+     code : integer;
     label
-     skipreckklammercheck;
+     skipreckklammercheck,
+     skippointdefcheck;
     begin
      result:=false;
      again:=true;
@@ -1844,6 +1880,88 @@ implementation
                  try to call it in case it returns a record/object/... }
                maybe_call_procvar(p1,false);
 
+               if (p1.nodetype=ordconstn) and
+                   not is_boolean(p1.resultdef) and
+                   not is_enum(p1.resultdef) then
+                 begin
+                   { only an "e" or "E" can follow an intconst with a ".", the
+                     other case (another intconst) is handled by the scanner }
+                   if (token=_ID) and (pattern[1]='E') then
+                     begin
+                       haderror:=false;
+                       if length(pattern)>1 then
+                         begin
+                           expstr:=copy(pattern,2,length(pattern)-1);
+                           val(expstr,intval,code);
+                           if code<>0 then
+                             haderror:=true;
+                         end
+                       else
+                         expstr:='';
+                       consume(token);
+                       if tordconstnode(p1).value.signed then
+                         str(tordconstnode(p1).value.svalue,valstr)
+                       else
+                         str(tordconstnode(p1).value.uvalue,valstr);
+                       valstr:=valstr+'.0E';
+                       if expstr='' then
+                         case token of
+                           _MINUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+'-'+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _PLUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _INTCONST:
+                             begin
+                               valstr:=valstr+pattern;
+                               consume(_INTCONST);
+                             end;
+                           else
+                             haderror:=true;
+                         end
+                       else
+                         valstr:=valstr+expstr;
+                       if haderror then
+                         begin
+                           Message(parser_e_error_in_real);
+                           p2:=cerrornode.create;
+                         end
+                       else
+                         p2:=real_const_node_from_pattern(valstr);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end
+                   else
+                     begin
+                       { just convert the ordconst to a realconst }
+                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end;
+                 end;
+
+               { this is skipped if label skippointdefcheck is used }
                case p1.resultdef.typ of
                  recorddef:
                    begin
@@ -2051,6 +2169,8 @@ implementation
                       consume(_ID);
                     end;
                end;
+               { processing an ordconstnode avoids the resultdef check }
+               skippointdefcheck:
              end;
 
           else
@@ -2565,7 +2685,6 @@ implementation
          pd         : tprocdef;
          hclassdef  : tobjectdef;
          d          : bestreal;
-         cur        : currency;
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
@@ -2817,34 +2936,17 @@ implementation
                  else
                    { the necessary range checking has already been done by val }
                    tordconstnode(p1).rangecheck:=false;
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _REALNUMBER :
                begin
-                 val(pattern,d,code);
-                 if code<>0 then
-                  begin
-                    Message(parser_e_error_in_real);
-                    d:=1.0;
-                  end;
+                 p1:=real_const_node_from_pattern(pattern);
                  consume(_REALNUMBER);
-{$ifdef FPC_REAL2REAL_FIXED}
-                 if current_settings.fputype=fpu_none then
-                   Message(parser_e_unsupported_real);
-                 if (current_settings.minfpconstprec=s32real) and
-                    (d = single(d)) then
-                   p1:=crealconstnode.create(d,s32floattype)
-                 else if (current_settings.minfpconstprec=s64real) and
-                         (d = double(d)) then
-                   p1:=crealconstnode.create(d,s64floattype)
-                 else
-{$endif FPC_REAL2REAL_FIXED}
-                   p1:=crealconstnode.create(d,pbestrealtype^);
-{$ifdef FPC_HAS_STR_CURRENCY}
-                 val(pattern,cur,code);
-                 if code=0 then
-                   trealconstnode(p1).value_currency:=cur;
-{$endif FPC_HAS_STR_CURRENCY}
                end;
 
              _STRING :
