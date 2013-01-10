@@ -76,9 +76,8 @@ end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
 {$ifndef WINCE}
-const
-  Drive:array[0..3]of char=(#0,':',#0,#0);
 var
+  Drive:array[0..3]of char;
   defaultdrive:boolean;
   DirBuf,SaveBuf:array[0..259] of Char;
 {$endif WINCE}
@@ -88,6 +87,9 @@ begin
   if not defaultdrive then
    begin
     byte(Drive[0]):=Drivenr+64;
+    Drive[1]:=':';
+    Drive[2]:=#0;
+    Drive[3]:=#0;
     GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
     if not SetCurrentDirectory(@Drive) then
      begin
