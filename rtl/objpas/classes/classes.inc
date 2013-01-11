@@ -349,19 +349,19 @@ function CheckSynchronize(timeout : longint=0) : boolean;
                   the GUI thread and thus will be executed immediatly instead of
                   queuing them }
           while Assigned(ThreadQueueHead) do begin
-            { step 1: execute the method }
-            exceptobj := Nil;
-            try
-              ExecuteThreadQueueEntry(ThreadQueueHead);
-            except
-              exceptobj := Exception(AcquireExceptionObject);
-            end;
-
-            { step 2: update the list }
+            { step 1: update the list }
             tmpentry := ThreadQueueHead;
             ThreadQueueHead := ThreadQueueHead^.Next;
             if not Assigned(ThreadQueueHead) then
               ThreadQueueTail := Nil;
+
+            { step 2: execute the method }
+            exceptobj := Nil;
+            try
+              ExecuteThreadQueueEntry(tmpentry);
+            except
+              exceptobj := Exception(AcquireExceptionObject);
+            end;
 
             { step 3: error handling and cleanup }
             if Assigned(tmpentry^.SyncEvent) then begin
