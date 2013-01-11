@@ -987,22 +987,18 @@ implementation
     function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
-          {user} [oso_Data,oso_load,oso_write,oso_keep],
-          {code} [oso_Data,oso_load,oso_executable,oso_keep],
-          {Data} [oso_Data,oso_load,oso_write,oso_keep],
+          {user} [oso_Data,oso_load,oso_write],
+          {code} [oso_Data,oso_load,oso_executable],
+          {Data} [oso_Data,oso_load,oso_write],
 { Readonly data with relocations must be initially writable for some targets.
   Moreover, e.g. for ELF it depends on whether the executable is linked statically or
   dynamically. Here we declare it writable, target-specific descendants must provide
   further handling. }
-          {roData} [oso_Data,oso_load,oso_write,oso_keep],
-          {roData_norel} [oso_Data,oso_load,oso_keep],
-          {bss} [oso_load,oso_write,oso_keep],
-          {threadvar} [oso_load,oso_write
-{$ifdef FPC_USE_TLS_DIRECTORY}
-                       ,oso_keep
-{$endif FPC_USE_TLS_DIRECTORY}
-          ],
-          {pdata} [oso_data,oso_load {$ifndef x86_64},oso_keep{$endif}],
+          {roData} [oso_Data,oso_load,oso_write],
+          {roData_norel} [oso_Data,oso_load],
+          {bss} [oso_load,oso_write],
+          {threadvar} [oso_load,oso_write],
+          {pdata} [oso_data,oso_load],
           {stub} [oso_Data,oso_load,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
           {data_lazy} [oso_Data,oso_load,oso_write],
@@ -1021,10 +1017,10 @@ implementation
           {debug_info} [oso_Data,oso_debug],
           {debug_line} [oso_Data,oso_debug],
           {debug_abbrev} [oso_Data,oso_debug],
-          {fpc} [oso_Data,oso_load,oso_write,oso_keep],
+          {fpc} [oso_Data,oso_load,oso_write],
           {toc} [oso_Data,oso_load],
-          {init} [oso_Data,oso_load,oso_executable,oso_keep],
-          {fini} [oso_Data,oso_load,oso_executable,oso_keep],
+          {init} [oso_Data,oso_load,oso_executable],
+          {fini} [oso_Data,oso_load,oso_executable],
           {objc_class} [oso_data,oso_load],
           {objc_meta_class} [oso_data,oso_load],
           {objc_cat_cls_meth} [oso_data,oso_load],
