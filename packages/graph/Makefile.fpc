@@ -7,7 +7,7 @@ name=graph
 version=2.7.1
 
 [require]
-packages=rtl fpmkunit
+packages=rtl fpmkunit opengl
 
 [install]
 fpcpackage=y
