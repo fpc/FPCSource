@@ -143,7 +143,6 @@ begin
     N:=LookForElement(FTreeStart,AElement,True);
     If (N=Nil) then
       begin
-      Write('Symbol ',AElement.Name,' is unresolved');
       PE:=FTreeStart;
       end
     end
