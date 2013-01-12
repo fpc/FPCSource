@@ -402,7 +402,7 @@ end;
 
 function TLinkNode.FindChild(const APathName: String): TLinkNode;
 var
-  NameLen: Integer;
+  DotPos: Integer;
   ChildName: String;
   Child: TLinkNode;
 begin
@@ -410,22 +410,23 @@ begin
     Result := Self
   else
   begin
+    DotPos := Pos('.', APathName);
+    if DotPos = 0 then
+      ChildName := APathName
+    else
+      ChildName := Copy(APathName, 1, DotPos - 1);
     Child := FirstChild;
     while Assigned(Child) do
     begin
-      NameLen := Length(Child.Name);
-      if CompareText(Child.Name, Copy(APathName, 1, NameLen)) = 0 then
-        if NameLen = Length(APathName) then
-        begin
-          Result := Child;
-          Exit
-        end else
-        if APathName[NameLen + 1] = '.' then
-        begin
+      if CompareText(Child.Name, ChildName) = 0 then
+      begin
+        if DotPos = 0 then
+          Result := Child
+        else
           Result := Child.FindChild(
-            Copy(APathName, NameLen + 2, Length(APathName)));
-          Exit;
-        end;
+            Copy(APathName, DotPos + 1, Length(APathName)));
+        exit;
+      end;
       Child := Child.NextSibling;
     end;
     Result := nil;
@@ -434,7 +435,7 @@ end;
 
 function TLinkNode.CreateChildren(const APathName, ALinkTo: String): TLinkNode;
 var
-  NameLen: Integer;
+  DotPos: Integer;
   ChildName: String;
   Child, LastChild: TLinkNode;
 begin
@@ -442,33 +443,31 @@ begin
     Result := Self
   else
   begin
+    DotPos := Pos('.', APathName);
+    if DotPos = 0 then
+      ChildName := APathName
+    else
+      ChildName := Copy(APathName, 1, DotPos - 1);
     Child := FirstChild;
     LastChild := nil;
     while Assigned(Child) do
-      begin
+    begin
       if CompareText(Child.Name, ChildName) = 0 then
-        begin
-        NameLen := Length(Child.Name);
-        if CompareText(Child.Name, Copy(APathName, 1, NameLen)) = 0 then
-          if NameLen = Length(APathName) then
-            begin
-            Result := Child;
-            Exit
-            end 
-          else
-            if APathName[NameLen + 1] = '.' then
-              Result := Child
-            else
-              Result := Child.CreateChildren(
-                Copy(APathName, NameLen + 2, Length(APathName)), ALinkTo);
+      begin
+        if DotPos = 0 then
+          Result := Child
+        else
+          Result := Child.CreateChildren(
+            Copy(APathName, DotPos + 1, Length(APathName)), ALinkTo);
         exit;
-        end;
+      end;
       LastChild := Child;
       Child := Child.NextSibling;
-      end;
+    end;
     { No child found, let's create one if we are at the end of the path }
-    { If APathName contains dots we will regard it as a dotted unit name }
-    Result := TLinkNode.Create(APathName, ALinkTo);
+    if DotPos > 0 then
+      Raise Exception.CreateFmt('Link path does not exist: %s',[APathName]);
+    Result := TLinkNode.Create(ChildName, ALinkTo);
     if Assigned(LastChild) then
       LastChild.FNextSibling := Result
     else
