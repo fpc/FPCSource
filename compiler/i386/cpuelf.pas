@@ -210,6 +210,20 @@ implementation
             objsym.refs:=objsym.refs or symref_plt;
           end;
 
+        R_386_32:
+          if (oso_executable in objsec.SecOptions) or
+            not (oso_write in objsec.SecOptions) then
+            begin
+              if assigned(objreloc.symbol) and assigned(objreloc.symbol.exesymbol) then
+                begin
+                  objsym:=objreloc.symbol.exesymbol.ObjSymbol;
+                  objsym.refs:=objsym.refs or symref_from_text;
+                end;
+            end;
+      end;
+
+      case reltyp of
+
         R_386_TLS_IE:
           begin
 

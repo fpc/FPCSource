@@ -228,7 +228,6 @@ interface
          shoffset: aword;
          gotwritten: boolean;
          { dynamic linking }
-         dynamiclink: boolean;
          dynsymnames: Plongword;
          dynsymtable: TElfSymtab;
          interpobjsec: TObjSection;
@@ -241,7 +240,7 @@ interface
          dynamicsec,
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
-         gotsize: aword;
+         dyncopysyms: TFPObjectList;
          dynrelsize: aword;
 
          function AttachSection(objsec:TObjSection):TElfExeSection;
@@ -257,12 +256,13 @@ interface
          procedure MapSectionsToSegments;
          procedure WriteStaticSymtable;
          procedure InitDynlink;
-         procedure PrepareGOT;
        protected
+         dynamiclink: boolean;
          hastextrelocs: boolean;
          gotsymbol: TObjSymbol;
          dynsymlist: TFPObjectList;
          gotobjsec: TObjSection;
+         dynbssobjsec,
          pltobjsec,
          gotpltobjsec,
          pltrelocsec,
@@ -271,7 +271,9 @@ interface
          dynreloclist: TFPObjectList;
          tlsseg: TElfSegment;
          relative_reloc_count: longint;
-         function AllocGOTSlot(objsym: TObjSymbol):boolean;
+         gotsize: aword;
+         procedure PrepareGOT;virtual;
+         function AllocGOTSlot(objsym: TObjSymbol):boolean;virtual;
          procedure CreateGOTSection;virtual;
          procedure make_dynamic_if_undefweak(exesym:TExeSymbol);
          procedure WriteDynRelocEntry(dataofs:aword;typ:byte;symidx:aword;addend:aword);
@@ -1821,12 +1823,6 @@ implementation
             if dynndx=0 then
               InternalError(2012071401);
 
-            { for DSO, we aren't interested in actual sections, but need to a dummy one
-              to maintain integrity. }
-            objsec:=TElfObjSection.create_ext(objdata,'*DSO*',SHT_PROGBITS,0,0,0);
-            for i:=1 to nsects-1 do
-              FSecTbl[i].sec:=objsec;
-
             { load the symtable }
             FReader.Seek(symtaboffset+sizeof(TElfSymbol));
             LoadSymbols(objdata,syms,localsyms);
@@ -1941,6 +1937,7 @@ implementation
 
     destructor TElfExeOutput.Destroy;
       begin
+        dyncopysyms.Free;
         neededlist.Free;
         segmentlist.Free;
         dynsymlist.Free;
@@ -2180,6 +2177,7 @@ implementation
           exit;
         gotobjsec.alloc(sizeof(pint));
         exesym.GotOffset:=gotobjsec.size;
+        make_dynamic_if_undefweak(exesym);
         { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
           imported/exported symbols need GLOB_DAT instead. For executables,
           only the latter applies. }
@@ -2266,6 +2264,15 @@ implementation
               begin
                 exesym.State:=symstate_defined;
                 exesym.dynindex:=dynsymlist.Add(exesym)+1;
+                { The original binding, value and section of external symbol
+                  must be preserved, therefore resolving directly to .so symbol
+                  hurts more than it helps. Copy type and size, and store .so
+                  symbol in objsym.indsymbol for later use. }
+                exesym.ObjSymbol.typ:=objsym.typ;
+                if objsym.typ<>AT_FUNCTION then
+                  exesym.ObjSymbol.size:=objsym.size;
+                exesym.ObjSymbol.indsymbol:=objsym;
+                objsym.ExeSymbol:=exesym;
                 needed:=true;
               end;
           end;
@@ -2368,8 +2375,10 @@ implementation
               begin
                 if exesym.dynindex<>0 then
                   InternalError(2012062301);
-                exesym.dynindex:=dynsymlist.add(exesym)+1;
-                exesym.state:=symstate_defined;
+                { Weak-referenced symbols are changed into dynamic ones
+                  only if referenced through GOT or PLT (this is BFD-compatible) }
+                if exesym.state<>symstate_undefweak then
+                  exesym.dynindex:=dynsymlist.add(exesym)+1;
               end
             else
               UnresolvedExeSymbols[i]:=nil;
@@ -2386,21 +2395,44 @@ implementation
             if assigned(exesym.ObjSymbol.objsection) then  // an exported symbol
               continue;
 
-            { if there's no PLT references to symbol, then PLT entry isn't needed }
-            { !! Does not work correctly yet !! }
-//            if (exesym.objsymbol.refs and symref_plt)=0 then
-//              continue;
+            if ((exesym.ObjSymbol.refs and symref_plt)<>0) or
+              ((exesym.ObjSymbol.typ=AT_FUNCTION) and (not IsSharedLibrary)) then
+              begin
+                make_dynamic_if_undefweak(exesym);
 
-            { This symbol has a valid address to which relocations are resolved,
-              but it remains (weak)external when written to dynamic symtable. }
-            objsym:=internalobjdata.CreateSymbol(exesym.name);
-            objsym.typ:=AT_FUNCTION;
-            objsym.bind:=exesym.ObjSymbol.bind;  { AB_EXTERNAL or AB_WEAK_EXTERNAL }
-            objsym.offset:=pltobjsec.size;
-            objsym.objsection:=pltobjsec;
-            exesym.ObjSymbol:=objsym;
+                { This symbol has a valid address to which relocations are resolved,
+                  but it remains (weak)external when written to dynamic symtable. }
+                objsym:=internalobjdata.CreateSymbol(exesym.name);
+                objsym.typ:=AT_FUNCTION;
+                objsym.bind:=exesym.ObjSymbol.bind;  { AB_EXTERNAL or AB_WEAK_EXTERNAL }
+                objsym.indsymbol:=exesym.ObjSymbol.indsymbol;
+                objsym.offset:=pltobjsec.size;
+                objsym.objsection:=pltobjsec;
+                objsym.exesymbol:=exesym;
+                exesym.ObjSymbol:=objsym;
 
-            WritePLTEntry(exesym);
+                WritePLTEntry(exesym);
+              end
+            else if ((exesym.ObjSymbol.refs and symref_from_text)<>0) and
+              (exesym.ObjSymbol.typ<>AT_FUNCTION) and (not IsSharedLibrary) and
+              (exesym.state<>symstate_undefweak) then
+              begin
+                if exesym.ObjSymbol.size=0 then
+                  Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
+                internalobjdata.setSection(dynbssobjsec);
+                internalobjdata.allocalign(var_align(exesym.ObjSymbol.size));
+                objsym:=internalobjdata.SymbolDefine(exesym.name,AB_GLOBAL,AT_DATA);
+                objsym.size:=exesym.ObjSymbol.size;
+                objsym.indsymbol:=exesym.ObjSymbol.indsymbol;
+                exesym.ObjSymbol:=objsym;
+                objsym.exesymbol:=exesym;
+                dynbssobjsec.alloc(objsym.size);
+                { allocate space for R_xx_COPY relocation for this symbol;
+                  we'll create it later, to be consistent with "-z combreloc" semantics }
+                dyncopysyms.add(objsym);
+                dynrelocsec.alloc(dynrelocsec.shentsize);
+                inc(dynrelsize,dynrelocsec.shentsize);
+              end;
           end;
 
         { Handle indirect symbols }
@@ -2439,7 +2471,8 @@ implementation
           (.got, .rel[a].dyn, .rel[a].plt (includes .rel[a].iplt) and .hash }
         if gotobjsec.size<>0 then
           Exclude(gotobjsec.ExeSection.SecOptions,oso_disabled);
-        if assigned(dynrelocsec) and (dynrelocsec.size<>0) then
+        if assigned(dynrelocsec) and
+          ((dynrelocsec.size<>0) or (dyncopysyms.count<>0)) then
           Exclude(dynrelocsec.ExeSection.SecOptions,oso_disabled);
         if assigned(pltrelocsec) and (pltrelocsec.size>0) then
           Exclude(pltrelocsec.ExeSection.SecOptions,oso_disabled);
@@ -2568,9 +2601,10 @@ implementation
 
         if (not gotwritten) then
           begin
-            { reset size of .got and .rel[a].dyn, they will be refilled while fixing up relocations }
+            { Reset size of .got and .rel[a].dyn, they will be refilled while fixing up relocations.
+              For .got, consider already written reserved entries. }
             if assigned(gotobjsec) then
-              gotobjsec.size:=0;
+              gotobjsec.size:=gotobjsec.data.size;
             if assigned(dynrelocsec) then
               begin
                 dynrelocsec.size:=0;
@@ -2615,6 +2649,7 @@ implementation
         exesec: TExeSection;
         seg: TElfSegment;
         objreloc: TObjRelocation;
+        objsym: TObjSymbol;
       begin
         gotwritten:=true;
         { If target does not support sorted relocations, it is expected to write the
@@ -2623,6 +2658,14 @@ implementation
           should remain. }
         if assigned(dynrelocsec) then
           begin
+            { Append R_xx_COPY relocations }
+            for i:=0 to dyncopysyms.count-1 do
+              begin
+                objsym:=TObjSymbol(dyncopysyms[i]);
+                dynreloclist.Add(TObjRelocation.CreateRaw(objsym.address,objsym,ElfTarget.dyn_reloc_codes[dr_copy]));
+              end;
+            dyncopysyms.Clear;
+
             if (dynrelocsec.size+(dynreloclist.count*dynrelocsec.shentsize)<>dynrelsize) then
               InternalError(2012110601);
             { Write out non-RELATIVE dynamic relocations
@@ -2742,6 +2785,10 @@ implementation
         dynrelocsec:=TElfObjSection.create_reloc(internalObjData,'.dyn',true);
         dynrelocsec.SecOptions:=[oso_keep];
 
+        dynbssobjsec:=TElfObjSection.create_ext(internalObjData,'.dynbss',
+          SHT_NOBITS,SHF_ALLOC or SHF_WRITE,sizeof(pint){16??},0);
+        dynbssobjsec.SecOptions:=[oso_keep];
+
         dynreloclist:=TFPObjectList.Create(true);
 
         symversec:=TElfObjSection.create_ext(internalObjData,'.gnu.version',
@@ -2753,6 +2800,7 @@ implementation
         verneedsec:=TElfObjSection.create_ext(internalObjData,'.gnu.version_r',
           SHT_GNU_VERNEED,SHF_ALLOC,sizeof(pint),0);
         verneedsec.SecOptions:=[oso_keep];
+        dyncopysyms:=TFPObjectList.Create(False);
       end;
 
 

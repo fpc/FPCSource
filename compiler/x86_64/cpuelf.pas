@@ -199,6 +199,7 @@ implementation
       objsym:TObjSymbol;
       objreloc:TObjRelocation;
       reltyp:byte;
+      externsym,fromtext:boolean;
     begin
       objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
@@ -249,6 +250,7 @@ implementation
         //R_X86_64_TLSGD,
         //R_X86_64_TLSLD:  { TODO: allocate two GOT slots }
 
+        R_X86_64_TPOFF32,
         { R_X86_64_32S cannot be used in DSOs at all }
         R_X86_64_32S:
           if IsSharedLibrary then
@@ -275,17 +277,40 @@ implementation
 
         R_X86_64_64:
           begin
+            fromtext:=(oso_executable in objsec.SecOptions) or
+              not (oso_write in objsec.SecOptions);
+            externsym:=assigned(objreloc.symbol) and
+              assigned(objreloc.symbol.exesymbol) and
+              (objreloc.symbol.exesymbol.dynindex<>0);
+
             if IsSharedLibrary then
               begin
-                if (oso_executable in objsec.SecOptions) or
-                  not (oso_write in objsec.SecOptions) then
+                if fromtext then
                   hastextrelocs:=True;
                 dynrelocsec.alloc(dynrelocsec.shentsize);
                 objreloc.flags:=objreloc.flags or rf_dynamic;
-                if (objreloc.symbol=nil) or
-                   (objreloc.symbol.exesymbol=nil) or
-                   (objreloc.symbol.exesymbol.dynindex=0) then
+                if (not externsym) then
                   Inc(relative_reloc_count);
+              end
+            else if externsym then
+              // TODO: R_X86_64_32 and R_X86_64_32S here?
+              begin
+                objsym:=objreloc.symbol.ExeSymbol.ObjSymbol;
+                { If symbol has non-GOT references from readonly sections, then it needs a
+                  copy reloc, which eliminates any dynamic relocations to this symbol from
+                  writable sections as well. OTOH if it is referenced *only* from writable
+                  sections, then it's better not to generate a copy reloc and keep dynamic
+                  relocations. The following code is based on assumption that all readonly
+                  sections are processed before writable ones (which is true for current
+                  segment mapping).
+                  For arbitrary segment mapping, this will probably require a separate pass. }
+                if fromtext then
+                  objsym.refs:=objsym.refs or symref_from_text
+                else if (objsym.refs and symref_from_text)=0 then
+                  begin
+                    dynrelocsec.alloc(dynrelocsec.shentsize);
+                    objreloc.flags:=objreloc.flags or rf_dynamic;
+                  end;
               end;
           end;
       end;
@@ -403,9 +428,20 @@ implementation
                   address:=address+relocval-PC;
                 end;
 
+              //R_X86_64_DTPOFF64 is possible in data??
+              R_X86_64_DTPOFF32:
+                begin
+                  { In executable it behaves as TPOFF32, but data expressions
+                    like ".long foo@dtpoff" resolve to positive offset }
+                  if IsSharedLibrary or not (oso_executable in objsec.SecOptions) then
+                    address:=address+relocval-tlsseg.MemPos
+                  else
+                    address:=address+relocval-(tlsseg.MemPos+tlsseg.MemSize);
+                end;
+
               R_X86_64_TPOFF32,
               R_X86_64_TPOFF64:
-                address:=relocval-(tlsseg.MemPos+tlsseg.MemSize);
+                address:=address+relocval-(tlsseg.MemPos+tlsseg.MemSize);
 
               R_X86_64_GOTTPOFF,
               R_X86_64_GOTPCREL,

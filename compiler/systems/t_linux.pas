@@ -1457,6 +1457,7 @@ begin
       Concat('  PROVIDE edata');
       Concat('ENDEXESECTION');
       Concat('EXESECTION .bss');
+      Concat('  OBJSECTION .dynbss');
       Concat('  OBJSECTION .bss*');
       Concat('  OBJSECTION fpc.reshandles');
       Concat('  PROVIDE end');
