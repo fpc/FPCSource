@@ -47,7 +47,7 @@ type
    *    - follows RFC3548
    *    - rejects any characters outside of base64 alphabet,
    *    - only accepts up to two '=' characters at the end and
-   *    - requires the input to have a Size being a multiple of 4; otherwise raises an EBase64DecodeException
+   *    - requires the input to have a Size being a multiple of 4; otherwise raises an EBase64DecodingException
    * - 'MIME mode':
    *    - follows RFC2045
    *    - ignores any characters outside of base64 alphabet
