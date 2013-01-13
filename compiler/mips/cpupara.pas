@@ -200,7 +200,8 @@ implementation
               retdef:=forcetempdef
             else
               retdef:=p.returndef;
-            if ret_in_param(retdef,p.proccalloption) then
+            if ret_in_param(retdef,p.proccalloption) and
+              (retdef.typ=recorddef) then
               begin
                 if intparareg=0 then
                   inc(intparareg);
@@ -372,7 +373,8 @@ implementation
                 else
                   paraloc^.size:=paracgsize;
                 { ret in param? }
-                if vo_is_funcret in hp.varoptions then
+                if (vo_is_funcret in hp.varoptions) and
+                  (hp.vardef.typ=recorddef) then
                   begin
                     { This should be the first parameter }
                     if (side=calleeside) and assigned(current_procinfo) then

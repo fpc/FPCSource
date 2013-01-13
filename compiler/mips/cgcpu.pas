@@ -79,7 +79,6 @@ type
     procedure a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
     procedure a_jmp_always(List: tasmlist; l: TAsmLabel); override;
     procedure a_jmp_name(list: tasmlist; const s: string); override;
-    procedure a_jmp_cond(list: tasmlist; cond: TOpCmp; l: tasmlabel); { override;}
     procedure g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef); override;
     procedure g_overflowCheck_loc(List: tasmlist; const Loc: TLocation; def: TDef; ovloc: tlocation); override;
     procedure g_proc_entry(list: tasmlist; localsize: longint; nostackframe: boolean); override;
@@ -680,6 +679,11 @@ procedure TCGMIPS.a_loadfpu_reg_cgpara(list: tasmlist; size: tcgsize; const r: t
 var
   href: treference;
 begin
+  if paraloc.Location^.next=nil then
+    begin
+      inherited a_loadfpu_reg_cgpara(list,size,r,paraloc);
+      exit;
+    end;
   tg.GetTemp(list, TCGSize2Size[size], TCGSize2Size[size], tt_normal, href);
   a_loadfpu_reg_ref(list, size, size, r, href);
   a_loadfpu_ref_cgpara(list, size, href, paraloc);
@@ -1340,12 +1344,6 @@ begin
 end;
 
 
-procedure TCGMIPS.a_jmp_cond(list: tasmlist; cond: TOpCmp; l: TAsmLabel);
-begin
-  internalerror(200701181);
-end;
-
-
 procedure TCGMIPS.g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef);
 begin
 // this is an empty procedure
@@ -1704,6 +1702,15 @@ var
   lab:      tasmlabel;
   Count, count2: aint;
   ai : TaiCpu;
+
+  function reference_is_reusable(const ref: treference): boolean;
+    begin
+      result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
+         (ref.symbol=nil) and
+         (ref.alignment>=sizeof(aint)) and
+         (ref.offset>=simm16lo) and (ref.offset+len<=simm16hi);
+    end;
+
 begin
   if len > high(longint) then
     internalerror(2002072704);
@@ -1712,16 +1719,26 @@ begin
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
-    reference_reset(src,sizeof(aint));
-    reference_reset(dst,sizeof(aint));
-    { load the address of source into src.base }
-    src.base := GetAddressRegister(list);
-    a_loadaddr_ref_reg(list, Source, src.base);
-    { load the address of dest into dst.base }
-    dst.base := GetAddressRegister(list);
-    a_loadaddr_ref_reg(list, dest, dst.base);
-    { generate a loop }
     Count := len div 4;
+    if (count<=4) and reference_is_reusable(source) then
+      src:=source
+    else
+      begin
+        reference_reset(src,sizeof(aint));
+        { load the address of source into src.base }
+        src.base := GetAddressRegister(list);
+        a_loadaddr_ref_reg(list, Source, src.base);
+      end;
+    if (count<=4) and reference_is_reusable(dest) then
+      dst:=dest
+    else
+      begin
+        reference_reset(dst,sizeof(aint));
+        { load the address of dest into dst.base }
+        dst.base := GetAddressRegister(list);
+        a_loadaddr_ref_reg(list, dest, dst.base);
+      end;
+    { generate a loop }
     if Count > 4 then
     begin
       { the offsets are zero after the a_loadaddress_ref_reg and just }
@@ -1855,7 +1872,10 @@ procedure TCGMIPS.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labeln
     var
       href: treference;
     begin
-      reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
+      { TODO: Hardcoded register is ugly!
+        Look for the 'self' parameter again? g_adjust_self_value() does it right before,
+        but the result is local to g_adjust_self_value. }
+      reference_reset_base(href, NR_R4, 0, sizeof(aint));
       cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_VMT);
     end;
 
