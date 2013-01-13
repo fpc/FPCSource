@@ -69,6 +69,8 @@ implementation
     {$endif}
 
       ,ogcoff
+      ,ogelf
+      ,cpuelf
 
 {**************************************
         Assembler Readers
