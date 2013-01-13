@@ -147,6 +147,9 @@ Implementation
 
     uses
       cutils,cfileutl,cstreams,
+{$ifdef hasUnix}
+      baseunix,
+{$endif hasUnix}
       script,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;
@@ -1484,6 +1487,9 @@ Implementation
       begin
         IsSharedLibrary:=false;
         result:=RunLinkScript(current_module.exefilename);
+{$ifdef hasUnix}
+        fpchmod(current_module.exefilename,493);
+{$endif hasUnix}
       end;
 
 
