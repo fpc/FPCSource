@@ -264,8 +264,12 @@ implementation
 
     function tm68kShlShrNode.first_shlshr64bitint:TNode;
       begin
-        { 2nd pass is our friend }
-        result := nil;
+        if is_64bit(left.resultdef) and not (right.nodetype=ordconstn) then
+          { for 64bit shifts with anything but constants we use rtl helpers }
+          result:=inherited
+        else
+          { 2nd pass is our friend }
+          result := nil;
       end;
 
 
