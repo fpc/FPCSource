@@ -132,6 +132,7 @@ interface
          localsyms: longword;
          symversions: PWord;
          dynobj: boolean;
+         verdefs: TFPHashObjectList;
          function LoadHeader:word;
          procedure LoadSection(const shdr:TElfsechdr;index:longint;objdata:TObjData);
          procedure LoadRelocations(const secrec:TSectionRec);
@@ -144,6 +145,22 @@ interface
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
          function CreateSection(const shdr:TElfsechdr;index:longint;objdata:TObjData;
            out secname:string):TElfObjSection;
+       end;
+
+       TElfVersionDef = class(TFPHashObject)
+       public
+         index: longword;
+       end;
+
+       TElfDynamicObjData = class(TElfObjData)
+       private
+         FVersionDefs: TFPHashObjectList;
+       public
+         soname_strofs: longword;
+         vernaux_count: longword;
+         constructor create(const n:string);override;
+         destructor destroy;override;
+         property versiondefs:TFPHashObjectList read FVersionDefs;
        end;
 
        TRelocNameProc=function(reltyp:byte):string;
@@ -241,8 +258,6 @@ interface
          procedure WriteStaticSymtable;
          procedure InitDynlink;
          procedure PrepareGOT;
-         procedure WriteDynTag(aTag:longword;aValue:longword);
-         procedure WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword=0);
        protected
          hastextrelocs: boolean;
          gotsymbol: TObjSymbol;
@@ -264,9 +279,12 @@ interface
          procedure WriteFirstPLTEntry;virtual;abstract;
          procedure WritePLTEntry(exesym:TExeSymbol);virtual;
          procedure WriteIndirectPLTEntry(exesym:TExeSymbol);virtual;
+         procedure WriteTargetDynamicTags;virtual;
          procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);virtual;abstract;
          procedure ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
          procedure ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+         procedure WriteDynTag(aTag:longword;aValue:longword);
+         procedure WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword=0);
        public
          constructor Create;override;
          destructor Destroy;override;
@@ -854,6 +872,27 @@ implementation
 
 
 {****************************************************************************
+                            TElfDynamicObjData
+****************************************************************************}
+
+    constructor TElfDynamicObjData.create(const n:string);
+      begin
+        inherited Create(n);
+        FVersionDefs:=TFPHashObjectList.create(true);
+        { Default symversions with indices 0 and 1 }
+        TElfVersionDef.create(FVersionDefs,'*local*');
+        TElfVersionDef.create(FVersionDefs,'*global*');
+      end;
+
+
+    destructor TElfDynamicObjData.destroy;
+      begin
+        FVersionDefs.free;
+        inherited Destroy;
+      end;
+
+
+{****************************************************************************
                             TElfSymtab
 ****************************************************************************}
 
@@ -1371,6 +1410,7 @@ implementation
             end;
             { If reading DSO, we're interested only in global symbols defined there.
               Symbols with non-current version should also be ignored. }
+            ver:=0;
             if dynobj then
               begin
                 if assigned(symversions) then
@@ -1381,6 +1421,8 @@ implementation
                   end;
                 if (bind=AB_LOCAL) or (sym.st_shndx=SHN_UNDEF) then
                   continue;
+                if ver>=verdefs.count then
+                  InternalError(2012120505);
               end;
             { validity of name and objsection has been checked above }
             { !! all AT_SECTION symbols have duplicate (null) name,
@@ -1604,6 +1646,9 @@ implementation
         grp: TObjSectionGroup;
         tmp: longword;
         count: longint;
+        vd: TElfverdef;
+        vda: TElfverdaux;
+        vdoffset: aword;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -1622,7 +1667,13 @@ implementation
         if shentsize<>sizeof(TElfsechdr) then
           InternalError(2012062701);
 
-        objdata:=CObjData.Create(InputFilename);
+        if dynobj then
+          begin
+            objdata:=TElfDynamicObjData.Create(InputFilename);
+            verdefs:=TElfDynamicObjData(objdata).versiondefs;
+          end
+        else
+          objdata:=CObjData.Create(InputFilename);
 
         FSecTbl:=AllocMem(nsects*sizeof(TSectionRec));
         FLoaded:=AllocMem(nsects*sizeof(boolean));
@@ -1726,8 +1777,34 @@ implementation
                       if verdefndx<>0 then
                         InternalError(2012102006);
                       verdefndx:=i;
-                      //sh_link->.dynstr
-                      //sh_info->.hash
+                      if shdrs[i].sh_link<>strndx then
+                        InternalError(2012120501);
+                      vdoffset:=shdrs[i].sh_offset;
+                      { TODO: can we rely on sh_info, or must read until vd_next=0? }
+                      for j:=1 to shdrs[i].sh_info do
+                        begin
+                          FReader.seek(vdoffset);
+                          FReader.Read(vd,sizeof(TElfverdef));
+                          MaybeSwapElfverdef(vd);
+                          if vd.vd_version<>VER_DEF_CURRENT then
+                            InternalError(2012120502);
+                          FReader.seek(vdoffset+vd.vd_aux);
+                          vdoffset:=vdoffset+vd.vd_next;
+                          { First verdaux entry holds name of version (unless VER_FLG_BASE flag is set),
+                            subsequent one(s) point to parent(s). For our purposes, version hierarchy
+                            looks irrelevant. }
+                          FReader.Read(vda,sizeof(TElfverdaux));
+                          MaybeSwapElfverdaux(vda);
+                          if vda.vda_name>=strtablen then
+                            InternalError(2012120503);
+                          if (vd.vd_flags and VER_FLG_BASE)<>0 then
+                            continue;
+                          { Assuming verdef indices assigned continuously starting from 2,
+                            at least BFD produces files that way. }
+                          if verdefs.count<>vd.vd_ndx then
+                            InternalError(2012120504);
+                          TElfVersionDef.Create(verdefs,string(PChar(@strtab[vda.vda_name])));
+                        end;
                     end;
 
                   SHT_GNU_verneed:
@@ -1736,7 +1813,7 @@ implementation
                         InternalError(2012102007);
                       verneedndx:=i;
                       //sh_link->.dynstr
-                      //sh_info->hash
+                      //sh_info->number of entries
                     end;
                 end;
              end;
@@ -2779,16 +2856,25 @@ implementation
       end;
 
 
+    procedure TElfExeOutput.WriteTargetDynamicTags;
+      begin
+        { to be overridden by CPU-specific descendants }
+      end;
+
+
     procedure TElfExeOutput.WriteDynamicTags;
       var
         s: aword;
         i: longint;
         sym: TExeSymbol;
         hs:string;
+        dynobj: TElfDynamicObjData;
       begin
         for i:=0 to neededlist.Count-1 do
           begin
-            s:=dynsymtable.fstrsec.writestr(neededlist.NameOfIndex(i));
+            dynobj:=TElfDynamicObjData(neededlist[i]);
+            s:=dynsymtable.fstrsec.writestr(dynobj.name);
+            dynobj.soname_strofs:=s;
             WriteDynTag(DT_NEEDED,s);
           end;
 
@@ -2863,6 +2949,9 @@ implementation
             if (relative_reloc_count>0) then
               writeDynTag(relcnttags[rela],relative_reloc_count);
           end;
+
+        WriteTargetDynamicTags;
+
         if (verdefcount>0) or (verneedcount>0) then
           begin
             if (verdefcount>0) then
