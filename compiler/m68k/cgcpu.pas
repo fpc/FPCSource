@@ -1635,7 +1635,7 @@ unit cgcpu;
                      begin
                        { Coldfire does not support DBRA }
                        list.concat(taicpu.op_const_reg(A_SUB,S_L,1,hregister));
-                       list.concat(taicpu.op_sym(A_BMI,S_L,hl));
+                       list.concat(taicpu.op_sym(A_BPL,S_L,hl));
                      end
                    else
                      list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
