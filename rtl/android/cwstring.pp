@@ -25,68 +25,162 @@ procedure SetCWidestringManager;
 
 implementation
 
-procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCodePage; len:SizeInt);
+uses dynlibs;
+
+type
+  UErrorCode = SizeInt;
+  int32_t = longint;
+  uint32_t = longword;
+  PUConverter = pointer;
+  UBool = LongBool;
+
 var
-  i : SizeInt;
-  hs : RawByteString;
+  hlibICU: TLibHandle;
+  ucnv_open: function (converterName: PAnsiChar; var pErrorCode: UErrorCode): PUConverter; cdecl;
+  ucnv_close: procedure (converter: PUConverter); cdecl;
+  ucnv_setSubstChars: procedure (converter: PUConverter; subChars: PAnsiChar; len: byte; var pErrorCode: UErrorCode); cdecl;
+  ucnv_fromUChars: function (cnv: PUConverter; dest: PAnsiChar; destCapacity: int32_t; src: PUnicodeChar; srcLength: int32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
+  ucnv_toUChars: function (cnv: PUConverter; dest: PUnicodeChar; destCapacity: int32_t; src: PAnsiChar; srcLength: int32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
+  u_strToUpper: function (dest: PUnicodeChar; destCapacity: int32_t; src: PUnicodeChar; srcLength: int32_t; locale: PAnsiChar; var pErrorCode: UErrorCode): int32_t; cdecl;
+  u_strToLower: function (dest: PUnicodeChar; destCapacity: int32_t; src: PUnicodeChar; srcLength: int32_t; locale: PAnsiChar; var pErrorCode: UErrorCode): int32_t; cdecl;
+  u_strCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; codePointOrder: UBool): int32_t; cdecl;
+  u_strCaseCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; options: uint32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
+
+  DefConv, LastConv: PUConverter;
+  LastCP: TSystemCodePage;
+
+function GetConverter(cp: TSystemCodePage): PUConverter;
+var
+  s: ansistring;
+  err: UErrorCode;
 begin
-  dest:='';
-  if len = 0 then
+  if hlibICU = 0 then begin
+    Result:=nil;
     exit;
-  if (cp = CP_UTF8) or (cp = CP_ACP) then
-    begin
-      // Only UTF-8 is supported for Android
-      SetLength(hs,len*3);
-      i:=UnicodeToUtf8(pchar(hs),length(hs)+1,source,len);
-      if i > 0 then
-        begin
-          SetLength(hs,i-1);
-          dest:=hs;
-        end;
-    end
-  else
+  end;
+  if (cp = DefaultSystemCodePage) or (cp = CP_ACP) then
+    Result:=DefConv
+  else begin
+    if cp <> LastCP then begin
+      Str(cp, s);
+      err:=0;
+      LastConv:=ucnv_open(PAnsiChar('cp' + s), err);
+      if LastConv <> nil then
+        ucnv_setSubstChars(LastConv, '?', 1, err);
+      LastCP:=cp;
+    end;
+    Result:=LastConv;
+  end;
+end;
+
+procedure Unicode2AnsiMove(source: PUnicodeChar; var dest: RawByteString; cp: TSystemCodePage; len: SizeInt);
+var
+  len2: SizeInt;
+  conv: PUConverter;
+  err: UErrorCode;
+begin
+  if len = 0 then begin
+    dest:='';
+    exit;
+  end;
+  conv:=GetConverter(cp);
+  if conv = nil then begin
     DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
+    exit;
+  end;
+
+  len2:=len*3;
+  SetLength(dest, len2);
+  err:=0;
+  len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+  if len2 > Length(dest) then begin
+    SetLength(dest, len2);
+    err:=0;
+    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+  end;
+  SetLength(dest, len2);
+  SetCodePage(dest, cp, False);
 end;
 
-procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
+procedure Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
-  i : SizeInt;
-  hs : UnicodeString;
+  len2: SizeInt;
+  conv: PUConverter;
+  err: UErrorCode;
 begin
-  // Only UTF-8 is supported for Android
-  dest:='';
+  if len = 0 then begin
+    dest:='';
+    exit;
+  end;
+  conv:=GetConverter(cp);
+  if conv = nil then begin
+    DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+    exit;
+  end;
+
+  len2:=len;
+  SetLength(dest, len2);
+  err:=0;
+  len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+  if len2 > Length(dest) then begin
+    SetLength(dest, len2);
+    err:=0;
+    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+  end;
+  SetLength(dest, len2);
+end;
+
+function UpperUnicodeString(const s : UnicodeString) : UnicodeString;
+var
+  len, len2: SizeInt;
+  err: UErrorCode;
+begin
+  if hlibICU = 0 then begin
+    // fallback implementation
+    Result:=UnicodeString(UpCase(AnsiString(s)));
+    exit;
+  end;
+  len:=Length(s);
+  SetLength(Result, len);
   if len = 0 then
     exit;
-  if (cp = CP_UTF8) or (cp = CP_ACP) then
-    begin
-      SetLength(hs,len);
-      i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pchar(source),len);
-      if i>0 then
-        begin
-          SetLength(hs,i-1);
-          dest:=hs;
-        end
-      else
-        dest:='';
-    end
-  else
-    DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+  err:=0;
+  len2:=u_strToUpper(PUnicodeChar(Result), len, PUnicodeChar(s), len, nil, err);
+  if len2 > len then begin
+    SetLength(Result, len2);
+    err:=0;
+    len2:=u_strToUpper(PUnicodeChar(Result), len2, PUnicodeChar(s), len, nil, err);
+  end;
+  SetLength(Result, len2);
 end;
 
-function UpperWideString(const s : WideString) : WideString;
+function LowerUnicodeString(const s : UnicodeString) : UnicodeString;
+var
+  len, len2: SizeInt;
+  err: UErrorCode;
 begin
-  // Not implemented
-  Result:=UpCase(AnsiString(s));
+  if hlibICU = 0 then begin
+    // fallback implementation
+    Result:=UnicodeString(LowerCase(AnsiString(s)));
+    exit;
+  end;
+  len:=Length(s);
+  SetLength(Result, len);
+  if len = 0 then
+    exit;
+  err:=0;
+  len2:=u_strToLower(PUnicodeChar(Result), len, PUnicodeChar(s), len, nil, err);
+  if len2 > len then begin
+    SetLength(Result, len2);
+    err:=0;
+    len2:=u_strToLower(PUnicodeChar(Result), len2, PUnicodeChar(s), len, nil, err);
+  end;
+  SetLength(Result, len2);
 end;
 
-function LowerWideString(const s : WideString) : WideString;
-begin
-  // Not implemented
-  Result:=LowerCase(AnsiString(s));
-end;
-
-function _CompareStr(const S1, S2: ansistring): Integer;
-var count, count1, count2: integer;
+function _CompareStr(const S1, S2: UnicodeString): PtrInt;
+var
+  count, count1, count2: SizeInt;
 begin
   result := 0;
   Count1 := Length(S1);
@@ -95,115 +189,111 @@ begin
     Count:=Count2
   else
     Count:=Count1;
-  result := CompareByte(PChar(S1)^,PChar(S2)^,Count);
+  result := CompareByte(PUnicodeChar(S1)^, PUnicodeChar(S2)^, Count*SizeOf(UnicodeChar));
   if result=0 then
-    result:=Count1-Count2;
+    result:=Count1 - Count2;
 end;
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(s1, s2);
+  if hlibICU = 0 then begin
+    // fallback implementation
+    Result:=_CompareStr(s1, s2);
+    exit;
+  end;
+  Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
 end;
 
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
+const
+  U_COMPARE_CODE_POINT_ORDER = $8000;
+var
+  err: UErrorCode;
 begin
-  // Not implemented
-  Result:=_CompareStr(LowerCase(AnsiString(s1)), LowerCase(AnsiString(s2)));
+  if hlibICU = 0 then begin
+    // fallback implementation
+    Result:=_CompareStr(UpperUnicodeString(s1), UpperUnicodeString(s2));
+    exit;
+  end;
+  err:=0;
+  Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
 end;
 
 function UpperAnsiString(const s : AnsiString) : AnsiString;
 begin
-  // Not implemented
-  Result:=UpCase(s);
+  Result:=AnsiString(UpperUnicodeString(UnicodeString(s)));
 end;
 
 function LowerAnsiString(const s : AnsiString) : AnsiString;
 begin
-  // Not implemented
-  Result:=LowerCase(s);
-end;
-
-function CharLengthPChar(const Str: PChar): PtrInt;
-begin
-  // Not implemented
-  Result:=Length(Str);
-end;
-
-function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
-begin
-  // Not implemented
-  Result:=Length(Str);
+  Result:=AnsiString(LowerUnicodeString(UnicodeString(s)));
 end;
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(s1, s2);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
 
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(s1, s2);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
 
 function AnsiCompareText(const S1, S2: ansistring): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(LowerCase(s1), LowerCase(s2));
+  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
 
 function AnsiStrIComp(S1, S2: PChar): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(LowerCase(s1), LowerCase(s2));
+  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(Copy(s1, 1, MaxLen), Copy(s2, 1, MaxLen));
+  Result:=CompareUnicodeString(UnicodeString(Copy(s1, 1, MaxLen)), UnicodeString(Copy(s2, 1, MaxLen)));
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 begin
-  // Not implemented
-  Result:=_CompareStr(LowerCase(Copy(s1, 1, MaxLen)), LowerCase(Copy(s2, 1, MaxLen)));
+  Result:=CompareTextUnicodeString(UnicodeString(Copy(s1, 1, MaxLen)), UnicodeString(Copy(s2, 1, MaxLen)));
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
 var
-  temp: ansistring;
+  s, res: ansistring;
 begin
-  // Not implemented
-  temp:=loweransistring(str);
-  Move(PChar(temp)^, Str, Length(temp));
+  s:=Str;
+  res:=LowerAnsiString(s);
+  if Length(res) > Length(s) then
+    SetLength(res, Length(s));
+  Move(PAnsiChar(res)^, Str, Length(res) + 1);
   Result:=Str;
 end;
 
 function AnsiStrUpper(Str: PChar): PChar;
 var
-  temp: ansistring;
+  s, res: ansistring;
 begin
-  // Not implemented
-  temp:=upperansistring(str);
-  Move(PChar(temp)^, Str, Length(temp));
+  s:=Str;
+  res:=UpperAnsiString(s);
+  if Length(res) > Length(s) then
+    SetLength(res, Length(s));
+  Move(PAnsiChar(res)^, Str, Length(res) + 1);
   Result:=Str;
 end;
 
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
 begin
-  Result := CP_UTF8; // Android has only UTF-8
+  Result := CP_UTF8; // Android always uses UTF-8
 end;
 
-{$ifdef FPC_HAS_CPSTRING}
 {$i textrec.inc}
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of
-    fmInput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleInput);
-    fmOutput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleOutput);
+    fmInput:TextRec(T).CodePage:=DefaultSystemCodePage;
+    fmOutput:TextRec(T).CodePage:=DefaultSystemCodePage;
   end;
 end;
 
@@ -215,7 +305,34 @@ begin
   SetStdIOCodePage(StdOut);
   SetStdIOCodePage(StdErr);
 end;
-{$endif FPC_HAS_CPSTRING}
+
+procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
+var
+  us: UnicodeString;
+begin
+  Ansi2UnicodeMove(source,cp,us,len);
+  dest:=us;
+end;
+
+function UpperWideString(const s : WideString) : WideString;
+begin
+  Result:=UpperUnicodeString(s);
+end;
+
+function LowerWideString(const s : WideString) : WideString;
+begin
+  Result:=LowerUnicodeString(s);
+end;
+
+function CompareWideString(const s1, s2 : WideString) : PtrInt;
+begin
+  Result:=CompareUnicodeString(s1, s2);
+end;
+
+function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+begin
+  Result:=CompareTextUnicodeString(s1, s2);
+end;
 
 Procedure SetCWideStringManager;
 Var
@@ -224,17 +341,12 @@ begin
   CWideStringManager:=widestringmanager;
   With CWideStringManager do
     begin
-      Wide2AnsiMoveProc:=@Wide2AnsiMove;
+      Wide2AnsiMoveProc:=@Unicode2AnsiMove;
       Ansi2WideMoveProc:=@Ansi2WideMove;
-
       UpperWideStringProc:=@UpperWideString;
       LowerWideStringProc:=@LowerWideString;
-
       CompareWideStringProc:=@CompareWideString;
       CompareTextWideStringProc:=@CompareTextWideString;
-
-      CharLengthPCharProc:=@CharLengthPChar;
-      CodePointLengthProc:=@CodePointLength;
 
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
@@ -247,29 +359,116 @@ begin
       StrLowerAnsiStringProc:=@AnsiStrLower;
       StrUpperAnsiStringProc:=@AnsiStrUpper;
       { Unicode }
-      Unicode2AnsiMoveProc:=@Wide2AnsiMove;
-      Ansi2UnicodeMoveProc:=@Ansi2WideMove;
-      UpperUnicodeStringProc:=@UpperWideString;
-      LowerUnicodeStringProc:=@LowerWideString;
-      CompareUnicodeStringProc:=@CompareWideString;
-      CompareTextUnicodeStringProc:=@CompareTextWideString;
+      Unicode2AnsiMoveProc:=@Unicode2AnsiMove;
+      Ansi2UnicodeMoveProc:=@Ansi2UnicodeMove;
+      UpperUnicodeStringProc:=@UpperUnicodeString;
+      LowerUnicodeStringProc:=@LowerUnicodeString;
+      CompareUnicodeStringProc:=@CompareUnicodeString;
+      CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
       { CodePage }
       GetStandardCodePageProc:=@GetStandardCodePage;
     end;
   SetUnicodeStringManager(CWideStringManager);
 end;
 
-{$ifndef android}
+procedure UnloadICU;
+begin
+  if hlibICU = 0 then
+    exit;
+  if DefConv <> nil then
+    ucnv_close(DefConv);
+  if LastConv <> nil then
+    ucnv_close(LastConv);
+  UnloadLibrary(hlibICU);
+  hlibICU:=0;
+end;
+
+procedure LoadICU;
 var
-  iconvlib:TLibHandle;
-{$endif android}
+  LibVer: ansistring;
+
+  function _GetProc(const Name: AnsiString; out ProcPtr): boolean;
+  var
+    p: pointer;
+  begin
+    p:=GetProcedureAddress(hlibICU, Name + LibVer);
+    if p = nil then begin
+      // unload lib on failure
+      UnloadICU;
+      Result:=False;
+    end
+    else
+      pointer(ProcPtr):=p;
+  end;
+
+const
+  ICUver: array [1..4] of ansistring = ('3_8', '4_2', '44', '46');
+  TestProcName = 'ucnv_open';
+
+var
+  err: UErrorCode;
+  i: longint;
+  s: ansistring;
+begin
+  hlibICU:=LoadLibrary('libicuuc.so');
+  if hlibICU = 0 then
+    exit;
+  // Finding ICU version using known versions table
+  for i:=High(ICUver) downto Low(ICUver) do begin
+    s:='_' + ICUver[i];
+    if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
+      LibVer:=s;
+      break;
+    end;
+  end;
+
+  if LibVer = '' then begin
+    // Finding unknown ICU version
+    Val(ICUver[High(ICUver)], i);
+    for i:=i + 1 to 100 do begin
+      Str(i, s);
+      s:='_'  + s;
+      if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
+        LibVer:=s;
+        break;
+      end;
+    end;
+  end;
+
+  if LibVer = '' then begin
+    // Trying versionless name
+    if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
+      // Unable to get ICU version
+      UnloadICU;
+      exit;
+    end;
+  end;
+
+  if not _GetProc('ucnv_open', ucnv_open) then exit;
+  if not _GetProc('ucnv_close', ucnv_close) then exit;
+  if not _GetProc('ucnv_setSubstChars', ucnv_setSubstChars) then exit;
+  if not _GetProc('ucnv_fromUChars', ucnv_fromUChars) then exit;
+  if not _GetProc('ucnv_toUChars', ucnv_toUChars) then exit;
+  if not _GetProc('u_strToUpper', u_strToUpper) then exit;
+  if not _GetProc('u_strToLower', u_strToLower) then exit;
+  if not _GetProc('u_strCompare', u_strCompare) then exit;
+  if not _GetProc('u_strCaseCompare', u_strCaseCompare) then exit;
+
+  err:=0;
+  DefConv:=ucnv_open('utf8', err);
+  if DefConv <> nil then
+    ucnv_setSubstChars(DefConv, '?', 1, err);
+end;
 
 initialization
-  SetCWideStringManager;
-  { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
+  DefaultUnicodeCodePage:=CP_UTF16;
+  LoadICU;
+  SetCWideStringManager;
   SetStdIOCodePages;
 
 finalization
+  UnloadICU;
 
 end.
+
