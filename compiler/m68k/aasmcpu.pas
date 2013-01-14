@@ -528,7 +528,8 @@ type
             end;
           A_TST,A_CMP,A_CMPI:
             result:=operand_read;
-          A_CLR, A_SXX:
+          A_CLR, A_SXX, A_SEQ, A_SNE, A_SLT, A_SLE, A_SGT, A_SGE, A_SCS, A_SCC,
+          A_SMI, A_SPL, A_SF, A_ST, A_SVS, A_SVC, A_SHI, A_SLS:
             result:=operand_write;
           A_NEG, A_EXT, A_EXTB, A_NOT, A_NEGX:
             result:=operand_readwrite;

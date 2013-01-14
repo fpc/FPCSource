@@ -1449,51 +1449,22 @@ unit cgcpu;
        begin
           { move to a Dx register? }
           if (isaddressregister(reg)) then
-            begin
-              hreg := getintregister(list,OS_INT);
-              a_load_const_reg(list,size,0,hreg);
-              ai:=Taicpu.Op_reg(A_Sxx,S_B,hreg);
-              ai.SetCondition(flags_to_cond(f));
-              list.concat(ai);
-
-              if (current_settings.cputype = cpu_ColdFire) then
-                begin
-                 { neg.b does not exist on the Coldfire
-                   so we need to sign extend the value
-                   before doing a neg.l
-                 }
-                 list.concat(taicpu.op_reg(A_EXTB,S_L,hreg));
-                 list.concat(taicpu.op_reg(A_NEG,S_L,hreg));
-                end
-              else
-                begin
-                  list.concat(taicpu.op_reg(A_NEG,S_B,hreg));
-                end;
-             instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg);
-             add_move_instruction(instr);
-             list.concat(instr);
-            end
+            hreg:=getintregister(list,OS_INT)
           else
-          begin
-            a_load_const_reg(list,size,0,reg);
-            ai:=Taicpu.Op_reg(A_Sxx,S_B,reg);
-            ai.SetCondition(flags_to_cond(f));
-            list.concat(ai);
+            hreg:=reg;
 
-            if (current_settings.cputype = cpu_ColdFire) then
-              begin
-                 { neg.b does not exist on the Coldfire
-                   so we need to sign extend the value
-                   before doing a neg.l
-                 }
-                 list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
-                 list.concat(taicpu.op_reg(A_NEG,S_L,reg));
-              end
-            else
-              begin
-               list.concat(taicpu.op_reg(A_NEG,S_B,reg));
-              end;
-          end;
+          ai:=Taicpu.Op_reg(A_Sxx,S_B,hreg);
+          ai.SetCondition(flags_to_cond(f));
+          list.concat(ai);
+
+          list.concat(taicpu.op_reg(A_EXTB,S_L,hreg));
+
+          if hreg<>reg then
+            begin
+              instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg);
+              add_move_instruction(instr);
+              list.concat(instr);
+            end;
        end;
 
 
