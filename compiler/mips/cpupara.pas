@@ -87,6 +87,7 @@ interface
         intparareg,
         intparasize : longint;
         can_use_float : boolean;
+        function is_abi_record(def: tdef): boolean;
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
 
@@ -110,6 +111,15 @@ implementation
       begin
         { O32 ABI values }
         result:=[RS_F0..RS_F19];
+      end;
+
+
+    { whether "def" must be treated as record when used as function result,
+      i.e. its address passed in a0 }
+    function TMIPSParaManager.is_abi_record(def: tdef): boolean;
+      begin
+        result:=(def.typ=recorddef) or
+          ((def.typ=procvardef) and not tprocvardef(def).is_addressonly);
       end;
 
 
@@ -201,7 +211,7 @@ implementation
             else
               retdef:=p.returndef;
             if ret_in_param(retdef,p.proccalloption) and
-              (retdef.typ=recorddef) then
+              is_abi_record(retdef) then
               begin
                 if intparareg=0 then
                   inc(intparareg);
@@ -374,7 +384,7 @@ implementation
                   paraloc^.size:=paracgsize;
                 { ret in param? }
                 if (vo_is_funcret in hp.varoptions) and
-                  (hp.vardef.typ=recorddef) then
+                  is_abi_record(hp.vardef) then
                   begin
                     { This should be the first parameter }
                     if (side=calleeside) and assigned(current_procinfo) then
