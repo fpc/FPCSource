@@ -543,18 +543,20 @@ end;
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
   {$warning FIXME: This implementation of InterLockedDecrement in not yet ThreadSafe }
+  // must return value after decrement
   lw  $v0,($a0)
-  addi $v1,$v0,-1
-  sw  $v1,($a0)
+  addi $v0,$v0,-1
+  sw  $v0,($a0)
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
   {$warning FIXME: This implementation of InterLockedIncrement in not yet ThreadSafe }
+  // must return value after increment
   lw  $v0,($a0)
-  addi $v1,$v0,1
-  sw  $v1,($a0)
+  addi $v0,$v0,1
+  sw  $v0,($a0)
 end;
 
 
