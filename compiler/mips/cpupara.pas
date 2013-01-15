@@ -189,7 +189,8 @@ implementation
           stringdef :
             result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=not tprocvardef(def).is_addressonly;
+            { If we always push records by value, we have to handle methodpointers that way too. }
+            result:=false; {not tprocvardef(def).is_addressonly;}
           setdef :
             result:=not(is_smallset(def));
         end;
@@ -346,6 +347,7 @@ implementation
               alignment := 8
             else
               alignment := 4;
+            //writeln('para: ',hp.Name,' typ=',hp.vardef.typ,' paracgsize=',paracgsize,' align=',hp.vardef.alignment);
             hp.paraloc[side].reset;
             hp.paraloc[side].Alignment:=alignment;
             if paracgsize=OS_NO then
