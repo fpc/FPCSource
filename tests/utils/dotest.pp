@@ -644,7 +644,8 @@ begin
     (LTarget='solaris') or
     (LTarget='iphonesim') or
     (LTarget='darwin') or
-    (LTarget='aix');
+    (LTarget='aix') or
+    (LTarget='android');
 
   { Set ExeExt for CompilerTarget.
     This list has been set up 2011-06 using the information in
@@ -1462,6 +1463,11 @@ var
 begin
   if RemoteAddr='' then
     exit;
+  if rshprog = 'adb' then
+    begin
+      RemoteShellNeedsExport:=true;
+      exit;
+    end;
   ExeLogFile:='__remote.tmp';
   ExecuteRemote(rshprog,RemoteRshParas+
                 ' "echo SHELL=${SHELL}"',StartTicks,EndTicks);
