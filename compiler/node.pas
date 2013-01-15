@@ -858,7 +858,7 @@ implementation
                 write(t,',')
               else
                 first:=false;
-              write(i);
+              write(t, i);
             end;
         write(t,']');
       end;
