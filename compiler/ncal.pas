@@ -23,6 +23,8 @@ unit ncal;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUGINLINE}
+
 interface
 
     uses
@@ -2300,7 +2302,11 @@ implementation
           function call }
         if not paramanager.ret_in_param(resultdef,procdefinition) then
           begin
-            result:=true;
+            { don't replace the function result if we are inlining and if the destination is complex, this
+              could lead to lengthy code in case the function result is used often and it is assigned e.g.
+              to a threadvar }
+            result:=not(cnf_do_inline in callnodeflags) or
+              (node_complexity(aktassignmentnode.left)<=1);
             exit;
           end;
 
