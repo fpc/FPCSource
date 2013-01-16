@@ -1,4 +1,4 @@
-{ %target=darwin,linux,freebsd,solaris,beos,haiku,aix }
+{ %target=darwin,linux,freebsd,solaris,beos,haiku,aix,android }
 { %NEEDLIBRARY }
 
 {$mode delphi}

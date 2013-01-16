@@ -1,4 +1,4 @@
-{ %target=win32,win64,linux}
+{ %target=win32,win64,linux,android}
 { %needlibrary }
 
 program prog;
