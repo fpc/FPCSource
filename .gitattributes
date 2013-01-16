@@ -11436,6 +11436,7 @@ tests/test/trhlp41.pp svneol=native#text/pascal
 tests/test/trhlp42.pp svneol=native#text/pascal
 tests/test/trhlp43.pp svneol=native#text/pascal
 tests/test/trhlp44.pp svneol=native#text/pascal
+tests/test/trhlp45.pp svneol=native#text/pascal
 tests/test/trhlp5.pp svneol=native#text/pascal
 tests/test/trhlp6.pp svneol=native#text/pascal
 tests/test/trhlp7.pp svneol=native#text/pascal
