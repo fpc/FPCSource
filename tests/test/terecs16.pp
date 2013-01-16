@@ -13,6 +13,7 @@ var
 
   constructor TRec.Create;
   begin
+    l := 0;
     r.l := 4;
     if l <> 0 then
       halt(1);
