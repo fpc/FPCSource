@@ -1064,7 +1064,51 @@ Implementation
                               break;
                             end;
                       end;
+                    {
+                      Fold
+                        mov r1, r1, lsl #2
+                        ldr/ldrb r0, [r0, r1]
+                      to
+                        ldr/ldrb r0, [r0, r1, lsl #2]
 
+                      XXX: This still needs some work, as we quite often encounter something like
+                             mov r1, r2, lsl #2
+                             add r2, r3, #imm
+                             ldr r0, [r2, r1]
+                           which can't be folded because r2 is overwritten between the shift and the ldr.
+                           We could try to shuffle the registers around and fold it into.
+                             add r1, r3, #imm
+                             ldr r0, [r1, r2, lsl #2]
+                    }
+                    if (taicpu(p).opcode = A_MOV) and
+                       (taicpu(p).ops = 3) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_shifterop) and
+                       { RRX is tough to handle, because it requires tracking the C-Flag,
+                         it is also extremly unlikely to be emitted this way}
+                       (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
+                       (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
+                       (taicpu(p).oppostfix = PF_NONE) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
+                       MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition],
+                                             [PF_None, PF_B]) and
+                       (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) and
+                       (taicpu(hp1).oper[1]^.ref^.base <> taicpu(p).oper[0]^.reg) and
+                       { Only fold if there isn't another shifterop already. }
+                       (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_None) and
+                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+                       (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                       begin
+                         DebugMsg('Peephole FoldShiftLdrStr done', hp1);
+                         taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+                         taicpu(hp1).oper[1]^.ref^.shiftmode := taicpu(p).oper[2]^.shifterop^.shiftmode;
+                         taicpu(hp1).oper[1]^.ref^.shiftimm := taicpu(p).oper[2]^.shifterop^.shiftimm;
+                         asml.remove(p);
+                         p.free;
+                         p:=hp1;
+                       end;
                     {
                       Often we see shifts and then a superfluous mov to another register
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
