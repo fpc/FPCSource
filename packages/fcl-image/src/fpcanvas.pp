@@ -102,7 +102,8 @@ type
     property Bold : boolean index 5 read GetFlags write SetFlags;
     property Italic : boolean index 6 read GetFlags write SetFlags;
     property Underline : boolean index 7 read GetFlags write SetFlags;
-    property StrikeTrough : boolean index 8 read GetFlags write SetFlags;
+    property StrikeTrough : boolean  index 8 read GetFlags write SetFlags; deprecated;
+    property StrikeThrough : boolean index 8 read GetFlags write SetFlags;
     property Orientation: Integer read GetOrientation write SetOrientation default 0;
         
   end;
