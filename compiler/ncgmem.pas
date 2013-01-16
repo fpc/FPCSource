@@ -81,7 +81,7 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
@@ -215,6 +215,9 @@ implementation
     procedure tcgderefnode.pass_generate_code;
       var
         paraloc1 : tcgpara;
+        pd : tprocdef;
+        sym : tsym;
+        st : tsymtable;
       begin
          secondpass(left);
          { assume natural alignment, except for packed records }
@@ -262,14 +265,18 @@ implementation
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
           begin
+            if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+               (sym.typ<>procsym) then
+              internalerror(2012010601);
+            pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
-            paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-            cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.getintparaloc(pd,1,paraloc1);
+            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
-            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+            hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
 
@@ -282,9 +289,12 @@ implementation
       var
         sym: tasmsymbol;
         paraloc1 : tcgpara;
-        hreg  : tregister;
         tmpref: treference;
         sref: tsubsetreference;
+        offsetcorrection : aint;
+        pd : tprocdef;
+        srym : tsym;
+        st : tsymtable;
       begin
          secondpass(left);
          if codegenerror then
@@ -332,12 +342,16 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-                    cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',srym,st) or
+                       (srym.typ<>procsym) then
+                      internalerror(2012010602);
+                    pd:=tprocdef(tprocsym(srym).ProcdefList[0]);
+                    paramanager.getintparaloc(pd,1,paraloc1);
+                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+                    hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                   end;
                end
              else
@@ -360,15 +374,21 @@ implementation
                LOC_MMREGISTER,
                LOC_FPUREGISTER:
                  begin
-                   // in case the result is not something that can be put
-                   // into an integer register (e.g.
-                   // function_returning_record().non_regable_field, or
-                   // a function returning a value > sizeof(intreg))
-                   // -> force to memory
+                   { in case the result is not something that can be put
+                     into an integer register (e.g.
+                     function_returning_record().non_regable_field, or
+                     a function returning a value > sizeof(intreg))
+                     -> force to memory
+                   }
+
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
+                      { if the field spans multiple registers, we must force the record into
+                        memory as well }
+                      ((left.location.size in [OS_PAIR,OS_SPAIR]) and
+                       (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
-                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef)
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
                      begin
                        if (left.location.loc = LOC_REGISTER) then
@@ -376,23 +396,41 @@ implementation
                        else
                          location.loc := LOC_CSUBSETREG;
                        location.size:=def_cgsize(resultdef);
-                       location.sreg.subsetreg := left.location.register;
-                       location.sreg.subsetregsize := left.location.size;
+
+                       offsetcorrection:=0;
+                       if (left.location.size in [OS_PAIR,OS_SPAIR]) then
+                         begin
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             begin
+                               location.sreg.subsetreg := left.location.registerhi;
+                               offsetcorrection:=sizeof(aword)*8;
+                             end
+                           else
+                             location.sreg.subsetreg := left.location.register;
+
+                           location.sreg.subsetregsize := OS_INT;
+                         end
+                       else
+                         begin
+                           location.sreg.subsetreg := left.location.register;
+                           location.sreg.subsetregsize := left.location.size;
+                         end;
+
                        if not is_packed_record_or_object(left.resultdef) then
                          begin
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8+offsetcorrection
                            else
-                             location.sreg.startbit := (vs.fieldoffset * 8);
+                             location.sreg.startbit := (vs.fieldoffset * 8)-offsetcorrection;
                            location.sreg.bitlen := tcgsize2size[location.size] * 8;
                          end
                        else
                          begin
                            location.sreg.bitlen := resultdef.packedbitsize;
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset+offsetcorrection
                            else
-                             location.sreg.startbit := vs.fieldoffset;
+                             location.sreg.startbit := vs.fieldoffset-offsetcorrection;
                          end;
                      end;
                  end;
@@ -631,6 +669,7 @@ implementation
          neglabel : tasmlabel;
          hreg : tregister;
          paraloc1,paraloc2 : tcgpara;
+         pd : tprocdef;
        begin
          { omit range checking when this is an array access to a pointer which has been
            typecasted from an array }
@@ -674,8 +713,9 @@ implementation
          else
           if is_dynamic_array(left.resultdef) then
             begin
-               paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-               paramanager.getintparaloc(pocall_default,2,search_system_type('TDYNARRAYINDEX').typedef,paraloc2);
+               pd:=search_system_proc('fpc_dynarray_rangecheck');
+               paramanager.getintparaloc(pd,1,paraloc1);
+               paramanager.getintparaloc(pd,2,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -695,6 +735,8 @@ implementation
       var
         paraloc1,
         paraloc2: tcgpara;
+        helpername: TIDString;
+        pd: tprocdef;
       begin
         paraloc1.init;
         paraloc2.init;
@@ -704,15 +746,17 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,ptrsinttype,paraloc2);
+              helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
+              pd:=search_system_proc(helpername);
+              paramanager.getintparaloc(pd,1,paraloc1);
+              paramanager.getintparaloc(pd,2,paraloc2);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
 
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
+              cg.a_call_name(current_asmdata.CurrAsmList,helpername,false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end;
 
@@ -792,13 +836,15 @@ implementation
                   internalerror(2002032218);
               end;
 
-              { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resultdef) then
                 offsetdec:=1
               else
                 offsetdec:=2;
               location.reference.alignment:=offsetdec;
-              dec(location.reference.offset,offsetdec);
+
+              { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
+              if not(cs_zerobasedstrings in current_settings.localswitches) then
+                dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
            begin

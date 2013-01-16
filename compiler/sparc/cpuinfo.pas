@@ -55,14 +55,15 @@ const
   supported_calling_conventions : tproccalloptions = [
     pocall_internproc,
     pocall_stdcall,
+    pocall_safecall,
     pocall_cdecl,
     pocall_cppdecl
   ];
 
    cputypestr : array[tcputype] of string[10] = ('',
-     'SPARC V7',
-     'SPARC V8',
-     'SPARC V9'
+     'SPARCV7',
+     'SPARCV8',
+     'SPARCV9'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
@@ -84,6 +85,7 @@ const
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
      [cs_opt_regvar,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 implementation
 

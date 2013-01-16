@@ -209,6 +209,14 @@ endif
 ifeq ($(OS_TARGET),linux)
 linuxHier=1
 endif
+ifndef CROSSCOMPILE
+BUILDFULLNATIVE=1
+export BUILDFULLNATIVE
+endif
+ifdef BUILDFULLNATIVE
+BUILDNATIVE=1
+export BUILDNATIVE
+endif
 export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
@@ -258,7 +266,9 @@ ifndef BINUTILSPREFIX
 ifndef CROSSBINDIR
 ifdef CROSSCOMPILE
 ifndef DARWIN2DARWIN
+ifneq ($(CPU_TARGET),jvm)
 BINUTILSPREFIX=$(CPU_TARGET)-$(OS_TARGET)-
+endif
 endif
 endif
 endif
@@ -698,6 +708,18 @@ ifeq ($(OS_TARGET),aix)
 BATCHEXT=.sh
 EXEEXT=
 SHORTSUFFIX=aix
+endif
+ifeq ($(OS_TARGET),java)
+OEXT=.class
+ASMEXT=.j
+SHAREDLIBEXT=.jar
+SHORTSUFFIX=java
+endif
+ifeq ($(OS_TARGET),android)
+OEXT=.class
+ASMEXT=.j
+SHAREDLIBEXT=.jar
+SHORTSUFFIX=android
 endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
@@ -1373,6 +1395,18 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 endif
+ifeq ($(FULL_TARGET),jvm-java)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+endif
+ifeq ($(FULL_TARGET),jvm-android)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
 ifneq ($(PACKAGEDIR_RTL),)
@@ -1637,15 +1671,10 @@ endif
 endif
 ifdef CREATESHARED
 override FPCOPT+=-Cg
-ifeq ($(CPU_TARGET),i386)
-override FPCOPT+=-Aas
 endif
-endif
-ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
 ifneq ($(findstring $(OS_TARGET),freebsd openbsd netbsd linux solaris),)
 ifeq ($(CPU_TARGET),x86_64)
 override FPCOPT+=-Cg
-endif
 endif
 endif
 ifdef LINKSHARED
@@ -2025,6 +2054,96 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
+ifdef TARGET_DIRS_TARGET_DIRS
+TARGET_DIRS_all:
+	$(MAKE) -C TARGET_DIRS all
+TARGET_DIRS_debug:
+	$(MAKE) -C TARGET_DIRS debug
+TARGET_DIRS_smart:
+	$(MAKE) -C TARGET_DIRS smart
+TARGET_DIRS_release:
+	$(MAKE) -C TARGET_DIRS release
+TARGET_DIRS_units:
+	$(MAKE) -C TARGET_DIRS units
+TARGET_DIRS_examples:
+	$(MAKE) -C TARGET_DIRS examples
+TARGET_DIRS_shared:
+	$(MAKE) -C TARGET_DIRS shared
+TARGET_DIRS_install:
+	$(MAKE) -C TARGET_DIRS install
+TARGET_DIRS_sourceinstall:
+	$(MAKE) -C TARGET_DIRS sourceinstall
+TARGET_DIRS_exampleinstall:
+	$(MAKE) -C TARGET_DIRS exampleinstall
+TARGET_DIRS_distinstall:
+	$(MAKE) -C TARGET_DIRS distinstall
+TARGET_DIRS_zipinstall:
+	$(MAKE) -C TARGET_DIRS zipinstall
+TARGET_DIRS_zipsourceinstall:
+	$(MAKE) -C TARGET_DIRS zipsourceinstall
+TARGET_DIRS_zipexampleinstall:
+	$(MAKE) -C TARGET_DIRS zipexampleinstall
+TARGET_DIRS_zipdistinstall:
+	$(MAKE) -C TARGET_DIRS zipdistinstall
+TARGET_DIRS_clean:
+	$(MAKE) -C TARGET_DIRS clean
+TARGET_DIRS_distclean:
+	$(MAKE) -C TARGET_DIRS distclean
+TARGET_DIRS_cleanall:
+	$(MAKE) -C TARGET_DIRS cleanall
+TARGET_DIRS_info:
+	$(MAKE) -C TARGET_DIRS info
+TARGET_DIRS_makefiles:
+	$(MAKE) -C TARGET_DIRS makefiles
+TARGET_DIRS:
+	$(MAKE) -C TARGET_DIRS all
+.PHONY: TARGET_DIRS_all TARGET_DIRS_debug TARGET_DIRS_smart TARGET_DIRS_release TARGET_DIRS_units TARGET_DIRS_examples TARGET_DIRS_shared TARGET_DIRS_install TARGET_DIRS_sourceinstall TARGET_DIRS_exampleinstall TARGET_DIRS_distinstall TARGET_DIRS_zipinstall TARGET_DIRS_zipsourceinstall TARGET_DIRS_zipexampleinstall TARGET_DIRS_zipdistinstall TARGET_DIRS_clean TARGET_DIRS_distclean TARGET_DIRS_cleanall TARGET_DIRS_info TARGET_DIRS_makefiles TARGET_DIRS
+endif
+ifdef TARGET_EXAMPLEDIRS_TARGET_EXAMPLEDIRS
+TARGET_EXAMPLEDIRS_all:
+	$(MAKE) -C TARGET_EXAMPLEDIRS all
+TARGET_EXAMPLEDIRS_debug:
+	$(MAKE) -C TARGET_EXAMPLEDIRS debug
+TARGET_EXAMPLEDIRS_smart:
+	$(MAKE) -C TARGET_EXAMPLEDIRS smart
+TARGET_EXAMPLEDIRS_release:
+	$(MAKE) -C TARGET_EXAMPLEDIRS release
+TARGET_EXAMPLEDIRS_units:
+	$(MAKE) -C TARGET_EXAMPLEDIRS units
+TARGET_EXAMPLEDIRS_examples:
+	$(MAKE) -C TARGET_EXAMPLEDIRS examples
+TARGET_EXAMPLEDIRS_shared:
+	$(MAKE) -C TARGET_EXAMPLEDIRS shared
+TARGET_EXAMPLEDIRS_install:
+	$(MAKE) -C TARGET_EXAMPLEDIRS install
+TARGET_EXAMPLEDIRS_sourceinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS sourceinstall
+TARGET_EXAMPLEDIRS_exampleinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS exampleinstall
+TARGET_EXAMPLEDIRS_distinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS distinstall
+TARGET_EXAMPLEDIRS_zipinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS zipinstall
+TARGET_EXAMPLEDIRS_zipsourceinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS zipsourceinstall
+TARGET_EXAMPLEDIRS_zipexampleinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS zipexampleinstall
+TARGET_EXAMPLEDIRS_zipdistinstall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS zipdistinstall
+TARGET_EXAMPLEDIRS_clean:
+	$(MAKE) -C TARGET_EXAMPLEDIRS clean
+TARGET_EXAMPLEDIRS_distclean:
+	$(MAKE) -C TARGET_EXAMPLEDIRS distclean
+TARGET_EXAMPLEDIRS_cleanall:
+	$(MAKE) -C TARGET_EXAMPLEDIRS cleanall
+TARGET_EXAMPLEDIRS_info:
+	$(MAKE) -C TARGET_EXAMPLEDIRS info
+TARGET_EXAMPLEDIRS_makefiles:
+	$(MAKE) -C TARGET_EXAMPLEDIRS makefiles
+TARGET_EXAMPLEDIRS:
+	$(MAKE) -C TARGET_EXAMPLEDIRS all
+.PHONY: TARGET_EXAMPLEDIRS_all TARGET_EXAMPLEDIRS_debug TARGET_EXAMPLEDIRS_smart TARGET_EXAMPLEDIRS_release TARGET_EXAMPLEDIRS_units TARGET_EXAMPLEDIRS_examples TARGET_EXAMPLEDIRS_shared TARGET_EXAMPLEDIRS_install TARGET_EXAMPLEDIRS_sourceinstall TARGET_EXAMPLEDIRS_exampleinstall TARGET_EXAMPLEDIRS_distinstall TARGET_EXAMPLEDIRS_zipinstall TARGET_EXAMPLEDIRS_zipsourceinstall TARGET_EXAMPLEDIRS_zipexampleinstall TARGET_EXAMPLEDIRS_zipdistinstall TARGET_EXAMPLEDIRS_clean TARGET_EXAMPLEDIRS_distclean TARGET_EXAMPLEDIRS_cleanall TARGET_EXAMPLEDIRS_info TARGET_EXAMPLEDIRS_makefiles TARGET_EXAMPLEDIRS
+endif
 units:
 examples:
 shared:
@@ -2045,9 +2164,11 @@ endif
 $(TARGET_UNITDIRBS):
 	$(MKDIRTREE) $(TARGET_UNITDIRBS)
 bootstrap:	$(TARGET_UNITDIRBS)
-	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS)
+	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(OPT)
+clean_bootstrap:
+	-$(DELTREE) units_bs
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) $(FPCMAKEOPT) -Fu$(TARGET_UNITDIRBS)
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) $(FPCMAKEOPT) -Fu$(TARGET_UNITDIRBS) $(OPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
 smart:	fpmake
@@ -2057,25 +2178,21 @@ release:	fpmake
 debug:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dDEBUG
 ifeq ($(FPMAKE_BIN_CLEAN),)
-clean:	
-	-$(DELTREE) units_bs
+clean:	clean_bootstrap
 else
-clean:	
+clean:	clean_bootstrap
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
-	-$(DELTREE) units_bs
 endif
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
-	-$(DELTREE) units_bs
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall clean_bootstrap
 else
-distclean:	
+distclean:	clean_bootstrap
 ifdef inUnix
 	{ $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 else
 	$(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 endif
 	-$(DEL) $(LOCALFPMAKE)
-	-$(DELTREE) units_bs
 endif
 install:	fpmake
 ifdef UNIXHier

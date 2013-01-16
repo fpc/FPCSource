@@ -58,6 +58,7 @@ interface
           procedure second_new; virtual;
           procedure second_setlength; virtual; abstract;
           procedure second_box; virtual; abstract;
+          procedure second_popcnt; virtual;
        end;
 
 implementation
@@ -143,6 +144,13 @@ implementation
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
+            in_aligned_x:
+              begin
+                secondpass(tcallparanode(left).left);
+                location:=tcallparanode(left).left.location;
+                if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+                  location.reference.alignment:=0;
+              end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
@@ -177,6 +185,8 @@ implementation
                second_setlength;
             in_box_x:
                second_box;
+            in_popcnt_x:
+               second_popcnt;
             else internalerror(9);
          end;
       end;
@@ -734,6 +744,12 @@ implementation
       end;
 
 
+    procedure tcginlinenode.second_popcnt;
+      begin
+        internalerror(2012082601);
+      end;
+
+
 begin
    cinlinenode:=tcginlinenode;
-end.
+end.  s

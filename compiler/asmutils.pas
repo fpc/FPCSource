@@ -60,7 +60,10 @@ uses
         current_asmdata.getdatalabel(result.lab);
         result.ofs:=0;
         if NewSection then
-          new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
+          begin
+            maybe_new_object_file(list);
+            new_section(list,sec_rodata_norel,result.lab.name,const_align(sizeof(pint)));
+          end;
         { put label before header on Darwin, because there the linker considers
           a global symbol to be the start of a new subsection }
         if target_info.system in systems_darwin then
@@ -101,7 +104,8 @@ uses
       begin
         current_asmdata.getdatalabel(result.lab);
         result.ofs:=0;
-        new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
+        maybe_new_object_file(list);
+        new_section(list,sec_rodata_norel,result.lab.name,const_align(sizeof(pint)));
         strlength := getlengthwidestring(pcompilerwidestring(data));
         if Winlike then
           begin

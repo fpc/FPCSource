@@ -3,9 +3,9 @@ program testpassrc;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcscanner, 
-tctypeparser, tcstatements, tcbaseparser,
-  tcmoduleparser, tconstparser, tcvarparser;
+  Classes, consoletestrunner, tcscanner, tctypeparser, tcstatements,
+  tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
+  tcexprparser, tcprocfunc, tcpassrcutil;
 
 type
 

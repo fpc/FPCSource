@@ -1,0 +1,15 @@
+
+fcl-sdo is an implementation in Object Pascal of the SDO standard.
+(Service Data Objects) by Inoussa Ouedraogo
+
+Service Data Objects are a way of keeping arbitrary data in memory and
+provides standardised means to query and modify this data. Its reference
+implementation is in Java and it is used mainly in web applications in
+combination with XML/XSD data.
+
+For more information, see
+http://www.ibm.com/developerworks/java/library/j-sdo/
+http://en.wikipedia.org/wiki/Service_Data_Objects
+
+The simple examples provided here will get you started in no time.
+

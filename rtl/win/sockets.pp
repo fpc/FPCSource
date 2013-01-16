@@ -22,6 +22,11 @@ Interface
      winsock2,ctypes;
 
 Type
+  // the common socket functions are defined as size_t.
+  // without defining them for Windows this way, the 
+  // sockets unit is not crossplatform. This is not a mistake
+  // wrt 64-bit, the types are "INT" in the headers.
+  // Mantis #22834
   size_t  = cuint32;
   ssize_t = cint32;
   tsocklen= cint;

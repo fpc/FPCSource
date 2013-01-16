@@ -125,12 +125,11 @@ begin
 end;
 
 
-constructor TThread.Create(CreateSuspended: Boolean;
-                           const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 var
   Flags: Integer;
 begin
-  inherited Create;
   AddThread(self);
   FSuspended := CreateSuspended;
   { Create new thread }
@@ -141,7 +140,7 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
   if not FFinished then
   begin
@@ -153,7 +152,6 @@ begin
   end;
   FFatalException.Free;
   FFatalException := nil;
-  inherited Destroy;
   RemoveThread(self);          {remove it from the list of active threads}
 end;
 

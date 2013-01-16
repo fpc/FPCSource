@@ -52,7 +52,7 @@ uses
 {$endif x86_64}
 
       { This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[15];
+        op2strtable=array[tasmop] of string[16];
 
     const
       { First value of opcode enumeration }
@@ -126,6 +126,8 @@ uses
       RS_XMM14       = $0e;
       RS_XMM15       = $0f;
 
+      RS_FLAGS       = $07;
+
       { Number of first imaginary register }
 {$ifdef x86_64}
       first_mm_imreg     = $10;
@@ -186,6 +188,9 @@ uses
         {$i r386dwrf.inc}
 {$endif x86_64}
       );
+
+      RS_DEFAULTFLAGS = RS_FLAGS;
+      NR_DEFAULTFLAGS = NR_FLAGS;
 
    type
       totherregisterset = set of tregisterindex;
@@ -263,7 +268,7 @@ implementation
 
     const
     {$ifdef x86_64}
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i r8664std.inc}
       );
 
@@ -274,7 +279,7 @@ implementation
         {$i r8664sri.inc}
       );
     {$else x86_64}
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i r386std.inc}
       );
 
@@ -322,7 +327,9 @@ implementation
                 internalerror(2009071902);
             end;
           OS_M128,OS_MS128:
-            cgsize2subreg:=R_SUBMMWHOLE;
+            cgsize2subreg:=R_SUBMMX;
+          OS_M256,OS_MS256:
+            cgsize2subreg:=R_SUBMMY;
           else
             internalerror(200301231);
         end;
@@ -331,7 +338,7 @@ implementation
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_M128);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_NO,OS_M128,OS_M256);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -354,7 +361,7 @@ implementation
                 reg_cgsize:=OS_32
             end
           else
-            internalerror(200303181);
+            internalerror(2003031801);
           end;
         end;
 
@@ -362,7 +369,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -451,10 +458,9 @@ implementation
       begin
         { for the name the sub reg doesn't matter }
         hr:=r;
-        case getsubreg(hr) of
-          R_SUBMMS,R_SUBMMD,R_SUBMMWHOLE:
-            setsubreg(hr,R_SUBNONE);
-        end;
+        if (getregtype(hr)=R_MMREGISTER) and
+           (getsubreg(hr)<>R_SUBMMY) then
+          setsubreg(hr,R_SUBMMX);
         result:=findreg_by_number_table(hr,regnumber_index);
       end;
 
@@ -471,7 +477,7 @@ implementation
       begin
         if getregtype(r) in [R_MMREGISTER,R_MMXREGISTER] then
           r:=newreg(getregtype(r),getsupreg(r),R_SUBNONE);
-        p:=findreg_by_number_table(r,regnumber_index);
+        p:=findreg_by_number(r);
         if p<>0 then
           result:=std_regname_table[p]
         else

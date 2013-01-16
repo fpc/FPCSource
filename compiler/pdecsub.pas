@@ -96,13 +96,14 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,fpccrc,
+       systems,
        cpuinfo,
        { symtable }
-       symbase,symtable,symcreat,defutil,defcmp,paramgr,cpupara,
+       symbase,symtable,defutil,defcmp,
+       { parameter handling }
+       paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       fmodule,node,htypechk,ncon,
        objcutil,
        { parser }
        scanner,
@@ -202,7 +203,7 @@ implementation
          begin
            if (not needs_finalization) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
-             varregable:=vr_intreg;
+             varregable:=vr_addr;
          end;
       end;
 
@@ -256,7 +257,7 @@ implementation
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
-               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
+               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
                block_type:=bt;
                if assigned(defaultvalue) then
                  begin
@@ -264,12 +265,6 @@ implementation
                    pd.parast.insert(defaultvalue);
                    { check whether the default value is of the correct
                      type }
-                   if defaultvalue.consttyp in [conststring,constwstring] then
-                     nodetype:=stringconstn
-                   else if defaultvalue.consttyp=constnil then
-                     nodetype:=niln
-                   else
-                     nodetype:=nothingn;
                    if compare_defs_ext(defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
                      MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
                  end;
@@ -726,7 +721,7 @@ implementation
             consume(_LSHARPBRACKET);
             genparalist:=tfpobjectlist.create(false);
 
-            if not parse_generic_specialization_types(genparalist,prettyname,specializename,nil) then
+            if not parse_generic_specialization_types(genparalist,nil,prettyname,specializename) then
               srsym:=generrorsym
             else
               begin
@@ -1489,26 +1484,9 @@ begin
 end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-var v: Tconstexprint;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-
 begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-  if target_info.system in systems_interrupt_table then
-    begin
-      if token<>_SEMICOLON then
-        begin
-          pd.proccalloption:=pocall_interrupt;
-          v:=get_intconst;
-          Tprocdef(pd).interruptvector:=v.uvalue;
-        end;
-    end;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);
@@ -2265,7 +2243,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERLOAD;
-      pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava];
+      pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava,pd_objcclass,pd_objcprot];
       handler  : @pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
@@ -2935,6 +2913,9 @@ const
            else
             break;
          end;
+         if (po_nostackframe in pd.procoptions) and
+            not (po_assembler in pd.procoptions) then
+           message(parser_w_nostackframe_without_assembler);
       end;
 
 

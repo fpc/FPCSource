@@ -137,6 +137,7 @@ interface
         procedure build(s:TObject);
         function  resolve:TObject;
      end;
+     pderef = ^tderef;
 
 {************************************************
                    tpropaccesslist

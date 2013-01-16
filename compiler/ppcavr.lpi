@@ -12,7 +12,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="ppavr"/>
+      <Title Value="ppcavr"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -42,7 +42,7 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="avr\pp"/>
@@ -60,11 +60,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>

@@ -1,6 +1,4 @@
-{ %FAIL }
-
-{ helpers can not extend type parameters even if they can only be classes }
+{ helpers can extend type parameters if they can only be classes }
 program thlp30;
 
 {$ifdef fpc}
@@ -13,6 +11,9 @@ type
     THelper = class helper for T
     end;
   end;
+
+type
+  TFooTObject = TFoo<TObject>;
 
 begin
 

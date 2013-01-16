@@ -25,15 +25,15 @@
 }
 unit cpubase;
 
+{$define USEINLINE}
+
 {$i fpcdefs.inc}
 
   interface
 
     uses
-      cutils,cclasses,
       globtype,globals,
       cpuinfo,
-      aasmbase,
       cgbase
       ;
 
@@ -44,6 +44,9 @@ unit cpubase;
 
     type
       TAsmOp= {$i armop.inc}
+      {This is a bit of a hack, because there are more than 256 ARM Assembly Ops
+       But FPC currently can't handle more than 256 elements in a set.}
+      TCommonAsmOps = Set of A_None .. A_UQASX;
 
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -134,7 +137,11 @@ unit cpubase;
         { multiple load/store vfp address modes }
         PF_IAD,PF_DBD,PF_FDD,PF_EAD,
         PF_IAS,PF_DBS,PF_FDS,PF_EAS,
-        PF_IAX,PF_DBX,PF_FDX,PF_EAX
+        PF_IAX,PF_DBX,PF_FDX,PF_EAX,
+        { FPv4 postfixes }
+        PF_32,PF_64,PF_F32,PF_F64,
+        PF_F32S32,PF_F32U32,
+        PF_S32F32,PF_U32F32
       );
 
       TOpPostfixes = set of TOpPostfix;
@@ -147,14 +154,17 @@ unit cpubase;
         PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
         PF_S,PF_D,PF_E,PF_None,PF_None);
 
-      oppostfix2str : array[TOpPostfix] of string[3] = ('',
+      oppostfix2str : array[TOpPostfix] of string[8] = ('',
         's',
         'd','e','p','ep',
         'b','sb','bt','h','sh','t',
         'ia','ib','da','db','fd','fa','ed','ea',
         'iad','dbd','fdd','ead',
         'ias','dbs','fds','eas',
-        'iax','dbx','fdx','eax');
+        'iax','dbx','fdx','eax',
+        '.32','.64','.f32','.f64',
+        '.f32.s32','.f32.u32',
+        '.s32.f32','.u32.f32');
 
       roundingmode2str : array[TRoundingMode] of string[1] = ('',
         'p','m','z');
@@ -210,12 +220,15 @@ unit cpubase;
       tcpumodeflag = (mfA, mfI, mfF);
       tcpumodeflags = set of tcpumodeflag;
 
+      tspecialregflag = (srC, srX, srS, srF);
+      tspecialregflags = set of tspecialregflag;
+
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
 
     const
-      max_operands = 4;
+      max_operands = 6;
 
       maxintregs = 15;
       maxfpuregs = 8;
@@ -291,6 +304,9 @@ unit cpubase;
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
+      NR_DEFAULTFLAGS = NR_CPSR;
+      RS_DEFAULTFLAGS = RS_CPSR;
+
       { Low part of 64bit return value }
       function NR_FUNCTION_RESULT64_LOW_REG: tregister;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       function RS_FUNCTION_RESULT64_LOW_REG: shortint;{$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -347,8 +363,12 @@ unit cpubase;
     function is_pc(const r : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+    function is_thumb_imm(d : aint) : boolean; { Doesn't handle ROR_C detection }
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
     function dwarf_reg(r:tregister):shortint;
+
+    function IsIT(op: TAsmOp) : boolean;
+    function GetITLevels(op: TAsmOp) : longint;
 
   implementation
 
@@ -357,7 +377,7 @@ unit cpubase;
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i rarmstd.inc}
       );
 
@@ -529,6 +549,43 @@ unit cpubase;
         result:=false;
       end;
 
+    function is_thumb_imm(d: aint): boolean;
+      var
+        t : aint;
+        i : longint;
+        imm : byte;
+      begin
+        result:=false;
+        if (d and $FF) = d then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d and $FF00FF00) = 0) and
+           ((d shr 16)=(d and $FFFF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d and $00FF00FF) = 0) and
+           ((d shr 16)=(d and $FFFF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if ((d shr 16)=(d and $FFFF)) and
+           ((d shr 8)=(d and $FF)) then
+          begin
+            result:=true;
+            exit;
+          end;
+        if is_shifter_const(d,imm) then
+          begin
+            result:=true;
+            exit;
+          end;
+      end;
+
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword) : boolean;
       var
         d, i, i2: Dword;
@@ -594,5 +651,36 @@ unit cpubase;
       else
         result:=RS_R0;
     end;
+
+    function IsIT(op: TAsmOp) : boolean;
+      begin
+        case op of
+          A_IT,
+          A_ITE, A_ITT,
+          A_ITEE, A_ITTE, A_ITET, A_ITTT,
+          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
+          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
+            result:=true;
+        else
+          result:=false;
+        end;
+      end;
+
+    function GetITLevels(op: TAsmOp) : longint;
+      begin
+        case op of
+          A_IT:
+            result:=1;
+          A_ITE, A_ITT:
+            result:=2;
+          A_ITEE, A_ITTE, A_ITET, A_ITTT:
+            result:=3;
+          A_ITEEE, A_ITTEE, A_ITETE, A_ITTTE,
+          A_ITEET, A_ITTET, A_ITETT, A_ITTTT:
+            result:=4;
+        else
+          result:=0;
+        end;
+      end;
 
 end.

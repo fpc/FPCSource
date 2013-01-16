@@ -31,3 +31,5 @@ function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external n
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL6';
+
+

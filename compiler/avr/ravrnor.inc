@@ -1,2 +1,2 @@
 { don't edit, this file is generated from avrreg.dat }
-33
+34

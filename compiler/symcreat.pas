@@ -832,22 +832,87 @@ implementation
 
   procedure implement_field_getter(pd: tprocdef);
     var
+      i: longint;
+      pvs: tparavarsym;
       str: ansistring;
       callthroughprop: tpropertysym;
+      propaccesslist: tpropaccesslist;
+      lastparanr: longint;
+      firstpara: boolean;
     begin
       callthroughprop:=tpropertysym(pd.skpara);
-      str:='begin result:='+callthroughprop.realname+'; end;';
+      str:='begin result:='+callthroughprop.realname;
+      if ppo_hasparameters in callthroughprop.propoptions then
+        begin
+          if not callthroughprop.getpropaccesslist(palt_read,propaccesslist) then
+            internalerror(2012100701);
+          str:=str+'[';
+          firstpara:=true;
+          lastparanr:=tprocdef(propaccesslist.procdef).paras.count-1;
+          if ppo_indexed in callthroughprop.propoptions then
+            dec(lastparanr);
+          for i:=0 to lastparanr do
+            begin
+              { skip self/vmt/parentfp, passed implicitly }
+              pvs:=tparavarsym(tprocdef(propaccesslist.procdef).paras[i]);
+              if ([vo_is_self,vo_is_vmt,vo_is_parentfp]*pvs.varoptions)<>[] then
+                continue;
+              if not firstpara then
+                str:=str+',';
+              firstpara:=false;
+              str:=str+pvs.realname;
+            end;
+          str:=str+']';
+        end;
+      str:=str+'; end;';
       str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
     end;
 
 
   procedure implement_field_setter(pd: tprocdef);
     var
-      str: ansistring;
+      i, lastparaindex: longint;
+      pvs: tparavarsym;
+      paraname,  str: ansistring;
       callthroughprop: tpropertysym;
+      propaccesslist: tpropaccesslist;
+      firstpara: boolean;
     begin
       callthroughprop:=tpropertysym(pd.skpara);
-      str:='begin '+callthroughprop.realname+':=__fpc_newval__; end;';
+      str:='begin '+callthroughprop.realname;
+      if not callthroughprop.getpropaccesslist(palt_write,propaccesslist) then
+        internalerror(2012100702);
+      if ppo_hasparameters in callthroughprop.propoptions then
+        begin
+          str:=str+'[';
+          firstpara:=true;
+          { last parameter is the value to be set, skip (only add index
+            parameters here) }
+          lastparaindex:=tprocdef(propaccesslist.procdef).paras.count-2;
+          if ppo_indexed in callthroughprop.propoptions then
+            dec(lastparaindex);
+          for i:=0 to lastparaindex do
+            begin
+              { skip self/vmt/parentfp/index, passed implicitly }
+              pvs:=tparavarsym(tprocdef(propaccesslist.procdef).paras[i]);
+              if ([vo_is_self,vo_is_vmt,vo_is_parentfp]*pvs.varoptions)<>[] then
+                continue;
+              if not firstpara then
+                str:=str+',';
+              firstpara:=false;
+              str:=str+pvs.realname;
+            end;
+          str:=str+']';
+        end;
+      { the value-to-be-set }
+      if assigned(propaccesslist.procdef) then
+        begin
+          pvs:=tparavarsym(tprocdef(propaccesslist.procdef).paras[tprocdef(propaccesslist.procdef).paras.count-1]);
+          paraname:=pvs.realname;
+        end
+      else
+        paraname:='__fpc_newval__';
+      str:=str+':='+paraname+'; end;';
       str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
     end;
 
@@ -937,6 +1002,10 @@ implementation
     begin
       { only necessary for the JVM target currently }
       if not (target_info.system in systems_jvm) then
+        exit;
+      { skip if any errors have occurred, since then this can only cause more
+        errors }
+      if ErrorCount<>0 then
         exit;
       replace_scanner('synthetic_impl',sstate);
       add_synthetic_method_implementations_for_st(st);

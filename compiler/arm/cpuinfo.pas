@@ -37,9 +37,17 @@ Type
        cpu_armv4t,
        cpu_armv5,
        cpu_armv5t,
+       cpu_armv5te,
+       cpu_armv5tej,
        cpu_armv6,
+       cpu_armv6k,
+       cpu_armv6t2,
+       cpu_armv6z,
        cpu_armv7,
-       cpu_armv7m
+       cpu_armv7a,
+       cpu_armv7r,
+       cpu_armv7m,
+       cpu_armv7em
       );
 
 Const
@@ -57,7 +65,8 @@ Type
       fpu_fpa11,
       fpu_vfpv2,
       fpu_vfpv3,
-      fpu_vfpv3_d16
+      fpu_vfpv3_d16,
+      fpu_fpv4_s16
      );
 
    tcontrollertype =
@@ -81,9 +90,38 @@ Type
       ct_at91sam7xc256,
 		
       { STMicroelectronics }
-      ct_stm32f103rb,
-      ct_stm32f103re,
-      ct_stm32f103c4t,
+      ct_stm32f100x4, // LD&MD value line, 4=16,6=32,8=64,b=128
+      ct_stm32f100x6,
+      ct_stm32f100x8,
+      ct_stm32f100xB,
+      ct_stm32f100xC, // HD value line, r=512,d=384,c=256
+      ct_stm32f100xD,
+      ct_stm32f100xE,
+      ct_stm32f101x4, // LD Access line, 4=16,6=32
+      ct_stm32f101x6,
+      ct_stm32f101x8, // MD Access line, 8=64,B=128
+      ct_stm32f101xB,
+      ct_stm32f101xC, // HD Access line, C=256,D=384,E=512
+      ct_stm32f101xD,
+      ct_stm32f101xE,
+      ct_stm32f101xF, // XL Access line, F=768,G=1M
+      ct_stm32f101xG,
+      ct_stm32f102x4, // LD usb access line, 4=16,6=32
+      ct_stm32f102x6,
+      ct_stm32f102x8, // MD usb access line, 8=64,B=128
+      ct_stm32f102xB,
+      ct_stm32f103x4, // LD performance line, 4=16,6=32
+      ct_stm32f103x6,
+      ct_stm32f103x8, // MD performance line, 8=64,B=128
+      ct_stm32f103xB,
+      ct_stm32f103xC, // HD performance line, C=256,D=384,E=512
+      ct_stm32f103xD,
+      ct_stm32f103xE,
+      ct_stm32f103xF, // XL performance line, F=768,G=1M
+      ct_stm32f103xG,
+      ct_stm32f107x8, // MD and HD connectivity line, 8=64,B=128,C=256
+      ct_stm32f107xB,
+      ct_stm32f107xC,
 
       { TI - Fury Class - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -198,9 +236,17 @@ Const
      'ARMV4T',
      'ARMV5',
      'ARMV5T',
+     'ARMV5TE',
+     'ARMV5TEJ',
      'ARMV6',
+     'ARMV6K',
+     'ARMV6T2',
+     'ARMV6Z',
      'ARMV7',
-     'ARMV7M'
+     'ARMV7A',
+     'ARMV7R',
+     'ARMV7M',
+     'ARMV7EM'
    );
 
    fputypestr : array[tfputype] of string[9] = ('',
@@ -211,7 +257,8 @@ Const
      'FPA11',
      'VFPV2',
      'VFPV3',
-     'VFPV3_D16'
+     'VFPV3_D16',
+     'FPV4_S16'
    );
 
 
@@ -223,7 +270,6 @@ Const
    ((
    	controllertypestr:'';
         controllerunitstr:'';
-        interruptvectors:0;
         flashbase:0;
         flashsize:0;
         srambase:0;
@@ -233,8 +279,7 @@ Const
         (
     	controllertypestr:'LPC2114';
         controllerunitstr:'LPC21x4';
-        interruptvectors:8;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$40000000;
         sramsize:$00004000
@@ -243,8 +288,7 @@ Const
         (
     	controllertypestr:'LPC2124';
         controllerunitstr:'LPC21x4';
-        interruptvectors:8;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$40000000;
         sramsize:$00004000
@@ -253,8 +297,7 @@ Const
         (
     	controllertypestr:'LPC2194';
         controllerunitstr:'LPC21x4';
-        interruptvectors:8;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$40000000;
         sramsize:$00004000
@@ -263,8 +306,7 @@ Const
         (
     	controllertypestr:'LPC1754';
         controllerunitstr:'LPC1754';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$10000000;
         sramsize:$00004000
@@ -273,8 +315,7 @@ Const
         (
     	controllertypestr:'LPC1756';
         controllerunitstr:'LPC1756';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$10000000;
         sramsize:$00004000
@@ -283,8 +324,7 @@ Const
         (
     	controllertypestr:'LPC1758';
         controllerunitstr:'LPC1758';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00080000;
         srambase:$10000000;
         sramsize:$00008000
@@ -293,8 +333,7 @@ Const
         (
     	controllertypestr:'LPC1764';
         controllerunitstr:'LPC1764';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$10000000;
         sramsize:$00004000
@@ -303,8 +342,7 @@ Const
         (
     	controllertypestr:'LPC1766';
         controllerunitstr:'LPC1766';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$10000000;
         sramsize:$00008000
@@ -313,8 +351,7 @@ Const
         (
     	controllertypestr:'LPC1768';
         controllerunitstr:'LPC1768';
-        interruptvectors:12;
-    	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00080000;
         srambase:$10000000;
         sramsize:$00008000
@@ -323,7 +360,6 @@ Const
         (
     	controllertypestr:'AT91SAM7S256';
         controllerunitstr:'AT91SAM7x256';
-        interruptvectors:8;
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$00200000;
@@ -333,7 +369,6 @@ Const
         (
     	controllertypestr:'AT91SAM7SE256';
         controllerunitstr:'AT91SAM7x256';
-        interruptvectors:8;
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$00200000;
@@ -343,7 +378,6 @@ Const
         (
     	controllertypestr:'AT91SAM7X256';
         controllerunitstr:'AT91SAM7x256';
-        interruptvectors:8;
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$00200000;
@@ -353,51 +387,52 @@ Const
         (
     	controllertypestr:'AT91SAM7XC256';
         controllerunitstr:'AT91SAM7x256';
-        interruptvectors:8;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$00200000;
         sramsize:$00010000
         ),
 
-      	// ct_stm32f103rb,
-        (
-    	controllertypestr:'STM32F103RB';
-        controllerunitstr:'STM32F103';
-        interruptvectors:12;
-        flashbase:$08000000;
-        flashsize:$00020000;
-        srambase:$20000000;
-        sramsize:$00005000
-        ),
-        // ct_stm32f103re,
-        (
-    	controllertypestr:'STM32F103RE';
-        controllerunitstr:'STM32F103';
-        interruptvectors:12;
-        flashbase:$08000000;
-        flashsize:$00080000;
-        srambase:$20000000;
-        sramsize:$00010000
-        ),
-        // ct_stm32f103re,
-        (
-    	controllertypestr:'STM32F103C4T';
-        controllerunitstr:'STM32F103';
-        interruptvectors:12;
-        flashbase:$08000000;
-        flashsize:$00004000;
-        srambase:$20000000;
-        sramsize:$00001800
-        ),
+      { STM32F1 series }
+      	(controllertypestr:'STM32F100X4';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
+        (controllertypestr:'STM32F100X6';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00008000; srambase:$20000000; sramsize:$00001000),
+        (controllertypestr:'STM32F100X8';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002000),
+        (controllertypestr:'STM32F100XB';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00002000),
+        (controllertypestr:'STM32F100XC';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00006000),
+        (controllertypestr:'STM32F100XD';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00060000; srambase:$20000000; sramsize:$00008000),
+        (controllertypestr:'STM32F100XE';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00008000),
+        (controllertypestr:'STM32F101X4';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
+        (controllertypestr:'STM32F101X6';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00008000; srambase:$20000000; sramsize:$00001800),
+        (controllertypestr:'STM32F101X8';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002800),
+        (controllertypestr:'STM32F101XB';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00004000),
+        (controllertypestr:'STM32F101XC';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+        (controllertypestr:'STM32F101XD';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00060000; srambase:$20000000; sramsize:$0000C000),
+        (controllertypestr:'STM32F101XE';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$0000C000),
+        (controllertypestr:'STM32F101XF';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$000C0000; srambase:$20000000; sramsize:$00014000),
+        (controllertypestr:'STM32F101XG';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00014000),
+        (controllertypestr:'STM32F102X4';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
+        (controllertypestr:'STM32F102X6';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00008000; srambase:$20000000; sramsize:$00001800),
+        (controllertypestr:'STM32F102X8';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002800),
+        (controllertypestr:'STM32F102XB';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00004000),
+        (controllertypestr:'STM32F103X4';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
+        (controllertypestr:'STM32F103X6';     controllerunitstr:'STM32F10X_LD';     flashbase:$08000000; flashsize:$00008000; srambase:$20000000; sramsize:$00002800),
+        (controllertypestr:'STM32F103X8';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00005000),
+        (controllertypestr:'STM32F103XB';     controllerunitstr:'STM32F10X_MD';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00005000),
+        (controllertypestr:'STM32F103XC';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$0000C000),
+        (controllertypestr:'STM32F103XD';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00060000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F103XE';     controllerunitstr:'STM32F10X_HD';     flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F103XF';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$000C0000; srambase:$20000000; sramsize:$00018000),
+        (controllertypestr:'STM32F103XG';     controllerunitstr:'STM32F10X_XL';     flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00018000),
+        (controllertypestr:'STM32F107X8';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F107XB';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
+        (controllertypestr:'STM32F107XC';     controllerunitstr:'STM32F10X_CONN';   flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       	// ct_lm3s1110,
         (
     	controllertypestr:'LM3S1110';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -406,8 +441,7 @@ Const
         (
     	controllertypestr:'LM3S1133';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -416,8 +450,7 @@ Const
         (
     	controllertypestr:'LM3S1138';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -426,8 +459,7 @@ Const
         (
     	controllertypestr:'LM3S1150';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -436,8 +468,7 @@ Const
         (
     	controllertypestr:'LM3S1162';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -446,8 +477,7 @@ Const
         (
     	controllertypestr:'LM3S1165';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -456,8 +486,7 @@ Const
         (
     	controllertypestr:'LM3S1166';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -466,8 +495,7 @@ Const
         (
     	controllertypestr:'LM3S2110';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -476,8 +504,7 @@ Const
         (
     	controllertypestr:'LM3S2139';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -486,8 +513,7 @@ Const
         (
     	controllertypestr:'LM3S6100';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -496,8 +522,7 @@ Const
         (
     	controllertypestr:'LM3S6110';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00010000;
         srambase:$20000000;
         sramsize:$00004000
@@ -508,8 +533,7 @@ Const
         (
     	controllertypestr:'LM3S1601';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -518,8 +542,7 @@ Const
         (
     	controllertypestr:'LM3S1608';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -528,8 +551,7 @@ Const
         (
     	controllertypestr:'LM3S1620';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -538,8 +560,7 @@ Const
         (
     	controllertypestr:'LM3S1635';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -548,8 +569,7 @@ Const
         (
     	controllertypestr:'LM3S1636';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -558,8 +578,7 @@ Const
         (
     	controllertypestr:'LM3S1637';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -568,8 +587,7 @@ Const
         (
     	controllertypestr:'LM3S1651';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -578,8 +596,7 @@ Const
         (
     	controllertypestr:'LM3S2601';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -588,8 +605,7 @@ Const
         (
     	controllertypestr:'LM3S2608';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -598,8 +614,7 @@ Const
         (
     	controllertypestr:'LM3S2620';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -608,8 +623,7 @@ Const
         (
     	controllertypestr:'LM3S2637';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -618,8 +632,7 @@ Const
         (
     	controllertypestr:'LM3S2651';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -628,8 +641,7 @@ Const
         (
     	controllertypestr:'LM3S6610';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -638,8 +650,7 @@ Const
         (
     	controllertypestr:'LM3S6611';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -648,8 +659,7 @@ Const
         (
     	controllertypestr:'LM3S6618';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -658,8 +668,7 @@ Const
         (
     	controllertypestr:'LM3S6633';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -668,8 +677,7 @@ Const
         (
     	controllertypestr:'LM3S6637';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -678,8 +686,7 @@ Const
         (
     	controllertypestr:'LM3S8630';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00020000;
         srambase:$20000000;
         sramsize:$00008000
@@ -690,8 +697,7 @@ Const
         (
     	controllertypestr:'LM3S1911';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -700,8 +706,7 @@ Const
         (
     	controllertypestr:'LM3S1918';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -710,8 +715,7 @@ Const
         (
     	controllertypestr:'LM3S1937';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -720,8 +724,7 @@ Const
         (
     	controllertypestr:'LM3S1958';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -730,8 +733,7 @@ Const
         (
     	controllertypestr:'LM3S1960';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -740,8 +742,7 @@ Const
         (
     	controllertypestr:'LM3S1968';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -750,8 +751,7 @@ Const
         (
     	controllertypestr:'LM3S1969';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -760,8 +760,7 @@ Const
         (
     	controllertypestr:'LM3S2911';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -770,8 +769,7 @@ Const
         (
     	controllertypestr:'LM3S2918';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -780,8 +778,7 @@ Const
         (
     	controllertypestr:'LM3S2919';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -790,8 +787,7 @@ Const
         (
     	controllertypestr:'LM3S2939';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -800,8 +796,7 @@ Const
         (
     	controllertypestr:'LM3S2948';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -810,8 +805,7 @@ Const
         (
     	controllertypestr:'LM3S2950';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -820,8 +814,7 @@ Const
         (
     	controllertypestr:'LM3S2965';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -830,8 +823,7 @@ Const
         (
     	controllertypestr:'LM3S6911';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -840,8 +832,7 @@ Const
         (
     	controllertypestr:'LM3S6918';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -850,8 +841,7 @@ Const
         (
     	controllertypestr:'LM3S6938';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -860,8 +850,7 @@ Const
         (
     	controllertypestr:'LM3S6950';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -870,8 +859,7 @@ Const
         (
     	controllertypestr:'LM3S6952';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -880,8 +868,7 @@ Const
         (
     	controllertypestr:'LM3S6965';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -890,8 +877,7 @@ Const
         (
     	controllertypestr:'LM3S8930';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -900,8 +886,7 @@ Const
         (
     	controllertypestr:'LM3S8933';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -910,8 +895,7 @@ Const
         (
     	controllertypestr:'LM3S8938';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -920,8 +904,7 @@ Const
         (
     	controllertypestr:'LM3S8962';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -930,8 +913,7 @@ Const
         (
     	controllertypestr:'LM3S8970';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -940,8 +922,7 @@ Const
         (
     	controllertypestr:'LM3S8971';
         controllerunitstr:'LM3FURY';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -952,8 +933,7 @@ Const
         (
     	controllertypestr:'LM3S5951';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -962,8 +942,7 @@ Const
         (
     	controllertypestr:'LM3S5956';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -972,8 +951,7 @@ Const
         (
     	controllertypestr:'LM3S1B21';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -982,8 +960,7 @@ Const
         (
     	controllertypestr:'LM3S2B93';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -992,8 +969,7 @@ Const
         (
     	controllertypestr:'LM3S5B91';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1002,8 +978,7 @@ Const
         (
     	controllertypestr:'LM3S9B81';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1012,8 +987,7 @@ Const
         (
     	controllertypestr:'LM3S9B90';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1022,8 +996,7 @@ Const
         (
     	controllertypestr:'LM3S9B92';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1032,8 +1005,7 @@ Const
         (
     	controllertypestr:'LM3S9B95';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1042,8 +1014,7 @@ Const
         (
     	controllertypestr:'LM3S9B96';
         controllerunitstr:'LM3TEMPEST';
-        interruptvectors:72;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
@@ -1053,8 +1024,7 @@ Const
         (
     	controllertypestr:'SC32442B';
         controllerunitstr:'sc32442b';
-        interruptvectors:7;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00000000;
         srambase:$00000000;
         sramsize:$08000000
@@ -1064,15 +1034,14 @@ Const
         (
     	controllertypestr:'THUMB2_BARE';
         controllerunitstr:'THUMB2_BARE';
-        interruptvectors:128;
-	flashbase:$00000000;
+        flashbase:$00000000;
         flashsize:$00100000;
         srambase:$20000000;
         sramsize:$00100000
         )
     );
 
-   vfp_scalar = [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16];
+   vfp_scalar = [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -1085,9 +1054,47 @@ Const
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse {,cs_opt_scheduler}];
-   level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+   level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [cs_opt_scheduler{,cs_opt_loopunroll}];
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
+
+ type
+   tcpuflags =
+      (CPUARM_HAS_BX,         { CPU supports the BX instruction                           }
+       CPUARM_HAS_BLX,        { CPU supports the BLX rX instruction                       }
+       CPUARM_HAS_BLX_LABEL,  { CPU supports the BLX <label> instruction                  }
+       CPUARM_HAS_CLZ,        { CPU supports the CLZ instruction                          }
+       CPUARM_HAS_EDSP,       { CPU supports the PLD,STRD,LDRD,MCRR and MRRC instructions }
+       CPUARM_HAS_REV,        { CPU supports the REV instruction                          }
+       CPUARM_HAS_RBIT,       { CPU supports the RBIT instruction                         }
+       CPUARM_HAS_DMB,        { CPU has memory barrier instructions (DMB, DSB, ISB)       }
+       CPUARM_HAS_LDREX,
+       CPUARM_HAS_IDIV
+      );
+
+ const
+   cpu_capabilities : array[tcputype] of set of tcpuflags =
+     ( { cpu_none     } [],
+       { cpu_armv3    } [],
+       { cpu_armv4    } [],
+       { cpu_armv4t   } [CPUARM_HAS_BX],
+       { cpu_armv5    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ],
+       { cpu_armv5t   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ],
+       { cpu_armv5te  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP],
+       { cpu_armv5tej } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP],
+       { cpu_armv6    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6k   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6t2  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
+       { cpu_armv6z   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { the identifier armv7 is should not be used, it is considered being equal to armv7a }
+       { cpu_armv7    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7a   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7r   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
+       { cpu_armv7m   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV,CPUARM_HAS_DMB],
+       { cpu_armv7em  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV,CPUARM_HAS_DMB]
+     );
 
 Implementation
 
 end.
+

@@ -19,6 +19,10 @@ type
      rbx,rbp,r12,r13,r14,r15,rsp,rip : qword;
 {$ifdef win64}
      rsi,rdi : qword;
+     xmm6,xmm7,xmm8,xmm9,xmm10,xmm11,xmm12,xmm13,xmm14,xmm15: array [boolean] of qword;
+     mxcsr: longword;
+     fpucw: word;
+     padding: word;
 {$endif win64}
    end;
    pjmp_buf = ^jmp_buf;

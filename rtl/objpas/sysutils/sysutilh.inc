@@ -25,6 +25,9 @@
   {$i datih.inc}
 {$endif}
 
+function GetTickCount: LongWord; deprecated 'Use GetTickCount64 instead';
+function GetTickCount64: QWord;
+
   { Read String Handling functions declaration }
   {$i sysstrh.inc}
 

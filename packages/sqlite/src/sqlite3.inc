@@ -5715,6 +5715,19 @@ const
   SQLITE_TESTCTRL_PRNG_RESET               = 7;
   SQLITE_TESTCTRL_BITVEC_TEST              = 8;
 
+
+{Backup api}
+type
+  psqlite3backup = Pointer;
+
+{$IFDEF S}function{$ELSE}var{$ENDIF} sqlite3_backup_init{$IFDEF D}: function{$ENDIF}(pDest: psqlite3; const zDestName: pchar; pSource: psqlite3; const zSourceName: pchar): psqlite3backup; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF} sqlite3_backup_step{$IFDEF D}: function{$ENDIF}(p: psqlite3backup; nPage: Integer): Integer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF} sqlite3_backup_finish{$IFDEF D}: function{$ENDIF}(p: psqlite3backup): Integer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF} sqlite3_backup_remaining{$IFDEF D}: function{$ENDIF}(p: psqlite3backup): Integer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF} sqlite3_backup_pagecount{$IFDEF D}: function{$ENDIF}(p: psqlite3backup): Integer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+
+
+
 {$IFDEF LOAD_DYNAMICALLY}
 
 function InitializeSqlite(const LibraryName: String = ''): Integer;
@@ -5727,6 +5740,7 @@ function InitialiseSQLite(const LibraryName: String): Integer; deprecated;
 var
   SQLiteLibraryHandle: TLibHandle;
   SQLiteDefaultLibrary: String = Sqlite3Lib;
+  SQLiteLoadedLibrary: String;
 {$ENDIF LOAD_DYNAMICALLY}
 
 implementation
@@ -5897,6 +5911,11 @@ begin
   pointer(sqlite3_mutex_free) := GetProcedureAddress(LibHandle,'sqlite3_mutex_free');
   pointer(sqlite3_mutex_ente) := GetProcedureAddress(LibHandle,'sqlite3_mutex_ente');
   pointer(sqlite3_mutex_leave) := GetProcedureAddress(LibHandle,'sqlite3_mutex_leave');
+  pointer(sqlite3_backup_init) := GetProcedureAddress(LibHandle,'sqlite3_backup_init');
+  pointer(sqlite3_backup_step) := GetProcedureAddress(LibHandle,'sqlite3_backup_step');
+  pointer(sqlite3_backup_finish) := GetProcedureAddress(LibHandle,'sqlite3_backup_finish');
+  pointer(sqlite3_backup_remaining) := GetProcedureAddress(LibHandle,'sqlite3_backup_remaining');
+  pointer(sqlite3_backup_pagecount) := GetProcedureAddress(LibHandle,'sqlite3_backup_pagecount');
 {$IFDEF SQLITE_OBSOLETE}
   pointer(sqlite3_aggregate_count) := GetProcedureAddress(LibHandle,'sqlite3_aggregate_count');
   pointer(sqlite3_expired) := GetProcedureAddress(LibHandle,'sqlite3_expired');
@@ -5909,7 +5928,6 @@ end;
 
 var
   RefCount: Integer;
-  LoadedLibrary: String;
 
 function TryInitializeSqlite(const LibraryName: string): Integer;
 begin
@@ -5922,7 +5940,7 @@ begin
       RefCount := 0;
       Exit(-1);
     end;
-    LoadedLibrary := LibraryName;
+    SQLiteLoadedLibrary := LibraryName;
     LoadAddresses(SQLiteLibraryHandle);
   end;
 end;
@@ -5934,8 +5952,8 @@ end;
 
 function  InitializeSQLite(const LibraryName: String) :integer;
 begin
-  if (LoadedLibrary <> '') and (LoadedLibrary <> LibraryName) then
-    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+  if (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
+    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
 
   result:= TryInitializeSQLIte(LibraryName);
   if result=-1 then
@@ -5954,7 +5972,7 @@ begin
     if SQLiteLibraryHandle <> NilHandle then
       UnloadLibrary(SQLiteLibraryHandle);
     SQLiteLibraryHandle := NilHandle;
-    LoadedLibrary := '';
+    SQLiteLoadedLibrary := '';
     RefCount := 0;
   end;
 end;

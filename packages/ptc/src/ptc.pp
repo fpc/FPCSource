@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@
 {$IFDEF UNIX}
 
   { X11 extensions we want to enable at compile time }
-  {$INCLUDE x11/extensions.inc}
+  {$INCLUDE x11/x11extensions.inc}
 
   {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
     {$DEFINE ENABLE_X11_EXTENSION_XF86DGA}
@@ -60,7 +60,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.12';
+  PTCPAS_VERSION = 'PTCPas 0.99.13';
 
 type
   PUint8  = ^Uint8;
@@ -113,7 +113,7 @@ uses
 
 {$IF defined(WIN32) OR defined(WIN64)}
 uses
-  Windows, p_ddraw;
+  Windows, p_ddraw, glext;
 {$ENDIF defined(WIN32) OR defined(WIN64)}
 
 {$IFDEF WinCE}
@@ -123,7 +123,7 @@ uses
 
 {$IFDEF UNIX}
 uses
-  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym
+  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym, xkblib
   {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
   , xrandr
   {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
@@ -136,6 +136,9 @@ uses
   {$IFDEF ENABLE_X11_EXTENSION_XSHM}
   , xshm, ipc
   {$ENDIF ENABLE_X11_EXTENSION_XSHM}
+  {$IFDEF ENABLE_X11_EXTENSION_GLX}
+  , glx
+  {$ENDIF ENABLE_X11_EXTENSION_GLX}
   ;
 {$ENDIF UNIX}
 
@@ -184,38 +187,44 @@ end;
 {$ENDIF GO32V2}
 
 {$IF defined(Win32) OR defined(Win64)}
-{$INCLUDE win32/base/cursord.inc}
-{$INCLUDE win32/base/cursormoded.inc}
-{$INCLUDE win32/base/monitord.inc}
-{$INCLUDE win32/base/eventd.inc}
-{$INCLUDE win32/base/windowd.inc}
-{$INCLUDE win32/base/hookd.inc}
-{$INCLUDE win32/base/kbdd.inc}
-{$INCLUDE win32/base/moused.inc}
-{$INCLUDE win32/directx/hookd.inc}
-{$INCLUDE win32/directx/libraryd.inc}
-{$INCLUDE win32/directx/displayd.inc}
-{$INCLUDE win32/directx/primaryd.inc}
-{$INCLUDE win32/directx/directxconsoled.inc}
+{$INCLUDE win32/base/win32cursord.inc}
+{$INCLUDE win32/base/win32cursormoded.inc}
+{$INCLUDE win32/base/win32monitord.inc}
+{$INCLUDE win32/base/win32eventd.inc}
+{$INCLUDE win32/base/win32windowd.inc}
+{$INCLUDE win32/base/win32hookd.inc}
+{$INCLUDE win32/base/win32kbdd.inc}
+{$INCLUDE win32/base/win32moused.inc}
+{$INCLUDE win32/directx/win32directxhookd.inc}
+{$INCLUDE win32/directx/win32directxlibraryd.inc}
+{$INCLUDE win32/directx/win32directxdisplayd.inc}
+{$INCLUDE win32/directx/win32directxprimaryd.inc}
+{$INCLUDE win32/directx/win32directxconsoled.inc}
 {$INCLUDE win32/gdi/win32dibd.inc}
-{$INCLUDE win32/gdi/gdiconsoled.inc}
+{$INCLUDE win32/gdi/win32modesetterd.inc}
+{$INCLUDE win32/gdi/win32openglwindowd.inc}
+{$INCLUDE win32/gdi/win32gdihookd.inc}
+{$INCLUDE win32/gdi/win32gdiconsoled.inc}
 
-{$INCLUDE win32/base/cursor.inc}
-{$INCLUDE win32/base/monitor.inc}
-{$INCLUDE win32/base/event.inc}
-{$INCLUDE win32/base/window.inc}
-{$INCLUDE win32/base/hook.inc}
-{$INCLUDE win32/base/kbd.inc}
-{$INCLUDE win32/base/mousei.inc}
-{$INCLUDE win32/directx/check.inc}
-{$INCLUDE win32/directx/translate.inc}
-{$INCLUDE win32/directx/hook.inc}
-{$INCLUDE win32/directx/library.inc}
-{$INCLUDE win32/directx/display.inc}
-{$INCLUDE win32/directx/primary.inc}
-{$INCLUDE win32/directx/directxconsolei.inc}
+{$INCLUDE win32/base/win32cursor.inc}
+{$INCLUDE win32/base/win32monitor.inc}
+{$INCLUDE win32/base/win32event.inc}
+{$INCLUDE win32/base/win32window.inc}
+{$INCLUDE win32/base/win32hook.inc}
+{$INCLUDE win32/base/win32kbd.inc}
+{$INCLUDE win32/base/win32mousei.inc}
+{$INCLUDE win32/directx/win32directxcheck.inc}
+{$INCLUDE win32/directx/win32directxtranslate.inc}
+{$INCLUDE win32/directx/win32directxhook.inc}
+{$INCLUDE win32/directx/win32directxlibrary.inc}
+{$INCLUDE win32/directx/win32directxdisplay.inc}
+{$INCLUDE win32/directx/win32directxprimary.inc}
+{$INCLUDE win32/directx/win32directxconsolei.inc}
 {$INCLUDE win32/gdi/win32dibi.inc}
-{$INCLUDE win32/gdi/gdiconsolei.inc}
+{$INCLUDE win32/gdi/win32modesetteri.inc}
+{$INCLUDE win32/gdi/win32openglwindowi.inc}
+{$INCLUDE win32/gdi/win32gdihooki.inc}
+{$INCLUDE win32/gdi/win32gdiconsolei.inc}
 {$ENDIF defined(Win32) OR defined(Win64)}
 
 {$IFDEF WinCE}
@@ -223,7 +232,7 @@ end;
 {$ENDIF WinCE}
 
 {$IFDEF UNIX}
-{$INCLUDE x11/includes.inc}
+{$INCLUDE x11/x11includes.inc}
 {$ENDIF UNIX}
 
 {$INCLUDE core/consolei.inc}

@@ -92,6 +92,7 @@ unit i_nativent;
               );
             first_parm_offset : 8;
             stacksize    : 16*1024*1024;
+            stackalign   : 4;
             abi          : abi_default;
           );
 

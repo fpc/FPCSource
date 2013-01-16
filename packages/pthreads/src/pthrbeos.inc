@@ -134,8 +134,6 @@ const
      pthread_condattr_t, pthread_mutex_t, pthread_mutexattr_t.
     }
 
-     TThreadID = pthread_t;
-     PThreadID = ^TThreadID;
      TThreadAttr = pthread_attr_t;
      PThreadAttr = ^TThreadAttr;
      TPthreadMutex = pthread_mutex_t;

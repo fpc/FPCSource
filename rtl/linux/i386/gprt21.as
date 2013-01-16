@@ -22,22 +22,20 @@
 _start:
         /* First locate the start of the environment variables */
         popl    %esi
-        movl    %eax,%edi
 
         movl    %esp,%ebx               /* Points to the arguments */
         movl    %esi,%eax
         incl    %eax
         shll    $2,%eax
         addl    %esp,%eax
-        andl    $0xfffffff8,%esp        /* Align stack */
+        andl    $0xfffffff0,%esp        /* Align stack to 16 bytes */
 
         movl    %eax,operatingsystem_parameter_envp    /* Move the environment pointer */
         movl    %esi,operatingsystem_parameter_argc    /* Move the argument counter    */
         movl    %ebx,operatingsystem_parameter_argv    /* Move the argument pointer    */
 
-        movl    %edi,%eax
         xorl    %ebp,%ebp
-        pushl   %eax
+        pushl   %eax                    /* __libc_start_main takes 7 arguments -> push 1 extra to keep 16 byte stack alignment */
         pushl   %esp
         pushl   %edx
         pushl   $_fini_dummy
@@ -58,13 +56,19 @@ cmain:
         movl    %edi,___fpc_ret_edi
         pushl   %eax
 
+        /* align stack to 16 bytes before call */
+        subl    $12, %esp
+
         call    __gmon_start__
+
+        /* restore stack */
+        addl    $12, %esp
 
         /* Save initial stackpointer */
         movl    %esp,__stkptr
 
-        /* start the program */
-        call    PASCALMAIN
+        /* start the program (jmp to keep stack alignment) */
+        jmp    PASCALMAIN
         hlt
 
         .globl _haltproc

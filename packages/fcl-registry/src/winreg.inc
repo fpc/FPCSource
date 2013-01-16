@@ -177,7 +177,7 @@ Var
   Handle: HKEY;
   Disposition: Integer;
   SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
-
+  S: string;
 begin
   SecurityAttributes := Nil;
   P:=PrepKey(Key);
@@ -194,21 +194,27 @@ begin
   else
     Result:=RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),
                          P,0,fAccess,Handle)=ERROR_SUCCESS;
-  If Result then
-    fCurrentKey:=Handle;
+  If Result then begin
+    if RelativeKey(Key) then
+      S:=CurrentPath + Key
+    else
+      S:=P;
+    ChangeKey(Handle, S);
+  end;
 end;
 
 function TRegistry.OpenKeyReadOnly(const Key: string): Boolean;
 
 Var
-  P: PChar;
-  Handle: HKEY;
-
+  OldAccess: LongWord;
 begin
-  P:=PrepKey(Key);
-  Result := RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),P,0,KEY_READ,Handle) = 0;
-  If Result Then
-    fCurrentKey := Handle;
+  OldAccess:=fAccess;
+  fAccess:=KEY_READ;
+  try
+    Result:=OpenKey(Key, False);
+  finally
+    fAccess:=OldAccess;
+  end;
 end;
 
 function TRegistry.RegistryConnect(const UNCName: string): Boolean;
@@ -254,12 +260,13 @@ begin
     else
       RegFlushKey(CurrentKey);
     fCurrentKey:=0;
-    end
+    end;
+  fCurrentPath:='';
 end;
 
 procedure TRegistry.CloseKey(key:HKEY);
 begin
-  RegCloseKey(CurrentKey)
+  RegCloseKey(key);
 end;
 
 procedure TRegistry.ChangeKey(Value: HKey; const Path: String);

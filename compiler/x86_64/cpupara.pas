@@ -40,8 +40,8 @@ unit cpupara;
        public
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
@@ -201,7 +201,7 @@ unit cpupara;
 
     function classify_argument(def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint; forward;
 
-    function init_aggregate_classification(def: tdef; varspez: tvarspez; out words: longint; out classes: tx64paraclasses): longint;
+    function init_aggregate_classification(def: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
       var
         i: longint;
       begin
@@ -223,7 +223,9 @@ unit cpupara;
         if def.size > 32 then
           exit(0);
 
-        words:=(def.size+7) div 8;
+        { if a struct starts an offset not divisible by 8, it can span extra
+          words }
+        words:=(def.size+byte_offset mod 8+7) div 8;
 
         (* Zero sized arrays or structures are NO_CLASS.  We return 0 to
            signal memory class, so handle it as special case.  *)
@@ -258,6 +260,7 @@ unit cpupara;
             classes[i+pos] :=
               merge_classes(subclasses[i],classes[i+pos]);
           end;
+        inc(result,pos);
       end;
 
 
@@ -342,8 +345,9 @@ unit cpupara;
         i,
         words,
         num: longint;
+        checkalignment: boolean;
       begin
-        result:=init_aggregate_classification(def,varspez,words,classes);
+        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
@@ -354,6 +358,7 @@ unit cpupara;
               continue;
             vs:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[i]);
             num:=-1;
+            checkalignment:=true;
             if not tabstractrecordsymtable(tabstractrecorddef(def).symtable).is_packed then
               begin
                 new_byte_offset:=byte_offset+vs.fieldoffset;
@@ -363,11 +368,25 @@ unit cpupara;
               begin
                 new_byte_offset:=byte_offset+vs.fieldoffset div 8;
                 if (vs.vardef.typ in [orddef,enumdef]) then
-                  { calculate the number of bytes spanned by
-                    this bitpacked field }
-                  size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8)
+                  begin
+                    { calculate the number of bytes spanned by
+                      this bitpacked field }
+                    size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
+                    { our bitpacked fields are interpreted as always being
+                      aligned, because unlike in C we don't have char:1, int:1
+                      etc (so everything is basically a char:x) }
+                    checkalignment:=false;
+                  end
                 else
-                  size:=vs.vardef.size
+                  size:=vs.vardef.size;
+              end;
+            { If [..] an object [..] contains unaligned fields, it has class
+              MEMORY }
+            if checkalignment and
+               (align(new_byte_offset,vs.vardef.structalignment)<>new_byte_offset) then
+              begin
+                result:=0;
+                exit;
               end;
             num:=classify_aggregate_element(vs.vardef,varspez,size,classes,new_byte_offset);
             if (num=0) then
@@ -389,7 +408,7 @@ unit cpupara;
         num: longint;
         isbitpacked: boolean;
       begin
-        result:=init_aggregate_classification(def,varspez,words,classes);
+        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
@@ -413,6 +432,13 @@ unit cpupara;
             begin
               { size does not change }
               new_byte_offset:=byte_offset+i*elesize;
+              { If [..] an object [..] contains unaligned fields, it has class
+                MEMORY }
+              if align(new_byte_offset,def.alignment)<>new_byte_offset then
+                begin
+                  result:=0;
+                  exit;
+                end;
             end
           else
             begin
@@ -592,16 +618,19 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tx86_64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
       begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
         if (tf_safecall_exceptions in target_info.flags) and
-            (calloption=pocall_safecall) then
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
           begin
-          result := true;
-          exit;
+            result:=true;
+            exit;
           end;
         case def.typ of
           { for records it depends on their contents and size }
@@ -613,7 +642,7 @@ unit cpupara;
               result:=(numclasses=0);
             end;
           else
-            result:=inherited ret_in_param(def,calloption);
+            result:=inherited ret_in_param(def,pd);
         end;
       end;
 
@@ -741,14 +770,16 @@ unit cpupara;
       end;
 
 
-    procedure tx86_64paramanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure tx86_64paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        def : tdef;
       begin
+        def:=tparavarsym(pd.paras[nr-1]).vardef;
         cgpara.reset;
         cgpara.size:=def_cgsize(def);
         cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=get_para_align(calloption);
+        cgpara.alignment:=get_para_align(pd.proccalloption);
         cgpara.def:=def;
         paraloc:=cgpara.add_location;
         with paraloc^ do

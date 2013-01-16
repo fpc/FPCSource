@@ -44,12 +44,11 @@ unit paramgr;
        tparamanager = class
           { true if the location in paraloc can be reused as localloc }
           function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
-          {# Returns true if the return value is actually a parameter
-             pointer.
-          }
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          { Returns true if the return value is actually a parameter pointer }
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;virtual;
 
           function push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function keep_para_array_range(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           { Returns true if a parameter is too large to copy and only
             the address is pushed
@@ -81,7 +80,7 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def: tdef; var cgpara : tcgpara);virtual;abstract;
+          procedure getintparaloc(pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;abstract;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 
@@ -167,8 +166,17 @@ implementation
 
 
     { true if uses a parameter as return value }
-    function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
+        if (tf_safecall_exceptions in target_info.flags) and
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
+          begin
+            result:=true;
+            exit;
+          end;
          ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
@@ -188,6 +196,12 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
+      end;
+
+
+    function tparamanager.keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        result:=push_high_param(varspez,def,calloption);
       end;
 
 
@@ -485,7 +499,7 @@ implementation
     function tparamanager.use_fixed_stack: boolean;
       begin
 {$ifdef i386}
-        result := (target_info.system in [system_i386_darwin,system_i386_iphonesim]);
+        result := target_info.stackalign > 4;
 {$else i386}
 {$ifdef cputargethasfixedstack}
         result := true;
@@ -532,21 +546,16 @@ implementation
         { Constructors return self instead of a boolean }
         if p.proctypeoption=potype_constructor then
           begin
-            if is_implicit_pointer_object_type(tdef(p.owner.defowner)) then
-              retloc.def:=tdef(p.owner.defowner)
-            else
-              retloc.def:=getpointerdef(tdef(p.owner.defowner));
-            retcgsize:=OS_ADDR;
-            retloc.intsize:=sizeof(pint);
-          end
-        else
-          begin
-            retcgsize:=def_cgsize(retloc.def);
-            retloc.intsize:=retloc.def.size;
+            retloc.def:=tdef(p.owner.defowner);
+            if not (is_implicit_pointer_object_type(retloc.def) or
+               is_record(retloc.def)) then
+              retloc.def:=getpointerdef(retloc.def);
           end;
+        retcgsize:=def_cgsize(retloc.def);
+        retloc.intsize:=retloc.def.size;
         retloc.size:=retcgsize;
         { Return is passed as var parameter }
-        if ret_in_param(retloc.def,p.proccalloption) then
+        if ret_in_param(retloc.def,p) then
           begin
             retloc.def:=getpointerdef(retloc.def);
             paraloc:=retloc.add_location;

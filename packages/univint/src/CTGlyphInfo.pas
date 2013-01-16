@@ -2,10 +2,11 @@
  *	CTGlyphInfo.h
  *	CoreText
  *
- *	Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ *	Copyright (c) 2006-2012 Apple Inc. All rights reserved.
  *
  }
-{       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,8 +177,6 @@ uses MacTypes,CTFont,CFBase,CGFont;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 
@@ -190,7 +194,8 @@ uses MacTypes,CTFont,CFBase,CGFont;
 { --------------------------------------------------------------------------- }
 
 type
-	CTGlyphInfoRef = ^SInt32; { an opaque type }
+	CTGlyphInfoRef = ^__CTGlyphInfo; { an opaque type }
+	__CTGlyphInfo = record end;
 	CTGlyphInfoRefPtr = ^CTGlyphInfoRef;
 
 {!
@@ -199,7 +204,7 @@ type
 }
 
 function CTGlyphInfoGetTypeID: CFTypeID; external name '_CTGlyphInfoGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -210,33 +215,40 @@ function CTGlyphInfoGetTypeID: CFTypeID; external name '_CTGlyphInfoGetTypeID';
 	@enum		CTCharacterCollection
 	@abstract	These constants specify character collections.
 
-	@constant	kCTIdentityMappingCharacterCollection
+	@constant	kCTCharacterCollectionIdentityMapping
 				Indicates that the character identifier is equal to the CGGlyph
 				glyph index.
 
-	@constant	kCTAdobeCNS1CharacterCollection
+	@constant	kCTCharacterCollectionAdobeCNS1
 				Indicates the Adobe-CNS1 mapping.
 
-	@constant	kCTAdobeGB1CharacterCollection
+	@constant	kCTCharacterCollectionAdobeGB1
 				Indicates the Adobe-GB1 mapping.
 
-	@constant	kCTAdobeJapan1CharacterCollection
+	@constant	kCTCharacterCollectionAdobeJapan1
 				Indicates the Adobe-Japan1 mapping.
 
-	@constant	kCTAdobeJapan2CharacterCollection
+	@constant	kCTCharacterCollectionAdobeJapan2
 				Indicates the Adobe-Japan2 mapping.
 
-	@constant	kCTAdobeKorea1CharacterCollection
+	@constant	kCTCharacterCollectionAdobeKorea1
 				Indicates the Adobe-Korea1 mapping.
 }
 
 const
-	kCTIdentityMappingCharacterCollection = 0;
-	kCTAdobeCNS1CharacterCollection = 1;
-	kCTAdobeGB1CharacterCollection = 2;
-	kCTAdobeJapan1CharacterCollection = 3;
-	kCTAdobeJapan2CharacterCollection = 4;
-	kCTAdobeKorea1CharacterCollection = 5;
+	kCTCharacterCollectionIdentityMapping   = 0;
+	kCTCharacterCollectionAdobeCNS1         = 1;
+	kCTCharacterCollectionAdobeGB1          = 2;
+	kCTCharacterCollectionAdobeJapan1       = 3;
+	kCTCharacterCollectionAdobeJapan2       = 4;
+	kCTCharacterCollectionAdobeKorea1       = 5;
+
+	kCTIdentityMappingCharacterCollection = kCTCharacterCollectionIdentityMapping;
+	kCTAdobeCNS1CharacterCollection = kCTCharacterCollectionAdobeCNS1;
+	kCTAdobeGB1CharacterCollection = kCTCharacterCollectionAdobeGB1;
+	kCTAdobeJapan1CharacterCollection = kCTCharacterCollectionAdobeJapan1;
+	kCTAdobeJapan2CharacterCollection = kCTCharacterCollectionAdobeJapan2;
+	kCTAdobeKorea1CharacterCollection = kCTCharacterCollectionAdobeKorea1;
 type
 	CTCharacterCollection = UInt16;
 
@@ -268,7 +280,7 @@ type
 }
 
 function CTGlyphInfoCreateWithGlyphName( glyphName: CFStringRef; font: CTFontRef; baseString: CFStringRef ): CTGlyphInfoRef; external name '_CTGlyphInfoCreateWithGlyphName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -294,7 +306,7 @@ function CTGlyphInfoCreateWithGlyphName( glyphName: CFStringRef; font: CTFontRef
 }
 
 function CTGlyphInfoCreateWithGlyph( glyph: CGGlyph; font: CTFontRef; baseString: CFStringRef ): CTGlyphInfoRef; external name '_CTGlyphInfoCreateWithGlyph';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -320,7 +332,7 @@ function CTGlyphInfoCreateWithGlyph( glyph: CGGlyph; font: CTFontRef; baseString
 }
 
 function CTGlyphInfoCreateWithCharacterIdentifier( cid: CGFontIndex; collection: CTCharacterCollection; baseString: CFStringRef ): CTGlyphInfoRef; external name '_CTGlyphInfoCreateWithCharacterIdentifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -342,7 +354,7 @@ function CTGlyphInfoCreateWithCharacterIdentifier( cid: CGFontIndex; collection:
 }
 
 function CTGlyphInfoGetGlyphName( glyphInfo: CTGlyphInfoRef ): CFStringRef; external name '_CTGlyphInfoGetGlyphName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -360,7 +372,7 @@ function CTGlyphInfoGetGlyphName( glyphInfo: CTGlyphInfoRef ): CFStringRef; exte
 }
 
 function CTGlyphInfoGetCharacterIdentifier( glyphInfo: CTGlyphInfoRef ): CGFontIndex; external name '_CTGlyphInfoGetCharacterIdentifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -381,9 +393,8 @@ function CTGlyphInfoGetCharacterIdentifier( glyphInfo: CTGlyphInfoRef ): CGFontI
 }
 
 function CTGlyphInfoGetCharacterCollection( glyphInfo: CTGlyphInfoRef ): CTCharacterCollection; external name '_CTGlyphInfoGetCharacterCollection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

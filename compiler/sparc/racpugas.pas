@@ -130,9 +130,9 @@ Interface
         Consume(AS_LBRACKET);
         repeat
           Case actasmtoken of
+            AS_PLUS,
             AS_INTNUM,
-            AS_MINUS,
-            AS_PLUS:
+            AS_MINUS:
               Begin
                 if hasimm or (regs>1) then
                  Begin
@@ -140,8 +140,13 @@ Interface
                    RecoverConsume(true);
                    break;
                  End;
-                oper.opr.Ref.Offset:=BuildConstExpression(false,true);
-                hasimm:=true;
+                if actasmtoken=AS_PLUS then
+                  Consume(AS_PLUS);
+                if (actasmtoken=AS_INTNUM) then
+                  begin
+                    oper.opr.Ref.Offset:=BuildConstExpression(false,true);
+                    hasimm:=true;
+                  end;
               End;
 
             AS_REGISTER:

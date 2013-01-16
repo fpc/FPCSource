@@ -36,9 +36,12 @@ interface
        { node }
        node,
        { aasm }
-       aasmbase,aasmtai,aasmdata,
+       aasmbase,aasmtai,
+{$ifdef jvm}
+       aasmdata,
+{$endif}
        cpubase,cpuinfo,
-       cgbase,cgutils,
+       cgbase,
        parabase
        ;
 
@@ -53,6 +56,7 @@ interface
        tstoreddef = class(tdef)
        protected
           typesymderef  : tderef;
+          procedure fillgenericparas(symtable:tsymtable);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -61,6 +65,9 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
+          { this list contains references to the symbols that make up the
+            generic parameters; the symbols are not owned by this list }
+          genericparas    : tfphashobjectlist;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -84,6 +91,12 @@ interface
           function is_fpuregable : boolean;
           { generics }
           procedure initgeneric;
+          { this function can be used to determine whether a def is really a
+            generic declaration or just a normal type declared inside another
+            generic }
+          function is_generic:boolean;inline;
+          { same as above for specializations }
+          function is_specialization:boolean;inline;
        private
           savesize  : asizeuint;
        end;
@@ -203,6 +216,8 @@ interface
           function search_enumerator_current: tsym; virtual;
           { JVM }
           function jvm_full_typename(with_package_name: boolean): string;
+          { check if the symtable contains a float field }
+          function contains_float_field : boolean;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -242,9 +257,10 @@ interface
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
          ImplementsGetter :  tsym;
+         ImplementsGetterDeref : tderef;
          ImplementsField : tsym;
          constructor create(aintf: tobjectdef);
-         constructor create_deref(d:tderef);
+         constructor create_deref(intfd,getterd:tderef);
          destructor  destroy; override;
          function  getcopy:TImplementedInterface;
          procedure buildderef;
@@ -519,33 +535,6 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
-       { kinds of synthetic procdefs that can be generated }
-       tsynthetickind = (
-         tsk_none,
-         tsk_anon_inherited,        // anonymous inherited call
-         tsk_jvm_clone,             // Java-style clone method
-         tsk_record_deepcopy,       // deepcopy for records field by field
-         tsk_record_initialize,     // initialize for records field by field (explicit rather than via rtti)
-         tsk_empty,                 // an empty routine
-         tsk_tcinit,                // initialisation of typed constants
-         tsk_callthrough,           // call through to another routine with the same parameters/return type (its def is stored in the skpara field)
-         tsk_callthrough_nonabstract,// call through to another routine if the current class not abstract (otherwise do the same as tsk_empty)
-         tsk_jvm_enum_values,       // Java "values" class method of JLEnum descendants
-         tsk_jvm_enum_valueof,      // Java "valueOf" class method of JLEnum descendants
-         tsk_jvm_enum_classconstr,  // Java class constructor for JLEnum descendants
-         tsk_jvm_enum_jumps_constr, // Java constructor for JLEnum descendants for enums with jumps
-         tsk_jvm_enum_fpcordinal,   // Java FPCOrdinal function that returns the enum's ordinal value from an FPC POV
-         tsk_jvm_enum_fpcvalueof,   // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
-         tsk_jvm_enum_long2set,     // Java fpcLongToEnumSet function that returns an enumset corresponding to a bit pattern in a jlong
-         tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
-         tsk_jvm_enum_set2Set,      // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
-         tsk_jvm_procvar_invoke,    // Java invoke method that calls a wrapped procvar
-         tsk_jvm_procvar_intconstr, // Java procvar class constructor that accepts an interface instance for easy Java interoperation
-         tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
-         tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
-         tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
-       );
-
 {$ifdef oldregvars}
        { register variables }
        pregvarinfo = ^tregvarinfo;
@@ -626,8 +615,6 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-          { interrupt vector }
-          interruptvector : longint;
           { First/last assembler symbol/instruction in aasmoutput list.
             Note: initialised after compiling the code for the procdef, but
               not saved to/restored from ppu. Used when inserting debug info }
@@ -648,6 +635,8 @@ interface
           synthetickind : tsynthetickind;
           { optional parameter for the synthetic routine generation logic }
           skpara: pointer;
+          { true, if the procedure contains no code }
+          isempty,
           { true, if the procedure is only declared
             (forward procedure) }
           forwarddef,
@@ -938,6 +927,9 @@ interface
 {$ifdef JVM}
        pbestrealtype : ^tdef = @s64floattype;
 {$endif JVM}
+{$ifdef AARCH64}
+       pbestrealtype : ^tdef = @s64floattype;
+{$endif AARCH64}
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
     function make_dllmangledname(const dllname,importname:TSymStr;
@@ -1001,9 +993,9 @@ implementation
       { global }
       verbose,
       { target }
-      systems,aasmcpu,paramgr,
+      systems,paramgr,
       { symtable }
-      symsym,symtable,symutil,defutil,objcdef,
+      symsym,symtable,defutil,objcdef,
 {$ifdef jvm}
       jvmdef,
 {$endif}
@@ -1329,6 +1321,23 @@ implementation
                      TDEF (base class for definitions)
 ****************************************************************************}
 
+    procedure tstoreddef.fillgenericparas(symtable: tsymtable);
+      var
+        sym : tsym;
+        i : longint;
+      begin
+        if not assigned(symtable) then
+          internalerror(2012091201);
+        if [df_generic,df_specialization]*defoptions=[] then
+          exit;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            sym:=tsym(symtable.symlist[i]);
+            if sp_generic_para in sym.symoptions then
+              genericparas.Add(sym.name,sym);
+          end;
+      end;
+
     constructor tstoreddef.create(dt:tdeftyp);
       var
         insertstack : psymtablestackitem;
@@ -1340,6 +1349,7 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
+         genericparas:=tfphashobjectlist.create(false);
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1375,6 +1385,7 @@ implementation
             generictokenbuf.free;
             generictokenbuf:=nil;
           end;
+        genericparas.free;
         inherited destroy;
       end;
 
@@ -1385,6 +1396,7 @@ implementation
         buf  : array[0..255] of byte;
       begin
          inherited create(dt);
+         genericparas:=tfphashobjectlist.create(false);
          DefId:=ppufile.getlongint;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
@@ -1591,7 +1603,7 @@ implementation
           classrefdef:
             is_intregable:=true;
           procvardef :
-            is_intregable:=tprocvardef(self).is_addressonly;
+            is_intregable:=tprocvardef(self).is_addressonly or (po_methodpointer in tprocvardef(self).procoptions);
           objectdef:
             is_intregable:=(is_implicit_pointer_object_type(self)) and not needs_inittable;
           setdef:
@@ -1601,7 +1613,10 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (recsize <= sizeof(asizeint))
+                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
+                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                  and not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint)))
                 and not needs_inittable;
             end;
         end;
@@ -1623,6 +1638,18 @@ implementation
        if assigned(generictokenbuf) then
          internalerror(200512131);
        generictokenbuf:=tdynamicarray.create(256);
+     end;
+
+
+   function tstoreddef.is_generic: boolean;
+     begin
+       result:=(genericparas.count>0) and (df_generic in defoptions);
+     end;
+
+
+   function tstoreddef.is_specialization: boolean;
+     begin
+       result:=(genericparas.count>0) and (df_specialization in defoptions);
      end;
 
 
@@ -2446,13 +2473,13 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=634{+8}
+              savesize:=640
             else
-              savesize:=630{+8};
+              savesize:=632;
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=372
+              savesize:=376
             else
               savesize:=368;
         end;
@@ -2466,15 +2493,15 @@ implementation
             savesize:=332;
         end;
 {$endif cpu32bitaddr}
-{$ifdef cpu8bitaddr}
+{$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            savesize:=127;
+            savesize:=96;
           ft_typed,
           ft_untyped :
-            savesize:=127;
+            savesize:=76;
         end;
-{$endif cpu8bitaddr}
+{$endif cpu16bitaddr}
       end;
 
 
@@ -2945,6 +2972,7 @@ implementation
         tarraysymtable(symtable).deref;
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
+        fillgenericparas(symtable);
       end;
 
 
@@ -3378,6 +3406,23 @@ implementation
       end;
 
 
+    function tabstractrecorddef.contains_float_field: boolean;
+      var
+        i : longint;
+      begin
+        result:=true;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            if tsym(symtable.symlist[i]).typ<>fieldvarsym then
+              continue;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) and
+              tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
+              exit;
+          end;
+        result:=false;
+      end;
+
+
 {***************************************************************************
                                   trecorddef
 ***************************************************************************}
@@ -3487,6 +3532,8 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+
+         fillgenericparas(symtable);
 
          { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
@@ -3686,6 +3733,7 @@ implementation
          tparasymtable(parast).deref;
          { recalculated parameters }
          calcparas;
+         fillgenericparas(parast);
       end;
 
 
@@ -3866,7 +3914,6 @@ implementation
       var
         j, nestinglevel: longint;
         pvs, npvs: tparavarsym;
-        csym, ncsym: tconstsym;
       begin
         nestinglevel:=parast.symtablelevel;
         if newtyp=procdef then
@@ -4038,7 +4085,6 @@ implementation
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
-         interruptvector:=-1;
       end;
 
 
@@ -4070,6 +4116,7 @@ implementation
            deprecatedmsg:=stringdup(ppufile.getstring)
          else
            deprecatedmsg:=nil;
+         synthetickind:=tsynthetickind(ppufile.getbyte);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.getderef(libsymderef);
@@ -4084,10 +4131,6 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           interruptvector:=ppufile.getlongint;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -4112,6 +4155,8 @@ implementation
          aliasnamescount:=ppufile.getbyte;
          for i:=1 to aliasnamescount do
            aliasnames.insert(ppufile.getstring);
+
+         isempty:=ppufile.getbyte<>0;
 
          { load para symtable }
          parast:=tparasymtable.create(self,level);
@@ -4224,6 +4269,7 @@ implementation
          ppufile.putsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
+         ppufile.putbyte(byte(synthetickind));
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.putderef(libsymderef);
@@ -4234,10 +4280,6 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           ppufile.putlongint(interruptvector);
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then
@@ -4270,6 +4312,8 @@ implementation
             ppufile.putstring(item.str);
             item:=TCmdStrListItem(item.next);
           end;
+
+         ppufile.putbyte(ord(isempty));
 
          ppufile.do_crc:=oldintfcrc;
 
@@ -4417,9 +4461,7 @@ implementation
 
     function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
       var
-        i : tcallercallee;
         j : longint;
-        pvs : tparavarsym;
       begin
         result:=inherited getcopyas(newtyp,copytyp);
         if newtyp=procvardef then
@@ -5189,7 +5231,7 @@ implementation
       var
          i,
          implintfcount : longint;
-         d : tderef;
+         d, getterd : tderef;
          ImplIntf : TImplementedInterface;
          vmtentry : pvmtentry;
       begin
@@ -5240,8 +5282,10 @@ implementation
              for i:=0 to implintfcount-1 do
                begin
                  ppufile.getderef(d);
-                 ImplIntf:=TImplementedInterface.Create_deref(d);
+                 ppufile.getderef(getterd);
+                 ImplIntf:=TImplementedInterface.Create_deref(d,getterd);
                  ImplIntf.IOffset:=ppufile.getlongint;
+                 byte(ImplIntf.IType):=ppufile.getbyte;
                  ImplementedInterfaces.Add(ImplIntf);
                end;
            end
@@ -5425,7 +5469,9 @@ implementation
                begin
                  ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
                  ppufile.putderef(ImplIntf.intfdefderef);
+                 ppufile.putderef(ImplIntf.ImplementsGetterDeref);
                  ppufile.putlongint(ImplIntf.Ioffset);
+                 ppufile.putbyte(byte(ImplIntf.IType));
                end;
            end;
 
@@ -5497,6 +5543,7 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         fillgenericparas(symtable);
          if objecttype=odt_helper then
            extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
@@ -5884,7 +5931,10 @@ implementation
             odt_interfacecorba:
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
-              needs_inittable:=tObjectSymtable(symtable).needs_init_final;
+              needs_inittable:=
+                tObjectSymtable(symtable).needs_init_final or
+                (assigned(childof) and
+                 childof.needs_inittable);
             odt_cppclass,
             odt_objcclass,
             odt_objcprotocol,
@@ -6275,11 +6325,12 @@ implementation
       end;
 
 
-    constructor TImplementedInterface.create_deref(d:tderef);
+    constructor TImplementedInterface.create_deref(intfd,getterd:tderef);
       begin
         inherited create;
         intfdef:=nil;
-        intfdefderef:=d;
+        intfdefderef:=intfd;
+        ImplementsGetterDeref:=getterd;
         IOffset:=-1;
         IType:=etStandard;
         NameMappings:=nil;
@@ -6314,12 +6365,14 @@ implementation
     procedure TImplementedInterface.buildderef;
       begin
         intfdefderef.build(intfdef);
+        ImplementsGetterDeref.build(ImplementsGetter);
       end;
 
 
     procedure TImplementedInterface.deref;
       begin
         intfdef:=tobjectdef(intfdefderef.resolve);
+        ImplementsGetter:=tsym(ImplementsGetterDeref.resolve);
       end;
 
 
@@ -6767,19 +6820,24 @@ implementation
     procedure maybeloadcocoatypes;
       var
         tsym: ttypesym;
+        cocoaunit: string[15];
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        tsym:=search_named_unit_globaltype('COCOAALL','NSFASTENUMERATIONPROTOCOL',false);
+        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+          cocoaunit:='COCOAALL'
+        else
+          cocoaunit:='IPHONEALL';
+        tsym:=search_named_unit_globaltype(cocoaunit,'NSFASTENUMERATIONPROTOCOL',false);
         if assigned(tsym) then
           objc_fastenumeration:=tobjectdef(tsym.typedef)
         else
           objc_fastenumeration:=nil;
-        tsym:=search_named_unit_globaltype('COCOAALL','NSFASTENUMERATIONSTATE',false);
+        tsym:=search_named_unit_globaltype(cocoaunit,'NSFASTENUMERATIONSTATE',false);
         if assigned(tsym) then
           objc_fastenumerationstate:=trecorddef(tsym.typedef)
         else
-        objc_fastenumerationstate:=nil;
+          objc_fastenumerationstate:=nil;
       end;
 
 

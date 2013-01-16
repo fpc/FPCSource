@@ -146,10 +146,10 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
         // less than 0?
         cmp     r1,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-        movle   pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
         bxle    lr
+{$else}
+        movle   pc,lr
 {$endif}
         mov     r3,r0
 
@@ -177,10 +177,10 @@ asm
         // Do the rest
         adds    r1, r1, #8
 
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-        moveq   pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
         bxeq    lr
+{$else}
+        moveq   pc,lr
 {$endif}
 
         tst     r1, #4
@@ -189,10 +189,10 @@ asm
         strneh  r2,[r3],#2
         tst     r1, #1
         strneb  r2,[r3],#1
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-        mov pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
         bx  lr
+{$else}
+        mov pc,lr
 {$endif}
 
 // Special case for unaligned start
@@ -200,10 +200,10 @@ asm
 .LFillchar_do_align:
         strb r2,[r3],#1
         subs r1, r1, #1
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-        moveq pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
         bxeq  lr
+{$else}
+        moveq pc,lr
 {$endif}
         tst r3,#3
         bne .LFillchar_do_align
@@ -213,15 +213,19 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
+{$ifdef CPUARM_HAS_EDSP}
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+{$else CPUARM_HAS_EDSP}
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
+{$endif CPUARM_HAS_EDSP}
 asm
   pld [r0]
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  movle pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxle  lr
+{$else}
+  movle pc,lr
 {$endif}
   // overlap?
   subs   r3, r1, r0    // if (dest > source) and
@@ -245,20 +249,20 @@ asm
   stmia r1!, {r3, ip}
   bge   .Ldwordloop
   cmp   r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  moveq pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxeq  lr
+{$else}
+  moveq pc,lr
 {$endif}
 .Lbyteloop:
   subs r2,r2,#1
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
 {$endif}
 .Loverlapped:
   subs r2,r2,#1
@@ -267,14 +271,15 @@ asm
   bne .Loverlapped
 end;
 
+{$ifndef CPUARM_HAS_EDSP}
 procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
 asm
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  movle pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxle  lr
+{$else}
+  movle pc,lr
 {$endif}
   // overlap?
   subs   r3, r1, r0    // if (dest > source) and
@@ -295,20 +300,20 @@ asm
   stmia r1!, {r3, ip}
   bge   .Ldwordloop
   cmp   r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  moveq pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxeq  lr
+{$else}
+  moveq pc,lr
 {$endif}
 .Lbyteloop:
   subs r2,r2,#1
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
 {$endif}
 .Loverlapped:
   subs r2,r2,#1
@@ -327,6 +332,7 @@ asm
 .Lmoveproc:
   .long moveproc
 end;
+{$endif CPUARM_HAS_EDSP}
 
 {$endif FPC_SYSTEM_HAS_MOVE}
 
@@ -488,10 +494,10 @@ asm
       terminating 0, due to the known carry flag sbc can do this.*)
     sbc r0,r1,r0
 .Ldone:
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-    mov pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
     bx  lr
+{$else}
+    mov pc,lr
 {$endif}
 .L01010101:
     .long 0x01010101
@@ -499,6 +505,7 @@ end;
 {$endif}
 
 
+{$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -513,21 +520,25 @@ asm
   cmp     r1, #0
   // Load reference counter
   ldrne   r2, [r1, #-8]
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  moveq   pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxeq    lr
+{$else}
+  moveq   pc,lr
 {$endif}
   // Check for a constant string
   cmp     r2, #0
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  movlt   pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxlt    lr
+{$else}
+  movlt   pc,lr
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
+{$ifdef CPUARM_HAS_BLX}
   blx     InterLockedDecrement
+{$else}
+  bl      InterLockedDecrement
+{$endif}
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
@@ -538,13 +549,14 @@ asm
   // Jump without a link, so freemem directly returns to our caller
   b       FPC_FREEMEM_X
 end;
+{$endif not darwin}
 
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+{$ifdef CPUARM_HAS_LDREX}
 .Lloop:
   ldrex r1, [r0]
   sub   r1, r1, #1
@@ -554,8 +566,7 @@ asm
   movs r0, r1
   bx  lr
 {$else}
-{$if defined(LINUX) and defined(CPUARMEL)}
-
+{$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
 .Latomic_dec_loop:
@@ -604,6 +615,8 @@ asm
 {$endif}
 end;
 
+
+{$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
 
 Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
@@ -614,10 +627,10 @@ asm
   ldrne   r1, [r0, #-8]
   // pointer to counter, calculate here for delay slot utilization
   subne   r0, r0, #8
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  moveq   pc,lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bxeq    lr
+{$else}
+  moveq   pc,lr
 {$endif}
   // Check for a constant string
   cmp     r1, #0
@@ -626,10 +639,11 @@ asm
   bge     InterLockedIncrement
   // Freepascal will generate a proper return here, save some cachespace
 end;
+{$endif not darwin}
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+{$ifdef CPUARM_HAS_LDREX}
 .Lloop:
   ldrex r1, [r0]
   add   r1, r1, #1
@@ -639,8 +653,7 @@ asm
   mov r0, r1
   bx  lr
 {$else}
-{$if defined(LINUX) and defined(CPUARMEL)}
-
+{$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
 .Latomic_inc_loop:
@@ -690,7 +703,7 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+{$ifdef CPUARM_HAS_LDREX}
 // swp is deprecated on ARMv6 and above
 .Lloop:
   ldrex r2, [r0]
@@ -700,14 +713,56 @@ asm
   mov r0, r2
   bx  lr
 {$else}
-  swp r1, r1, [r0]
-  mov r0,r1
+{$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
+  stmfd r13!, {r4, lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 (and r1) by definition
+.Latomic_add_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+  mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
+
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  // restore the original value if needed
+  movcs   r0, r4
+  ldmcsfd r13!, {r4, pc}
+
+  b .Latomic_add_loop // kuser_cmpxchg failed, loop back
+{$else}
+// lock
+  ldr r3, .Lfpc_system_lock
+  mov r2, #1
+.Lloop:
+  swp r2, r2, [r3]
+  cmp r2, #0
+  bne .Lloop
+// do the job
+  ldr r2, [r0]
+  str r1, [r0]
+  mov r0, r2
+// unlock and return
+  mov r2, #0
+  str r2, [r3]
+  bx  lr
+
+.Lfpc_system_lock:
+  .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+{$ifdef CPUARM_HAS_LDREX}
 .Lloop:
   ldrex r2, [r0]
   add   r12, r1, r2
@@ -717,8 +772,7 @@ asm
   mov  r0, r2
   bx  lr
 {$else}
-{$if defined(LINUX) and defined(CPUARMEL)}
-
+{$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {r4, lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
   mov r4, r1   // Save addend
@@ -773,7 +827,7 @@ end;
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
-{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+{$ifdef CPUARM_HAS_LDREX}
 .Lloop:
   ldrex    r3, [r0]
   mov      r12, #0
@@ -784,8 +838,7 @@ asm
   mov      r0, r3
   bx       lr
 {$else}
-{$if defined(LINUX) and defined(CPUARMEL)}
-
+{$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {r4, lr}
   mvn   r3, #0x0000f000
   sub   r3, r3, #0x3F
@@ -851,6 +904,7 @@ end;
 procedure fpc_cpucodeinit;
 begin
 {$ifdef FPC_SYSTEM_FPC_MOVE}
+{$ifndef CPUARM_HAS_EDSP}
   cpu_has_edsp:=true;
   in_edsp_test:=true;
   asm
@@ -862,6 +916,9 @@ begin
     moveproc:=@move_pld
   else
     moveproc:=@move_blended;
+{$else CPUARM_HAS_EDSP}
+  cpu_has_edsp:=true;
+{$endif CPUARM_HAS_EDSP}
 {$endif FPC_SYSTEM_FPC_MOVE}
 end;
 
@@ -890,13 +947,13 @@ is bigger than the gain of the optimized function.
 function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
 asm
 	// We're starting with 4321
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
+{$if defined(CPUARM_HAS_REV)}
+	rev r0, r0		// Reverse byteorder    r0 = 1234
+	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
+{$else}
 	mov r0, r0, shl #16	// Shift to make that 2100
 	mov r0, r0, ror #24	// Rotate to 1002
 	orr r0, r0, r0 shr #16  // Shift and combine into 0012
-{$else}
-	rev r0, r0		// Reverse byteorder    r0 = 1234
-	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
 {$endif}
 end;
 
@@ -928,7 +985,12 @@ end;
 
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
+// fpc >2.6.0 adds the "rev" instruction in the internal assembler
+{$if defined(CPUARM_HAS_REV)}
+        rev r2, r0
+        rev r0, r1
+        mov r1, r2
+{$else}
         mov ip, r1
 
         // We're starting with r0 = $87654321
@@ -942,10 +1004,6 @@ asm
         mov ip, ip, ror #8
         eor r0, ip, r0, lsr #8
 
-{$else}
-        rev r2, r0
-        rev r0, r1
-        mov r1, r2
 {$endif}
 end;
 
@@ -954,6 +1012,55 @@ begin
   Result:=QWord(SwapEndian(Int64(AValue)));
 end;
 
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+{ Generic read/readwrite barrier code.  }
+procedure barrier; assembler; nostackframe;
+asm
+  // manually encode the instructions to avoid bootstrap and -march external
+  // assembler settings 
+{$ifdef CPUARM_HAS_DMB}
+  .long 0xf57ff05f  // dmb sy
+{$else}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
+{$endif}
+{$endif}
+end;
+
+procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { reads imply barrier on earlier reads depended on; not required on ARM }
+end;
+
+procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure WriteBarrier; assembler; nostackframe;
+asm
+  // specialize the write barrier because according to ARM, implementations for
+  // "dmb st" may be more optimal than the more generic "dmb sy"
+{$ifdef CPUARM_HAS_DMB}
+  .long 0xf57ff05e  // dmb st
+{$else}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
+{$endif}
+{$endif}
+end;
+
+{$endif}
+
 {include hand-optimized assembler division code}
-{$i divide.inc}
+{ $i divide.inc}
 

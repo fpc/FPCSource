@@ -1,4 +1,4 @@
-PTCPas 0.99.12
+PTCPas 0.99.13
 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
 PTCPas is a free, portable framebuffer library, written in Free Pascal. It is
@@ -10,8 +10,9 @@ The latest version can be found at http://ptcpas.sourceforge.net
 Basically it provides an abstraction layer for high-speed low-level graphics
 access. It is OOP and supports multiple platforms. (tested on Linux, DOS and
 Windows, more will be added in the future)
-3d acceleration isn't supported, nor planned. If you need that, you should use
-something like OpenGL instead. :-)
+
+Since version 0.99.13 it is also possible to create OpenGL applications with
+PTCPas. See the ptcgl.pp and ptcgl2.pp examples in the 'examples' directory.
 
 PTCPas initially started out as a complete Object Pascal translation of the
 OpenPTC C++ library. Since then, OpenPTC development has stalled and PTCPas

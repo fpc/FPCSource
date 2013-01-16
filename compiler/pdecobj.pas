@@ -70,13 +70,21 @@ implementation
       begin
         case astruct.typ of
           recorddef:
-            parse_record_proc_directives(pd);
+            begin
+              parse_record_proc_directives(pd);
+              // we can't add hidden params here because record is not yet defined
+              // and therefore record size which has influence on paramter passing rules may change too
+              // look at record_dec to see where calling conventions are applied (issue #0021044)
+              handle_calling_convention(pd,[hcc_check]);
+            end;
           objectdef:
-            parse_object_proc_directives(pd);
+            begin
+              parse_object_proc_directives(pd);
+              handle_calling_convention(pd);
+            end
           else
             internalerror(2011040502);
         end;
-        handle_calling_convention(pd);
 
         { add definition to procsym }
         proc_add_definition(pd);

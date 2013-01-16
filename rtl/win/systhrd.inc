@@ -91,12 +91,10 @@ var
                              Threadvar support
 *****************************************************************************}
 
-    const
-      threadvarblocksize : dword = 0;
-
-    const
+    var
+      // public names are used by heaptrc unit
+      threadvarblocksize : dword; public name '_FPC_TlsSize';
       TLSKey : DWord = $ffffffff; public name '_FPC_TlsKey';
-      TLSSize : DWord = 0; public name '_FPC_TlsSize';
 
     var
       MainThreadIdWin32 : DWORD;
@@ -132,7 +130,6 @@ var
             if dataindex=nil then
               RunError(226);
             TlsSetValue(tlskey,dataindex);
-            TlsSize:=threadvarblocksize;
           end;
         SetLastError(errorsave);
       end;

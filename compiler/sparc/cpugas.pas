@@ -27,22 +27,27 @@ interface
 
     uses
       cpubase,
-      aasmtai,aasmdata,aasmcpu,assemble,aggas;
+      aasmtai,aasmdata,aasmcpu,assemble,aggas,
+      cgutils,globtype;
 
     type
       TGasSPARC=class(TGnuAssembler)
         constructor create(smart: boolean); override;
+        {# Constructs the command line for calling the assembler }
+        function MakeCmdLine: TCmdStr; override;
       end;
 
      TSPARCInstrWriter=class(TCPUInstrWriter)
        procedure WriteInstruction(hp:Tai);override;
+       function GetReferenceString(var ref : TReference):string;
+       function getopstr(const Oper:TOper):string;
      end;
 
 implementation
 
     uses
-      cutils,systems,
-      verbose,itcpugas,cgbase,cgutils;
+      cutils,systems,globals,cpuinfo,procinfo,
+      verbose,itcpugas,cgbase;
 
 
 {****************************************************************************}
@@ -56,9 +61,33 @@ implementation
       end;
 
 
-    function GetReferenceString(var ref:TReference):string;
+    function TGasSPARC.MakeCmdLine: TCmdStr;
+      begin
+         result := Inherited MakeCmdLine;
+
+         { ARCH selection }
+         // Note for casual readers: gas (GNU as) uses -Av7, -Av8, -Av9 etc. on SPARC,
+         // rather than variants of the -m option used by most other CPUs. Solaris as
+         // uses -xarch=v7, -xarch=v8 etc., that form is not supported here since there
+         // are probably other incompatibilties between the GNU and Solaris binutils
+         // that need to be reviewed.
+         //
+         // v9 is required as the default since the RTL started using membar at 2.2.2.
+         case current_settings.cputype of
+           cpu_SPARC_V7: Replace(result,'$ARCH','-Av7');
+           cpu_SPARC_V8: Replace(result,'$ARCH','-Av8')
+         else
+           Replace(result,'$ARCH','-Av9')
+         end
+      end;
+
+
+    function TSPARCInstrWriter.GetReferenceString(var ref:TReference):string;
+      var
+        asm_comment : string;
       begin
         GetReferenceString:='';
+        asm_comment:='';
         with ref do
           begin
             if (base=NR_NO) and (index=NR_NO) then
@@ -74,17 +103,27 @@ implementation
                      GetReferenceString:='%hi('+GetReferenceString+')';
                    addr_low:
                      GetReferenceString:='%lo('+GetReferenceString+')';
+                   addr_pic:
+                     begin
+                       asm_comment:='addr_pic should use %l7 register as base or index: '+GetReferenceString;
+                       Comment(V_Warning,asm_comment);
+                       GetReferenceString:='%l7+'+GetReferenceString;
+                     end;
                  end;
               end
             else
               begin
+                if (base=NR_NO) and (index<>NR_NO) then
+                  begin
+                    base:=index;
+                    index:=NR_NO;
+                  end;
 {$ifdef extdebug}
                 if assigned(symbol) and
                   not(refaddr in [addr_pic,addr_low]) then
                   internalerror(2003052601);
 {$endif extdebug}
-                if base<>NR_NO then
-                  GetReferenceString:=GetReferenceString+gas_regname(base);
+                GetReferenceString:=GetReferenceString+gas_regname(base);
                 if index=NR_NO then
                   begin
                     { if (Offset<simm13lo) or (Offset>simm13hi) then
@@ -101,6 +140,15 @@ implementation
                       begin
                         if refaddr=addr_low then
                           GetReferenceString:='%lo('+symbol.name+')+'+GetReferenceString
+                        else if refaddr=addr_pic then
+                          begin
+                            if assigned(current_procinfo) and (base <> current_procinfo.got) then
+                              begin
+                                asm_comment:=' pic address should use %l7 register: '+GetReferenceString; 
+                                Comment(V_Warning,asm_comment);
+                              end;
+                            GetReferenceString:=GetReferenceString+'+'+symbol.name;
+                          end
                         else
                           GetReferenceString:=symbol.name+'+'+GetReferenceString;
                       end;
@@ -112,13 +160,19 @@ implementation
                       internalerror(2003052603);
 {$endif extdebug}
                     GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
+                    
                   end;
               end;
+          end;
+        if asm_comment <> '' then
+          begin
+            owner.AsmWrite(target_asm.comment+' '+asm_comment);
+            owner.AsmLn;
           end;
       end;
 
 
-    function getopstr(const Oper:TOper):string;
+    function TSPARCInstrWriter.getopstr(const Oper:TOper):string;
       begin
         with Oper do
           case typ of
@@ -127,8 +181,9 @@ implementation
             top_const:
               getopstr:=tostr(longint(val));
             top_ref:
-              if (oper.ref^.refaddr in [addr_no,addr_pic]) or ((oper.ref^.refaddr=addr_low) and ((oper.ref^.base<>NR_NO) or
-                (oper.ref^.index<>NR_NO))) then
+              if (oper.ref^.refaddr in [addr_no,addr_pic]) or
+                 ((oper.ref^.refaddr=addr_low) and ((oper.ref^.base<>NR_NO) or
+                  (oper.ref^.index<>NR_NO))) then
                 getopstr:='['+getreferencestring(ref^)+']'
               else
                 getopstr:=getreferencestring(ref^);
@@ -209,12 +264,12 @@ implementation
            idtxt  : 'AS';
            asmbin : 'as';
 {$ifdef FPC_SPARC_V8_ONLY}
-           asmcmd : '-o $OBJ $ASM';
+           asmcmd : '$PIC -o $OBJ $ASM';
 {$else}
-           asmcmd : '-Av9 -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
 {$endif}
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
-           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
            dollarsign: '$';
@@ -225,9 +280,9 @@ implementation
            id     : as_ggas;
            idtxt  : 'GAS';
            asmbin : 'gas';
-           asmcmd : '-Av9 -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
-           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
            dollarsign: '$';

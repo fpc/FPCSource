@@ -26,6 +26,8 @@
   AnsiString is defined as a 'silent' pchar :
   a pchar that points to :
 
+  @-16 : Code page indicator.
+  @-12 : Character size (2 bytes)
   @-8  : SizeInt for reference count;
   @-4  : SizeInt for size;
   @    : String + Terminating #0;
@@ -279,7 +281,6 @@ Var
   DestCP      : TSystemCodePage;
   U           : UnicodeString;
   sameCP      : Boolean;
-  tmpStr      : RawByteString;
   tmpCP       : TSystemCodePage;
 begin
   if high(sarr)=0 then
@@ -315,14 +316,7 @@ begin
       U:='';
       for i:=lowstart to high(sarr) do begin
         tmpCP:=StringCodePage(sarr[i]);
-        if (tmpCP=CP_ACP) then
-          begin
-            tmpStr:=sarr[i];
-            SetCodePage(tmpStr,DefaultSystemCodePage,False);
-            U:=U+UnicodeString(tmpStr);
-          end
-        else
-          U:=U+UnicodeString(sarr[i]);
+        U:=U+UnicodeString(sarr[i]);
       end;
 
       DestS:='';
@@ -635,8 +629,12 @@ begin
       exit;
     end;
   cp1:=StringCodePage(S1);
+  if cp1=CP_ACP then
+    cp1:=DefaultSystemCodePage;
   cp2:=StringCodePage(S2);
-  if (cp1=cp2) then
+  if cp2=CP_ACP then
+    cp2:=DefaultSystemCodePage;
+  if cp1=cp2 then
     begin
       Maxi:=Length(S1);
       temp:=Length(S2);
@@ -654,15 +652,11 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
       SetCodePage(r2,65001);
-      Result := fpc_AnsiStr_Compare(r1,r2);
+      Result:=fpc_AnsiStr_Compare(r1,r2);
     end;
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE}
@@ -690,17 +684,21 @@ begin
   { don't compare strings if one of them is empty }
   if (pointer(S1)=nil) then
     begin
-      result:=-Length(S2);
+      result:=-1;
       exit;
     end;
   if (pointer(S2)=nil) then
     begin
-      result:=Length(S1);
+      result:=1;
       exit;
     end;
   cp1:=StringCodePage(S1);
+  if cp1=CP_ACP then
+    cp1:=DefaultSystemCodePage;
   cp2:=StringCodePage(S2);
-  if (cp1=cp2) then
+  if cp2=CP_ACP then
+    cp2:=DefaultSystemCodePage;
+  if cp1=cp2 then
     begin
       Maxi:=Length(S1);
       temp:=Length(S2);
@@ -712,11 +710,7 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
       SetCodePage(r2,65001);
@@ -730,30 +724,14 @@ begin
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE_EQUAL}
 
-{$ifdef VER2_4}
-// obsolete but needed for boostrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : pointer);[Public,Alias : 'FPC_ANSISTR_CHECKZERO'];  compilerproc;
-begin
-  if p=nil then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
-begin
-  if (index>len) or (Index<1) then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-{$else VER2_4}
-{$ifndef FPC_HAS_ANSISTR_CHECKRANGE}
-{$define FPC_HAS_ANSISTR_CHECKRANGE}
-Procedure fpc_AnsiStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
+{$ifndef FPC_HAS_ANSISTR_RANGECHECK}
+{$define FPC_HAS_ANSISTR_RANGECHECK}
+Procedure fpc_AnsiStr_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
 begin
   if (p=nil) or (index>PAnsiRec(p-AnsiFirstOff)^.Len) or (Index<1) then
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
-{$endif FPC_HAS_ANSISTR_CHECKRANGE}
-{$endif VER2_4}
+{$endif FPC_HAS_ANSISTR_RANGECHECK}
 
 {$ifndef FPC_HAS_ANSISTR_SETLENGTH}
 {$define FPC_HAS_ANSISTR_SETLENGTH}

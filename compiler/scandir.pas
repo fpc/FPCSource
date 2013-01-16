@@ -986,7 +986,11 @@ unit scandir;
       { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
       current_settings.pmessage:=nil;
-      flushpendingswitchesstate;
+      { Do not yet activate these changes, as otherwise
+        you get problem idf you put a $pop just right after
+        a addition for instance fro which you explicitly truned the overflow check
+        out by using $Q- after a $push PM 2012-08-29 }
+      // flushpendingswitchesstate;
     end;
 
     procedure dir_pointermath;
@@ -1085,8 +1089,17 @@ unit scandir;
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
-        peflags:=current_scanner.readval;
+        peflags:=peflags or current_scanner.readval;
         SetPEFlagsSetExplicity:=true;
+      end;
+
+    procedure dir_setpeoptflags;
+      begin
+        if not (target_info.system in (systems_all_windows)) then
+          Message(scan_w_setpeoptflags_not_support);
+        current_scanner.skipspace;
+        peoptflags:=peoptflags or current_scanner.readval;
+        SetPEOptFlagsSetExplicity:=true;
       end;
 
     procedure dir_smartlink;
@@ -1465,6 +1478,11 @@ unit scandir;
       begin
       end;
 
+    procedure dir_zerobasesstrings;
+      begin
+        do_localswitch(cs_zerobasedstrings);
+      end;
+
 
 {****************************************************************************
                          Initialize Directives
@@ -1564,6 +1582,7 @@ unit scandir;
         AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
         AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
+        AddDirective('SETPEOPTFLAGS', directive_all, @dir_setpeoptflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
@@ -1589,6 +1608,7 @@ unit scandir;
         AddDirective('Z1',directive_all, @dir_z1);
         AddDirective('Z2',directive_all, @dir_z2);
         AddDirective('Z4',directive_all, @dir_z4);
+        AddDirective('ZEROBASEDSTRINGS',directive_all, @dir_zerobasesstrings);
       end;
 
 end.

@@ -114,7 +114,11 @@ interface
           begin
             current_procinfo.CurrTrueLabel:=otl;
             current_procinfo.CurrFalseLabel:=ofl;
-          end;
+          end
+        else
+          if left.location.loc=LOC_JUMP then
+            internalerror(2012081302);
+
 
 {$ifdef x86}
         { are too few registers free? }

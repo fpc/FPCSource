@@ -134,21 +134,23 @@ unit cgx86;
    const
 {$ifdef x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_Q,S_T,S_B,S_W,S_L,S_Q,S_Q,
+        (S_NO,S_B,S_W,S_L,S_Q,S_XMM,S_B,S_W,S_L,S_Q,S_XMM,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
-         S_NO,S_NO,S_NO,S_MD,S_T,
-         S_NO,S_NO,S_NO,S_NO,S_T);
+         S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
+         S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
 {$else x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_T,S_B,S_W,S_L,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
-         S_NO,S_NO,S_NO,S_MD,S_T,
-         S_NO,S_NO,S_NO,S_NO,S_T);
+         S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
+         S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
 {$endif x86_64}
 
 {$ifndef NOTARGETWIN}
       winstackpagesize = 4096;
 {$endif NOTARGETWIN}
+
+    function UseAVX: boolean;
 
   implementation
 
@@ -157,6 +159,11 @@ unit cgx86;
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
        fmodule,symsym;
+
+    function UseAVX: boolean;
+      begin
+        Result:=current_settings.fputype in [fpu_avx];
+      end;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -363,7 +370,13 @@ unit cgx86;
 
 {$ifdef x86_64}
         { Only 32bit is allowed }
-        if ((ref.offset<low(longint)) or (ref.offset>high(longint))) then
+        { Note that this isn't entirely correct: for RIP-relative targets/memory models,
+          it is actually (offset+@symbol-RIP) that should fit into 32 bits. Since two last
+          members aren't known until link time, ABIs place very pessimistic limits
+          on offset values, e.g. SysV AMD64 allows +/-$1000000 (16 megabytes) }
+        if ((ref.offset<low(longint)) or (ref.offset>high(longint))) or
+           { absolute address is not a common thing in x64, but nevertheless a possible one }
+           ((ref.base=NR_NO) and (ref.index=NR_NO) and (ref.symbol=nil)) then
           begin
             { Load constant value to register }
             hreg:=GetAddressRegister(list);
@@ -375,7 +388,9 @@ unit cgx86;
                 ref.symbol:=nil;
               end;}
             { Add register to reference }
-            if ref.index=NR_NO then
+            if ref.base=NR_NO then
+              ref.base:=hreg
+            else if ref.index=NR_NO then
               ref.index:=hreg
             else
               begin
@@ -495,12 +510,10 @@ unit cgx86;
           begin
             if assigned(ref.symbol) and
                not(assigned(ref.relsymbol)) and
-               ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+               ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN]) or
                 (cs_create_pic in current_settings.moduleswitches)) then
              begin
-               if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
-                  ((cs_create_pic in current_settings.moduleswitches) and
-                   (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
+               if ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN] then
                  begin
                    hreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                    ref.symbol:=nil;
@@ -508,7 +521,9 @@ unit cgx86;
                else
                  begin
                    include(current_procinfo.flags,pi_needs_got);
-                   hreg:=current_procinfo.got;
+                   { make a copy of the got register, hreg can get modified }
+                   hreg:=cg.getaddressregister(list);
+                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,hreg);
                    ref.relsymbol:=current_procinfo.CurrGOTLabel;
                  end;
                add_hreg:=true
@@ -997,17 +1012,6 @@ unit cgx86;
                           end
                         else
                           cgmessage(cg_e_cant_use_far_pointer_there);
-                      system_i386_win32:
-                        if segment=NR_FS then
-                          begin
-                            allocallcpuregisters(list);
-                            a_call_name(list,'GetTls',false);
-                            deallocallcpuregisters(list);
-                            list.concat(Taicpu.op_reg_reg(A_ADD,tcgsize2opsize[OS_ADDR],NR_EAX,r));
-                          end
-                        else
-                          cgmessage(cg_e_cant_use_far_pointer_there);
-
                       else
                         cgmessage(cg_e_cant_use_far_pointer_there);
                     end;
@@ -1628,12 +1632,17 @@ unit cgx86;
      procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
      var
        opsize: topsize;
+       l : TAsmLabel;
      begin
        opsize:=tcgsize2opsize[size];
        if not reverse then
          list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,dst))
        else
          list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,dst));
+       current_asmdata.getjumplabel(l);
+       a_jmp_cond(list,OC_NE,l);
+       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,dst));
+       a_label(list,l);
      end;
 
 {*************** compare instructructions ****************}
@@ -2216,13 +2225,13 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.system in systems_need_16_byte_stack_alignment) and
+               ((target_info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if (target_info.system in systems_need_16_byte_stack_alignment) then
-                  localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
+                if target_info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));

@@ -29,7 +29,7 @@ interface
       cgbase,cpubase;
 
     type
-      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual);
+      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM);
 
     const
 {$ifdef x86_64}
@@ -50,23 +50,24 @@ interface
        'd',
        '','','',
        't',
-       ''
+        'x',
+        'y'
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
      { !! S_LQ excluded: movzlq does not exist, movslq is processed
        as a separate instruction w/o suffix (aka movsxd), and there are
        no more instructions needing it. }
-     att_sizesuffixstr : array[0..11] of string[2] = (
-       '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T'
+     att_sizesuffixstr : array[0..13] of string[2] = (
+       '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T','X','Y'
      );
-     att_sizesuffix : array[0..11] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO
+     att_sizesuffix : array[0..13] of topsize = (
+       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO,S_XMM,S_YMM
      );
-     att_sizefpusuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX
+     att_sizefpusuffix : array[0..13] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
      );
-     att_sizefpuintsuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
+     att_sizefpuintsuffix : array[0..13] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -76,20 +77,21 @@ interface
        'd',
        '','','',
        't',
-       ''
+        'x',
+        'y'   
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
-     att_sizesuffixstr : array[0..9] of string[2] = (
-       '','BW','BL','WL','B','W','L','S','Q','T'
+     att_sizesuffixstr : array[0..11] of string[2] = (
+       '','BW','BL','WL','B','W','L','S','Q','T','X','Y'
      );
-     att_sizesuffix : array[0..9] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO
+     att_sizesuffix : array[0..11] of topsize = (
+       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO,S_XMM,S_YMM
      );
-     att_sizefpusuffix : array[0..9] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX
+     att_sizefpusuffix : array[0..11] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
      );
-     att_sizefpuintsuffix : array[0..9] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
+     att_sizefpuintsuffix : array[0..11] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
      );
 {$endif x86_64}
 

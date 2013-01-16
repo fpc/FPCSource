@@ -28,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

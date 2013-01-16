@@ -93,6 +93,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -156,6 +157,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -165,6 +167,7 @@ unit i_linux;
             name         : 'Linux for m68k';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment, { Coldfire seems to need this at least (KB) }
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
@@ -218,6 +221,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
@@ -226,7 +230,8 @@ unit i_linux;
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+            flags        : [tf_needs_symbol_size,tf_smartlink_sections,
+                            tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -280,6 +285,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_sysv;
           );
 
@@ -342,6 +348,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
+            stackalign   : 16;
             abi : abi_powerpc_sysv
           );
 
@@ -404,6 +411,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;  { ??? }
             abi : abi_default
           );
 
@@ -467,6 +475,7 @@ unit i_linux;
               );
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -476,8 +485,9 @@ unit i_linux;
             name         : 'Linux for SPARC';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,
-                            tf_needs_symbol_type,tf_files_case_sensitive,tf_smartlink_library,
-                            tf_requires_proper_alignment,
+                            tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_smartlink_library,tf_pic_uses_got,
+                            tf_requires_proper_alignment,tf_safecall_exceptions, tf_safecall_clearstack,
                             tf_has_winlike_resources];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
@@ -531,6 +541,7 @@ unit i_linux;
               );
             first_parm_offset : 92;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 
@@ -595,6 +606,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_eabihf
           );
 {$else FPC_ARMHF}
@@ -659,6 +671,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_eabi
           );
 {$else FPC_ARMEL}
@@ -723,6 +736,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 {$else FPC_ARMEB}
@@ -786,6 +800,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 {$endif FPC_ARMEB}
@@ -802,7 +817,7 @@ unit i_linux;
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX;CPUMIPS32';
+            extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -832,7 +847,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
@@ -853,6 +868,7 @@ unit i_linux;
               );
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 
@@ -866,7 +882,7 @@ unit i_linux;
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX;MIPSEL;CPUMIPS32';
+            extradefines : 'UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -896,7 +912,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -917,6 +933,7 @@ unit i_linux;
               );
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
+            stackalign   : 8;
             abi : abi_default
           );
 

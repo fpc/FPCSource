@@ -294,8 +294,8 @@ implementation
    uses
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symbase,symtable,
-      ncon,ncal,nset,nadd,ninl,nmem,nmat,nbas,nutils,
+      symconst,symdef,symsym,symtable,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 
@@ -2812,6 +2812,9 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
+         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -3137,18 +3140,14 @@ implementation
          if tabstractprocdef(resultdef).is_addressonly then
            expectloc:=LOC_REGISTER
          else
-           begin
-             if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-               CGMessage(parser_e_illegal_expression);
-             expectloc:=left.expectloc;
-           end;
+           expectloc:=left.expectloc;
       end;
 
 
     function ttypeconvnode.first_nil_to_methodprocvar : tnode;
       begin
         first_nil_to_methodprocvar:=nil;
-        expectloc:=LOC_REFERENCE;
+        expectloc:=LOC_REGISTER;
       end;
 
 
@@ -3230,6 +3229,9 @@ implementation
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
+         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
       end;
 
 

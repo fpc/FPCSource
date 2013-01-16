@@ -334,6 +334,7 @@ implementation
               ReadArchive
             else if (not allow_nonar) then
               Comment(V_Error,'Not a ar file, illegal magic: '+filename);
+            Seek(0);
           end;
       end;
 

@@ -76,7 +76,7 @@ type
     procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
     procedure TestClientDatasetAsMemDataset;
-    procedure TestSafeAsXML;
+    procedure TestSaveAsXML;
     procedure TestIsEmpty;
     procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestBufDatasetCancelUpd1;
@@ -141,6 +141,7 @@ type
 
     procedure TestLocate;
     procedure TestLocateCaseIns;
+    procedure TestLocateCaseInsInts;
 
     procedure TestFirst;
     procedure TestIntFilter;
@@ -159,8 +160,8 @@ type
     procedure TestBug7007;
     procedure TestBug6893;
     procedure TestRequired;
+    procedure TestOldValueObsolete;
     procedure TestOldValue;
-    procedure TestOldValue1;
     procedure TestModified;
   end;
 
@@ -244,7 +245,10 @@ begin
     begin
     Open;
 
-    CheckEquals(1,RecNo);
+    if IsUniDirectional then
+      CheckEquals(-1,RecNo)
+    else
+      CheckEquals(1,RecNo);
     CheckEquals(1,RecordCount);
 
     CheckEquals(2,FieldCount);
@@ -368,6 +372,8 @@ begin
     CheckTrue(EOF);
     CheckTrue(BOF);
     open;
+    CheckTrue(BOF, 'No BOF when opened non-empty dataset');
+    CheckFalse(EOF, 'EOF after opened non-empty dataset');
     close;
     CheckTrue(EOF);
     CheckTrue(BOF);
@@ -424,7 +430,10 @@ begin
       open;
       DataEvents := '';
       Resync([rmExact]);
-      CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
+      if IsUniDirectional then
+        CheckEquals('',DataEvents)
+      else
+        CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
       next;
       CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
@@ -616,17 +625,26 @@ begin
   DBConnector.StopTest;
 end;
 
-procedure TTestCursorDBBasics.TestOldValue;
+procedure TTestCursorDBBasics.TestOldValueObsolete;
 var v : variant;
     bufds: TDataset;
 begin
+  // this test was created as reaction to AV bug found in TCustomBufDataset.GetFieldData
+  // when retrieving OldValue (State=dsOldValue) of newly inserted or appended record.
+  // In this case was CurrBuff set to nil (and not checked),
+  // because OldValuesBuffer for just inserted record is nil. See rev.17704
+  // (So purpose of this test isn't test InsertRecord on empty dataset or so)
+  // Later was this test replaced by more complex TestOldValue (superset of old test),
+  // but next to it was restored back also original test.
+  // So now we have two tests which test same thing, where this 'old' one is subset of 'new' one
+  // Ideal solution would be remove this 'old' test as it does not test anything what is not tested elsewhere ...
   bufds := DBConnector.GetNDataset(0) as TDataset;
   bufds.Open;
   bufds.InsertRecord([0,'name']);
   v := VarToStr(bufds.fields[1].OldValue);
 end;
 
-procedure TTestCursorDBBasics.TestOldValue1;
+procedure TTestCursorDBBasics.TestOldValue;
 begin
   with DBConnector.GetNDataset(1) as TDataset do
   begin;
@@ -701,17 +719,28 @@ begin
 
     lds.Open;
     Open;
-    CheckTrue(FieldByName('ID').CanModify);
+    if IsUniDirectional then
+      // The CanModify property is always False for UniDirectional datasets
+      CheckFalse(FieldByName('ID').CanModify)
+    else
+      CheckTrue(FieldByName('ID').CanModify);
     CheckFalse(FieldByName('LookupFld').CanModify);
     CheckFalse(FieldByName('ID').ReadOnly);
     CheckFalse(FieldByName('LookupFld').ReadOnly);
 
     CheckEquals(1,FieldByName('ID').AsInteger);
-    CheckEquals('TestName1',FieldByName('LookupFld').AsString);
+    if IsUniDirectional then
+      // Lookup fields are not supported by UniDirectional datasets
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName1',FieldByName('LookupFld').AsString);
     Next;
     Next;
     CheckEquals(3,FieldByName('ID').AsInteger);
-    CheckEquals('TestName3',FieldByName('LookupFld').AsString);
+    if IsUniDirectional then
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName3',FieldByName('LookupFld').AsString);
 
     Close;
     lds.Close;
@@ -896,6 +925,8 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestLocateCaseIns;
+// Tests case insensitive locate, also partial key locate, both against string fields.
+// Together with TestLocateCaseInsInts, checks 23509 DBF: locate with loPartialkey behaviour differs depending on index use
 begin
   with DBConnector.GetNDataset(true,13) do
     begin
@@ -913,38 +944,79 @@ begin
     end;
 end;
 
+procedure TTestCursorDBBasics.TestLocateCaseInsInts;
+// Tests case insensitive locate, also partial key locate, both against integer fields.
+// Together with TestLocateCaseIns, checks 23509 DBF: locate with loPartialkey behaviour differs depending on index use
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    // To really test bug 23509: we should first have a record that matches greater than for non-string locate:
+    first;
+    insert;
+    fieldbyname('id').AsInteger:=55;
+    fieldbyname('name').AsString:='TestName55';
+    post;
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[loCaseInsensitive]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    // Check specifying partial key doesn't influence search results
+    CheckTrue(Locate('id',vararrayof([5]),[loPartialKey]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    first;
+
+    CheckTrue(Locate('id',vararrayof([5]),[loPartialKey, loCaseInsensitive]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+
+    close;
+    end;
+end;
+
 procedure TTestDBBasics.TestSetFieldValues;
 var PassException : boolean;
 begin
   with DBConnector.GetNDataset(true,11) do
     begin
     open;
+    // First and Next methods are supported by UniDirectional datasets
     first;
-    edit;
-    FieldValues['id']:=5;
-    post;
-    CheckEquals('TestName1',FieldByName('name').AsString);
-    CheckEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['name']:='FieldValuesTestName';
-    post;
-    CheckEquals('FieldValuesTestName',FieldByName('name').AsString);
-    CheckEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
-    post;
-    CheckEquals('ValuesTestName',FieldByName('name').AsString);
-    CheckEquals(243,FieldByName('id').AsInteger);
-    
-    PassException:=false;
-    try
+    if IsUniDirectional then
+      CheckException(Edit, EDatabaseError)
+    else
+      begin
       edit;
-      FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
-    except
-      on E: EDatabaseError do PassException := True;
-    end;
-    post;
-    CheckTrue(PassException);
+      FieldValues['id']:=5;
+      post;
+      CheckEquals('TestName1',FieldByName('name').AsString);
+      CheckEquals(5,FieldByName('id').AsInteger);
+      edit;
+      FieldValues['name']:='FieldValuesTestName';
+      post;
+      CheckEquals('FieldValuesTestName',FieldByName('name').AsString);
+      CheckEquals(5,FieldByName('id').AsInteger);
+      edit;
+      FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
+      post;
+      CheckEquals('ValuesTestName',FieldByName('name').AsString);
+      CheckEquals(243,FieldByName('id').AsInteger);
+    
+      PassException:=false;
+      try
+        edit;
+        FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
+      except
+        on E: EDatabaseError do PassException := True;
+      end;
+      post;
+      CheckTrue(PassException);
+      end;
     end;
 end;
 
@@ -1299,7 +1371,7 @@ begin
   bufds.CompareBookmarks(nil,nil);
 end;
 
-procedure TTestBufDatasetDBBasics.TestSafeAsXML;
+procedure TTestBufDatasetDBBasics.TestSaveAsXML;
 var ds    : TDataset;
     LoadDs: TCustomBufDataset;
 begin
@@ -1521,7 +1593,7 @@ begin
   CheckEquals(2,ADataset.Fields.Count);
   CheckTrue(SameText('ID',ADataset.Fields[0].FieldName));
   CheckTrue(SameText('NAME',ADataset.Fields[1].FieldName));
-  CheckTrue(ADataset.fields[1].DataType=ftString,'Incorrect fieldtype');
+  CheckEquals(ord(ftString), ord(ADataset.Fields[1].DataType), 'Incorrect FieldType');
   i := 1;
   while not ADataset.EOF do
     begin
@@ -1996,6 +2068,9 @@ begin
 end;
 
 procedure TTestBufDatasetDBBasics.TestIndexEditRecord;
+// Tests index sorting for string field type by
+// editing an existing record in the middle
+// with a value at the end of the alphabet
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
@@ -2008,22 +2083,25 @@ begin
     AFieldType:=ftString;
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     IndexName:='testindex';
-    open;
+    open; //Record 0
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
-    next;
-    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    next; //Now on record 1
+    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString,'Record 0 must be smaller than record 1 with asc sorted index');
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
-    next;
-    CheckTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
-    prior;
-    
+    next; //Now on record 2
+    CheckTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0,'Record 1 must be smaller than record 2 with asc sorted index');
+
+    prior; //Now on record 1
     edit;
-    FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
+    FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ'; //should be sorted last
     post;
-    prior;
+
+    prior; // Now on record 0
+    // Check ZZZ is sorted on/after record 0
     CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0, 'Prior>');
     next;
-    next;
+    next; // Now on record 2
+    // Check ZZZ is sorted on/before record 2
     CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0, 'Next<');
     close;
     end;
@@ -2130,6 +2208,7 @@ begin
   else
     dataset.fieldbyname('CALCFLD').AsInteger := 1;
   end;
+  CheckTrue(DataSet.State=dsCalcFields, 'State');
 end;
 
 procedure TTestDBBasics.TestCalculatedField;
@@ -2163,10 +2242,16 @@ begin
     CheckEquals(true,FieldByName('CALCFLD').isnull);
     next;
     CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
-    edit;
-    FieldByName('ID').AsInteger := 10;
-    post;
-    CheckEquals(true,FieldByName('CALCFLD').isnull);
+    if IsUniDirectional then
+      // The CanModify property is always False, so attempts to put the dataset into edit mode always fail
+      CheckException(Edit, EDatabaseError)
+    else
+      begin
+      Edit;
+      FieldByName('ID').AsInteger := 10;
+      Post;
+      CheckEquals(true,FieldByName('CALCFLD').isnull);
+      end;
     close;
     AFld1.Free;
     AFld2.Free;
@@ -2201,8 +2286,8 @@ begin
   if not assigned (AFld) then
     Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
 {$endif fpc}
-  CheckTrue(Afld.DataType = AFieldType);
-  CheckEquals(ADatasize,Afld.DataSize );
+  CheckEquals(ord(AFieldType), ord(AFld.DataType), 'DataType');
+  CheckEquals(ADatasize, AFld.DataSize, 'DataSize');
 end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
@@ -2470,7 +2555,7 @@ begin
     open;
     AField := fieldbyname('name');
     AParam.AssignField(AField);
-    CheckTrue(ftString=AParam.DataType);
+    CheckEquals(ord(ftString), ord(AParam.DataType), 'DataType');
     close;
     end;
   AParam.Free;
@@ -2487,7 +2572,7 @@ begin
     AField := fieldbyname('name');
     (AField as tstringfield).FixedChar := true;
     AParam.AssignField(AField);
-    CheckTrue(ftFixedChar=AParam.DataType);
+    CheckEquals(ord(ftFixedChar), ord(AParam.DataType), 'DataType');
     close;
     end;
   AParam.Free;

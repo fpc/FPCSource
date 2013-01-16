@@ -87,6 +87,7 @@ unit i_morph;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 16;
             abi : abi_powerpc_sysv;
           );
 

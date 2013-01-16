@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="\"/>
+    <Version Value="7"/>
+    <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <TargetFileExt Value=".exe"/>
+    </General>
+    <VersionInfo>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.0" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="-a"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FPCUnitConsoleRunner"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="36">
+      <Unit0>
+        <Filename Value="sdo_test_suite.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_test_suite"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\..\..\sdo.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\..\..\sdo_datafactory.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_datafactory"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\..\..\sdo_dataobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_dataobject"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\..\..\sdo_dataobjectlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_dataobjectlist"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\..\..\sdo_field_imp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_field_imp"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\..\sdo_imp_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_imp_utils"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\..\sdo_linked_list.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_linked_list"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\..\..\sdo_property.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_property"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\..\..\sdo_type.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_type"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\test_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_utils"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\test_dataobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_dataobject"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\test_dataobjectlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_dataobjectlist"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\test_field_imp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_field_imp"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\test_type.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_type"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\test_xsdhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_xsdhelper"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="..\..\..\sdo_xsd_helper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_xsd_helper"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="..\test_serializer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_serializer"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\..\..\sdo_serialization.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_serialization"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\..\..\sdo_serialization_xml.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_serialization_xml"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="..\..\..\sdo_equalityhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_equalityhelper"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="..\test_equalityhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_equalityhelper"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\test_changesummary.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_changesummary"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\..\..\sdo_xpath_helper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_xpath_helper"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="..\test_suite_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_suite_utils"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="..\test_xpathhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_xpathhelper"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="..\..\..\sdo_changesummary.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_changesummary"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="..\..\..\sdo_copyhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_copyhelper"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\test_copyhelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_copyhelper"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\..\..\sdo_consts.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_consts"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="..\..\..\sdo_serialization_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_serialization_utils"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="..\..\..\sdo_types.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_types"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="..\..\..\sdo_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_utils"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="..\..\..\sdo_convert_helper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="sdo_convert_helper"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="..\test_convert_helper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_convert_helper"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="..\test_property.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_property"/>
+      </Unit35>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="8"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="sdo_test_suite.exe"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="..\..\..\;C:\sources\wst\"/>
+      <OtherUnitFiles Value="..\;..\..\;..\..\..\;C:\sources\wst\;C:\sources\wst\ws_helper\;C:\sources\wst\wst_rtti_filter\"/>
+      <UnitOutputDirectory Value="obj"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleOperator Value="False"/>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <RangeChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+        <GenerateDwarf Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>

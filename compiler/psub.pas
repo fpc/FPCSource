@@ -26,7 +26,7 @@ unit psub;
 interface
 
     uses
-      cclasses,globals,
+      globals,
       node,nbas,
       symdef,procinfo,optdfa;
 
@@ -50,6 +50,7 @@ interface
         stackcheck_asmnode,
         init_asmnode,
         final_asmnode : tasmnode;
+        final_used : boolean;
         dfabuilder : TDFABuilder;
         destructor  destroy;override;
         procedure printproc(pass:string);
@@ -89,9 +90,7 @@ implementation
        cutils,
        { global }
        globtype,tokens,verbose,comphook,constexp,
-       systems,
-       { aasm }
-       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,
+       systems,cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,symcreat,
        paramgr,
@@ -107,15 +106,14 @@ implementation
        pass_2,
 {$endif}
        { parser }
-       scanner,import,gendef,
+       scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,cgcpu,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,optloop,
-       optutils
+       optcse,optloop
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
@@ -143,6 +141,12 @@ implementation
         if pi_has_global_goto in current_procinfo.flags then
           begin
             Message1(parser_h_not_supported_for_inline,'global goto');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
+        if pi_has_nested_exit in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'nested exit');
             Message(parser_h_inlining_disabled);
             exit;
           end;
@@ -490,12 +494,12 @@ implementation
                     end
                 else
                   if not is_record(current_structdef) then
-                  internalerror(200305103);
+                    internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
-                addstatement(newstatement,cifnode.create(
+                  addstatement(newstatement,cifnode.create(
                     caddnode.create(equaln,
                         load_self_pointer_node,
                         cnilnode.create),
@@ -632,7 +636,7 @@ implementation
             { must be the return value finalized before reraising the exception? }
             if (not is_void(current_procinfo.procdef.returndef)) and
                is_managed_type(current_procinfo.procdef.returndef) and
-               (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
+               (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
           end;
@@ -647,6 +651,8 @@ implementation
        begin
          if assigned(code) then
            code.free;
+         if not final_used then
+           final_asmnode.free;
          inherited destroy;
        end;
 
@@ -716,6 +722,7 @@ implementation
                       begin
                         include(tocode.flags,nf_block_with_exit);
                         addstatement(newstatement,final_asmnode);
+                        final_used:=true;
                       end;
 
                     { Self can be nil when fail is called }
@@ -806,6 +813,7 @@ implementation
         current_filepos:=exitpos;
         exitlabel_asmnode:=casmnode.create_get_position;
         final_asmnode:=casmnode.create_get_position;
+        final_used:=false;
         bodyexitcode:=generate_bodyexit_block;
 
         { Generate procedure by combining init+body+final,
@@ -833,6 +841,7 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
+            final_used:=true;
 
             current_filepos:=entrypos;
             wrappedbody:=ctryfinallynode.create_implicit(
@@ -858,10 +867,15 @@ implementation
             maybe_add_constructor_wrapper(code,
               cs_implicit_exceptions in current_settings.moduleswitches);
             addstatement(newstatement,code);
+            if assigned(nestedexitlabel) then
+              addstatement(newstatement,clabelnode.create(cnothingnode.create,nestedexitlabel));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
-              addstatement(newstatement,final_asmnode);
+              begin
+                addstatement(newstatement,final_asmnode);
+                final_used:=true;
+              end;
           end;
         do_firstpass(newblock);
         code:=newblock;
@@ -884,10 +898,22 @@ implementation
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin
              if not(cs_no_regalloc in current_settings.globalswitches) then
-               cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+               begin
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+                 if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+               end;
              if cs_asm_source in current_settings.globalswitches then
-               TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                 std_regname(tabstractnormalvarsym(p).localloc.register))))
+               begin
+                 if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
+                   begin
+                     TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                       std_regname(tabstractnormalvarsym(p).localloc.registerhi)+':'+std_regname(tabstractnormalvarsym(p).localloc.register))));
+                   end
+                 else
+                   TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                     std_regname(tabstractnormalvarsym(p).localloc.register))));
+               end;
            end;
       end;
 
@@ -1022,6 +1048,11 @@ implementation
       var
         saved_cg: tcg;
         saved_hlcg: thlcgobj;
+{$ifdef cpu64bitalu}
+        saved_cg128 : tcg128;
+{$else cpu64bitalu}
+        saved_cg64 : tcg64;
+{$endif cpu64bitalu}
       begin
         if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
           InternalError(201201141);
@@ -1032,11 +1063,23 @@ implementation
         saved_hlcg:=hlcg;
         cg:=nil;
         hlcg:=nil;
+{$ifdef cpu64bitalu}
+        saved_cg128:=cg128;
+        cg128:=nil;
+{$else cpu64bitalu}
+        saved_cg64:=cg64;
+        cg64:=nil;
+{$endif cpu64bitalu}
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
         cg:=saved_cg;
         hlcg:=saved_hlcg;
+{$ifdef cpu64bitalu}
+        cg128:=saved_cg128;
+{$else cpu64bitalu}
+        cg64:=saved_cg64;
+{$endif cpu64bitalu}
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;
 
@@ -1141,7 +1184,7 @@ implementation
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
         procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
 
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
         { set implicit_finally flag for if procedure is safecall }
         if (tf_safecall_exceptions in target_info.flags) and
            (procdef.proccalloption=pocall_safecall) then
@@ -1150,6 +1193,7 @@ implementation
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
+
 {$ifdef i386}
         procdef.fpu_used:=node_resources_fpu(code);
         if procdef.fpu_used>0 then
@@ -1215,6 +1259,10 @@ implementation
         if cs_opt_nodecse in current_settings.optimizerswitches then
           do_optcse(code);
 
+        if (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
+          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
+          procdef.isempty:=true;
+
         { add implicit entry and exit code }
         add_entry_exit_code;
 
@@ -1236,8 +1284,8 @@ implementation
 
             { Allocate space in temp/registers for parast and localst }
             current_filepos:=entrypos;
-            gen_alloc_symtable(aktproccode,procdef.parast);
-            gen_alloc_symtable(aktproccode,procdef.localst);
+            gen_alloc_symtable(aktproccode,procdef,procdef.parast);
+            gen_alloc_symtable(aktproccode,procdef,procdef.localst);
 
             { Store temp offset for information about 'real' temps }
             tempstart:=tg.lasttemp;
@@ -1433,7 +1481,7 @@ implementation
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
                (tf_safecall_exceptions in target_info.flags) and
@@ -1748,7 +1796,7 @@ implementation
       }
 
       var
-        oldfailtokenmode : tmodeswitch;
+        oldfailtokenmode : tmodeswitches;
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
@@ -1783,7 +1831,7 @@ implementation
         if (pd.proctypeoption=potype_constructor) then
          begin
            oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
-           tokeninfo^[_FAIL].keyword:=m_all;
+           tokeninfo^[_FAIL].keyword:=alllanguagemodes;
          end;
 
         tcgprocinfo(current_procinfo).parse_body;

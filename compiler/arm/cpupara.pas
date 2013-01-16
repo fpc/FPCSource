@@ -28,9 +28,8 @@ unit cpupara;
 
     uses
        globtype,globals,
-       aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symbase,symtype,symdef,parabase,paramgr;
+       symconst,symtype,symdef,parabase,paramgr;
 
     type
        tarmparamanager = class(tparamanager)
@@ -38,8 +37,8 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -53,7 +52,6 @@ unit cpupara;
 
     uses
        verbose,systems,cutils,
-       rgobj,
        defutil,symsym,symtable;
 
 
@@ -78,12 +76,14 @@ unit cpupara;
       end;
 
 
-    procedure tarmparamanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure tarmparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        def : tdef;
       begin
         if nr<1 then
           internalerror(2002070801);
+        def:=tparavarsym(pd.paras[nr-1]).vardef;
         cgpara.reset;
         cgpara.size:=def_cgsize(def);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -124,7 +124,7 @@ unit cpupara;
                 getparaloc:=LOC_MMREGISTER
               else if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or
                  (cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
+                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16]) then
                 { the ARM eabi also allows passing VFP values via VFP registers,
                   but Mac OS X doesn't seem to do that and linux only does it if
                   built with the "-mfloat-abi=hard" option }
@@ -201,12 +201,21 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tarmparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         i: longint;
         sym: tsym;
         fpufield: boolean;
       begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
+        if (tf_safecall_exceptions in target_info.flags) and
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
+          begin
+            result:=true;
+            exit;
+          end;
         case def.typ of
           recorddef:
             begin
@@ -277,7 +286,7 @@ unit cpupara;
             else
               result:=false
           else
-            result:=inherited ret_in_param(def,calloption);
+            result:=inherited ret_in_param(def,pd);
         end;
       end;
 
@@ -608,7 +617,7 @@ unit cpupara;
               end
             else if (p.proccalloption in [pocall_softfloat]) or
                (cs_fp_emulation in current_settings.moduleswitches) or
-               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
+               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16]) then
               begin
                 case retcgsize of
                   OS_64,

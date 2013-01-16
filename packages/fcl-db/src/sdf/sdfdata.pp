@@ -13,11 +13,13 @@ unit SdfData;
 ---------------
 Modifications
 ---------------
+7/Jun/12 BigChimp:
+      Quote fields with delimiters or quotes to match Delphi SDF definition
+      (see e.g. help on TStrings.CommaText)
 14/Jul/11 BigChimp:
       Added AllowMultiLine property so user can use fields that have line endings
       (Carriage Return and/or Line Feed) embedded in their fields (fields need to be
-      quoted). Enabled by default; will break compatibility with earlier versions of
-      SdfData, but using multilines would have resulted in corrupted import anyway.
+      quoted). For now: output only (reading these fields does not work yet)
 12/Mar/04  Lazarus version (Sergey Smirnov AKA SSY)
       Locate and CheckString functions are removed because of Variant data type.
       Many things are changed for FPC/Lazarus compatibility.
@@ -939,25 +941,33 @@ end;
 
 function TSdfDataSet.StoreToBuf(Source: String): String;
 const
- CR :char = #13;
- LF :char = #10;
+ CR    :char = #13;
+ LF    :char = #10;
+ Quote :char = #34; // Character that encloses field if quoted. Hard-coded to "
 var
-  i,
-  p             :Integer;
-  pRet,
-  pStr,
-  pStrEnd       :PChar;
+  IsQuoted   // Whether or not field starts with a quote
+                :Boolean;
+  FieldMaxSize, // Maximum fields size as defined in FieldDefs
+  i,         // Field counter (0..)
+  p          // Length of string in field
+                :Integer;
+  pDeQuoted, // Temporary buffer for dedoubling quotes
+  pRet,      // Pointer to insertion point in return value
+  pStr,      // Beginning of field
+  pStrEnd    // End of field
+                :PChar;
   Ret           :String;
 begin
   SetLength(Ret, FRecordSize);
-
   FillChar(PChar(Ret)^, FRecordSize, Ord(' '));
-    PStrEnd := PChar(Source);
+
+  PStrEnd := PChar(Source);
   pRet := PChar(Ret);
 
   for i := 0 to FieldDefs.Count - 1 do
    begin
-
+    FieldMaxSize := FieldDefs[i].Size;
+    IsQuoted := false;
     while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] in [#1..' ']) do
     begin
      if FFMultiLine then
@@ -980,14 +990,15 @@ begin
 
     pStr := pStrEnd;
 
-    if (pStr[0] = '"') then
+    if (pStr[0] = Quote) then
      begin
+      IsQuoted := true; // See below: accept end of string without explicit quote
       if FFMultiLine then
        begin
         repeat
          Inc(pStrEnd);
         until not Boolean(Byte(pStrEnd[0])) or
-         ((pStrEnd[0] = '"') and ((pStrEnd + 1)[0] in [Delimiter,#0]));
+         ((pStrEnd[0] = Quote) and ((pStrEnd + 1)[0] in [Delimiter,#0]));
        end
       else
        begin
@@ -995,33 +1006,52 @@ begin
          repeat
           Inc(pStrEnd);
          until not Boolean(Byte(pStrEnd[0])) or
-          ((pStrEnd[0] = '"') and ((pStrEnd + 1)[0] in [Delimiter,CR,LF, #0]));
+          ((pStrEnd[0] = Quote) and ((pStrEnd + 1)[0] in [Delimiter,CR,LF,#0]));
        end;
 
-
-      if (pStrEnd[0] = '"') then
-        Inc(pStr);
+      if (pStrEnd[0] = Quote) then
+       Inc(pStr); //Skip final quote
      end
     else
       while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] <> Delimiter) do
         Inc(pStrEnd);
 
+    // Copy over entire field (or at least up to field length):
     p := pStrEnd - pStr;
-    if (p > FieldDefs[i].Size) then
-      p := FieldDefs[i].Size;
+    if IsQuoted then
+    begin
+     pDeQuoted := pRet; //Needed to avoid changing insertion point
+     // Copy entire field but not more than maximum field length:
+     // (We can mess with pStr now; the next loop will reset it after
+     // pStrEnd):
+     while (pstr < pStrEnd) and (pDeQuoted-pRet <= FieldMaxSize) do
+     begin
+      if pStr^ = Quote then inc(pStr);// skip first quote
+      pDeQuoted^ := pStr^;
+      inc(pStr);
+      inc(pDeQuoted);
+     end;
+    end
+    else
+    begin
+     if (p > FieldMaxSize) then
+       p := FieldMaxSize;
+     Move(pStr[0], pRet[0], p);
+    end;
 
-    Move(pStr[0], pRet[0], p);
+    Inc(pRet, FieldMaxSize);
 
-    Inc(pRet, FieldDefs[i].Size);
-
-    if (pStrEnd[0] = '"') then
+    // Move the end of field position past quotes and delimiters
+    // ready for processing the next field
+    if (pStrEnd[0] = Quote) then
       while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] <> Delimiter) do
         Inc(pStrEnd);
 
     if (pStrEnd[0] = Delimiter) then
      Inc(pStrEnd);
    end;
-  Result := Ret;
+
+  Result := ret;
 end;
 
 function TSdfDataSet.BufToStore(Buffer: TRecordBuffer): String;
@@ -1034,9 +1064,9 @@ var
 begin
   Result := '';
   p := 1;
-  QuoteMe:=false;
   for i := 0 to FieldDefs.Count - 1 do
   begin
+    QuoteMe:=false;
     Str := Trim(Copy(pansichar(Buffer), p, FieldDefs[i].Size));
     Inc(p, FieldDefs[i].Size);
     if FFMultiLine then
@@ -1051,11 +1081,13 @@ begin
        Str := StringReplace(Str, #10, '', [rfReplaceAll]);
        Str := StringReplace(Str, #13, '', [rfReplaceAll]);
       end;
-    // Check for any delimiters occurring in field text
-    if ((not QuoteMe) and (StrScan(PChar(Str), FDelimiter) <> nil)) then QuoteMe:=true;
+    // Check for any delimiters or quotes occurring in field text  
+    if (not QuoteMe) then
+	  if (StrScan(PChar(Str), FDelimiter) <> nil) or
+	    (StrScan(PChar(Str), QuoteDelimiter) <> nil) then QuoteMe:=true;
     if (QuoteMe) then
       begin
-      Str:=Stringreplace(Str,QuoteDelimiter,QuoteDelimiter+QuoteDelimiter,[rfReplaceAll]);
+      Str := Stringreplace(Str, QuoteDelimiter, QuoteDelimiter+QuoteDelimiter, [rfReplaceAll]);
       Str := QuoteDelimiter + Str + QuoteDelimiter;
       end;
     Result := Result + Str + FDelimiter;

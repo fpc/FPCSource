@@ -44,6 +44,7 @@ interface
           function first_sin_real: tnode; override;
           function first_round_real: tnode; override;
           function first_trunc_real: tnode; override;
+          function first_popcnt: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -60,6 +61,7 @@ interface
           procedure second_prefetch;override;
 
           procedure second_abs_long;override;
+          procedure second_popcnt;override;
        private
           procedure load_fpu_location;
        end;
@@ -168,6 +170,20 @@ implementation
                expectloc:=LOC_REFERENCE;
              result:=nil;
            end;
+       end;
+
+
+     function tx86inlinenode.first_popcnt: tnode;
+       begin
+         Result:=nil;
+         if (current_settings.fputype<fpu_sse42)
+{$ifdef i386}
+           or is_64bit(left.resultdef)
+{$endif i386}
+           then
+           Result:=inherited first_popcnt
+         else
+           expectloc:=LOC_REGISTER;
        end;
 
 
@@ -542,4 +558,27 @@ implementation
         end;
 
 
+    procedure tx86inlinenode.second_popcnt;
+      var
+        opsize: tcgsize;
+      begin
+        secondpass(left);
+
+        opsize:=tcgsize2unsigned[left.location.size];
+
+        { no 8 Bit popcont }
+        if opsize=OS_8 then
+          opsize:=OS_16;
+
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) or
+           (left.location.size<>opsize) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(opsize),true);
+
+        location_reset(location,LOC_REGISTER,opsize);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register))
+        else
+          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register));
+      end;
 end.

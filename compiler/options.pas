@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  CClasses,cfileutl,
+  cfileutl,
   globtype,globals,verbose,systems,cpuinfo, comprsrc;
 
 Type
@@ -57,7 +57,7 @@ Type
     procedure IllegalPara(const opt:TCmdStr);
     procedure UnsupportedPara(const opt:TCmdStr);
     procedure IgnoredPara(const opt:TCmdStr);
-    function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
+    function  Unsetbool(var Opts:TCmdStr; Pos: Longint; const FullPara: TCmdStr; RequireBoolPara: Boolean):boolean;
     procedure interpret_option(const opt :TCmdStr;ispara:boolean);
     procedure Interpret_envvar(const envname : TCmdStr);
     procedure Interpret_file(const filename : TPathStr);
@@ -90,7 +90,6 @@ uses
   cutils,cmsgs,
   comphook,
   symtable,scanner,rabase,
-  wpobase,
   symconst,
   i_bsd;
 
@@ -133,7 +132,8 @@ const
 
   suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
-                             + [system_i386_beos];
+                             + [system_i386_beos]
+                             + [system_m68k_amiga];
 
 {****************************************************************************
                                  Defines
@@ -211,28 +211,54 @@ begin
       end
      else if pos('$INSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for cpu:=low(tcputype) to high(tcputype) do
           begin
-            hs:=s;
-            hs1:=cputypestr[cpu];
-            if hs1<>'' then
+            if length(hs1+cputypestr[cpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$INSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if cputypestr[cpu]<>'' then
+              hs1:=hs1+cputypestr[cpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$INSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$FPUINSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for fpu:=low(tfputype) to high(tfputype) do
           begin
-            hs:=s;
-            hs1:=fputypestr[fpu];
-            if hs1<>'' then
+            if length(hs1+fputypestr[fpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if fputypestr[fpu]<>'' then
+              hs1:=hs1+fputypestr[fpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$ABITARGETS',s)>0 then
@@ -284,24 +310,32 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-{$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr)}
+        hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
-{           currently all whole program optimizations are platform-independent
-            if opt in supported_wpoptimizerswitches then
-}
+            if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
               begin
                 hs:=s;
-                hs1:=embedded_controllers[controllertype].ControllerTypeStr;
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$CONTROLLERTYPES',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end
-{$else defined(arm) or defined(avr)}
-{$endif defined(arm) or defined(avr)}
+                Replace(hs,'$CONTROLLERTYPES',hs1);
+                Comment(V_Normal,hs);
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+              hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$CONTROLLERTYPES',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
+          end;
+        {$else defined(arm) or defined(avr)}
+        {$endif defined(arm) or defined(avr)}
       end
      else
       Comment(V_Normal,s);
@@ -644,7 +678,7 @@ begin
 end;
 
 
-function Toption.Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
+function Toption.Unsetbool(var Opts:TCmdStr; Pos: Longint; const FullPara: TCmdStr; RequireBoolPara: boolean):boolean;
 { checks if the character after pos in Opts is a + or a - and returns resp.
   false or true. If it is another character (or none), it also returns false }
 begin
@@ -654,10 +688,11 @@ begin
     inc(Pos);
     UnsetBool := Opts[Pos] = '-';
     if Opts[Pos] in ['-','+']then
-     delete(Opts,Pos,1);
+     delete(Opts,Pos,1)
+    else if RequireBoolPara then
+     IllegalPara(FullPara);
    end;
 end;
-
 
 procedure TOption.interpret_option(const opt:TCmdStr;ispara:boolean);
 var
@@ -723,7 +758,7 @@ begin
                     'p' :
                       begin
                         exclude(init_settings.globalswitches,cs_asm_leave);
-                        if UnsetBool(More, 0) then
+                        if UnsetBool(More, 0, opt, false) then
                           exclude(init_settings.globalswitches,cs_asm_pipe)
                         else
                           include(init_settings.globalswitches,cs_asm_pipe);
@@ -749,7 +784,7 @@ begin
            'b' :
              begin
                // Message1(option_obsolete_switch,'-b');
-               if UnsetBool(More,0) then
+               if UnsetBool(More,0,opt,false) then
                  begin
                    init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
                    init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser];
@@ -768,7 +803,7 @@ begin
              end;
 
            'B' :
-             do_build:=not UnSetBool(more,0);
+             do_build:=not UnSetBool(more,0,opt,true);
 
            'C' :
              begin
@@ -777,7 +812,7 @@ begin
                 begin
                   case more[j] of
                     '3' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_ieee_errors)
                       Else
                         include(init_settings.localswitches,cs_ieee_errors);
@@ -791,7 +826,7 @@ begin
 
                     'b' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            target_info.endian:=endian_little
                          else
                            target_info.endian:=endian_big;
@@ -806,7 +841,7 @@ begin
 {$ifdef cpufpemu}
                     'e' :
                        begin
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.moduleswitches,cs_fp_emulation)
                          Else
                            include(init_settings.moduleswitches,cs_fp_emulation);
@@ -831,10 +866,10 @@ begin
                          if tf_no_pic_supported in target_info.flags then
                            begin
                              { consume a possible '-' coming after it }
-                             UnsetBool(More, j);
+                             UnsetBool(More, j, opt, false);
                              message(scan_w_pic_ignored);
                            end
-                         else if UnsetBool(More, j) then
+                         else if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.moduleswitches,cs_create_pic)
                          else
                            include(init_settings.moduleswitches,cs_create_pic);
@@ -847,27 +882,27 @@ begin
                          break;
                       end;
                     'i' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_check_io)
                       else
                         include(init_settings.localswitches,cs_check_io);
                     'n' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.globalswitches,cs_link_nolink)
                       Else
                         include(init_settings.globalswitches,cs_link_nolink);
                     'N' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_check_low_addr_load)
                       Else
                         include(init_settings.localswitches,cs_check_low_addr_load);
                     'o' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_check_overflow)
                       Else
                         include(init_settings.localswitches,cs_check_overflow);
                     'O' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_check_ordinal_size)
                       Else
                         include(init_settings.localswitches,cs_check_ordinal_size);
@@ -902,12 +937,12 @@ begin
                           IllegalPara(opt);
                       end;
                     'r' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.localswitches,cs_check_range)
                       Else
                         include(init_settings.localswitches,cs_check_range);
                     'R' :
-                      If UnsetBool(More, j) then
+                      If UnsetBool(More, j, opt, false) then
                         begin
                           exclude(init_settings.localswitches,cs_check_range);
                           exclude(init_settings.localswitches,cs_check_object);
@@ -925,17 +960,17 @@ begin
                          break;
                       end;
                     't' :
-                       If UnsetBool(More, j) then
+                       If UnsetBool(More, j, opt, false) then
                          exclude(init_settings.localswitches,cs_check_stack)
                        Else
                          include(init_settings.localswitches,cs_check_stack);
                     'D' :
-                       If UnsetBool(More, j) then
+                       If UnsetBool(More, j, opt, false) then
                          exclude(init_settings.moduleswitches,cs_create_dynamic)
                        Else
                          include(init_settings.moduleswitches,cs_create_dynamic);
                     'X' :
-                       If UnsetBool(More, j) then
+                       If UnsetBool(More, j, opt, false) then
                          exclude(init_settings.moduleswitches,cs_create_smart)
                        Else
                          include(init_settings.moduleswitches,cs_create_smart);
@@ -947,7 +982,7 @@ begin
                       end;
                     'v' :
                        If target_info.system in systems_jvm then
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_check_var_copyout)
                          Else
                            include(init_settings.localswitches,cs_check_var_copyout)
@@ -1030,7 +1065,7 @@ begin
 
            'E' :
              begin
-               if UnsetBool(More, 0) then
+               if UnsetBool(More, 0, opt, true) then
                  exclude(init_settings.globalswitches,cs_link_nolink)
                else
                  include(init_settings.globalswitches,cs_link_nolink);
@@ -1072,7 +1107,7 @@ begin
                  'C' :
                    RCCompiler := More;
                  'd' :
-                   if UnsetBool(more, 0) then
+                   if UnsetBool(more, 0, opt, true) then
                      init_settings.disabledircache:=false
                    else
                      init_settings.disabledircache:=true;
@@ -1172,7 +1207,7 @@ begin
 
            'g' :
              begin
-               if UnsetBool(More, 0) then
+               if UnsetBool(More, 0, opt, false) then
                 begin
                   exclude(init_settings.moduleswitches,cs_debuginfo);
                   exclude(init_settings.globalswitches,cs_use_heaptrc);
@@ -1194,7 +1229,7 @@ begin
                    case more[j] of
                      'c' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_checkpointer)
                          else if (target_info.system in supported_targets_gc) then
                            include(init_settings.localswitches,cs_checkpointer)
@@ -1203,14 +1238,14 @@ begin
                        end;
                      'h' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_use_heaptrc)
                          else
                            include(init_settings.globalswitches,cs_use_heaptrc);
                        end;
                      'l' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_use_lineinfo)
                          else
                            include(init_settings.globalswitches,cs_use_lineinfo);
@@ -1223,7 +1258,7 @@ begin
                        end;
                      'p' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_stabs_preservecase)
                          else
                            include(init_settings.globalswitches,cs_stabs_preservecase);
@@ -1234,14 +1269,14 @@ begin
                        end;
                      't' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                             localvartrashing := -1
                          else
                            localvartrashing := (localvartrashing + 1) mod nroftrashvalues;
                        end;
                      'v' :
                        begin
-                         if UnsetBool(More, j) then
+                         if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_gdb_valgrind)
                          else
                            include(init_settings.globalswitches,cs_gdb_valgrind);
@@ -1304,10 +1339,10 @@ begin
              end;
 
            'l' :
-             ParaLogo:=not UnSetBool(more,0);
+             ParaLogo:=not UnSetBool(more,0,opt,true);
 
            'm' :
-             parapreprocess:=not UnSetBool(more,0);
+             parapreprocess:=not UnSetBool(more,0,opt,true);
 
            'M' :
              begin
@@ -1351,6 +1386,8 @@ begin
                       init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
                     '3' :
                       init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
+                    '4' :
+                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
                     'a' :
                       begin
                         if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
@@ -1414,7 +1451,7 @@ begin
 
            'p' :
              begin
-               if UnsetBool(More, 0) then
+               if UnsetBool(More, 0, opt, false) then
                  begin
                    init_settings.moduleswitches:=init_settings.moduleswitches-[cs_profile];
                    undef_system_macro('FPC_PROFILE');
@@ -1424,7 +1461,7 @@ begin
                    IllegalPara(opt)
                  else
                  case more[1] of
-                  'g' : if UnsetBool(more, 1) then
+                  'g' : if UnsetBool(more, 1, opt, false) then
                          begin
                            exclude(init_settings.moduleswitches,cs_profile);
                            undef_system_macro('FPC_PROFILE');
@@ -1451,7 +1488,7 @@ begin
 
            's' :
              begin
-               if UnsetBool(More, 0) then
+               if UnsetBool(More, 0, opt, false) then
                  begin
                    init_settings.globalswitches:=init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more<>'' then
@@ -1496,12 +1533,12 @@ begin
                        '2' : //an alternative to -Mobjfpc
                          SetCompileMode('OBJFPC',true);
                        'a' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_do_assertion)
                          else
                            include(init_settings.localswitches,cs_do_assertion);
                        'c' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.moduleswitches,cs_support_c_operators)
                          else
                            include(init_settings.moduleswitches,cs_support_c_operators);
@@ -1530,27 +1567,27 @@ begin
                              end;
                          end;
                        'g' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.moduleswitches,cs_support_goto)
                          else
                            include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_refcountedstrings)
                          else
                            include(init_settings.localswitches,cs_refcountedstrings);
                        'i' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_do_inline)
                          else
                            include(init_settings.localswitches,cs_do_inline);
                        'k' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
                          else
                            include(init_settings.globalswitches,cs_load_fpcylix_unit);
                        'm' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.moduleswitches,cs_support_macro)
                          else
                            include(init_settings.moduleswitches,cs_support_macro);
@@ -1561,24 +1598,24 @@ begin
                          SetCompileMode('GPC',true);
 {$endif}
                        's' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_constructor_name)
                          else
                            include(init_settings.globalswitches,cs_constructor_name);
                        't' :
                          Message1(option_obsolete_switch,'-St');
                        'v' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_support_vectors)
                          else
                            include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_support_exceptions)
                          else
                            include(init_settings.globalswitches,cs_support_exceptions);
                        'y' :
-                         If UnsetBool(More, j) then
+                         If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_typed_addresses)
                          else
                            include(init_settings.localswitches,cs_typed_addresses);
@@ -1679,7 +1716,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_cui
                             else
                               apptype:=app_native;
@@ -1691,7 +1728,7 @@ begin
                       begin
                         if target_info.system in systems_darwin then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_cui
                             else
                               apptype:=app_bundle
@@ -1728,7 +1765,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_gui
                             else
                               apptype:=app_cui;
@@ -1740,7 +1777,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows then
                           begin
-                            UseDeffileForExports:=not UnsetBool(More, j);
+                            UseDeffileForExports:=not UnsetBool(More, j, opt, false);
                             UseDeffileForExportsSetExplicitly:=true;
                           end
                         else
@@ -1761,7 +1798,7 @@ begin
                       begin
                         if target_info.system in systems_os2 then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_cui
                             else
                               apptype:=app_fs;
@@ -1773,7 +1810,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_cui
                             else
                               apptype:=app_gui;
@@ -1785,7 +1822,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows then
                           begin
-                            GenerateImportSection:=not UnsetBool(More,j);
+                            GenerateImportSection:=not UnsetBool(More,j,opt,false);
                             GenerateImportSectionSetExplicitly:=true;
                           end
                         else
@@ -1816,7 +1853,7 @@ begin
                       begin
                         if target_info.system in systems_all_windows then
                           begin
-                            RelocSection:=UnsetBool(More,j);
+                            RelocSection:=UnsetBool(More,j,opt,false);
                             RelocSectionSetExplicitly:=true;
                           end
                         else
@@ -1851,7 +1888,7 @@ begin
                         if target_info.system in systems_all_windows then
                           begin
                             { support -WR+ / -WR- as synonyms to -WR / -WN }
-                            RelocSection:=not UnsetBool(More,j);
+                            RelocSection:=not UnsetBool(More,j,opt,false);
                             RelocSectionSetExplicitly:=true;
                           end
                         else
@@ -1861,7 +1898,7 @@ begin
                       begin
                         if target_info.system in systems_macos then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               apptype:=app_cui
                             else
                               apptype:=app_tool;
@@ -1873,7 +1910,7 @@ begin
                       begin
                         if (target_info.system in systems_linux) then
                           begin
-                            if UnsetBool(More, j) then
+                            if UnsetBool(More, j, opt, false) then
                               exclude(init_settings.moduleswitches,cs_executable_stack)
                             else
                               include(init_settings.moduleswitches,cs_executable_stack)
@@ -1898,7 +1935,7 @@ begin
                     'd' : Dontlinkstdlibpath:=TRUE;
                     'e' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_extern)
                         else
                           include(init_settings.globalswitches,cs_link_extern);
@@ -1907,21 +1944,21 @@ begin
                       include(init_settings.globalswitches,cs_link_pthread);
                     'g' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_separate_dbg_file)
                         else
                           include(init_settings.globalswitches,cs_link_separate_dbg_file);
                       end;
                     'i' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           include(init_settings.globalswitches,cs_link_extern)
                         else
                           exclude(init_settings.globalswitches,cs_link_extern);
                       end;
                     'n' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_native)
                         else
                           include(init_settings.globalswitches,cs_link_native);
@@ -1929,7 +1966,7 @@ begin
 
                     'm' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_map)
                         else
                           include(init_settings.globalswitches,cs_link_map);
@@ -1954,7 +1991,7 @@ begin
                       end;
                     's' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_strip)
                         else
                           include(init_settings.globalswitches,cs_link_strip);
@@ -1963,7 +2000,7 @@ begin
                       include(init_settings.globalswitches,cs_link_staticflag);
                     'v' :
                       begin
-                        If UnsetBool(More, j) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_opt_vtable)
                         else
                           include(init_settings.globalswitches,cs_link_opt_vtable);
@@ -2099,6 +2136,7 @@ var
   line,
   level : longint;
   option_read : boolean;
+  oldfilemode : byte;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
@@ -2113,10 +2151,13 @@ begin
     end;
 { open file }
   Message1(option_using_file,filename);
+  oldfilemode:=filemode;
+  filemode:=0;
   assign(f,ExpandFileName(filename));
   {$push}{$I-}
    reset(f);
   {$pop}
+  filemode:=oldfilemode;
   if ioresult<>0 then
    begin
      Message1(option_unable_open_file,filename);
@@ -2538,7 +2579,7 @@ begin
     system_jvm_java32,
     system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
-         f_variants,f_objects,f_threading,f_commandargs,
+         f_variants,f_objects,f_commandargs,
          f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
     else
       target_unsup_features:=[];
@@ -2683,6 +2724,10 @@ var
   env: ansistring;
   i : tfeature;
   abi : tabi;
+{$if defined(arm) or defined(avr)}
+  cpuflag : tcpuflags;
+{$endif defined(arm) or defined(avr)}
+  hs : string;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -2769,11 +2814,6 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_SAR');
 { $endif}
 
-{ inline bsf/bsr implementation }
-{$if defined(x86) or defined(x86_64)}
-  def_system_macro('FPC_HAS_INTERNAL_BSX');
-{$endif}
-
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
@@ -2844,12 +2884,14 @@ begin
   def_system_macro('CPUX64');
   { not supported for now, afaik (FK)
    def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
-  { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+  { normally, win64 doesn't support the legacy fpu }
   if target_info.system=system_x86_64_win64 then
     begin
       def_system_macro('FPC_CURRENCY_IS_INT64');
       def_system_macro('FPC_COMP_IS_INT64');
     end;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 {$endif}
 {$ifdef sparc}
   def_system_macro('CPUSPARC');
@@ -3095,7 +3137,8 @@ begin
 
   { maybe override debug info format }
   if (paratargetdbg<>dbg_none) then
-    set_target_dbg(paratargetdbg);
+    if not set_target_dbg(paratargetdbg) then
+      Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in init_settings.globalswitches) and
@@ -3123,23 +3166,23 @@ begin
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
 
-  { force fpu emulation on arm/wince, arm/gba, arm/embedded, arm/nds and
-    arm/darwin if fpu type not explicitly set }
+  { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
+    if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-         system_m68k_linux,system_arm_nds,system_arm_embedded,system_arm_darwin])
+         system_m68k_linux,system_arm_nds,system_arm_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$ifdef arm}
+{$if defined(arm) or defined (m68k)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm}
+{$endif arm or m68k}
   then
     begin
 {$ifdef cpufpemu}
       include(init_settings.moduleswitches,cs_fp_emulation);
-      { cs_fp_emulation and fpu_soft are equal on arm }
+      { cs_fp_emulation and fpu_soft are equal on arm and m68k }
       init_settings.fputype:=fpu_soft;
 {$endif cpufpemu}
     end;
@@ -3163,16 +3206,19 @@ begin
 {$endif arm}
 
 {$ifdef arm}
-{ set default cpu type to ARMv6 for Darwin unless specified otherwise }
+{ set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
+  to VFPv2 }
 if (target_info.system=system_arm_darwin) then
   begin
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv6;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv6;
+    if not option.FPUSetExplicitly then
+      init_settings.fputype:=fpu_vfpv2;
   end;
 
-{ set default cpu type to ARMv7 for ARMHF unless specified otherwise }
+{ set default cpu type to ARMv7a for ARMHF unless specified otherwise }
 if (target_info.abi = abi_eabihf) then
   begin
 {$ifdef CPUARMV6}
@@ -3186,9 +3232,9 @@ if (target_info.abi = abi_eabihf) then
       init_settings.optimizecputype:=cpu_armv6;
 {$else CPUARMV6}
     if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv7;
+      init_settings.cputype:=cpu_armv7a;
     if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv7;
+      init_settings.optimizecputype:=cpu_armv7a;
 {$endif CPUARMV6}
   end;
 {$endif arm}
@@ -3207,6 +3253,17 @@ if (target_info.abi = abi_eabihf) then
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
+{$if defined(arm) or defined(avr)}
+  for cpuflag:=low(cpuflag) to high(cpuflag) do
+    begin
+      str(cpuflag,hs);
+      if cpuflag in cpu_capabilities[init_settings.cputype] then
+        def_system_macro(hs)
+      else
+        undef_system_macro(hs);
+    end;
+{$endif defined(arm) or defined(avr)}
+
   if init_settings.fputype<>fpu_none then
     begin
 {$if defined(i386)}
@@ -3217,11 +3274,16 @@ if (target_info.abi = abi_eabihf) then
 {$if not defined(i386) and not defined(x86_64)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
+{$if defined(m68k)}
+      def_system_macro('FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE');
+{$endif}
 {$ifdef x86_64}
-      { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+      { normally, win64 doesn't support the legacy fpu }
       if target_info.system=system_x86_64_win64 then
         undef_system_macro('FPC_HAS_TYPE_EXTENDED')
       else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
@@ -3242,6 +3304,24 @@ if (target_info.abi = abi_eabihf) then
     not(cs_fp_emulation in init_settings.moduleswitches) then
     def_system_macro('FPC_DOUBLE_HILO_SWAPPED');
 {$endif ARM}
+
+{ inline bsf/bsr implementation }
+{$if defined(x86) or defined(x86_64)}
+  def_system_macro('FPC_HAS_INTERNAL_BSF');
+  def_system_macro('FPC_HAS_INTERNAL_BSR');
+{$endif}
+{$if defined(arm)}
+  { it is determined during system unit compilation if clz is used for bsf or not,
+    this is not perfect but the current implementation bsf/bsr does not allow another
+    solution }
+  if CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype] then
+    begin
+      def_system_macro('FPC_HAS_INTERNAL_BSR');
+      if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
+        def_system_macro('FPC_HAS_INTERNAL_BSF');
+    end;
+{$endif}
+
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
@@ -3280,7 +3360,7 @@ if (target_info.abi = abi_eabihf) then
   Option:=nil;
 
   clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal];
-  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl];
+  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl, pocall_mwpascal];
   if (tf_safecall_clearstack in target_info.flags) then
     begin
       include (cdecl_pocalls, pocall_safecall);

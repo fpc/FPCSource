@@ -5,8 +5,9 @@
  *  Copyright (c) 2004 Apple Computer, Inc. All rights reserved.
  *
  }
- {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{	 Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
  
 {
     Modified for use with Free Pascal
@@ -83,6 +84,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -92,6 +94,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -107,6 +110,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -116,6 +120,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -126,6 +131,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -173,8 +179,6 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CVPixelBuffer;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 
@@ -182,25 +186,30 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CVPixelBuffer;
 
 { The canonical name for the format.  This should bethe same as the codec name you'd use in QT }
 var kCVPixelFormatName: CFStringRef; external name '_kCVPixelFormatName'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { QuickTime/QuickDraw Pixel Format Type constant (OSType) }
 var kCVPixelFormatConstant: CFStringRef; external name '_kCVPixelFormatConstant'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { This is the codec type constant, i.e. '2vuy' or k422YpCbCr8CodecType }
 var kCVPixelFormatCodecType: CFStringRef; external name '_kCVPixelFormatCodecType'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { This is the equivalent Microsoft FourCC code for this pixel format }
 var kCVPixelFormatFourCC: CFStringRef; external name '_kCVPixelFormatFourCC'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
+
+{ kCFBooleanTrue indicates that the format contains alpha and some images may be considered transparent;
+   kCFBooleanFalse indicates that there is no alpha and images are always opaque. }
+var kCVPixelFormatContainsAlpha: CFStringRef; external name '_kCVPixelFormatContainsAlpha'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_4_3) *)
 
 { All buffers have one or more image planes.  Each plane may contain a single or an interleaved set of components }   
 { For simplicity sake, pixel formats that are not planar may place the required format keys at the top
    level dictionary. }
 var kCVPixelFormatPlanes: CFStringRef; external name '_kCVPixelFormatPlanes'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { The following keys describe the requirements/layout of a a single image plane. }
 
@@ -217,57 +226,61 @@ var kCVPixelFormatPlanes: CFStringRef; external name '_kCVPixelFormatPlanes'; (*
    v210, BlockWidth would be 6, BitsPerBlock would be 128 }
 { Values assumed to 1 be one if not present }
 var kCVPixelFormatBlockWidth: CFStringRef; external name '_kCVPixelFormatBlockWidth'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatBlockHeight: CFStringRef; external name '_kCVPixelFormatBlockHeight'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { This value must be present.  For simple pixel formats this will be equivalent to the traditional 
    bitsPerPixel value. }
 var kCVPixelFormatBitsPerBlock: CFStringRef; external name '_kCVPixelFormatBitsPerBlock'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { Used to state requirements on block multiples.  v210 would be '8' here for the horizontal case, 
    to match the standard v210 row alignment value of 48.
    These may be assumed as 1 if not present. }
 var kCVPixelFormatBlockHorizontalAlignment: CFStringRef; external name '_kCVPixelFormatBlockHorizontalAlignment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatBlockVerticalAlignment: CFStringRef; external name '_kCVPixelFormatBlockVerticalAlignment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { CFData containing the bit pattern for a block of black pixels.  If absent, black is assumed to be all zeros.
    If present, this should be bitsPerPixel bits long -- if bitsPerPixel is less than a byte, repeat the bit pattern 
    for the full byte.  }
 var kCVPixelFormatBlackBlock: CFStringRef; external name '_kCVPixelFormatBlackBlock'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_4_0) *)
 
 { Subsampling information for this plane.  Assumed to be '1' if not present. }
 var kCVPixelFormatHorizontalSubsampling: CFStringRef; external name '_kCVPixelFormatHorizontalSubsampling'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatVerticalSubsampling: CFStringRef; external name '_kCVPixelFormatVerticalSubsampling'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { If present, these two keys describe the OpenGL format and type enums you would use to describe this
    image plane to OpenGL }
 var kCVPixelFormatOpenGLFormat: CFStringRef; external name '_kCVPixelFormatOpenGLFormat'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatOpenGLType: CFStringRef; external name '_kCVPixelFormatOpenGLType'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatOpenGLInternalFormat: CFStringRef; external name '_kCVPixelFormatOpenGLInternalFormat'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { CGBitmapInfo value, if required }
 var kCVPixelFormatCGBitmapInfo: CFStringRef; external name '_kCVPixelFormatCGBitmapInfo'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { Pixel format compatibility flags }
 var kCVPixelFormatQDCompatibility: CFStringRef; external name '_kCVPixelFormatQDCompatibility'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatCGBitmapContextCompatibility: CFStringRef; external name '_kCVPixelFormatCGBitmapContextCompatibility'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatCGImageCompatibility: CFStringRef; external name '_kCVPixelFormatCGImageCompatibility'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelFormatOpenGLCompatibility: CFStringRef; external name '_kCVPixelFormatOpenGLCompatibility'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
+{$ifc TARGET_OS_IPHONE}
+var kCVPixelFormatOpenGLESCompatibility: CFStringRef; external name '_kCVPixelFormatOpenGLESCompatibility'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_NA,__IPHONE_5_0) *)
+{$endc}
 
 { This callback routine implements code to handle the functionality of CVPixelBufferFillExtendedPixels.  
    For custom pixel formats where you will never need to use that call, this is not required. }
@@ -281,22 +294,21 @@ type
 
 { The value for this key is a CFData containing a CVFillExtendedPixelsCallBackData struct }
 var kCVPixelFormatFillExtendedPixelsCallback: CFStringRef; external name '_kCVPixelFormatFillExtendedPixelsCallback'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { Create a description of a pixel format from a provided OSType }
 function CVPixelFormatDescriptionCreateWithPixelFormatType( allocator: CFAllocatorRef; pixelFormat: OSType ): CFDictionaryRef; external name '_CVPixelFormatDescriptionCreateWithPixelFormatType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { Get an array containing all known pixel format description dictionaries }
 function CVPixelFormatDescriptionArrayCreateWithAllPixelFormatTypes( allocator: CFAllocatorRef ): CFArrayRef; external name '_CVPixelFormatDescriptionArrayCreateWithAllPixelFormatTypes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { Register a new pixel format with CoreVideo }
 procedure CVPixelFormatDescriptionRegisterDescriptionWithPixelFormatType( description: CFDictionaryRef; pixelFormat: OSType ); external name '_CVPixelFormatDescriptionRegisterDescriptionWithPixelFormatType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

@@ -1,8 +1,16 @@
 {
-  These codepages are taken from the next resources:
+  This file is in the public domain.
+}
+
+{
+  This codepage information is based on what is documented at
     1. http://wiki.whatwg.org/wiki/Web_Encodings
     2. http://msdn.microsoft.com/en-us/library/windows/desktop/dd317756(v=vs.85).aspx
+
+    This file only uses bare facts and API information from the above pages
+    rather than descriptions or code, neither of which are copyrightable.
 }
+
 type
   TCodePageHashEntry = record
     hash: LongWord;

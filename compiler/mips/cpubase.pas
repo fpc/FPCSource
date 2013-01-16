@@ -184,13 +184,13 @@ unit cpubase;
 
       { PIC Code }
       NR_GP = NR_R28;
-	  NR_PIC_FUNC = NR_R25;
+      NR_PIC_FUNC = NR_R25;
       RS_GP = RS_R28;
-	  RS_PIC_FUNC = RS_R25;
+      RS_PIC_FUNC = RS_R25;
 
-	  { VMT code }
-	  NR_VMT = NR_R24;
-	  RS_VMT = RS_R24;
+      { VMT code }
+      NR_VMT = NR_R24;
+      RS_VMT = RS_R24;
 
       NR_SP = NR_R29;
       NR_S8 = NR_R30;
@@ -286,6 +286,7 @@ unit cpubase;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
+    function dwarf_reg(r:tregister):shortint;
 
   implementation
 
@@ -294,7 +295,7 @@ unit cpubase;
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i rmipsstd.inc}
       );
 
@@ -385,6 +386,12 @@ unit cpubase;
           result:=generic_regname(r);
       end;
 
+    function dwarf_reg(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
+      end;
 
 begin
 end.

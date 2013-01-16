@@ -120,7 +120,7 @@ implementation
       begin
         with pextra_info(p)^ do
          begin
-           writeln(t,getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+') ');
+           writeln(t,'Memory allocated at '+getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+') ');
          end;
       end;
 
@@ -132,7 +132,9 @@ implementation
     begin
        if not pp_heap_inited then
          begin
+{$ifdef extheaptrc}
             keepreleased:=true;
+{$endif extheaptrc}
             SetHeapTraceOutput('heap.log');
             SetHeapExtraInfo(sizeof(textra_info),
                              @set_extra_info,

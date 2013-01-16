@@ -43,10 +43,10 @@ implementation
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,procinfo,
       ncon,ncal,
       ncgutil,
-      cpubase,aasmcpu,
+      cpubase,cpuinfo,aasmcpu,
       rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu;
 
 
@@ -61,7 +61,8 @@ implementation
         { In case we are in emulation mode, we must
           always call the helpers
         }
-        if (cs_fp_emulation in current_settings.moduleswitches) then
+        if (cs_fp_emulation in current_settings.moduleswitches)
+           or (current_settings.fputype=fpu_soft) then
           begin
             result := inherited first_int_to_real;
             exit;
@@ -130,7 +131,7 @@ implementation
           internalerror(200110011);
         { has to be handled by a helper }
         if not signed then
-           internalerror(20020814);
+           internalerror(2002081404);
 
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,opsize);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -160,10 +161,16 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
+        hlabel,
+        oldTrueLabel,
+        oldFalseLabel : tasmlabel;
       begin
-         secondpass(left);
+         oldTrueLabel:=current_procinfo.CurrTrueLabel;
+         oldFalseLabel:=current_procinfo.CurrFalseLabel;
+         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
 
-{ TODO: needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
+         secondpass(left);
 
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }
@@ -178,10 +185,8 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-{   ACTIVATE when loc_jump support is added
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
               current_procinfo.CurrFalseLabel:=oldFalseLabel;
-}
               exit;
            end;
 
@@ -221,13 +226,34 @@ implementation
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=left.location.resflags;
               end;
+            LOC_JUMP :
+              begin
+                { for now blindly copied from nx86cnv }
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                current_asmdata.getjumplabel(hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                if not(is_cbool(resultdef)) then
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register)
+                else
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,-1,location.register);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
+                cg.a_label(current_asmdata.CurrAsmList,hlabel);
+              end;
             else
              internalerror(200512182);
          end;
-         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
-         if (is_cbool(resultdef)) then
-           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
-         location.register := hreg1;
+         if left.location.loc<>LOC_JUMP then
+           begin
+             cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
+             if (is_cbool(resultdef)) then
+               cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
+             location.register := hreg1;
+           end;
+         current_procinfo.CurrTrueLabel:=oldTrueLabel;
+         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 {

@@ -1174,7 +1174,7 @@ begin
     exit(chunksize);
   end;
 
-  { insert the block in it's freelist }
+  { insert the block in its freelist }
   pmcv^.size := pmcv^.size and (not usedflag);
   append_to_list_var(pmcv);
   pmcv := try_concat_free_chunk(pmcv);
@@ -1385,6 +1385,16 @@ begin
     currsize := pcurr^.size and sizemask;
   if size>currsize then
     begin
+      { adjust statistics (try_concat_free_chunk_forward may have merged a free
+        block into the current block, which we will subsequently free (so the
+        combined size will be freed -> make sure the combined size is marked as
+        used) }
+      with loc_freelists^.internal_status do
+      begin
+        inc(currheapused, currsize-oldsize);
+        if currheapused > maxheapused then
+          maxheapused := currheapused;
+      end;
       { the size is bigger than the previous size, we need to allocate more mem
         but we could not concatenate with next block or not big enough }
       exit;

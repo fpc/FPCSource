@@ -67,7 +67,7 @@ implementation
           reference_reset(ref,sizeof(aint));
           ref.symbol:=current_asmdata.RefAsmSymbol(s);
           ref.base:=NR_GP;
-      	  ref.refaddr:=addr_pic;
+            ref.refaddr:=addr_pic;
           cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
           cg.a_call_reg(list,NR_PIC_FUNC);
         end

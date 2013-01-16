@@ -1,8 +1,7 @@
+{ %opt=-Fasysutils}
 {$mode iso}
 {$modeswitch exceptions+}
 program modulo( Output);
-uses
-  sysutils;
 var
   i, j, m : integer;
 begin

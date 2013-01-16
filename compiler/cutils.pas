@@ -90,6 +90,13 @@ interface
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
     function nextpowerof2(value : int64; out power: longint) : int64;
+{$ifdef VER2_6}  { only 2.7.1+ has a popcnt function in the system unit }
+    function PopCnt(AValue : Byte): Byte;
+    function PopCnt(AValue : Word): Word;
+    function PopCnt(AValue : DWord): DWord;
+    function PopCnt(Const AValue : QWord): QWord;
+{$endif VER2_6}
+
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
 
@@ -844,6 +851,50 @@ implementation
             result:=result shl 1;
           end;
       end;
+
+{$ifdef VER2_6}
+    const
+      PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
+
+    function PopCnt(AValue : Byte): Byte;
+      var
+        i : SizeInt;
+      begin
+        Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
+      end;
+
+
+    function PopCnt(AValue : Word): Word;
+      var
+        i : SizeInt;
+      begin
+        Result:=0;
+        for i:=0 to 3 do
+          begin
+            inc(Result,PopCntData[AValue and $f]);
+            AValue:=AValue shr 4;
+          end;
+      end;
+
+
+    function PopCnt(AValue : DWord): DWord;
+      var
+        i : SizeInt;
+      begin
+        Result:=0;
+        for i:=0 to 7 do
+          begin
+            inc(Result,PopCntData[AValue and $f]);
+            AValue:=AValue shr 4;
+          end;
+      end;
+
+
+    function PopCnt(Const AValue : QWord): QWord;
+      begin
+        Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
+      end;
+ {$endif VER2_6}
 
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;

@@ -81,6 +81,7 @@ function VarIsOrdinal(const V: Variant): Boolean; inline;
 function VarIsFloat(const V: Variant): Boolean; inline;
 function VarIsNumeric(const V: Variant): Boolean; inline;
 function VarIsStr(const V: Variant): Boolean;
+function VarIsBool(const V: Variant): Boolean; inline;
 
 function VarToStr(const V: Variant): string;
 function VarToStrDef(const V: Variant; const ADefault: string): string;
@@ -2970,6 +2971,11 @@ begin
     else
       Result:=False;
   end;
+end;
+
+function VarIsBool(const V: Variant): Boolean;
+begin
+  Result := (TVarData(V).vType and varTypeMask) = varboolean;
 end;
 
 

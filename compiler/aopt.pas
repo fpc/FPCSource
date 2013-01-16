@@ -25,6 +25,8 @@ Unit aopt;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_OPTALLOC}
+
   Interface
 
     Uses
@@ -49,9 +51,18 @@ Unit aopt;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;
 
+      TAsmScheduler = class(TAoptObj)
+        { _AsmL is the PAasmOutpout list that has to be re-scheduled }
+        Constructor Create(_AsmL: TAsmList); virtual; reintroduce;
+        Procedure Optimize;
+        function SchedulerPass1Cpu(var p: tai): boolean; virtual; abstract;
+        procedure SchedulerPass1;
+      end;
+      TAsmSchedulerClass = class of TAsmScheduler;
+
     var
       casmoptimizer : TAsmOptimizerClass;
-      cpreregallocscheduler : TAsmOptimizerClass;
+      cpreregallocscheduler : TAsmSchedulerClass;
 
     procedure Optimize(AsmL:TAsmList);
     procedure PreRegallocSchedule(AsmL:TAsmList);
@@ -69,7 +80,7 @@ Unit aopt;
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
       Begin
         inherited create(_asml,nil,nil,nil);
-      {setup labeltable, always necessary}
+        { setup labeltable, always necessary }
         New(LabelInfo);
       End;
 
@@ -174,10 +185,11 @@ Unit aopt;
                         ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                         hp1 := p;
                         hp2 := nil;
-                        While Not(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next))) And
+                        While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
                               GetNextInstruction(hp1, hp1) And
                               RegInInstruction(tai_regalloc(p).Reg, hp1) Do
                           hp2 := hp1;
+                        { move deallocations }
                         If hp2 <> nil Then
                           Begin
                             hp1 := tai(p.previous);
@@ -186,13 +198,23 @@ Unit aopt;
 {$endif DEBUG_OPTALLOC}
                             AsmL.Remove(p);
                             InsertLLItem(hp2, tai(hp2.Next), p);
+                            { don't remove this deallocation later on when merging dealloc/alloc pairs because
+                              it marks indenpendent use of a register
+
+                              This could be also achieved by a separate passes for merging first and then later
+                              moving but I did not choose this solution because it takes more time and code (FK) }
+                            tai_regalloc(p).keep:=true;
 {$ifdef DEBUG_OPTALLOC}
                             AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg)+' here')),hp2);
 {$endif DEBUG_OPTALLOC}
                             p := hp1;
                           End
-                        else if findregalloc(tai_regalloc(p).reg, tai(p.next))
-                          and getnextinstruction(p,hp1) then
+                        { merge allocations/deallocations }
+                        else if assigned(findregalloc(tai_regalloc(p).reg, tai(p.next)))
+                          and getnextinstruction(p,hp1) and
+                          { don't merge deallocations/allocation which mark a new use of register, this
+                            enables more possibilities for the peephole optimizer }
+                          not(tai_regalloc(p).keep) then
                           begin
                             hp1 := tai(p.previous);
 {$ifdef DEBUG_OPTALLOC}
@@ -201,8 +223,6 @@ Unit aopt;
                             AsmL.remove(p);
                             p.free;
                             p := hp1;
-      //                      don't include here, since then the allocation will be removed when it's processed
-      //                      include(usedregs,supreg);
                           end;
                       End
                   End
@@ -303,6 +323,59 @@ Unit aopt;
       End;
 
 
+    constructor TAsmScheduler.Create(_AsmL: TAsmList);
+      begin
+        inherited create(_asml,nil,nil,nil);
+      end;
+
+
+    procedure TAsmScheduler.SchedulerPass1;
+      var
+        p,hp1,hp2 : tai;
+      begin
+        p:=BlockStart;
+        while p<>BlockEnd Do
+          begin
+            if SchedulerPass1Cpu(p) then
+              continue;
+            p:=tai(p.next);
+          end;
+      end;
+
+
+    procedure TAsmScheduler.Optimize;
+      Var
+        HP: tai;
+        pass: longint;
+      Begin
+        pass:=0;
+        BlockStart := tai(AsmL.First);
+        While Assigned(BlockStart) Do
+          Begin
+            { Peephole optimizations }
+            SchedulerPass1;
+            { continue where we left off, BlockEnd is either the start of an }
+            { assembler block or nil}
+            BlockStart:=BlockEnd;
+            While Assigned(BlockStart) And
+                  (BlockStart.typ = ait_Marker) And
+                  (tai_Marker(BlockStart).Kind = mark_AsmBlockStart) Do
+              Begin
+                { we stopped at an assembler block, so skip it    }
+                While GetNextInstruction(BlockStart, BlockStart) And
+                      ((BlockStart.Typ <> Ait_Marker) Or
+                       (tai_Marker(Blockstart).Kind <> mark_AsmBlockEnd)) Do;
+                { blockstart now contains a tai_marker(mark_AsmBlockEnd) }
+                If not(GetNextInstruction(BlockStart, HP) And
+                   ((HP.typ <> ait_Marker) Or
+                    (Tai_Marker(HP).Kind <> mark_AsmBlockStart))) Then
+                  { skip the next assembler block }
+                  blockStart := hp;
+              End
+          End;
+      End;
+
+
     procedure Optimize(AsmL:TAsmList);
       var
         p : TAsmOptimizer;
@@ -315,7 +388,7 @@ Unit aopt;
 
     procedure PreRegallocSchedule(AsmL:TAsmList);
       var
-        p : TAsmOptimizer;
+        p : TAsmScheduler;
       begin
         p:=cpreregallocscheduler.Create(AsmL);
         p.Optimize;

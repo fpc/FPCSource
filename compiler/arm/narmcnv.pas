@@ -26,12 +26,13 @@ unit narmcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv;
 
     type
        tarmtypeconvnode = class(tcgtypeconvnode)
          protected
            function first_int_to_real: tnode;override;
+           function first_real_to_real: tnode; override;
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -57,15 +58,12 @@ interface
 implementation
 
    uses
-      verbose,globtype,globals,systems,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,
+      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
-      pass_1,pass_2,procinfo,
-      ncon,ncal,
+      pass_1,pass_2,procinfo,ncal,
       ncgutil,
-      cpubase,cpuinfo,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj,cgcpu;
+      cpubase,cpuinfo,aasmcpu,cgobj,hlcgobj,cgcpu;
 
 
 {*****************************************************************************
@@ -76,7 +74,8 @@ implementation
       var
         fname: string[19];
       begin
-        if cs_fp_emulation in current_settings.moduleswitches then
+        if (cs_fp_emulation in current_settings.moduleswitches) or
+          (current_settings.fputype=fpu_fpv4_s16) then
           result:=inherited first_int_to_real
         else
           begin
@@ -117,12 +116,55 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
-              fpu_vfpv3_d16:
+              fpu_vfpv3_d16,
+              fpu_fpv4_s16:
                 expectloc:=LOC_MMREGISTER;
               else
                 internalerror(2009112702);
             end;
           end;
+      end;
+
+    function tarmtypeconvnode.first_real_to_real: tnode;
+      begin
+        if (current_settings.fputype=fpu_fpv4_s16) then
+          begin
+            case tfloatdef(left.resultdef).floattype of
+              s32real:
+                case tfloatdef(resultdef).floattype of
+                  s64real:
+                    result:=ctypeconvnode.create_explicit(ccallnode.createintern('float32_to_float64',ccallparanode.create(
+                      ctypeconvnode.create_internal(left,search_system_type('FLOAT32REC').typedef),nil)),resultdef);
+                  s32real:
+                    begin
+                      result:=left;
+                      left:=nil;
+                    end;
+                  else
+                    internalerror(200610151);
+                end;
+              s64real:
+                case tfloatdef(resultdef).floattype of
+                  s32real:
+                    result:=ctypeconvnode.create_explicit(ccallnode.createintern('float64_to_float32',ccallparanode.create(
+                      ctypeconvnode.create_internal(left,search_system_type('FLOAT64').typedef),nil)),resultdef);
+                  s64real:
+                    begin
+                      result:=left;
+                      left:=nil;
+                    end;
+                  else
+                    internalerror(200610152);
+                end;
+              else
+                internalerror(200610153);
+            end;
+            left:=nil;
+            firstpass(result);
+            exit;
+          end
+        else
+          Result := inherited first_real_to_real;
       end;
 
 
@@ -168,8 +210,10 @@ implementation
                         current_asmdata.getjumplabel(l2);
                         reference_reset_symbol(href,l1,0,const_align(8));
 
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         current_asmdata.CurrAsmList.concat(Taicpu.op_reg_const(A_CMP,left.location.register,0));
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                         hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
                         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
@@ -187,6 +231,7 @@ implementation
                           begin
                             hregister:=location.register;
                             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,location.register,hregister),PF_S));
                           end;
                       end;
@@ -210,6 +255,22 @@ implementation
                 location.register:=left.location.register;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(
                 signedprec2vfpop[signed,location.size],location.register,left.location.register));
+            end;
+          fpu_fpv4_s16:
+            begin
+              location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+              signed:=left.location.size=OS_S32;
+              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+              if (left.location.size<>OS_F32) then
+                internalerror(2009112703);
+              if left.location.size<>location.size then
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size)
+              else
+                location.register:=left.location.register;
+              if signed then
+                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32S32))
+              else
+                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32U32));
             end;
         end;
       end;
@@ -316,6 +377,7 @@ implementation
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          hreg1:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
          cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
+         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
          if (is_cbool(resultdef)) then
            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
 

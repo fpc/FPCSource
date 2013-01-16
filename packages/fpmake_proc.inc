@@ -146,6 +146,12 @@ begin
 {$include fcl-res/fpmake.pp}
 end;
 
+procedure add_fcl_sdo;
+begin
+  with Installer do
+{$include fcl-sdo/fpmake.pp}
+end;
+
 procedure add_fcl_stl;
 begin
   with Installer do
@@ -266,6 +272,12 @@ begin
 {$include httpd22/fpmake.pp}
 end;
 
+procedure add_httpd24;
+begin
+  with Installer do
+{$include httpd24/fpmake.pp}
+end;
+
 procedure add_ibase;
 begin
   with Installer do
@@ -348,6 +360,12 @@ procedure add_libsee;
 begin
   with Installer do
 {$include libsee/fpmake.pp}
+end;
+
+procedure add_libvlc;
+begin
+  with Installer do
+{$include libvlc/fpmake.pp}
 end;
 
 procedure add_libxml;
@@ -434,16 +452,16 @@ begin
 {$include opencl/fpmake.pp}
 end;
 
-procedure add_opengl;
-begin
-  with Installer do
-{$include opengl/fpmake.pp}
-end;
-
 procedure add_opengles;
 begin
   with Installer do
 {$include opengles/fpmake.pp}
+end;
+
+procedure add_opengl;
+begin
+  with Installer do
+{$include opengl/fpmake.pp}
 end;
 
 procedure add_openssl;

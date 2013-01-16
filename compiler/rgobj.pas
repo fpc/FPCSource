@@ -128,7 +128,7 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
-      trgobj=class
+       trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 
@@ -139,20 +139,20 @@ unit rgobj;
                            Apreserved_by_proc:Tcpuregisterset);
         destructor destroy;override;
 
-        {# Allocate a register. An internalerror will be generated if there is
+        { Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
         function getregister(list:TAsmList;subreg:Tsubregister):Tregister;virtual;
-        {# Get the register specified.}
+        { Get the register specified.}
         procedure getcpuregister(list:TAsmList;r:Tregister);virtual;
         procedure ungetcpuregister(list:TAsmList;r:Tregister);virtual;
-        {# Get multiple registers specified.}
+        { Get multiple registers specified.}
         procedure alloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
-        {# Free multiple registers specified.}
+        { Free multiple registers specified.}
         procedure dealloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
         procedure add_reg_instruction(instr:Tai;r:tregister;aweight:longint);
         procedure add_move_instruction(instr:Taicpu);
-        {# Do the register allocation.}
+        { Do the register allocation.}
         procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
         { Adds an interference edge.
           don't move this to the protected section, the arm cg requires to access this (FK) }
@@ -171,7 +171,6 @@ unit rgobj;
         { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
-        function  get_alias(n:Tsuperregister):Tsuperregister;
         function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
@@ -186,9 +185,9 @@ unit rgobj;
         procedure insert_regalloc_info_all(list:TAsmList);
       private
         int_live_range_direction: TRADirection;
-        {# First imaginary register.}
+        { First imaginary register.}
         first_imaginary   : Tsuperregister;
-        {# Highest register allocated until now.}
+        { Highest register allocated until now.}
         reginfo           : PReginfo;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
@@ -208,16 +207,13 @@ unit rgobj;
         extended_backwards,
         backwards_was_first : tbitset;
 
-{$ifdef EXTDEBUG}
-        procedure writegraph(loopidx:longint);
-{$endif EXTDEBUG}
-        {# Disposes of the reginfo array.}
+        { Disposes of the reginfo array.}
         procedure dispose_reginfo;
-        {# Prepare the register colouring.}
+        { Prepare the register colouring.}
         procedure prepare_colouring;
-        {# Clean up after register colouring.}
+        { Clean up after register colouring.}
         procedure epilogue_colouring;
-        {# Colour the registers; that is do the register allocation.}
+        { Colour the registers; that is do the register allocation.}
         procedure colour_registers;
         procedure insert_regalloc_info(list:TAsmList;u:tsuperregister);
         procedure generate_interference_graph(list:TAsmList;headertai:tai);
@@ -236,7 +232,6 @@ unit rgobj;
         procedure add_worklist(u:Tsuperregister);
         function adjacent_ok(u,v:Tsuperregister):boolean;
         function conservative(u,v:Tsuperregister):boolean;
-        procedure combine(u,v:Tsuperregister);
         procedure coalesce;
         procedure freeze_moves(u:Tsuperregister);
         procedure freeze;
@@ -244,8 +239,21 @@ unit rgobj;
         procedure assign_colours;
         procedure clear_interferences(u:Tsuperregister);
         procedure set_live_range_direction(dir: TRADirection);
+        procedure set_live_start(reg : tsuperregister;t : tai);
+        function get_live_start(reg : tsuperregister) : tai;
+        procedure set_live_end(reg : tsuperregister;t : tai);
+        function get_live_end(reg : tsuperregister) : tai;
        public
+{$ifdef EXTDEBUG}
+        procedure writegraph(loopidx:longint);
+{$endif EXTDEBUG}
+        procedure combine(u,v:Tsuperregister);
+        { set v as an alias for u }
+        procedure set_alias(u,v:Tsuperregister);
+        function  get_alias(n:Tsuperregister):Tsuperregister;
         property live_range_direction: TRADirection read int_live_range_direction write set_live_range_direction;
+        property live_start[reg : tsuperregister]: tai read get_live_start write set_live_start;
+        property live_end[reg : tsuperregister]: tai read get_live_end write set_live_end;
       end;
 
     const
@@ -305,8 +313,7 @@ unit rgobj;
       begin
         inherited create;
         maxx1:=1;
-        getmem(fbitmap,sizeof(tinterferencebitmap1)*2);
-        fillchar(fbitmap^,sizeof(tinterferencebitmap1)*2,0);
+        fbitmap:=AllocMem(sizeof(tinterferencebitmap1)*2);
       end;
 
 
@@ -538,7 +545,8 @@ unit rgobj;
           ungetcpuregister(list,newreg(regtype,i,defaultsub));
     end;
 
-
+    const
+      rtindex : longint = 0;
     procedure trgobj.do_register_allocation(list:TAsmList;headertai:tai);
       var
         spillingcounter:byte;
@@ -548,6 +556,10 @@ unit rgobj;
         insert_regalloc_info_all(list);
         ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
+{$ifdef DEBUG_SSA}
+        writegraph(rtindex);
+{$endif DEBUG_SSA}
+        inc(rtindex);
         { Don't do the real allocation when -sr is passed }
         if (cs_no_regalloc in current_settings.globalswitches) then
           exit;
@@ -595,6 +607,10 @@ unit rgobj;
       procedure addadj(u,v:Tsuperregister);
 
       begin
+{$ifdef EXTDEBUG}
+        if (u>=maxreginfo) then
+          internalerror(2012101901);
+{$endif}
         with reginfo[u] do
           begin
             if adjlist=nil then
@@ -644,12 +660,12 @@ unit rgobj;
       writeln(f,'Interference graph');
       writeln(f);
       write(f,'    ');
-      for i:=0 to 15 do
+      for i:=0 to maxreg div 16 do
         for j:=0 to 15 do
           write(f,hexstr(i,1));
       writeln(f);
       write(f,'    ');
-      for i:=0 to 15 do
+      for i:=0 to maxreg div 16 do
         write(f,'0123456789ABCDEF');
       writeln(f);
       for i:=0 to maxreg-1 do
@@ -668,6 +684,10 @@ unit rgobj;
 
     procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
     begin
+{$ifdef EXTDEBUG}
+        if (u>=maxreginfo) then
+          internalerror(2012101902);
+{$endif}
       with reginfo[u] do
         begin
           if movelist=nil then
@@ -713,6 +733,30 @@ unit rgobj;
           end
         else
           int_live_range_direction:=rad_forward;
+      end;
+
+
+    procedure trgobj.set_live_start(reg: tsuperregister; t: tai);
+      begin
+        reginfo[reg].live_start:=t;
+      end;
+
+
+    function trgobj.get_live_start(reg: tsuperregister): tai;
+      begin
+        result:=reginfo[reg].live_start;
+      end;
+
+
+    procedure trgobj.set_live_end(reg: tsuperregister; t: tai);
+      begin
+        reginfo[reg].live_end:=t;
+      end;
+
+
+    function trgobj.get_live_end(reg: tsuperregister): tai;
+      begin
+        result:=reginfo[reg].live_end;
       end;
 
 
@@ -765,6 +809,7 @@ unit rgobj;
      register allocator can try to eliminate it.}
 
     var i:Tmoveins;
+        sreg, dreg : Tregister;
         ssupreg,dsupreg:Tsuperregister;
 
     begin
@@ -773,13 +818,20 @@ unit rgobj;
          (instr.oper[O_MOV_DEST]^.typ<>top_reg) then
         internalerror(200311291);
     {$endif}
+      sreg:=instr.oper[O_MOV_SOURCE]^.reg;
+      dreg:=instr.oper[O_MOV_DEST]^.reg;
+      { How should we handle m68k move %d0,%a0? }
+      if (getregtype(sreg)<>getregtype(dreg)) then
+        exit;
       i:=Tmoveins.create;
       i.moveset:=ms_worklist_moves;
       worklist_moves.insert(i);
-      ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE]^.reg);
+      ssupreg:=getsupreg(sreg);
       add_to_movelist(ssupreg,i);
-      dsupreg:=getsupreg(instr.oper[O_MOV_DEST]^.reg);
-      if ssupreg<>dsupreg then
+      dsupreg:=getsupreg(dreg);
+      { On m68k move can mix address and integer registers,
+        this leads to problems ... PM }
+      if (ssupreg<>dsupreg) {and (getregtype(sreg)=getregtype(dreg))} then
         {Avoid adding the same move instruction twice to a single register.}
         add_to_movelist(dsupreg,i);
       i.x:=ssupreg;
@@ -866,7 +918,7 @@ unit rgobj;
               spillworklist.add(n)
             else if move_related(n) then
               freezeworklist.add(n)
-            else
+            else if not(ri_coalesced in flags) then
               simplifyworklist.add(n);
           end;
       sort_simplify_worklist;
@@ -1064,6 +1116,16 @@ unit rgobj;
               inc(k);
           end;
       conservative:=(k<usable_registers_cnt);
+    end;
+
+    procedure trgobj.set_alias(u,v:Tsuperregister);
+
+    begin
+      include(reginfo[v].flags,ri_coalesced);
+      if reginfo[v].alias<>0 then
+        internalerror(200712291);
+      reginfo[v].alias:=get_alias(u);
+      coalescednodes.add(v);
     end;
 
 
@@ -1560,9 +1622,9 @@ unit rgobj;
     procedure trgobj.generate_interference_graph(list:TAsmList;headertai:tai);
       var
         p : tai;
-{$ifdef EXTDEBUG}
+{$if defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         i : integer;
-{$endif EXTDEBUG}
+{$endif defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         supreg : tsuperregister;
       begin
         { All allocations are available. Now we can generate the
@@ -1584,11 +1646,23 @@ unit rgobj;
                         ra_alloc :
                           begin
                             live_registers.add(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
+                            write(live_registers.length,'  ');
+                            for i:=0 to live_registers.length-1 do
+                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                            writeln;
+{$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
                           end;
                         ra_dealloc :
                           begin
                             live_registers.delete(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
+                            write(live_registers.length,'  ');
+                            for i:=0 to live_registers.length-1 do
+                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                            writeln;
+{$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
                           end;
                       end;
@@ -1627,10 +1701,10 @@ unit rgobj;
       var
         hp,p,q:Tai;
         i:shortint;
+        u:longint;
 {$ifdef arm}
         so:pshifterop;
 {$endif arm}
-
 
       begin
         { Leave when no imaginary registers are used }
@@ -1715,12 +1789,24 @@ unit rgobj;
                 with Taicpu(p) do
                   begin
                     current_filepos:=fileinfo;
+                    {For speed reasons, get_alias isn't used here, instead,
+                     assign_colours will also set the colour of coalesced nodes.
+                     If there are registers with colour=0, then the coalescednodes
+                     list probably doesn't contain these registers, causing
+                     assign_colours not to do this properly.}
                     for i:=0 to ops-1 do
                       with oper[i]^ do
                         case typ of
                           Top_reg:
                              if (getregtype(reg)=regtype) then
-                               setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                               begin
+                                 u:=getsupreg(reg);
+{$ifdef EXTDEBUG}
+                                 if (u>=maxreginfo) then
+                                   internalerror(2012101903);
+{$endif}
+                                 setsupreg(reg,reginfo[u].colour);
+                               end;
                           Top_ref:
                             begin
                               if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
@@ -1728,10 +1814,24 @@ unit rgobj;
                                   begin
                                     if (base<>NR_NO) and
                                        (getregtype(base)=regtype) then
-                                      setsupreg(base,reginfo[getsupreg(base)].colour);
+                                      begin
+                                        u:=getsupreg(base);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2012101904);
+{$endif}
+                                        setsupreg(base,reginfo[u].colour);
+                                      end;
                                     if (index<>NR_NO) and
                                        (getregtype(index)=regtype) then
-                                      setsupreg(index,reginfo[getsupreg(index)].colour);
+                                      begin
+                                        u:=getsupreg(index);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2012101905);
+{$endif}
+                                        setsupreg(index,reginfo[u].colour);
+                                      end;
                                   end;
                             end;
 {$ifdef arm}
@@ -1846,6 +1946,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
+//                    writeln(gas_op2str[taicpu(p).opcode]);
                     current_filepos:=fileinfo;
                     if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
@@ -1993,9 +2094,11 @@ unit rgobj;
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                     with ref^ do
                       begin
-                        if (base <> NR_NO) then
+                        if (base <> NR_NO) and
+                            (getregtype(base)=regtype) then
                           addreginfo(base,instr.spilling_get_operation_type_ref(counter,base));
-                        if (index <> NR_NO) then
+                        if (index <> NR_NO) and
+                            (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
                       end;
                 end;
@@ -2156,8 +2259,12 @@ unit rgobj;
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                     begin
-                      tryreplacereg(ref^.base);
-                      tryreplacereg(ref^.index);
+                      if (ref^.base <> NR_NO) and
+                          (getregtype(ref^.base)=regtype) then
+                        tryreplacereg(ref^.base);
+                      if (ref^.index <> NR_NO) and
+                          (getregtype(ref^.index)=regtype) then
+                        tryreplacereg(ref^.index);
                     end;
                 end;
 {$ifdef ARM}

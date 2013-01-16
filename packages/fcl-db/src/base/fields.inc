@@ -1107,10 +1107,10 @@ begin
   if DataSize <= dsMaxStringSize then
     begin
     Result:=GetData(@Buf);
-    buf[Size]:=#0;  //limit string to Size
+    Buf[Size]:=#0;  //limit string to Size
     If Result then
       begin
-      if transliterate then
+      if Transliterate then
         begin
         DataSet.Translate(Buf,TBuf,False);
         AValue:=TBuf;
@@ -1123,10 +1123,10 @@ begin
     begin
     SetLength(DynBuf,DataSize);
     Result:=GetData(@DynBuf[0]);
-    Dynbuf[Size]:=#0;  //limit string to Size
+    DynBuf[Size]:=#0;  //limit string to Size
     If Result then
       begin
-      if transliterate then
+      if Transliterate then
         begin
         SetLength(TDynBuf,DataSize);
         DataSet.Translate(@DynBuf[0],@TDynBuf[0],False);
@@ -1168,28 +1168,35 @@ end;
 procedure TStringField.SetAsString(const AValue: string);
 
 var Buf      : TStringFieldBuffer;
+    DynBuf   : array of char;
 
 begin
-  IF Length(AValue)=0 then
+  if Length(AValue)=0 then
     begin
     Buf := #0;
-    SetData(@buf);
+    SetData(@Buf);
     end
-  else if FTransliterate then
+  else if DataSize <= dsMaxStringSize then
     begin
-    DataSet.Translate(@AValue[1],Buf,True);
+    if FTransliterate then
+      DataSet.Translate(@AValue[1],Buf,True)
+    else
+      // The data is copied into the buffer, since some TDataset descendents copy
+      // the whole buffer-length in SetData. (See bug 8477)
+      Buf := AValue;
+    // If length(AValue) > DataSize the buffer isn't terminated properly
     Buf[DataSize-1] := #0;
-    SetData(@buf);
+    SetData(@Buf);
     end
   else
     begin
-    // The data is copied into the buffer, since some TDataset descendents copy
-    // the whole buffer-length in SetData. (See bug 8477)
-    Buf := AValue;
-    // If length(AValue) > Datasize the buffer isn't terminated properly
-    Buf[DataSize-1] := #0;
-    SetData(@Buf);
-    end;
+    SetLength(DynBuf, DataSize);
+    if FTransliterate then
+      DataSet.Translate(@AValue[1],@DynBuf[0],True)
+    else
+      StrPLCopy(@DynBuf[0], AValue, DataSize);
+    SetData(@DynBuf[0]);
+    end
 end;
 
 procedure TStringField.SetVarValue(const AValue: Variant);
@@ -1347,11 +1354,8 @@ end;
 
 procedure TNumericField.SetAsBoolean(AValue: Boolean);
 begin
-  if AValue then
-    SetAsLongint(1)
-  else
-    SetAsLongint(0);
-end; 
+  SetAsLongint(ord(AValue));
+end;
 
 { ---------------------------------------------------------------------
     TLongintField
@@ -1746,8 +1750,6 @@ constructor TAutoIncField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOWner);
   SetDataType(ftAutoInc);
-  FReadOnly:=True;
-  FProviderFlags:=FProviderFlags-[pfInUpdate];
 end;
 
 Procedure TAutoIncField.SetAsLongint(AValue : Longint);
@@ -1756,8 +1758,8 @@ begin
   // Some databases allows insertion of explicit values into identity columns
   // (some of them also allows (some not) updating identity columns)
   // So allow it at client side and leave check for server side
-  if not(FDataSet.State in [dsFilter,dsSetKey,dsInsert]) then
-    DataBaseError(SCantSetAutoIncFields);
+  //if not(FDataSet.State in [dsFilter,dsSetKey,dsInsert]) then
+  //  DataBaseError(SCantSetAutoIncFields);
   inherited;
 end;
 
@@ -1793,6 +1795,11 @@ begin
     Result := f
   else
     Result:=Null;
+end;
+
+function TFloatField.GetAsLargeInt: LargeInt;
+begin
+  Result:=Round(GetAsFloat);
 end;
 
 function TFloatField.GetAsLongint: Longint;
@@ -1862,6 +1869,11 @@ begin
     RangeError(AValue,FMinValue,FMaxValue);
 end;
 
+procedure TFloatField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsFloat(AValue);
+end;
+
 procedure TFloatField.SetAsLongint(AValue: Longint);
 
 begin
@@ -1925,7 +1937,7 @@ var b : wordbool;
 
 begin
   If GetData(@b) then
-    result := b
+    Result := b
   else
     Result:=False;
 end;
@@ -1968,15 +1980,12 @@ end;
 
 function TBooleanField.GetAsInteger: integer;
 begin
-   if GetAsBoolean then
-    Result:=1
-   else
-    Result:=0;
+  Result := ord(GetAsBoolean);
 end;
 
 procedure TBooleanField.SetAsInteger(AValue: Integer);
 begin
-  SetAsBoolean(avalue<>0);
+  SetAsBoolean(AValue<>0);
 end;
 
 procedure TBooleanField.SetAsBoolean(AValue: Boolean);
@@ -2179,7 +2188,7 @@ begin
   else
     begin
     R:=StrToTime(AVAlue);
-    SetData(@R);
+    SetData(@R,False);
     end;
 end;
 
@@ -2579,6 +2588,15 @@ begin
     Result := 0;
 end;
 
+function TFMTBCDField.GetAsLargeInt: LargeInt;
+var bcd: TBCD;
+begin
+  if GetData(@bcd) then
+    Result := BCDToInteger(bcd)
+  else
+    Result := 0;
+end;
+
 function TFMTBCDField.GetAsLongint: Longint;
 begin
   Result := round(GetAsFloat);
@@ -2670,12 +2688,15 @@ begin
   SetAsBCD(DoubleToBCD(AValue));
 end;
 
+procedure TFMTBCDField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsBCD(IntegerToBCD(AValue));
+end;
 
 procedure TFMTBCDField.SetAsLongint(AValue: Longint);
 begin
   SetAsBCD(IntegerToBCD(AValue));
 end;
-
 
 procedure TFMTBCDField.SetAsString(const AValue: string);
 begin
@@ -2730,7 +2751,7 @@ begin
     With Stream do
       try
         Len := Size;
-        SetLength(Result,Len div 2);
+        SetLength(Result, (Len+1) div 2);
         if Len > 0 then
           ReadBuffer(Result[1] ,Len);
       finally
@@ -3135,15 +3156,16 @@ Constructor TFields.Create(ADataset : TDataset);
 
 begin
   FDataSet:=ADataset;
-  FFieldList:=TList.Create;
+  FFieldList:=TFpList.Create;
   FValidFieldKinds:=[fkData..fkInternalcalc];
 end;
 
 Destructor TFields.Destroy;
 
 begin
-  if FFieldList <> nil then Clear;
-  FFieldList.Free;
+  if Assigned(FFieldList) then
+    Clear;
+  FreeAndNil(FFieldList);
   inherited Destroy;
 end;
 
@@ -3235,13 +3257,15 @@ begin
 end;
 
 Procedure TFields.Clear;
-
+var
+  AField: TField;
 begin
-  with FFieldList do
-    while Count > 0 do begin
-      TField(Last).FDataSet := Nil;
-      TField(Last).Free;
-      FFieldList.Delete(Count - 1);
+  while FFieldList.Count > 0 do 
+    begin
+    AField := TField(FFieldList.Last);
+    AField.FDataSet := Nil;
+    AField.Free;
+    FFieldList.Delete(FFieldList.Count - 1);
     end;
   Changed;
 end;

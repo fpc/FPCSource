@@ -60,19 +60,84 @@ var
 { TThread implementation }
 
 { system independend threading code }
+
 var
-  { event that happens when gui thread is done executing the method}
-  ExecuteEvent: PRtlEvent;
-  { event executed by synchronize to wake main thread if it sleeps in CheckSynchronize }
+  { event executed by SychronizeInternal to wake main thread if it sleeps in
+    CheckSynchronize }
   SynchronizeTimeoutEvent: PRtlEvent;
-  { guard for synchronization variables }
-  SynchronizeCritSect: TRtlCriticalSection;
-  { method to execute }
-  SynchronizeMethod: TThreadMethod;
-  { should we execute the method? }
-  DoSynchronizeMethod: boolean;
-  { caught exception in gui thread, to be raised in calling thread }
-  SynchronizeException: Exception;
+  { the head of the queue containing the entries to be Synchronized - Nil if the
+    queue is empty }
+  ThreadQueueHead: TThread.PThreadQueueEntry;
+  { the tail of the queue containing the entries to be Synchronized - Nil if the
+    queue is empty }
+  ThreadQueueTail: TThread.PThreadQueueEntry;
+  { used for serialized access to the queue }
+  ThreadQueueLock: TRtlCriticalSection;
+  { this list holds all instances of external threads that need to be freed at
+    the end of the program }
+  ExternalThreads: TThreadList;
+threadvar
+  { the instance of the current thread; in case of an external thread this is
+    Nil until TThread.GetCurrentThread was called once (the RTLs need to ensure
+    that threadvars are initialized with 0!) }
+  CurrentThreadVar: TThread;
+
+
+type
+  { this type is used if a thread is created using
+    TThread.CreateAnonymousThread }
+  TAnonymousThread = class(TThread)
+  private
+    fProc: TProcedure;
+  protected
+    procedure Execute; override;
+  public
+    { as in TThread aProc needs to be changed to TProc once closures are
+      supported }
+    constructor Create(aProc: TProcedure);
+  end;
+
+
+procedure TAnonymousThread.Execute;
+begin
+  fProc();
+end;
+
+
+constructor TAnonymousThread.Create(aProc: TProcedure);
+begin
+  { an anonymous thread is created suspended and with FreeOnTerminate set }
+  inherited Create(True);
+  FreeOnTerminate := True;
+  fProc := aProc;
+end;
+
+
+type
+  { this type is used by TThread.GetCurrentThread if the thread does not yet
+    have a value in CurrentThreadVar (Note: the main thread is also created as
+    a TExternalThread) }
+  TExternalThread = class(TThread)
+  protected
+    { dummy method to remove the warning }
+    procedure Execute; override;
+  public
+    constructor Create;
+  end;
+
+
+procedure TExternalThread.Execute;
+begin
+  { empty }
+end;
+
+
+constructor TExternalThread.Create;
+begin
+  FExternalThread := True;
+  { the parameter is unimportant if FExternalThread is True }
+  inherited Create(False);
+end;
 
 
 function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
@@ -93,8 +158,10 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
       { The thread may be already terminated at this point, e.g. if it was intially
         suspended, or if it wasn't ever scheduled for execution for whatever reason.
         So bypass user code if terminated. }
-      if not Thread.Terminated then
+      if not Thread.Terminated then begin
+        CurrentThreadVar := Thread;
         Thread.Execute;
+      end;
     except
       Thread.FFatalException := TObject(AcquireExceptionObject);
     end;
@@ -109,6 +176,29 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
 
 { system-dependent code }
 {$i tthread.inc}
+
+
+constructor TThread.Create(CreateSuspended: Boolean;
+                           const StackSize: SizeUInt);
+begin
+  inherited Create;
+  if FExternalThread then
+    FThreadID := GetCurrentThreadID
+  else
+    SysCreate(CreateSuspended, StackSize);
+end;
+
+
+destructor TThread.Destroy;
+begin
+  if not FExternalThread then
+    SysDestroy;
+  RemoveQueuedEvents(Self);
+  DoneSynchronizeEvent;
+  { set CurrentThreadVar to Nil? }
+  inherited Destroy;
+end;
+
 
 procedure TThread.Start;
 begin
@@ -132,40 +222,95 @@ begin
 // is fixed for all platforms (in case the fix for non-unix platforms also
 // requires this field at least)
 {$if defined(unix) or defined(windows)}
-  if not FInitialSuspended then
+  if not FExternalThread and not FInitialSuspended then
     Resume;
 {$endif}
 end;
 
 
-class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
-  var
-    LocalSyncException: Exception;
+procedure ExecuteThreadQueueEntry(aEntry: TThread.PThreadQueueEntry);
+begin
+  if Assigned(aEntry^.Method) then
+    aEntry^.Method()
+  // enable once closures are supported
+  {else
+    aEntry^.ThreadProc();}
+end;
+
+
+procedure ThreadQueueAppend(aEntry: TThread.PThreadQueueEntry);
+begin
+  { do we really need a synchronized call? }
+  if GetCurrentThreadID = MainThreadID then begin
+    ExecuteThreadQueueEntry(aEntry);
+    if not Assigned(aEntry^.SyncEvent) then
+      Dispose(aEntry);
+  end else begin
+    System.EnterCriticalSection(ThreadQueueLock);
+    try
+      { add the entry to the thread queue }
+      if Assigned(ThreadQueueTail) then begin
+        ThreadQueueTail^.Next := aEntry;
+      end else
+        ThreadQueueHead := aEntry;
+      ThreadQueueTail := aEntry;
+    finally
+      System.LeaveCriticalSection(ThreadQueueLock);
+    end;
+
+    { ensure that the main thread knows that something awaits }
+    RtlEventSetEvent(SynchronizeTimeoutEvent);
+    if assigned(WakeMainThread) then
+      WakeMainThread(aEntry^.Thread);
+
+    { is this a Synchronize or Queue entry? }
+    if Assigned(aEntry^.SyncEvent) then begin
+      RtlEventWaitFor(aEntry^.SyncEvent);
+      if Assigned(aEntry^.Exception) then
+        raise aEntry^.Exception;
+    end;
+  end;
+end;
+
+
+procedure TThread.InitSynchronizeEvent;
   begin
-    { do we really need a synchronized call? }
-    if GetCurrentThreadID=MainThreadID then
-      AMethod()
-    else
-      begin
-        System.EnterCriticalSection(SynchronizeCritSect);
-        SynchronizeException:=nil;
-        SynchronizeMethod:=AMethod;
+    if Assigned(FSynchronizeEntry) then
+      Exit;
 
-        { be careful, after this assignment Method could be already executed }
-        DoSynchronizeMethod:=true;
+    New(FSynchronizeEntry);
+    FillChar(FSynchronizeEntry^, SizeOf(TThreadQueueEntry), 0);
+    FSynchronizeEntry^.Thread := Self;
+    FSynchronizeEntry^.SyncEvent := RtlEventCreate;
+  end;
 
-        RtlEventSetEvent(SynchronizeTimeoutEvent);
 
-        if assigned(WakeMainThread) then
-          WakeMainThread(AThread);
+procedure TThread.DoneSynchronizeEvent;
+  begin
+    if not Assigned(FSynchronizeEntry) then
+      Exit;
 
-        { wait infinitely }
-        RtlEventWaitFor(ExecuteEvent);
-        LocalSyncException:=SynchronizeException;
-        System.LeaveCriticalSection(SynchronizeCritSect);
-        if assigned(LocalSyncException) then
-          raise LocalSyncException;
-      end;
+    RtlEventDestroy(FSynchronizeEntry^.SyncEvent);
+    Dispose(FSynchronizeEntry);
+    FSynchronizeEntry := Nil;
+  end;
+
+
+class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
+  begin
+    { ensure that we have a TThread instance }
+    if not Assigned(AThread) then
+      AThread := CurrentThread;
+
+    { the Synchronize event is instantiated on demand }
+    AThread.InitSynchronizeEvent;
+
+    AThread.FSynchronizeEntry^.Exception := Nil;
+    AThread.FSynchronizeEntry^.Method := AMethod;
+    ThreadQueueAppend(AThread.FSynchronizeEntry);
+
+    AThread.FSynchronizeEntry^.Method := Nil;
+    AThread.FSynchronizeEntry^.Next := Nil;
   end;
 
 
@@ -177,6 +322,9 @@ procedure TThread.Synchronize(AMethod: TThreadMethod);
 
 function CheckSynchronize(timeout : longint=0) : boolean;
   { assumes being called from GUI thread }
+  var
+    exceptobj: Exception;
+    tmpentry: TThread.PThreadQueueEntry;
   begin
     result:=false;
     { first sanity check }
@@ -194,19 +342,257 @@ function CheckSynchronize(timeout : longint=0) : boolean;
          else
            RtlEventResetEvent(SynchronizeTimeoutEvent);
 
-        if DoSynchronizeMethod then
-          begin
-            DoSynchronizeMethod:=false;
+        System.EnterCriticalSection(ThreadQueueLock);
+        try
+          { Note: we don't need to pay attention to recursive calls to
+                  Synchronize as those calls will be executed in the context of
+                  the GUI thread and thus will be executed immediatly instead of
+                  queuing them }
+          while Assigned(ThreadQueueHead) do begin
+            { step 1: update the list }
+            tmpentry := ThreadQueueHead;
+            ThreadQueueHead := ThreadQueueHead^.Next;
+            if not Assigned(ThreadQueueHead) then
+              ThreadQueueTail := Nil;
+
+            { step 2: execute the method }
+            exceptobj := Nil;
             try
-              SynchronizeMethod;
-              result:=true;
+              ExecuteThreadQueueEntry(tmpentry);
             except
-              SynchronizeException:=Exception(AcquireExceptionObject);
+              exceptobj := Exception(AcquireExceptionObject);
             end;
-            RtlEventSetEvent(ExecuteEvent);
+
+            { step 3: error handling and cleanup }
+            if Assigned(tmpentry^.SyncEvent) then begin
+              { for Synchronize entries we pass back the Exception and trigger
+                the event that Synchronize waits in }
+              tmpentry^.Exception := exceptobj;
+              RtlEventSetEvent(tmpentry^.SyncEvent)
+            end else begin
+              { for Queue entries we dispose the entry and raise the exception }
+              Dispose(tmpentry);
+              if Assigned(exceptobj) then
+                raise exceptobj;
+            end;
           end;
+        finally
+          System.LeaveCriticalSection(ThreadQueueLock);
+        end;
       end;
   end;
+
+
+class function TThread.GetCurrentThread: TThread;
+begin
+  { if this is the first time GetCurrentThread is called for an external thread
+    we need to create a corresponding TExternalThread instance }
+  if not Assigned(CurrentThreadVar) then
+    CurrentThreadVar := TExternalThread.Create;
+
+  Result := CurrentThreadVar;
+end;
+
+
+class function TThread.GetIsSingleProcessor: Boolean;
+begin
+  Result := FProcessorCount <= 1;
+end;
+
+
+procedure TThread.Queue(aMethod: TThreadMethod);
+begin
+  Queue(Self, aMethod);
+end;
+
+
+class procedure TThread.Queue(aThread: TThread; aMethod: TThreadMethod); static;
+var
+  queueentry: PThreadQueueEntry;
+begin
+  { ensure that we have a valid TThread instance }
+  if not Assigned(aThread) then
+    aThread := CurrentThread;
+
+  New(queueentry);
+  FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
+  queueentry^.Thread := aThread;
+  queueentry^.Method := aMethod;
+
+  { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
+  ThreadQueueAppend(queueentry);
+end;
+
+
+class procedure TThread.RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod);
+var
+  entry, tmpentry, lastentry: PThreadQueueEntry;
+begin
+  { anything to do at all? }
+  if not Assigned(aThread) or not Assigned(aMethod) then
+    Exit;
+
+  System.EnterCriticalSection(ThreadQueueLock);
+  try
+    lastentry := Nil;
+    entry := ThreadQueueHead;
+    while Assigned(entry) do begin
+      { first check for the thread }
+      if Assigned(aThread) and (entry^.Thread <> aThread) then begin
+        lastentry := entry;
+        entry := entry^.Next;
+        Continue;
+      end;
+      { then check for the method }
+      if entry^.Method <> aMethod then begin
+        lastentry := entry;
+        entry := entry^.Next;
+        Continue;
+      end;
+      { skip entries added by Synchronize }
+      if Assigned(entry^.SyncEvent) then begin
+        lastentry := entry;
+        entry := entry^.Next;
+        Continue;
+      end;
+
+      { ok, we need to remove this entry }
+
+      tmpentry := entry;
+      if Assigned(lastentry) then
+        lastentry^.Next := entry^.Next;
+      entry := entry^.Next;
+      if ThreadQueueHead = tmpentry then
+        ThreadQueueHead := entry;
+      if ThreadQueueTail = tmpentry then
+        ThreadQueueTail := lastentry;
+      { only dispose events added by Queue }
+      if not Assigned(tmpentry^.SyncEvent) then
+        Dispose(tmpentry);
+    end;
+  finally
+    System.LeaveCriticalSection(ThreadQueueLock);
+  end;
+end;
+
+
+class procedure TThread.RemoveQueuedEvents(aMethod: TThreadMethod);
+begin
+  RemoveQueuedEvents(Nil, aMethod);
+end;
+
+
+class procedure TThread.RemoveQueuedEvents(aThread: TThread);
+begin
+  RemoveQueuedEvents(aThread, Nil);
+end;
+
+
+class function TThread.CheckTerminated: Boolean;
+begin
+  { this method only works with threads created by TThread, so we can make a
+    shortcut here }
+  if not Assigned(CurrentThreadVar) then
+    raise EThreadExternalException.Create(SThreadExternal);
+  Result := CurrentThreadVar.FTerminated;
+end;
+
+
+class procedure TThread.SetReturnValue(aValue: Integer);
+begin
+  { this method only works with threads created by TThread, so we can make a
+    shortcut here }
+  if not Assigned(CurrentThreadVar) then
+    raise EThreadExternalException.Create(SThreadExternal);
+  CurrentThreadVar.FReturnValue := aValue;
+end;
+
+
+class function TThread.CreateAnonymousThread(aProc: TProcedure): TThread;
+begin
+  if not Assigned(aProc) then
+    raise Exception.Create(SNoProcGiven);
+  Result := TAnonymousThread.Create(aProc);
+end;
+
+
+{$ifdef THREADNAME_IS_ANSISTRING}
+{ the platform implements the AnsiString variant and the UnicodeString variant
+  simply calls the AnsiString variant }
+class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
+begin
+  NameThreadForDebugging(AnsiString(aThreadName), aThreadID);
+end;
+
+  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
+class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
+begin
+  { empty }
+end;
+  {$endif}
+{$else}
+  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
+{ the platform implements the UnicodeString variant and the AnsiString variant
+  simply calls the UnicodeString variant }
+class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
+begin
+  { empty }
+end;
+  {$endif}
+
+
+class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
+begin
+  NameThreadForDebugging(UnicodeString(aThreadName), aThreadID);
+end;
+{$endif}
+
+
+class procedure TThread.Yield;
+begin
+  ThreadSwitch;
+end;
+
+
+class procedure TThread.Sleep(aMilliseconds: Cardinal);
+begin
+  SysUtils.Sleep(aMilliseconds);
+end;
+
+
+class procedure TThread.SpinWait(aIterations: LongWord);
+begin
+  { yes, it's just a simple busy wait to burn some cpu cycles... and as the job
+    of this loop is to burn CPU cycles we switch off any optimizations that
+    could interfere with this (e.g. loop unrolling) }
+{$PUSH}
+{$OPTIMIZATION OFF}
+  while aIterations > 0 do
+    Dec(aIterations);
+{$POP}
+end;
+
+
+{$ifndef HAS_TTHREAD_GETSYSTEMTIMES}
+class procedure TThread.GetSystemTimes(out aSystemTimes: TSystemTimes);
+begin
+  { by default we just return a zeroed out record }
+  FillChar(aSystemTimes, SizeOf(aSystemTimes), 0);
+end;
+{$endif}
+
+
+class function TThread.GetTickCount: LongWord;
+begin
+  Result := SysUtils.GetTickCount;
+end;
+
+
+class function TThread.GetTickCount64: QWord;
+begin
+  Result := SysUtils.GetTickCount64;
+end;
+
 
 { TPersistent implementation }
 {$i persist.inc }
@@ -1702,11 +2088,11 @@ end;
 
 procedure CommonInit;
 begin
-  InitCriticalSection(SynchronizeCritSect);
-  ExecuteEvent:=RtlEventCreate;
   SynchronizeTimeoutEvent:=RtlEventCreate;
-  DoSynchronizeMethod:=false;
+  InitCriticalSection(ThreadQueueLock);
   MainThreadID:=GetCurrentThreadID;
+  ExternalThreads := TThreadList.Create;
+  TThread.FProcessorCount := CPUCount;
   InitCriticalsection(ResolveSection);
   InitHandlerList:=Nil;
   FindGlobalComponentList:=nil;
@@ -1721,6 +2107,7 @@ end;
 procedure CommonCleanup;
 var
   i: Integer;
+  tmpentry: TThread.PThreadQueueEntry;
 begin
   GlobalNameSpace.BeginWrite;
   with IntConstList.LockList do
@@ -1748,9 +2135,24 @@ begin
   InitHandlerList:=Nil;
   FindGlobalComponentList.Free;
   FindGlobalComponentList:=nil;
-  DoneCriticalSection(SynchronizeCritSect);
-  RtlEventDestroy(ExecuteEvent);
+  with ExternalThreads.LockList do
+    try
+      for i := 0 to Count - 1 do
+        TThread(Items[i]).Free;
+    finally
+      ExternalThreads.UnlockList;
+    end;
+  FreeAndNil(ExternalThreads);
   RtlEventDestroy(SynchronizeTimeoutEvent);
+  { clean up the queue, but keep in mind that the entries used for Synchronize
+    are owned by the corresponding TThread }
+  while Assigned(ThreadQueueHead) do begin
+    tmpentry := ThreadQueueHead;
+    ThreadQueueHead := tmpentry^.Next;
+    if not Assigned(tmpentry^.SyncEvent) then
+      Dispose(tmpentry);
+  end;
+  DoneCriticalSection(ThreadQueueLock);
 end;
 
 { TFiler implementation }

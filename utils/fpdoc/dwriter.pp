@@ -3,6 +3,8 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
     * Output string definitions
     * Basic writer (output generator) class
@@ -168,6 +170,7 @@ type
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Function FileNameExtension : String; virtual;
     Class Procedure Usage(List : TStrings); virtual;
+    Class procedure SplitImport(var AFilename, ALinkPrefix: String); virtual;
     procedure WriteDoc; virtual; Abstract;
     Function WriteDescr(Element: TPasElement) : TDocNode;
     procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
@@ -368,6 +371,19 @@ end;
 class procedure TFPDocWriter.Usage(List: TStrings);
 begin
   // Do nothing.
+end;
+
+class procedure TFPDocWriter.SplitImport(var AFilename, ALinkPrefix: String);
+var
+  i: integer;
+begin
+//override in HTML and CHM writer
+  i := Pos(',', AFilename);
+  if i > 0 then
+    begin  //split CSV into filename and prefix
+    ALinkPrefix := Copy(AFilename,i+1,Length(AFilename));
+    SetLength(AFilename, i-1);
+    end;
 end;
 
 Function TFPDocWriter.FindTopicElement(Node : TDocNode): TTopicElement;

@@ -100,6 +100,7 @@ implementation
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
 {$endif defined(x86) or defined(arm) or defined(jvm)}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
+        systemunit.insert(tsyssym.create('Aligned',in_aligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
         systemunit.insert(tsyssym.create('Default',in_default_x));
@@ -220,13 +221,15 @@ implementation
         tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
-        if target_info.system<>system_x86_64_win64 then
-          s64currencytype:=tfloatdef.create(s64currency)
-        else
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+        if target_info.system=system_x86_64_win64 then
           begin
             s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
             pbestrealtype:=@s64floattype;
-          end;
+          end
+        else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
+          s64currencytype:=tfloatdef.create(s64currency);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
@@ -303,7 +306,9 @@ implementation
               addtype('CExtended',pbestrealtype^);
           end;
 {$ifdef x86}
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system<>system_x86_64_win64 then
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
           addtype('Comp',tfloatdef.create(s64comp));
 {$endif x86}
         addtype('Currency',s64currencytype);
@@ -440,8 +445,10 @@ implementation
       var
         oldcurrentmodule : tmodule;
       begin
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
           pbestrealtype:=@s64floattype;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=current_module;
         set_current_module(nil);
@@ -629,14 +636,19 @@ implementation
 {$endif SPARC}
 {$ifdef arm}
         aiclass[ait_thumb_func]:=tai_thumb_func;
+        aiclass[ait_thumb_set]:=tai_thumb_set;
 {$endif arm}
+        aiclass[ait_set]:=tai_set;
+        aiclass[ait_weak]:=tai_weak;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
         aiclass[ait_seh_directive]:=tai_seh_directive;
+{$ifdef JVM}
         aiclass[ait_jvar]:=tai_jvar;
         aiclass[ait_jcatch]:=tai_jcatch;
+{$endif JVM}
       end;
 
 end.

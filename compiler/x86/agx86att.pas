@@ -239,6 +239,7 @@ interface
        calljmp  : boolean;
        need_second_mov : boolean;
        i        : integer;
+       sreg     : string;
       begin
         if hp.typ <> ait_instruction then
           exit;
@@ -250,6 +251,28 @@ interface
           the fix consists of simply setting only the 4-byte register
           as the upper 4-bytes will be zeroed at the same time. }
         need_second_mov:=false;
+
+        // BUGFIX GAS-assembler
+        // Intel "Intel 64 and IA-32 Architectures Software Developers manual 12/2011
+        // Intel:       VCVTDQ2PD  YMMREG, YMMREG/mem128 ((intel syntax))
+        // GAS:         VCVTDQ2PD  YMMREG, XMMREG/mem128 ((intel syntax))
+        if (op = A_VCVTDQ2PD) and
+           (taicpu(hp).ops = 2) and
+           (taicpu(hp).oper[0]^.typ = top_reg) and
+           (taicpu(hp).oper[1]^.typ = top_reg) then
+        begin
+          if ((taicpu(hp).oper[0]^.ot and OT_YMMREG) = OT_YMMREG) and
+             ((taicpu(hp).oper[1]^.ot and OT_YMMREG) = OT_YMMREG) then
+          begin
+            // change registertype in oper[0] from OT_YMMREG to OT_XMMREG
+            taicpu(hp).oper[0]^.ot := taicpu(hp).oper[0]^.ot and not(OT_YMMREG) or OT_XMMREG;
+
+            sreg := gas_regname(taicpu(hp).oper[0]^.reg);
+            if (copy(sreg, 1, 2) = '%y') or
+               (copy(sreg, 1, 2) = '%Y') then
+              taicpu(hp).oper[0]^.reg := gas_regnum_search('%x' + copy(sreg, 3, length(sreg) - 2));
+          end;
+        end;
 {$ifdef x86_64}
         if (op=A_MOV) and (taicpu(hp).opsize=S_Q) and
            (taicpu(hp).oper[0]^.typ = top_const) then
@@ -298,7 +321,42 @@ interface
                (taicpu(hp).oper[0]^.typ=top_reg) and
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
-          owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+        begin
+          if gas_needsuffix[op] = AttSufMM then
+          begin
+            for i:=0 to taicpu(hp).ops-1 do
+            begin
+
+              if (taicpu(hp).oper[i]^.typ = top_ref) then
+              begin
+                case taicpu(hp).oper[i]^.ot and OT_SIZE_MASK of
+                   OT_BITS32: begin
+                                owner.AsmWrite(gas_opsize2str[S_L]);
+                                break;
+                              end;
+                   OT_BITS64: begin
+                                owner.AsmWrite(gas_opsize2str[S_Q]);
+                                break;
+                              end;
+                  OT_BITS128: begin
+                                owner.AsmWrite(gas_opsize2str[S_XMM]);
+                                break;
+                              end;
+                  OT_BITS256: begin
+                                owner.AsmWrite(gas_opsize2str[S_YMM]);
+                                break;
+                              end;
+                           0: begin
+                                owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+                                break;
+                              end;
+                end;
+              end;
+            end;
+          end
+          else owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+        end;
+
         { process operands }
         if taicpu(hp).ops<>0 then
           begin
@@ -343,7 +401,7 @@ interface
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                                  system_x86_64_win64,system_x86_64_embedded,
                                  system_x86_64_openbsd,system_x86_64_netbsd];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -356,7 +414,7 @@ interface
             asmbin : 'gas';
             asmcmd : '--64 -o $OBJ $ASM';
             supported_targets : [system_x86_64_solaris];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -371,7 +429,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch x86_64';
             supported_targets : [system_x86_64_darwin];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -388,7 +446,7 @@ interface
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
                                 system_i386_nativent];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -402,7 +460,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
-            flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -416,7 +474,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -431,7 +489,7 @@ interface
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';

@@ -1,18 +1,19 @@
 {==================================================================================================
-	File:       CoreAudio/CoreAudioTypes.h
+    File:       CoreAudio/CoreAudioTypes.h
 
-	Contains:   Definitions types common to the Core Audio APIs
+    Contains:   Definitions types common to the Core Audio APIs
 
-	Copyright:  (c) 1985-2008 by Apple Inc., all rights reserved.
+    Copyright:  (c) 1985-2010 by Apple, Inc., all rights reserved.
 
-	Bugs?:      For bug reports, consult the following page on
+    Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
 
                      http://www.freepascal.org/bugs.html
 
 ==================================================================================================}
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -206,6 +212,27 @@ const
 //==================================================================================================
 
 {!
+    @enum           General Audio error codes
+    @abstract       These are the error codes returned from the APIs found through Core Audio related frameworks.
+    @constant       kAudio_UnimplementedError 
+                        Unimplemented core routine.
+    @constant       kAudio_FileNotFoundError 
+                        File not found.
+    @constant       kAudio_ParamError 
+                        Error in user parameter list.
+    @constant       kAudio_MemFullError 
+                        Not enough room in heap zone.
+}
+
+const
+	kAudio_UnimplementedError = -4;
+	kAudio_FileNotFoundError = -43;
+	kAudio_ParamError = -50;
+	kAudio_MemFullError = -108;
+      
+//==================================================================================================
+
+{!
     @struct         AudioValueRange
     @abstract       This structure holds a pair of numbers that represent a continuous range of
                     values.
@@ -267,6 +294,7 @@ type
 }
 type
 	AudioBufferListPtr = ^AudioBufferList;
+	AudioBufferListPtrPtr = ^AudioBufferListPtr;
 	AudioBufferList = record
 		mNumberBuffers: UInt32;
 		mBuffers: array[0..0] of AudioBuffer;
@@ -412,6 +440,11 @@ const
                         MPEG-4 High Efficiency AAC audio object, has no flags.
     @constant       kAudioFormatMPEG4AAC_LD
                         MPEG-4 AAC Low Delay audio object, has no flags.
+    @constant       kAudioFormatMPEG4AAC_ELD
+                        MPEG-4 AAC Enhanced Low Delay audio object, has no flags. This is the formatID of
+                        the base layer without the SBR extension. See also kAudioFormatMPEG4AAC_ELD_SBR
+    @constant       kAudioFormatMPEG4AAC_ELD_SBR
+                        MPEG-4 AAC Enhanced Low Delay audio object with SBR extension layer, has no flags.
     @constant       kAudioFormatMPEG4AAC_HE_V2
                         MPEG-4 High Efficiency AAC Version 2 audio object, has no flags. 
     @constant       kAudioFormatMPEG4AAC_Spatial
@@ -456,6 +489,9 @@ const
 	kAudioFormatAppleLossless = FourCharCode('alac');
 	kAudioFormatMPEG4AAC_HE = FourCharCode('aach');
 	kAudioFormatMPEG4AAC_LD = FourCharCode('aacl');
+	kAudioFormatMPEG4AAC_ELD = FourCharCode('aace');
+	kAudioFormatMPEG4AAC_ELD_SBR = FourCharCode('aacf');
+	kAudioFormatMPEG4AAC_ELD_V2 = FourCharCode('aacg');
 	kAudioFormatMPEG4AAC_HE_V2 = FourCharCode('aacp');
 	kAudioFormatMPEG4AAC_Spatial = FourCharCode('aacs');
 	kAudioFormatAMR = FourCharCode('samr');
@@ -492,7 +528,11 @@ const
                         kAudioFormatFlagIsFloat is clear.
     @constant       kAudioFormatFlagIsPacked
                         Set if the sample bits occupy the entire available bits for the channel,
-                        clear if they are high or low aligned within the channel.
+                        clear if they are high or low aligned within the channel. Note that even if
+                        this flag is clear, it is implied that this flag is set if the
+                        AudioStreamBasicDescription is filled out such that the fields have the
+                        following relationship:
+                           ((mBitsPerSample / 8) * mChannelsPerFrame) == mBytesPerFrame
     @constant       kAudioFormatFlagIsAlignedHigh
                         Set if the sample bits are placed into the high bits of the channel, clear
                         for low bit placement. This is only valid if kAudioFormatFlagIsPacked is
@@ -1254,6 +1294,7 @@ const
 	kAudioChannelLayoutTag_AAC_6_1 = (142 shl 16) or 7;                       // C L R Ls Rs Cs Lfe
 	kAudioChannelLayoutTag_AAC_7_0 = (143 shl 16) or 7;                       // C L R Ls Rs Rls Rrs
 	kAudioChannelLayoutTag_AAC_7_1 = kAudioChannelLayoutTag_MPEG_7_1_B;   // C Lc Rc L R Ls Rs Lfe
+	kAudioChannelLayoutTag_AAC_7_1_B = (183 shl 16) or 8;                       // C L R Ls Rs Rls Rrs LFE
 	kAudioChannelLayoutTag_AAC_Octagonal = (144 shl 16) or 8;                       // C L R Ls Rs Rls Rrs Cs
 
 	kAudioChannelLayoutTag_TMH_10_2_std = (145 shl 16) or 16;                      // L R C Vhc Lsd Rsd Ls Rs Vhl Vhr Lw Rw Csd Cs LFE1 LFE2
@@ -1265,6 +1306,38 @@ const
 	kAudioChannelLayoutTag_AC3_3_0_1 = (152 shl 16) or 4;                       // L C R LFE
 	kAudioChannelLayoutTag_AC3_2_1_1 = (153 shl 16) or 4;                       // L R Cs LFE
 	kAudioChannelLayoutTag_AC3_3_1_1 = (154 shl 16) or 5;                       // L C R Cs LFE
+
+	kAudioChannelLayoutTag_EAC_6_0_A = (155 shl 16) or 6;                       // L C R Ls Rs Cs
+	kAudioChannelLayoutTag_EAC_7_0_A = (156 shl 16) or 7;                       // L C R Ls Rs Rls Rrs
+
+	kAudioChannelLayoutTag_EAC3_6_1_A = (157 shl 16) or 7;                       // L C R Ls Rs LFE Cs
+	kAudioChannelLayoutTag_EAC3_6_1_B = (158 shl 16) or 7;                       // L C R Ls Rs LFE Ts
+	kAudioChannelLayoutTag_EAC3_6_1_C = (159 shl 16) or 7;                       // L C R Ls Rs LFE Vhc
+	kAudioChannelLayoutTag_EAC3_7_1_A = (160 shl 16) or 8;                       // L C R Ls Rs LFE Rls Rrs
+	kAudioChannelLayoutTag_EAC3_7_1_B = (161 shl 16) or 8;                       // L C R Ls Rs LFE Lc Rc
+	kAudioChannelLayoutTag_EAC3_7_1_C = (162 shl 16) or 8;                       // L C R Ls Rs LFE Lsd Rsd
+	kAudioChannelLayoutTag_EAC3_7_1_D = (163 shl 16) or 8;                       // L C R Ls Rs LFE Lw Rw
+	kAudioChannelLayoutTag_EAC3_7_1_E = (164 shl 16) or 8;                       // L C R Ls Rs LFE Vhl Vhr
+
+	kAudioChannelLayoutTag_EAC3_7_1_F = (165 shl 16) or 8;                        // L C R Ls Rs LFE Cs Ts
+	kAudioChannelLayoutTag_EAC3_7_1_G = (166 shl 16) or 8;                        // L C R Ls Rs LFE Cs Vhc
+	kAudioChannelLayoutTag_EAC3_7_1_H = (167 shl 16) or 8;                        // L C R Ls Rs LFE Ts Vhc
+
+	kAudioChannelLayoutTag_DTS_3_1 = (168 shl 16) or 4;                        // C L R LFE
+	kAudioChannelLayoutTag_DTS_4_1 = (169 shl 16) or 5;                        // C L R Cs LFE
+	kAudioChannelLayoutTag_DTS_6_0_A = (170 shl 16) or 6;                        // Lc Rc L R Ls Rs
+	kAudioChannelLayoutTag_DTS_6_0_B = (171 shl 16) or 6;                        // C L R Rls Rrs Ts
+	kAudioChannelLayoutTag_DTS_6_0_C = (172 shl 16) or 6;                        // C Cs L R Rls Rrs
+	kAudioChannelLayoutTag_DTS_6_1_A = (173 shl 16) or 7;                        // Lc Rc L R Ls Rs LFE
+	kAudioChannelLayoutTag_DTS_6_1_B = (174 shl 16) or 7;                        // C L R Rls Rrs Ts LFE
+	kAudioChannelLayoutTag_DTS_6_1_C = (175 shl 16) or 7;                        // C Cs L R Rls Rrs LFE
+	kAudioChannelLayoutTag_DTS_7_0 = (176 shl 16) or 7;                        // Lc C Rc L R Ls Rs
+	kAudioChannelLayoutTag_DTS_7_1 = (177 shl 16) or 8;                        // Lc C Rc L R Ls Rs LFE    
+	kAudioChannelLayoutTag_DTS_8_0_A = (178 shl 16) or 8;                        // Lc Rc L R Ls Rs Rls Rrs
+	kAudioChannelLayoutTag_DTS_8_0_B = (179 shl 16) or 8;                        // Lc C Rc L R Ls Cs Rs
+	kAudioChannelLayoutTag_DTS_8_1_A = (180 shl 16) or 9;                        // Lc Rc L R Ls Rs Rls Rrs LFE
+	kAudioChannelLayoutTag_DTS_8_1_B = (181 shl 16) or 9;                        // Lc C Rc L R Ls Cs Rs LFE
+	kAudioChannelLayoutTag_DTS_6_1_D = (182 shl 16) or 7;                        // C L R Ls Rs LFE Cs
 
 	kAudioChannelLayoutTag_DiscreteInOrder = (147 shl 16) or 0;                       // needs to be ORed with the actual number of channels  
 	kAudioChannelLayoutTag_Unknown = $FFFF0000;                           // needs to be ORed with the actual number of channels  

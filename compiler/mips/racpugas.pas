@@ -100,11 +100,11 @@ Interface
       begin
         Inherited handledollar;
         if (c in ['0'..'9','a'..'z']) then
-	  begin
+      begin
             Consume(AS_DOLLAR);
             if (actasmtoken=AS_INTNUM) or (actasmtoken=AS_ID) then
-	       begin
-	         { Try to convert to std register }
+           begin
+             { Try to convert to std register }
                   if actasmtoken=AS_INTNUM then
                     actasmregister:=gas_regnum_search('$'+actasmpattern)
                   else

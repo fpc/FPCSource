@@ -58,20 +58,27 @@ implementation
     {$endif x86_64}
 
 
-    function findreg_by_intname(const s:string):byte;
+    function findreg_by_intname(const s:string):integer;
       var
-        i,p : tregisterindex;
+        i,p : integer;
+        s1: string;
+
+        l,r,m: integer;
       begin
         {Binary search.}
         p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (int_regname_table[int_regname_index[p+i]]<=s) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if int_regname_table[int_regname_index[p]]=s then
-          findreg_by_intname:=int_regname_index[p]
+        i := (high(tregisterindex) + 1) shr 1;
+           l := 0;
+           r := high(tregisterindex) + 1;
+           while l < r do
+           begin
+              m := (l + r) div 2;
+              if int_regname_table[int_regname_index[m]] < s then l := m + 1
+              else r := m;
+           end;
+
+        if int_regname_table[int_regname_index[r]]=s then
+          findreg_by_intname:=int_regname_index[r]
         else
           findreg_by_intname:=0;
       end;

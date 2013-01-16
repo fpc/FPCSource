@@ -79,11 +79,11 @@ function GetExceptionMask: TFPUExceptionMask;
 
     { zero divide: bit 24 }
     if (fsr and (1 shl 24))=0 then
-      include(result,exInvalidOp);
+      include(result,exZeroDivide);
 
     { overflow: bit 26 }
     if (fsr and (1 shl 26))=0 then
-      include(result,exInvalidOp);
+      include(result,exOverflow);
 
     { underflow: bit 25 }
     if (fsr and (1 shl 25))=0 then

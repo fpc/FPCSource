@@ -54,17 +54,13 @@ Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 {$asmmode ATT}
 
 procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
-var
-  _ebx: LongInt;
-  _ecx: LongInt;
-  _libc_init_proc: LongInt;
 asm
   { First locate the start of the environment variables }
   popl    %ecx                    { Get argc in ecx }
 
   {$ifdef FPC_PIC}
-        movl    %esp,_ebx               { Points to the arguments }
-        movl    %ecx,_ecx               
+        movl    %esp,%ebp               { Points to the arguments }
+        movl    %ecx,%esi               
   {$else FPC_PIC}
         movl    %esp,%ebx               { Points to the arguments }
   {$endif FPC_PIC}
@@ -83,15 +79,15 @@ asm
 
         pushl %eax
         movl  operatingsystem_parameter_argc@GOT(%ebx),%ecx
-        movl  _ecx,%eax
+        movl  %esi,%eax
         movl  %eax,(%ecx)
         movl  operatingsystem_parameter_argv@GOT(%ebx),%ecx
-        movl  _ebx,%eax
+        movl  %ebp,%eax
         movl  %eax,(%ecx)
 	popl  %eax
 
         popl  %ecx
-        movl  _ebx,%ebx
+        movl  %ebp,%ebx
   {$else FPC_PIC}
 	movl    %eax,operatingsystem_parameter_envp    { Move the environment pointer }
 	movl    %ecx,operatingsystem_parameter_argc    { Move the argument counter    }
@@ -112,8 +108,7 @@ asm
         call  fpc_geteipasebx
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  libc_init_proc@GOT(%ebx),%ecx
-	movl  (%ecx),%ecx
-	movl  %ecx,_libc_init_proc
+	movl  (%ecx),%edi
   	popl    %ebx
         popl    %ecx
   {$else FPC_PIC}
@@ -129,7 +124,7 @@ asm
   popl    %eax
 
   {$ifdef FPC_PIC}
-	call    _libc_init_proc
+	call    *%edi
   {$else FPC_PIC}
 	call    libc_init_proc
   {$endif FPC_PIC}

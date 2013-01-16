@@ -822,7 +822,7 @@ implementation
                     not(parasym.univpara) then
                    begin
                       { Process open parameters }
-                      if paramanager.push_high_param(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
+                      if paramanager.keep_para_array_range(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
                        begin
                          { insert type conv but hold the ranges of the array }
                          olddef:=left.resultdef;
@@ -1145,8 +1145,8 @@ implementation
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
         { both the normal and specified resultdef either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(typedef,pd.proccalloption) xor
-          paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+        if paramanager.ret_in_param(typedef,pd) xor
+          paramanager.ret_in_param(pd.returndef,pd) then
           internalerror(2001082911);
       end;
 
@@ -1161,8 +1161,8 @@ implementation
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
         { both the normal and specified resultdef either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(typedef,pd.proccalloption) xor
-          paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+        if paramanager.ret_in_param(typedef,pd) xor
+          paramanager.ret_in_param(pd.returndef,pd) then
           internalerror(200108291);
       end;
 
@@ -1735,6 +1735,7 @@ implementation
       var
         selftree : tnode;
         selfdef  : tdef;
+        temp     : ttempcreatenode;
       begin
         selftree:=nil;
 
@@ -1775,7 +1776,17 @@ implementation
               else
                 begin
                   if methodpointer.nodetype=typen then
-                    selftree:=load_self_node
+                    if (methodpointer.resultdef.typ=recorddef) then
+                      begin
+                        { TSomeRecord.Constructor call. We need to allocate }
+                        { self node as a temp node of the result type       }
+                        temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
+                        add_init_statement(temp);
+                        add_done_statement(ctempdeletenode.create_normal_temp(temp));
+                        selftree:=ctemprefnode.create(temp);
+                      end
+                    else
+                      selftree:=load_self_node
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -1990,7 +2001,7 @@ implementation
         { A) set the appropriate objc_msgSend* variant to call }
 
         { record returned via implicit pointer }
-        if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+        if paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             if not(cnf_inherited in callnodeflags) then
               msgsendname:='OBJC_MSGSEND_STRET'
@@ -2287,7 +2298,7 @@ implementation
 
         { when it is not passed in a parameter it will only be used after the
           function call }
-        if not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+        if not paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             result:=true;
             exit;
@@ -2363,7 +2374,7 @@ implementation
             (
              (cnf_do_inline in callnodeflags) or
              is_managed_type(resultdef) or
-             paramanager.ret_in_param(resultdef,procdefinition.proccalloption)
+             paramanager.ret_in_param(resultdef,procdefinition)
             ) then
           begin
             { Optimize calls like x:=f() where we can use x directly as
@@ -2395,8 +2406,8 @@ implementation
                 { if a managed type is returned by reference, assigning something
                   to the result on the caller side will take care of decreasing
                   the reference count }
-                if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
-                  include(ttempcreatenode(temp).tempinfo^.flags,ti_nofini);
+                if paramanager.ret_in_param(resultdef,procdefinition) then
+                  include(temp.tempinfo^.flags,ti_nofini);
                 add_init_statement(temp);
                 { When the function result is not used in an inlined function
                   we need to delete the temp. This can currently only be done by
@@ -3293,8 +3304,8 @@ implementation
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-{$if defined(i386)}
-                            { the i386 and jvm code generators expect all reference }
+{$if defined(i386) or defined(m68k)}
+                            { the i386, m68k and jvm code generators expect all reference }
                             { parameters to be in this order so they can use   }
                             { pushes in case of no fixed stack                 }
                             if (not paramanager.use_fixed_stack and
@@ -3417,6 +3428,8 @@ implementation
 
 
     function tcallnode.pass_1 : tnode;
+      var
+        para: tcallparanode;
       begin
          result:=nil;
 
@@ -3427,6 +3440,40 @@ implementation
              is_objectpascal_helper(ttypenode(methodpointer).typedef) and
              not ttypenode(methodpointer).helperallowed then
            Message(parser_e_no_category_as_types);
+
+         { can we get rid of the call? }
+         if (cs_opt_level2 in current_settings.optimizerswitches) and
+            not(cnf_return_value_used in callnodeflags) and
+           (procdefinition.typ=procdef) and
+           tprocdef(procdefinition).isempty and
+           { allow only certain proc options }
+           ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
+             po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
+             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,po_has_inlininginfo,
+             po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
+             po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
+           begin
+             { check parameters for side effects }
+             para:=tcallparanode(left);
+             while assigned(para) do
+               begin
+                 if (para.parasym.typ = paravarsym) and
+                    ((para.parasym.refs>0) or
+                    { array of consts are converted later on so we need to skip them here
+                      else no error detection is done }
+                     is_array_of_const(para.parasym.vardef) or
+                     not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                     might_have_sideeffects(para.left)) then
+                     break;
+                  para:=tcallparanode(para.right);
+               end;
+             { finally, remove it if no parameter with side effect has been found }
+             if para=nil then
+               begin
+                 result:=cnothingnode.create;
+                 exit;
+               end;
+           end;
 
          { convert Objective-C calls into a message call }
          if (procdefinition.typ=procdef) and
@@ -3460,7 +3507,8 @@ implementation
            maybe_load_in_temp(methodpointer);
 
          { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
-         maybe_create_funcret_node;
+         if (procdefinition.proctypeoption<>potype_constructor) then
+           maybe_create_funcret_node;
 
          { Insert the self,vmt,function result in the parameters }
          gen_hidden_parameters;
@@ -3547,7 +3595,7 @@ implementation
          { get a register for the return value }
          if (not is_void(resultdef)) then
            begin
-              if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+              if paramanager.ret_in_param(resultdef,procdefinition) then
                begin
                  expectloc:=LOC_REFERENCE;
                end
@@ -3623,8 +3671,11 @@ implementation
                     paras := tcallparanode(paras.right);
                   if assigned(paras) then
                     begin
+                      temp:=paras.left.getcopy;
+                      { inherit modification information, this is needed by the dfa/cse }
+                      temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
                       n.free;
-                      n := paras.left.getcopy;
+                      n:=temp;
                       typecheckpass(n);
                       result := fen_true;
                     end;
@@ -3639,8 +3690,10 @@ implementation
                      not assigned(inlinelocals[indexnr]) then
                     internalerror(20040720);
                   temp := tnode(inlinelocals[indexnr]).getcopy;
+                  { inherit modification information, this is needed by the dfa/cse }
+                  temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
                   n.free;
-                  n := temp;
+                  n:=temp;
                   typecheckpass(n);
                   result := fen_true;
                 end;
@@ -3712,7 +3765,10 @@ implementation
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            if (para.parasym.typ = paravarsym) and (para.parasym.refs>0) then
+            if (para.parasym.typ = paravarsym) and
+               ((para.parasym.refs>0) or
+                not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                might_have_sideeffects(para.left)) then
               begin
                 { must take copy of para.left, because if it contains a       }
                 { temprefn pointing to a copied temp (e.g. methodpointer),    }
@@ -3747,6 +3803,7 @@ implementation
                     { parameter expression, so in that case assign to a temp   }
                     not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) or
                     ((paracomplexity > 1) and
+                      not(nf_is_funcret in para.left.flags) and
                      (not valid_for_addr(para.left,false) or
                       (para.left.nodetype = calln) or
                       is_constnode(para.left))) or
@@ -3760,8 +3817,7 @@ implementation
                       { variable would be passed by value normally, or if   }
                       { there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
-                        (not pushconstaddr or
-                         (paracomplexity > 1)))) and
+                        (not pushconstaddr))) and
                      { however, if we pass a global variable, an object field or}
                      { an expression containing a pointer dereference as        }
                      { parameter, this value could be modified in other ways as }
@@ -3841,9 +3897,11 @@ implementation
                 { occurrences of the parameter with dereferencings of this    }
                 { temp                                    }
                 else
-                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
-                  if (paracomplexity>2) or
-                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))) then
+                  { don't create a temp. for function results }
+                  if not(nf_is_funcret in para.left.flags) and
+                     ((paracomplexity>2) or
+                     { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var)))) then
                   begin
                     wrapcomplexinlinepara(para);
                   end;
@@ -3866,7 +3924,7 @@ implementation
         paraaddr: taddrnode;
       begin
         ptrtype:=getpointerdef(para.left.resultdef);
-        tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+        tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
@@ -3962,6 +4020,10 @@ implementation
 
         { Create new code block for inlining }
         inlineblock:=internalstatements(inlineinitstatement);
+        { make sure that valid_for_assign() returns false for this block
+          (otherwise assigning values to the block will result in assigning
+           values to the inlined function's result) }
+        include(inlineblock.flags,nf_no_lvalue);
         inlinecleanupblock:=internalstatements(inlinecleanupstatement);
 
         if assigned(callinitblock) then

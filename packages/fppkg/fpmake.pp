@@ -15,7 +15,6 @@ Var
   T : TTarget;
   P : TPackage;
   Data2Inc : string;
-  HostOS: TOS;
 begin
   AddCustomFpmakeCommandlineOption('data2inc', 'Use indicated data2inc executable.');
   AddCustomFpmakeCommandlineOption('genfpmkunit', 'Regenerate the fpmkunitsrc.inc file (fppkg).');
@@ -46,7 +45,7 @@ begin
     P.Email := '';
     P.Description := 'Libraries to create fppkg package managers.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     P.SourcePath.Add('src');
 
@@ -82,8 +81,7 @@ begin
         Data2Inc:= ExpandFileName(Data2Inc);
       if Data2Inc='' then
         begin
-        HostOS:=StringToOS({$I %FPCTARGETOS%});
-        data2inc := ExeSearch(AddProgramExtension('data2inc', HostOS));
+        data2inc := ExeSearch(AddProgramExtension('data2inc', Defaults.BuildOS));
         end;
       if Data2Inc <> '' then
         P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');

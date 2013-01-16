@@ -254,9 +254,9 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-{ TODO: FIX ME!!! frame pointer is A5 on Amiga, but A6 on unixes?}
-      NR_FRAME_POINTER_REG = NR_A5;
-      RS_FRAME_POINTER_REG = RS_A5;
+{ Frame pointer register (initialized in tm68kprocinfo.init_framepointer) }
+      RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
+      NR_FRAME_POINTER_REG: tregister = NR_NO;
 
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
@@ -288,6 +288,9 @@ unit cpubase;
 
       {# Floating point results will be placed into this register }
       NR_FPU_RESULT_REG = NR_FP0;
+
+      NR_DEFAULTFLAGS = NR_SR;
+      RS_DEFAULTFLAGS = RS_SR;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -350,7 +353,7 @@ implementation
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i r68kstd.inc}
       );
 

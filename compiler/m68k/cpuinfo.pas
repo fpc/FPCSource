@@ -63,6 +63,12 @@ Const
      'COLDFIRE'
    );
 
+   gascputypestr : array[tcputype] of string[8] = ('',
+     '68000',
+     '68020',
+     'cfv4e'
+   );
+
    fputypestr : array[tfputype] of string[6] = ('',
      'SOFT',
      'LIBGCC',
@@ -79,9 +85,10 @@ Const
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 Implementation
 

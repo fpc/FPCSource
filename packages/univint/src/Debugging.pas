@@ -2,18 +2,12 @@
      File:       CarbonCore/Debugging.h
  
      Contains:   Macros to handle exceptions and assertions.
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1989-2011 by Apple Inc. All rights reserved.
 }
 {    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -389,7 +388,7 @@ const
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 procedure DebugAssert( componentSignature: OSType; options: UInt32; assertionString: ConstCStringPtr; exceptionLabelString: ConstCStringPtr; errorString: ConstCStringPtr; fileName: ConstCStringPtr; lineNumber: SIGNEDLONG; value: UnivPtr ); external name '_DebugAssert';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -424,7 +423,7 @@ const
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function TaskLevel: UInt32; external name '_TaskLevel';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -496,7 +495,7 @@ type
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function NewDebugComponent( componentSignature: OSType; const (*var*) componentName: Str255; componentCallback: DebugComponentCallbackUPP ): OSStatus; external name '_NewDebugComponent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -531,7 +530,7 @@ function NewDebugComponent( componentSignature: OSType; const (*var*) componentN
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function NewDebugOption( componentSignature: OSType; optionSelectorNum: SInt32; const (*var*) optionName: Str255 ): OSStatus; external name '_NewDebugOption';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -559,7 +558,7 @@ function NewDebugOption( componentSignature: OSType; optionSelectorNum: SInt32; 
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function DisposeDebugComponent( componentSignature: OSType ): OSStatus; external name '_DisposeDebugComponent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -594,7 +593,7 @@ function DisposeDebugComponent( componentSignature: OSType ): OSStatus; external
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function GetDebugComponentInfo( itemIndex: UInt32; var componentSignature: OSType; var componentName: Str255 ): OSStatus; external name '_GetDebugComponentInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -638,7 +637,7 @@ function GetDebugComponentInfo( itemIndex: UInt32; var componentSignature: OSTyp
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function GetDebugOptionInfo( itemIndex: UInt32; componentSignature: OSType; var optionSelectorNum: SInt32; var optionName: Str255; var optionSetting: Boolean ): OSStatus; external name '_GetDebugOptionInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -671,7 +670,7 @@ function GetDebugOptionInfo( itemIndex: UInt32; componentSignature: OSType; var 
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 function SetDebugOptionValue( componentSignature: OSType; optionSelectorNum: SInt32; newOptionSetting: Boolean ): OSStatus; external name '_SetDebugOptionValue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -738,7 +737,7 @@ type
  *    Non-Carbon CFM:   in DebugLib 1.0 and later
  }
 procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP ); external name '_InstallDebugAssertOutputHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -822,7 +821,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *    Non-Carbon CFM:   not available
  }
 function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '_GetMacOSStatusErrorString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -863,7 +862,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *    Non-Carbon CFM:   not available
  }
 function GetMacOSStatusCommentString( err: OSStatus ): CStringPtr; external name '_GetMacOSStatusCommentString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -879,7 +878,7 @@ function GetMacOSStatusCommentString( err: OSStatus ): CStringPtr; external name
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewDebugComponentCallbackUPP( userRoutine: DebugComponentCallbackProcPtr ): DebugComponentCallbackUPP; external name '_NewDebugComponentCallbackUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  NewDebugAssertOutputHandlerUPP()
@@ -890,7 +889,7 @@ function NewDebugComponentCallbackUPP( userRoutine: DebugComponentCallbackProcPt
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewDebugAssertOutputHandlerUPP( userRoutine: DebugAssertOutputHandlerProcPtr ): DebugAssertOutputHandlerUPP; external name '_NewDebugAssertOutputHandlerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeDebugComponentCallbackUPP()
@@ -901,7 +900,7 @@ function NewDebugAssertOutputHandlerUPP( userRoutine: DebugAssertOutputHandlerPr
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeDebugComponentCallbackUPP( userUPP: DebugComponentCallbackUPP ); external name '_DisposeDebugComponentCallbackUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeDebugAssertOutputHandlerUPP()
@@ -912,7 +911,7 @@ procedure DisposeDebugComponentCallbackUPP( userUPP: DebugComponentCallbackUPP )
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeDebugAssertOutputHandlerUPP( userUPP: DebugAssertOutputHandlerUPP ); external name '_DisposeDebugAssertOutputHandlerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeDebugComponentCallbackUPP()
@@ -923,7 +922,7 @@ procedure DisposeDebugAssertOutputHandlerUPP( userUPP: DebugAssertOutputHandlerU
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeDebugComponentCallbackUPP( optionSelectorNum: SInt32; command: UInt32; var optionSetting: Boolean; userUPP: DebugComponentCallbackUPP ); external name '_InvokeDebugComponentCallbackUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeDebugAssertOutputHandlerUPP()
@@ -934,7 +933,7 @@ procedure InvokeDebugComponentCallbackUPP( optionSelectorNum: SInt32; command: U
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeDebugAssertOutputHandlerUPP( componentSignature: OSType; options: UInt32; assertionString: ConstCStringPtr; exceptionLabelString: ConstCStringPtr; errorString: ConstCStringPtr; fileName: ConstCStringPtr; lineNumber: SIGNEDLONG; value: UnivPtr; const (*var*) outputMsg: Str255; userUPP: DebugAssertOutputHandlerUPP ); external name '_InvokeDebugAssertOutputHandlerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

@@ -58,10 +58,20 @@ end;
 
 const
   Factory_NumConverters = 45
-  {$IFDEF I386_ASSEMBLER}+27{$ENDIF I386_ASSEMBLER};
+  {$IFDEF I386_ASSEMBLER}+27{$ENDIF I386_ASSEMBLER}
+  {$IFDEF X86_64_ASSEMBLER}+1{$ENDIF X86_64_ASSEMBLER}
+  ;
 
   Factory_Converters: array [0..Factory_NumConverters - 1] of THermesFactoryStruct =
 (
+{$IFDEF X86_64_ASSEMBLER}
+  { ------ From 8 bit INDEXED ------- }
+  (s_bits:8;s_idx:True;s_r:0;s_g:0;s_b:0;s_a:0;
+   d_bits:32;d_idx:False;d_r:0;d_g:0;d_b:0;d_a:0;
+   loopnormal:@ConvertX86_64_index8_32;loopstretch:nil;
+   normal:@NotApplicable;stretch:nil;
+   dither:nil;ditherstretch:nil;processor:PROC_X86_64),
+{$ENDIF X86_64_ASSEMBLER}
 {$IFDEF I386_ASSEMBLER}
   { ------ From 32 RGB 888 - MMX PENTIUM II ---- }
   (s_bits:32;s_idx:False;s_r:$ff0000;s_g:$ff00;s_b:$ff;s_a:0;

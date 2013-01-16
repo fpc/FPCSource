@@ -4,9 +4,7 @@
      Contains:   Basic Macintosh data types.
  
      Version:    CarbonCore-769~1
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved.
- 
+  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
@@ -16,6 +14,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {	    Pascal Translation Updated:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -91,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -303,8 +307,12 @@ type
 	********************************************************************************	}
 	ByteParameter = SInt8;
 
-// For interfaces that use Cs "bool" type, which is a 32 bit number
-	CBool = SInt32; 
+// For interfaces that use Cs "bool" type
+{$ifc TARGET_CPU_PPC}
+	CBool = SInt32;
+{$elsec}
+	CBool = SInt8;
+{$endc}
 
 {*******************************************************************************
 
@@ -538,16 +546,21 @@ type
         kInvalidID              KernelID: NULL is for pointers as kInvalidID is for ID's
         kVariableLengthArray    array bounds: variable length array
 
-    Note: kVariableLengthArray is used in array bounds to specify a variable length array.
-          It is ususally used in variable length structs when the last field is an array
-          of any size.  Before ANSI C, we used zero as the bounds of variable length 
-          array, but zero length array are illegal in ANSI C.  Example usage:
-    
-        struct FooList 
-        (
-            short   listLength;
-            Foo     elements[kVariableLengthArray];
-        );
+    Note: kVariableLengthArray was used in array bounds to specify a variable length array,
+          usually the last field in a struct.  Now that the C language supports 
+		  the concept of flexible array members, you can instead use: 
+		
+		struct BarList
+		(
+			short	listLength;
+			Bar		elements[];
+		);
+
+		However, this changes the semantics somewhat, as sizeof( BarList ) contains
+		no space for any of the elements, so to allocate a list with space for
+		the count elements
+
+		struct BarList* l = (struct BarList*) malloc( sizeof(BarList) + count * sizeof(Bar) );
         
 ********************************************************************************}
 const
@@ -618,6 +631,7 @@ const
 type
 	UnicodeScalarValue = UInt32;
 	UTF32Char = UInt32;
+	UTF32CharPtr = ^UTF32Char;
 	UniChar = UInt16;
 	UTF16Char = UInt16;
 	UTF8Char = UInt8;
@@ -869,6 +883,8 @@ type
     Debugger functions
     
 ********************************************************************************}
+
+{$ifc TARGET_OS_MAC}
 {
  *  Debugger()
  *  
@@ -878,7 +894,7 @@ type
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure Debugger; external name '_Debugger';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -890,8 +906,8 @@ procedure Debugger; external name '_Debugger';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugStr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
+{$endc}
 
 {
  *  debugstr()
@@ -903,6 +919,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
  }
 
 
+{$ifc TARGET_CPU_PPC}
 { Only for Mac OS native drivers }
 {
  *  SysDebug()
@@ -924,7 +941,9 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
  }
 
 
+{$endc}
 
+{$ifc TARGET_OS_MAC}
 { SADE break points }
 {
  *  SysBreak()
@@ -935,7 +954,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SysBreak; external name '_SysBreak';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -947,7 +966,7 @@ procedure SysBreak; external name '_SysBreak';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SysBreakStr( const (*var*) debuggerMsg: Str255 ); external name '_SysBreakStr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -959,8 +978,8 @@ procedure SysBreakStr( const (*var*) debuggerMsg: Str255 ); external name '_SysB
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SysBreakFunc( const (*var*) debuggerMsg: Str255 ); external name '_SysBreakFunc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
+{$endc}
 
 
 

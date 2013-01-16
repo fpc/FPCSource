@@ -6,8 +6,9 @@
  *
  }
 
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{	 Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -84,6 +85,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -93,6 +95,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -108,6 +111,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -117,6 +121,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -127,6 +132,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -175,7 +181,6 @@ uses MacTypes;
 
 {$ALIGN POWER}
 
-{$ifc TARGET_OS_MAC}
 
  {! @header CVHostTime.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
@@ -192,7 +197,7 @@ uses MacTypes;
     @result     The current host time.
 }
 function CVGetCurrentHostTime: UInt64; external name '_CVGetCurrentHostTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVGetHostClockFrequency
@@ -202,7 +207,7 @@ function CVGetCurrentHostTime: UInt64; external name '_CVGetCurrentHostTime';
     @result     The current host frequency.
 }
 function CVGetHostClockFrequency: Float64; external name '_CVGetHostClockFrequency';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVGetHostClockMinimumTimeDelta
@@ -210,9 +215,8 @@ function CVGetHostClockFrequency: Float64; external name '_CVGetHostClockFrequen
     @result     The smallest valid increment in the host time base.
 }
 function CVGetHostClockMinimumTimeDelta: UInt32; external name '_CVGetHostClockMinimumTimeDelta';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{$endc}	//TARGET_OS_MAC
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

@@ -49,29 +49,29 @@ interface
 
     const
        delphimodeswitches =
-         [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
+         [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
-         [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
+         [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
           m_property,m_default_inline];
        objfpcmodeswitches =
-         [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
+         [m_objfpc,m_fpc,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_out,m_default_para,m_hintdirective,
           m_property,m_default_inline,m_except];
        tpmodeswitches =
-         [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
+         [m_tp7,m_tp_procvar,m_duplicate_names];
 {$ifdef gpc_mode}
        gpcmodeswitches =
-         [m_gpc,m_all,m_tp_procvar];
+         [m_gpc,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
+         [m_mac,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
-         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -260,6 +260,7 @@ interface
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
+       SetPEOptFlagsSetExplicity,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -269,6 +270,7 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peoptflags,
        peflags : longint;
        minstacksize,
        maxstacksize,
@@ -318,6 +320,13 @@ interface
        apptype : tapptype;
 
        features : tfeatures;
+
+       { prefix added to automatically generated setters/getters. If empty,
+         no getters/setters will be automatically generated except if required
+         for visibility reasons (but in that case the names will be mangled so
+         they are unique) }
+       prop_auto_getter_prefix,
+       prop_auto_setter_prefix : string;
 
     const
        DLLsource : boolean = false;
@@ -411,8 +420,8 @@ interface
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
-        cputype : cpu_SPARC_V8;
-        optimizecputype : cpu_SPARC_V8;
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
@@ -445,6 +454,11 @@ interface
         optimizecputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
+  {$ifdef aarch64}
+        cputype : cpu_armv8;
+        optimizecputype : cpu_armv8;
+        fputype : fpu_vfp;
+  {$endif aarch64}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
@@ -473,7 +487,7 @@ interface
 
     procedure DefaultReplacements(var s:ansistring);
 
-    function  GetEnvPChar(const envname:string):pchar;
+    function  GetEnvPChar(const envname:ansistring):pchar;
     procedure FreeEnvPChar(p:pchar);
 
     function is_number_float(d : double) : boolean;
@@ -840,7 +854,7 @@ implementation
                                OS Dependent things
  ****************************************************************************}
 
-    function GetEnvPChar(const envname:string):pchar;
+    function GetEnvPChar(const envname:ansistring):pchar;
       {$ifdef mswindows}
       var
         s     : string;
@@ -849,7 +863,7 @@ implementation
       {$endif}
       begin
       {$ifdef hasunix}
-        GetEnvPchar:=BaseUnix.fpGetEnv(envname);
+        GetEnvPchar:=BaseUnix.fpGetEnv(pansichar(envname));
         {$define GETENVOK}
       {$endif}
       {$ifdef mswindows}
@@ -1330,28 +1344,42 @@ implementation
 
     function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
       var
-        tok   : string;
+        tok,
+        value : string;
+        setstr: string[2];
+        equalspos: longint;
         doset,
+        gotvalue,
         found : boolean;
         opt   : ttargetswitch;
       begin
         result:=true;
-        uppervar(s);
         repeat
           tok:=GetToken(s,',');
           if tok='' then
            break;
-          if Copy(tok,1,2)='NO' then
+          setstr:=upper(copy(tok,1,2));
+          if setstr='NO' then
             begin
               delete(tok,1,2);
               doset:=false;
             end
           else
             doset:=true;
+          { value specified? }
+          gotvalue:=false;
+          equalspos:=pos('=',tok);
+          if equalspos<>0 then
+            begin
+              value:=copy(tok,equalspos+1,length(tok));
+              delete(tok,equalspos,length(tok));
+              gotvalue:=true;
+            end;
           found:=false;
+          uppervar(tok);
           for opt:=low(ttargetswitch) to high(ttargetswitch) do
             begin
-              if TargetSwitchStr[opt]=tok then
+              if TargetSwitchStr[opt].name=tok then
                 begin
                   found:=true;
                   break;
@@ -1359,10 +1387,35 @@ implementation
             end;
           if found then
             begin
-              if doset then
-                include(a,opt)
+              if not TargetSwitchStr[opt].hasvalue then
+                begin
+                  if gotvalue then
+                    result:=false;
+                  if doset then
+                    include(a,opt)
+                  else
+                    exclude(a,opt)
+                end
               else
-                exclude(a,opt);
+                begin
+                  if not gotvalue or
+                     not doset then
+                    result:=false
+                  else
+                    begin
+                      case opt of
+                        ts_auto_getter_prefix:
+                          prop_auto_getter_prefix:=value;
+                        ts_auto_setter_predix:
+                          prop_auto_setter_prefix:=value;
+                        else
+                          begin
+                            writeln('Internalerror 2012053001');
+                            halt(1);
+                          end;
+                      end;
+                    end;
+                end;
             end
           else
             result:=false;
@@ -1554,6 +1607,7 @@ implementation
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
+        SetPEOptFlagsSetExplicity:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;

@@ -1,4 +1,5 @@
 { %CPU=x86_64 }
+{ %opt=-vw -Sew }
 
 // Basic test for 3-operand SIMD instructions with rip-relative operand
 

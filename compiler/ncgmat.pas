@@ -127,7 +127,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symtable,symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
@@ -238,19 +238,23 @@ implementation
         secondpass(left);
         { load left operator in a register }
         location_copy(location,left.location);
+{$ifdef cpunodefaultint}
+        opsize:=left.resultdef;
+{$else cpunodefaultint}
         { in case of a 32 bit system that can natively execute 64 bit operations }
         if (left.resultdef.size<=sinttype.size) then
           opsize:=sinttype
         else
           opsize:=s64inttype;
+{$endif cpunodefaultint}
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,low(aint),location.register,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,torddef(opsize).low.svalue,location.register,hl);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',nil);
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -380,7 +384,7 @@ implementation
                   current_asmdata.getjumplabel(hl);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1.init;
-                  paramanager.getintparaloc(pocall_default,1,s32inttype,paraloc1);
+                  paramanager.getintparaloc(search_system_proc('fpc_handleerror'),1,paraloc1);
                   cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
@@ -465,7 +469,7 @@ implementation
                 is done since most target cpu which will use this
                 node do not support a shift count in a mem. location (cec)
               }
-              if right.location.loc<>LOC_REGISTER then
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                 begin
                   hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,opdef,right.location,hcountreg);

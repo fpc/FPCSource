@@ -3,9 +3,9 @@
  
      Contains:   QuickTime Interfaces.
  
-     Version:    QuickTime 7.6.3
+     Version:    QuickTime 7.7.1
  
-     Copyright:  © 1990-2008 by Apple Inc., all rights reserved
+     Copyright:  © 1990-2012 by Apple Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -213,7 +219,6 @@ uses MacTypes,Aliases,Components,Dialogs,Events,Files,Menus,ImageCompression,QDO
 { NOTE:  Requires Interfacer-35 or later }
 { <exportset=fw_QuickTime_XManchego> }
 { <exportset=fw_QuickTime_XMaguro> }
-
 
 {  "kFix1" is defined in FixMath as "fixed1"  }
 { error codes are in Errors.[haa] }
@@ -301,6 +306,7 @@ const
 	kUserDataTextOriginalSource	= FourCharCode('©src');
 	kUserDataTextPerformers = FourCharCode('©prf');
 	kUserDataTextProducer = FourCharCode('©prd');
+	kUserDataTextPublisher = FourCharCode('©pub');
 	kUserDataTextProduct = FourCharCode('©PRD');
 	kUserDataTextSoftware = FourCharCode('©swr');
 	kUserDataTextSpecialPlaybackRequirements = FourCharCode('©req');
@@ -2030,7 +2036,8 @@ function QTGetWallClockTimeBase( var wallClockTimeBase: TimeBase ): OSErr; exter
 * Idle Management
 *************************}
 type
-	IdleManager = ^SInt32; { an opaque type }
+	IdleManager = ^OpaqueIdleManager; { an opaque type }
+	OpaqueIdleManager = record end;
 {
  *  QTIdleManagerOpen()
  *  
@@ -2757,7 +2764,8 @@ procedure SetMovieVideoOutput( theMovie: Movie; vout: ComponentInstance ); exter
    playback of a movie.
 }
 type
-	QTAudioContextRef = ^SInt32; { an opaque type }
+	QTAudioContextRef = ^OpaqueQTAudioContextRef; { an opaque type }
+	OpaqueQTAudioContextRef = record end;
 {
  *  QTAudioContextRetain()
  *  
@@ -2923,6 +2931,7 @@ function QTAudioContextCreateForAudioDevice( allocator: CFAllocatorRef; audioDev
  }
 type
 	AudioContextInsertProcessDataCallback = function( inUserData: UnivPtr; var ioRenderFlags: AudioUnitRenderActionFlags; const (*var*) inTimeStamp: AudioTimeStamp; inNumberFrames: UInt32; var inInputData: AudioBufferList; var outOutputData: AudioBufferList ): OSStatus;
+
 {
  *  AudioContextInsertResetCallback
  *  
@@ -8930,7 +8939,7 @@ type
 		storage: UnivPtr;                { storage for the control}
 		show: Boolean;                   { display the control?}
 		enable: Boolean;                 { enable the control (ie, black vs gray display)}
-    pad: array [0..1] of Boolean;
+		pad: array [0..1] of Boolean;
 	end;
 type
 	QTCustomControlShowHideControlPtr = QTCustomControlShowHideControlRecordPtr;
@@ -9838,7 +9847,7 @@ type
 		numChannels: UInt32;
 		numFrequencyBands: UInt32;
                                               { numChannels * numFrequencyBands entries, with the frequency bands for a single channel stored contiguously.}
-    level: array [0..0] of Float32;
+		level: array [0..0] of Float32;
 	end;
 {
  *  GetMovieAudioFrequencyLevels()
@@ -9865,7 +9874,8 @@ function GetMovieAudioFrequencyLevels( m: Movie; whatMixToMeter: FourCharCode; v
     the first call to MovieAudioExtractionFillBuffer). 
  }
 type
-	MovieAudioExtractionRef = ^SInt32; { an opaque type }
+	MovieAudioExtractionRef = ^OpaqueMovieAudioExtractionRef; { an opaque type }
+	OpaqueMovieAudioExtractionRef = record end;
 {
  *  MovieAudioExtractionBegin()
  *  
@@ -10790,7 +10800,7 @@ type
 	QTErrorReplacementRecordPtr = ^QTErrorReplacementRecord;
 	QTErrorReplacementRecord = record
 		numEntries: SIGNEDLONG;
-    replacementString: array [0..1] of StringPtr;   { array of numEntries StringPtrs (each String is allocated separately).}
+		replacementString: array [0..1] of StringPtr;   { array of numEntries StringPtrs (each String is allocated separately).}
 	end;
 type
 	QTErrorReplacementPtr = QTErrorReplacementRecordPtr;
@@ -16229,10 +16239,12 @@ function MusicMediaGetIndexedTunePlayer( ti: ComponentInstance; sampleDescIndex:
 
 
 type
-	QTBandwidthUsageRecordPtr = ^SInt32; { an opaque type }
+	QTBandwidthUsageRecordPtr = ^OpaqueQTBandwidthUsageRecordPtr; { an opaque type }
+	OpaqueQTBandwidthUsageRecordPtr = record end;
 	QTBandwidthReference = ^QTBandwidthUsageRecordPtr; 
 	QTBandwidthReferencePtr = ^QTBandwidthReference;  { when a var xx:QTBandwidthReference parameter can be nil, it is changed to xx: QTBandwidthReferencePtr }
-	QTScheduledBandwidthUsageRecordPtr = ^SInt32; { an opaque type }
+	QTScheduledBandwidthUsageRecordPtr = ^OpaqueQTScheduledBandwidthUsageRecordPtr; { an opaque type }
+	OpaqueQTScheduledBandwidthUsageRecordPtr = record end;
 	QTScheduledBandwidthReference    = ^QTScheduledBandwidthUsageRecordPtr;
 	QTScheduledBandwidthReferencePtr = ^QTScheduledBandwidthReference;  { when a var xx:QTScheduledBandwidthReference parameter can be nil, it is changed to xx: QTScheduledBandwidthReferencePtr }
 const

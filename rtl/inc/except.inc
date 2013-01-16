@@ -36,9 +36,14 @@ Type
 Const
   CatchAllExceptions = PtrInt(-1);
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
+  ExceptTryLevel    : longint;
 
 Function RaiseList : PExceptObject;
 begin
@@ -93,6 +98,16 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  { get_caller_XX funxctions can generate exceptions on their own
+    for instance ifd the stack got corrupted
+    Here we protect calls to those function by a
+    try/except bloc, with a global indicator TryExceptLevel
+    to avoid calling get_caller_XXX functions again if
+    any exception appears while calling them }
+  {$define FPC_CHECK_GET_CALLER_EXCEPTIONS}
+{$endif}
+
 Procedure PushExceptObject(Obj : TObject; AnAddr,AFrame : Pointer);
 var
   Newobj : PExceptObject;
@@ -121,29 +136,55 @@ begin
   { Backtrace }
   curr_frame:=AFrame;
   curr_addr:=AnAddr;
-  prev_frame:=get_caller_frame(curr_addr, curr_frame);
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
-  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-        (curr_frame<(StackBottom + StackLength)) do
-   Begin
-     caller_addr := get_caller_addr(curr_frame, curr_addr);
-     caller_frame := get_caller_frame(curr_frame, curr_addr);
-     if (caller_addr=nil) or
-        (caller_frame=nil) then
-       break;
-     if (framecount>=framebufsize) then
-       begin
-         inc(framebufsize,16);
-         reallocmem(frames,framebufsize*sizeof(pointer));
-       end;
-     frames[framecount]:=caller_addr;
-     inc(framecount);
-     prev_frame:=curr_frame;
-     curr_addr:=caller_addr;
-     curr_frame:=caller_frame;
-   End;
+  if ExceptTryLevel = 0 then
+    begin
+      Inc(ExceptTrylevel);
+{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
+      try
+{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
+      prev_frame:=get_caller_frame(curr_addr, curr_frame);
+{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
+      except
+        halt(217);
+      end;
+{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
+      while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
+            (curr_frame<(StackBottom + StackLength)) do
+        Begin
+{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
+          try
+            caller_addr := get_caller_addr(curr_frame, curr_addr);
+          except
+            halt(217);
+          end;
+          try
+            caller_frame := get_caller_frame(curr_frame, curr_addr);
+          except
+            halt(217);
+          end;
+{$else not FPC_CHECK_GET_CALLER_EXCEPTIONS}
+          caller_addr := get_caller_addr(curr_frame, curr_addr);
+          caller_frame := get_caller_frame(curr_frame, curr_addr);
+{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
+          if (caller_addr=nil) or
+             (caller_frame=nil) then
+            break;
+          if (framecount>=framebufsize) then
+            begin
+              inc(framebufsize,16);
+              reallocmem(frames,framebufsize*sizeof(pointer));
+            end;
+          frames[framecount]:=caller_addr;
+          inc(framecount);
+          prev_frame:=curr_frame;
+          curr_addr:=caller_addr;
+          curr_frame:=caller_frame;
+        End;
+      Dec(ExceptTryLevel);
+    end;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
 end;

@@ -78,6 +78,7 @@ interface
           function first_unbox: tnode; virtual; abstract;
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
+          function first_popcnt: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -1360,9 +1361,9 @@ implementation
         { code is not a 32bit parameter (we already checked whether the }
         { the code para, if specified, was an orddef)                   }
         if not assigned(codepara) or
-           (codepara.resultdef.size<>sinttype.size) then
+           (codepara.resultdef.size<>ptrsinttype.size) then
           begin
-            tempcode := ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+            tempcode := ctempcreatenode.create(ptrsinttype,ptrsinttype.size,tt_persistent,false);
             addstatement(newstatement,tempcode);
             { set the resultdef of the temp (needed to be able to get }
             { the resultdef of the tempref used in the new code para) }
@@ -1379,13 +1380,13 @@ implementation
             { we need its resultdef later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resultdef).ordtype = torddef(sinttype).ordtype) then
+        else if (torddef(codepara.resultdef).ordtype = torddef(ptrsinttype).ordtype) then
           { because code is a var parameter, it must match types exactly    }
           { however, since it will return values in [0..255], both longints }
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create_internal(codepara.left,sinttype);
+            codepara.left := ctypeconvnode.create_internal(codepara.left,ptrsinttype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
@@ -1583,9 +1584,6 @@ implementation
 
     function tinlinenode.handle_copy: tnode;
       var
-        lowppn,
-        highppn,
-        npara,
         paras   : tnode;
         ppn     : tcallparanode;
         paradef : tdef;
@@ -1627,7 +1625,7 @@ implementation
          if is_dynamic_array(paradef) then
           begin
             { Only allow 1 or 3 arguments }
-            if (counter<>1) and (counter<>3) then
+            if not(counter in [1..3]) then
              begin
                CGMessage1(parser_e_wrong_parameter_size,'Copy');
                exit;
@@ -2177,10 +2175,13 @@ implementation
                       begin
                         if inlinenumber=in_low_x then
                           begin
-                            result:=cordconstnode.create(0,u8inttype,false);
+                            if is_dynamicstring(left.resultdef) and
+                              not(cs_zerobasedstrings in current_settings.localswitches) then
+                              result:=cordconstnode.create(1,u8inttype,false)
+                            else
+                              result:=cordconstnode.create(0,u8inttype,false);
                           end
-                        else if not is_ansistring(left.resultdef) and
-                                not is_wide_or_unicode_string(left.resultdef) then
+                        else if not is_dynamicstring(left.resultdef) then
                           result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true)
                       end;
                   end;
@@ -2697,15 +2698,15 @@ implementation
                 begin
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resultdef:=left.resultdef;
-                   if not is_ordinal(resultdef) then
-                     CGMessage(type_e_ordinal_expr_expected)
-                   else
+                   if is_ordinal(resultdef) or is_typeparam(resultdef) then
                      begin
                        if (resultdef.typ=enumdef) and
                           (tenumdef(resultdef).has_jumps) and
                           not(m_delphi in current_settings.modeswitches) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
-                     end;
+                     end
+                   else
+                     CGMessage(type_e_ordinal_expr_expected)
                 end;
 
               in_copy_x:
@@ -2770,6 +2771,12 @@ implementation
                                CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
                            end;
                         end
+                       { generic type parameter? }
+                       else if is_typeparam(left.resultdef) then
+                         begin
+                           result:=cnothingnode.create;
+                           exit;
+                         end
                        else
                          begin
                            hp:=self;
@@ -2920,9 +2927,15 @@ implementation
                               set_varstate(left,vs_read,[]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
-                           else if is_ansistring(left.resultdef) or
-                                   is_wide_or_unicode_string(left.resultdef) then
-                             CGMessage(type_e_mismatch)
+                           else if is_dynamicstring(left.resultdef) then
+                              begin
+                                result:=cinlinenode.create(in_length_x,false,left);
+                                if cs_zerobasedstrings in current_settings.localswitches then
+                                  result:=caddnode.create(subn,result,cordconstnode.create(1,sinttype,false));
+                                { make sure the left node doesn't get disposed, since it's }
+                                { reused in the new node (JM)                              }
+                                left:=nil;
+                              end
                          end;
                      end;
                     else
@@ -2985,6 +2998,7 @@ implementation
                 begin
                 end;
 {$endif SUPPORT_MMX}
+              in_aligned_x,
               in_unaligned_x:
                 begin
                   resultdef:=left.resultdef;
@@ -3044,6 +3058,14 @@ implementation
                      resultdef:=u64inttype
                    else
                      resultdef:=u32inttype
+                 end;
+
+              in_popcnt_x:
+                 begin
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
+                   if not is_integer(left.resultdef) then
+                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+                   resultdef:=left.resultdef;
                  end;
 
               in_objc_selector_x:
@@ -3451,11 +3473,11 @@ implementation
             begin
               expectloc:=LOC_REGISTER;
             end;
-
          in_prefetch_var:
            begin
              expectloc:=LOC_VOID;
            end;
+         in_aligned_x,
          in_unaligned_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
@@ -3469,6 +3491,8 @@ implementation
          in_bsf_x,
          in_bsr_x:
            expectloc:=LOC_REGISTER;
+         in_popcnt_x:
+           result:=first_popcnt;
          in_new_x:
            result:=first_new;
          in_box_x:
@@ -3730,6 +3754,14 @@ implementation
             ppn:=tcallparanode(ppn.right);
           end;
         paradef:=ppn.left.resultdef;
+
+        { fill up third parameter }
+        if counter=2 then
+          begin
+            paras:=ccallparanode.create(cordconstnode.create(torddef(sinttype).high,sinttype,false),paras);
+            counter:=3;
+          end;
+
         if is_ansistring(resultdef) then
           { keep the specific kind of ansistringdef as result }
           result:=ccallnode.createinternres('fpc_ansistr_copy',paras,resultdef)
@@ -3744,17 +3776,21 @@ implementation
         else if is_dynamic_array(resultdef) then
           begin
             { create statements with call }
-            if (counter=3) then
-             begin
-               highppn:=tcallparanode(paras).left.getcopy;
-               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
-             end
-            else
-             begin
-               { copy the whole array using [0..high(sizeint)] range }
-               highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
-               lowppn:=cordconstnode.create(0,sinttype,false);
-             end;
+            case counter of
+              1:
+                begin
+                  { copy the whole array using [0..high(sizeint)] range }
+                  highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
+                  lowppn:=cordconstnode.create(0,sinttype,false);
+                end;
+              3:
+                begin
+                  highppn:=tcallparanode(paras).left.getcopy;
+                  lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
+                end;
+              else
+                internalerror(2012100701);
+            end;
 
             { create call to fpc_dynarray_copy }
             npara:=ccallparanode.create(highppn,
@@ -3815,6 +3851,23 @@ implementation
             ccallnode.createintern('fpc_assert',paras),nil);
          tcallparanode(left).left:=nil;
          tcallparanode(left).right:=nil;
+       end;
+
+
+     function tinlinenode.first_popcnt: tnode;
+       var
+         suffix : string;
+       begin
+         case torddef(left.resultdef).ordtype of
+           u8bit: suffix:='byte';
+           u16bit: suffix:='word';
+           u32bit: suffix:='dword';
+           u64bit: suffix:='qword';
+         else
+           internalerror(2012082601);
+         end;
+         result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
+         left:=nil;
        end;
 
 

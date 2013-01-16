@@ -185,6 +185,17 @@ interface
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
 
+        { this contains a list of units that needs to be waited for until the
+          unit can be finished (code generated, etc.); this is needed to handle
+          specializations in circular unit usages correctly }
+        waitingforunit: tfpobjectlist;
+        { this contains a list of all units that are waiting for this unit to be
+          finished }
+        waitingunits: tfpobjectlist;
+
+        finishstate: pointer;
+        globalstate: pointer;
+
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 
         { for targets that initialise typed constants via explicit assignments
@@ -209,6 +220,7 @@ interface
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
+        procedure end_of_parsing;virtual;
         procedure setmodulename(const s:string);
         procedure AddExternalImport(const libname,symname,symmangledname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
@@ -534,7 +546,9 @@ implementation
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
-        extendeddefs := TFPHashObjectList.Create(true);
+        extendeddefs:=TFPHashObjectList.Create(true);
+        waitingforunit:=tfpobjectlist.create(false);
+        waitingunits:=tfpobjectlist.create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -622,6 +636,8 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         extendeddefs.Free;
+        waitingforunit.free;
+        waitingunits.free;
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
@@ -959,6 +975,37 @@ implementation
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);
+          end;
+      end;
+
+    procedure tmodule.end_of_parsing;
+      begin
+        { free asmdata }
+        if assigned(asmdata) then
+          begin
+            asmdata.free;
+            asmdata:=nil;
+          end;
+
+        { free scanner }
+        if assigned(scanner) then
+          begin
+            if current_scanner=tscannerfile(scanner) then
+              current_scanner:=nil;
+            tscannerfile(scanner).free;
+            scanner:=nil;
+          end;
+
+        { free symtable stack }
+        if assigned(symtablestack) then
+          begin
+            symtablestack.free;
+            symtablestack:=nil;
+          end;
+        if assigned(macrosymtablestack) then
+          begin
+            macrosymtablestack.free;
+            macrosymtablestack:=nil;
           end;
       end;
 

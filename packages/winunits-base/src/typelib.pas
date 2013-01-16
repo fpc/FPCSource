@@ -53,7 +53,7 @@ To load a different type of library resource, append an integer index to 'FileNa
 Example:  C:\WINDOWS\system32\msvbvm60.dll\3
 }
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
 
 
 Type
@@ -66,6 +66,7 @@ Type
     FAppendVersionNumber: Boolean;
     FCreatePackage: Boolean;
     FDependencies: TStringList;
+    FRemoveStructTag: Boolean;
     FUnitSource: TStringList;
     FPackageSource: TStringList;
     FPackageRegUnitSource: TStringList;
@@ -93,6 +94,7 @@ Type
     procedure SetActiveX(AValue: Boolean);
     procedure SetCreatePackage(AValue: Boolean);
     procedure SetOutputFileName(AValue: String);
+    procedure SetRemoveStructTag(AValue: Boolean);
     procedure SetUnitName(AValue: string);
   Protected
     bIsCustomAutomatable,bIsInterface,bIsAutomatable,bIsExternalDecl,bIsUserDefined:boolean;
@@ -116,6 +118,7 @@ Type
     function ValidateIDAgainstDeclared(id: string): boolean; virtual;
     function MakeValidId(id:string;var valid:string): boolean; virtual;
     function MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
+    function RemoveTag(typename: string): string;
     // The actual routines that do the work.
     procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer); virtual;
     procedure CreateForwards(const TL: ITypeLib; TICount: Integer); virtual;
@@ -145,11 +148,13 @@ Type
     // Append version number to unit name.
     Property AppendVersionNumber : Boolean Read FAppendVersionNumber Write FAppendVersionNumber Default True;
     // Create lpk package for ActiveXContainer descendant: default false
-    Property CreatePackage : Boolean Read FCreatePackage write SetCreatePackage Default False;
+    Property CreatePackage : Boolean read FCreatePackage write SetCreatePackage  Default False;
     // File to read typelib from.
     Property InputFileName : WideString Read FInputFileName Write FInputFileName;
     // If set, unit source will be written to this file.
     Property OutputFileName : String Read FOutputFileName Write SetOutputFileName;
+    // Remove tag from struct names
+    Property RemoveStructTag : Boolean read FRemoveStructTag write SetRemoveStructTag Default False;
     // Set automatically by OutputFileName or by Execute
     Property UnitName : string Read FUnitname Write SetUnitName;
   end;
@@ -161,7 +166,7 @@ Resourcestring
   SErrInvalidUnitName = 'Invalid unit name : %s';
 
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
 var i:integer;
 begin
   With TTypeLibImporter.Create(Nil) do
@@ -169,6 +174,7 @@ begin
       InputFileName:=FileName;
       ActiveX:=bActiveX;
       CreatePackage:=bPackage;
+      RemoveStructTag:=bRemoveStructTag;
       Execute;
       Result:=UnitSource.Text;
       sUnitname:=UnitName;
@@ -301,6 +307,18 @@ begin
     MakeValidIdAgainstDeclared(id+'_',valid);
 end;
 
+function TTypeLibImporter.RemoveTag(typename: string): string;
+begin
+  result:=typename;
+  if FRemoveStructTag and (pos('tag',typename)>0) then
+    if (copy(typename,1,3)='tag') then
+      delete(result,1,3)
+    else if (copy(typename,1,4)='_tag') then
+      delete(result,2,3)
+    else if (copy(typename,1,5)='__tag') then
+      delete(result,3,3);
+end;
+
 
 function TTypeLibImporter.TypeToString(TI:ITypeInfo; TD:TYPEDESC):string;
 
@@ -331,9 +349,11 @@ begin
       TD:=TD.lptdesc^;
     OleCheck(TI.GetRefTypeInfo(TD.hreftype,TIref));
     OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrName, nil, nil, nil));
-    MakeValidId(BstrName,result);
     OleCheck(TIRef.GetTypeAttr(TARef));
     bIsCustomAutomatable:=TARef^.typekind in [TKIND_DISPATCH,TKIND_INTERFACE,TKIND_ENUM,TKIND_COCLASS];
+    if TARef^.typekind in [TKIND_RECORD,TKIND_UNION,TKIND_ALIAS] then
+      BstrName:=RemoveTag(BstrName);
+    MakeValidId(BstrName,result);
     if TARef^.typekind=TKIND_ALIAS then
       begin
       TypeToString(TIRef,TARef^.tdescAlias); //not interested in result, only bIsCustomAutomatable and bIsInterface
@@ -568,7 +588,8 @@ begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed method ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName],True);
         bIsFunction:=(bIsDispatch and (FD^.elemdescFunc.tdesc.vt<>VT_VOID)) or
-          (not bIsDispatch and (FD^.cParams>0) and ((FD^.lprgelemdescParam[FD^.cParams-1].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0));
+          (not bIsDispatch and (FD^.cParams>0) and ((FD^.lprgelemdescParam[FD^.cParams-1].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0)) or
+          (sConv<>'safecall');
         if bIsFunction then
           sFunc:=format('    // %s : %s '#13#10'   function %s(',[sMethodName,BstrDocString,sMethodName])
         else
@@ -682,7 +703,10 @@ begin
           sEventImplementations:=sEventImplementations+';'#13#10;
           end;
         if bIsFunction then
-          sFunc:=sFunc+format(':%s',[sType]);
+          if (sConv<>'safecall') then
+            sFunc:=sFunc+':HRESULT'
+          else
+            sFunc:=sFunc+format(':%s',[sType]);
         if bIsDispatch then
           s:=s+sFunc+format(';dispid %d;'#13#10,[FD^.memid])
         else
@@ -1206,7 +1230,7 @@ begin
     case TIT of
       TKIND_RECORD,TKIND_UNION:
         begin
-        if not MakeValidId(BstrName,sRecordName) then
+        if not MakeValidId(RemoveTag(BstrName),sRecordName) then
           AddToHeader('//  Warning: renamed record ''%s'' to ''%s''',[BstrName,sRecordName],True);
         AddToInterface(' P%s = ^%s;'#13#10,[sRecordName,sRecordName]);
         FTypes.Add('P'+sRecordName);
@@ -1256,7 +1280,7 @@ begin
         stype:=TypeToString(TI, TA^.tdescAlias);
         if bIsUserDefined and not ValidateID(stype) then
           stype:=stype+'_';
-        if not MakeValidId(BstrName,sRecordName) then
+        if not MakeValidId(RemoveTag(BstrName),sRecordName) then
           AddToHeader('//  Warning: renamed alias ''%s'' to ''%s''',[BstrName,sRecordName],True);
         sl:=format(' %s = %s;',[sRecordName,stype]);
         if bIsUserDefined and not bIsExternalDecl and (FTypes.IndexOf(stype)=-1) then //not defined yet, defer
@@ -1804,6 +1828,12 @@ begin
     Raise Exception.CreateFmt(SErrInvalidUnitName,[UN]);
   FOutputFileName:=AValue;
   SetUnitName(UN)
+end;
+
+procedure TTypeLibImporter.SetRemoveStructTag(AValue: Boolean);
+begin
+  if FRemoveStructTag=AValue then Exit;
+  FRemoveStructTag:=AValue;
 end;
 
 procedure TTypeLibImporter.SetUnitName(AValue: string);

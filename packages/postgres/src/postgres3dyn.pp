@@ -16,11 +16,18 @@ uses
 
 {$IFDEF Unix}
   const
-    pqlib = 'libpq.'+sharedsuffix;
+{$ifdef darwin}
+    pqlib = 'libpq.'+sharedsuffix; // No version number.
+{$else}
+    pqlib5 = 'libpq.'+sharedsuffix+'.5'; // 8.2 and higher
+    pqlib4 = 'libpq.'+sharedsuffix+'.4'; // 8.0, 8.1
+    pqlib3 = 'libpq.'+sharedsuffix+'.3'; // 7.3, 7.4
+    pqlib  = pqlib5;
+{$endif}
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   const
-    pqlib = 'libpq.dll';
+    pqlib = 'libpq.dll'; // Not sure if it has a version number ?
 {$ENDIF}
 
 
@@ -75,6 +82,7 @@ var
   PQtransactionStatus : function (conn:PPGconn):PGTransactionStatusType;cdecl;
   PQparameterStatus : function (conn:PPGconn; paramName:Pchar):Pchar;cdecl;
   PQprotocolVersion : function (conn:PPGconn):longint;cdecl;
+  PQserverVersion : function (conn:PPGconn):longint;cdecl;
   PQerrorMessage : function (conn:PPGconn):Pchar;cdecl;
   PQsocket : function (conn:PPGconn):longint;cdecl;
   PQbackendPID : function (conn:PPGconn):longint;cdecl;
@@ -210,12 +218,14 @@ var
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
 
-Procedure InitialisePostgres3(libpath:string=pqlib);
+Function InitialisePostgres3(Const libpath : ansistring) : integer;
+Procedure InitialisePostgres3;
 Procedure ReleasePostgres3;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
 
 var Postgres3LibraryHandle : TLibHandle;
+  Postgres3LoadedLibrary : String;
 
 implementation
 
@@ -225,12 +235,23 @@ resourcestring
 
 var
   RefCount : integer;
-  LoadedLibrary : String;
 
-Procedure InitialisePostgres3(libpath:string=pqlib);
+procedure InitialisePostgres3;
+
+begin
+  if (RefCount<>0) then
+      // pretend to load whatever is already loaded, so we do not get a library name conflict.
+    inc(Refcount)
+  else
+    InitialisePostgres3(pqlib)
+end;
+
+
+function InitialisePostgres3(Const libpath : ansistring) : Integer;
 
 begin
   inc(RefCount);
+  Result:=Refcount;
   if RefCount = 1 then
     begin
     Postgres3LibraryHandle := loadlibrary(libpath);
@@ -240,7 +261,7 @@ begin
       Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
       end;
 
-    LoadedLibrary:=libpath;
+    Postgres3LoadedLibrary:=libpath;
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
     pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
     pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
@@ -263,6 +284,7 @@ begin
     pointer(PQtransactionStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQtransactionStatus');
     pointer(PQparameterStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQparameterStatus');
     pointer(PQprotocolVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQprotocolVersion');
+    pointer(PQserverVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQserverVersion');
     pointer(PQerrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQerrorMessage');
     pointer(PQsocket) := GetProcedureAddress(Postgres3LibraryHandle,'PQsocket');
     pointer(PQbackendPID) := GetProcedureAddress(Postgres3LibraryHandle,'PQbackendPID');
@@ -344,13 +366,13 @@ begin
     pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
     pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
 
-    InitialiseDllist;
+    InitialiseDllist(libpath);
     end
   else
-    if (libpath<>pqlib) and (LoadedLibrary<>libpath) then
+    if (libpath<>pqlib) and (Postgres3LoadedLibrary<>libpath) then
       begin
       Dec(RefCount);
-      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[Postgres3LoadedLibrary]);
       end;
 end;
 

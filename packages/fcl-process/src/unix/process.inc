@@ -99,6 +99,8 @@ Function DetectXterm : String;
 
   begin
     Result:=FileSearch(s,GetEnvironmentVariable('PATH'),False)<>'';
+    If Result then
+      XTermProgram:=S;
   end;
 
   Function TestTerminals(Terminals : Array of String) : Boolean;
@@ -111,9 +113,7 @@ Function DetectXterm : String;
     While (Not Result) and (I<=High(Terminals)) do
       begin
       Result:=TestTerminal(Terminals[i]);
-      If Result then
-        XTermProgram:=Terminals[i];
-       inc(i);
+      inc(i);
       end;
   end;
 
@@ -136,7 +136,7 @@ begin
     if (XTermProgram='') then
       begin
       D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
-      If (D='kde') then
+      If (Pos('kde',D)<>0) then
         begin
         TestTerminal('konsole');
         end

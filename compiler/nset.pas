@@ -646,9 +646,9 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          i  : integer;
-         node_thenblock,node_elseblock,if_node : tnode;
+         node_thenblock,node_elseblock,if_node,temp_cleanup : tnode;
          tempcaseexpr : ttempcreatenode;
-         if_block, init_block,stmt_block : tblocknode;
+         if_block, init_block, stmt_block : tblocknode;
          stmt : tstatementnode;
          endlabel : tlabelnode;
 
@@ -684,6 +684,7 @@ implementation
       begin
          result:=nil;
          init_block:=nil;
+         temp_cleanup:=nil;
          expectloc:=LOC_VOID;
 
          { evalutes the case expression }
@@ -702,6 +703,7 @@ implementation
              tempcaseexpr :=
                ctempcreatenode.create(
                  left.resultdef, left.resultdef.size, tt_persistent, true);
+             temp_cleanup := ctempdeletenode.create(tempcaseexpr);
              typecheckpass(tnode(tempcaseexpr));
 
              addstatement(stmt, tempcaseexpr);
@@ -766,6 +768,8 @@ implementation
              addstatement(stmt,cgotonode.create(endlabel.labsym));
              addstatement(stmt, stmt_block);
              addstatement(stmt, endlabel);
+             if assigned(temp_cleanup) then
+               addstatement(stmt, temp_cleanup);
              result := if_block;
              elseblock := nil;
              exit;

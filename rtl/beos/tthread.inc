@@ -165,18 +165,18 @@ begin
 end;
 
 
-constructor TThread.Create(CreateSuspended: Boolean);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 var
   Flags: Integer;
 begin
-  inherited Create;
   AddThread(self);
   FSuspended := CreateSuspended;
   Flags := CLONE_VM + CLONE_FS + CLONE_FILES + CLONE_SIGHAND + SIGCHLD;
   { Setup 16k of stack }
   FStackSize:=16384;
-  Getmem(FStackPointer,FStackSize);
-  inc(FStackPointer,FStackSize);
+  Getmem(FStackPointer,StackSize);
+  inc(FStackPointer,StackSize);
   FCallExitProcess:=false;
   { Clone }
   FHandle:= Clone(@ThreadProc,FStackPointer,Flags,self);
@@ -187,7 +187,7 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
   if not FFinished and not Suspended then
    begin
@@ -200,7 +200,6 @@ begin
   Freemem(FStackPointer);
   FFatalException.Free;
   FFatalException := nil;
-  inherited Destroy;
   RemoveThread(self);
 end;
 
@@ -454,14 +453,13 @@ begin
 end;
 
 { TThread }
-constructor TThread.Create(CreateSuspended: Boolean; const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
 var
   data : pointer;
 begin
   // lets just hope that the user doesn't create a thread
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
-  inherited Create;
   FSem := SemaphoreInit;
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
@@ -473,7 +471,7 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
   if FThreadID = GetCurrentThreadID then begin
     raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
@@ -493,7 +491,6 @@ begin
   FFatalException.Free;
   FFatalException := nil;
   SemaphoreDestroy(FSem);
-  inherited Destroy;
 end;
 
 procedure TThread.SetSuspended(Value: Boolean);

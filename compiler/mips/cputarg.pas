@@ -52,13 +52,15 @@ implementation
 **************************************}
 
       ,CpuGas
+      ,ogelf
+      ,cpuelf
 
 {**************************************
              Debuginfo
 **************************************}
 
 {$define NoCFIDwarf}
-{$define NoDbgDwarf}
+{define NoDbgDwarf}
 { Try only stabs for a start }
   {$ifndef NoCFIDwarf}
       ,cfidwarf

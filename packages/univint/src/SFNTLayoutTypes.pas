@@ -3,26 +3,19 @@
  
      Contains:   SFNT file layout structures and constants.
  
-     Copyright:  © 1994-2008 by Apple Inc., all rights reserved.
+     Version:    ATS
  
-     Warning:    *** APPLE INTERNAL USE ONLY ***
-                 This file may contain unreleased API's
+     Copyright:  © 1994-2012 by Apple Inc., all rights reserved.
  
-     BuildInfo:  Built by:            root
-                 On:                  Fri Jul 24 22:21:51 2009
-                 With Interfacer:     3.0d46   (Mac OS X for PowerPC)
-                 From:                SFNTLayoutTypes.i
-                     Revision:        1.3
-                     Dated:           2007/01/15 23:28:27
-                     Last change by:  kurita
-                     Last comment:    <rdar://problem/4916090> updated copyright.
+     Bugs?:      For bug reports, consult the following page on
+                 the World Wide Web:
  
-     Bugs:       Report bugs to Radar component "System Interfaces", "Latest"
-                 List the version information (from above) in the Problem Description.
+                     http://www.freepascal.org/bugs.html
  
 }
 
-{ Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -99,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -108,6 +102,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +118,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -142,6 +139,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -199,8 +197,8 @@ uses MacTypes;
 {
     The following values can be used to set run feature values. Note that unless the
     feature is defaulted differently in different fonts, the zero value for the
-    selectors represents the default value.  Check the following URL site for further info:
-    "http://fonts.apple.com/Registry"
+    selectors represents the default value. Consult the following URL for further info:
+    <http://developer.apple.com/fonts/registry/>
 }
 
 
@@ -212,7 +210,7 @@ const
 	kAllTypographicFeaturesType = 0;
 	kLigaturesType = 1;
 	kCursiveConnectionType = 2;
-	kLetterCaseType = 3;
+	kLetterCaseType = 3;    { deprecated - use kLowerCaseType or kUpperCaseType instead }
 	kVerticalSubstitutionType = 4;
 	kLinguisticRearrangementType = 5;
 	kNumberSpacingType = 6;
@@ -240,6 +238,12 @@ const
 	kIdeographicAlternativesType = 30;
 	kCJKVerticalRomanPlacementType = 31;
 	kItalicCJKRomanType = 32;
+	kCaseSensitiveLayoutType = 33;
+	kAlternateKanaType = 34;
+	kStylisticAlternativesType = 35;
+	kContextualAlternatesType = 36;
+	kLowerCaseType = 37;
+	kUpperCaseType = 38;
 	kCJKRomanSpacingType = 103;
 	kLastFeatureType = -1;
 
@@ -276,6 +280,10 @@ const
 	kAbbrevSquaredLigaturesOffSelector = 15;
 	kSymbolLigaturesOnSelector = 16;
 	kSymbolLigaturesOffSelector = 17;
+	kContextualLigaturesOnSelector = 18;
+	kContextualLigaturesOffSelector = 19;
+	kHistoricalLigaturesOnSelector = 20;
+	kHistoricalLigaturesOffSelector = 21;
 
 
 {
@@ -293,12 +301,12 @@ const
  *    Selectors for feature type kLetterCaseType
  }
 const
-	kUpperAndLowerCaseSelector = 0;
-	kAllCapsSelector = 1;
-	kAllLowerCaseSelector = 2;
-	kSmallCapsSelector = 3;
-	kInitialCapsSelector = 4;
-	kInitialCapsAndSmallCapsSelector = 5;
+	kUpperAndLowerCaseSelector = 0;    { deprecated }
+	kAllCapsSelector = 1;    { deprecated }
+	kAllLowerCaseSelector = 2;    { deprecated }
+	kSmallCapsSelector = 3;    { deprecated }
+	kInitialCapsSelector = 4;    { deprecated }
+	kInitialCapsAndSmallCapsSelector = 5;  { deprecated }
 
 
 {
@@ -366,6 +374,7 @@ const
 	kSuperiorsSelector = 1;
 	kInferiorsSelector = 2;
 	kOrdinalsSelector = 3;
+	kScientificInferiorsSelector = 4;
 
 
 {
@@ -421,6 +430,8 @@ const
 	kInequalityLigaturesOffSelector = 7;
 	kExponentsOnSelector = 8;
 	kExponentsOffSelector = 9;
+	kMathematicalGreekOnSelector = 10;
+	kMathematicalGreekOffSelector = 11;
 
 
 {
@@ -486,6 +497,10 @@ const
 	kTraditionalAltFourSelector = 8;
 	kTraditionalAltFiveSelector = 9;
 	kExpertCharactersSelector = 10;
+	kJIS2004CharactersSelector = 11;
+	kHojoCharactersSelector = 12;
+	kNLCCharactersSelector = 13;
+	kTraditionalNamesCharactersSelector = 14;
 
 
 {
@@ -505,6 +520,10 @@ const
 	kProportionalTextSelector = 0;
 	kMonospacedTextSelector = 1;
 	kHalfWidthTextSelector = 2;
+	kThirdWidthTextSelector = 3;
+	kQuarterWidthTextSelector = 4;
+	kAltProportionalTextSelector = 5;
+	kAltHalfWidthTextSelector = 6;
 
 
 {
@@ -629,6 +648,109 @@ const
 	kCJKItalicRomanSelector = 1;    { deprecated - use kCJKItalicRomanOnSelector instead }
 	kCJKItalicRomanOnSelector = 2;
 	kCJKItalicRomanOffSelector = 3;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kCaseSensitiveLayoutType
+ }
+const
+	kCaseSensitiveLayoutOnSelector = 0;
+	kCaseSensitiveLayoutOffSelector = 1;
+	kCaseSensitiveSpacingOnSelector = 2;
+	kCaseSensitiveSpacingOffSelector = 3;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kAlternateKanaType
+ }
+const
+	kAlternateHorizKanaOnSelector = 0;
+	kAlternateHorizKanaOffSelector = 1;
+	kAlternateVertKanaOnSelector = 2;
+	kAlternateVertKanaOffSelector = 3;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kStylisticAlternativesType
+ }
+const
+	kNoStylisticAlternatesSelector = 0;
+	kStylisticAltOneOnSelector = 2;
+	kStylisticAltOneOffSelector = 3;
+	kStylisticAltTwoOnSelector = 4;
+	kStylisticAltTwoOffSelector = 5;
+	kStylisticAltThreeOnSelector = 6;
+	kStylisticAltThreeOffSelector = 7;
+	kStylisticAltFourOnSelector = 8;
+	kStylisticAltFourOffSelector = 9;
+	kStylisticAltFiveOnSelector = 10;
+	kStylisticAltFiveOffSelector = 11;
+	kStylisticAltSixOnSelector = 12;
+	kStylisticAltSixOffSelector = 13;
+	kStylisticAltSevenOnSelector = 14;
+	kStylisticAltSevenOffSelector = 15;
+	kStylisticAltEightOnSelector = 16;
+	kStylisticAltEightOffSelector = 17;
+	kStylisticAltNineOnSelector = 18;
+	kStylisticAltNineOffSelector = 19;
+	kStylisticAltTenOnSelector = 20;
+	kStylisticAltTenOffSelector = 21;
+	kStylisticAltElevenOnSelector = 22;
+	kStylisticAltElevenOffSelector = 23;
+	kStylisticAltTwelveOnSelector = 24;
+	kStylisticAltTwelveOffSelector = 25;
+	kStylisticAltThirteenOnSelector = 26;
+	kStylisticAltThirteenOffSelector = 27;
+	kStylisticAltFourteenOnSelector = 28;
+	kStylisticAltFourteenOffSelector = 29;
+	kStylisticAltFifteenOnSelector = 30;
+	kStylisticAltFifteenOffSelector = 31;
+	kStylisticAltSixteenOnSelector = 32;
+	kStylisticAltSixteenOffSelector = 33;
+	kStylisticAltSeventeenOnSelector = 34;
+	kStylisticAltSeventeenOffSelector = 35;
+	kStylisticAltEighteenOnSelector = 36;
+	kStylisticAltEighteenOffSelector = 37;
+	kStylisticAltNineteenOnSelector = 38;
+	kStylisticAltNineteenOffSelector = 39;
+	kStylisticAltTwentyOnSelector = 40;
+	kStylisticAltTwentyOffSelector = 41;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kContextualAlternatesType
+ }
+const
+	kContextualAlternatesOnSelector = 0;
+	kContextualAlternatesOffSelector = 1;
+	kSwashAlternatesOnSelector = 2;
+	kSwashAlternatesOffSelector = 3;
+	kContextualSwashAlternatesOnSelector = 4;
+	kContextualSwashAlternatesOffSelector = 5;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kLowerCaseType
+ }
+const
+	kDefaultLowerCaseSelector = 0;
+	kLowerCaseSmallCapsSelector = 1;
+	kLowerCasePetiteCapsSelector = 2;
+
+
+{
+ *  Summary:
+ *    Selectors for feature type kUpperCaseType
+ }
+const
+	kDefaultUpperCaseSelector = 0;
+	kUpperCaseSmallCapsSelector = 1;
+	kUpperCasePetiteCapsSelector = 2;
 
 
 {
@@ -1533,14 +1655,225 @@ type
 		fsHeader: KernFormatSpecificHeader;         { format specific sub-header }
 	end;
 { Overall Subtable header format }
-	KernSubtableHeaderPtr = ^KernSubtableHeader;
+type
 	KernSubtableHeader = record
 		length: SInt32;                 { length in bytes (including this header) }
 		stInfo: KernSubtableInfo;                 { subtable info }
 		tupleIndex: SInt16;             { tuple index for variation subtables }
 		fsHeader: KernFormatSpecificHeader;         { format specific sub-header }
 	end;
+	KernSubtableHeaderPtr = ^KernSubtableHeader;
+{ --------------------------------------------------------------------------- }
+{ FORMATS FOR TABLE: 'kerx' }
+{ CONSTANTS }
+const
+	kKERXTag = $6B657278; { 'kerx' }
+	kKERXCurrentVersion = $00020000;
+	kKERXVertical = $80000000; { set if this table has vertical kerning information }
+	kKERXResetCrossStream = $8000; { this value in a cross-stream table means reset to zero }
+	kKERXCrossStream = $40000000; { set if this table contains cross-stream kerning values }
+	kKERXVariation = $20000000; { set if this table contains variation kerning values }
+	kKERXUnusedBits = $1FFFFF00; { UNUSED, MUST BE ZERO }
+	kKERXFormatMask = $000000FF; { format of this subtable }
 
+const
+	kKERXOrderedList = 0;    { ordered list of kerning pairs }
+	kKERXStateTable = 1;    { state table for n-way contextual kerning }
+	kKERXSimpleArray = 2;    { simple n X m array of kerning values }
+	kKERXIndexArray = 3;    { modifed version of SimpleArray }
+	kKERXControlPoint = 4;     { state table for control point positioning }
+
+{ Message Type Flags }
+const
+	kKERXLineStart = $00000001; { Array of glyphs starts a line }
+	kKERXLineEndKerning = $00000002; { Array of glyphs ends a line }
+	kKERXNoCrossKerning = $00000004; { Prohibit cross kerning }
+	kKERXNotesRequested = $00000008; { Caller wants kerning notes }
+	kKERXNoStakeNote = 1;    { Indicates a glyph was involved in a kerning pair/group }
+	kKERXCrossStreamResetNote = 2;    { Indicates a return-to-baseline in cross-stream kerning }
+	kKERXNotApplied = $00000001; { All kerning values were zero, kerning call had no effect }
+
+{ Flags in KerxControlPointHeader }
+const
+	kKERXActionTypeMask = 3 shl 30; { Mask to extract action type }
+	kKERXActionTypeControlPoints = 0 shl 30; { Actions have control point numbers }
+	kKERXActionTypeAnchorPoints = 1 shl 30; { Actions have anchor point numbers }
+	kKERXActionTypeCoordinates = 2 shl 30; { Actions have control point coordinates }
+	kKERXUnusedFlags = $3F000000; { Unused, must be zero }
+	kKERXActionOffsetMask = $00FFFFFF; { Mask to extract offset to action table }
+
+{ TYPES }
+type
+	KerxSubtableCoverage = UInt32;
+	KerxArrayOffset = UInt32;
+{ Header for an extended kerning table }
+type
+	KerxTableHeader = record
+		version: Fixed;                { font version number (currently 1.0) }
+		nTables: UInt32;                { number of subtables present }
+		firstSubtable: array [0..1-1] of UInt32;       { first subtable starts here }
+	end;
+	KerxTableHeaderPtr = ^KerxTableHeader;
+type
+	KerxTableHeaderHandle = ^KerxTableHeaderPtr;
+{
+ F O R M A T   S P E C I F I C   D E F I N I T I O N S
+ 
+ kerxOrderedList:
+ 
+ The table is a sorted list of [left glyph, right glyph, value] triples.
+ There's enough information in the header so that the list can be
+ efficiently binary searched. 
+ }
+{ defines a single kerning pair of Glyphcodes  }
+type
+	KerxKerningPair = record
+		left: UInt16;
+		right: UInt16;
+	end;
+{ a single list entry }
+type
+	KerxOrderedListEntry = record
+		pair: KerxKerningPair;                   { the kerning pair }
+		value: KernKerningValue;                  { the kerning value for the above pair }
+	end;
+	KerxOrderedListEntryPtr = ^KerxOrderedListEntry;
+{ the header information for binary searching the list }
+type
+	KerxOrderedListHeader = record
+		nPairs: UInt32;                 { number of kerning pairs in table }
+		searchRange: UInt32;            { (largest power of two <= nPairs) * entry size }
+		entrySelector: UInt32;          { log2 (largest power of two <= nPairs) }
+		rangeShift: UInt32;             { (nPairs - largest power of two <= nPairs) * entry size }
+		table: array [0..1-1] of UInt32;               { entries are first glyph, second glyph, and value }
+	end;
+{ KernStateTable: like the the generic state tables }
+type
+	KerxStateHeader = record
+		header: STXHeader;                 { state table header }
+		valueTable: UInt32;             { offset to kerning value table }
+		firstTable: array [0..1-1] of UInt8;          { first table starts here }
+	end;
+type
+	KerxStateEntry = record
+		newState: UInt16;
+		flags: UInt16;                  { flags per above enum }
+		valueIndex: UInt16;
+	end;
+{ KerxControlPointTable: like the the generic state tables }
+type
+	KerxControlPointHeader = record
+		header: STXHeader;                 { state table header }
+		flags: UInt32;                  { flags }
+		firstTable: array [0..1-1] of UInt8;          { first table starts here }
+	end;
+type
+	KerxControlPointEntry = record
+		newState: UInt16;
+		flags: UInt16;                  { flags per above enum }
+		actionIndex: UInt16;
+	end;
+type
+	KerxControlPointAction = record
+		markControlPoint: UInt16;
+		currControlPoint: UInt16;
+	end;
+type
+	KerxAnchorPointAction = record
+		markAnchorPoint: UInt16;
+		currAnchorPoint: UInt16;
+	end;
+type
+	KerxCoordinateAction = record
+		markX: UInt16;
+		markY: UInt16;
+		currX: UInt16;
+		currY: UInt16;
+	end;
+{
+ Kern offset table header.
+ The offset table is a trimmed array from firstGlyph to limitGlyph.
+ Glyphs outside of this range should get zero for right-hand glyphs
+ and the offset of the beginning of the kerning array for left-hand glyphs.
+ }
+type
+	KerxOffsetTable = record
+		firstGlyph: UInt16;             { first glyph in class range }
+		nGlyphs: UInt16;                { number of glyphs in class range }
+		offsetTable: array [0..1-1] of KerxArrayOffset;         { offset table starts here }
+	end;
+	KerxOffsetTablePtr = ^KerxOffsetTable;
+{ Header information for accessing offset tables and kerning array }
+{
+ KerxSimpleArray:
+ 
+ The array is an nXm array of kenring values. Each row in the array
+ represents one left-hand glyph, and each column one right-hand glyph.
+ The zeroth row and column always represent glyphs that are out of bounds
+ and will always contain zero.
+ 
+ A pair is looked up by indexing the left-hand glyph through the left
+ offset table, the right-hand glyph through the right offset table,
+ adding both offsets to the starting address of the kerning array,
+ and fetching the kerning value pointed to.
+ }
+{ Kern offset table header. }
+{ The offset table is a trimmed array from firstGlyph to limitGlyph. }
+{ Glyphs outside of this range should get zero for right-hand glyphs }
+{ and the offset of the beginning of the kerning array for left- }
+{ hand glyphs. }
+type
+	KerxSimpleArrayHeader = record
+		rowWidth: UInt32;               { width, in bytes, of a row in the table }
+		leftOffsetTable: UInt32;        { offset to left-hand offset table }
+		rightOffsetTable: UInt32;       { offset to right-hand offset table }
+		theArray: KerxArrayOffset;               { offset to start of kerning array }
+		firstTable: array [0..1-1] of UInt32;          { first offset table starts here... }
+	end;
+{ Index Array }
+type
+	KerxIndexArrayHeader = record
+		glyphCount: UInt16;
+		kernValueCount: UInt16;
+		leftClassCount: UInt16;
+		rightClassCount: UInt16;
+		flags: UInt16;                  { set to 0 for now }
+		kernValue: array [0..1-1] of SInt16;           { actual kerning values reference by index in kernIndex }
+		leftClass: array [0..1-1] of UInt16;           { maps left glyph to offset into kern index }
+		rightClass: array [0..1-1] of UInt16;          { maps right glyph to offset into kern index }
+		kernIndex: array [0..1-1] of UInt16;           { contains indicies into kernValue }
+	end;
+{ format specific part of subtable header }
+type
+  KerxFormatSpecificHeader = record
+    case SInt16 of
+      0: (
+        orderedList: KerxOrderedListHeader;
+        );
+      1: (
+        stateTable: KerxStateHeader;
+        );
+      2: (
+        simpleArray: KerxSimpleArrayHeader;
+        );
+      3: (
+        indexArray: KerxIndexArrayHeader;
+        );
+      4: (
+        controlPoint: KerxControlPointHeader;
+        );
+  end;
+  KerxFormatSpecificHeaderPtr = ^KerxFormatSpecificHeader;
+
+{ Overall Subtable header format }
+type
+	KerxSubtableHeader = record
+		length: UInt32;                 { length in bytes (including this header) }
+		stInfo: KerxSubtableCoverage;               { subtable converage }
+		tupleIndex: UInt32;             { tuple index for variation subtables }
+		fsHeader: KerxFormatSpecificHeader;         { format specific sub-header }
+	end;
+	KerxSubtableHeaderPtr = ^KerxSubtableHeader;
 { --------------------------------------------------------------------------- }
 { FORMATS FOR TABLE: 'bsln' }
 { CONSTANTS }
@@ -1683,6 +2016,32 @@ type
 		GlyphIndexOffset: SInt16;
 		HBaselineOffset: SInt16;        { y offset to the rotated horizontal baseline }
 		VBaselineOffset: SInt16;        { x offset to the rotated vertical baseline }
+	end;
+{ --------------------------------------------------------------------------- }
+{ FORMATS FOR TABLE 'ankr' }
+{ CONSTANTS }
+const
+	kANKRCurrentVersion = 0;
+
+{ TYPES }
+type
+	AnchorPoint = record
+		x: SInt16;                     { x coordinate of anchor point }
+		y: SInt16;                     { y coordinate of anchor point }
+	end;
+
+type
+	AnchorPointTable = record
+		nPoints: UInt32;                { number of anchor points defined for this glyph }
+		points: array [0..1-1] of AnchorPoint;              { first anchor point starts here }
+	end;
+
+type
+	AnkrTable = record
+		version: UInt16;                { 1 }
+		flags: UInt16;                  { never leave home without them (see 'Zapf') }
+		lookupTableOffset: UInt32;      { Byte offset to lookup table mapping glyphs to offset into anchor point table }
+		anchorPointTableOffset: UInt32; { Byte offset to start of anchor point table }
 	end;
 { --------------------------------------------------------------------------- }
 

@@ -56,6 +56,17 @@ implementation
 **************************************}
 
       ,ag68kgas
+
+{**************************************
+             Debuginfo
+**************************************}
+
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
       ;
 
 end.

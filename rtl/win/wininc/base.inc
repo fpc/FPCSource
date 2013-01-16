@@ -599,7 +599,7 @@
 
      SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:DWORD; _para4:LRESULT);stdcall;
 
-     TIMERPROC = procedure (_para1:HWND; _para2:UINT; _para3:UINT; _para4:DWORD);stdcall;
+     TIMERPROC = procedure (hWnd: HWND; uMsg: UINT; idEvent: UINT_PTR; dwTime: DWORD); stdcall;
 
      GRAYSTRINGPROC = FARPROC;
 

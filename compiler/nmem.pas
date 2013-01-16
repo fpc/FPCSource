@@ -219,6 +219,8 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
              if is_objcclass(left.resultdef) and
@@ -994,10 +996,12 @@ implementation
                   end
                 else
                  begin
-                   { indexed access to 0 element is only allowed for shortstrings }
+                   { indexed access to 0 element is only allowed for shortstrings or if
+                     zero based strings is turned on }
                    if (right.nodetype=ordconstn) and
                       (Tordconstnode(right).value.svalue=0) and
-                      not is_shortstring(left.resultdef) then
+                      not is_shortstring(left.resultdef) and
+                      not(cs_zerobasedstrings in current_settings.localswitches) then
                      CGMessage(cg_e_can_access_element_zero);
                    resultdef:=elementdef;
                  end;

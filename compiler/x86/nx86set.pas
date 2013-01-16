@@ -61,11 +61,7 @@ implementation
 
     function tx86casenode.has_jumptable : boolean;
       begin
-{$ifdef i386}
         has_jumptable:=true;
-{$else}
-        has_jumptable:=false;
-{$endif}
       end;
 
 
@@ -186,16 +182,27 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
-                      { no jump necessary here if the new range starts at }
-                      { at the value following the previous one           }
+                      { we need to use A_SUB, if cond_lt uses the carry flags
+                        because A_DEC does not set the correct flags, therefor
+                        using a_op_const_reg(OP_SUB) is not possible }
+                      if (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._low.svalue-last.svalue)=1) then
+                        emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._low.svalue-last.svalue),hregister)
+                      else
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
+                      { no jump necessary here if the new range starts at
+                        at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
-                  {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
-                   using a_op_const_reg(OP_SUB) is not possible }
-                  emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister);
+                  { we need to use A_SUB, if cond_le uses the carry flags
+                    because A_DEC does not set the correct flags, therefor
+                    using a_op_const_reg(OP_SUB) is not possible }
+                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._high.svalue-t^._low.svalue)=1) then
+                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister)
+                  else
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._high.svalue-t^._low.svalue), hregister);
+
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
                   lastrange:=true;

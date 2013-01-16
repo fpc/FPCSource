@@ -27,9 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,
-       cpubase,cgbase,cgutils,
-       aasmbase,
+       globtype,globals,cgbase,cgutils,
        symtype,
        optbase;
 
@@ -482,7 +480,7 @@ interface
 implementation
 
     uses
-       cutils,verbose,ppu,comphook,
+       verbose,ppu,comphook,
        symconst,
        nutils,nflw,
        defutil;
@@ -839,6 +837,9 @@ implementation
 
 
     procedure tnode.printnodeinfo(var t:text);
+      var
+        i : tnodeflag;
+        first : boolean;
       begin
         write(t,nodetype2str[nodetype]);
         if assigned(resultdef) then
@@ -847,7 +848,19 @@ implementation
           write(t,', resultdef = <nil>');
         write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
-                  ', expectloc = ',tcgloc2str[expectloc]);
+                  ', expectloc = ',tcgloc2str[expectloc],
+                  ', flags = [');
+        first:=true;
+        for i:=low(tnodeflag) to high(tnodeflag) do
+          if i in flags then
+            begin
+              if not(first) then
+                write(t,',')
+              else
+                first:=false;
+              write(t, i);
+            end;
+        write(t,']');
       end;
 
 

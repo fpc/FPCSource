@@ -535,14 +535,14 @@ implementation
               t:=Cordconstnode.create(1,pasbool8type,true)
             else
               t:=Cordconstnode.create(0,pasbool8type,true);
-              { don't do this optimization, if the variable expression might
-                have a side effect }
-              if (is_constintnode(left) and might_have_sideeffects(right)) or
-                (is_constintnode(right) and might_have_sideeffects(left)) then
-                t.free
-              else
-                result:=t;
-              exit;
+            { don't do this optimization, if the variable expression might
+              have a side effect }
+            if (is_constintnode(left) and might_have_sideeffects(right)) or
+              (is_constintnode(right) and might_have_sideeffects(left)) then
+              t.free
+            else
+              result:=t;
+            exit;
           end;
 
         { Add,Sub,Mul with constant 0, 1 or -1?  }
@@ -2608,7 +2608,11 @@ implementation
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
-        if not (cs_fp_emulation in current_settings.moduleswitches) then
+        if not ((cs_fp_emulation in current_settings.moduleswitches)
+{$ifdef cpufpemu}
+                or (current_settings.fputype=fpu_soft)
+{$endif cpufpemu}
+                ) then
           exit;
 
         if not(target_info.system in systems_wince) then
@@ -2768,12 +2772,9 @@ implementation
          if nodetype=slashn then
            begin
 {$ifdef cpufpemu}
-             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
-               begin
-                 result:=first_addfloat;
-                 if assigned(result) then
-                   exit;
-               end;
+             result:=first_addfloat;
+             if assigned(result) then
+               exit;
 {$endif cpufpemu}
              expectloc:=LOC_FPUREGISTER;
            end
@@ -2984,12 +2985,9 @@ implementation
          else if (rd.typ=floatdef) or (ld.typ=floatdef) then
             begin
 {$ifdef cpufpemu}
-             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
-               begin
-                 result:=first_addfloat;
-                 if assigned(result) then
-                   exit;
-               end;
+             result:=first_addfloat;
+             if assigned(result) then
+               exit;
 {$endif cpufpemu}
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
                 expectloc:=LOC_FPUREGISTER

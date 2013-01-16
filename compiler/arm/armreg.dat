@@ -107,5 +107,42 @@ D30,$04,$07,$1E,d30,0,0
 D31,$04,$07,$1F,d31,0,0
 
 ; special registers
-CPSR_C,$05,$00,$00,cpsr_c,0,0
+CPSR,$05,$00,$00,cpsr,0,0
 FPSCR,$05,$00,$01,fpscr,0,0
+SPSR,$05,$00,$02,spsr,0,0
+APSR_nzcv,$05,$00,$03,apsr_nzcv,0,0
+; coprocessor registers
+CR0,$05,$00,$04,cr0,0,0
+CR1,$05,$00,$05,cr1,0,0
+CR2,$05,$00,$06,cr2,0,0
+CR3,$05,$00,$07,cr3,0,0
+CR4,$05,$00,$08,cr4,0,0
+CR5,$05,$00,$09,cr5,0,0
+CR6,$05,$00,$0A,cr6,0,0
+CR7,$05,$00,$0B,cr7,0,0
+CR8,$05,$00,$0C,cr8,0,0
+CR9,$05,$00,$0D,cr9,0,0
+CR10,$05,$00,$0E,cr10,0,0
+CR11,$05,$00,$0F,cr11,0,0
+CR12,$05,$00,$10,cr12,0,0
+CR13,$05,$00,$11,cr13,0,0
+CR14,$05,$00,$12,cr14,0,0
+CR15,$05,$00,$13,cr15,0,0
+; coprocessors
+p15,$05,$00,$14,p15,0,0
+; Cortex-M3 special registers
+APSR,$05,$00,$15,apsr,0,0
+IPSR,$05,$00,$16,ipsr,0,0
+EPSR,$05,$00,$17,epsr,0,0
+IEPSR,$05,$00,$18,iepsr,0,0
+IAPSR,$05,$00,$19,iapsr,0,0
+EAPSR,$05,$00,$1A,eapsr,0,0
+PSR,$05,$00,$1B,psr,0,0
+MSP,$05,$00,$1C,msp,0,0
+PSP,$05,$00,$1D,psp,0,0
+PRIMASK,$05,$00,$1E,primask,0,0
+BASEPRI,$05,$00,$1F,basepri,0,0
+BASEPRI_MAX,$05,$00,$20,basepri_max,0,0
+FAULTMASK,$05,$00,$21,faultmask,0,0
+CONTROL,$05,$00,$22,control,0,0
+

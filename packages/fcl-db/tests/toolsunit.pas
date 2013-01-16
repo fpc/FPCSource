@@ -313,6 +313,8 @@ begin
   testValues[ftDate] := testDateValues;
   testValues[ftBlob] := testStringValues;
   testValues[ftMemo] := testStringValues;
+  testValues[ftWideString] := testStringValues;
+  testValues[ftWideMemo] := testStringValues;
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
@@ -330,11 +332,11 @@ begin
       testValues[ftDateTime,i] := testDateValues[i];
     end;
 
-  if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
+  if dbconnectorname = '' then raise Exception.Create('There is no db connector specified');
   DBConnectorClass := GetClass('T'+dbconnectorname+'DBConnector');
   if assigned(DBConnectorClass) then
     DBConnector := TDBConnectorClass(DBConnectorClass).create
-  else Raise Exception.Create('Unknown db-connector specified: ' + 'T'+dbconnectorname+'DBConnector');
+  else Raise Exception.Create('Unknown db connector specified: ' + 'T'+dbconnectorname+'DBConnector');
   inc(DBConnectorRefCount);
 end;
 
@@ -395,8 +397,6 @@ end;
 
 { TTestDataLink }
 
-{$IFDEF FPC}
-
 procedure TTestDataLink.DataSetScrolled(Distance: Integer);
 begin
   DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
@@ -409,6 +409,7 @@ begin
   inherited DataSetChanged;
 end;
 
+{$IFDEF FPC}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 {$ELSE}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);

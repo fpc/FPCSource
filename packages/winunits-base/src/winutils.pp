@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-{$mode objfpc}
+{$mode objfpc}{$H+}
 unit winutils;
 
 Interface
@@ -23,6 +23,9 @@ Uses Windows;
 // returns True if the currently logged Windows user has Administrator rights. Delphi.about.com
 // From Delphi.about.com with permission, http://delphi.about.com/od/delphitips2007/qt/is_win_admin.htm
 function IsWindowsAdmin: Boolean;
+
+// Removes Browsers "downloaded" attribute from a file.
+procedure UnBlockFile(const name:String);
 
 implementation
 
@@ -77,6 +80,15 @@ begin
 
     FreeMem(ptgGroups) ;
   end;
+end;
+
+procedure UnBlockFile(const name:String);
+var f : file;
+begin
+ assignfile(f,name+':Zone.Identifier');
+ rewrite(f,1);
+ truncate(f);
+ closefile(f);
 end;
 
 end.

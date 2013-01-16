@@ -103,15 +103,13 @@ implementation
                   case sym.typ of
                     fieldvarsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_load,sym);
                         def:=tfieldvarsym(sym).vardef;
                       end;
                     procsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_call,sym);
                       end;
                     else
@@ -325,32 +323,6 @@ implementation
                 end;
             end;
 
-          procedure add_parameters(p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              i: integer;
-              orig, hparavs: tparavarsym;
-            begin
-              for i := 0 to p.parast.SymList.Count - 1 do
-                begin
-                  orig:=tparavarsym(p.parast.SymList[i]);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  readprocdef.parast.insert(hparavs);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  writeprocdef.parast.insert(hparavs);
-                end;
-            end;
-
-          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              hparavs: tparavarsym;
-            begin
-              inc(paranr);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              readprocdef.parast.insert(hparavs);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              writeprocdef.parast.insert(hparavs);
-            end;
-
       var
          sym : tsym;
          srsymtable: tsymtable;
@@ -360,6 +332,9 @@ implementation
          hdef : tdef;
          arraytype : tdef;
          def : tdef;
+{$ifdef jvm}
+         orgaccesspd : tprocdef;
+{$endif}
          pt : tnode;
          sc : TFPObjectList;
          paranr : word;
@@ -457,7 +432,7 @@ implementation
                 index parameter doesn't count (PFV) }
               if paranr>0 then
                 begin
-                  add_parameters(p,readprocdef,writeprocdef);
+                  p.add_accessor_parameters(readprocdef,writeprocdef);
                   include(p.propoptions,ppo_hasparameters);
                 end;
            end;
@@ -499,7 +474,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                   p.add_index_parameter(paranr,readprocdef,writeprocdef);
                    pt.free;
                 end;
            end
@@ -514,21 +489,9 @@ implementation
                  (overridden.typ=propertysym) and
                  not(is_dispinterface(astruct)) then
                 begin
+                  tpropertysym(overridden).makeduplicate(p,readprocdef,writeprocdef,paranr);
                   p.overriddenpropsym:=tpropertysym(overridden);
-                  { inherit all type related entries }
-                  p.indexdef:=tpropertysym(overridden).indexdef;
-                  p.propdef:=tpropertysym(overridden).propdef;
-                  p.index:=tpropertysym(overridden).index;
-                  p.default:=tpropertysym(overridden).default;
-                  p.propoptions:=tpropertysym(overridden).propoptions + [ppo_overrides];
-                  if ppo_hasparameters in p.propoptions then
-                    begin
-                      p.parast:=tpropertysym(overridden).parast.getcopy;
-                      add_parameters(p,readprocdef,writeprocdef);
-                      paranr:=p.parast.SymList.Count;
-                    end;
-                  if ppo_indexed in p.propoptions then
-                    add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                  include(p.propoptions,ppo_overrides);
                 end
               else
                 begin
@@ -570,6 +533,7 @@ implementation
                           else
                             begin
 {$ifdef jvm}
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_read].procdef);
                               { if the visibility of the getter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
@@ -579,6 +543,9 @@ implementation
                                   p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
                                   p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
                                 end;
+                              if (prop_auto_getter_prefix<>'') and
+                                 (p.propaccesslist[palt_read].firstsym^.sym.RealName<>prop_auto_getter_prefix+p.RealName) then
+                                jvm_create_getter_for_property(p,orgaccesspd);
 {$endif jvm}
                             end;
                         end;
@@ -601,8 +568,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_getter_for_property(p);
+                             if (prop_auto_getter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_getter_for_property(p,nil);
 {$endif}
                            end
                           else
@@ -646,7 +614,8 @@ implementation
                           else
                             begin
 {$ifdef jvm}
-                              { if the visibility of the getter is lower than
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_write].procdef);
+                              { if the visibility of the setter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
                                 property is visible }
@@ -655,6 +624,9 @@ implementation
                                   p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
                                   p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
                                 end;
+                              if (prop_auto_setter_prefix<>'') and
+                                 (sym.RealName<>prop_auto_setter_prefix+p.RealName) then
+                                jvm_create_setter_for_property(p,orgaccesspd);
 {$endif jvm}
                             end;
                         end;
@@ -677,8 +649,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_setter_for_property(p);
+                             if (prop_auto_setter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_setter_for_property(p,nil);
 {$endif}
                            end
                           else
@@ -1585,7 +1558,7 @@ implementation
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype : tdef;
+         hdef,casetype,tmpdef : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
@@ -1660,13 +1633,32 @@ implementation
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
-             if not (vd_class in options) and
-               (is_object(hdef) or is_record(hdef)) and
-               is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(hdef)) then
+             if not (vd_class in options) then
                begin
-                 Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
-                 { for error recovery or compiler will crash later }
-                 hdef:=generrordef;
+                 if hdef.typ=arraydef then
+                   begin
+                     tmpdef:=hdef;
+                     while (tmpdef.typ=arraydef) do
+                       begin
+                         { dynamic arrays are allowed }
+                         if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                           begin
+                             tmpdef:=nil;
+                             break;
+                           end;
+                         tmpdef:=tarraydef(tmpdef).elementdef;
+                       end;
+                   end
+                 else
+                   tmpdef:=hdef;
+                 if assigned(tmpdef) and
+                     (is_object(tmpdef) or is_record(tmpdef)) and
+                     is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(tmpdef)) then
+                   begin
+                     Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
+                     { for error recovery or compiler will crash later }
+                     hdef:=generrordef;
+                   end;
                end;
 
              { Process procvar directives }

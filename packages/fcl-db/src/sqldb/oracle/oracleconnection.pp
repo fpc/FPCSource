@@ -517,11 +517,30 @@ var tel      : integer;
     OFieldType   : ub2;
     OFieldSize   : sb4;
 
+    stmttype     : ub2;
+
 begin
   with cursor as TOracleCursor do
     begin
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
+    //get statement type
+    if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@stmttype,nil,OCI_ATTR_STMT_TYPE,FOciError) = OCI_ERROR then
+      HandleError;
+    case stmttype of
+      OCI_STMT_SELECT:FStatementType := stSelect;
+      OCI_STMT_UPDATE:FStatementType := stUpdate;
+      OCI_STMT_DELETE:FStatementType := stDelete;
+      OCI_STMT_INSERT:FStatementType := stInsert;
+      OCI_STMT_CREATE,
+      OCI_STMT_DROP,
+      OCI_STMT_DECLARE,
+      OCI_STMT_ALTER:FStatementType := stDDL;
+    else
+      FStatementType := stUnknown;
+    end;
+    if FStatementType in [stUpdate,stDelete,stInsert,stDDL] then
+      FSelectable:=false;
     if assigned(AParams) then
       begin
       setlength(ParamBuffers,AParams.Count);

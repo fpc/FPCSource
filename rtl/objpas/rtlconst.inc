@@ -114,6 +114,7 @@ ResourceString
   SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available.';
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
+  SErrNotObserver               = '"%s" is not an observer';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
   SerrInvalidPropertyType       = 'Invalid property type from streamed property: %d';
   SErrUnknownEnumValue          = 'Unknown enumeration value: "%s"';
@@ -202,6 +203,7 @@ ResourceString
   SNoTimers                     = 'No timers available';
   SNotOpenErr                   = 'No MCI-device opened';
   SNotPrinting                  = 'Printer is not currently printing';
+  SNoProcGiven                  = 'No procedure given';
   SNoVolumeLabel                = ': [ - No name - ]';
   SNumberExpected               = 'Number expected';
   SOKButton                     = 'OK';
@@ -267,6 +269,7 @@ ResourceString
   SSymbolExpected               = '%s expected';
   SThreadCreateError            = 'Thread creation error: %s';
   SThreadError                  = 'Thread Error: %s (%d)';
+  SThreadExternal               = 'Thread was created from extern';
   STooManyDeleted               = 'Too many rows or columns deleted';
   STooManyImages                = 'Too many images';
   STwoMDIForms                  = 'There is only one MDI window available';

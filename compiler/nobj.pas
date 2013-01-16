@@ -71,6 +71,7 @@ interface
         procedure insertmsgstr(p:TObject;arg:pointer);
         procedure insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
+        function RedirectToEmpty(procdef: tprocdef): boolean;
         procedure writenames(list : TAsmList;p : pprocdeftree);
         procedure writeintentry(list : TAsmList;p : pprocdeftree);
         procedure writestrentry(list : TAsmList;p : pprocdeftree);
@@ -113,6 +114,7 @@ implementation
        globals,verbose,systems,
        node,
        symbase,symtable,symconst,symtype,defcmp,
+       cgbase,parabase,paramgr,
        dbgbase,
        ncgrtti,
        wpobase
@@ -333,22 +335,29 @@ implementation
                           automated header translation tools too complex.
 
                           The same goes for Java. }
-                        if not(oo_is_external in _class.objectoptions) then
-                          if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                          else
-                            MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                        { there may be a lot of these in auto-translated
-                          headers, so only calculate the fulltypename if
-                          the hint will be shown  }
-                        else if CheckVerbosity(V_Hint) then
-                          if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
-                          else
-                            MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+{$ifndef jvm}
+                        if hasequalpara then
+{$endif}
+                          begin
+                            if not(oo_is_external in _class.objectoptions) then
+                              if not is_objccategory(_class) then
+                                MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                              else
+                                MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            { there may be a lot of these in auto-translated
+                              headers, so only calculate the fulltypename if
+                              the hint will be shown  }
+                            else if CheckVerbosity(V_Hint) then
+                              if not is_objccategory(_class) then
+                                MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                              else
+                                MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+                          end;
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
-                        check_msg_str(vmtpd,pd);
+                        if not is_objc_class_or_protocol(_class) or
+                           hasequalpara then
+                          check_msg_str(vmtpd,pd);
                         if updatevalues then
                           begin
                             { in case of Java, copy the real name from the parent,
@@ -416,13 +425,21 @@ implementation
                   { Give a note if the new visibility is lower. For a higher
                     visibility update the vmt info }
                   if vmtentryvis>pd.visibility then
+                    begin
+                      if po_auto_raised_visibility in vmtpd.procoptions then
+                        begin
+                          if updatevalues then
+                            pd.visibility:=vmtentryvis;
+                        end
+                      else
 {$ifdef jvm}
-                    MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
+                        MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
 {$else jvm}
-                    MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
+                        MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
 {$endif jvm}
-                         pd.fullprocname(false),
-                         visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
+                          pd.fullprocname(false),
+                          visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
+                      end
                   else if pd.visibility>vmtentryvis then
                     begin
                       if updatevalues then
@@ -1499,6 +1516,36 @@ implementation
     end;
 
 
+    function TVMTWriter.RedirectToEmpty(procdef : tprocdef) : boolean;
+      var
+        i : longint;
+        hp : PCGParaLocation;
+      begin
+        result:=false;
+        if procdef.isempty then
+          begin
+{$ifdef x86}
+            paramanager.create_funcretloc_info(procdef,calleeside);
+            if (procdef.funcretloc[calleeside].Location^.loc=LOC_FPUREGISTER) then
+              exit;
+{$endif x86}
+            procdef.init_paraloc_info(calleeside);
+            { we can redirect the call if no memory parameter is passed }
+            for i:=0 to procdef.paras.count-1 do
+              begin
+                hp:=tparavarsym(procdef.paras[i]).paraloc[callerside].Location;
+                while assigned(hp) do
+                  begin
+                    if not(hp^.Loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_FPUREGISTER]) then
+                      exit;
+                    hp:=hp^.Next;
+                  end;
+              end;
+            result:=true;
+          end;
+      end;
+
+
     procedure TVMTWriter.writevirtualmethods(List:TAsmList);
       var
          vmtpd : tprocdef;
@@ -1522,6 +1569,8 @@ implementation
              internalerror(200611083);
            if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
+           else if (cs_opt_level2 in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+             procname:='FPC_EMPTYMETHOD'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));

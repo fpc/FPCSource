@@ -27,9 +27,12 @@ Interface
 
   uses
     cpubase,
-    raatt,rax86;
+    raatt,rax86, rautils;
 
   type
+
+    { tx86attreader }
+
     tx86attreader = class(tattreader)
       ActOpsize : topsize;
       function is_asmopcode(const s: string):boolean;override;
@@ -42,7 +45,10 @@ Interface
       procedure MaybeGetPICModifier(var oper: tx86operand);
     end;
 
+    { Tx86attInstruction }
+
     Tx86attInstruction = class(Tx86Instruction)
+      procedure AddReferenceSizes; override;
       procedure FixupOpcode;override;
     end;
 
@@ -62,11 +68,33 @@ Implementation
       scanner,
       procinfo,
       itcpugas,
-      rabase,rautils,
+      rabase,
       cgbase
       ;
 
     { Tx86attInstruction }
+
+
+    procedure Tx86attInstruction.AddReferenceSizes;
+    var
+      i: integer;
+    begin
+      if (Opsize <> S_NO) and
+         (MemRefInfo(opcode).ExistsSSEAVX) and
+         (MemRefInfo(opcode).MemRefSize in MemRefMultiples) then
+      begin
+        for i := 1 to ops do
+        begin
+          if operands[i].Opr.Typ in [OPR_REFERENCE, OPR_LOCAL] then
+          begin
+            if (tx86operand(operands[i]).opsize = S_NO) then
+             tx86operand(operands[i]).opsize := Opsize;
+          end;
+        end;
+      end;
+
+      inherited AddReferenceSizes;
+    end;
 
     procedure Tx86attInstruction.FixupOpcode;
       begin
@@ -326,15 +354,6 @@ Implementation
 {$endif i386}
                     begin
                       oper.opr.ref.refaddr:=addr_pic;
-{$ifdef x86_64}
-                      { local symbols don't have to
-                        be accessed via the GOT
-                      }
-                      if (actasmpattern='GOTPCREL') and
-                         assigned(oper.opr.ref.symbol) and
-                         (oper.opr.ref.symbol.bind=AB_LOCAL) then
-			Message(asmr_w_useless_got_for_local);
-{$endif x86_64}
                       consume(AS_ID);
                     end
                   else
@@ -405,6 +424,12 @@ Implementation
                     Message(asmr_e_wrong_sym_type);
                    inc(l,toffset);
                    oper.SetSize(tsize,true);
+
+                   case oper.opr.typ of
+                     OPR_REFERENCE: oper.opr.varsize := tsize;
+                         OPR_LOCAL: oper.opr.localvarsize := tsize;
+                   end;
+
                  end;
              end;
             if actasmtoken in [AS_PLUS,AS_MINUS] then
@@ -419,7 +444,8 @@ Implementation
                      (oper.opr.localsym.owner.symtabletype=parasymtable) and
                      (current_procinfo.procdef.proccalloption<>pocall_register) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
-                  inc(oper.opr.localsymofs,l)
+                  inc(oper.opr.localsymofs,l);
+                  inc(oper.opr.localconstoffset,l);
                 end;
               OPR_CONSTANT :
                 if (mangledname<>'') then
@@ -432,7 +458,10 @@ Implementation
                 else
                   inc(oper.opr.val,l);
               OPR_REFERENCE :
-                inc(oper.opr.ref.offset,l);
+                begin
+                  inc(oper.opr.ref.offset,l);
+                  inc(oper.opr.constoffset,l);
+                end;
               OPR_SYMBOL:
                 Message(asmr_e_invalid_symbol_ref);
               else
@@ -509,6 +538,11 @@ Implementation
                      if (mangledname<>'') then
                        Message(asmr_e_invalid_reference_syntax);
                      inc(oper.opr.ref.offset,l);
+
+                     case oper.opr.typ of
+                       OPR_REFERENCE: oper.opr.varsize := k;
+                           OPR_LOCAL: oper.opr.localvarsize := k;
+                     end;
                    end;
                   MaybeGetPICModifier(oper);
                   case actasmtoken of
@@ -665,9 +699,15 @@ Implementation
                             OPR_CONSTANT :
                               inc(oper.opr.val,l);
                             OPR_LOCAL :
-                              inc(oper.opr.localsymofs,l);
+                              begin
+                                inc(oper.opr.localsymofs,l);
+                                inc(oper.opr.localconstoffset, l);
+                              end;
                             OPR_REFERENCE :
-                              inc(oper.opr.ref.offset,l);
+                              begin
+                                inc(oper.opr.ref.offset,l);
+                                inc(oper.opr.constoffset, l);
+                              end;
                             else
                               internalerror(200309202);
                           end;
@@ -842,6 +882,12 @@ Implementation
                 begin
                   actopcode:=tasmop(PtrUInt(iasmops.Find(copy(s,1,len))));
 
+                  { movsd needs special handling because it has two namings in at&t syntax (movsl for string handling and
+                    movsd for the sse instruction) while only one in intel syntax (movsd, both string and sse)
+                    this cannot be expressed by the instruction table format so we have to hack around this here }
+                  if (actopcode = A_NONE) and (upper(s) = 'MOVSD') then
+                    actopcode := A_MOVSD;
+
                   { two-letter suffix is allowed by just a few instructions (movsx,movzx),
                     and it is always required whenever allowed }
                   if (gas_needsuffix[actopcode]=attsufINTdual) xor (suflen=2) then
@@ -915,6 +961,7 @@ Implementation
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;
+
 
 
 end.

@@ -5,8 +5,7 @@ unit tconstparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser,
-  tcbaseparser, testregistry;
+  Classes, SysUtils, fpcunit, pastree, pscanner, tcbaseparser, testregistry;
 
 Type
     { TTestConstParser }

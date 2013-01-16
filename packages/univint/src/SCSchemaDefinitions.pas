@@ -1,5 +1,5 @@
 {
- * Copyright (c) 2000-2009 Apple Inc. All rights reserved.
+ * Copyright (c) 2000-2011 Apple Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  * 
@@ -20,8 +20,9 @@
  * 
  * @APPLE_LICENSE_HEADER_END@
  }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -97,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -106,6 +108,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +124,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -130,6 +134,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -140,6 +145,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -388,6 +394,7 @@ uses MacTypes,CFBase;
  *
  *   --- kSCPropNetIPv6ConfigMethod values ---
  *   kSCValNetIPv6ConfigMethodAutomatic                 "Automatic"
+ *   kSCValNetIPv6ConfigMethodLinkLocal                 "LinkLocal"
  *   kSCValNetIPv6ConfigMethodManual                    "Manual"
  *   kSCValNetIPv6ConfigMethodRouterAdvertisement       "RouterAdvertisement"
  *   kSCValNetIPv6ConfigMethod6to4                      "6to4"
@@ -554,6 +561,7 @@ uses MacTypes,CFBase;
  *   kSCPropNetProxiesSOCKSPort                         "SOCKSPort"                    CFNumber
  *   kSCPropNetProxiesSOCKSProxy                        "SOCKSProxy"                   CFString
  *   kSCPropNetProxiesProxyAutoConfigEnable             "ProxyAutoConfigEnable"        CFNumber (0 or 1)
+ *   kSCPropNetProxiesProxyAutoConfigJavaScript         "ProxyAutoConfigJavaScript"    CFString
  *   kSCPropNetProxiesProxyAutoConfigURLString          "ProxyAutoConfigURLString"     CFString
  *   kSCPropNetProxiesProxyAutoDiscoveryEnable          "ProxyAutoDiscoveryEnable"     CFNumber (0 or 1)
  *
@@ -1076,6 +1084,9 @@ var kSCPropNetIPv6Router: CFStringRef; external name '_kSCPropNetIPv6Router'; (*
 var kSCValNetIPv6ConfigMethodAutomatic: CFStringRef; external name '_kSCValNetIPv6ConfigMethodAutomatic'; (* attribute const *) { 	"Automatic" }
 (* __OSX_AVAILABLE_STARTING(__MAC_10_3,__IPHONE_NA) *)
 
+var kSCValNetIPv6ConfigMethodLinkLocal: CFStringRef; external name '_kSCValNetIPv6ConfigMethodLinkLocal'; (* attribute const *) { 	"LinkLocal" }
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
+
 var kSCValNetIPv6ConfigMethodManual: CFStringRef; external name '_kSCValNetIPv6ConfigMethodManual'; (* attribute const *) { 	"Manual" }
 (* __OSX_AVAILABLE_STARTING(__MAC_10_3,__IPHONE_NA) *)
 
@@ -1445,6 +1456,9 @@ var kSCPropNetProxiesSOCKSProxy: CFStringRef; external name '_kSCPropNetProxiesS
 
 var kSCPropNetProxiesProxyAutoConfigEnable: CFStringRef; external name '_kSCPropNetProxiesProxyAutoConfigEnable'; (* attribute const *) { CFNumber (0 or 1)	"ProxyAutoConfigEnable" }
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA) *)
+
+var kSCPropNetProxiesProxyAutoConfigJavaScript: CFStringRef; external name '_kSCPropNetProxiesProxyAutoConfigJavaScript'; (* attribute const *) { CFString	"ProxyAutoConfigJavaScript" }
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
 
 var kSCPropNetProxiesProxyAutoConfigURLString: CFStringRef; external name '_kSCPropNetProxiesProxyAutoConfigURLString'; (* attribute const *) { CFString	"ProxyAutoConfigURLString" }
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA) *)

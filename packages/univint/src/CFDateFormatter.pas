@@ -1,10 +1,11 @@
 {	CFDateFormatter.h
-	Copyright (c) 2003-2009, Apple Inc. All rights reserved.
+	Copyright (c) 2003-2012, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
 {	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -80,6 +81,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -89,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -104,6 +107,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +117,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -175,19 +181,20 @@ uses MacTypes,CFBase,CFDate,CFLocale;
 {#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3}
 
 type
-	CFDateFormatterRef = ^SInt32; { an opaque type }
+	CFDateFormatterRef = ^__CFDateFormatter; { an opaque type }
+	__CFDateFormatter = record end;
 
 // CFDateFormatters are not thread-safe.  Do not use one from multiple threads!
 
 function CFDateFormatterCreateDateFormatFromTemplate( allocator: CFAllocatorRef; tmplate: CFStringRef; options: CFOptionFlags; locale: CFLocaleRef ): CFStringRef; external name '_CFDateFormatterCreateDateFormatFromTemplate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 	// no options defined, pass 0 for now
 
 function CFDateFormatterGetTypeID: CFTypeID; external name '_CFDateFormatterGetTypeID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 type
-	CFDateFormatterStyle = SIGNEDLONG;
+	CFDateFormatterStyle = CFIndex;
 const
 // date and time format styles
 	kCFDateFormatterNoStyle = 0;
@@ -295,35 +302,35 @@ var kCFDateFormatterAMSymbol: CFStringRef; external name '_kCFDateFormatterAMSym
 var kCFDateFormatterPMSymbol: CFStringRef; external name '_kCFDateFormatterPMSymbol'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)		// CFString
 var kCFDateFormatterLongEraSymbols: CFStringRef; external name '_kCFDateFormatterLongEraSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)   // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)   // CFArray of CFString
 var kCFDateFormatterVeryShortMonthSymbols: CFStringRef; external name '_kCFDateFormatterVeryShortMonthSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterStandaloneMonthSymbols: CFStringRef; external name '_kCFDateFormatterStandaloneMonthSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterShortStandaloneMonthSymbols: CFStringRef; external name '_kCFDateFormatterShortStandaloneMonthSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterVeryShortStandaloneMonthSymbols: CFStringRef; external name '_kCFDateFormatterVeryShortStandaloneMonthSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterVeryShortWeekdaySymbols: CFStringRef; external name '_kCFDateFormatterVeryShortWeekdaySymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterStandaloneWeekdaySymbols: CFStringRef; external name '_kCFDateFormatterStandaloneWeekdaySymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterShortStandaloneWeekdaySymbols: CFStringRef; external name '_kCFDateFormatterShortStandaloneWeekdaySymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterVeryShortStandaloneWeekdaySymbols: CFStringRef; external name '_kCFDateFormatterVeryShortStandaloneWeekdaySymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterQuarterSymbols: CFStringRef; external name '_kCFDateFormatterQuarterSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) 	// CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) 	// CFArray of CFString
 var kCFDateFormatterShortQuarterSymbols: CFStringRef; external name '_kCFDateFormatterShortQuarterSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterStandaloneQuarterSymbols: CFStringRef; external name '_kCFDateFormatterStandaloneQuarterSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterShortStandaloneQuarterSymbols: CFStringRef; external name '_kCFDateFormatterShortStandaloneQuarterSymbols'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFArray of CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFArray of CFString
 var kCFDateFormatterGregorianStartDate: CFStringRef; external name '_kCFDateFormatterGregorianStartDate'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFDate
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFDate
 var kCFDateFormatterDoesRelativeDateFormattingKey: CFStringRef; external name '_kCFDateFormatterDoesRelativeDateFormattingKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *) // CFBoolean
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *) // CFBoolean
 
 // See CFLocale.h for these calendar constants:
 //	const CFStringRef kCFGregorianCalendar;

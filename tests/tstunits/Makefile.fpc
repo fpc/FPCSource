@@ -140,9 +140,15 @@ else
 all : rtl fpcunit packages extra
 endif
 
+STAMPFILES=$(wildcard *stamp*)
+TEMPDIRS=$(wildcard $(MAKEFILETARGETS) tmp)
+
+
 clean : cleanrtl cleanall cleanfpcunit cleanpackages
 
 distclean : clean distcleanrtl distcleanfpcunit distcleanpackages
+	-$(DELTREE) $(TEMPDIRS)
+	-$(DEL) $(STAMPFILES)
 
 clean_ctest :
         -$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o

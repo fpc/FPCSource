@@ -1940,6 +1940,7 @@ Var
     I,Ind : Integer;
 
   begin
+    S:='';
     if Not Assigned(List) or (List.Count=0) then
       exit;
     If (AkeyWord<>'') then
@@ -2039,6 +2040,7 @@ Var
   UseNewLine : Boolean;
 
 begin
+  S:='';
   Result:=SQLKeyword('INSERT INTO ',Options);
   If Assigned(FTableName) then
     Result:=Result+TableName.GetAsSQL(Options,AIndent);
@@ -2308,6 +2310,7 @@ Var
   Sep : String;
 
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   If Assigned(FArguments) and (FArguments.Count>0) then
     For I:=0 to FArguments.Count-1 do
@@ -2317,7 +2320,6 @@ begin
       Result:=Result+Farguments[i].GetAsSQL(Options,AIndent);
       end;
   Result:=SQLKeyWord(Identifier,Options)+'('+Result+')';
-
 end;
 
 { TSQLTernaryExpression }
@@ -2487,6 +2489,7 @@ Var
   S : String;
 
 begin
+  Result:='';
   GetSepPrefixIndent(sfoOneFieldPerLine in Options,sfoIndentfields in Options,Sep,Pref,Ind);
   For I:=0 to FieldDefs.Count-1 do
     begin
@@ -2541,6 +2544,7 @@ end;
 function TSQLConstraintDef.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer
   ): TSQLStringType;
 begin
+  Result:='';
   If Assigned(FConstraintName) then
     Result:=SQLKeyWord('CONSTRAINT ',Options)+FConstraintname.GetAsSQl(Options,AIndent);
 end;
@@ -2589,6 +2593,7 @@ Var
   I : Integer;
 
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to FieldList.Count-1 do
     begin
@@ -2713,6 +2718,7 @@ Var
 
 
 begin
+  Result:='';
   GetSepPrefixIndent(sfoOneFieldPerLine in Options,sfoIndentFields in Options,Sep,Pref,Ind);
   For I:=0 to Operations.Count-1 do
     begin
@@ -2985,6 +2991,7 @@ Var
   I : integer;
 
 begin
+  Result:='';
   If Assigned(FParams) and (FParams.Count>0) then
     begin
     For I:=0 to FParams.Count-1 do
@@ -3167,6 +3174,7 @@ Var
   I : Integer;
   Sep : TSQLStringType;
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to FIndexes.Count-1 do
     begin
@@ -3233,6 +3241,7 @@ Var
   I : Integer;
   Sep : String;
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to Fitems.Count-1 do
     begin
@@ -3281,6 +3290,7 @@ Var
   Sep : String;
 
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to List.Count-1 do
     begin
@@ -3336,6 +3346,7 @@ Var
   I: Integer;
 
 begin
+  S:='';
   Result:=SQLKeyWord('EXECUTE PROCEDURE',Options);
   If Assigned(FTN) then
     Result:=Result+' '+TransactionName.GetAsSQl(Options,AIndent);
@@ -3528,6 +3539,8 @@ Var
   I : Integer;
 
 begin
+  S:='';
+  Result:='';
   If Self is TSQLAlterProcedureStatement then
     Result:=SQLKeyword('ALTER ',Options)
   else
@@ -3619,6 +3632,7 @@ Var
   I,J : Integer;
   S : String;
 begin
+  S:='';
   Result:=SQLKeyword('BEGIN',Options)+slineBreak;
   For I:=0 to Statements.Count-1 do
     begin
@@ -3683,6 +3697,7 @@ Var
   DoNewLine : Boolean;
 
 begin
+  S:='';
   Result:=SQLKeyWord('FOR ',Options);
   If Assigned(FSelect) then
     Result:=Result+Select.GetAsSQL(Options,AIndent)+sLineBreak;
@@ -3856,6 +3871,7 @@ Var
   S : TSQLStringType;
 
 begin
+  Result:='';
   For I:=0 to LocalVariables.Count-1 do
     begin
     Result:=Result+SQLKeyWord('DECLARE VARIABLE ',Options);
@@ -4489,6 +4505,7 @@ Var
   I : Integer;
 
 begin
+  Result:='';
   For I:=0 to List.Count-1 do
     begin
     If (Result<>'') then
@@ -4513,6 +4530,7 @@ Var
   Sep : TSQLStringType;
   I : Integer;
 begin
+  Result:='';
   If Assigned(FColumns) then
     begin
     Sep:=SQLListSeparator(Options);
@@ -4536,6 +4554,7 @@ Var
   I : Integer;
 
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to Grantees.Count-1 do
     begin
@@ -4584,6 +4603,7 @@ Var
   I : Integer;
 
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to Privileges.Count-1 do
     begin
@@ -4637,13 +4657,14 @@ Var
   Sep : TSQLStringType;
   I : Integer;
 begin
-   Sep:=SQLListSeparator(Options);
-   For I:=0 to Roles.Count-1 do
-      begin
-      If (Result<>'') then
-        Result:=Result+Sep;
-      Result:=Result+Roles[i].GetAsSQl(Options,AIndent);
-      end;
+  Result:='';
+  Sep:=SQLListSeparator(Options);
+  For I:=0 to Roles.Count-1 do
+    begin
+    If (Result<>'') then
+      Result:=Result+Sep;
+     Result:=Result+Roles[i].GetAsSQl(Options,AIndent);
+    end;
   Result:=SQLKeyWord('GRANT ',Options)+Result;
   Result:=Result+GranteesAsSQL(Options,AIndent);
   If AdminOption then
@@ -4791,6 +4812,7 @@ Var
   Sep : TSQLStringType;
   I : Integer;
 begin
+  Result:='';
   Sep:=SQLListSeparator(Options);
   For I:=0 to Roles.Count-1 do
     begin

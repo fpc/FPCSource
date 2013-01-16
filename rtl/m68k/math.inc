@@ -10,17 +10,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
-{$WARNING FIX ME!! dummy int64_to_double
-function fpc_int64_to_double(i: int64): double; compilerproc;
-assembler;
-asm
-end;
-}
 
-{$WARNING FIX ME!! dummy longword_to_double
+
+{$ifdef FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
 function fpc_longword_to_double(i: longword): double; compilerproc;
-assembler;
-asm
+var
+  l : longint;
+begin
+{$ifopt R+}
+{$define HAS_OPTR}
+{$endif}
+{$r-}
+  l:=longint(i);
+{$ifdef HAS_OPTR}
+{$r+}
+{$endif}
+  if l>=0 then
+    fpc_longword_to_double:=double(l)
+  else
+    fpc_longword_to_double:=-double(abs(l));
 end;
-}
+{$endif FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}

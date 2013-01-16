@@ -14,76 +14,97 @@
 
  **********************************************************************}
 
-function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;compilerproc;
+function fpc_setjmp(var S:jmp_buf):longint;assembler;[public,alias:'FPC_SETJMP'];nostackframe;compilerproc;
   asm
 {$ifdef win64}
-    // Save registers.
-    movq %rbx,(%rcx)
-    movq %rbp,8(%rcx)
-    movq %r12,16(%rcx)
-    movq %r13,24(%rcx)
-    movq %r14,32(%rcx)
-    movq %r15,40(%rcx)
-    movq %rsi,64(%rcx)
-    movq %rdi,72(%rcx)
-    leaq 8(%rsp),%rdx       // Save SP as it will be after we return.
-    movq %rdx,48(%rcx)
-    movq 0(%rsp),%r8        // Save PC we are returning to now.
-    movq %r8,56(%rcx)
-    xorq %rax,%rax
+    // xmm6..xmm15, xmm control word and FPU control word are nonvolatile in win64.
+    // Using movdqu because 16-byte aligning of local records with XMM members
+    // was broken the last time I checked it (Sergei)
+    movq     %rbx,jmp_buf.rbx(%rcx)
+    movq     %rbp,jmp_buf.rbp(%rcx)
+    movq     %r12,jmp_buf.r12(%rcx)
+    movq     %r13,jmp_buf.r13(%rcx)
+    movq     %r14,jmp_buf.r14(%rcx)
+    movq     %r15,jmp_buf.r15(%rcx)
+    movq     %rsi,jmp_buf.rsi(%rcx)
+    movq     %rdi,jmp_buf.rdi(%rcx)
+    leaq     8(%rsp),%rax
+    movq     %rax,jmp_buf.rsp(%rcx)
+    movq     (%rsp),%rax
+    movq     %rax,jmp_buf.rip(%rcx)
+    movdqu   %xmm6,jmp_buf.xmm6(%rcx)
+    movdqu   %xmm7,jmp_buf.xmm7(%rcx)
+    movdqu   %xmm8,jmp_buf.xmm8(%rcx)
+    movdqu   %xmm9,jmp_buf.xmm9(%rcx)
+    movdqu   %xmm10,jmp_buf.xmm10(%rcx)
+    movdqu   %xmm11,jmp_buf.xmm11(%rcx)
+    movdqu   %xmm12,jmp_buf.xmm12(%rcx)
+    movdqu   %xmm13,jmp_buf.xmm13(%rcx)
+    movdqu   %xmm14,jmp_buf.xmm14(%rcx)
+    movdqu   %xmm15,jmp_buf.xmm15(%rcx)
+    stmxcsr  jmp_buf.mxcsr(%rcx)
+    fnstcw   jmp_buf.fpucw(%rcx)
 {$else win64}
-    // Save registers.
-    movq %rbx,(%rdi)
-    movq %rbp,8(%rdi)
-    movq %r12,16(%rdi)
-    movq %r13,24(%rdi)
-    movq %r14,32(%rdi)
-    movq %r15,40(%rdi)
-    leaq 8(%rsp),%rdx       // Save SP as it will be after we return.
-    movq %rdx,48(%rdi)
-    movq 0(%rsp),%rsi       // Save PC we are returning to now.
-    movq %rsi,56(%rdi)
-    xorq %rax,%rax
+    movq     %rbx,jmp_buf.rbx(%rdi)
+    movq     %rbp,jmp_buf.rbp(%rdi)
+    movq     %r12,jmp_buf.r12(%rdi)
+    movq     %r13,jmp_buf.r13(%rdi)
+    movq     %r14,jmp_buf.r14(%rdi)
+    movq     %r15,jmp_buf.r15(%rdi)
+    leaq     8(%rsp),%rax
+    movq     %rax,jmp_buf.rsp(%rdi)
+    movq     (%rsp),%rax
+    movq     %rax,jmp_buf.rip(%rdi)
 {$endif win64}
+    xorl     %eax,%eax
   end;
 
 
-procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];compilerproc;
+procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_LONGJMP'];nostackframe;compilerproc;
   asm
 {$ifdef win64}
-    // Restore registers.
-    movq (%rcx),%rbx
-    movq 8(%rcx),%rbp
-    movq 16(%rcx),%r12
-    movq 24(%rcx),%r13
-    movq 32(%rcx),%r14
-    movq 40(%rcx),%r15
-    // Set return value for setjmp.
-    test %edx,%edx
-    mov $01,%eax
-    cmove %eax,%edx
-    mov %edx,%eax
-    movq 48(%rcx),%rsp
-    movq 56(%rcx),%rdx
-    movq 64(%rcx),%rsi
-    movq 72(%rcx),%rdi
-    jmpq *%rdx
+    test     %edx,%edx
+    jne      .L1
+    incl     %edx
+.L1:
+    movl     %edx,%eax
+    movq     jmp_buf.rbx(%rcx),%rbx
+    movq     jmp_buf.rbp(%rcx),%rbp
+    movq     jmp_buf.r12(%rcx),%r12
+    movq     jmp_buf.r13(%rcx),%r13
+    movq     jmp_buf.r14(%rcx),%r14
+    movq     jmp_buf.r15(%rcx),%r15
+    movq     jmp_buf.rsi(%rcx),%rsi
+    movq     jmp_buf.rdi(%rcx),%rdi
+    movq     jmp_buf.rsp(%rcx),%rsp
+    movdqu   jmp_buf.xmm6(%rcx),%xmm6
+    movdqu   jmp_buf.xmm7(%rcx),%xmm7
+    movdqu   jmp_buf.xmm8(%rcx),%xmm8
+    movdqu   jmp_buf.xmm9(%rcx),%xmm9
+    movdqu   jmp_buf.xmm10(%rcx),%xmm10
+    movdqu   jmp_buf.xmm11(%rcx),%xmm11
+    movdqu   jmp_buf.xmm12(%rcx),%xmm12
+    movdqu   jmp_buf.xmm13(%rcx),%xmm13
+    movdqu   jmp_buf.xmm14(%rcx),%xmm14
+    movdqu   jmp_buf.xmm15(%rcx),%xmm15
+    ldmxcsr  jmp_buf.mxcsr(%rcx)
+    fnclex
+    fldcw    jmp_buf.fpucw(%rcx)
+    jmpq     jmp_buf.rip(%rcx)
 {$else win64}
-    // Restore registers.
-    movq (%rdi),%rbx
-    movq 8(%rdi),%rbp
-    movq 16(%rdi),%r12
-    movq 24(%rdi),%r13
-    movq 32(%rdi),%r14
-    movq 40(%rdi),%r15
-    // Set return value for setjmp.
-    test %esi,%esi
-    mov $01,%eax
-    cmove %eax,%esi
-    mov %esi,%eax
-    movq 56(%rdi),%rdx
-    movq 48(%rdi),%rsp
-    jmpq *%rdx
+    test     %esi,%esi
+    jne      .L1
+    incl     %esi
+.L1:
+    movl     %esi,%eax
+    movq     jmp_buf.rbx(%rdi),%rbx
+    movq     jmp_buf.rbp(%rdi),%rbp
+    movq     jmp_buf.r12(%rdi),%r12
+    movq     jmp_buf.r13(%rdi),%r13
+    movq     jmp_buf.r14(%rdi),%r14
+    movq     jmp_buf.r15(%rdi),%r15
+    movq     jmp_buf.rsp(%rdi),%rsp
+    jmpq     jmp_buf.rip(%rdi)
 {$endif win64}
   end;
 

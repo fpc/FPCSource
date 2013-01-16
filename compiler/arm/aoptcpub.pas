@@ -78,7 +78,7 @@ Const
 
 { the maximum number of operands an instruction has }
 
-  MaxOps = 3;
+  MaxOps = 4;
 
 {Oper index of operand that contains the source (reference) with a load }
 {instruction                                                            }

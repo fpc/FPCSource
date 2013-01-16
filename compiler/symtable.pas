@@ -26,16 +26,11 @@ interface
 
     uses
        { common }
-       cutils,cclasses,
-       { global }
-       cpuinfo,globtype,tokens,
+       cutils,cclasses,globtype,tokens,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,
        { ppu }
-       ppu,
-       { assembler }
-       aasmtai,aasmdata
-       ;
+       ppu;
 
 
 {****************************************************************************
@@ -250,8 +245,10 @@ interface
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  try_search_system_type(const s: TIDString): ttypesym;
+    function  search_system_proc(const s: TIDString): tprocdef;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
+    function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     { searches for the helper definition that's currently active for pd }
@@ -267,6 +264,7 @@ interface
     { Additionally to searching for a macro, also checks whether it's still }
     { actually defined (could be disable using "undef")                     }
     function  defined_macro(const s : string):boolean;
+    { Look for a system procedure (no overloads supported) }
 
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
@@ -346,10 +344,8 @@ implementation
     uses
       { global }
       verbose,globals,
-      { target }
-      systems,
       { symtable }
-      symutil,defcmp,defutil,
+      symutil,defutil,
       { module }
       fmodule,
       { codegen }
@@ -2120,6 +2116,12 @@ implementation
         result:=false;
       end;
 
+    { symst: symboltable that contains the symbol (-> symowner def: record/objectdef in which the symbol is defined)
+      symvisibility: visibility of the symbol
+      contextobjdef: via which def the symbol is accessed, e.g.:
+        fieldname:=1 -> contextobjdef = current_structdef
+        objfield.fieldname:=1 -> contextobjdef = def of objfield
+    }
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
         symownerdef : tabstractrecorddef;
@@ -2163,14 +2165,27 @@ implementation
           vis_strictprotected :
             begin
                result:=(
+                         { access from nested class }
                          assigned(current_structdef) and
-                         (current_structdef.is_related(symownerdef) or
-                         is_owned_by(current_structdef,symownerdef))
+                         is_owned_by(current_structdef,symownerdef)
+                       ) or
+                       (
+                         { access from child class }
+                         assigned(contextobjdef) and
+                         assigned(current_structdef) and
+                         contextobjdef.is_related(symownerdef) and
+                         current_structdef.is_related(contextobjdef)
                        ) or
                        (
                          { helpers can access strict protected symbols }
                          is_objectpascal_helper(contextobjdef) and
                          tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                       ) or
+                       (
+                         { same as above, but from context of call node inside
+                           helper method }
+                         is_objectpascal_helper(current_structdef) and
+                         tobjectdef(current_structdef).extendeddef.is_related(symownerdef)
                        );
             end;
           vis_protected :
@@ -2279,7 +2294,8 @@ implementation
                     exit;
                   end;
               end
-            else
+            else if not((srsymtable.symtabletype=withsymtable) and assigned(srsymtable.defowner) and
+              (srsymtable.defowner.typ=undefineddef)) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) then
@@ -2967,6 +2983,22 @@ implementation
       end;
 
 
+    function  search_system_proc(const s: TIDString): tprocdef;
+      var
+        srsym: tsym;
+        pd: tprocdef;
+      begin
+        srsym:=tsym(systemunit.find(s));
+        if not assigned(srsym) and
+           (cs_compilesystem in current_settings.moduleswitches) then
+          srsym:=tsym(systemunit.Find(upper(s)));
+        if not assigned(srsym) or
+           (srsym.typ<>procsym) then
+          cgmessage1(cg_f_unknown_compilerproc,s);
+        result:=tprocdef(tprocsym(srsym).procdeflist[0]);
+    end;
+
+
     function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
       var
         srsymtable: tsymtable;
@@ -3201,37 +3233,46 @@ implementation
     function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        hashedid   : THashedIDString;
         srsym      : tsym;
-        orgpd      : tabstractrecorddef;
         srsymtable : tsymtable;
       begin
         { in case this is a formal class, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
           pd:=find_real_class_definition(tobjectdef(pd),true);
+
         if search_objectpascal_helper(pd, pd, s, result, srsymtable) then
           exit;
-        hashedid.id:=s;
-        orgpd:=pd;
-        while assigned(pd) do
-         begin
-           srsym:=tsym(pd.symtable.FindWithHash(hashedid));
-           if assigned(srsym) then
-            begin
-              search_struct_member:=srsym;
-              exit;
-            end;
-           if pd.typ=objectdef then
-             pd:=tobjectdef(pd).childof
-           else
-             pd:=nil;
-         end;
+
+        result:=search_struct_member_no_helper(pd,s);
+        if assigned(result) then
+          exit;
 
         { not found, now look for class helpers }
         if is_objcclass(pd) then
-          search_objc_helper(tobjectdef(orgpd),s,result,srsymtable)
-        else
-          result:=nil;
+          search_objc_helper(tobjectdef(pd),s,result,srsymtable)
+      end;
+
+
+    function search_struct_member_no_helper(pd: tabstractrecorddef; const s: string): tsym;
+      var
+        hashedid   : THashedIDString;
+        srsym      : tsym;
+      begin
+        hashedid.id:=s;
+        while assigned(pd) do
+         begin
+            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                result:=srsym;
+                exit;
+              end;
+            if pd.typ=objectdef then
+              pd:=tobjectdef(pd).childof
+            else
+              pd:=nil;
+          end;
+        result:=nil;
       end;
 
 

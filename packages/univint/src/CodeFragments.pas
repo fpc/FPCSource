@@ -2,18 +2,12 @@
      File:       CarbonCore/CodeFragments.h
  
      Contains:   Public Code Fragment Manager Interfaces.
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1992-2008 by Apple Computer, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1992-2011 by Apple Inc. All rights reserved.
 }
 {    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -182,7 +181,6 @@ uses MacTypes,CFBundle,Files,Multiprocessing;
 {$ifc TARGET_OS_MAC}
 
 {
-   ¥
    ===========================================================================================
    The Code Fragment Manager API
    =============================
@@ -447,7 +445,7 @@ const
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function GetSharedLibrary( libName: ConstStr63Param; archType: CFragArchitecture; options: CFragLoadOptions; var connID: CFragConnectionID; var mainAddr: Ptr; var errMessage: Str255 ): OSErr; external name '_GetSharedLibrary';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -462,7 +460,7 @@ function GetSharedLibrary( libName: ConstStr63Param; archType: CFragArchitecture
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function GetDiskFragment( const (*var*) fileSpec: FSSpec; offset: UInt32; length: UInt32; fragName: ConstStr63Param { can be NULL }; options: CFragLoadOptions; connID: CFragConnectionIDPtr { can be NULL }; mainAddr: mainAddrPtr { can be NULL }; errMessage: StringPtr { can be NULL } ): OSErr; external name '_GetDiskFragment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -477,7 +475,7 @@ function GetDiskFragment( const (*var*) fileSpec: FSSpec; offset: UInt32; length
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function GetMemFragment( memAddr: UnivPtr; length: UInt32; fragName: ConstStringPtr { can be NULL }; options: CFragLoadOptions; connID: CFragConnectionIDPtr { can be NULL }; mainAddr: mainAddrPtr { can be NULL }; errMessage: StringPtr { can be NULL } ): OSErr; external name '_GetMemFragment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -492,7 +490,7 @@ function GetMemFragment( memAddr: UnivPtr; length: UInt32; fragName: ConstString
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function CloseConnection( var connID: CFragConnectionID ): OSErr; external name '_CloseConnection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -507,7 +505,7 @@ function CloseConnection( var connID: CFragConnectionID ): OSErr; external name 
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function FindSymbol( connID: CFragConnectionID; const (*var*) symName: Str255; symAddr: symAddrPtr { can be NULL }; symClass: CFragSymbolClassPtr { can be NULL } ): OSErr; external name '_FindSymbol';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -522,7 +520,7 @@ function FindSymbol( connID: CFragConnectionID; const (*var*) symName: Str255; s
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function CountSymbols( connID: CFragConnectionID; var symCount: SIGNEDLONG ): OSErr; external name '_CountSymbols';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -537,7 +535,7 @@ function CountSymbols( connID: CFragConnectionID; var symCount: SIGNEDLONG ): OS
  *    Non-Carbon CFM:   in CFragManager 1.0 and later
  }
 function GetIndSymbol( connID: CFragConnectionID; symIndex: SIGNEDLONG; symName: StringPtr { can be NULL }; symAddr: symAddrPtr { can be NULL }; symClass: CFragSymbolClassPtr { can be NULL } ): OSErr; external name '_GetIndSymbol';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -663,7 +661,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function ConvertBundlePreLocator( initBlockLocator: CFragSystem7LocatorPtr ): OSErr; external name '_ConvertBundlePreLocator';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {

@@ -285,6 +285,10 @@ begin
       EM_ALPHA  : fMachineType:=emtalpha;
       EM_IA_64  : fMachineType:=emtia64;
       EM_X86_64 : fMachineType:=emtx86_64;
+      EM_MIPS   : if fOrder=ELFDATA2LSB then
+                    fMachineType:=emtmipsel
+                  else
+                    fMachineType:=emtmips;
     end;
   finally
     subreader.Free;

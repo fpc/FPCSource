@@ -618,7 +618,7 @@ end;
 
 
 { not required, the JVM does the range checking for us }
-{$define FPC_HAS_ANSISTR_CHECKRANGE}
+{$define FPC_HAS_ANSISTR_RANGECHECK}
 
 
 {$define FPC_HAS_ANSISTR_SETLENGTH}
@@ -840,6 +840,7 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
       end
     else
       begin
+        UniqueString(s);
         AnsistringClass(S).fCodePage:=CodePage;
       end;
   end;

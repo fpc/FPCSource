@@ -1,7 +1,7 @@
 {
     Common subexpression elimination on base blocks
 
-    Copyright (c) 2005 by Florian Klaempfl
+    Copyright (c) 2005-2012 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,13 +34,9 @@ unit optcse;
     {
       the function  creates non optimal code so far:
       - call para nodes are cse barriers because they can be reordered and thus the
-        temp. creation can be done too late
-      - cse's in chained expressions are not recognized: the common subexpression
-        in (a1 and b and c) vs. (a2 and b and c) is not recognized because there is no common
-        subtree b and c
+        temp. creation could be done too late
       - the cse knows nothing about register pressure. In case of high register pressure, cse might
         have a negative impact
-      - assignment nodes are currently cse borders: things like a[i,j]:=a[i,j]+1; are not improved
       - the list of cseinvariant node types and inline numbers is not complete yet
 
       Further, it could be done probably in a faster way though the complexity can't probably not reduced
@@ -51,20 +47,19 @@ unit optcse;
 
     uses
       globtype,globals,
-      cclasses,
-      verbose,
+      cutils,cclasses,
       nutils,
-      procinfo,
-      nbas,nld,ninl,ncal,ncnv,nadd,nmem,
+      nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
-      symconst,symtype,symdef,symsym,
+      symconst,symdef,symsym,
       defutil,
       optbase;
 
     const
       cseinvariant : set of tnodetype = [addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
-        inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
+        inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,niln,
+        setelementn,{arrayconstructorn,arrayconstructorrangen,}
         isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
@@ -73,6 +68,7 @@ unit optcse;
           ((n.nodetype=inlinen) and
            (tinlinenode(n).inlinenumber in [in_assigned_x])
           ) or
+          ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
             not((tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
                 (vo_volatile in tabstractvarsym(tloadnode(n).symtableentry).varoptions))
@@ -106,7 +102,36 @@ unit optcse;
         result:=collectnodes(n,arg);
       end;
 
+
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
+
+      { when compiling a tree like
+            and
+            / \
+          and  C
+          / \
+         A   B
+        all expressions of B are available during evaluation of C. However considerung the whole expression,
+        values of B and C might not be available due to short boolean evaluation.
+
+        So recurseintobooleanchain detectes such chained and/or expressions and makes sub-expressions of B
+        available during the evaluation of C
+
+        firstleftend is later used to remove all sub expressions of B and C by storing the expression count
+        in the cse table after handling A
+      }
+      var
+        firstleftend : longint;
+      procedure recurseintobooleanchain(t : tnodetype;n : tnode);
+        begin
+          if (tbinarynode(n).left.nodetype=t) and is_boolean(tbinarynode(n).left.resultdef) then
+            recurseintobooleanchain(t,tbinarynode(n).left)
+          else
+            foreachnodestatic(pm_postprocess,tbinarynode(n).left,@collectnodes2,arg);
+          firstleftend:=min(plists(arg)^.nodelist.count,firstleftend);
+          foreachnodestatic(pm_postprocess,tbinarynode(n).right,@collectnodes2,arg);
+        end;
+
       var
         i,j : longint;
       begin
@@ -121,7 +146,6 @@ unit optcse;
             result:=fen_norecurse_false;
             exit;
           end;
-        { so far, we can handle only nodes being read }
         if
           { node possible to add? }
           assigned(n.resultdef) and
@@ -133,8 +157,13 @@ unit optcse;
             (not(n.resultdef.typ in [arraydef,recorddef])) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
-            { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
-            not(n.nodetype in [temprefn]) and
+            { adding tempref and callpara nodes itself is worthless but
+              their complexity is probably <= 1 anyways
+
+              neither add setelementn nodes because the compiler sometimes depends on the fact
+              that a certain node stays a setelementn, this does not hurt either because
+              setelementn nodes itself generate no real code (except moving data into register) }
+            not(n.nodetype in [temprefn,callparan,setelementn]) and
 
             { node worth to add?
 
@@ -151,7 +180,7 @@ unit optcse;
             }
             (not(n.nodetype=loadn) or
              not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
-             (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
+             (node_complexity(n)>1)
             ) and
 
             {
@@ -195,22 +224,32 @@ unit optcse;
                     break;
                   end;
               end;
-
-            { boolean and/or require a special handling: after evaluating the and/or node,
-              the expressions of the right side might not be available due to short boolean
-              evaluation, so after handling the right side, mark those expressions
-              as unavailable }
-            if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
-              begin
-                foreachnodestatic(pm_postprocess,taddnode(n).left,@collectnodes2,arg);
-                j:=plists(arg)^.nodelist.count;
-                foreachnodestatic(pm_postprocess,taddnode(n).right,@collectnodes2,arg);
-                for i:=j to plists(arg)^.nodelist.count-1 do
-                  DFASetExclude(plists(arg)^.avail,i);
-                result:=fen_norecurse_false;
-              end;
           end;
-      end;
+
+        { boolean and/or require a special handling: after evaluating the and/or node,
+          the expressions of the right side might not be available due to short boolean
+          evaluation, so after handling the right side, mark those expressions
+          as unavailable }
+        if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
+          begin
+            firstleftend:=high(longint);
+            recurseintobooleanchain(n.nodetype,n);
+            for i:=firstleftend to plists(arg)^.nodelist.count-1 do
+              DFASetExclude(plists(arg)^.avail,i);
+            result:=fen_norecurse_false;
+          end;
+{$ifdef cpuhighleveltarget}
+          { The high level targets use the functionality from ncgnstld for
+            nested accesses, and that one stores the complete location of the
+            nested variable in tloadnode.left rather than only the location of
+            the parent context containing it. This causes problems with the
+            CSE in case the nested variable is used as an lvalue, so disable
+            CSE in that case
+          }
+          if (n.nodetype=loadn) and assigned(tloadnode(n).left) then
+            result:=fen_norecurse_false;
+{$endif}
+       end;
 
 
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
@@ -251,8 +290,9 @@ unit optcse;
                 }
                 if (n.nodetype in [andn,orn,addn,muln]) and
                   (n.nodetype=tbinarynode(n).left.nodetype) and
-                  { do is optimizations only for integers, reals (no currency!), vectors and sets }
-                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef)) and
+                  { do is optimizations only for integers, reals (no currency!), vectors, sets or booleans }
+                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef) or
+                   is_boolean(n.resultdef)) and
                   { either if fastmath is on }
                   ((cs_opt_fastmath in current_settings.optimizerswitches) or
                    { or for the logical operators, they cannot overflow }
@@ -366,9 +406,13 @@ unit optcse;
                         addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
 
 {$if defined(csedebug) or defined(csestats)}
+                        writeln;
+                        writeln('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                        writeln('Complexity: ',node_complexity(tnode(lists.nodelist[i])),'  Node ',i,' equals Node ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[i]));
-                        writeln(i,'    equals   ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[ptrint(lists.equalto[i])]));
+                        writeln('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                        writeln;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         if addrstored then
@@ -426,6 +470,14 @@ unit optcse;
 
     function do_optcse(var rootnode : tnode) : tnode;
       begin
+{$ifdef csedebug}
+         writeln('====================================================================================');
+         writeln('CSE optimization pass started');
+         writeln('====================================================================================');
+         printnode(rootnode);
+         writeln('====================================================================================');
+         writeln;
+{$endif csedebug}
         foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
         result:=nil;
       end;

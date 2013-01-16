@@ -19,7 +19,10 @@
 {  Based on original code bt Florian Kl„mpfl  for the 80x86.              }
 {*************************************************************************}
 
+{ Edit by Sven: No m68k specific set routines for now (doesn't seem to be
+                compatible to the way FPC handles sets today anyway...) }
 
+{$ifdef use_m68k_sets}
   { add the element b to the set pointed by p }
   { On entry                                   }
   {  a0    = pointer to set                    }
@@ -418,4 +421,4 @@
        @BIGMCOMPSETEND:
         end;
      end;
-
+{$endif}

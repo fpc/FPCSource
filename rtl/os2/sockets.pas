@@ -122,6 +122,20 @@ Type
   tsocklen=cint;
   psocklen=^tsocklen;
 
+function InitEMXHandles: boolean;
+(* This procedure shall be called before touching any socket. Once called,  *)
+(* it forces dynamic loading of emx.dll and all functions start with socket *)
+(* handles compatible to EMX in order to allow interworking with external   *)
+(* libraries using EMX libc (e.g. OpenSSL compiled with EMX port of GCC).   *)
+(* It returns true in case of successful initialization, false otherwise.   *)
+
+function CheckEMXHandles: boolean;
+(* This function checks whether EMX compatible socket handles are used. *)
+
+function EMXSocket (ANativeSocket: cInt): cInt;
+
+function NativeSocket (AEMXSocket: cInt): cInt;
+
 // OS/2 stack based on BSD stack
 {$DEFINE BSD}
 {$I socketsh.inc}
@@ -131,6 +145,9 @@ Type
 
 Implementation
 
+uses
+  DosCalls;
+
 {Include filerec and textrec structures}
 {$I filerec.inc}
 {$I textrec.inc}
@@ -139,14 +156,67 @@ Implementation
                           Basic Socket Functions
 ******************************************************************************}
 
+const
+  EMXHandles: boolean = false;
+  EMXSysCall: pointer = nil;
+  EMXLibHandle: THandle = THandle (-1);
+
+function CheckEMXHandles: boolean;
+begin
+  CheckEMXHandles := EMXHandles;
+end;
+
+function InitEMXHandles: boolean;
+const
+  EMXLib: string [8] = 'emx.dll'#0;
+  CBufLen = 260;
+var
+  CBuf: array [1..CBufLen] of char;
+begin
+  if not EMXHandles then
+   begin
+    if DosLoadModule (@CBuf [1], SizeOf (CBuf), @EMXLib [1], EMXLibHandle) = 0
+                                                                           then
+     begin
+      if DosQueryProcAddr (EMXLibHandle, 2, nil, EMXSysCall) = 0 then
+       EMXHandles := true;
+     end;
+    InitEMXHandles := EMXHandles;
+   end;
+end;
+
+{$ASMMODE INTEL}
+function EMXSocket (ANativeSocket: cInt): cInt; assembler;
+asm
+  or EMXHandles, 0
+  jz @EMXSocketEnd
+  mov edx, eax
+  mov eax, 7F54h
+  mov ecx, 0
+  call EMXSysCall
+@EMXSocketEnd:
+end;
+
+function NativeSocket (AEMXSocket: cInt): cInt; assembler;
+asm
+  or EMXHandles, 0
+  jz @NativeSocketEnd
+  push ebx
+  mov ebx, eax
+  mov eax, 7F3Bh
+  call EMXSysCall
+  pop ebx
+@NativeSocketEnd:
+end;
+
 function SocketError: cint;
 begin
   SocketError := so32dll.Sock_ErrNo;
 end;
 
-Function socket(Domain,SocketType,Protocol:Longint):Longint;
+Function Socket(Domain,SocketType,Protocol:Longint):Longint;
 begin
-  Socket:=so32dll.Socket(Domain,SocketType,ProtoCol);
+  Socket := fpSocket (Domain, SocketType, Protocol);
 end;
 
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
@@ -161,11 +231,13 @@ end;
 
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   Recv:=so32dll.Recv(Sock,Buf,BufLen,Flags);
 end;
 
 Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;
 begin
+  Sock := NativeSocket (Sock);
   RecvFrom:=so32dll.RecvFrom(Sock,Buf,BufLen,Flags,so32dll.SockAddr(Addr),AddrLen);
 end;
 
@@ -176,11 +248,13 @@ end;
 
 Function Listen(Sock,MaxConnect:Longint):Boolean;
 begin
+  Sock := NativeSocket (Sock);
   Listen := so32dll.Listen(Sock,MaxConnect) = 0;
 end;
 
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   Accept:=so32dll.Accept(Sock,so32dll.SockAddr(Addr), AddrLen);
 end;
 
@@ -191,16 +265,18 @@ end;
 
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 begin
-  ShutDown:=so32dll.ShutDown(Sock,How);
+  ShutDown:=fpShutDown(Sock,How);
 end;
 
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   GetSocketName:=so32dll.GetSockName(Sock, so32dll.SockAddr(Addr),AddrLen);
 end;
 
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   GetPeerName:=so32dll.GetPeerName(Sock,so32dll.SockAddr(Addr),AddrLen);
 end;
 
@@ -211,6 +287,7 @@ end;
 
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   GetSocketOptions:=so32dll.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
 end;
 
@@ -234,6 +311,7 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
 var
   d : dword;
 begin
+  Handle := NativeSocket (Handle);
   d:=dword(so32dll.os2_ioctl(handle,FIONREAD,d,SizeOf(d)));
   if d=dword(-1) then
    fpRead:=0
@@ -249,74 +327,90 @@ end;
 
 {$i sockets.inc}
 
-function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
+function fpsocket (domain:cint; xtype:cint; protocol: cint):cint;
 begin
-  fpSocket:=so32dll.Socket(Domain,xtype,ProtoCol);
+  if EMXHandles then
+   fpSocket := EMXSocket (so32dll.Socket (Domain, xtype, Protocol))
+  else
+   fpSocket:=so32dll.Socket(Domain,xtype,Protocol);
 end;
 
 function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
+  S := NativeSocket (S);
   fpSend:=so32dll.Send(S,msg^,len,flags);
 end;
 
 function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
+  S := NativeSocket (S);
   // Dubious construct, this should be checked. (IPV6 fails ?)
   fpSendTo:=so32dll.SendTo(S,msg^,Len,Flags,so32dll.SockAddr(tox^),toLen);
 end;
 
-function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
+function fprecv (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
+  S := NativeSocket (S);
   fpRecv:=so32dll.Recv(S,Buf,Len,Flags);
 end;
 
-function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
+function fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
+  S := NativeSocket (S);
   fpRecvFrom:=so32dll.RecvFrom(S,Buf,Len,Flags,so32dll.SockAddr(from^),FromLen^);
 end;
 
 function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
+  S := NativeSocket (S);
   fpConnect:=so32dll.Connect(S,so32dll.SockAddr(name^),nameLen);
 end;
 
 function fpshutdown     (s:cint; how:cint):cint;
 begin
+  S := NativeSocket (S);
   fpShutDown:=so32dll.ShutDown(S,How);
 end;
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
+  S := NativeSocket (S);
   fpbind:=so32dll.Bind(S,so32dll.SockAddr(Addrx^),AddrLen);
 end;
 
 function fplisten      (s:cint; backlog : cint):cint;
 begin
+  S := NativeSocket (S);
   fplisten:=so32dll.Listen(S,backlog);
 end;
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
+  S := NativeSocket (S);
   fpAccept:=so32dll.Accept(S,so32dll.SockAddr(Addrx^),longint(@AddrLen));
 end;
 
 function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
+  S := NativeSocket (S);
   fpGetSockName:=so32dll.GetSockName(S,so32dll.SockAddr(name^),nameLen^);
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
+  S := NativeSocket (S);
   fpGetPeerName:=so32dll.GetPeerName(S,so32dll.SockAddr(name^),NameLen^);
 end;
 
 function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
+  S := NativeSocket (S);
   fpGetSockOpt:=so32dll.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
 end;
 
 function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 begin
+  S := NativeSocket (S);
   fpSetSockOpt:=so32dll.SetSockOpt(S,Level,OptName,OptVal,OptLen);
 end;
 
@@ -327,6 +421,7 @@ end;
 
 Function CloseSocket(Sock:Longint):Longint;
 begin
+  Sock := NativeSocket (Sock);
   CloseSocket:=so32dll.soclose (Sock);
 end;
 

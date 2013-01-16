@@ -22,7 +22,8 @@ interface
 
 type
   TMachineType = (mtnone, mti386,mtx86_64,mtppc,mtppc64,mtarm,mtarmeb,mtm68k,
-                  mtsparc,mtalpha,mtia64,mtBigEndian,mtLittleEndian);
+                  mtsparc,mtalpha,mtia64,mtmips,mtmipsel,
+                  mtBigEndian,mtLittleEndian);
   TMachineTypes = set of TMachineType;
 
   TSubMachineTypeArm = (smtarm_all,smtarm_v4t,smtarm_v6,smtarm_v5tej,smtarm_xscale,smtarm_v7);
@@ -33,7 +34,8 @@ type
       mtarm,mtarmeb:
         (subarm: TSubMachineTypeArm);
       mtnone, mti386,mtx86_64,mtppc,mtppc64,mtm68k,
-      mtsparc,mtalpha,mtia64,mtBigEndian,mtLittleEndian:
+      mtsparc,mtalpha,mtia64,mtmips,mtmipsel,
+      mtBigEndian,mtLittleEndian:
         (subgen: TSubMachineTypeGeneric);
   end;
 
@@ -78,6 +80,8 @@ var
     (name : 'sparc';        formats : [ofElf]),                   //mtsparc
     (name : 'alpha';        formats : [ofElf]),                   //mtalpha
     (name : 'ia64';         formats : [ofElf]),                   //mtia64
+    (name : 'mips';         formats : [ofElf]),                   //mtmips
+    (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
@@ -94,7 +98,7 @@ var
     (name : 'elf';      ext : '.or';     machines : [mti386,mtx86_64,mtppc,
                                                      mtppc64,mtarm,mtarmeb,
                                                      mtm68k,mtsparc,mtalpha,
-                                                     mtia64]),
+                                                     mtia64,mtmips,mtmipsel]),
     (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm,
                                                      mtppc,mtppc64]),
     (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
@@ -147,8 +151,18 @@ var
     machine : mtia64;
     submachine : (subgen: smtgen_all);
   {$ELSE}
+  {$IFDEF CPUMIPSEL}
+    machine : mtmipsel;
+    submachine : (subgen: smtgen_all);
+  {$ELSE}
+  {$IFDEF CPUMIPS}
+    machine : mtmips;
+    submachine : (subgen: smtgen_all);
+  {$ELSE}
     machine : mti386;  //default i386
     submachine : (subgen: smtgen_all);
+  {$ENDIF}
+  {$ENDIF}
   {$ENDIF}
   {$ENDIF}
   {$ENDIF}

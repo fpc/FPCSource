@@ -5,7 +5,7 @@ unit tcvarparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser,
+  Classes, SysUtils, fpcunit, pastree, pscanner,
   tcbaseparser, testregistry;
 
 Type
@@ -28,6 +28,9 @@ Type
     Procedure TestSimpleVar;
     Procedure TestSimpleVarDeprecated;
     Procedure TestSimpleVarPlatform;
+    Procedure TestSimpleVarInitialized;
+    procedure TestSimpleVarInitializedDeprecated;
+    procedure TestSimpleVarInitializedPlatform;
     Procedure TestVarProcedure;
     Procedure TestVarProcedureDeprecated;
     Procedure TestVarRecord;
@@ -126,6 +129,30 @@ procedure TTestVarParser.TestSimpleVarPlatform;
 begin
   ParseVar('b','platform');
   AssertVariableType('b');
+end;
+
+procedure TTestVarParser.TestSimpleVarInitialized;
+begin
+  ParseVar('b = 123','');
+  AssertVariableType('b');
+  AssertNotNull(TheVar.expr);
+  AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
+end;
+
+procedure TTestVarParser.TestSimpleVarInitializedDeprecated;
+begin
+  ParseVar('b = 123','deprecated');
+  AssertVariableType('b');
+  AssertNotNull(TheVar.expr);
+  AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
+end;
+
+procedure TTestVarParser.TestSimpleVarInitializedPlatform;
+begin
+  ParseVar('b = 123','platform');
+  AssertVariableType('b');
+  AssertNotNull(TheVar.expr);
+  AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
 end;
 
 procedure TTestVarParser.TestVarProcedure;

@@ -1987,6 +1987,7 @@ end;
 procedure create_codegen;
 begin
   cg := tcgppc.create;
+  cg128:=tcg128.create;
 end;
 
 end.

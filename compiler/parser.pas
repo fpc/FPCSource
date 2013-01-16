@@ -41,7 +41,7 @@ implementation
       fksysutl,
 {$ENDIF}
       cutils,cclasses,
-      globtype,version,tokens,systems,globals,verbose,switches,
+      globtype,version,tokens,systems,globals,verbose,switches,globstat,
       symbase,symtable,symdef,symsym,
       finput,fmodule,fppu,
       aasmbase,aasmtai,aasmdata,
@@ -259,35 +259,10 @@ implementation
 *****************************************************************************}
 
     procedure compile(const filename:string);
-      type
-        polddata=^tolddata;
-        tolddata=record
-        { scanner }
-          oldidtoken,
-          oldtoken       : ttoken;
-          oldtokenpos    : tfileposinfo;
-          oldc           : char;
-          oldpattern,
-          oldorgpattern  : string;
-          old_block_type : tblock_type;
-        { symtable }
-          oldsymtablestack,
-          oldmacrosymtablestack : TSymtablestack;
-          oldaktprocsym    : tprocsym;
-        { cg }
-          oldparse_only  : boolean;
-        { akt.. things }
-          oldcurrent_filepos      : tfileposinfo;
-          old_current_module : tmodule;
-          oldcurrent_procinfo : tprocinfo;
-          old_settings : tsettings;
-          old_switchesstatestack : tswitchesstatestack;
-          old_switchesstatestackpos : Integer;
-        end;
-
       var
-         olddata : polddata;
+         olddata : pglobalstate;
          hp,hp2 : tmodule;
+         finished : boolean;
        begin
          { parsing a procedure or declaration should be finished }
          if assigned(current_procinfo) then
@@ -300,35 +275,9 @@ implementation
            stack. This is needed because compile() can be called
            recursively }
          new(olddata);
-         with olddata^ do
-          begin
-            old_current_module:=current_module;
-
-            { save symtable state }
-            oldsymtablestack:=symtablestack;
-            oldmacrosymtablestack:=macrosymtablestack;
-            oldcurrent_procinfo:=current_procinfo;
-
-            { save scanner state }
-            oldc:=c;
-            oldpattern:=pattern;
-            oldorgpattern:=orgpattern;
-            oldtoken:=token;
-            oldidtoken:=idtoken;
-            old_block_type:=block_type;
-            oldtokenpos:=current_tokenpos;
-            old_switchesstatestack:=switchesstatestack;
-            old_switchesstatestackpos:=switchesstatestackpos;
-
-            { save cg }
-            oldparse_only:=parse_only;
-
-            { save akt... state }
-            { handle the postponed case first }
-            flushpendingswitchesstate;
-            oldcurrent_filepos:=current_filepos;
-            old_settings:=current_settings;
-          end;
+         { handle the postponed case first }
+         flushpendingswitchesstate;
+         save_global_state(olddata^,false);
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
@@ -385,6 +334,9 @@ implementation
          { read the first token }
          current_scanner.readtoken(false);
 
+         { this is set to false if a unit needs to wait for other units }
+         finished:=true;
+
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
          try
@@ -392,7 +344,7 @@ implementation
              if (token=_UNIT) or (compile_level>1) then
                begin
                  current_module.is_unit:=true;
-                 proc_unit;
+                 finished:=proc_unit;
                end
              else if (token=_ID) and (idtoken=_PACKAGE) then
                begin
@@ -407,50 +359,30 @@ implementation
              on Exception do
                begin
                  { Increase errorcounter to prevent some
-                   checks during cleanup }
-                 inc(status.errorcount);
+                   checks during cleanup,
+                   but use GenerateError procedure for this. }
+                 GenerateError;
                  raise;
                end;
            end;
+
+           { the program or the unit at the command line should not need to wait
+             for other units }
+           if (compile_level=1) and not finished then
+             internalerror(2012091901);
          finally
            if assigned(current_module) then
              begin
-               { module is now compiled }
-               tppumodule(current_module).state:=ms_compiled;
-
-               { free ppu }
-               if assigned(tppumodule(current_module).ppufile) then
+               if finished then
+                 current_module.end_of_parsing
+               else
                  begin
-                   tppumodule(current_module).ppufile.free;
-                   tppumodule(current_module).ppufile:=nil;
-                 end;
-
-               { free asmdata }
-               if assigned(current_module.asmdata) then
-                 begin
-                   current_module.asmdata.free;
-                   current_module.asmdata:=nil;
-                 end;
-
-               { free scanner }
-               if assigned(current_module.scanner) then
-                 begin
-                   if current_scanner=tscannerfile(current_module.scanner) then
-                     current_scanner:=nil;
-                   tscannerfile(current_module.scanner).free;
-                   current_module.scanner:=nil;
-                 end;
-
-               { free symtable stack }
-               if assigned(symtablestack) then
-                 begin
-                   symtablestack.free;
-                   symtablestack:=nil;
-                 end;
-               if assigned(macrosymtablestack) then
-                 begin
-                   macrosymtablestack.free;
+                   { these are saved in the unit's state and thus can be set to
+                     Nil again as would be done by tmodule.end_of_parsing }
                    macrosymtablestack:=nil;
+                   symtablestack:=nil;
+                   if current_scanner=current_module.scanner then
+                     current_scanner:=nil;
                  end;
              end;
 
@@ -459,33 +391,13 @@ implementation
               { Write Browser Collections }
               do_extractsymbolinfo;
 
-            with olddata^ do
-              begin
-                { restore scanner }
-                c:=oldc;
-                pattern:=oldpattern;
-                orgpattern:=oldorgpattern;
-                token:=oldtoken;
-                idtoken:=oldidtoken;
-                current_tokenpos:=oldtokenpos;
-                block_type:=old_block_type;
-                switchesstatestack:=old_switchesstatestack;
-                switchesstatestackpos:=old_switchesstatestackpos;
+            restore_global_state(olddata^,false);
 
-                { restore cg }
-                parse_only:=oldparse_only;
+            { Restore all locally modified warning messages }
+            RestoreLocalVerbosity(current_settings.pmessage);
+            current_exceptblock:=0;
+            exceptblockcounter:=0;
 
-                { restore symtable state }
-                symtablestack:=oldsymtablestack;
-                macrosymtablestack:=oldmacrosymtablestack;
-                current_procinfo:=oldcurrent_procinfo;
-                current_filepos:=oldcurrent_filepos;
-                current_settings:=old_settings;
-                { Restore all locally modified warning messages }
-                RestoreLocalVerbosity(current_settings.pmessage);
-                current_exceptblock:=0;
-                exceptblockcounter:=0;
-              end;
             { Shut down things when the last file is compiled succesfull }
             if (compile_level=1) and
                 (status.errorcount=0) then
@@ -518,7 +430,14 @@ implementation
               unloaded_units.Clear;
              end;
            dec(compile_level);
-           set_current_module(olddata^.old_current_module);
+           { If used units are compiled current_module is already the same as
+             the stored module. Now if the unit is not finished its scanner is
+             not yet freed and thus set_current_module would reopen the scanned
+             file which will result in pointing to the wrong position in the
+             file. In the normal case current_scanner and current_module.scanner
+             would be Nil, thus nothing bad would happen }
+           if olddata^.old_current_module<>current_module then
+             set_current_module(olddata^.old_current_module);
 
            FreeLocalVerbosity(current_settings.pmessage);
 

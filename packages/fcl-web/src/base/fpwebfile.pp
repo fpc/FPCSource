@@ -24,6 +24,7 @@ Type
 
 Var
   // Set this if you want a descendent class to serve the files.
+  // You can use this to customize the behaviour in the descendent, for instance if you have multiple virtual hosts.
   DefaultFileModuleClass : TFPCustomFileModuleClass = TFPCustomFileModule;
   // Setting this will load mime types from that file.
   MimeTypesFile : string;
@@ -68,9 +69,9 @@ begin
   if DefaultFileModuleClass=Nil then
     DefaultFileModuleClass:=TFPCustomFileModule;  
   if (ADirectory='') then
-    Locations.Values[IncludeTrailingPathDelimiter(ALocation)]:=ExtractFilePath(ParamStr(0))
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=ExtractFilePath(ParamStr(0))
   else  
-    Locations.Values[IncludeTrailingPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
   RegisterHTTPModule(ALocation,DefaultFileModuleClass,true);
 end;
 
@@ -129,7 +130,7 @@ begin
   AResponse.ContentType:=MimeTypes.GetMimeType(ExtractFileExt(AFileName));
   If (AResponse.ContentType='') then
     AResponse.ContentType:='Application/octet-stream';
-  F:=TFileStream.Create(AFileName,fmOpenRead);
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
   try
     AResponse.ContentLength:=F.Size;
     AResponse.ContentStream:=F;

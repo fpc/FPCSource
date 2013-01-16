@@ -70,9 +70,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,ptype,pgenutil,
-       { codegen }
-       cgbase,procinfo,cpuinfo
+       pbase,pinline,ptype,pgenutil,procinfo,cpuinfo
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
@@ -228,6 +226,7 @@ implementation
          hdef  : tdef;
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
+         procinfo : tprocinfo;
        begin
          { Properties are not allowed, because the write can
            be different from the read }
@@ -271,6 +270,7 @@ implementation
         err,
         prev_in_args : boolean;
         def : tdef;
+        exit_procinfo: tprocinfo;
       begin
         prev_in_args:=in_args;
         case l of
@@ -300,6 +300,7 @@ implementation
 
           in_exit :
             begin
+              statement_syssym:=nil;
               if try_to_consume(_LKLAMMER) then
                 begin
                   if not (m_mac in current_settings.modeswitches) then
@@ -308,8 +309,9 @@ implementation
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
-                          if (not assigned(current_procinfo) or
-                              is_void(current_procinfo.procdef.returndef)) then
+                          if not assigned(current_procinfo) or
+                             (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                             is_void(current_procinfo.procdef.returndef) then
                             begin
                               Message(parser_e_void_function);
                               { recovery }
@@ -322,8 +324,40 @@ implementation
                     end
                   else
                     begin
-                      if not (current_procinfo.procdef.procsym.name = pattern) then
-                        Message(parser_e_macpas_exit_wrong_param);
+                      { non local exit ? }
+                      if current_procinfo.procdef.procsym.name<>pattern then
+                        begin
+                          exit_procinfo:=current_procinfo.parent;
+                          while assigned(exit_procinfo) do
+                            begin
+                              if exit_procinfo.procdef.procsym.name=pattern then
+                                break;
+                              exit_procinfo:=exit_procinfo.parent;
+                            end;
+                          if assigned(exit_procinfo) then
+                            begin
+                              if not(assigned(exit_procinfo.nestedexitlabel)) then
+                                begin
+                                  include(exit_procinfo.flags,pi_has_nested_exit);
+                                  exclude(exit_procinfo.procdef.procoptions,po_inline);
+
+                                  exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
+
+                                  { the compiler is responsible to define this label }
+                                  exit_procinfo.nestedexitlabel.defined:=true;
+                                  exit_procinfo.nestedexitlabel.used:=true;
+
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=tlocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
+                                end;
+
+                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel);
+                              tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
+                            end
+                          else
+                            Message(parser_e_macpas_exit_wrong_param);
+                        end;
                       consume(_ID);
                       consume(_RKLAMMER);
                       p1:=nil;
@@ -331,7 +365,8 @@ implementation
                 end
               else
                 p1:=nil;
-              statement_syssym:=cexitnode.create(p1);
+              if not assigned(statement_syssym) then
+                statement_syssym:=cexitnode.create(p1);
             end;
 
           in_break :
@@ -482,6 +517,7 @@ implementation
                 end;
             end;
 
+          in_aligned_x,
           in_unaligned_x :
             begin
               err:=false;
@@ -489,7 +525,7 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(in_unaligned_x,false,p2);
+              p2:=geninlinenode(l,false,p2);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -733,6 +769,7 @@ implementation
                   statement_syssym:=cerrornode.create;
                 end;
             end;
+
           in_length_x:
             begin
               consume(_LKLAMMER);
@@ -1091,7 +1128,7 @@ implementation
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              if getpropaccesslist(propsym,palt_write,propaccesslist) then
+              if propsym.getpropaccesslist(palt_write,propaccesslist) then
                 begin
                    sym:=propaccesslist.firstsym^.sym;
                    case sym.typ of
@@ -1143,7 +1180,7 @@ implementation
            end
          else
            begin
-              if getpropaccesslist(propsym,palt_read,propaccesslist) then
+              if propsym.getpropaccesslist(palt_read,propaccesslist) then
                 begin
                    sym := propaccesslist.firstsym^.sym;
                    case sym.typ of
@@ -1430,6 +1467,37 @@ implementation
 ****************************************************************************}
 
 
+    function real_const_node_from_pattern(s:string):tnode;
+      var
+        d : bestreal;
+        code : integer;
+        cur : currency;
+      begin
+        val(s,d,code);
+        if code<>0 then
+         begin
+           Message(parser_e_error_in_real);
+           d:=1.0;
+         end;
+{$ifdef FPC_REAL2REAL_FIXED}
+        if current_settings.fputype=fpu_none then
+          Message(parser_e_unsupported_real);
+        if (current_settings.minfpconstprec=s32real) and
+           (d = single(d)) then
+          result:=crealconstnode.create(d,s32floattype)
+        else if (current_settings.minfpconstprec=s64real) and
+                (d = double(d)) then
+          result:=crealconstnode.create(d,s64floattype)
+        else
+{$endif FPC_REAL2REAL_FIXED}
+          result:=crealconstnode.create(d,pbestrealtype^);
+{$ifdef FPC_HAS_STR_CURRENCY}
+        val(pattern,cur,code);
+        if code=0 then
+          trealconstnode(result).value_currency:=cur;
+{$endif FPC_HAS_STR_CURRENCY}
+      end;
+
 {---------------------------------------------
                PostFixOperators
 ---------------------------------------------}
@@ -1620,10 +1688,15 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     haderror,
      nodechanged    : boolean;
      calltype: tdispcalltype;
+     valstr,expstr : string;
+     intval : qword;
+     code : integer;
     label
-     skipreckklammercheck;
+     skipreckklammercheck,
+     skippointdefcheck;
     begin
      result:=false;
      again:=true;
@@ -1655,7 +1728,15 @@ implementation
                    typecheckpass(p1);
                  end;
 
-               if (p1.resultdef.typ<>pointerdef) then
+               { iso file buf access? }
+               if (m_iso in current_settings.modeswitches) and
+                 (p1.resultdef.typ=filedef) and
+                 (tfiledef(p1.resultdef).filetyp=ft_text) then
+                 begin
+                   p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf',ccallparanode.create(p1,nil)));
+                   typecheckpass(p1);
+                 end
+               else if (p1.resultdef.typ<>pointerdef) then
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;
@@ -1799,6 +1880,88 @@ implementation
                  try to call it in case it returns a record/object/... }
                maybe_call_procvar(p1,false);
 
+               if (p1.nodetype=ordconstn) and
+                   not is_boolean(p1.resultdef) and
+                   not is_enum(p1.resultdef) then
+                 begin
+                   { only an "e" or "E" can follow an intconst with a ".", the
+                     other case (another intconst) is handled by the scanner }
+                   if (token=_ID) and (pattern[1]='E') then
+                     begin
+                       haderror:=false;
+                       if length(pattern)>1 then
+                         begin
+                           expstr:=copy(pattern,2,length(pattern)-1);
+                           val(expstr,intval,code);
+                           if code<>0 then
+                             haderror:=true;
+                         end
+                       else
+                         expstr:='';
+                       consume(token);
+                       if tordconstnode(p1).value.signed then
+                         str(tordconstnode(p1).value.svalue,valstr)
+                       else
+                         str(tordconstnode(p1).value.uvalue,valstr);
+                       valstr:=valstr+'.0E';
+                       if expstr='' then
+                         case token of
+                           _MINUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+'-'+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _PLUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _INTCONST:
+                             begin
+                               valstr:=valstr+pattern;
+                               consume(_INTCONST);
+                             end;
+                           else
+                             haderror:=true;
+                         end
+                       else
+                         valstr:=valstr+expstr;
+                       if haderror then
+                         begin
+                           Message(parser_e_error_in_real);
+                           p2:=cerrornode.create;
+                         end
+                       else
+                         p2:=real_const_node_from_pattern(valstr);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end
+                   else
+                     begin
+                       { just convert the ordconst to a realconst }
+                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end;
+                 end;
+
+               { this is skipped if label skippointdefcheck is used }
                case p1.resultdef.typ of
                  recorddef:
                    begin
@@ -2006,6 +2169,8 @@ implementation
                       consume(_ID);
                     end;
                end;
+               { processing an ordconstnode avoids the resultdef check }
+               skippointdefcheck:
              end;
 
           else
@@ -2106,6 +2271,22 @@ implementation
          ---------------------------------------------}
 
        procedure factor_read_id(out p1:tnode;var again:boolean);
+
+         function findwithsymtable : boolean;
+           var
+             hp : psymtablestackitem;
+           begin
+             result:=true;
+             hp:=symtablestack.stack;
+             while assigned(hp) do
+               begin
+                 if hp^.symtable.symtabletype=withsymtable then
+                   exit;
+                 hp:=hp^.next;
+               end;
+             result:=false;
+           end;
+
          var
            srsym : tsym;
            srsymtable : TSymtable;
@@ -2185,9 +2366,21 @@ implementation
                            symbol }
                    not (sp_explicitrename in srsym.symoptions) then
                  begin
-                   identifier_not_found(orgstoredpattern);
-                   srsym:=generrorsym;
-                   srsymtable:=nil;
+                   { if a generic is parsed and when we are inside an with block,
+                     a symbol might not be defined }
+                   if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) and
+                      findwithsymtable then
+                     begin
+                       { create dummy symbol, it will be freed later on }
+                       srsym:=tsym.create(undefinedsym,'$undefinedsym');
+                       srsymtable:=nil;
+                     end
+                   else
+                     begin
+                       identifier_not_found(orgstoredpattern);
+                       srsym:=generrorsym;
+                       srsymtable:=nil;
+                     end;
                  end;
              end;
 
@@ -2404,6 +2597,14 @@ implementation
                       end;
                   end;
 
+                undefinedsym :
+                  begin
+                    p1:=cnothingnode.Create;
+                    p1.resultdef:=tundefineddef.create;
+                    { clean up previously created dummy symbol }
+                    srsym.free;
+                  end;
+
                 errorsym :
                   begin
                     p1:=cerrornode.create;
@@ -2484,7 +2685,6 @@ implementation
          pd         : tprocdef;
          hclassdef  : tobjectdef;
          d          : bestreal;
-         cur        : currency;
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
@@ -2736,34 +2936,17 @@ implementation
                  else
                    { the necessary range checking has already been done by val }
                    tordconstnode(p1).rangecheck:=false;
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _REALNUMBER :
                begin
-                 val(pattern,d,code);
-                 if code<>0 then
-                  begin
-                    Message(parser_e_error_in_real);
-                    d:=1.0;
-                  end;
+                 p1:=real_const_node_from_pattern(pattern);
                  consume(_REALNUMBER);
-{$ifdef FPC_REAL2REAL_FIXED}
-                 if current_settings.fputype=fpu_none then
-                   Message(parser_e_unsupported_real);
-                 if (current_settings.minfpconstprec=s32real) and
-                    (d = single(d)) then
-                   p1:=crealconstnode.create(d,s32floattype)
-                 else if (current_settings.minfpconstprec=s64real) and
-                         (d = double(d)) then
-                   p1:=crealconstnode.create(d,s64floattype)
-                 else
-{$endif FPC_REAL2REAL_FIXED}
-                   p1:=crealconstnode.create(d,pbestrealtype^);
-{$ifdef FPC_HAS_STR_CURRENCY}
-                 val(pattern,cur,code);
-                 if code=0 then
-                   trealconstnode(p1).value_currency:=cur;
-{$endif FPC_HAS_STR_CURRENCY}
                end;
 
              _STRING :
@@ -2807,6 +2990,11 @@ implementation
                begin
                  p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern));
                  consume(_CSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CCHAR :
@@ -2819,6 +3007,11 @@ implementation
                begin
                  p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CWCHAR:
@@ -2835,7 +3028,7 @@ implementation
                  if try_to_consume(_LKLAMMER) then
                   begin
                     p1:=factor(true,false);
-                    if token in [_CARET,_POINT,_LECKKLAMMER] then
+                    if token in postfixoperator_tokens then
                      begin
                        again:=true;
                        postfixoperators(p1,again,getaddr);
@@ -2845,7 +3038,7 @@ implementation
                   end
                  else
                   p1:=factor(true,false);
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -2868,9 +3061,9 @@ implementation
                  consume(_LKLAMMER);
                  p1:=comp_expr(true,false);
                  consume(_RKLAMMER);
-                 { it's not a good solution     }
-                 { but (a+b)^ makes some problems  }
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 { it's not a good solution
+                   but (a+b)^ makes some problems  }
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -3164,7 +3357,7 @@ implementation
                        check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',parseddef,gensym.RealName);
+                       generate_specialization(gendef,false,'',parseddef,gensym.RealName,p2.fileinfo);
 
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
@@ -3255,7 +3448,7 @@ implementation
                          Internalerror(2011071401);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',nil,'');
+                       generate_specialization(gendef,false,'');
 
                        { we don't need the old p2 anymore }
                        p2.Free;

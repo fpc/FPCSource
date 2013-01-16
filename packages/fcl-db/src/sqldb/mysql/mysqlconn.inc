@@ -59,7 +59,6 @@ Type
   TCursorName = Class(TSQLCursor)
   protected
     FRes: PMYSQL_RES;                   { Record pointer }
-    FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
     Lengths : pculong;                  { Lengths of the columns of the current row }
@@ -121,6 +120,8 @@ Type
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
+    Function GetInsertID: int64;
     procedure CreateDB; override;
     procedure DropDB; override;
     Property ServerInfo : String Read FServerInfo;
@@ -143,6 +144,10 @@ Type
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName : string; override;
   end;
 
 
@@ -289,6 +294,12 @@ function TConnectionName.GetServerStatus: String;
 begin
   CheckConnected;
   Result := mysql_stat(FMYSQL);
+end;
+
+function TConnectionName.GetInsertID: Int64;
+begin
+  CheckConnected;
+  Result:=mysql_insert_id(GetHandle);
 end;
 
 procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
@@ -503,8 +514,6 @@ begin
     FStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
       FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
-    if FStatementType in [stSelect,stExecProcedure] then
-      FNeedData:=True;
     end
 end;
 
@@ -528,8 +537,6 @@ Var
 
 begin
   C:=Cursor as TCursorName;
-  if c.FStatementType in [stSelect,stExecProcedure] then
-    c.FNeedData:=False;
   if assigned(C.FRes) then
     begin
     mysql_free_result(C.FRes);
@@ -570,15 +577,18 @@ begin
       begin
       C.RowsAffected := mysql_affected_rows(FMYSQL);
       C.LastInsertID := mysql_insert_id(FMYSQL);
-      if C.FNeedData then
-        repeat
-        Res:=mysql_store_result(FMySQL); //returns a null pointer if the statement didn't return a result set
+      C.FSelectable  := False;
+      repeat
+        Res:=mysql_store_result(FMySQL); //returns a null pointer also if the statement didn't return a result set
+        if mysql_errno(FMySQL)<>0 then
+          MySQLError(FMySQL, SErrGettingResult, Self);
         if Res<>nil then
           begin
           mysql_free_result(C.FRes);
           C.FRes:=Res;
+          C.FSelectable:=True;
           end;
-        until mysql_next_result(FMySQL)<>0;
+      until mysql_next_result(FMySQL)<>0;
       end;
     end;
 end;
@@ -1101,6 +1111,32 @@ begin
   GetDBInfo(stTables,'','tables_in_'+DatabaseName,List)
 end;
 
+function TConnectionName.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    InitialiseMysql;
+    case InfoType of
+      citServerType:
+        Result:='MySQL';
+      citServerVersion:
+        if Connected then
+          Result:=format('%6.6d', [mysql_get_server_version(FMySQL)]);
+      citServerVersionString:
+        if Connected then
+          Result:=mysql_get_server_info(FMySQL);
+      citClientVersion:
+        Result:=format('%6.6d', [mysql_get_client_version()]);
+      citClientName:
+        Result:=TMySQLConnectionDef.LoadedLibraryName;
+      else
+        Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    ReleaseMysql;
+  end;
+end;
+
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
   Result:=Nil;
@@ -1108,27 +1144,51 @@ end;
 
 function TConnectionName.Commit(trans: TSQLHandle): boolean;
 begin
-  // Do nothing.
+  //mysql_commit(FMySQL);
+  Result := mysql_query(FMySQL, 'COMMIT') = 0;
+  if not Result then
+    MySQLError(FMySQL, SErrExecuting, Self);
 end;
 
 function TConnectionName.RollBack(trans: TSQLHandle): boolean;
 begin
-  // Do nothing
+  //mysql_rollback(FMySQL);
+  Result := mysql_query(FMySQL, 'ROLLBACK') = 0;
+  if not Result then
+    MySQLError(FMySQL, SErrExecuting, Self);
 end;
 
 function TConnectionName.StartdbTransaction(trans: TSQLHandle; AParams : string): boolean;
 begin
-  // Do nothing
+  Result := mysql_query(FMySQL, 'START TRANSACTION') = 0;
+  if not Result then
+    MySQLError(FMySQL, SErrExecuting, Self);
 end;
 
 procedure TConnectionName.CommitRetaining(trans: TSQLHandle);
 begin
-  // Do nothing
+  {$IFDEF MYSQL50_UP}
+  if mysql_query(FMySQL, 'COMMIT AND CHAIN') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  {$ELSE}
+  if mysql_query(FMySQL, 'COMMIT') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  if mysql_query(FMySQL, 'START TRANSACTION') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  {$ENDIF}
 end;
 
 procedure TConnectionName.RollBackRetaining(trans: TSQLHandle);
 begin
-  // Do nothing
+  {$IFDEF MYSQL50_UP}
+  if mysql_query(FMySQL, 'ROLLBACK AND CHAIN') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  {$ELSE}
+  if mysql_query(FMySQL, 'ROLLBACK') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  if mysql_query(FMySQL, 'START TRANSACTION') <> 0 then
+    MySQLError(FMySQL, SErrExecuting, Self);
+  {$ENDIF}
 end;
 
 function TConnectionName.GetSchemaInfoSQL(SchemaType: TSchemaType;
@@ -1178,6 +1238,26 @@ end;
 class function TMySQLConnectionDef.Description: String;
 begin
   Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
+end;
+
+class function TMySQLConnectionDef.DefaultLibraryName: String;
+begin
+  Result:=mysqlvlib;
+end;
+
+class function TMySQLConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=@InitialiseMySQL;
+end;
+
+class function TMySQLConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=@ReleaseMySQL;
+end;
+
+class function TMySQLConnectionDef.LoadedLibraryName: string;
+begin
+  Result:=MysqlLoadedLibrary;
 end;
 
 {$IfDef mysql55}

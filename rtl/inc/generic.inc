@@ -1360,22 +1360,6 @@ end;
 ****************************************************************************}
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
-function count_leading_zeros_32bit(l : longint) : longint;
-  var
-    i : longint;
-  begin
-     for i:=0 to 31 do
-       begin
-          if (l and (longint($80000000) shr i))<>0 then
-            begin
-               result:=i;
-               exit;
-            end;
-       end;
-     result:=i;
-  end;
-
-
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
@@ -1384,24 +1368,26 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
      result:=0;
      if n=0 then
        HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-     lzz:=count_leading_zeros_32bit(z);
-     lzn:=count_leading_zeros_32bit(n);
+     if z=0 then
+       exit;
+     lzz:=BsrDWord(z);
+     lzn:=BsrDWord(n);
      { if the denominator contains less zeros
        then the numerator
-       the d is greater than the n }
-     if lzn<lzz then
+       then d is greater than the n }
+     if lzn>lzz then
        exit;
-     shift:=lzn-lzz;
+     shift:=lzz-lzn;
      n:=n shl shift;
-     repeat
-       if z>=n then
-         begin
-            z:=z-n;
-            result:=result+dword(1 shl shift);
-         end;
-       dec(shift);
-       n:=n shr 1;
-     until shift<0;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+dword(1 shl shift);
+           end;
+         n:=n shr 1;
+       end;
   end;
 {$endif FPC_SYSTEM_HAS_DIV_DWORD}
 
@@ -1411,27 +1397,29 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; co
   var
      shift,lzz,lzn : longint;
   begin
-    result:=0;
-    if n=0 then
-      HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-    lzz:=count_leading_zeros_32bit(z);
-    lzn:=count_leading_zeros_32bit(n);
-    { if the denominator contains less zeros
-      then the numerator
-      the d is greater than the n }
-    if lzn<lzz then
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrDWord(z);
+     lzn:=BsrDWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
       begin
          result:=z;
          exit;
       end;
-    shift:=lzn-lzz;
-    n:=n shl shift;
-    repeat
-      if z>=n then
-        z:=z-n;
-      dec(shift);
-      n:=n shr 1;
-    until shift<0;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
     result:=z;
   end;
 {$endif FPC_SYSTEM_HAS_MOD_DWORD}
@@ -2351,8 +2339,8 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,A
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_BYTE}
-{$ifndef FPC_SYSTEM_HAS_BSX_BYTE}
+{$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
+{$ifndef FPC_SYSTEM_HAS_BSF_BYTE}
 function BsfByte(Const AValue: Byte): Byte;
   const bsf8bit: array [Byte] of Byte = (
 	  $ff,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
@@ -2367,7 +2355,11 @@ function BsfByte(Const AValue: Byte): Byte;
   begin
     result:=bsf8bit[AValue];
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_BYTE}
+{$ifndef FPC_SYSTEM_HAS_BSR_BYTE}
 function BsrByte(Const AValue: Byte): Byte;
   const bsr8bit: array [Byte] of Byte = (
     $ff,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -2385,16 +2377,21 @@ function BsrByte(Const AValue: Byte): Byte;
 {$endif}
 {$endif}
 
-{$ifndef FPC_SYSTEM_HAS_BSX_WORD}
-{$ifndef FPC_HAS_INTERNAL_BSX_WORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_WORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): cardinal;
   begin
+    result:=$ff;
     if lo(AValue)<>0 then
       result:=BsfByte(lo(AValue))
-    else
+    else if hi(AValue) <> 0 then
       result:=BsfByte(hi(AValue))+8
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_SYSTEM_HAS_BSR_WORD}
+{$ifndef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): cardinal;
   begin
     if hi(AValue)<>0 then
@@ -2405,16 +2402,21 @@ function BsrWord(Const AValue: Word): cardinal;
 {$endif}
 {$endif}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_DWORD}
-{$ifndef FPC_SYSTEM_HAS_BSX_DWORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): cardinal;
 begin
+  result:=$ff;
   if lo(AValue)<>0 then
     result:=BsfWord(lo(AValue))
-  else
+  else if hi(AValue) <> 0 then
     result:=BsfWord(hi(AValue))+16
 end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
+{$ifndef FPC_SYSTEM_HAS_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): cardinal;
 begin
   if hi(AValue)<>0 then
@@ -2425,16 +2427,21 @@ end;
 {$endif}
 {$endif}
 
-{$ifndef FPC_HAS_INTERNAL_BSX_QWORD}
-{$ifndef FPC_SYSTEM_HAS_BSX_QWORD}
+{$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): cardinal;
   begin
+    result:=$ff;
     if lo(AValue) <> 0 then
       result:=BsfDWord(lo(AValue))
-    else
-      result:=BsfDWord(hi(AValue)) + 32
+    else if hi(AValue) <> 0 then
+      result:=BsfDWord(hi(AValue)) + 32;
   end;
+{$endif}
+{$endif}
 
+{$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal;
   begin
     if hi(AValue) <> 0 then
@@ -2444,3 +2451,58 @@ function BsrQWord(Const AValue : QWord): cardinal;
   end;
 {$endif}
 {$endif}
+
+const
+  PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
+
+function fpc_PopCnt_byte(AValue : Byte): Byte;[Public,Alias:'FPC_POPCNT_BYTE'];compilerproc;
+  begin
+    Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
+  end;
+
+
+function fpc_PopCnt_word(AValue : Word): Word;[Public,Alias:'FPC_POPCNT_WORD'];compilerproc;
+  var
+    i : SizeInt;
+  begin
+    Result:=0;
+    for i:=0 to 3 do
+      begin
+        inc(Result,PopCntData[AValue and $f]);
+        AValue:=AValue shr 4;
+      end;
+  end;
+
+
+function fpc_PopCnt_dword(AValue : DWord): DWord;[Public,Alias:'FPC_POPCNT_DWORD'];compilerproc;
+  var
+    i : SizeInt;
+  begin
+    Result:=0;
+    for i:=0 to 7 do
+      begin
+        inc(Result,PopCntData[AValue and $f]);
+        AValue:=AValue shr 4;
+      end;
+  end;
+
+
+{$ifndef FPC_SYSTEM_HAS_POPCNT_QWORD}
+function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD'];compilerproc;
+{$ifdef VER2_6}
+  var
+    i : SizeInt;
+  begin
+    Result:=0;
+    for i:=0 to 15 do
+      begin
+        inc(Result,PopCntData[AValue and $f]);
+        AValue:=AValue shr 4;
+      end;
+{$else VER2_6}
+  begin
+    Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
+{$endif VER2_6}
+  end;
+{$endif}
+

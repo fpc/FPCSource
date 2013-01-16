@@ -235,29 +235,39 @@ end;
 
 type thostaddr= packed array[1..4] of byte;
 
-function htonl( host : longint):longint; inline;
-
+function htonl( host : longint):longint; inline;overload;deprecated;
 begin
 {$ifdef FPC_BIG_ENDIAN}
   htonl:=host;
 {$else}
-  htonl:=THostAddr(host)[4];
-  htonl:=htonl or longint( (THostAddr(host)[3]) shl 8);
-  htonl:=htonl or longint( (THostAddr(host)[2]) shl 16);
-  htonl:=htonl or longint( (THostAddr(host)[1]) shl 24);
+  htonl:=SwapEndian(host);
 {$endif}
 end;
 
-Function NToHl (Net : Longint) : Longint; inline;
+function htonl( host : cardinal):cardinal; inline;overload;
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  htonl:=host;
+{$else}
+  htonl:=SwapEndian(host);
+{$endif}
+end;
 
+Function NToHl (Net : longint) : longint; inline;overload;deprecated;
 begin
 {$ifdef FPC_BIG_ENDIAN}
   ntohl:=net;
 {$else}
-  ntohl:=THostAddr(Net)[4];
-  ntohl:=ntohl or longint( (THostAddr(Net)[3]) shl 8);
-  ntohl:=ntohl or longint( (THostAddr(Net)[2]) shl 16);
-  ntohl:=ntohl or longint( (THostAddr(Net)[1]) shl 24);
+  ntohl:=SwapEndian(net);
+{$endif}
+end;
+
+Function NToHl (Net : cardinal) : cardinal; inline;overload;
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  ntohl:=net;
+{$else}
+  ntohl:=SwapEndian(net);
 {$endif}
 end;
 
@@ -267,7 +277,7 @@ begin
 {$ifdef FPC_BIG_ENDIAN}
   htons:=host;
 {$else}
-  htons:=swap(host);
+  htons:=SwapEndian(host);
 {$endif}
 end;
 
@@ -277,7 +287,7 @@ begin
 {$ifdef FPC_BIG_ENDIAN}
   ntohs:=net;
 {$else}
-  ntohs:=swap(net);
+  ntohs:=SwapEndian(net);
 {$endif}
 end;
 

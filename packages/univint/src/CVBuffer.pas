@@ -6,8 +6,9 @@
  *
  }
  
-{	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{	 Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -84,6 +85,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -93,6 +95,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -108,6 +111,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -117,6 +121,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -127,6 +132,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -174,8 +180,6 @@ uses MacTypes, CFBase, CFDictionary, CVBase, CVReturns;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
  
@@ -194,18 +198,18 @@ uses MacTypes, CFBase, CFDictionary, CVBase, CVReturns;
 { The following two keys are useful with the CoreVideo pool and texture cache APIs so that you can specify
    an initial set of default buffer attachments to automatically be attached to the buffer when it is created. }
 var kCVBufferPropagatedAttachmentsKey: CFStringRef; external name '_kCVBufferPropagatedAttachmentsKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVBufferNonPropagatedAttachmentsKey: CFStringRef; external name '_kCVBufferNonPropagatedAttachmentsKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 //#pragma mark CVBufferRef attachment keys
 
 var kCVBufferMovieTimeKey: CFStringRef; external name '_kCVBufferMovieTimeKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)	// Generally only available for frames emitted by QuickTime; CFDictionary containing these two keys:
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)	// Generally only available for frames emitted by QuickTime; CFDictionary containing these two keys:
 var kCVBufferTimeValueKey: CFStringRef; external name '_kCVBufferTimeValueKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVBufferTimeScaleKey: CFStringRef; external name '_kCVBufferTimeScaleKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 
 //#pragma mark CVBufferRef
@@ -222,7 +226,8 @@ type
 
 }
 type
-	CVBufferRef = ^SInt32; { an opaque type }
+	CVBufferRef = ^__CVBuffer; { an opaque type }
+	__CVBuffer = record end;
 
 {!
     @function   CVBufferRetain
@@ -232,7 +237,7 @@ type
     @result     A CVBuffer object that is the same as the passed in buffer.
 }
 function CVBufferRetain( buffer: CVBufferRef ): CVBufferRef; external name '_CVBufferRetain';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 {!
     @function   CVBufferRelease
     @abstract   Release a CVBuffer object
@@ -240,7 +245,7 @@ function CVBufferRetain( buffer: CVBufferRef ): CVBufferRef; external name '_CVB
     @param      buffer A CVBuffer object that you want to release.
 }
 procedure CVBufferRelease( buffer: CVBufferRef ); external name '_CVBufferRelease';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 //#pragma mark CVBufferAttachment
 
@@ -255,7 +260,7 @@ procedure CVBufferRelease( buffer: CVBufferRef ); external name '_CVBufferReleas
                                 a single mode at a time.
 }
 procedure CVBufferSetAttachment( buffer: CVBufferRef; key: CFStringRef; value: CFTypeRef; attachmentMode: CVAttachmentMode ); external name '_CVBufferSetAttachment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 
 {!
@@ -268,7 +273,7 @@ procedure CVBufferSetAttachment( buffer: CVBufferRef; key: CFStringRef; value: C
     @result     If found the attachment object
 }
 function CVBufferGetAttachment( buffer: CVBufferRef; key: CFStringRef; var attachmentMode: CVAttachmentMode ): CFTypeRef; external name '_CVBufferGetAttachment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVBufferRemoveAttachment
@@ -278,7 +283,7 @@ function CVBufferGetAttachment( buffer: CVBufferRef; key: CFStringRef; var attac
     @param      key	Key in form of a CFString identifying the desired attachment.
 }
 procedure CVBufferRemoveAttachment( buffer: CVBufferRef; key: CFStringRef ); external name '_CVBufferRemoveAttachment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVBufferRemoveAllAttachments
@@ -287,7 +292,7 @@ procedure CVBufferRemoveAttachment( buffer: CVBufferRef; key: CFStringRef ); ext
     @param      buffer  Target CVBuffer object.
 }
 procedure CVBufferRemoveAllAttachments( buffer: CVBufferRef ); external name '_CVBufferRemoveAllAttachments';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVBufferGetAttachments
@@ -298,7 +303,7 @@ procedure CVBufferRemoveAllAttachments( buffer: CVBufferRef ); external name '_C
 		for invalid attachment mode.
 }
 function CVBufferGetAttachments( buffer: CVBufferRef; attachmentMode: CVAttachmentMode ): CFDictionaryRef; external name '_CVBufferGetAttachments';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVBufferSetAttachments
@@ -307,7 +312,7 @@ function CVBufferGetAttachments( buffer: CVBufferRef; attachmentMode: CVAttachme
     @param      buffer  Target CVBuffer object.
 }
 procedure CVBufferSetAttachments( buffer: CVBufferRef; theAttachments: CFDictionaryRef; attachmentMode: CVAttachmentMode ); external name '_CVBufferSetAttachments';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVBufferPropagateAttachments
@@ -318,9 +323,8 @@ procedure CVBufferSetAttachments( buffer: CVBufferRef; theAttachments: CFDiction
     @param      destinationBuffer  CVBuffer to copy attachments to.
 }
 procedure CVBufferPropagateAttachments( sourceBuffer: CVBufferRef; destinationBuffer: CVBufferRef ); external name '_CVBufferPropagateAttachments';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

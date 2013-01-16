@@ -147,6 +147,42 @@ type
   EInvalidOperation = class(Exception);
   TExceptionClass = Class of Exception;
 
+{ ---------------------------------------------------------------------
+  Free Pascal Observer support
+  ---------------------------------------------------------------------}
+
+
+Const
+  SGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
+  SGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
+
+Type
+  // Notification operations :
+  // Observer has changed, is freed, item added to/deleted from list, custom event.
+  TFPObservedOperation = (ooChange,ooFree,ooAddItem,ooDeleteItem,ooCustom);
+{$INTERFACES CORBA}
+
+  { IFPObserved }
+
+  IFPObserved = Interface [SGUIDObserved]
+    // attach a new observer
+    Procedure FPOAttachObserver(AObserver : TObject);
+    // Detach an observer
+    Procedure FPODetachObserver(AObserver : TObject);
+    // Notify all observers of a change.
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
+  end;
+
+  { IFPObserver }
+
+  IFPObserver = Interface  [SGUIDObserver]
+    // Called by observed when observers are notified.
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+  end;
+{$INTERFACES COM}
+
+  EObserver = Class(Exception);
+
 { Forward class declarations }
 
   TStream = class;
@@ -269,9 +305,10 @@ type
     property Current: Pointer read GetCurrent;
   end;
 
-  TList = class(TObject)
+  TList = class(TObject,IFPObserved)
   private
     FList: TFPList;
+    FObservers : TFPList;
     procedure CopyMove (aList : TList);
     procedure MergeMove (aList : TList);
     procedure DoCopy(ListA, ListB : TList);
@@ -293,6 +330,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
     Procedure AddList(AList : TList);
     function Add(Item: Pointer): Integer;
     procedure Clear; virtual;
@@ -390,15 +430,20 @@ type
 
 {$M+}
 
-  TPersistent = class(TObject)
+  TPersistent = class(TObject,IFPObserved)
   private
+    FObservers : TFPList;
     procedure AssignError(Source: TPersistent);
   protected
     procedure AssignTo(Dest: TPersistent); virtual;
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
   public
+    Destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
+    Procedure FPOAttachObserver(AObserver : TObject);
+    Procedure FPODetachObserver(AObserver : TObject);
+    Procedure FPONotifyObservers(ASender : TObject; AOperation : TFPObservedOperation; Data : Pointer);
     function  GetNamePath: string; virtual; {dynamic;}
   end;
 
@@ -680,6 +725,7 @@ type
     FDuplicates: TDuplicates;
     FCaseSensitive : Boolean;
     FSorted: Boolean;
+    FForceSort : Boolean;
     FOwnsObjects : Boolean;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
@@ -961,10 +1007,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: WideString; ResType: PWideChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
     destructor Destroy; override;
   end;
 {$else}
@@ -972,10 +1018,10 @@ type
   private
     Res: TFPResourceHandle;
     Handle: TFPResourceHGLOBAL;
-    procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
+    procedure Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   public
-    constructor Create(Instance: THandle; const ResName: string; ResType: PChar);
-    constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PChar);
     destructor Destroy; override;
   end;
 {$endif UNICODE}
@@ -1314,7 +1360,6 @@ type
 {$endif}
     procedure FlushBuffer;
     procedure WriteValue(Value: TValueType);
-    procedure WriteStr(const Value: String);
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
@@ -1342,6 +1387,7 @@ type
     procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
+    procedure WriteStr(const Value: String);
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
@@ -1494,6 +1540,7 @@ type
 { TThread }
 
   EThread = class(Exception);
+  EThreadExternalException = class(EThread);
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
@@ -1502,6 +1549,26 @@ type
     tpTimeCritical);
 
   TThread = class
+  private type
+    PThreadQueueEntry = ^TThreadQueueEntry;
+    TThreadQueueEntry = record
+      Method: TThreadMethod;
+      // uncomment once closures are supported
+      //ThreadProc: TThreadProcedure;
+      Thread: TThread;
+      Exception: Exception;
+      SyncEvent: PRtlEvent;
+      Next: PThreadQueueEntry;
+    end;
+  public type
+    TSystemTimes = record
+      IdleTime: QWord;
+      UserTime: QWord;
+      KernelTime: QWord;
+      NiceTime: QWord;
+    end;
+  private
+    class var FProcessorCount: LongWord;
   private
     FHandle: TThreadID;
     FTerminated: Boolean;
@@ -1511,16 +1578,27 @@ type
     FReturnValue: Integer;
     FOnTerminate: TNotifyEvent;
     FFatalException: TObject;
+    FExternalThread: Boolean;
+    FSynchronizeEntry: PThreadQueueEntry;
+    class function GetCurrentThread: TThread; static;
+    class function GetIsSingleProcessor: Boolean; static; inline;
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
     procedure SetPriority(Value: TThreadPriority);
     procedure SetSuspended(Value: Boolean);
     function GetSuspended: Boolean;
+    procedure InitSynchronizeEvent;
+    procedure DoneSynchronizeEvent;
+    { these two need to be implemented per platform }
+    procedure SysCreate(CreateSuspended: Boolean;
+                             const StackSize: SizeUInt);
+    procedure SysDestroy;
   protected
     FThreadID: TThreadID; // someone might need it for pthread_* calls
     procedure DoTerminate; virtual;
     procedure Execute; virtual; abstract;
     procedure Synchronize(AMethod: TThreadMethod);
+    procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
 {$ifdef windows}
@@ -1548,17 +1626,46 @@ type
     constructor Create(CreateSuspended: Boolean;
                        const StackSize: SizeUInt = DefaultStackSize);
     destructor Destroy; override;
+    { Note: Once closures are supported aProc will be changed to TProc }
+    class function CreateAnonymousThread(aProc: TProcedure): TThread; static;
+    { Use HAS_TTHREAD_NAMETHREADFORDEBUGGING to implement a platform specific
+      variant of the UnicodeString method. The AnsiString method calls the
+      UnicodeString method. If your platform's API only supports AnsiString you
+      can additionally define THREADNAME_IS_ANSISTRING to swap the logic. Then
+      the UnicodeString variant will call the AnsiString variant which can be
+      implemented for a specific platform }
+    class procedure NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID = TThreadID(-1)); static;
+    class procedure NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
+    class procedure SetReturnValue(aValue: Integer); static;
+    class function CheckTerminated: Boolean; static;
+    class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
+    class procedure Queue(aThread: TThread; aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;
+    class procedure RemoveQueuedEvents(aThread: TThread); static;
+    class procedure SpinWait(aIterations: LongWord); static;
+    class procedure Sleep(aMilliseconds: Cardinal); static;
+    class procedure Yield; static;
+    { use HAS_TTHREAD_GETSYSTEMTIMES to implement a platform specific variant
+      which does not return a zeroed record }
+    class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
+    class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
+    class function GetTickCount64: QWord; static;
     procedure AfterConstruction; override;
     procedure Start;
     procedure Resume; deprecated;
     procedure Suspend; deprecated;
     procedure Terminate;
     function WaitFor: Integer;
-    class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
+    class property CurrentThread: TThread read GetCurrentThread;
+    class property ProcessorCount: LongWord read FProcessorCount;
+    class property IsSingleProcessor: Boolean read GetIsSingleProcessor;
     property FreeOnTerminate: Boolean read FFreeOnTerminate write FFreeOnTerminate;
     property Handle: TThreadID read FHandle;
+    property ExternalThread: Boolean read FExternalThread;
     property Priority: TThreadPriority read GetPriority write SetPriority;
     property Suspended: Boolean read GetSuspended write SetSuspended;
+    property Finished: Boolean read FFinished;
     property ThreadID: TThreadID read FThreadID;
     property OnTerminate: TNotifyEvent read FOnTerminate write FOnTerminate;
     property FatalException: TObject read FFatalException;

@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for pas2ut
+#
+
+[package]
+name=pas2ut
+version=2.7.1
+
+[require]
+packages=fcl-passrc fcl-base
+packages_darwin=univint
+packages_iphonesim=univint
+
+[target]
+programs=pas2ut
+rst=pas2ut
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+pas2ut$(EXEEXT): pas2ut.pp
+

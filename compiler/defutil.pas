@@ -26,9 +26,8 @@ unit defutil;
 interface
 
     uses
-       cclasses,
-       globtype,globals,constexp,node,
-       symconst,symbase,symtype,symdef,
+       globtype,globals,constexp,
+       symconst,symtype,symdef,
        cgbase,cpubase;
 
     type
@@ -190,6 +189,9 @@ interface
     {# true if p is an unicode string def }
     function is_unicodestring(p : tdef) : boolean;
 
+    {# true if p is an unicode/wide/ansistring string def }
+    function is_dynamicstring(p : tdef) : boolean;
+
     {# returns true if p is a wide or unicode string type }
     function is_wide_or_unicode_string(p : tdef) : boolean;
 
@@ -280,10 +282,13 @@ interface
     { # returns whether def is a type parameter of a generic }
     function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { returns true of def is a methodpointer }
+    function is_methodpointer(def : tdef) : boolean;
+
 implementation
 
     uses
-       systems,verbose;
+       verbose;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -424,7 +429,8 @@ implementation
                   is_chararray(def) or
                   is_widechararray(def) or
                   is_open_chararray(def) or
-                  is_open_widechararray(def);
+                  is_open_widechararray(def) or
+                  (def=java_jlstring);
       end;
 
     function is_enum(def : tdef) : boolean;
@@ -671,6 +677,13 @@ implementation
       begin
          is_widestring:=(p.typ=stringdef) and
                         (tstringdef(p).stringtype=st_widestring);
+      end;
+
+
+    function is_dynamicstring(p: tdef): boolean;
+      begin
+         is_dynamicstring:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype in [st_ansistring,st_widestring,st_unicodestring]);
       end;
 
 
@@ -1191,4 +1204,11 @@ implementation
       begin
         result:=(def.typ=undefineddef);
       end;
+
+
+    function is_methodpointer(def: tdef): boolean;
+      begin
+        result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
 end.

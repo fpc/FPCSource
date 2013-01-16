@@ -66,7 +66,7 @@ implementation
     uses
        cutils,
        globals,globtype,verbose,systems,
-       fmodule,
+       fmodule, procinfo,
        symsym,
        aasmtai,aasmdata,
        defutil,
@@ -973,7 +973,7 @@ implementation
         procedure enumdef_rtti_ord2stringindex(const sym_count:longint; const offsets:plongint; const syms:Penumsym; const st:longint);
 
         var rttilab:Tasmsymbol;
-            h,i,o:longint;
+            h,i,o,prev_value:longint;
             mode:(lookup,search); {Modify with care, ordinal value of enum is written.}
             r:single;             {Must be real type because of integer overflow risk.}
 
@@ -986,10 +986,24 @@ implementation
               i:=1;
               r:=0;
               h:=syms[0].value; {Next expected enum value is min.}
+              { set prev_value for the first iteration to a value that is
+                different from the first one without risking overflow (it's used
+                to detect whether two enum values are the same) }
+              if h=0 then
+                prev_value:=1
+              else
+                prev_value:=0;
               while i<sym_count do
                 begin
+                  { if two enum values are the same, we have to create a table }
+                  if (prev_value=h) then
+                    begin
+                      mode:=search;
+                      break;
+                    end;
                   {Calculate size of hole between values. Avoid integer overflows.}
                   r:=r+(single(syms[i].value)-single(h))-1;
+                  prev_value:=h;
                   h:=syms[i].value;
                   inc(i);
                 end;
@@ -1198,6 +1212,9 @@ implementation
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1231,16 +1248,25 @@ implementation
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 end.

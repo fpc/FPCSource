@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ type
     FModes: array of IPTCMode;
     FOptionsQueue: array of string;
     FHackyOptionConsoleFlag: Boolean;
+    FUseOpenGL: Boolean;
 
     function ConsoleCreate(AIndex: Integer): IPTCConsole;
     function ConsoleCreate(const AName: string): IPTCConsole;
@@ -45,6 +46,11 @@ type
     procedure AddOptionToOptionsQueue(const AOption: string);
     procedure ExecuteOptionsFromOptionsQueue;
     procedure ClearOptionsQueue;
+
+    procedure PassOpenGLOptionsToInnerConsole;
+
+    function GetOpenGL_Enabled: Boolean; override;
+    procedure SetOpenGL_Enabled(AValue: Boolean); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -106,6 +112,9 @@ type
     function GetInformation: string; override;
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
+    procedure OpenGL_SwapBuffers; override;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
+    function OpenGL_GetSwapInterval: Integer; override;
   end;
 
 class function TPTCConsoleFactory.CreateNew: IPTCConsole;
@@ -130,36 +139,36 @@ const
     record
       ConsoleClass: class of TPTCBaseConsole;
       Names: array [1..2] of string;
+      OpenGL: Boolean;
     end =
   (
   {$IFDEF GO32V2}
-   (ConsoleClass: TVESAConsole;      Names: ('VESA', '')),
-   (ConsoleClass: TVGAConsole;       Names: ('VGA', 'Fakemode')),
-   (ConsoleClass: TCGAConsole;       Names: ('CGA', '')),
-   (ConsoleClass: TTEXTFX2Console;   Names: ('TEXTFX2', 'Text'))
+   (ConsoleClass: TVESAConsole;      Names: ('VESA', '');        OpenGL: False),
+   (ConsoleClass: TVGAConsole;       Names: ('VGA', 'Fakemode'); OpenGL: False),
+   (ConsoleClass: TCGAConsole;       Names: ('CGA', '');         OpenGL: False),
+   (ConsoleClass: TTEXTFX2Console;   Names: ('TEXTFX2', 'Text'); OpenGL: False)
   {$ENDIF GO32V2}
 
   {$IF defined(Win32) OR defined(Win64)}
-   (ConsoleClass: TDirectXConsole;   Names: ('DirectX', '')),
-   (ConsoleClass: TGDIConsole;       Names: ('GDI', ''))
+   (ConsoleClass: TDirectXConsole;   Names: ('DirectX', '');     OpenGL: False),
+   (ConsoleClass: TGDIConsole;       Names: ('GDI', '');         OpenGL: True)
   {$ENDIF defined(Win32) OR defined(Win64)}
 
   {$IFDEF WinCE}
-   (ConsoleClass: TWinCEGAPIConsole; Names: ('GAPI', '')),
-   (ConsoleClass: TWinCEGDIConsole;  Names: ('GDI', ''))
+   (ConsoleClass: TWinCEGAPIConsole; Names: ('GAPI', '');        OpenGL: False),
+   (ConsoleClass: TWinCEGDIConsole;  Names: ('GDI', '');         OpenGL: False)
   {$ENDIF WinCE}
 
   {$IFDEF UNIX}
-   (ConsoleClass: TX11Console;       Names: ('X11', ''))
+   (ConsoleClass: TX11Console;       Names: ('X11', '');         OpenGL: {$IFDEF ENABLE_X11_EXTENSION_GLX}True{$ELSE}False{$ENDIF})
   {$ENDIF UNIX}
   );
 
 constructor TPTCConsole.Create;
+{$IFDEF UNIX}
 var
-  I: Integer;
-  {$IFDEF UNIX}
   s: AnsiString;
-  {$ENDIF UNIX}
+{$ENDIF UNIX}
 begin
   inherited Create;
   FConsole := nil;
@@ -190,10 +199,8 @@ begin
 end;
 
 destructor TPTCConsole.Destroy;
-var
-  I: Integer;
 begin
-  close;
+  Close;
   FConsole := nil;
   inherited Destroy;
 end;
@@ -263,20 +270,17 @@ begin
     if Assigned(FConsole) then
     begin
       FHackyOptionConsoleFlag := True;
+      PassOpenGLOptionsToInnerConsole;
       ExecuteOptionsFromOptionsQueue;
 {      ClearOptionsQueue;}
       Result := True;
     end
     else
     begin
-      { TODO: check if the option is supported by at least one console... }
-      if {OptionSupported}True then
-      begin
-        AddOptionToOptionsQueue(AOption);
-        Result := True;
-      end
-      else
-        Result := False;
+      { TODO: check if the option is supported by at least one console and return false otherwise... }
+
+      AddOptionToOptionsQueue(AOption);
+      Result := True;
     end;
   end;
 end;
@@ -334,7 +338,7 @@ begin
       exit;
     except
       on error: TPTCError do begin
-        FreeAndNil(FConsole);
+        FConsole := nil;
         if FHackyOptionConsoleFlag then
         begin
           FHackyOptionConsoleFlag := False;
@@ -353,6 +357,7 @@ begin
         FConsole := ConsoleCreate(index);
         if FConsole = nil then
           break;
+        PassOpenGLOptionsToInnerConsole;
         ExecuteOptionsFromOptionsQueue;
         FConsole.Open(ATitle, APages);
 {        ClearOptionsQueue;}
@@ -366,7 +371,7 @@ begin
           finally
             tmp.Free;
           end;
-          FreeAndNil(FConsole);
+          FConsole := nil;
           continue;
         end;
       end;
@@ -376,7 +381,7 @@ begin
   finally
     composite.Free;
     if not success then
-      FreeAndNil(FConsole);
+      FConsole := nil;
   end;
 end;
 
@@ -394,7 +399,7 @@ begin
       exit;
     except
       on error: TPTCError do begin
-        FreeAndNil(FConsole);
+        FConsole := nil;
         if FHackyOptionConsoleFlag then
         begin
           FHackyOptionConsoleFlag := False;
@@ -413,6 +418,7 @@ begin
         FConsole := ConsoleCreate(index);
         if FConsole = nil then
           break;
+        PassOpenGLOptionsToInnerConsole;
         ExecuteOptionsFromOptionsQueue;
         FConsole.open(ATitle, AFormat, APages);
 {        ClearOptionsQueue;}
@@ -426,7 +432,7 @@ begin
           finally
             tmp.Free;
           end;
-          FreeAndNil(FConsole);
+          FConsole := nil;
           Continue;
         end;
       end;
@@ -436,7 +442,7 @@ begin
   finally
     composite.Free;
     if not success then
-      FreeAndNil(FConsole);
+      FConsole := nil;
   end;
 end;
 
@@ -454,7 +460,7 @@ begin
       exit;
     except
       on error: TPTCError do begin
-        FreeAndNil(FConsole);
+        FConsole := nil;
         if FHackyOptionConsoleFlag then
         begin
           FHackyOptionConsoleFlag := False;
@@ -473,6 +479,7 @@ begin
         FConsole := ConsoleCreate(index);
         if FConsole = nil then
           Break;
+        PassOpenGLOptionsToInnerConsole;
         ExecuteOptionsFromOptionsQueue;
         FConsole.Open(ATitle, AWidth, AHeight, AFormat, APages);
 {        ClearOptionsQueue;}
@@ -486,7 +493,7 @@ begin
           finally
             tmp.Free;
           end;
-          FreeAndNil(FConsole);
+          FConsole := nil;
           Continue;
         end;
       end;
@@ -496,7 +503,7 @@ begin
   finally
     composite.Free;
     if not success then
-      FreeAndNil(FConsole);
+      FConsole := nil;
   end;
 end;
 
@@ -514,7 +521,7 @@ begin
       exit;
     except
       on error: TPTCError do begin
-        FreeAndNil(FConsole);
+        FConsole := nil;
         if FHackyOptionConsoleFlag then
         begin
           FHackyOptionConsoleFlag := False;
@@ -533,6 +540,7 @@ begin
         FConsole := ConsoleCreate(index);
         if FConsole = nil then
           Break;
+        PassOpenGLOptionsToInnerConsole;
         ExecuteOptionsFromOptionsQueue;
         FConsole.Open(ATitle, AMode, APages);
 {        ClearOptionsQueue;}
@@ -546,7 +554,7 @@ begin
           finally
             tmp.Free;
           end;
-          FreeAndNil(FConsole);
+          FConsole := nil;
           Continue;
         end;
       end;
@@ -556,7 +564,7 @@ begin
   finally
     composite.Free;
     if not success then
-      FreeAndNil(FConsole);
+      FConsole := nil;
   end;
 end;
 
@@ -780,10 +788,19 @@ begin
 end;
 
 function TPTCConsole.ConsoleCreate(AIndex: Integer): IPTCConsole;
+var
+  ResultObj: TPTCBaseConsole;
 begin
   Result := nil;
   if (AIndex >= Low(ConsoleTypes)) and (AIndex <= High(ConsoleTypes)) then
-    Result := ConsoleTypes[AIndex].ConsoleClass.Create;
+  begin
+    if OpenGL_Enabled and not ConsoleTypes[AIndex].OpenGL then
+      raise TPTCError.Create('Console does not support OpenGL');
+
+    ResultObj := ConsoleTypes[AIndex].ConsoleClass.Create;
+    Result := ResultObj;
+    ResultObj.FOpenGLAttributes := FOpenGLAttributes;
+  end;
 
   if Result <> nil then
     Result.KeyReleaseEnabled := KeyReleaseEnabled;
@@ -802,13 +819,8 @@ begin
     for J := Low(ConsoleTypes[I].Names) to High(ConsoleTypes[I].Names) do
       if AName = ConsoleTypes[I].Names[J] then
       begin
-        Result := ConsoleTypes[I].ConsoleClass.Create;
-
-        if Result <> nil then
-        begin
-          Result.KeyReleaseEnabled := KeyReleaseEnabled;
-          exit;
-        end;
+        Result := ConsoleCreate(I);
+        exit;
       end;
 end;
 
@@ -816,4 +828,43 @@ procedure TPTCConsole.Check;
 begin
   if FConsole = nil then
     raise TPTCError.Create('console is not open (core)');
+end;
+
+procedure TPTCConsole.PassOpenGLOptionsToInnerConsole;
+begin
+  FConsole.OpenGL_Enabled := FUseOpenGL;
+end;
+
+function TPTCConsole.GetOpenGL_Enabled: Boolean;
+begin
+  if FConsole <> nil then
+    Result := FConsole.OpenGL_Enabled
+  else
+    Result := FUseOpenGL;
+end;
+
+procedure TPTCConsole.SetOpenGL_Enabled(AValue: Boolean);
+begin
+  if FConsole <> nil then
+    FConsole.OpenGL_Enabled := AValue
+  else
+    FUseOpenGL := AValue;
+end;
+
+procedure TPTCConsole.OpenGL_SwapBuffers;
+begin
+  Check;
+  FConsole.OpenGL_SwapBuffers;
+end;
+
+procedure TPTCConsole.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  Check;
+  FConsole.OpenGL_SetSwapInterval(AInterval);
+end;
+
+function TPTCConsole.OpenGL_GetSwapInterval: Integer;
+begin
+  Check;
+  Result := FConsole.OpenGL_GetSwapInterval;
 end;

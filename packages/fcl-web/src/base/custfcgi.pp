@@ -50,7 +50,7 @@ Type
 
   TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
   TFastCGIReadEvent = Function (AHandle : THandle; Var ABuf; ACount : Integer) : Integer of Object;
-  TFastCGIWriteEvent = Function (AHandle : THandle; Const ABuf; ACount : Integer) : Integer of Object;
+  TFastCGIWriteEvent = Function (AHandle : THandle; Const ABuf; ACount : Integer; Out ExtendedErrorCode : Integer) : Integer of Object;
 
   TFCGIRequest = Class(TCGIRequest)
   Private
@@ -110,7 +110,6 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
-
 {$ifdef windowspipe}
     FIsWinPipe: Boolean;
 {$endif}
@@ -127,7 +126,7 @@ Type
     function CreateRequest : TFCGIRequest; virtual;
     function CreateResponse(ARequest: TFCGIRequest) : TFCGIResponse; virtual;
     Function DoFastCGIRead(AHandle : THandle; Var ABuf; ACount : Integer) : Integer; virtual;
-    Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer) : Integer; virtual;
+    Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer; Out ExtendedErrorCode : Integer) : Integer; virtual;
     function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
     procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
     function  WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -175,7 +174,8 @@ ResourceString
   SErrReadingSocket = 'Failed to read data from socket. Error: %d';
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
-
+  SErrNoRequest     = 'Internal error: No request available when writing data';
+  
 Implementation
 
 {$ifdef CGIDEBUG}
@@ -395,8 +395,12 @@ begin
     begin
     ACgiVarNr:=HttpToCGI[Index];
     if ACgiVarNr>0 then
-      Result:=FCGIParams.Values[CgiVarNames[ACgiVarNr]]
-    else
+      begin
+        Result:=FCGIParams.Values[CgiVarNames[ACgiVarNr]];
+        if (ACgiVarNr = 5) and                                          //PATH_INFO
+           (length(Result)>=2)and(word(Pointer(@Result[1])^)=$2F2F)then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Result, 1, 1);                                         //Remove the extra first one
+      end else
       Result := '';
     end
   else
@@ -406,18 +410,25 @@ end;
 { TCGIResponse }
 procedure TFCGIResponse.Write_FCGIRecord(ARecord : PFCGI_Header);
 
-var BytesToWrite : Integer;
+var ErrorCode,
+    BytesToWrite ,
     BytesWritten  : Integer;
     P : PByte;
+    r : TFCGIRequest;
+    
 begin
+  if Not (Request is TFCGIRequest) then
+    Raise Exception.Create(SErrNorequest);
+  R:=TFCGIRequest(Request);
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
   P:=PByte(Arecord);
   Repeat
-    BytesWritten:=FOnWrite(TFCGIRequest(Request).Handle, P^, BytesToWrite);
+    BytesWritten:=FOnWrite(R.Handle, P^, BytesToWrite,ErrorCode);
     If (BytesWritten<0) then
       begin
-      // TODO : Better checking for closed connection, EINTR
-      Raise HTTPError.CreateFmt(SErrWritingSocket,[BytesWritten]);
+      // TODO : Better checking on ErrorCode
+      R.FKeepConnectionAfterRequest:=False;
+      Raise HTTPError.CreateFmt(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
     Dec(BytesToWrite,BytesWritten);
@@ -629,23 +640,30 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
   Procedure DumpFCGIRecord (Var Header :FCGI_Header; ContentLength : word; PaddingLength : byte; ResRecord : Pointer);
 
   Var
-    s : string;
+    S, s1, s2 : string;
     I : Integer;
 
   begin
-      Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
+      Writeln(Format('Dumping record, Sizeof(Header)=%d, ContentLength=%d, PaddingLength=%d',[SizeOf(Header),ContentLength,PaddingLength]));
+      S:=''; s1 := '';
       For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+      begin
+        s2 := Format('%:2X ',[PByte(ResRecord)[i]]);
+        if s2[1] = ' ' then s2[1] := '0';
+        s1 := s1 + s2;
+        If PByte(ResRecord)[i]>32 then
+          S:=S+char(PByte(ResRecord)[i])
+        else
+          S:=S+' ';
+        if (I>0) and (((I+1) mod 16) = 0) then
         begin
-        Write(Format('%:3d ',[PByte(ResRecord)[i]]));
-        If PByte(ResRecord)[i]>30 then
-          S:=S+char(PByte(ResRecord)[i]);
-        if (I mod 16) = 0 then
-           begin
-           writeln('  ',S);
-           S:='';
-           end;
+           Writeln(s1 + '  ' + S);
+           S:=''; s1 := '';
         end;
-      Writeln('  ',S)
+      end;
+      if length(s1)<48 then
+        repeat s1 := s1 + ' ' until length(s1)>=48;
+      Writeln(s1 + '  '+S)
   end;
 {$ENDIF DUMPRECORD}
 
@@ -824,14 +842,26 @@ begin
 end;
 
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
-  ACount: Integer): Integer;
+  ACount: Integer; Out ExtendedErrorCode : Integer): Integer;
 begin
   {$ifdef windowspipe}
   if FIsWinPipe then
-    Result := FileWrite(AHandle, ABuf, ACount)
+    begin
+    ExtendedErrorCode:=0;
+    Result := FileWrite(AHandle, ABuf, ACount);
+    if (Result<0) then
+      ExtendedErrorCode:=GetLastOSError;
+    end
   else
   {$endif windows}
-    Result := sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+    begin
+    Repeat
+      ExtendedErrorCode:=0;
+      Result:=sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+      if (Result<0) then
+        ExtendedErrorCode:=sockets.socketerror;
+    until (Result>=0) {$ifdef unix} or (ExtendedErrorCode<>ESysEINTR);{$endif}
+    end;
 end;
 
 function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;
@@ -932,32 +962,37 @@ begin
       SetupSocket(FIAddress,FAddressLength)
     else
       Socket:=StdInputHandle;
-  if FHandle=THandle(-1) then
-    FHandle:=AcceptConnection;
-  if FHandle=THandle(-1) then
-    begin
-    if not terminated then
+  Repeat
+    if FHandle=THandle(-1) then
+      FHandle:=AcceptConnection;
+    if FHandle=THandle(-1) then
       begin
-      Terminate;
-      raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
-      end
-    end;
-  repeat
-    If (poUseSelect in ProtocolOptions) then
-      begin
-      While Not DataAvailable do
-        If (OnIdle<>Nil) then
-          OnIdle(Self);
+      if not terminated then
+        begin
+        Terminate;
+        raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+        end
       end;
-    AFCGI_Record:=Read_FCGIRecord;
-    if assigned(AFCGI_Record) then
-    try
-      Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
-    Finally
-      FreeMem(AFCGI_Record);
-      AFCGI_Record:=Nil;
-    end;
-  until Result;
+    repeat
+      If (poUseSelect in ProtocolOptions) then
+        begin
+        While Not DataAvailable do
+          If (OnIdle<>Nil) then
+            OnIdle(Self);
+        end;
+      AFCGI_Record:=Read_FCGIRecord;
+      // If connection closed gracefully, we have nil.
+      if Not Assigned(AFCGI_Record) then
+        CloseConnection
+      else
+        try
+        Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
+        Finally
+          FreeMem(AFCGI_Record);
+          AFCGI_Record:=Nil;
+        end;
+    until Result or (FHandle=THandle(-1));
+  Until Result;
 end;
 
 { TCustomFCgiApplication }

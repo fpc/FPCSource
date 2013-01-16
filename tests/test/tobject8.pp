@@ -59,6 +59,7 @@ begin
 end;
 
 begin
+  HaltOnNotReleased:=true;
   s1 := 'string1';
   s2 := 'string2';
   s3 := 'string3';

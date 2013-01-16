@@ -139,15 +139,16 @@ var
   OldState: TDatasetState;
 begin
   FCalcBuffer := Buffer; 
-  if not IsUniDirectional and (FState <> dsInternalCalc) then
+  if FState <> dsInternalCalc then
   begin
     OldState := FState;
     FState := dsCalcFields;
     try
       ClearCalcFields(FCalcBuffer);
-      for i := 0 to FFieldList.Count - 1 do
-        if FFieldList[i].FieldKind = fkLookup then
-          FFieldList[i].CalcLookupValue;
+      if not IsUniDirectional then
+        for i := 0 to FFieldList.Count - 1 do
+          if FFieldList[i].FieldKind = fkLookup then
+            FFieldList[i].CalcLookupValue;
     finally
       DoOnCalcFields;
       FState := OldState;
@@ -404,12 +405,12 @@ begin
 {$ifdef dsdebug}
   Writeln ('Calling internal open');
 {$endif}
-  FBOF:=True;
 {$ifdef dsdebug}
   Writeln ('Calling RecalcBufListSize');
 {$endif}
   FRecordcount := 0;
   RecalcBufListSize;
+  FBOF:=True;
   FEOF := (FRecordcount = 0);
 end;
 
@@ -1543,7 +1544,7 @@ begin
 {$endif}
     DoBeforeDelete;
     DoBeforeScroll;
-    If Not TryDoing(@InternalDelete,OnPostError) then exit;
+    If Not TryDoing(@InternalDelete,OnDeleteError) then exit;
 {$ifdef dsdebug}
     writeln ('Delete: Internaldelete succeeded');
 {$endif}
@@ -2197,7 +2198,7 @@ begin
           Ev(Self,E,Retry);
         Case Retry of
           daFail : Raise;
-          daAbort : Result:=False;
+          daAbort : Abort;
         end;
         end;
     else

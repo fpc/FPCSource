@@ -1,11 +1,9 @@
 {
      File:       OSServices/Power.h
  
-     Contains:   Power Manager Interfaces.
+     Contains:   *** DEPRECATED *** Power Manager Interfaces.
  
-     Version:    OSServices-352~2
- 
-     Copyright:  © 1990-2008 by Apple Computer, Inc.  All rights reserved
+     Copyright:  (c) 1990-2011 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -221,16 +225,15 @@ const
 	sleepQType = 16;
 
 { System Activity Selectors }
-{ Notes:  The IdleActivity selector is not available unless the hasAggressiveIdling PMFeatures bit is set. }
-{         Use IdleActivity where you used to use OverallAct if necessary.  OverallAct will only            }
-{         delay power cycling if it's enabled, and will delay sleep by a small amount when                 }
-{         hasAggressiveIdling is set.  Don't use IdleActivity unless hasAggressiveIdling is set; when      }
-{         hasAggressiveIdling is not set, the use of IdleActivity is undefined, and well do different      }
-{         things depending on which Power Manager is currently running.                                    }
+{ Notes:  The IdleActivity selector is not available unless the hasAggressiveIdling PMFeatures bit is set.     }
+{ Use IdleActivity where you used to use OverallAct if necessary. OverallAct will only delay power cycling     }
+{ if it's enabled, and will delay sleep by a small amount when hasAggressiveIdling is set.  Don't use          }
+{ IdleActivity unless hasAggressiveIdling is set; when hasAggressiveIdling is not set, the use of IdleActivity }
+{ is undefined, and well do different things depending on which Power Manager is currently running.            }
 const
-	OverallAct = 0;    { Delays idle sleep by small amount                 }
-	UsrActivity = 1;    { Delays idle sleep and dimming by timeout time          }
-	NetActivity = 2;    { Delays idle sleep and power cycling by small amount         }
+	OverallAct = 0;    { Delays idle sleep by small amount                          }
+	UsrActivity = 1;    { Delays idle sleep and dimming by timeout time              }
+	NetActivity = 2;    { Delays idle sleep and power cycling by small amount        }
 	HDActivity = 3;    { Delays hard drive spindown and idle sleep by small amount  }
 	IdleActivity = 4;     { Delays idle sleep by timeout time                 }
 
@@ -245,40 +248,46 @@ type
 		sleepQFlags: SInt16;            { flags                       }
 	end;
 {
- *  NewSleepQUPP()
+ *  NewSleepQUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewSleepQUPP( userRoutine: SleepQProcPtr ): SleepQUPP; external name '_NewSleepQUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  DisposeSleepQUPP()
+ *  DisposeSleepQUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeSleepQUPP( userUPP: SleepQUPP ); external name '_DisposeSleepQUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  InvokeSleepQUPP()
+ *  InvokeSleepQUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeSleepQUPP( message: SIGNEDLONG; qRecPtr: SleepQRecPtr; userUPP: SleepQUPP ): SIGNEDLONG; external name '_InvokeSleepQUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  GetCPUSpeed()
+ *  GetCPUSpeed()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use sysctlbyname("hw.cpufrequency"). Found in <sys/sysctl.h>.
  *  
  *  Discussion:
  *    GetCPUSpeed() returns the current effective clock speed of the
@@ -288,16 +297,19 @@ function InvokeSleepQUPP( message: SIGNEDLONG; qRecPtr: SleepQRecPtr; userUPP: S
  *    the current effective clock speed of the CPU in megahertz.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetCPUSpeed: SIGNEDLONG; external name '_GetCPUSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  SleepQInstall()
+ *  SleepQInstall()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use IORegisterForSystemPower(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
  *  
  *  Discussion:
  *    Adds an entry to the sleep queue.
@@ -308,16 +320,19 @@ function GetCPUSpeed: SIGNEDLONG; external name '_GetCPUSpeed';
  *      A pointer to a sleep queue record to be installed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SleepQInstall( qRecPtr: SleepQRecPtr ); external name '_SleepQInstall';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  SleepQRemove()
+ *  SleepQRemove()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use IODeregisterForSystemPower(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
  *  
  *  Discussion:
  *    Remove an entry from the sleep queue.
@@ -328,16 +343,19 @@ procedure SleepQInstall( qRecPtr: SleepQRecPtr ); external name '_SleepQInstall'
  *      A pointer to a sleep queue record to be removed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SleepQRemove( qRecPtr: SleepQRecPtr ); external name '_SleepQRemove';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  MaximumProcessorSpeed()
+ *  MaximumProcessorSpeed()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use sysctlbyname("hw.cpufrequency_max"). Found in <sys/sysctl.h>.
  *  
  *  Discussion:
  *    MaximumProcessorSpeed() returns the maximum effective clock speed
@@ -347,16 +365,19 @@ procedure SleepQRemove( qRecPtr: SleepQRecPtr ); external name '_SleepQRemove';
  *    the maximum effective clock speed of the CPU in megahertz.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function MaximumProcessorSpeed: SInt16; external name '_MaximumProcessorSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  MinimumProcessorSpeed()
+ *  MinimumProcessorSpeed()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use sysctlbyname("hw.cpufrequency_min"). Found in <sys/sysctl.h>.
  *  
  *  Discussion:
  *    MinimumProcessorSpeed() returns the minimum effective clock speed
@@ -367,16 +388,19 @@ function MaximumProcessorSpeed: SInt16; external name '_MaximumProcessorSpeed';
  *    the minimum effective clock speed of the CPU in megahertz.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.1 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function MinimumProcessorSpeed: SInt16; external name '_MinimumProcessorSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  CurrentProcessorSpeed()
+ *  CurrentProcessorSpeed()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use sysctlbyname("hw.cpufrequency"). Found in <sys/sysctl.h>.
  *  
  *  Discussion:
  *    CurrentProcessorSpeed() returns the current effective clock speed
@@ -389,16 +413,19 @@ function MinimumProcessorSpeed: SInt16; external name '_MinimumProcessorSpeed';
  *    the current effective clock speed of the CPU in megahertz.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function CurrentProcessorSpeed: SInt16; external name '_CurrentProcessorSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  BatteryCount()
+ *  BatteryCount()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use IOPowerSources API. Found in <IOKit/ps/IOPowerSources.h>.
  *  
  *  Summary:
  *    Return the count of batteries installed on this computer.
@@ -407,21 +434,24 @@ function CurrentProcessorSpeed: SInt16; external name '_CurrentProcessorSpeed';
  *    the count of batteries installed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function BatteryCount: SInt16; external name '_BatteryCount';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
- *  UpdateSystemActivity()
+ *  UpdateSystemActivity()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use IOPMAssertionCreateWithName(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
  *  
  *  Summary:
  *    You can use the UpdateSystemActivity function to notify the Power
- *    Manager that activity has taken place .
- *  
+ *    Manager that activity has taken place.
+ *
  *  Discussion:
  *    The UpdateSystemActivity function is used to notify the Power
  *    Manager that activity has taken place and the timers used to
@@ -431,7 +461,7 @@ function BatteryCount: SInt16; external name '_BatteryCount';
  *    is taking place on a particular device. The function is passed a
  *    parameter indicating the type of activity that has
  *    occurred.
- *    
+ *
  *    This function is slightly different from DelaySystemIdle, which
  *    should be used to prevent sleep or idle during a critical
  *    section. UpdateSystemActivity simply updates the tick count for
@@ -439,27 +469,26 @@ function BatteryCount: SInt16; external name '_BatteryCount';
  *    moves the counter to some number of ticks into the future, which
  *    allows the caller to go off and do somethingwithout fear of
  *    idling.
- *    
+ *
  *    The valid types of activity are:
  *    Value Name       Value        Description
  *    OverallAct       0            general type of activity
- *     UsrActivity      1            user activity (i.e.keyboard or
- *    mouse)
+ *    UsrActivity      1            user activity (i.e.keyboard or mouse)
  *    NetActivity      2            interaction with network(s)
- *     HDActivity       3            hard disk or storage device in use
- *  
+ *    HDActivity       3            hard disk or storage device in use
+ *
  *  Parameters:
- *    
+ *
  *    activity:
  *      The type of activity which has occurred.
- *  
+ *
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function UpdateSystemActivity( activity: UInt8 ): OSErr; external name '_UpdateSystemActivity';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_8,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {*********************************************************************************************
@@ -532,7 +561,7 @@ type
 	PowerLevel = UInt32;
 { Power levels corresponding to PCI Bus Power Management Interface Spec (PMIS) }
 const
-	kPMDevicePowerLevel_On = 0;    { fully-powered 'On' state (D0 state)    }
+	kPMDevicePowerLevel_On = 0;    { fully-powered 'On' state (D0 state) }
 	kPMDevicePowerLevel_D1 = 1;    { not used by Apple system SW         }
 	kPMDevicePowerLevel_D2 = 2;    { not used by Apple system SW         }
 	kPMDevicePowerLevel_Off = 3;     { main PCI bus power 'Off', but PCI standby power available (D3cold state) }
@@ -829,7 +858,7 @@ type
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 procedure SetSpindownDisable( setDisable: Boolean ); external name '_SetSpindownDisable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -841,7 +870,7 @@ procedure SetSpindownDisable( setDisable: Boolean ); external name '_SetSpindown
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function PMSelectorCount: SInt16; external name '_PMSelectorCount';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -853,7 +882,7 @@ function PMSelectorCount: SInt16; external name '_PMSelectorCount';
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function PMFeatures: UInt32; external name '_PMFeatures';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -865,7 +894,7 @@ function PMFeatures: UInt32; external name '_PMFeatures';
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function SetProcessorSpeed( fullSpeed: Boolean ): Boolean; external name '_SetProcessorSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -877,7 +906,7 @@ function SetProcessorSpeed( fullSpeed: Boolean ): Boolean; external name '_SetPr
  *    Non-Carbon CFM:   in PowerMgrLib 1.0 and later
  }
 function FullProcessorSpeed: Boolean; external name '_FullProcessorSpeed';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {  The following constants, structures, and functions have all been deprecated on Mac OS X and are not recommended for use.}
@@ -1528,62 +1557,67 @@ procedure SetDimSuspendState( dimSuspendState: Boolean ); external name '_SetDim
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewHDSpindownUPP( userRoutine: HDSpindownProcPtr ): HDSpindownUPP; external name '_NewHDSpindownUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  NewPMgrStateChangeUPP()
+ *  NewPMgrStateChangeUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewPMgrStateChangeUPP( userRoutine: PMgrStateChangeProcPtr ): PMgrStateChangeUPP; external name '_NewPMgrStateChangeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  DisposeHDSpindownUPP()
+ *  DisposeHDSpindownUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeHDSpindownUPP( userUPP: HDSpindownUPP ); external name '_DisposeHDSpindownUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  DisposePMgrStateChangeUPP()
+ *  DisposePMgrStateChangeUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposePMgrStateChangeUPP( userUPP: PMgrStateChangeUPP ); external name '_DisposePMgrStateChangeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  InvokeHDSpindownUPP()
+ *  InvokeHDSpindownUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
-procedure InvokeHDSpindownUPP( theElement: HDQueueElementPtr; userUPP: HDSpindownUPP ); external name '_InvokeHDSpindownUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure InvokeHDSpindownUPP( var theElement: HDQueueElement; userUPP: HDSpindownUPP ); external name '_InvokeHDSpindownUPP';
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {
- *  InvokePMgrStateChangeUPP()
+ *  InvokePMgrStateChangeUPP()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokePMgrStateChangeUPP( var theElement: PMgrQueueElement; stateBits: SIGNEDLONG; userUPP: PMgrStateChangeUPP ); external name '_InvokePMgrStateChangeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5,__IPHONE_NA,__IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

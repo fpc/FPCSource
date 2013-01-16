@@ -3,9 +3,9 @@
  
      Contains:   QuickTime Image Compression Interfaces.
  
-     Version:    QuickTime 7.6.3
+     Version:    QuickTime 7.7.1
  
-     Copyright:  © 1990-2008 by Apple Inc., all rights reserved
+     Copyright:  © 1990-2012 by Apple Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -224,11 +230,15 @@ const
 	kDVCProPALCodecType = FourCharCode('dvpp'); { available in QuickTime 6.0 or later}
 	kDVCPro50NTSCCodecType = FourCharCode('dv5n');
 	kDVCPro50PALCodecType = FourCharCode('dv5p');
+	kDVCPROHD720p60CodecType = FourCharCode('dvhp');
+	kDVCPROHD720p50CodecType = FourCharCode('dvhq');
+	kDVCPROHD720pCodecType = kDVCPROHD720p60CodecType;
 	kDVCPro100NTSCCodecType = FourCharCode('dv1n');
 	kDVCPro100PALCodecType = FourCharCode('dv1p');
-	kDVCPROHD720pCodecType = FourCharCode('dvhp');
 	kDVCPROHD1080i60CodecType = FourCharCode('dvh6');
 	kDVCPROHD1080i50CodecType = FourCharCode('dvh5');
+	kDVCPROHD1080p30CodecType = FourCharCode('dvh3');
+	kDVCPROHD1080p25CodecType = FourCharCode('dvh2');
 	kBaseCodecType = FourCharCode('base');
 	kFLCCodecType = FourCharCode('flic');
 	kTargaCodecType = FourCharCode('tga ');
@@ -2308,8 +2318,8 @@ type
                                               { new field for QuickTime 4.1}
 		defaultGammaLevel: Fixed;
                                               { new fields for QuickTime 6.0}
-		horizontalSubsampling:	array [0..13] of SInt16; { per plane; use 1 if plane is not subsampled}
-		verticalSubsampling:	array [0..13] of SInt16; { per plane; use 1 if plane is not subsampled}
+		horizontalSubsampling: array [0..13] of SInt16; { per plane; use 1 if plane is not subsampled}
+		verticalSubsampling: array [0..13] of SInt16; { per plane; use 1 if plane is not subsampled}
                                               { new fields for QuickTime 6.5}
 		cmpCount: SInt16;               { for use in PixMap.cmpCount}
 		cmpSize: SInt16;                { for use in PixMap.cmpSize}
@@ -3722,6 +3732,9 @@ function GraphicsImportGetImageDescription( ci: GraphicsImportComponent; var des
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
 function GraphicsImportGetDataOffsetAndSize( ci: GraphicsImportComponent; var offset: UNSIGNEDLONG; var size: UNSIGNEDLONG ): ComponentResult; external name '_GraphicsImportGetDataOffsetAndSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  GraphicsImportReadData()
  *  
@@ -3992,6 +4005,9 @@ function GraphicsImportSetDataReferenceOffsetAndLimit( ci: GraphicsImportCompone
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
 function GraphicsImportGetDataReferenceOffsetAndLimit( ci: GraphicsImportComponent; var offset: UNSIGNEDLONG; var limit: UNSIGNEDLONG ): ComponentResult; external name '_GraphicsImportGetDataReferenceOffsetAndLimit';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  GraphicsImportGetAliasedDataReference()
  *  
@@ -6840,7 +6856,8 @@ const
  *    in.
  }
 type
-	ICMDecompressionSessionRef = ^SInt32; { an opaque type }
+	ICMDecompressionSessionRef = ^OpaqueICMDecompressionSession; { an opaque type }
+	OpaqueICMDecompressionSession = record end;
 
 {
  *  QTVisualContextRef
@@ -6854,7 +6871,8 @@ type
  *    not be associated with more than one movie at a time.
  }
 type
-	QTVisualContextRef = ^SInt32; { an opaque type }
+	QTVisualContextRef = ^OpaqueQTVisualContext; { an opaque type }
+	OpaqueQTVisualContext = record end;
 
 {
  *  ICMDecompressionSessionOptionsRef
@@ -6863,7 +6881,8 @@ type
  *    Holds options for a decompression session.
  }
 type
-	ICMDecompressionSessionOptionsRef = ^SInt32; { an opaque type }
+	ICMDecompressionSessionOptionsRef = ^OpaqueICMDecompressionSessionOptions; { an opaque type }
+	OpaqueICMDecompressionSessionOptions = record end;
 
 {
  *  ICMDecompressionFrameOptionsRef
@@ -6872,7 +6891,8 @@ type
  *    Holds options for decompressing an individual frame.
  }
 type
-	ICMDecompressionFrameOptionsRef = ^SInt32; { an opaque type }
+	ICMDecompressionFrameOptionsRef = ^OpaqueICMDecompressionFrameOptions; { an opaque type }
+	OpaqueICMDecompressionFrameOptions = record end;
 
 {
  *  ICMDecompressionTrackingFlags
@@ -7763,7 +7783,8 @@ const
  *    B-frame capable.
  }
 type
-	ICMCompressionSessionRef = ^SInt32; { an opaque type }
+	ICMCompressionSessionRef = ^OpaqueICMCompressionSession; { an opaque type }
+	OpaqueICMCompressionSession = record end;
 
 {
  *  ICMEncodedFrameRef
@@ -7779,9 +7800,11 @@ type
  *    (ICMMutableEncodedFrameRef).
  }
 type
-	ICMEncodedFrameRef = ^SInt32; { an opaque type }
+	ICMEncodedFrameRef = ^OpaqueICMEncodedFrame; { an opaque type }
+	OpaqueICMEncodedFrame = record end;
 	ICMEncodedFrameRefPtr = ^ICMEncodedFrameRef;
-	ICMMutableEncodedFrameRef = ^SInt32; { an opaque type }
+	ICMMutableEncodedFrameRef = ^OpaqueICMMutableEncodedFrameRef; { an opaque type }
+	OpaqueICMMutableEncodedFrameRef = record end;
 	ICMMutableEncodedFrameRefPtr = ^ICMMutableEncodedFrameRef;
 
 {
@@ -7792,7 +7815,8 @@ type
  *    session.
  }
 type
-	ICMCompressionSessionOptionsRef = ^SInt32; { an opaque type }
+	ICMCompressionSessionOptionsRef = ^OpaqueICMCompressionSessionOptions; { an opaque type }
+	OpaqueICMCompressionSessionOptions = record end;
 
 {
  *  ICMCompressionFrameOptionsRef
@@ -7802,7 +7826,8 @@ type
  *    during a compression session.
  }
 type
-	ICMCompressionFrameOptionsRef = ^SInt32; { an opaque type }
+	ICMCompressionFrameOptionsRef = ^OpaqueICMCompressionFrameOptions; { an opaque type }
+	OpaqueICMCompressionFrameOptions = record end;
 
 {
  *  ICMMultiPassStorageRef
@@ -7816,7 +7841,8 @@ type
  *    files, but clients may override this with custom mechanisms.
  }
 type
-	ICMMultiPassStorageRef = ^SInt32; { an opaque type }
+	ICMMultiPassStorageRef = ^OpaqueICMMultiPassStorage; { an opaque type }
+	OpaqueICMMultiPassStorage = record end;
 
 {
  *  ICMEncodedFrameOutputCallback
@@ -10358,7 +10384,8 @@ function ICMEncodedFrameGetSourceFrameRefCon( frame: ICMEncodedFrameRef ): UnivP
  *    need to make any retain or release calls on this token.
  }
 type
-	ICMCompressorSessionRef = ^SInt32; { an opaque type }
+	ICMCompressorSessionRef = ^OpaqueICMCompressorSession; { an opaque type }
+	OpaqueICMCompressorSession = record end;
 
 {
  *  ICMCompressorSourceFrameRef
@@ -10372,7 +10399,8 @@ type
  *    retain a window of them in order to perform out-of-order encoding.
  }
 type
-	ICMCompressorSourceFrameRef = ^SInt32; { an opaque type }
+	ICMCompressorSourceFrameRef = ^OpaqueICMCompressorSourceFrame; { an opaque type }
+	OpaqueICMCompressorSourceFrame = record end;
 	ICMCompressorSourceFrameRefPtr = ^ICMCompressorSourceFrameRef;
 {
  *  ICMCompressorSourceFrameRetain()

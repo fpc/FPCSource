@@ -11,26 +11,31 @@ uses
   fpcunit,  testreport, testregistry,
   DigestTestReport,
   toolsunit,
-// List of supported database-connectors
+// List of supported database connectors
   sqldbtoolsunit,
   dbftoolsunit,
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
-// Units wich contains the tests
+  tcsdfdata,
+// Units wich contain the tests
   TestBasics,
   TestFieldTypes,
   TestDatasources,
   TestDBBasics,
   TestBufDatasetStreams,
-  TestSpecificTBufDataset;
+  TestSpecificTBufDataset,
+  TestDBExport,
+  consoletestrunner;
+
+Procedure LegacyOutput;
 
 var
   FXMLResultsWriter: TXMLResultsWriter;
   FDigestResultsWriter: TDigestResultsWriter;
   testResult: TTestResult;
+
 begin
-  InitialiseDBConnector;
   testResult := TTestResult.Create;
   FXMLResultsWriter := TXMLResultsWriter.Create;
   FDigestResultsWriter := TDigestResultsWriter.Create(nil);
@@ -49,5 +54,30 @@ begin
     FXMLResultsWriter.Free;
     FDigestResultsWriter.Free;
   end;
-  FreeDBConnector;
+end;
+  
+Var
+  Application : TTestRunner;  
+  
+begin
+  InitialiseDBConnector;
+  Try
+    Application:=TTestRunner.Create(nil);
+    With Application do
+      try
+        if HasOption('g','legacy') then
+          LegacyOutput
+        else
+          begin  
+          DefaultFormat:=fplain;
+          DefaultRunAllTests:=True;
+          Initialize;
+          Run;
+          end;
+      finally
+        Free;
+      end;
+  Finally    
+    FreeDBConnector;
+  end;  
 end.

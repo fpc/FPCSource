@@ -163,7 +163,7 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
+            new_section(current_asmdata.asmlists[al_const],sec_rodata_norel,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
               valuelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage,False)

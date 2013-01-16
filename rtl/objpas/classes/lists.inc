@@ -154,7 +154,7 @@ end;
 
 class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPList.Exchange(Index1, Index2: Integer);
@@ -606,6 +606,12 @@ end;
 
 procedure TList.Notify(Ptr: Pointer; Action: TListNotification);
 begin
+   if Assigned(FObservers) then
+     Case ACtion of
+       lnAdded     : FPONotifyObservers(Self,ooAddItem,Ptr);
+       lnExtracted : FPONotifyObservers(Self,ooDeleteItem,Ptr);
+       lnDeleted   : FPONotifyObservers(Self,ooDeleteItem,Ptr);
+     end;
 end;
 
 function TList.GetCapacity: integer;
@@ -640,10 +646,59 @@ end;
 
 destructor TList.Destroy;
 begin
-  If (Flist<>Nil) then
+  if Assigned(Flist) then
     Clear;
+  If Assigned(FObservers) then
+    begin
+    FPONotifyObservers(Self,ooFree,Nil);
+    FreeAndNil(FObservers);
+    end;
   FreeAndNil(FList);
   inherited Destroy;
+end;
+
+procedure TList.FPOAttachObserver(AObserver: TObject);
+
+Var
+   I : IFPObserver;
+
+begin
+  If Not AObserver.GetInterface(SGUIDObserver,I) then
+    Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
+  If not Assigned(FObservers) then
+    FObservers:=TFPList.Create;
+  FObservers.Add(I);
+end;
+
+procedure TList.FPODetachObserver(AObserver: TObject);
+Var
+  I : IFPObserver;
+
+begin
+  If Not AObserver.GetInterface(SGUIDObserver,I) then
+    Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
+  If Assigned(FObservers) then
+    begin
+    FObservers.Remove(I);
+    If (FObservers.Count=0) then
+      FreeAndNil(FObservers);
+    end;
+end;
+
+procedure TList.FPONotifyObservers(ASender: TObject;
+  AOperation: TFPObservedOperation; Data : Pointer);
+
+Var
+  I : Integer;
+  Obs : IFPObserver;
+
+begin
+  If Assigned(FObservers) then
+    For I:=FObservers.Count-1 downto 0 do
+      begin
+      Obs:=IFPObserver(FObservers[i]);
+      Obs.FPOObservedChanged(ASender,AOperation,Data);
+      end;
 end;
 
 function TList.Add(Item: Pointer): Integer;
@@ -664,14 +719,13 @@ begin
   for I := 0 to AList.Count - 1 do
     if AList[I] <> nil then
       Notify(AList[I], lnAdded);
-end;            
+end;
 
 procedure TList.Clear;
 
 begin
-  If Assigned(Flist) then
-    While (FList.Count>0) do
-      Delete(Count-1);
+  While (FList.Count>0) do
+    Delete(Count-1);
 end;
 
 procedure TList.Delete(Index: Integer);
@@ -681,17 +735,19 @@ var P : pointer;
 begin
   P:=FList.Get(Index);
   FList.Delete(Index);
-  if assigned(p) then Notify(p, lnDeleted);
+  if assigned(p) then
+    Notify(p, lnDeleted);
 end;
 
 class procedure TList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);
 begin
   FList.Exchange(Index1, Index2);
+  FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 function TList.Expand: TList;

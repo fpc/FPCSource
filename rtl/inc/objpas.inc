@@ -610,9 +610,6 @@
 
       procedure TObject.DispatchStr(var message);
 
-        type
-           PSizeUInt = ^SizeUInt;
-
         var
            name : shortstring;
            count,i : longint;
@@ -662,62 +659,18 @@
 
       procedure TObject.CleanupInstance;
 
-        Type
-          TRecElem = packed Record
-            Info : Pointer;
-            Offset : Longint;
-          end;
-
-{$ifdef CPU16}
-          TRecElemArray = packed array[1..Maxint div sizeof(TRecElem)-1] of TRecElem;
-{$else CPU16}
-          TRecElemArray = packed array[1..Maxint] of TRecElem;
-{$endif CPU16}
-
-          PRecRec = ^TRecRec;
-          TRecRec = record
-            Size,Count : Longint;
-            Elements : TRecElemArray;
-          end;
-
         var
            vmt  : PVmt;
-           temp : pbyte;
-           count,
-           i    : longint;
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-           recelem  : TRecElem;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+           temp : pointer;
         begin
            vmt := PVmt(ClassType);
            while vmt<>nil do
              begin
-               { This need to be included here, because Finalize()
-                 has should support for tkClass }
                Temp:= vmt^.vInitTable;
+               { The RTTI format matches one for records, except the type is tkClass.
+                 Since RecordRTTI does not check the type, calling it yields the desired result. }
                if Assigned(Temp) then
-                 begin
-                   inc(Temp);
-                   I:=Temp^;
-                   inc(temp,I+1);                // skip name string;
-                   temp:=aligntoptr(temp);
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-                   move(PRecRec(Temp)^.Count,Count,sizeof(Count));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-                   Count:=PRecRec(Temp)^.Count;  // get element Count
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-                   For I:=1 to count do
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-                     begin
-                       move(PRecRec(Temp)^.elements[I],RecElem,sizeof(RecElem));
-                       With RecElem do
-                         int_Finalize (pointer(self)+Offset,Info);
-                     end;
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-                     With PRecRec(Temp)^.elements[I] do
-                       int_Finalize (pointer(self)+Offset,Info);
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-                 end;
+                 RecordRTTI(Self,Temp,@int_finalize);
                vmt:= vmt^.vParent;
              end;
         end;

@@ -415,7 +415,7 @@ type
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
-    property ValidChars : TFieldChars Read FValidChars;
+    property ValidChars : TFieldChars read FValidChars write FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;
@@ -633,12 +633,14 @@ type
     procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
     function GetAsLongint: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -820,6 +822,7 @@ type
     function GetAsBCD: TBCD; override;
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
@@ -828,6 +831,7 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
@@ -1064,10 +1068,10 @@ type
 
 { TFields }
 
-  Tfields = Class(TObject)
+  TFields = Class(TObject)
     Private
       FDataset : TDataset;
-      FFieldList : TList;
+      FFieldList : TFpList;
       FOnChange : TNotifyEvent;
       FValidFieldKinds : TFieldKinds;
     Protected
@@ -1231,8 +1235,8 @@ type
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1584,10 +1588,10 @@ type
     procedure EnableControls;
     function FieldByName(const FieldName: string): TField;
     function FindField(const FieldName: string): TField;
-    function FindFirst: Boolean;
-    function FindLast: Boolean;
-    function FindNext: Boolean;
-    function FindPrior: Boolean;
+    function FindFirst: Boolean; virtual;
+    function FindLast: Boolean; virtual;
+    function FindNext: Boolean; virtual;
+    function FindPrior: Boolean; virtual;
     procedure First;
     procedure FreeBookmark(ABookmark: TBookmark); virtual;
     function GetBookmark: TBookmark; virtual;
@@ -1760,6 +1764,22 @@ type
     property OnMasterDisable: TNotifyEvent read FOnMasterDisable write FOnMasterDisable;
   end;
 
+{ TMasterParamsDataLink }
+
+  TMasterParamsDataLink = Class(TMasterDataLink)
+  Private
+    FParams : TParams;
+    Procedure SetParams(AValue : TParams);
+  Protected
+    Procedure DoMasterDisable; override;
+    Procedure DoMasterChange; override;
+  Public
+    constructor Create(ADataSet: TDataSet); override;
+    Procedure RefreshParamNames; virtual;
+    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
+    Property Params : TParams Read FParams Write SetParams;
+  end;
+
 { TDataSource }
 
   TDataChangeEvent = procedure(Sender: TObject; Field: TField) of object;
@@ -1800,7 +1820,7 @@ type
     property OnUpdateData: TNotifyEvent read FOnUpdateData write FOnUpdateData;
   end;
 
- { TDBDataset }
+  { TDBDataset }
 
   TDBDatasetClass = Class of TDBDataset;
   TDBDataset = Class(TDataset)
@@ -1817,7 +1837,7 @@ type
       Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     end;
 
- { TDBTransaction }
+  { TDBTransaction }
 
   TDBTransactionClass = Class of TDBTransaction;
   TDBTransaction = Class(TComponent)
@@ -1852,7 +1872,7 @@ type
     property Active : boolean read FActive write setactive;
   end;
 
-    { TCustomConnection }
+  { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
 
@@ -1950,20 +1970,6 @@ type
     property Params : TStrings read FParams Write SetParams;
   end;
 
-
-  TMasterParamsDataLink = Class(TMasterDataLink)
-  Private
-    FParams : TParams;
-    Procedure SetParams(AVAlue : TParams);  
-  Protected  
-    Procedure DoMasterDisable; override;
-    Procedure DoMasterChange; override;
-  Public
-    constructor Create(ADataSet: TDataSet); override;
-    Procedure RefreshParamNames; virtual;
-    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
-    Property Params : TParams Read FParams Write SetParams;  
-  end;
 
 const
   FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,

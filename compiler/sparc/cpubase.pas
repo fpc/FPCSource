@@ -237,6 +237,8 @@ uses
 
       PARENT_FRAMEPOINTER_OFFSET = 68; { o0 }
 
+      NR_DEFAULTFLAGS = NR_PSR;
+      RS_DEFAULTFLAGS = RS_PSR;
 
 {*****************************************************************************
                        GCC /ABI linking information

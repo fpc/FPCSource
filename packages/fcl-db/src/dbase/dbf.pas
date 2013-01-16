@@ -1724,6 +1724,7 @@ var
 begin
   if FCursor = nil then
   begin
+    CheckActive;
     Result := false;
     exit;
   end;
@@ -1757,7 +1758,7 @@ var
   var
     sCompare: String;
   begin
-    if (Field.DataType = ftString) then
+    if (Field.DataType in [ftString,ftWideString]) then
     begin
       sCompare := VarToStr(varCompare);
       if loCaseInsensitive in Options then
@@ -1784,6 +1785,8 @@ var
       end;
     end
     else
+      // Not a string; could be date, integer etc.
+      // Follow e.g. FPC bufdataset by searching for equal  
       Result := Field.Value = varCompare;
   end;
 
@@ -1847,7 +1850,9 @@ var
   lTempBuffer: array [0..100] of Char;
   acceptable, checkmatch: boolean;
 begin
-  if loPartialKey in Options then
+  // Only honor loPartialKey for string types; for others, search for equal
+  if (loPartialKey in Options) and
+    (TIndexCursor(FCursor).IndexFile.KeyType='C') then
     searchFlag := stGreaterEqual
   else
     searchFlag := stEqual;

@@ -3,7 +3,7 @@
  
      Contains:   Interfaces for Multilingual Text Engine (MLTE)
  
-     Version:    HIToolbox-437~1
+     Version:    HIToolbox-624~3
  
      Copyright:  © 1996-2008 by Apple Computer, Inc., all rights reserved.
  
@@ -15,6 +15,7 @@
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -90,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +101,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +117,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +138,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -190,7 +196,8 @@ uses MacTypes,CFBase,CFURL,CFArray,CFData,CFString,CFDictionary,CGBase,AEDataMod
 {  ¥ Various Defs                                                                                      }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 type
-	TXNObject = ^SInt32; { an opaque type }
+	TXNObject = ^OpaqueTXNObject; { an opaque type }
+	OpaqueTXNObject = record end;
 	TXNObjectPtr = ^TXNObject;  { when a var xx:TXNObject parameter can be nil, it is changed to xx: TXNObjectPtr }
 type
 	TXNVersionValue = UInt32;
@@ -5458,7 +5465,8 @@ function TXNGetAccessibilityHIObject( iTXNObject: TXNObject; var oHIObjectRef: H
 { Deprecated Font Menu support on Mac OS X version 10.5 and later, use Font Panel instead              }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 type
-	TXNFontMenuObject = ^SInt32; { an opaque type }
+	TXNFontMenuObject = ^OpaqueTXNFontMenuObject; { an opaque type }
+	OpaqueTXNFontMenuObject = record end;
 	TXNFontMenuObjectPtr = ^TXNFontMenuObject;  { when a var xx:TXNFontMenuObject parameter can be nil, it is changed to xx: TXNFontMenuObjectPtr }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kTXNFontMenuRefKey CFSTRP('FontMenuRef')}

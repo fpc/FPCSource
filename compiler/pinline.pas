@@ -159,6 +159,16 @@ implementation
             destructorpos:=current_tokenpos;
             consume(_ID);
 
+            if is_typeparam(p.resultdef) then
+              begin
+                 p.free;
+                 p:=factor(false,false);
+                 p.free;
+                 consume(_RKLAMMER);
+                 new_dispose_statement:=cnothingnode.create;
+                 exit;
+              end;
+
             if (p.resultdef.typ<>pointerdef) then
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
@@ -278,8 +288,18 @@ implementation
           begin
              if (p.resultdef.typ<>pointerdef) then
                Begin
-                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
-                  new_dispose_statement:=cerrornode.create;
+                 if is_typeparam(p.resultdef) then
+                   begin
+                      p.free;
+                      consume(_RKLAMMER);
+                      new_dispose_statement:=cnothingnode.create;
+                      exit;
+                   end
+                 else
+                   begin
+                     Message1(type_e_pointer_type_expected,p.resultdef.typename);
+                     new_dispose_statement:=cerrornode.create;
+                   end;
                end
              else
                begin

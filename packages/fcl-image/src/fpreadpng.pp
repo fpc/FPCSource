@@ -404,22 +404,21 @@ function TFPReaderPNG.CalcColor: TColorData;
 var cd : longword;
     r : word;
     b : byte;
+    tmp : pbytearray;
 begin
   if UsingBitGroup = 0 then
     begin
     Databytes := 0;
     if Header.BitDepth = 16 then
       begin
-      r := 1;
-      while (r < ByteWidth) do
-        begin
-        b := FCurrentLine^[Dataindex+r];
-        FCurrentLine^[Dataindex+r] := FCurrentLine^[Dataindex+r-1];
-        FCurrentLine^[Dataindex+r-1] := b;
-        inc (r,2);
-        end;
-      end;
-    move (FCurrentLine^[DataIndex], Databytes, bytewidth);
+       getmem(tmp, bytewidth);
+       fillchar(tmp^, bytewidth, 0);
+       for r:=0 to bytewidth-2 do
+        tmp^[r+1]:=FCurrentLine^[Dataindex+r];
+       move (tmp^[0], Databytes, bytewidth);
+       freemem(tmp);
+      end
+    else move (FCurrentLine^[DataIndex], Databytes, bytewidth);
     {$IFDEF ENDIAN_BIG}
     Databytes:=swap(Databytes);
     {$ENDIF}
@@ -743,27 +742,30 @@ procedure TFPReaderPNG.DoDecompress;
         end
       else
         l := ScanLineLength[rp]*ByteWidth;
-      GetMem (FPreviousLine, l);
-      GetMem (FCurrentLine, l);
-      fillchar (FCurrentLine^,l,0);
-      try
-        for ry := 0 to CountScanlines[rp]-1 do
-          begin
-          FSwitchLine := FCurrentLine;
-          FCurrentLine := FPreviousLine;
-          FPreviousLine := FSwitchLine;
-          Y := CalcY(ry);
-          Decompress.Read (lf, sizeof(lf));
-          Decompress.Read (FCurrentLine^, l);
-          if lf <> 0 then  // Do nothing when there is no filter used
-            for rx := 0 to l-1 do
-              FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
-          HandleScanLine (y, FCurrentLine);
-          end;
-      finally
-        freemem (FPreviousLine);
-        freemem (FCurrentLine);
-      end;
+      if (l>0) then
+        begin
+        GetMem (FPreviousLine, l);
+        GetMem (FCurrentLine, l);
+        fillchar (FCurrentLine^,l,0);
+        try
+          for ry := 0 to CountScanlines[rp]-1 do
+            begin
+            FSwitchLine := FCurrentLine;
+            FCurrentLine := FPreviousLine;
+            FPreviousLine := FSwitchLine;
+            Y := CalcY(ry);
+            Decompress.Read (lf, sizeof(lf));
+            Decompress.Read (FCurrentLine^, l);
+            if lf <> 0 then  // Do nothing when there is no filter used
+              for rx := 0 to l-1 do
+                FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
+            HandleScanLine (y, FCurrentLine);
+            end;
+        finally
+          freemem (FPreviousLine);
+          freemem (FCurrentLine);
+        end;
+        end;
       end;
   end;
 

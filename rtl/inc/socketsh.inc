@@ -205,8 +205,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);deprecated;
 
 { Utility routines}
-function htonl( host : longint):longint; inline;
-Function NToHl( Net : Longint) : Longint; inline;
+function htonl( host : longint):longint; inline; overload;deprecated;
+Function NToHl( Net : longint):longint; inline; overload;deprecated;
+function htonl( host : cardinal):cardinal; inline; overload;
+Function NToHl( Net : cardinal):cardinal; inline; overload;
 function htons( host : word):word; inline;
 Function NToHs( Net : word):word; inline;
 

@@ -223,20 +223,25 @@ implementation
               end
             else
               begin
-                hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                if nodetype = shln then
+                { shr 0 or shl 0 are noops, but generate wrong code below,
+                  so only add code if shift val is non-zero }
+                if (shiftval <> 0) then
                   begin
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
-                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
-                  end
-                else
-                  begin
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
-                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
+                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    if nodetype = shln then
+                      begin
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
+                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
+                      end
+                    else
+                      begin
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
+                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
+                      end;
                   end;
                 location.register64.reghi:=hreg64hi;
                 location.register64.reglo:=hreg64lo;
@@ -293,6 +298,10 @@ implementation
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
             current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
+
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081306);
+
             maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
             hl:=current_procinfo.CurrTrueLabel;
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;

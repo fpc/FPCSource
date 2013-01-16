@@ -3,7 +3,7 @@
 ; Select here which section has to be used currently, 
 ; i.e. which database you want to use
 [Database]
-type=interbase
+type=bufdataset
 
 
 ; These sections are for the several SQLDB-types of databases:
@@ -59,6 +59,24 @@ user=root
 password=
 hostname=127.0.0.1
 
+; MySQL 5.1 database:
+[mysql51]
+connector=sql
+connectorparams=mysql51
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+; MySQL 5.5 database:
+[mysql55]
+connector=sql
+connectorparams=mysql55
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
 ; Oracle database:
 [oracle]
 connector=sql
@@ -78,6 +96,23 @@ name=/opt/firebird/data/testdb.fdb
 user=sysdba
 password=masterkey
 hostname=localhost
+
+; Firebird embedded
+; Same as Firebird, except we leave the host name blank
+; and specify a db without path.
+; Make sure your Firebird embedded library files (.dll/.so/.dylib)
+; are installed; e.g. on Windows, you can put them in this
+; directory.
+; Test code will create db if it doesn't exist; you can
+; delete an existing db file before the test to start
+; fresh.
+[firebirdembedded]
+connector=sql
+connectorparams=interbase
+name=fbembedtest.fdb
+user=sysdba
+password=masterkey
+hostname=
 
 ; ODBC database:
 [odbc]
@@ -99,8 +134,27 @@ name=test.db
 connector=sql
 connectorparams=mssql
 name=pubs
+; If you want to use trusted authentication/SSPI, leave
+; user and password blank
 user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=mssqlserver:1433
+; You can also specify the instance after a backslash, e.g.
+; hostname=127.0.0.1\SQLEXPRESS
+; See mssqlconn documentation
+hostname=127.0.0.1
+
+; Sybase ASE database
+[sybase]
+connector=sql
+connectorparams=sybase
+name=testdb
+user=sa
+password=
+; You can specify the port after a colon, e.g.
+; hostname=bigbadserver:5000
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; TDBf: DBase/FoxPro database:
@@ -117,3 +171,9 @@ connector=memds
 ; BufDataset in memory dataset:
 [bufdataset]
 connector=bufdataset
+
+; sdfdataset file-based dataset:
+[sdfdataset]
+connector=sdfds
+; subdirectory for the sdf files:
+name=sdftest

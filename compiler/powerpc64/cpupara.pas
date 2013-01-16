@@ -40,7 +40,7 @@ type
     function push_addr_param(varspez: tvarspez; def: tdef; calloption:
       tproccalloption): boolean; override;
 
-    procedure getintparaloc(calloption: tproccalloption; nr: longint; def: tdef; var cgpara: tcgpara); override;
+    procedure getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
     function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
       tvarargsparalist): longint; override;
@@ -77,14 +77,16 @@ begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tppcparamanager.getintparaloc(calloption: tproccalloption; nr: longint; def : tdef; var cgpara: tcgpara);
+procedure tppcparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
+  def: tdef;
 begin
+  def:=tparavarsym(pd.paras[nr-1]).vardef;
   cgpara.reset;
   cgpara.size := def_cgsize(def);
   cgpara.intsize := tcgsize2size[cgpara.size];
-  cgpara.alignment := get_para_align(calloption);
+  cgpara.alignment := get_para_align(pd.proccalloption);
   cgpara.def:=def;
   paraloc := cgpara.add_location;
   with paraloc^ do begin
@@ -427,7 +429,10 @@ begin
         else begin
           { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
           paraloc^.reference.index := NR_OLD_STACK_POINTER_REG;
-          tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+          { create_paraloc_info_intern might be also called when being outside of
+            code generation so current_procinfo might be not set }
+          if assigned(current_procinfo) then
+            tppcprocinfo(current_procinfo).needs_frame_pointer := true;
         end;
         paraloc^.reference.offset := stack_offset;
 

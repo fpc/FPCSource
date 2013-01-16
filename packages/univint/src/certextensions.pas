@@ -22,7 +22,8 @@
  *
  * CertExtensions.h -- X.509 Cert Extensions as C structs
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -98,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -107,6 +109,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +125,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -141,6 +146,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -260,6 +266,7 @@ type
 		typeId: CSSM_OID;
 		value: CSSM_DATA;		// unparsed, BER-encoded
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
   CE_GeneralNamePtr = ^CE_GeneralName;
@@ -274,7 +281,8 @@ type
 	CE_GeneralNames = record
 		numNames: UInt32;
 		generalName: CE_GeneralNamePtr;
-	end;	
+	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  ( id-ce 35 )
@@ -298,6 +306,7 @@ type
 		serialNumberPresent: CSSM_BOOL;
 		serialNumber: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * id-ce-subjectKeyIdentifier OBJECT IDENTIFIER ::=  ( id-ce 14 )
@@ -307,6 +316,7 @@ type
  }
 type
 	CE_SubjectKeyID = CSSM_DATA;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * id-ce-keyUsage OBJECT IDENTIFIER ::=  ( id-ce 15 )
@@ -327,6 +337,7 @@ type
  }
 type
 	CE_KeyUsage = UInt16;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CE_KU_DigitalSignature = $8000;
@@ -367,6 +378,7 @@ const
  }
 type
 	CE_CrlReason = UInt32;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CE_CR_Unspecified = 0;
@@ -426,7 +438,8 @@ type
 		cA: CSSM_BOOL;
 		pathLenConstraintPresent: CSSM_BOOL;
 		pathLenConstraint: UInt32;
-	end;	
+	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  ( id-ce 32 )
@@ -486,6 +499,7 @@ type
 		qualifier: CSSM_DATA;					// CSSMOID_QT_CPS: IA5String contents
 											// CSSMOID_QT_UNOTICE : Sequence contents
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
   CE_PolicyInformationPtr = ^CE_PolicyInformation;
@@ -494,6 +508,7 @@ type
 		numPolicyQualifiers: UInt32;	// size of *policyQualifiers;
 		policyQualifiers: CE_PolicyQualifierInfoPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
   CE_CertPoliciesPtr = ^CE_CertPolicies;
@@ -501,6 +516,7 @@ type
 		numPolicies: UInt32;			// size of *policies;
 		policies: CE_PolicyInformationPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * netscape-cert-type, a bit string.
@@ -511,6 +527,7 @@ type
  }
 type
 	CE_NetscapeCertType = UInt16;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * CRLDistributionPoints.
@@ -554,6 +571,7 @@ type
  }
 type
 	CE_CrlDistReasonFlags = UInt8;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CE_CD_Unspecified = $80;
@@ -582,12 +600,14 @@ type
       0: (fullName: CE_GeneralNamesPtr);
       1: (rdn: CSSM_X509_RDN_PTR);
   end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 	CE_DistributionPointNamePtr = ^CE_DistributionPointName;
 	CE_DistributionPointName = record
 		nameType: CE_CrlDistributionPointNameType;
 		dpn: __embedded_dpn;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * The top-level CRLDistributionPoint.
@@ -601,6 +621,7 @@ type
 		reasons: CE_CrlDistReasonFlags;
 		crlIssuer: CE_GeneralNamesPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CE_CRLDistPointsSyntaxPtr = ^CE_CRLDistPointsSyntax;
@@ -608,6 +629,7 @@ type
 		numDistPoints: UInt32;
 		distPoints: CE_CRLDistributionPointPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { 
  * Authority Information Access and Subject Information Access.
@@ -628,6 +650,7 @@ type
 		accessMethod: CSSM_OID;
 		accessLocation: CE_GeneralName;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CE_AuthorityInfoAccessPtr = ^CE_AuthorityInfoAccess;
@@ -635,6 +658,7 @@ type
 		numAccessDescriptions: UInt32;
 		accessDescriptions: CE_AccessDescriptionPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * Qualified Certificate Statement support, per RFC 3739.
@@ -646,6 +670,7 @@ type
 type
   CE_NameRegistrationAuthoritiesPtr = ^CE_NameRegistrationAuthorities;
 	CE_NameRegistrationAuthorities = CE_GeneralNames;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * SemanticsInformation, identified as the qcType field
@@ -658,6 +683,7 @@ type
 		semanticsIdentifier: CSSM_OIDPtr;	
 		nameRegistrationAuthorities: CE_NameRegistrationAuthoritiesPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { 
  * One Qualified Certificate Statement. 
@@ -675,6 +701,7 @@ type
 		semanticsInfo: CE_SemanticsInformationPtr;
 		otherInfo: CSSM_DATAPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * The top-level Qualified Certificate Statements extension.
@@ -685,6 +712,7 @@ type
 		numQCStatements: UInt32;
 		qcStatements: CE_QC_StatementPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {** CRL extensions **}
 
@@ -731,6 +759,109 @@ type
 		indirectCrlPresent: CSSM_BOOL;
 		indirectCrl: CSSM_BOOL;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+{
+ * NameConstraints
+ *
+ * id-ce-nameConstraints OBJECT IDENTIFIER ::=  ( id-ce 30 )
+ *
+ *     NameConstraints ::= SEQUENCE (
+ *          permittedSubtrees       [0]     GeneralSubtrees OPTIONAL,
+ *          excludedSubtrees        [1]     GeneralSubtrees OPTIONAL )
+ *
+ *     GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
+ *
+ *     GeneralSubtree ::= SEQUENCE (
+ *          base                    GeneralName,
+ *          minimum         [0]     BaseDistance DEFAULT 0,
+ *          maximum         [1]     BaseDistance OPTIONAL )
+ *
+ *     BaseDistance ::= INTEGER (0..MAX)
+ }
+type
+  CE_GeneralSubtreePtr = ^CE_GeneralSubtree;
+  CE_GeneralSubtree = record
+		base: CE_GeneralNamesPtr;
+		minimum: UInt32; // default=0
+		maximumPresent: CSSM_BOOL;
+		maximum: UInt32; // optional
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+type
+  CE_GeneralSubtreesPtr = ^CE_GeneralSubtrees;
+  CE_GeneralSubtrees = record
+		numSubtrees: UInt32;
+		subtrees: CE_GeneralSubtreePtr;
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+type
+  CE_NameConstraintsPtr = ^CE_NameConstraints;
+  CE_NameConstraints = record
+		permitted: CE_GeneralSubtreesPtr; // optional
+		excluded: CE_GeneralSubtreesPtr;  // optional
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+{
+ * PolicyMappings
+ *
+ * id-ce-policyMappings OBJECT IDENTIFIER ::=  ( id-ce 33 )
+ *
+ *     PolicyMappings ::= SEQUENCE SIZE (1..MAX) OF SEQUENCE (
+ *          issuerDomainPolicy      CertPolicyId,
+ *          subjectDomainPolicy     CertPolicyId )
+ *
+ * Note that both issuer and subject policy OIDs are required,
+ * and are stored by value in this structure.
+ }
+type
+  CE_PolicyMappingPtr = ^CE_PolicyMapping;
+  CE_PolicyMapping = record
+		issuerDomainPolicy: CSSM_OID;
+		subjectDomainPolicy: CSSM_OID;
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+type
+  CE_PolicyMappingsPtr = ^CE_PolicyMappings;
+  CE_PolicyMappings = record
+		numPolicyMappings: UInt32;
+		policyMappings: CE_PolicyMappingPtr;
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+{
+ * PolicyConstraints
+ *
+ * id-ce-policyConstraints OBJECT IDENTIFIER ::=  ( id-ce 36 )
+ *
+ *     PolicyConstraints ::= SEQUENCE (
+ *          requireExplicitPolicy   [0]     SkipCerts OPTIONAL,
+ *          inhibitPolicyMapping    [1]     SkipCerts OPTIONAL )
+ *
+ *      SkipCerts ::= INTEGER (0..MAX)
+ }
+type
+  CE_PolicyConstraintsPtr = ^CE_PolicyConstraints;
+  CE_PolicyConstraints = record
+		requireExplicitPolicyPresent: CSSM_BOOL;
+		requireExplicitPolicy: UInt32; // optional
+		inhibitPolicyMappingPresent: CSSM_BOOL;
+		inhibitPolicyMapping: UInt32;  // optional
+  end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+{
+ * InhibitAnyPolicy, an integer.
+ *
+ * CSSM OID = CSSMOID_InhibitAnyPolicy
+ }
+type
+  CE_InhibitAnyPolicy = UInt32;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {
  * An enumerated list identifying one of the above per-extension
@@ -756,6 +887,10 @@ const
 	DT_AuthorityInfoAccess = 14;		// CE_AuthorityInfoAccess
 	DT_Other = 15;					// unknown, raw data as a CSSM_DATA
 	DT_QC_Statements = 16;			// CE_QC_Statements
+	DT_NameConstraints = 17;			// CE_NameConstraints
+	DT_PolicyMappings = 18;			// CE_PolicyMappings
+	DT_PolicyConstraints = 19;		// CE_PolicyConstraints
+	DT_InhibitAnyPolicy = 20;			// CE_InhibitAnyPolicy
 
 
 {
@@ -781,8 +916,13 @@ type
       DT_IssuingDistributionPoint: (issuingDistPoint: CE_IssuingDistributionPoint);
       DT_AuthorityInfoAccess: (authorityInfoAccess: CE_AuthorityInfoAccess);
       DT_QC_Statements: (qualifiedCertStatements: CE_QC_Statements);
+      DT_NameConstraints: (nameConstraints: CE_NameConstraints);
+      DT_PolicyMappings: (policyMappings: CE_PolicyMappings);
+      DT_PolicyConstraints: (policyConstraints: CE_PolicyConstraints);
+      DT_InhibitAnyPolicy: (inhibitAnyPolicy: CE_InhibitAnyPolicy);
       65535: (rawData: CSSM_DATA); // unknown, not decoded
   end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 type
@@ -792,6 +932,7 @@ type
 		extension: CE_Data;
 		critical: CSSM_BOOL;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

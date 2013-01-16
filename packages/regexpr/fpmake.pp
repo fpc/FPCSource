@@ -17,6 +17,8 @@ begin
     P.Directory:='regexpr';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes:=P.OSes-[embedded];
+
     P.SourcePath.Add('src');
 
     // Sorokin's RegExpr

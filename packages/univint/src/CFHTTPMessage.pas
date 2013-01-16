@@ -11,9 +11,10 @@
 					 http://www.freepascal.org/bugs.html
  
 }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -179,6 +185,7 @@ uses MacTypes,CFString,CFURL,CFBase,CFData,CFDictionary;
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
+
 
 {
  *  kCFHTTPVersion1_0
@@ -266,8 +273,51 @@ var kCFHTTPAuthenticationSchemeNTLM: CFStringRef; external name '_kCFHTTPAuthent
  }
 var kCFHTTPAuthenticationSchemeNegotiate: CFStringRef; external name '_kCFHTTPAuthenticationSchemeNegotiate'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
+	
+{
+ *  kCFHTTPAuthenticationSchemeNegotiate2
+ *  
+ *  Discussion:
+ *	HTTP Negotiate v2 authentication scheme.
+ *  
+ *  Availability:
+ *	Mac OS X:		 in version 10.6 and later in CoreServices.framework
+ *	CarbonLib:		not available
+ *	Non-Carbon CFM:   not available
+ }
+var kCFHTTPAuthenticationSchemeNegotiate2: CFStringRef; external name '_kCFHTTPAuthenticationSchemeNegotiate2'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_3_0) *)
+	
+{
+ *  kCFHTTPAuthenticationSchemeXMobileMeAuthToken
+ *  
+ *  Discussion:
+ *	HTTP XMobileMeAuthToken authentication scheme.
+ *  
+ *  Availability:
+ *	Mac OS X:		 in version 10.6 and later in CoreServices.framework
+ *	CarbonLib:		not available
+ *	Non-Carbon CFM:   not available
+ }
+var kCFHTTPAuthenticationSchemeXMobileMeAuthToken: CFStringRef; external name '_kCFHTTPAuthenticationSchemeXMobileMeAuthToken'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_4_3) *)	
+	
 
+{
+ *  kCFHTTPAuthenticationSchemeKerberos
+ *  
+ *  Discussion:
+ *	HTTP Negotiate authentication scheme.
+ *  
+ *  Availability:
+ *	Mac OS X:		 in version 10.7 and later in CoreServices.framework
+ *	CarbonLib:		not available
+ *	Non-Carbon CFM:   not available
+ }
+var kCFHTTPAuthenticationSchemeKerberos: CFStringRef; external name '_kCFHTTPAuthenticationSchemeKerberos'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5 { REMINDSMA: 10_7 },__IPHONE_2_0 { REMINDSMA: 4_0 }) *)
 
+	
 {
  *  CFHTTPMessageRef
  *  
@@ -276,7 +326,8 @@ var kCFHTTPAuthenticationSchemeNegotiate: CFStringRef; external name '_kCFHTTPAu
  *	message can be a request or a response.
  }
 type
-	CFHTTPMessageRef = ^SInt32; { an opaque type }
+	CFHTTPMessageRef = ^__CFHTTPMessage; { an opaque type }
+	__CFHTTPMessage = record end;
 
 {
  *  CFHTTPMessageGetTypeID()

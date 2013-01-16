@@ -87,6 +87,7 @@ unit i_palmos;
               );
             first_parm_offset : 8;
             stacksize    : 8192;
+            stackalign   : 2;
             abi : abi_default;
           );
 
@@ -159,6 +160,7 @@ unit i_palmos;
               );
             first_parm_offset : 8;
             stacksize    : 8192;
+            stackalign   : 4;
             abi : abi_default;
           );
 

@@ -32,7 +32,7 @@ unit cpupara;
       cpubase,
       aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,paramgr,cgbase;
+      parabase,paramgr,cgbase,cgutils;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -41,7 +41,7 @@ unit cpupara;
          rtl are used.
        }
        tm68kparamanager = class(tparamanager)
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -49,6 +49,7 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
+          function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
          private
           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -61,15 +62,17 @@ unit cpupara;
        verbose,
        globals,
        systems,
-       cpuinfo,cgutils,
+       cpuinfo,
        defutil;
 
-    procedure tm68kparamanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        def : tdef;
       begin
          if nr<1 then
            internalerror(2002070801);
+         def:=tparavarsym(pd.paras[nr-1]).vardef;
          cgpara.reset;
          cgpara.size:=def_cgsize(def);
          cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -196,7 +199,8 @@ unit cpupara;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if not(cs_fp_emulation in current_settings.moduleswitches) and (result.def.typ=floatdef) then
+        if not (cs_fp_emulation in current_settings.moduleswitches) and
+           not (current_settings.fputype=fpu_soft) and (result.def.typ=floatdef) then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
@@ -467,6 +471,12 @@ unit cpupara;
           else
             internalerror(2005121801);
         end;
+      end;
+
+    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { for now we set all int registers as volatile }
+        Result:=[RS_D0..RS_D7];
       end;
 
 

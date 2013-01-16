@@ -29,9 +29,8 @@ unit aggas;
 interface
 
     uses
-      cclasses,
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,
       assemble;
 
     type
@@ -54,6 +53,7 @@ interface
         procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
+        procedure WriteUnalignedIntConst(hp: tai_const);
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
@@ -104,8 +104,14 @@ implementation
     uses
       SysUtils,
       cutils,cfileutl,systems,
-      fmodule,finput,verbose,
-      itcpugas,cpubase;
+      fmodule,verbose,
+{$ifdef TEST_WIN64_SEH}
+      itcpugas,
+{$endif TEST_WIN64_SEH}
+{$ifdef m68k}
+      cpuinfo,aasmcpu,
+{$endif m68k}
+      cpubase;
 
     const
       line_length = 70;
@@ -197,11 +203,37 @@ implementation
 
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_half16bit] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,
+        #9'.short'#9,#9'.long'#9,#9'.quad'#9
       );
+
+      ait_unaligned_consts = [aitconst_16bit_unaligned..aitconst_64bit_unaligned];
+
+      { Sparc type of unaligned pseudo-instructions }
+      use_ua_sparc_systems = [system_sparc_linux];
+      ait_ua_sparc_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.uahalf'#9,#9'.uaword'#9,#9'.uaxword'#9
+        );
+
+      { Alpha type of unaligned pseudo-instructions }
+      use_ua_alpha_systems = [system_alpha_linux];
+      ait_ua_alpha_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.uword'#9,#9'.ulong'#9,#9'.uquad'#9
+        );
+
+      { Generic unaligned pseudo-instructions, seems ELF specific }
+      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux];
+      ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
+        of string[20]=(
+          #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
+        );
+
+
 
 {****************************************************************************}
 {                          GNU Assembler writer                              }
@@ -489,8 +521,7 @@ implementation
         case target_info.system of
          system_i386_OS2,
          system_i386_EMX,
-         system_m68k_amiga,  { amiga has old GNU AS (2.14), which blews up from .section (KB) }
-         system_m68k_linux: ;
+         system_m68k_amiga: ; { amiga has old GNU AS (2.14), which blews up from .section (KB) }
          system_powerpc_darwin,
          system_i386_darwin,
          system_i386_iphonesim,
@@ -529,9 +560,9 @@ implementation
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 system_arm_darwin:
                   if (cs_create_pic in current_settings.moduleswitches) then
-                    AsmWriteln('.section __TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                    AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                   else
-                    AsmWriteln('.section __TEXT,__symbol_stub4,symbol_stubs,none,12')
+                    AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
                 { darwin/x86-64 uses RIP-based GOT addressing, no symbol stubs }
                 else
                   internalerror(2006031101);
@@ -608,15 +639,45 @@ implementation
         end;
 
 
-      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
+{$ifdef m68k}
+          instr : string;
+{$endif}
         begin
           last_align:=alignment;
           if alignment>1 then
             begin
               if not(target_info.system in (systems_darwin+systems_aix)) then
                 begin
+{$ifdef m68k}
+                  if assigned(lasthp) and
+                      (
+                        (lasthp.typ=ait_instruction) and
+                        (taicpu(lasthp).opcode<>A_JMP)
+                      ) or
+                      (
+                        (lasthp.typ=ait_label)
+                      ) then
+                    begin
+                      if ispowerof2(alignment,i) then
+                        begin
+                          { the Coldfire manual suggests the TBF instruction for
+                            alignments, but somehow QEMU does not interpret that
+                            correctly... }
+                          {if current_settings.cputype=cpu_coldfire then
+                            instr:='0x51fc'
+                          else}
+                            instr:='0x4e71';
+                          AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
+                        end
+                      else
+                        internalerror(2012102101);
+                    end
+                  else
+                    begin
+{$endif m68k}
                   AsmWrite(#9'.balign '+tostr(alignment));
                   if use_op then
                     AsmWrite(','+tostr(fillop))
@@ -625,6 +686,9 @@ implementation
                   else if LastSecType=sec_code then
                     AsmWrite(',0x90');
 {$endif x86}
+{$ifdef m68k}
+                    end;
+{$endif m68k}
                 end
               else
                 begin
@@ -640,6 +704,7 @@ implementation
 
     var
       ch       : char;
+      lasthp,
       hp       : tai;
       constdef : taiconst_type;
       s,t      : string;
@@ -667,6 +732,7 @@ implementation
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
                  and (p=current_asmdata.asmlists[al_procedures]));
+      lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -715,7 +781,7 @@ implementation
 
            ait_align :
              begin
-               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align);
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align,lasthp);
              end;
 
            ait_section :
@@ -781,9 +847,9 @@ implementation
                      begin
                        asmwrite(#9'.lcomm ');
                        asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
-                       asmwrite(',_data.bss_[RW],');
+                       asmwrite(',');
                        asmwrite(tostr(tai_datablock(hp).size)+',');
-                       asmwriteln(tostr(last_align));
+                       asmwrite('_data.bss_');
                      end;
                  end
                else
@@ -903,7 +969,10 @@ implementation
                  aitconst_secrel32_symbol,
                  aitconst_darwin_dwarf_delta32,
                  aitconst_darwin_dwarf_delta64,
-                 aitconst_half16bit:
+                 aitconst_half16bit,
+                 aitconst_16bit_unaligned,
+                 aitconst_32bit_unaligned,
+                 aitconst_64bit_unaligned:
                    begin
                      { the AIX assembler (and for compatibility, the GNU
                        assembler when targeting AIX) automatically aligns
@@ -930,7 +999,16 @@ implementation
                        end
                      else
                        begin
-                         if not(target_info.system in systems_aix) or
+                         if (constdef in ait_unaligned_consts) and
+                            (target_info.system in use_ua_sparc_systems) then
+                           AsmWrite(ait_ua_sparc_const2str[constdef])
+                         else if (constdef in ait_unaligned_consts) and
+                            (target_info.system in use_ua_alpha_systems) then
+                           AsmWrite(ait_ua_alpha_const2str[constdef])
+                         else if (constdef in ait_unaligned_consts) and
+                                 (target_info.system in use_ua_elf_systems) then
+                           AsmWrite(ait_ua_elf_const2str[constdef])
+                          else if not(target_info.system in systems_aix) or
                             (constdef<>aitconst_64bit) then
                            AsmWrite(ait_const2str[constdef])
                          else
@@ -1246,7 +1324,19 @@ implementation
              begin
                AsmWriteLn(#9'.thumb_func');
              end;
+           ait_thumb_set:
+             begin
+               AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);
+             end;
 {$endif arm}
+           ait_set:
+             begin
+               AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+             end;
+           ait_weak:
+             begin
+               AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
+             end;
            ait_ent:
              begin
                AsmWrite(#9'.ent'#9);
@@ -1384,6 +1474,7 @@ implementation
            else
              internalerror(2006012201);
          end;
+         lasthp:=hp;
          hp:=tai(hp.next);
        end;
     end;
@@ -1515,6 +1606,41 @@ implementation
           else
             internalerror(2012010402);
         end;
+      end;
+
+    procedure TGNUAssembler.WriteUnalignedIntConst(hp: tai_const);
+      var
+        pos, size: longint;
+      begin
+        size:=tai_const(hp).size;
+        AsmWrite(#9'.byte'#9);
+        if target_info.endian=endian_big then
+          begin
+            pos:=size-1;
+            while pos>=0 do
+              begin
+                AsmWrite(tostr((tai_const(hp).value shr (pos*8)) and $ff));
+                dec(pos);
+                if pos>=0 then
+                  AsmWrite(', ')
+                else
+                  AsmLn;
+              end;
+          end
+        else
+          begin
+            pos:=0;
+            while pos<size do
+              begin
+                AsmWriteln(tostr((tai_const(hp).value shr (pos*8)) and $ff));
+                inc(pos);
+                if pos<=size then
+                  AsmWrite(', ')
+                else
+                  AsmLn;
+              end;
+          end;
+        AsmLn;
       end;
 
 

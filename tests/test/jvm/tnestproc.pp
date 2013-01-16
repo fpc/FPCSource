@@ -34,14 +34,14 @@ procedure outer(var para: byte);
   
     procedure doubleinner;
       begin
-        b:=3;
+        b:=b+1;
       end;
       
     begin
+      b:=2;
       doubleinner;
       if b<>3 then
         raise JLException.Create('b');
-      inner;
     end;
 
   begin
@@ -52,6 +52,7 @@ procedure outer(var para: byte);
       raise JLException.Create('a2');
     if para<>3 then
       raise JLException.Create('para2');
+    inner2;
   end;
 
 var

@@ -18,12 +18,14 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
+    P.Dependencies.Add('fcl-res');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/$(OS)');
@@ -38,6 +40,8 @@ begin
     T:=P.Targets.AddUnit('ascii85.pp');
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
+    T:=P.Targets.AddUnit('fpobserver.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('blowfish.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('bufstream.pp');
@@ -86,7 +90,7 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,OS2,EMX,nativent]);
+    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,EMX,nativent]);
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
@@ -103,9 +107,9 @@ begin
       T.ResourceStrings:=true;
 
     // Windows units
-    T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('fileinfo.pp');
     T:=P.Targets.addUnit('fpmimetypes.pp');
-   
+
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
     // Install windows resources

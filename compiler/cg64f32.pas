@@ -61,7 +61,6 @@ unit cg64f32;
         procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);override;
 
 
-
         procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
         procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
         procedure a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);override;
@@ -366,8 +365,6 @@ unit cg64f32;
       end;
 
 
-
-
     procedure tcg64f32.a_load64_subsetref_subsetref(list: TAsmlist; const fromsref, tosref: tsubsetreference);
 
       var
@@ -648,10 +645,20 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
-        cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+        if target_info.endian=endian_big then
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+            cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
+          end
+        else
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
+            cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;
@@ -664,10 +671,20 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_const_cgpara(list,OS_32,aint(hi(value)),tmplochi);
-        cg.a_load_const_cgpara(list,OS_32,aint(lo(value)),tmploclo);
+        if target_info.endian=endian_big then
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            cg.a_load_const_cgpara(list,OS_32,aint(lo(value)),tmploclo);
+            cg.a_load_const_cgpara(list,OS_32,aint(hi(value)),tmplochi);
+          end
+        else
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            cg.a_load_const_cgpara(list,OS_32,aint(hi(value)),tmplochi);
+            cg.a_load_const_cgpara(list,OS_32,aint(lo(value)),tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;
@@ -684,13 +701,21 @@ unit cg64f32;
         tmprefhi:=r;
         tmpreflo:=r;
         if target_info.endian=endian_big then
-          inc(tmpreflo.offset,4)
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            inc(tmpreflo.offset,4);
+            cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+            cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
+          end
         else
-          inc(tmprefhi.offset,4);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
-        cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            inc(tmprefhi.offset,4);
+            cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
+            cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;

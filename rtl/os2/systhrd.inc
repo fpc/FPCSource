@@ -170,6 +170,10 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                                 var Buffer; BufLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 368;
 
+function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
+                                                               cardinal; cdecl;
+                                                 external 'DOSCALLS' index 348;
+
 
 
 {*****************************************************************************
@@ -706,6 +710,19 @@ begin
   DosResetEventSem (THandle (AEvent), PostCount);
 end;
 
+
+{$DEFINE HAS_GETCPUCOUNT}
+function GetCPUCount: LongWord;
+const
+  svNumProcessors = 26;
+var
+  ProcNum: cardinal;
+begin
+  GetCPUCount := 1;
+  if DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
+                                                     SizeOf (ProcNum)) = 0 then
+   GetCPUCount := ProcNum;
+end;
 
 
 var

@@ -76,6 +76,10 @@ type
     tkGreaterEqualThan,      // '>='
     tkPower,                 // '**'
     tkSymmetricalDifference, // '><'
+    tkAssignPlus,            // +=
+    tkAssignMinus,           // -=
+    tkAssignMul,             // *=
+    tkAssignDivision,        // /=
     // Reserved words
     tkabsolute,
     tkand,
@@ -105,6 +109,7 @@ type
     tkfunction,
     tkgeneric,
     tkgoto,
+    tkHelper,
     tkif,
     tkimplementation,
     tkin,
@@ -215,7 +220,7 @@ type
 
   TStringStreamLineReader = class(TStreamLineReader)
   Public
-    constructor Create(const AFilename: string; Const ASource: String);
+    constructor Create( const AFilename: string; Const ASource: String);
   end;
 
   { TMacroReader }
@@ -288,7 +293,7 @@ type
 
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
-  TPOption = (po_delphi);
+  TPOption = (po_delphi,po_cassignments);
   TPOptions = set of TPOption;
 
   { TPascalScanner }
@@ -402,6 +407,10 @@ const
     '>=',
     '**',
     '><',
+    '+=',
+    '-=',
+    '*=',
+    '/=',
     // Reserved words
     'absolute',
     'and',
@@ -431,6 +440,7 @@ const
     'function',
     'generic',
     'goto',
+    'helper',
     'if',
     'implementation',
     'in',
@@ -483,7 +493,7 @@ const
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
-function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
+function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 implementation
 
@@ -551,7 +561,7 @@ begin
   Result:=-1;
 end;
 
-function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
+function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 Var
   I : Integer;
@@ -895,7 +905,10 @@ end;
 
 procedure TBaseFileResolver.AddIncludePath(const APath: string);
 begin
-  FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
+  if (APath='') then
+    FIncludePaths.Add('./')
+  else
+    FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
 end;
 
 { ---------------------------------------------------------------------
@@ -1249,7 +1262,7 @@ var
   TokenStart, CurPos: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-  Directive, Param, MN, MV: string;
+  Directive, Param : string;
 begin
   if TokenStr = nil then
     if not FetchLine then
@@ -1368,13 +1381,30 @@ begin
         begin
           Inc(TokenStr);
           Result := tkPower;
-        end else
-          Result := tkMul;
+        end else if not (po_cassignments in options) then
+          Result := tkMul
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignMul;
+            end;
+          end
       end;
     '+':
       begin
         Inc(TokenStr);
-        Result := tkPlus;
+        if not (po_cassignments in options) then
+          Result := tkPlus
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignPlus;
+            end;
+          end
       end;
     ',':
       begin
@@ -1384,7 +1414,16 @@ begin
     '-':
       begin
         Inc(TokenStr);
-        Result := tkMinus;
+        if not (po_cassignments in options) then
+          Result := tkMinus
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignMinus;
+            end;
+          end
       end;
     '.':
       begin
@@ -1412,8 +1451,16 @@ begin
             Move(TokenStart^, FCurTokenString[1], SectionLength);
           Result := tkComment;
           //WriteLn('Einzeiliger Kommentar: "', CurTokenString, '"');
-        end else
-          Result := tkDivision;
+        end else if not (po_cassignments in options) then
+          Result := tkDivision
+        else
+          begin
+          if TokenStr[0]='=' then
+            begin
+            Inc(TokenStr);
+            Result:=tkAssignDivision;
+            end;
+          end
       end;
     '0'..'9':
       begin

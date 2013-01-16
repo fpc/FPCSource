@@ -35,7 +35,7 @@ interface
       { pass_1 }
       node;
 
-    function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
+    function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
     procedure const_dec;
     procedure consts_dec(in_structure, allow_typed_const: boolean);
@@ -50,21 +50,15 @@ interface
 implementation
 
     uses
-       SysUtils,
        { common }
        cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
-       systems,
-       { aasm }
-       aasmbase,aasmtai,aasmdata,fmodule,
+       systems,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,symcreat,paramgr,defutil,
+       symconst,symbase,symtype,symtable,symcreat,defutil,
        { pass 1 }
-       htypechk,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
-       { codegen }
-       ncgutil,ngenutil,
+       htypechk,ninl,ncon,nobj,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,
@@ -76,7 +70,7 @@ implementation
        ;
 
 
-    function readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
+    function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
       var
         hp : tconstsym;
         p : tnode;
@@ -92,6 +86,7 @@ implementation
          internalerror(9584582);
         hp:=nil;
         p:=comp_expr(true,false);
+        nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
         case p.nodetype of
@@ -194,6 +189,7 @@ implementation
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
+         nodetype : tnodetype;
          old_block_type : tblock_type;
          skipequal : boolean;
          tclist : tasmlist;
@@ -210,7 +206,7 @@ implementation
              _EQ:
                 begin
                    consume(_EQ);
-                   sym:=readconstant(orgname,filepos);
+                   sym:=readconstant(orgname,filepos,nodetype);
                    { Support hint directives }
                    dummysymoptions:=[];
                    deprecatedmsg:=nil;
@@ -426,7 +422,7 @@ implementation
                  Message(parser_f_no_generic_inside_generic);
 
                consume(_LSHARPBRACKET);
-               generictypelist:=parse_generic_parameters;
+               generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
 
                str(generictypelist.Count,s);
@@ -617,6 +613,9 @@ implementation
               { update the definition of the type }
               if assigned(hdef) then
                 begin
+                  if df_generic in hdef.defoptions then
+                    { flag parent symtables that they now contain a generic }
+                    hdef.owner.includeoption(sto_has_generic);
                   if assigned(hdef.typesym) then
                     begin
                       istyperenaming:=true;

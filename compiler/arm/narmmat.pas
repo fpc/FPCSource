@@ -39,6 +39,7 @@ interface
       end;
 
       tarmunaryminusnode = class(tcgunaryminusnode)
+        function pass_1: tnode; override;
         procedure second_float;override;
       end;
 
@@ -50,15 +51,16 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
+      symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
-      ncon,
+      ncon,ncnv,ncal,
       cpubase,cpuinfo,
-      ncgutil,cgcpu,
+      ncgutil,
       nadd,pass_1,symdef;
 
 {*****************************************************************************
@@ -121,6 +123,9 @@ implementation
            else if (tordconstnode(right).value = int64(-1)) then
              begin
                // note: only in the signed case possible..., may overflow
+               if cs_check_overflow in current_settings.localswitches then
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVN,
                  resultreg,numerator),toppostfix(ord(cs_check_overflow in current_settings.localswitches)*ord(PF_S))));
              end
@@ -285,6 +290,10 @@ implementation
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
             current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
+
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081305);
+
             maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
             hl:=current_procinfo.CurrTrueLabel;
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
@@ -304,10 +313,11 @@ implementation
               LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF :
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
-               end;
+                end;
               else
                 internalerror(2003042401);
             end;
@@ -317,6 +327,46 @@ implementation
 {*****************************************************************************
                                TARMUNARYMINUSNODE
 *****************************************************************************}
+
+    function tarmunaryminusnode.pass_1: tnode;
+      var
+        procname: string[31];
+        fdef : tdef;
+      begin
+        if (current_settings.fputype<>fpu_fpv4_s16) or
+          (tfloatdef(resultdef).floattype=s32real) then
+          exit(inherited pass_1);
+
+        result:=nil;
+        firstpass(left);
+        if codegenerror then
+          exit;
+
+        if (left.resultdef.typ=floatdef) then
+          begin
+            case tfloatdef(resultdef).floattype of
+              s64real:
+                begin
+                  procname:='float64_sub';
+                  fdef:=search_system_type('FLOAT64').typedef;
+                end;
+              else
+                internalerror(2005082801);
+            end;
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+              ctypeconvnode.create_internal(left,fDef),
+              ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+
+            left:=nil;
+          end
+        else
+          begin
+            if (left.resultdef.typ=floatdef) then
+              expectloc:=LOC_FPUREGISTER
+             else if (left.resultdef.typ=orddef) then
+               expectloc:=LOC_REGISTER;
+          end;
+      end;
 
     procedure tarmunaryminusnode.second_float;
       var
@@ -349,6 +399,15 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
                 location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            begin
+              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              location:=left.location;
+              if (left.location.loc=LOC_CMMREGISTER) then
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
+                location.register,left.location.register), PF_F32));
+            end
           else
             internalerror(2009112602);
         end;
@@ -403,6 +462,9 @@ implementation
         begin
           shifterop_reset(so);
           shiftval2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+
+          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
           {Do we shift more than 32 bits?}
           emit_instr(setoppostfix(taicpu.op_reg_reg_const(A_RSB, shiftval2, shiftval, 32), PF_S));
 
@@ -418,6 +480,8 @@ implementation
           if shiftright then so.shiftmode:=SM_LSL else so.shiftmode:=SM_LSR;
           so.rs:=shiftval2;
           emit_instr(setcondition(taicpu.op_reg_reg_reg_shifterop(A_ORR, reg2, reg2, reg1, so), C_PL));
+
+          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
           {Final adjustments}
           if shiftright then so.shiftmode:=SM_LSR else so.shiftmode:=SM_LSL;
@@ -450,16 +514,20 @@ implementation
               if nodetype=shln then
                 begin
                   {Shift left by one by 2 simple 32bit additions}
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   emit_instr(setoppostfix(taicpu.op_reg_reg_reg(A_ADD, hreg64lo, hreg64lo, hreg64lo), PF_S));
                   emit_instr(taicpu.op_reg_reg_reg(A_ADC, hreg64hi, hreg64hi, hreg64hi));
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end
               else
                 begin
                   {Shift right by first shifting hi by one and then using RRX (rotate right extended), which rotates through the carry}
                   shifterop_reset(so); so.shiftmode:=SM_LSR; so.shiftimm:=1;
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   emit_instr(setoppostfix(taicpu.op_reg_reg_shifterop(A_MOV, hreg64hi, hreg64hi, so), PF_S));
                   so.shiftmode:=SM_RRX; so.shiftimm:=0; {RRX does NOT have a shift amount}
                   emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, hreg64lo, hreg64lo, so));
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end
             {A 32bit shift just replaces a register and clears the other}
             else if v = 32 then

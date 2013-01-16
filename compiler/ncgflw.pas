@@ -95,10 +95,8 @@ implementation
       verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,symtable,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
-      cpubase,cpuinfo,
-      nld,ncon,
+      cpubase,ncon,
       tgobj,paramgr,
-      regvars,
       cgutils,cgobj,hlcgobj,nutils
       ;
 
@@ -961,17 +959,19 @@ implementation
          a : tasmlabel;
          href2: treference;
          paraloc1,paraloc2,paraloc3 : tcgpara;
+         pd : tprocdef;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
            begin
+              pd:=search_system_proc('fpc_raiseexception');
               paraloc1.init;
               paraloc2.init;
               paraloc3.init;
-              paramanager.getintparaloc(pocall_default,1,class_tobject,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
-              paramanager.getintparaloc(pocall_default,3,voidpointertype,paraloc3);
+              paramanager.getintparaloc(pd,1,paraloc1);
+              paramanager.getintparaloc(pd,2,paraloc2);
+              paramanager.getintparaloc(pd,3,paraloc3);
 
               { multiple parameters? }
               if assigned(right) then
@@ -1322,6 +1322,7 @@ implementation
          href2: treference;
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
+         pd : tprocdef;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
@@ -1331,8 +1332,9 @@ implementation
          current_asmdata.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
+         pd:=search_system_proc('fpc_catches');
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
-         paramanager.getintparaloc(pocall_default,1,search_system_type('TCLASS').typedef,paraloc1);
+         paramanager.getintparaloc(pd,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
@@ -1444,11 +1446,13 @@ implementation
       var
         cgpara: tcgpara;
         selfsym: tparavarsym;
+        pd: tprocdef;
       begin
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
+        pd:=search_system_proc('fpc_safecallhandler');
         cgpara.init;
-        paramanager.getintparaloc(pocall_default,1,class_tobject,cgpara);
+        paramanager.getintparaloc(pd,1,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
@@ -1461,6 +1465,7 @@ implementation
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
         cgpara.done;
         cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG, NR_FUNCTION_RETURN_REG);
       end;
 
     procedure tcgtryfinallynode.pass_generate_code;
@@ -1563,13 +1568,11 @@ implementation
                CGMessage(cg_e_control_flow_outside_finally);
              if codegenerror then
                exit;
-{$if defined(x86) or defined(arm)}
              if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                handle_safecall_exception
              else
-{$endif}
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
            end
          else
            begin

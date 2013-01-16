@@ -1233,11 +1233,9 @@ end;
 procedure TCustomBufDataset.InternalFirst;
 begin
   with FCurrentIndex do
-    begin
-// if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
-// in which case InternalFirst should do nothing (bug 7211)
+    // if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
+    // in which case InternalFirst should do nothing (bug 7211)
     SetToFirstRecord;
-    end;
 end;
 
 procedure TCustomBufDataset.InternalLast;
@@ -2203,8 +2201,6 @@ Var ABuff        : TRecordBuffer;
     i            : integer;
     blobbuf      : tbufblobfield;
     NullMask     : pbyte;
-    li           : longint;
-    StoreReadOnly: boolean;
     ABookmark    : PBufBookmark;
 
 begin
@@ -2227,16 +2223,7 @@ begin
     begin
     if assigned(FAutoIncField) then
       begin
-      li := FAutoIncValue;
-      // In principle all TAutoIncfields are read-only, but in theory it is
-      // possible to set readonly to false.
-      StoreReadOnly:=FAutoIncField.ReadOnly;
-      FAutoIncField.ReadOnly:=false;
-      try
-        FAutoIncField.SetData(@li);
-      finally
-        FAutoIncField.ReadOnly:=FAutoIncField.ReadOnly;
-      end;
+      FAutoIncField.AsInteger := FAutoIncValue;
       inc(FAutoIncValue);
       end;
 
@@ -3620,7 +3607,8 @@ end;
 
 procedure TUniDirectionalBufIndex.SetToFirstRecord;
 begin
-  DatabaseError(SUniDirectional);
+  // for UniDirectional datasets should be [Internal]First valid method call
+  // do nothing
 end;
 
 procedure TUniDirectionalBufIndex.SetToLastRecord;

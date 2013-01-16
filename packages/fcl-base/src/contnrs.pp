@@ -415,6 +415,7 @@ type
     function GetData(const index: string):Pointer; virtual;
     function ForEachCall(aMethod: TDataIteratorMethod): THTDataNode; virtual;
   Public
+    function Iterate(aMethod: TDataIteratorMethod): Pointer; virtual;
     procedure Add(const aKey: string; AItem: pointer); virtual;
     property Items[const index: string]: Pointer read GetData write SetData; default;
   end;
@@ -436,6 +437,7 @@ type
     function GetData(const index: string): String; virtual;
     function ForEachCall(aMethod: TStringIteratorMethod): THTStringNode; virtual;
   Public
+    function Iterate(aMethod: TStringIteratorMethod): String; virtual;
     procedure Add(const aKey,aItem: string); virtual;
     property Items[const index: string]: String read GetData write SetData; default;
   end;
@@ -468,6 +470,7 @@ type
   Public
     constructor Create(AOwnsObjects : Boolean = True);
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction; AOwnsObjects : Boolean = True);
+    function Iterate(aMethod: TObjectIteratorMethod): TObject; virtual;
     procedure Add(const aKey: string; AItem : TObject); virtual;
     property Items[const index: string]: TObject read GetData write SetData; default;
     Property OwnsObjects : Boolean Read FOwnsObjects Write FOwnsObjects;
@@ -1403,7 +1406,7 @@ end;
 
 class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 function TFPHashList.Expand: TFPHashList;
@@ -1549,20 +1552,31 @@ var
   i : integer;
   pdest,
   psrc : PHashItem;
+  FOldStr : Pchar;
+
 begin
   NewCount:=0;
   psrc:=@FHashList^[0];
-  pdest:=psrc;
-  For I:=0 To FCount-1 Do
-    begin
-      if assigned(psrc^.Data) then
-        begin
-          pdest^:=psrc^;
-          inc(pdest);
-          inc(NewCount);
-        end;
-      inc(psrc);
-    end;
+  FOldStr:=FStrs;
+  try
+    FStrs:=Nil;
+    FStrCount:=0;
+    FStrCapacity:=0;
+    pdest:=psrc;
+    For I:=0 To FCount-1 Do
+      begin
+        if assigned(psrc^.Data) then
+          begin
+            pdest^:=psrc^;
+            Pdest^.strindex:=AddStr(PShortString(@FOldStr[PDest^.StrIndex])^);
+            inc(pdest);
+            inc(NewCount);
+          end;
+        inc(psrc);
+      end;
+  finally
+    FreeMem(FoldStr);
+  end;
   FCount:=NewCount;
   { We need to ReHash to update the IndexNext }
   ReHash;
@@ -2234,6 +2248,19 @@ begin
   Result:=THTDataNode.CreateWith(aKey);
 end;
 
+function TFPDataHashTable.Iterate(aMethod: TDataIteratorMethod): Pointer;
+
+Var
+  N : THTDataNode;
+
+begin
+  N:=ForEachCall(AMethod);
+  if Assigned(N) then
+    Result:=N.Data
+  else
+    Result:=Nil;  
+end;
+
 function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): THTDataNode;
 var
   i, j: Longword;
@@ -2310,13 +2337,25 @@ begin
   Result:=THTStringNode.CreateWith(aKey);
 end;
 
+function TFPStringHashTable.Iterate(aMethod: TStringIteratorMethod): String;
+
+Var
+  N : THTStringNode;
+
+begin
+  N:=ForEachCall(AMethod);
+  if Assigned(N) then
+    Result:=N.Data
+  else
+    Result:='';  
+end;
 
 function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): THTStringNode;
 var
   i, j: Longword;
   continue: boolean;
 begin
-  Result := nil;
+  Result := Nil;
   continue := true;
   if FHashTableSize>0 then
    for i := 0 to FHashTableSize-1 do
@@ -2383,6 +2422,19 @@ begin
     Result:=THTObjectNode.CreateWith(aKey);
 end;
 
+
+function TFPObjectHashTable.Iterate(aMethod: TObjectIteratorMethod): TObject;
+
+Var
+  N : THTObjectNode;
+
+begin
+  N:=ForEachCall(AMethod);
+  if Assigned(N) then
+    Result:=N.Data
+  else
+    Result:=Nil;  
+end;
 
 function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode;
 var

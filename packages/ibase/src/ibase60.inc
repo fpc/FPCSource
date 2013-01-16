@@ -19,9 +19,21 @@ uses Dynlibs,ctypes;
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    gdslib = 'libgds.'+sharedsuffix;
-    fbclib = 'libfbclient.'+sharedsuffix;
-    fbembedlib = 'libfbembed.'+sharedsuffix;
+    gdslib = 'libgds.'+sharedsuffix; // Needs completion ?
+    libfc  = 'libfbclient.'+sharedsuffix;
+    libem  = 'libfbembed.'+sharedsuffix;
+    v2  = {$ifndef darwin}'.2'{$else}''{$endif};
+    v21 = {$ifndef darwin}'.2.1'{$else}''{$endif};
+    v25 = {$ifndef darwin}'.2.5'{$else}''{$endif};
+    fbclib2      = libfc+v2;
+    fbembedlib2  = libem+v2;
+    fbclib21     = libfc+v21;
+    fbembedlib21 = libem+v21;
+    fbclib25     = libfc+v25;
+    fbembedlib25 = libem+v25;
+    // Set default here
+    fbclib       = fbclib25;
+    fbembedlib   = fbembedlib25;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
@@ -29,6 +41,8 @@ uses Dynlibs,ctypes;
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
     fbembedlib = 'fbembed.dll';
+    libfc  = fbclib;
+    libem  = fbembedlib;
 {$ENDIF}
 
 type
@@ -2445,12 +2459,12 @@ var
   isc_suspend_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
 {$ENDIF}
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 function InitialiseIBase60 : integer;
 procedure ReleaseIBase60;
 
-var IBaseLibraryHandle : TLibHandle;
-
+Function IBaseLibraryHandle : TLibHandle;
+Function IBaseLoadedLibrary : AnsiString;
 {$ENDIF}
 
 implementation
@@ -2465,16 +2479,29 @@ ResourceString
   
 var 
   RefCount : integer;
-  LoadedLibrary : String;
+  LoadedLibrary : AnsiString;
+  LibHandle : TLibHandle;
+  
+Function IBaseLibraryHandle : TLibHandle;
 
-Function TryInitialiseIBase60(Const LibraryName : String) : integer;
+begin
+  result:=LibHandle;
+end;
+
+Function IBaseLoadedLibrary : AnsiString;
+  
+begin
+  Result:=LoadedLibrary;
+end;  
+
+Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := 0;
   if (RefCount=0) then
     begin
-    IBaseLibraryHandle:=LoadLibrary(LibraryName);
-    if (IBaseLibraryHandle=nilhandle) then
+    LibHandle:=LoadLibrary(LibraryName);
+    if (LibHandle=nilhandle) then
       Exit;
     inc(RefCount);
     LoadedLibrary:=LibraryName;
@@ -2655,32 +2682,37 @@ function InitialiseIBase60 : integer;
 
 begin
   Result := 0;
-  If UseEmbeddedFirebird then
+  if (RefCount<>0) then
+    // pretend to load whatever is already loaded, so we do not get a library name conflict.
+    Inc(RefCount)
+  else If UseEmbeddedFirebird then
     begin
-    If (TryInitialiseIBase60(fbembedlib)=0) then
+    If (TryInitialiseIBase60(fbembedlib)=0) and (TryInitialiseIBase60(libem)=0) then
       Raise EInOutError.CreateFmt(SErrEmbeddedFailed,[fbembedlib]);
     end
   else
     begin
-    If (TryInitialiseIBase60(fbclib)=0) and
-       (TryInitialiseIBase60(gdslib)=0) and
-       (TryInitialiseIBase60(fbembedlib)=0) then
+    If (TryInitialiseIBase60(fbembedlib)=0) and
+       (TryInitialiseIBase60(libem)=0) and
+       (TryInitialiseIBase60(fbclib)=0) and
+       (TryInitialiseIBase60(libfc)=0) and
+       (TryInitialiseIBase60(gdslib)=0) then
         Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,gdslib,fbembedlib]);
     end;    
   Result := RefCount;
 end;
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := TryInitialiseIBase60(LibraryName);
   If Result = 0 then
     Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>LoadedLibrary) then
+  else If (LibraryName<>IBaseLoadedLibrary) then
     begin
     Dec(RefCount);
     Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[IBaseLoadedLibrary]);
     end;
 end;
 
@@ -2690,10 +2722,10 @@ Procedure ReleaseIBase60;
 begin
   if RefCount>1 then
     Dec(RefCount)
-  else if UnloadLibrary(IBaseLibraryHandle) then 
+  else if UnloadLibrary(LibHandle) then 
     begin
     Dec(RefCount);
-    IBaseLibraryHandle := NilHandle;
+    LibHandle := NilHandle;
     LoadedLibrary:='';
     end;
 end;

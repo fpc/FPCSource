@@ -217,6 +217,7 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
+  {$i armdefines.inc}
   {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
@@ -785,7 +786,7 @@ end;
 
 {$PUSH}
 {$S-}
-procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
 var
   c : Pointer;
 begin
@@ -1310,6 +1311,11 @@ end;
 {*****************************************************************************
                           Abstract/Assert support.
 *****************************************************************************}
+
+procedure fpc_emptymethod;[public,alias : 'FPC_EMPTYMETHOD'];
+begin
+end;
+
 
 procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin

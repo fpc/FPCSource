@@ -1469,7 +1469,7 @@ begin
     begin
     If (FLocalFileName='') then
       Raise HTTPError.Create(SErrInternalUploadedFileError);
-    FStream:=TFileStream.Create(FLocalFileName,fmOpenRead);
+    FStream:=TFileStream.Create(FLocalFileName,fmOpenRead or fmShareDenyWrite);
     end;
   Result:=FStream;
 end;

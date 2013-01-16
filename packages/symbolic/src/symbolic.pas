@@ -519,7 +519,6 @@ begin
                          end;
                        Eval.SetConstant(variablenames[i],x);
                        symvars.objects[j]:=tobject(1);
-                       writeln(variablenames[i],'!');
                      end;
                  end;
                  

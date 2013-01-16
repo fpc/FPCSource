@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -48,6 +48,12 @@ type
     function GetName: string; virtual; abstract;
     function GetTitle: string; virtual; abstract;
     function GetInformation: string; virtual; abstract;
+
+    function GetOpenGL_Enabled: Boolean; virtual; abstract;
+    procedure SetOpenGL_Enabled(AValue: Boolean); virtual; abstract;
+    function GetOpenGL_Attributes: IPTCOpenGLAttributes;
+  protected
+    FOpenGLAttributes: IPTCOpenGLAttributes;
   public
     constructor Create; virtual;
 
@@ -120,11 +126,32 @@ type
     property Pitch: Integer read GetPitch;
     property Area: IPTCArea read GetArea;
     property Format: IPTCFormat read GetFormat;
+
+    property OpenGL_Enabled: Boolean read GetOpenGL_Enabled write SetOpenGL_Enabled;
+    procedure OpenGL_SwapBuffers; virtual; abstract;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); virtual; abstract;
+    function OpenGL_GetSwapInterval: Integer; virtual; abstract;
+  end;
+
+  TPTCOpenGLLessConsole = class(TPTCBaseConsole)
+  private
+    function GetOpenGL_Enabled: Boolean; override;
+    procedure SetOpenGL_Enabled(AValue: Boolean); override;
+  public
+    procedure OpenGL_SwapBuffers; override;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
+    function OpenGL_GetSwapInterval: Integer; override;
   end;
 
 constructor TPTCBaseConsole.Create;
 begin
   FReleaseEnabled := False;
+  FOpenGLAttributes := TPTCOpenGLAttributes.Create;
+end;
+
+function TPTCBaseConsole.GetOpenGL_Attributes: IPTCOpenGLAttributes;
+begin
+  Result := FOpenGLAttributes;
 end;
 
 function TPTCBaseConsole.KeyPressed: Boolean;
@@ -177,4 +204,31 @@ end;
 function TPTCBaseConsole.GetKeyReleaseEnabled: Boolean;
 begin
   Result := FReleaseEnabled;
+end;
+
+function TPTCOpenGLLessConsole.GetOpenGL_Enabled: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TPTCOpenGLLessConsole.SetOpenGL_Enabled(AValue: Boolean);
+begin
+  if AValue then
+    raise TPTCError.Create('Console does not support OpenGL');
+end;
+
+procedure TPTCOpenGLLessConsole.OpenGL_SwapBuffers;
+begin
+  raise TPTCError.Create('Console does not support OpenGL');
+end;
+
+procedure TPTCOpenGLLessConsole.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  raise TPTCError.Create('Console does not support OpenGL');
+end;
+
+function TPTCOpenGLLessConsole.OpenGL_GetSwapInterval: Integer;
+begin
+  Result := -1;
+  raise TPTCError.Create('Console does not support OpenGL');
 end;

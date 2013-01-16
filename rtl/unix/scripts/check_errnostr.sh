@@ -11,8 +11,14 @@ if [ "$1" == "clean" ] ; then
   exit
 fi
 
-gsed -n "s:ESysE\(.*\)[[:space:]]*=[[:space:]]*\([[:space:]0-9]*\);: test_errnostr E\1 \2 :p" errno.inc | \
-  gsed "s:':'':g" > check_errnostr_list.sh 
+# Use gsed if present
+SED=`which gsed`
+if [ "$SED" == "" ] ; then
+  SED=sed
+fi
+
+$SED -n "s:ESysE\(.*\)[[:space:]]*=[[:space:]]*\([[:space:]0-9]*\);: test_errnostr E\1 \2 :p" errno.inc | \
+  $SED "s:':'':g" > check_errnostr_list.sh 
 
 if [ "$1" == "verbose" ] ; then
   verbose=1
@@ -24,7 +30,13 @@ fi
 
 # Reverse 'error string', { ENUMBER }
 # to ENUMBER string 
-gsed -n -e "s|[^']*\('.*'\)[[:space:]]*,*[[:space:]]*{[[:space:]]*\(E[A-Za-z_0-9]*\).*|(Number : ESys\2; NumberStr : '\2'; Str : \1),|p" errnostr.inc > errnostrlst.inc
+$SED -n -e "s|[^']*\('.*'\)[[:space:]]*,*[[:space:]]*{[[:space:]]*\(E[A-Za-z_0-9]*\).*|(Number : ESys\2; NumberStr : '\2'; Str : \1),|p" errnostr.inc > errnostrlst.inc
+
+
+# Use temp directory to avoid
+# re-compilation of system unit
+mkdir .testtmp
+cd .testtmp
 
 # Free Pascal source including
 # errnostr.inc file
@@ -108,11 +120,14 @@ begin
 end.
 EOF
 
-fpc $fpcopt ./testerrnostr.pp
+fpc $fpcopt  -Fi.. -o../testerrnostr ./testerrnostr.pp
 res=$?
+cd ..
 if [ $res -ne 0 ] ; then
   echo "Compilation of testerrnostr.pp failed"
   exit
+else
+  rm -Rf .testtmp
 fi
 
 export verbose

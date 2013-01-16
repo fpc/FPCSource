@@ -105,6 +105,7 @@ unit i_jvm;
               );
             first_parm_offset : 0;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -169,6 +170,7 @@ unit i_jvm;
               );
             first_parm_offset : 0;
             stacksize   : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 

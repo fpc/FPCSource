@@ -60,6 +60,34 @@ unit optloop;
           number_unrolls:=1;
       end;
 
+    type
+      treplaceinfo = record
+        loadnode : tloadnode;
+        value : Tconstexprint;
+      end;
+      preplaceinfo = ^treplaceinfo;
+
+    function checkbreakcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+      begin
+        if n.nodetype in [breakn,continuen] then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
+    function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if (n.nodetype=loadn) and (tloadnode(n).symtableentry=preplaceinfo(arg)^.loadnode.symtableentry) then
+          begin
+            if n.flags*[nf_modify,nf_write]<>[] then
+              internalerror(2012090402);
+            n.free;
+            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.loadnode.resultdef,false);
+          end;
+        result:=fen_false;
+      end;
+
 
     function unroll_loop(node : tnode) : tnode;
       var
@@ -67,6 +95,8 @@ unit optloop;
         counts : qword;
         unrollstatement,newforstatement : tstatementnode;
         unrollblock : tblocknode;
+        getridoffor : boolean;
+        replaceinfo : treplaceinfo;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -84,12 +114,27 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
-                { don't unroll more than we need }
-                if unrolls>counts then
+                { don't unroll more than we need,
+
+                  multiply unroll by two here because we can get rid
+                  of the counter variable completely and replace it by a constant
+                  if unrolls=counts }
+                if unrolls*2>counts then
                   unrolls:=counts;
 
                 { create block statement }
                 unrollblock:=internalstatements(unrollstatement);
+
+                { can we get rid completly of the for ? }
+                getridoffor:=(unrolls=counts) and not(foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil));
+
+                if getridoffor then
+                  begin
+                    if tfornode(node).left.nodetype<>loadn then
+                      internalerror(2012090301);
+                    replaceinfo.loadnode:=tloadnode(tfornode(node).left);
+                    replaceinfo.value:=tordconstnode(tfornode(node).right).value;
+                  end;
 
                 { let's unroll (and rock of course) }
                 for i:=1 to unrolls do
@@ -105,26 +150,34 @@ unit optloop;
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
-                    { for itself increases at the last iteration }
-                    if i<unrolls then
-                      begin
-                        { insert incr/decrementation of counter var }
-                        if lnf_backward in tfornode(node).loopflags then
-                          addstatement(unrollstatement,
-                            geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                        if getridoffor then
+                          begin
+                            foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
+                            if lnf_backward in tfornode(node).loopflags then
+                              replaceinfo.value:=replaceinfo.value-1
+                            else
+                              replaceinfo.value:=replaceinfo.value+1;
+                          end
                         else
-                          addstatement(unrollstatement,
-                            geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
-                      end;
+                          begin
+                            { for itself increases at the last iteration }
+                            if i<unrolls then
+                              begin
+                                { insert incr/decrementation of counter var }
+                                if lnf_backward in tfornode(node).loopflags then
+                                  addstatement(unrollstatement,
+                                    geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                                else
+                                  addstatement(unrollstatement,
+                                    geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
+                              end;
+                           end;
                   end;
                 { can we get rid of the for statement? }
-                if unrolls=counts then
+                if getridoffor then
                   begin
                     { create block statement }
                     result:=internalstatements(newforstatement);
-                    { initial assignment }
-                    addstatement(newforstatement,cassignmentnode.create(
-                      tfornode(node).left.getcopy,tfornode(node).right.getcopy));
                     addstatement(newforstatement,unrollblock);
                   end;
               end

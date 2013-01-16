@@ -288,7 +288,15 @@ implementation
              { update return location in callnode when this is the function
                result }
              if assigned(parasym) and
-                (vo_is_funcret in parasym.varoptions) then
+                (
+                  { for record constructor check that it is self parameter }
+                  (
+                    (vo_is_self in parasym.varoptions)and
+                    (aktcallnode.procdefinition.proctypeoption=potype_constructor)and
+                    is_record(parasym.vardef)
+                  ) or
+                  (vo_is_funcret in parasym.varoptions)
+                ) then
                location_copy(aktcallnode.location,left.location);
            end;
 
@@ -371,8 +379,8 @@ implementation
       begin
         { Check that the return location is set when the result is passed in
           a parameter }
-        if (procdefinition.proctypeoption<>potype_constructor) and
-           paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+        if ((procdefinition.proctypeoption<>potype_constructor)or is_record(resultdef)) and
+           paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             { self.location is set near the end of secondcallparan so it
               refers to the implicit result parameter }
@@ -688,10 +696,11 @@ implementation
         vmtreg : tregister;
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
+        pd : tprocdef;
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(sparc)}
         cgpara : tcgpara;
 {$endif}
       begin
@@ -889,6 +898,15 @@ implementation
                 watch out with procedure of object) }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
+              else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                begin
+                  { in case left is a method pointer and we are on a big endian target, then
+                    the method address is stored in registerhi }
+                  if (target_info.endian=endian_big) and (right.location.size in [OS_PAIR,OS_SPAIR]) then
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.registerhi,pvreg)
+                  else
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.register,pvreg);
+                end
               else
                 hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
@@ -928,7 +946,7 @@ implementation
               c-side, so the funcret has to be pop'ed normally. }
             if not ((procdefinition.proccalloption=pocall_safecall) and
                     (tf_safecall_exceptions in target_info.flags)) and
-               paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
+               paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
               dec(pop_size,sizeof(pint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);
@@ -968,16 +986,17 @@ implementation
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
 
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
          if (procdefinition.proccalloption=pocall_safecall) and
             (tf_safecall_exceptions in target_info.flags) then
            begin
+             pd:=search_system_proc('fpc_safecallcheck');
              cgpara.init;
-             paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara);
+             paramanager.getintparaloc(pd,1,cgpara);
              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,NR_FUNCTION_RESULT_REG,cgpara);
              paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
-             cgpara.done;
              cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+             cgpara.done;
            end;
 {$endif}
 

@@ -466,7 +466,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
             res := pthread_mutex_init(@CS,@MAttr)
           else
             { No recursive mutex support :/ }
-            res := pthread_mutex_init(@CS,NIL);
+            fpc_threaderror
         end
       else
         res:= pthread_mutex_init(@CS,NIL);
@@ -779,15 +779,12 @@ end;
 procedure IntbasiceventSetEvent(state:peventstate);
 begin
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-  Try
-    plocaleventstate(state)^.Fisset:=true;
-    if not(plocaleventstate(state)^.FManualReset) then
-      pthread_cond_signal(@plocaleventstate(state)^.Fcondvar)
-    else
-      pthread_cond_broadcast(@plocaleventstate(state)^.Fcondvar);
-  finally
-    pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
-  end;
+  plocaleventstate(state)^.Fisset:=true;
+  if not(plocaleventstate(state)^.FManualReset) then
+    pthread_cond_signal(@plocaleventstate(state)^.Fcondvar)
+  else
+    pthread_cond_broadcast(@plocaleventstate(state)^.Fcondvar);
+  pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
 end;
 
 function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;

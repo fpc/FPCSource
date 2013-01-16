@@ -21,7 +21,8 @@ interface
 
 type
   TElfMachineType = (emtnone, emtsparc, emti386, emtm68k, emtppc, emtppc64,
-                     emtarm, emtarmeb, emtia64, emtx86_64, emtalpha);
+                     emtarm, emtarmeb, emtia64, emtx86_64, emtalpha,
+                     emtmips, emtmipsel);
 const
   ELFMAGIC     = chr($7f)+'ELF';
 
@@ -61,11 +62,14 @@ const
   EM_SPARC       =  2;
   EM_386         =  3;
   EM_68K         =  4;
+  EM_MIPS        =  8; // GNU readelf returns machine name: "MIPS R3000"
+  EM_MIPS_RS3_LE = 10; // GNU readelf returns machine name: "MIPS R4000 big endian"!
   EM_PPC         = 20;
   EM_PPC64       = 21;
   EM_ARM         = 40;
 //  EM_OLD_ALPHA       = 41;
   EM_IA_64       = 50;
+  EM_MIPS_X      = 51; // GNU readelf returns machine name "Stanford MIPS-X"
   EM_X86_64      = 62;
   EM_ALPHA       = $9026; //unofficial, but used by gnu toolchain
   
@@ -130,6 +134,7 @@ const
   R_SPARC_32      =   3;
   R_ALPHA_REFQUAD =   2;
   R_IA64_DIR64LSB = $27;
+  R_MIPS_32       =   2;
 
 
   //fpc resource constants

@@ -283,7 +283,6 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
-         procedure DataPos_ExeSection(const aname:string);override;
          procedure NLMwriteString (const s : string; terminateWithZero : boolean);
          procedure objNLMwriteString (const s : string; terminateWithZero : boolean);
          procedure ParseScript (linkscript:TCmdStrList); override;
@@ -390,7 +389,6 @@ end;
         MaxMemPos:=$7FFFFFFF;
         SectionMemAlign:=$0;
         SectionDataAlign:=0;
-        RelocSection := true;  // always needed for NLM's
         nlmImports := TFPHashObjectList.create(true);
         nlmImpNames := TFPHashObjectList.create(false);
         NlmSymbols := TDynamicArray.create(4096);
@@ -399,14 +397,10 @@ end;
 
     destructor TNLMexeoutput.destroy;
       begin
-        if assigned(nlmImports) then
-          nlmImports.Free;
-        if assigned(nlmImpNames) then
-          nlmImpNames.Free;
-        if assigned(nlmSymbols) then
-          nlmSymbols.Free;
-        if assigned(FexportFunctionOffsets) then
-          FexportFunctionOffsets.Free;
+        nlmImports.Free;
+        nlmImpNames.Free;
+        nlmSymbols.Free;
+        FexportFunctionOffsets.Free;
         inherited destroy;
       end;
 
@@ -530,6 +524,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         objsec : TObjSection;
         i,j    : longint;
         b      : byte;
+        dpos,pad: aword;
       begin
 
         with texesection(p) do
@@ -541,17 +536,25 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
 
             if oso_data in secoptions then
               begin
+                if DataPos<FWriter.Size then
+                  InternalError(2012103001);
                 //if Align(FWriter.Size,SectionDataAlign)-FWriter.Size>0 then
                 //  writeln (name,' align ',Align(FWriter.Size,SectionDataAlign)-FWriter.Size,' SectionDataAlign:',SectionDataAlign);
-                FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
+                FWriter.Writezeros(DataPos-FWriter.Size);
                 for i:=0 to ObjSectionList.Count-1 do
                   begin
                     objsec:=TObjSection(ObjSectionList[i]);
                     if oso_data in objsec.secoptions then
                       begin
+                        { objsection must be within SecAlign bytes from the previous one }
+                        dpos:=objsec.MemPos-MemPos+DataPos;
+                        pad:=dpos-FWriter.Size;
+                        if (dpos<FWriter.Size) or
+                         (pad>=max(objsec.SecAlign,1)) then
+                          internalerror(200602251);
                         if assigned(exemap) then
                           if objsec.data.size > 0 then
-                            exemap.Add('  0x'+hexstr(objsec.DataPos,8)+': '+objsec.name);
+                            exemap.Add('  0x'+hexstr(dpos,8)+': '+objsec.name);
                         //writeln ('   ',objsec.name,'  size:',objsec.size,'  relocs:',objsec.ObjRelocations.count,'  DataPos:',objsec.DataPos,' MemPos:',objsec.MemPos);
                         {for j := 0 to objsec.ObjRelocations.count-1 do
                           begin
@@ -569,15 +572,10 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                         if copy (objsec.Name,1,5) = '.text' then
                           begin        // write NOP's instead of zero's for .text, makes disassemble possible
                             b := $90;  // NOP
-                            if objsec.DataAlignBytes > 0 then
-                              for j := 1 to objsec.DataAlignBytes do
+                            for j := 1 to pad do
                                 FWriter.write(b,1);
                           end else
-                            FWriter.writezeros(objsec.dataalignbytes);
-                        //if objsec.dataalignbytes>0 then
-                        //  writeln ('  ',name,'  alignbytes: ',objsec.dataalignbytes);
-                        if objsec.DataPos<>FWriter.Size then
-                            internalerror(200602251);
+                            FWriter.writezeros(pad);
                         FWriter.writearray(objsec.data);
                       end else
                       begin
@@ -1004,11 +1002,6 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
           for j:=0 to exesec.ObjSectionList.count-1 do
             begin
               objsec:=TObjSection(exesec.ObjSectionList[j]);
-              if j=0 then
-                begin
-                  exesec.DataPos:=objSec.DataPos;
-                  exesec.MemPos:=objSec.MemPos;
-                end;
               if (copy(objsec.name,1,5) <> '.text') and (copy(objsec.name,1,4) <> '.bss') and (copy(objsec.name,1,5) <> '.data') then
                   continue;
               for k:=0 to objsec.ObjRelocations.Count-1 do
@@ -1167,7 +1160,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         targetSectionName : string;
 
       begin
-        if not RelocSection or FRelocsGenerated then
+        if FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -1247,12 +1240,6 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
             GenerateImports;
           if aname='.data' then
             currMemPos := 0;  // both, data and code in the nlm have a start offset of 0
-          inherited;
-        end;
-
-
-      procedure TNLMexeoutput.DataPos_ExeSection(const aname:string);
-        begin
           inherited;
         end;
 

@@ -113,9 +113,19 @@ interface
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
+{$ifdef GDB_V705}
+  {$define GDB_V_704}
+  {$define GDB_BO_LOCATION_HAS_COND_BYTECODE}
+  {$define GDB_BP_LOCATION_HAS_RELATED_ADDRESS}
+{$endif}
+
 { 7.4.x }
 {$ifdef GDB_V704}
   {$info using gdb 7.4.x}
+  {$define GDB_V_704}
+{$endif}
+
+{$ifdef GDB_V_704}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
@@ -128,6 +138,9 @@ interface
   {$define GDB_BP_LOCATION_HAS_REFCOUNT}
   {$define GDB_BP_LOCATION_HAS_OPS}
   {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
+  {$ifdef win32}
+      {$define GDB_USES_LIBADVAPI32}
+  {$endif win32}
 {$endif def GDB_V704}
 
 { 7.3.x }
@@ -469,7 +482,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
   {$endif not USE_MINGW_GDB}
-  {$LINKLIB advapi32}
+  {$ifdef GDB_USES_LIBADVAPI32}
+    {$LINKLIB advapi32}
+  {$endif GDB_USES_LIBADVAPI32}
   {$LINKLIB user32}
   {$LINKLIB kernel32}
 {$endif win32}
@@ -953,7 +968,7 @@ type
      pprogram_space = pointer;
      pgdbarch = pointer;
 
-{$PACKRECORDS 4}
+{$PACKRECORDS C}
      pbreakpoint = ^breakpoint;
      breakpoint = record
 {$ifdef GDB_USES_BP_OPS}
@@ -1014,6 +1029,9 @@ type
           section : pointer; {^asection}
        end;
 
+     pagent_expr = pointer;
+     tcondition_status = (condition_unchanged, condition_modified);
+
      bp_target_info = record
           placed_address_space : pointer;{paddress_space;}
           placed_address : CORE_ADDR;
@@ -1042,6 +1060,12 @@ type
          owner : pbreakpoint;
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          cond : pointer;{pexpression;}
+{$ifdef GDB_BO_LOCATION_HAS_COND_BYTECODE}
+         cond_bytecode : pagent_expr;
+         condition_changed : tcondition_status;
+         cmd_bytecode : pagent_expr;
+         needs_update : byte;
+{$endif}
          shlib_disabled : byte;
          enabled : byte;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -1060,6 +1084,10 @@ type
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          section : pointer;{pobj_section;}
          requested_address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_RELATED_ADDRESS}
+         related_address : CORE_ADDR;
+         probe : pointer; { struct probe *probe; }
+{$endif}
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          function_name : ^char;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -1114,6 +1142,8 @@ type
             avoid stack memory corruption PM }
           explicit_pc : longint;
           explicit_line : longint;
+          { New field added in GDB 7.5 version }
+          probe : pointer;{struct probe *probe; }
        end;
 
      symtabs_and_lines = record
@@ -1559,7 +1589,7 @@ type
           to_magic : longint;
        end;
 
-{$PACKRECORDS NORMAL}
+{$PACKRECORDS C}
 
 {*****************************************************************************
                    Define external calls to libgdb.a

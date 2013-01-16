@@ -60,45 +60,6 @@ begin
    end;
 end;
 
-{$ifndef FPC_USE_LIBC}
-Function fpgetenv(name:pchar):pchar;
-
-var
-  p     : ppchar;
-  found : boolean;
-  np,cp : pchar;
-  len,i : longint;
-Begin
-  if (name=nil) or (envp=NIL) Then
-   exit(NIL);
-  np:=name;
-  while (np^<>#0) and (np^<>'=') DO
-   inc(np);
-  len:=np-name;
-  p:=envp;
-  while (p^<>NIL) DO
-   Begin
-    cp:=p^;
-    np:=name;
-    i:=len;
-    while (i<>0) and (cp^<>#0) DO
-      Begin
-        if cp^<>np^ Then
-          Begin
-           inc(cp); inc(np);
-           break;
-         End;
-        inc(cp); inc(np);
-        dec(i)
-      End;
-    if (i=0) and (cp^='=') Then
-        exit(cp+1);
-   inc(p);
-  end;
- fpgetenv:=nil;
-End;
-{$ENDIF}
-
 Function fpgetenv(name:string):Pchar; [public, alias : 'FPC_SYSC_FPGETENV'];
 {
   Searches the environment for a string with name p and

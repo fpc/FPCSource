@@ -128,10 +128,19 @@ ifeq ($(ARCH),powerpc64)
 endif
 # Select 32/64 mode
 ifeq ($(ARCH),mips)
-  ASTARGET=-EB
+  ASTARGET=-32 -mips32 -EB
 endif
 ifeq ($(ARCH),mipsel)
-  ASTARGET=-EL
+  ASTARGET=-32 -mips32 -EL
+endif
+
+ifeq ($(ARCH),sparc)
+  ifneq ($(findstring -Cg ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
 endif
 
 #

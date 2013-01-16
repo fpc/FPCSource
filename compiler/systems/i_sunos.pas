@@ -89,6 +89,7 @@ unit i_sunos;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 
@@ -99,7 +100,7 @@ unit i_sunos;
             name         : 'Solaris for x86-64';
             shortname    : 'solaris';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,
-			    tf_under_development,
+                            tf_under_development,
                             tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_smartlink_library,tf_library_needs_pic,
                             tf_has_winlike_resources];
@@ -155,6 +156,7 @@ unit i_sunos;
               );
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -166,6 +168,7 @@ unit i_sunos;
             shortname    : 'solaris';
             flags        : [tf_needs_symbol_size,tf_under_development,
                             tf_files_case_sensitive,
+                            tf_pic_uses_got,
                             tf_requires_proper_alignment,tf_smartlink_library,
                             tf_has_winlike_resources];
             cpu          : cpu_SPARC;
@@ -220,6 +223,7 @@ unit i_sunos;
               );
             first_parm_offset : 92;
             stacksize    : 262144;
+            stackalign   : 8;
             abi          : abi_default;
           );
 

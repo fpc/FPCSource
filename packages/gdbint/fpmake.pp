@@ -17,12 +17,8 @@ var
   GdbLibDir, GdbLibFile: string;
   GdbLibFound: boolean;
   GdbVerTarget: TTarget;
-  HostOS: TOS;
-  HostCPU: TCpu;
 begin
   P := Sender as TPackage;
-  HostOS:=StringToOS({$I %FPCTARGETOS%});
-  HostCPU:=StringToCPU({$I %FPCTARGETCPU%});
   // Search for a libgdb file.
   GdbLibFound:=false;
 
@@ -62,8 +58,8 @@ begin
   // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
   // is performed.
   if GdbLibFound and
-     (((Defaults.CPU=HostCPU) and (Defaults.OS=HostOS))
-       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (HostOS=win32) and (HostCPU=i386))) then
+     (not Defaults.IsBuildDifferentFromTarget
+       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (Defaults.BuildOS=win32) and (Defaults.BuildCPU=i386))) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
       Installer.BuildEngine.CreateOutputDir(p);
@@ -71,7 +67,7 @@ begin
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.
         GetBinOutputDir(Defaults.CPU, Defaults.OS))+PathDelim+
-        AddProgramExtension('gdbver',HostOS),'-o ' +
+        AddProgramExtension('gdbver',Defaults.BuildOS),'-o ' +
         Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
 
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used

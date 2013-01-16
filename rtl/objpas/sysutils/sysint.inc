@@ -17,14 +17,14 @@
 procedure InitInternationalGeneric;
   begin
     fillchar(SysLocale,sizeof(SysLocale),0);
-    
+
     { keep these routines out of the executable? }
 {$ifndef FPC_NOGENERICANSIROUTINES}
     { don't override a previously installed widestring manager }
     if not assigned(widestringmanager.UpperAnsiStringProc) then
       widestringmanager.UpperAnsiStringProc:=@GenericAnsiUpperCase;
     if not assigned(widestringmanager.LowerAnsiStringProc) then
-      widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;    
+      widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;
     if not assigned(widestringmanager.CompareStrAnsiStringProc) then
       widestringmanager.CompareStrAnsiStringProc:=@GenericAnsiCompareStr;
     if not assigned(widestringmanager.CompareTextAnsiStringProc) then
@@ -41,6 +41,6 @@ procedure InitInternationalGeneric;
       widestringmanager.StrLowerAnsiStringProc:=@GenericAnsiStrLower;
     if not assigned(widestringmanager.StrUpperAnsiStringProc) then
       widestringmanager.StrUpperAnsiStringProc:=@GenericAnsiStrUpper;
-{$endif FPC_NOGENERICANSIROUTINES}    
+{$endif FPC_NOGENERICANSIROUTINES}
   end;
-  
+

@@ -37,8 +37,8 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -68,12 +68,14 @@ unit cpupara;
       end;
 
 
-    procedure tavrparamanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure tavrparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        def : tdef;
       begin
         if nr<1 then
           internalerror(2002070801);
+        def:=tparavarsym(pd.paras[nr-1]).vardef;
         cgpara.reset;
         cgpara.size:=def_cgsize(def);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -178,22 +180,31 @@ unit cpupara;
       end;
 
 
-    function tavrparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tavrparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
+        if (tf_safecall_exceptions in target_info.flags) and
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
+          begin
+            result:=true;
+            exit;
+          end;
         case def.typ of
           recorddef:
             { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
               ARM ABI standard compliant
             }
             result:=not((trecorddef(def).symtable.SymList.count=1) and
-              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.SymList[0]).vardef,calloption)));
+              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.SymList[0]).vardef,pd)));
           {
           objectdef
           arraydef:
             result:=not(def.size in [1,2,4]);
           }
           else
-            result:=inherited ret_in_param(def,calloption);
+            result:=inherited ret_in_param(def,pd);
         end;
       end;
 

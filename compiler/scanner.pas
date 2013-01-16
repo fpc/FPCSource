@@ -315,7 +315,7 @@ implementation
             low:=mid;
          end;
         is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
-                    (tokeninfo^[ttoken(high)].keyword in current_settings.modeswitches);
+                    ((tokeninfo^[ttoken(high)].keyword*current_settings.modeswitches)<>[]);
       end;
 
 
@@ -324,7 +324,7 @@ implementation
         { turn ansi/unicodestrings on by default ? (only change when this
           particular setting is changed, so that a random modeswitch won't
           change the state of $h+/$h-) }
-        if switch in [m_all,m_default_ansistring,m_default_unicodestring] then
+        if switch in [m_none,m_default_ansistring,m_default_unicodestring] then
           begin
             if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
               begin
@@ -355,7 +355,7 @@ implementation
           end;
 
         { turn inline on by default ? }
-        if switch in [m_all,m_default_inline] then
+        if switch in [m_none,m_default_inline] then
           begin
             if (m_default_inline in current_settings.modeswitches) then
              begin
@@ -372,12 +372,12 @@ implementation
           end;
 
         { turn on system codepage by default }
-        if switch in [m_all,m_systemcodepage] then
+        if switch in [m_none,m_systemcodepage] then
           begin
             if m_systemcodepage in current_settings.modeswitches then
               begin
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
-                if not cpavailable(current_settings.sourcecodepage) then
+                if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
                     Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
@@ -455,7 +455,7 @@ implementation
            { resolve all postponed switch changes }
            flushpendingswitchesstate;
 
-           HandleModeSwitches(m_all,changeinit);
+           HandleModeSwitches(m_none,changeinit);
 
            { turn on bitpacking for mode macpas and iso pascal }
            if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
@@ -3961,7 +3961,7 @@ In case not, the value returned can be arbitrary.
               with tokeninfo^[ttoken(high)] do
                 if pattern=str then
                   begin
-                    if keyword in current_settings.modeswitches then
+                    if (keyword*current_settings.modeswitches)<>[] then
                       if op=NOTOKEN then
                         token:=ttoken(high)
                       else
@@ -4075,14 +4075,23 @@ In case not, the value returned can be arbitrary.
                              nexttoken:=_RECKKLAMMER;
                              goto exit_label;
                            end;
+                         '0'..'9' :
+                           begin
+                             { insert the number after the . }
+                             pattern:=pattern+'.';
+                             while c in ['0'..'9'] do
+                              begin
+                                pattern:=pattern+c;
+                                readchar;
+                              end;
+                           end;
+                         else
+                           begin
+                             token:=_INTCONST;
+                             nexttoken:=_POINT;
+                             goto exit_label;
+                           end;
                        end;
-                       { insert the number after the . }
-                       pattern:=pattern+'.';
-                       while c in ['0'..'9'] do
-                        begin
-                          pattern:=pattern+c;
-                          readchar;
-                        end;
                       end;
                   { E can also follow after a point is scanned }
                     if c in ['e','E'] then

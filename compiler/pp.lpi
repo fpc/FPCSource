@@ -25,21 +25,14 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-MObjFPC -Scgi -O1 -gl -vewnhi -l -FiD:\programming\laz_svn\fpc_features\cpstr\lib\i386-win32\ -FuD:\programming\laz_svn\cpstr\cpstrnew\ -Fu. -FUD:\programming\laz_svn\fpc_features\cpstr\lib\i386-win32\ -oproject1.exe D:\programming\laz_svn\fpc_features\cpstr\project1.lpr"/>
-        <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="x86\aasmcpu.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -61,11 +54,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <DebugInfoType Value="dsStabs"/>
-      </Debugging>
-    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>

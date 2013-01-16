@@ -181,17 +181,15 @@ interface
 implementation
 
     uses
-       sysutils,
        systems,constexp,globals,
        cutils,verbose,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,ncon,
-       cgbase,procinfo
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo
        ;
 
     type
-      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr,Valid_Packed);
+      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr,Valid_Packed,Valid_Range);
       TValidAssigns=set of TValidAssign;
 
 
@@ -255,6 +253,11 @@ implementation
                            (
                              is_enum(rd) and
                              (treetyp in (order_theoretic_operators+[addn, subn]))
+                           ) or
+                           (
+                             { for enum definitions, see webtbs/tw22860.pp }
+                             is_integer(rd) and
+                             (treetyp in (order_theoretic_operators+bit_manipulation_operators+arithmetic_operators))
                            )
                          );
               end;
@@ -477,7 +480,9 @@ implementation
                              (
                                is_implicit_pointer_object_type(rd) or
                                (rd.typ=pointerdef) or
-                               (rt=niln)
+                               (rt=niln) or
+                               ((ld=java_jlstring) and
+                                is_stringlike(rd))
                              )
                            ) and
                            (treetyp in identity_operators)
@@ -821,6 +826,8 @@ implementation
               begin
                 CGMessage(parser_e_operator_not_overloaded);
                 candidates.free;
+                ppn.free;
+                ppn:=nil;
                 exit;
               end;
 
@@ -840,6 +847,8 @@ implementation
               begin
                 CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
                 candidates.free;
+                ppn.free;
+                ppn:=nil;
                 exit;
               end;
 
@@ -925,6 +934,7 @@ implementation
         if (cand_cnt=0) and (optoken=_NE) then
           begin
             ppn.free;
+            ppn:=nil;
             operpd:=nil;
             optoken:=_EQ;
             cand_cnt:=search_operator(optoken,true);
@@ -1183,14 +1193,20 @@ implementation
                                    begin
                                      if tloadnode(p).symtable.symtabletype=localsymtable then
                                        begin
-                                         if (vsf_use_hints in varstateflags) then
+                                         { on the JVM, an uninitialized var-parameter
+                                           is just as fatal as a nil pointer dereference }
+                                         if (vsf_use_hints in varstateflags) and
+                                            not(target_info.system in systems_jvm) then
                                            CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
                                          else
                                            CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
                                        end
                                      else
                                        begin
-                                         if (vsf_use_hints in varstateflags) then
+                                         { on the JVM, an uninitialized var-parameter
+                                           is just as fatal as a nil pointer dereference }
+                                         if (vsf_use_hints in varstateflags) and
+                                            not(target_info.system in systems_jvm) then
                                            CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
                                          else
                                            CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
@@ -1497,6 +1513,14 @@ implementation
                end;
              vecn :
                begin
+                 if (tvecnode(hp).right.nodetype=rangen) and
+                    not(valid_range in opts) then
+                  begin
+                    if report_errors then
+                      CGMessagePos(tvecnode(hp).right.fileinfo,parser_e_illegal_expression);
+                    mayberesettypeconvs;
+                    exit;
+                  end;
                  if { only check for first (= outermost) vec node }
                     not gotvec and
                     not(valid_packed in opts) and
@@ -1523,25 +1547,6 @@ implementation
                  if is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
-               end;
-             blockn :
-               begin
-                 hp2:=tblocknode(hp).statements;
-                 if assigned(hp2) then
-                   begin
-                     if hp2.nodetype<>statementn then
-                       internalerror(2006110801);
-                     while assigned(tstatementnode(hp2).next) do
-                       hp2:=tstatementnode(hp2).next;
-                     hp:=tstatementnode(hp2).statement;
-                   end
-                 else
-                   begin
-                     if report_errors then
-                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
-                     mayberesettypeconvs;
-                     exit;
-                   end;
                end;
              asn :
                begin
@@ -1680,59 +1685,83 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
+             blockn,
              calln :
                begin
-                 { check return type }
-                 case hp.resultdef.typ of
-                   arraydef :
-                     begin
-                       { dynamic arrays are allowed when there is also a
-                         vec node }
-                       if is_dynamic_array(hp.resultdef) and
-                          gotvec then
-                        begin
-                          gotderef:=true;
-                          gotpointer:=true;
-                        end;
+                 if (hp.nodetype=calln) or
+                    (nf_no_lvalue in hp.flags) then
+                   begin
+                     { check return type }
+                     case hp.resultdef.typ of
+                       arraydef :
+                         begin
+                           { dynamic arrays are allowed when there is also a
+                             vec node }
+                           if is_dynamic_array(hp.resultdef) and
+                              gotvec then
+                            begin
+                              gotderef:=true;
+                              gotpointer:=true;
+                            end;
+                         end;
+                       pointerdef :
+                         gotpointer:=true;
+                       objectdef :
+                         gotclass:=is_implicit_pointer_object_type(hp.resultdef);
+                       recorddef, { handle record like class it needs a subscription }
+                       classrefdef :
+                         gotclass:=true;
+                       stringdef :
+                         gotstring:=true;
                      end;
-                   pointerdef :
-                     gotpointer:=true;
-                   objectdef :
-                     gotclass:=is_implicit_pointer_object_type(hp.resultdef);
-                   recorddef, { handle record like class it needs a subscription }
-                   classrefdef :
-                     gotclass:=true;
-                   stringdef :
-                     gotstring:=true;
-                 end;
-                 { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found
-                   3. string is returned }
-                 if (gotstring and gotvec) or
-                    (gotpointer and gotderef) or
-                    (gotclass and gotsubscript) then
-                  result:=true
+                     { 1. if it returns a pointer and we've found a deref,
+                       2. if it returns a class or record and a subscription or with is found
+                       3. string is returned }
+                     if (gotstring and gotvec) or
+                        (gotpointer and gotderef) or
+                        (gotclass and gotsubscript) then
+                      result:=true
+                     else
+                     { Temp strings are stored in memory, for compatibility with
+                       delphi only }
+                       if (m_delphi in current_settings.modeswitches) and
+                          (valid_addr in opts) and
+                          (hp.resultdef.typ=stringdef) then
+                         result:=true
+                     else
+                       if ([valid_const,valid_addr] * opts = [valid_const]) then
+                         result:=true
+                     else
+                      if report_errors then
+                       CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
+                     exit;
+                   end
                  else
-                 { Temp strings are stored in memory, for compatibility with
-                   delphi only }
-                   if (m_delphi in current_settings.modeswitches) and
-                      (valid_addr in opts) and
-                      (hp.resultdef.typ=stringdef) then
-                     result:=true
-                 else
-                   if ([valid_const,valid_addr] * opts = [valid_const]) then
-                     result:=true
-                 else
-                  if report_errors then
-                   CGMessagePos(hp.fileinfo,errmsg);
-                 mayberesettypeconvs;
-                 exit;
+                   begin
+                     hp2:=tblocknode(hp).statements;
+                     if assigned(hp2) then
+                       begin
+                         if hp2.nodetype<>statementn then
+                           internalerror(2006110801);
+                         while assigned(tstatementnode(hp2).next) do
+                           hp2:=tstatementnode(hp2).next;
+                         hp:=tstatementnode(hp2).statement;
+                       end
+                     else
+                       begin
+                         if report_errors then
+                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                         mayberesettypeconvs;
+                         exit;
+                       end;
+                   end;
                end;
              inlinen :
                begin
                  if ((valid_const in opts) and
                      (tinlinenode(hp).inlinenumber in [in_typeof_x])) or
-                    (tinlinenode(hp).inlinenumber in [in_unaligned_x]) then
+                    (tinlinenode(hp).inlinenumber in [in_unaligned_x,in_aligned_x]) then
                    result:=true
                  else
                    if report_errors then
@@ -1744,6 +1773,17 @@ implementation
                begin
                  { only created internally, so no additional checks necessary }
                  result:=true;
+                 mayberesettypeconvs;
+                 exit;
+               end;
+             nothingn :
+               begin
+                 { generics can generate nothing nodes, just allow everything }
+                 if df_generic in current_procinfo.procdef.defoptions then
+                   result:=true
+                 else if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1831,20 +1871,20 @@ implementation
 
     function  valid_for_var(p:tnode; report_errors: boolean):boolean;
       begin
-        valid_for_var:=valid_for_assign(p,[],report_errors);
+        valid_for_var:=valid_for_assign(p,[valid_range],report_errors);
       end;
 
 
     function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
       begin
-        valid_for_formal_var:=valid_for_assign(p,[valid_void],report_errors);
+        valid_for_formal_var:=valid_for_assign(p,[valid_void,valid_range],report_errors);
       end;
 
 
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
       begin
         valid_for_formal_const:=(p.resultdef.typ=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const,valid_property],report_errors);
+          valid_for_assign(p,[valid_void,valid_const,valid_property,valid_range],report_errors);
       end;
 
 

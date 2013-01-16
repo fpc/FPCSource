@@ -240,6 +240,7 @@ interface
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if (is_cbool(resultdef)) then
           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,location.register,location.register);
         current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -525,12 +526,11 @@ interface
       exit;
 {$endif}
 {$endif}
-      tg.gethltemp(current_asmdata.currasmlist,methodpointertype,methodpointertype.size,tt_normal,r);
-      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
-      location.reference:=r;
-      cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
-      inc(r.offset,sizeof(puint));
-      cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
+      cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
+      location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+      cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.register);
     end;
 
     procedure tcgtypeconvnode.second_bool_to_int;

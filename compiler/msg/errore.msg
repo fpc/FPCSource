@@ -386,11 +386,13 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 % The compiler is compiled with support for several codepages built-in.
 % The codepage of the operation system is not in that list. You will need to recompile
 % the compiler with support for this codepage.
+scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the target OS
+% The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
 % \end{description}
 #
 # Parser
 #
-# 03322 is the last used one
+# 03327 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -640,7 +642,7 @@ parser_e_expr_have_to_be_destructor_call=03077_E_Expression must be destructor c
 parser_e_invalid_record_const=03078_E_Illegal order of record elements
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_Expression type must be class or record type
+parser_e_false_with_expr=03079_E_Expression type must be class or record type, got $1
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
@@ -1073,8 +1075,8 @@ parser_e_invalid_qualifier=03205_E_Illegal qualifier
 parser_e_upper_lower_than_lower=03206_E_High range limit < low range limit
 % You are declaring a subrange, and the high limit is less than the low limit of
 % the range.
-parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of the procedure it is used in
-% Non local exit is not allowed. This error occurs only in mode MacPas.
+parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of the procedure it is used in or of a surrounding procedure
+% The parameter of a exit call in macpas mode must be either the name of the current subroutine or of a surrounding one
 parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings. You also cannot assign values to
@@ -1444,9 +1446,34 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 % The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
 % emulate them in a way that makes it possible to support calling virtual constructors
 % for the current instance inside another constructor.
-parser_e_method_lower_visibility=03322_E_Overring method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
+parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
+parser_w_nostackframe_without_assembler=03323_W_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
+% nostackframe call modifier is supposed to be used in conjunction with assembler.
+parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
+% nostackframe call modifier used without assembler modifier
+% might still generate local stack needs.
+parser_e_cannot_generate_property_getter_setter=03325_E_Cannot generate property getter/setter $1 because its name clashes with existing identifier $2
+% Automatically generated getters/setters cannot have the same name as existing
+% identifiers, because this may change the behaviour of existing code.
+parser_w_overriding_property_getter_setter=03326_W_Automatically generated property getter/setter $1 overrides the same-named getter/setter in class $2
+% Automatically generated property getters/setters on the JVM platform are virtual methods, because
+% the JVM does not support non-virtual methods that can be changed in child classes. This means
+% that if a child class changes an inherited property definition, the behaviour of that property
+% can change compared to native targets since even if a variable is declared as the parent type,
+% by calling the virtual method the getter from the child will be used. This is different from
+% the behaviour on native targets or when not activating automatically generated setters/getters,
+% because in that case only the declared type of a variable influences the property behaviour.
+parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Case mismatch between declared property getter/setter $1 and automatically constructed name $2, not changing declared name
+% If a property's specified getter/setter already corresponded to the naming convention specified
+% by the automatic getter/setter generation setting except in terms of upper/lowercase, the
+% compiler will print a warning because it cannot necessarily change that other declaration itself
+% not can it add one using the correct case (it could conflict with the original declaration).
+% Manually correct the case of the getter/setter to conform to the desired coding rules.
+% \var{TChild} overrides
+%
 % \end{description}
+%
 # Type Checking
 #
 # 04119 is the last used one
@@ -2292,7 +2319,7 @@ cg_d_autoinlining=06055_DL_Auto inlining: $1
 #
 # Assembler reader
 #
-# 07110 is the last used one
+# 07125 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2560,7 +2587,40 @@ asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure asse
 % Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
 % blocks of regular procedures.
 asmr_e_unsupported_directive=07115_E_Directive "$1" is not supported for the current target
-
+asmr_e_complex_function_result_location=07116_E_This function's result location cannot be encoded directly in a single operand when "nostackframe" is used
+% Functions declared with the \var{nostackframe} modifier do not have a stack frame, and hence
+% do not have a local variable to hold the temporary function result.  Accesses to the function
+% result in such routines directly go to the registers or memory location that will be used
+% to return their result to the caller.  In some cases this result may be spread over multiple
+% registers, in which case it is not possible to access the location via its symbolic name.
+% You have to directly use the appropriate register names in this case.
+asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL references in Intel assembler syntax cannot contain a base or index register, and their offset must 0.
+% The syntax for a gotpcrel PIC memory expression in Intel assembler syntax is
+% \verb*[global_symbol wrt ..gotpcrel]*
+asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL relocations
+% Not all targets support position-independent code using a global offset table.
+% Use a different way to access symbols in a position-indepent way in these cases.
+asmr_w_global_access_without_got=07119_W_Exported/global symbols should accessed via the GOT
+% Global symbols (symbols from the unit interface, or defined in a program
+% or library) should be accessed via the GOT when generating position-indepent code.
+asmr_w_check_mem_operand_size=07120_W_Check size of memory operand "$1"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size3=07121_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size_offset=07122_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits + $4 byte offset]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_negative_offset=07123_W_Check "$1: offset of memory operand is negative "$2 byte"
+% The offset of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_automap_multiple_size=07124_W_Check "$1: size of memory operand is empty, but es exists different definitions of the memory size =>> map to $2 (smallest option)"
+% The size of memory operand is empty and we have different definitions of possible memory sizes. Check it!
+asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference expression: "$1"
+% FPU, vector and sometimes integer registers cannot be used in memory reference
+% expressions, due to limitations of the cpu architecture or simple because
+% it is not meaningful.
 
 #
 # Assembler/binary writers
@@ -2961,7 +3021,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11052 is the last used one
+# 11053 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3092,13 +3152,15 @@ option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used w
 % platforms, so smart linking is disabled in such cases.
 option_invalid_macosx_deployment_target=11050_E_Invalid value for MACOSX_DEPLOYMENT_TARGET environment variable: $1
 option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEPLOYMENT_TARGET environment variable: $1
-% On Mac OS X, the MACOSX_DEPLOYMENT_TARGET/IPHONEOS_DEPLOYMENT_TARGET environment variable can be
+% On Mac OS X, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
 % used to set the default target OS version. In case of Mac OS X, it has to be of the format
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
 option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
+option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
+% Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
 
 
 %\end{description}
@@ -3298,7 +3360,7 @@ S*2Aas_Assemble using GNU AS
 **1C<x>_Code generation options:
 **2C3<x>_Turn on ieee error checking for constants
 **2Ca<x>_Select ABI, see fpc -i for possible values
-**2Cb_Generate big-endian code
+**2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
@@ -3324,8 +3386,10 @@ J*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
-K*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
+J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*2Cv_Var/out parameter copy-out checking
+J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
+J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
@@ -3395,6 +3459,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2O1_Level 1 optimizations (quick and debugger friendly)
 **2O2_Level 2 optimizations (-O1 + quick optimizations)
 **2O3_Level 3 optimizations (-O2 + slow optimizations)
+**2O4_Level 4 optimizations (-O3 + optimizations which might have unexpected side effects)
 **2Oa<x>=<y>_Set alignment
 **2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
 **2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
@@ -3444,6 +3509,7 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
 3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
+3*2Tnativent_Native NT API (experimental)
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
 3*2Tnetwlibc_Novell Netware Module (libc)

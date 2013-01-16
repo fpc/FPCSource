@@ -3,7 +3,7 @@
 
      Contains:   A component API for encoding/decoding audio data.
 
-     Copyright:  (c) 1985-2008 by Apple Inc., all rights reserved.
+     Copyright:  (c) 1985-2008 by Apple, Inc., all rights reserved.
 
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,7 +11,8 @@
                      http://www.freepascal.org/bugs.html
 
 ==================================================================================================}
-{	  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -178,8 +184,6 @@ uses MacTypes,CoreAudioTypes,AudioComponents;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 {!
@@ -219,7 +223,7 @@ uses MacTypes,CoreAudioTypes,AudioComponents;
 	output using the AudioCodecAppendInputData and AudioCodecProduceOutputData
 	routines. Input data can be fed into an encoder and some decoders in any size (even 
 	byte by byte). Input data fed to a decoder should be in terms of whole packets in the 
-	encoded format if the format is variable bit rate and is not self framing (e.g. MPEG 4 AAC). 
+	encoded format if the format is variable bit rate and is not self framing (e.g. MPEG-4 AAC). 
 	Output data can only be produced in whole packet sizes. Both routines will return 
 	the amount of data they consume/produce.
  
@@ -281,6 +285,7 @@ type
 //=============================================================================
 
 
+{$ifc not TARGET_OS_IPHONE}
 {!
 	@enum           AudioCodecComponentType
  
@@ -300,6 +305,7 @@ const
 	kAudioDecoderComponentType = FourCharCode('adec');
 	kAudioEncoderComponentType = FourCharCode('aenc');
 	kAudioUnityCodecComponentType = FourCharCode('acdc');
+{$endc} {TARGET_OS_IPHONE}
 
 
 //=============================================================================
@@ -318,15 +324,6 @@ const
 				
 				These properties can be read at any time the codec is open.
 
-	@constant	kAudioCodecPropertyNameCFString
-					The name of the codec component as a CFStringRef. The CFStringRef
-					retrieved via this property must be released by the caller.
-	@constant	kAudioCodecPropertyManufacturerCFString
-					The manufacturer of the codec as a CFStringRef. The CFStringRef 
-					retrieved via this property must be released by the caller.
-	@constant	kAudioCodecPropertyFormatCFString
-					The name of the codec's format as a CFStringRef. The CFStringRef
-					retrieved via this property must be released by the caller.
 	@constant	kAudioCodecPropertySupportedInputFormats
 					An array of AudioStreamBasicDescription structs describing what formats 
 					the codec supports for input data
@@ -389,10 +386,6 @@ const
 					wildcards are overwritten with default values.
 }
 const
-	kAudioCodecPropertyNameCFString = FourCharCode('lnam');
-	kAudioCodecPropertyManufacturerCFString = FourCharCode('lmak');
-	kAudioCodecPropertyFormatCFString = FourCharCode('lfor');
-	kAudioCodecPropertyHasVariablePacketByteSizes = FourCharCode('vpk?');
 	kAudioCodecPropertySupportedInputFormats = FourCharCode('ifm#');
 	kAudioCodecPropertySupportedOutputFormats = FourCharCode('ofm#');
 	kAudioCodecPropertyAvailableInputSampleRates = FourCharCode('aisr');
@@ -486,7 +479,7 @@ const
 	@constant		kAudioCodecPropertyIsInitialized
 						A UInt32 where 0 means the codec is uninitialized and anything
 						else means the codec is initialized. This should never be settable directly.
-						Must be set by AudioCodecInitialize and AudioCodecUnitialize.
+						Must be set by AudioCodecInitialize and AudioCodecUninitialize.
 	@constant		kAudioCodecPropertyCurrentTargetBitRate
 						A UInt32 containing the number of bits per second to aim for when encoding
 						data. This property is usually only relevant to encoders, but if a decoder
@@ -579,16 +572,14 @@ const
 						The property value is between [0 - 0x7F].
 						See also kAudioCodecPropertyQualitySetting
 						Writable if supported.
-	@constant		kAudioCodecPropertyMinimumDelayMode
-						A UInt32 equal 1 sets the encoder, where applicable, in it's lowest possible delay mode. An encoder
-						may prepend zero valued samples to the input signal in order to make additional delays, like e.g.
-						from a filter, coincide on a block boundary. This operation, however, results in an increased
-						encoding/ decoding delay which may be undesired and turned off with this property.
-						Writable if supported.
+    @constant		kAudioCodecPropertyDelayMode
+                        A UInt32 specifying the delay mode. See enum below.                        
+                        Encoders only, writable if supported.
  }
 const
 	kAudioCodecPropertyInputBufferSize = FourCharCode('tbuf');
 	kAudioCodecPropertyPacketFrameSize = FourCharCode('pakf');
+	kAudioCodecPropertyHasVariablePacketByteSizes = FourCharCode('vpk?');
 	kAudioCodecPropertyMaximumPacketByteSize = FourCharCode('pakb');
 	kAudioCodecPropertyCurrentInputFormat = FourCharCode('ifmt');
 	kAudioCodecPropertyCurrentOutputFormat = FourCharCode('ofmt');
@@ -611,7 +602,7 @@ const
 	kAudioCodecPropertyFormatList = FourCharCode('acfl');
 	kAudioCodecPropertyBitRateControlMode = FourCharCode('acbf');
 	kAudioCodecPropertySoundQualityForVBR = FourCharCode('vbrq');
-	kAudioCodecPropertyMinimumDelayMode = FourCharCode('mdel');
+	kAudioCodecPropertyDelayMode = FourCharCode('dmod');
 
 
 {!
@@ -691,6 +682,28 @@ const
 	kAudioCodecBitRateControlMode_LongTermAverage = 1;
 	kAudioCodecBitRateControlMode_VariableConstrained = 2;
 	kAudioCodecBitRateControlMode_Variable = 3;
+
+{!
+    @enum			AudioCodecDelayMode
+ 
+    @discussion		Constants defining various delay modes to be used with kAudioCodecPropertyDelayMode.
+                    The resulting priming frames are reflected in the kAudioCodecPropertyPrimeInfo property.
+                    Note that for layered streams like aach and aacp, the priming information always refers
+                    to the base layer.
+    @constant		kAudioCodecDelayMode_Compatibility
+                        In compatibility delay mode, the resulting priming corresponds to the default value defined by the
+                        underlying codecs. For aac this number equals 2112 regardless of the sample rate and other settings.
+    @constant		kAudioCodecDelayMode_Minimum
+                        Sets the encoder, where applicable, in it's lowest possible delay mode. Any additional delays, like the one
+                        introduced by filters/sample rate converters etc, aren't compensated by the encoder.
+    @constant		kAudioCodecDelayMode_Optimal
+                        In this mode, the resulting bitstream has the minimum amount of priming necessary for the decoder.
+                        For aac this number is 1024 which corresponds to exactly one packet.
+ }
+const
+	kAudioCodecDelayMode_Compatibility = 0;
+	kAudioCodecDelayMode_Minimum = 1;
+	kAudioCodecDelayMode_Optimal = 2;
 
 {!
 	@struct			AudioCodecPrimeInfo 
@@ -822,6 +835,8 @@ const
 	@constant		kAudioCodecAppendInputDataSelect
 	@constant		kAudioCodecProduceOutputDataSelect
 	@constant		kAudioCodecResetSelect
+	@constant		kAudioCodecAppendInputBufferListSelect
+	@constant		kAudioCodecProduceOutputBufferListSelect
 }
 const
 	kAudioCodecGetPropertyInfoSelect = $0001;
@@ -832,6 +847,8 @@ const
 	kAudioCodecAppendInputDataSelect = $0006;
 	kAudioCodecProduceOutputDataSelect = $0007;
 	kAudioCodecResetSelect = $0008;
+	kAudioCodecAppendInputBufferListSelect = $0009;
+	kAudioCodecProduceOutputBufferListSelect = $000A;
 
 
 //=============================================================================
@@ -950,7 +967,7 @@ function AudioCodecSetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPro
 						An AudioCodec instance
 	@param			inInputFormat
 						Pointer to an input format structure
-	@param			inInputFormat
+	@param			inOutputFormat
 						Pointer to an output format structure
 	@param			inMagicCookie
 						Pointer to the magic cookie
@@ -1043,6 +1060,14 @@ function AudioCodecAppendInputData( inCodec: AudioCodec; inInputData: {const} Un
 function AudioCodecProduceOutputPackets( inCodec: AudioCodec; outOutputData: UnivPtr; var ioOutputDataByteSize: UInt32; var ioNumberPackets: UInt32; var outPacketDescription: AudioStreamPacketDescription; var outStatus: UInt32 ): OSStatus; external name '_AudioCodecProduceOutputPackets';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
 
+{$ifc not TARGET_OS_IPHONE}
+function AudioCodecAppendInputBufferList( inCodec: AudioCodec; const (*var*) inBufferList: AudioBufferList; var ioNumberPackets: UInt32; const (*var*) inPacketDescription: AudioStreamPacketDescription; var outBytesConsumed: UInt32 ): OSStatus; external name '_AudioCodecAppendInputBufferList';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
+
+function AudioCodecProduceOutputBufferList( inCodec: AudioCodec; var ioBufferList: AudioBufferList; var ioNumberPackets: UInt32; var outPacketDescription: AudioStreamPacketDescription; var outStatus: UInt32 ): OSStatus; external name '_AudioCodecProduceOutputBufferList';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_NA) *)
+{$endc} {not TARGET_OS_IPHONE}
+
 {!
 	@function		AudioCodecReset
 
@@ -1057,11 +1082,75 @@ function AudioCodecProduceOutputPackets( inCodec: AudioCodec; outOutputData: Uni
 function AudioCodecReset( inCodec: AudioCodec ): OSStatus; external name '_AudioCodecReset';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_2_0) *)
 
+//=====================================================================================================================
+type
+	AudioCodecGetPropertyInfoProc = function( self: UnivPtr; inPropertyID: AudioCodecPropertyID; var outSize: UInt32; var outWritable: Boolean ): OSStatus;
+
+type
+	AudioCodecGetPropertyProc = function( self: UnivPtr; inPropertyID: AudioCodecPropertyID; var ioPropertyDataSize: UInt32; outPropertyData: UnivPtr ): OSStatus;
+
+type
+	AudioCodecSetPropertyProc = function( self: UnivPtr; inPropertyID: AudioCodecPropertyID; inPropertyDataSize: UInt32; inPropertyData: {const} UnivPtr ): OSStatus;
+
+type
+	AudioCodecInitializeProc = function( self: UnivPtr; const (*var*) inInputFormat: AudioStreamBasicDescription; const (*var*) inOutputFormat: AudioStreamBasicDescription; inMagicCookie: {const} UnivPtr; inMagicCookieByteSize: UInt32 ): OSStatus;
+
+type
+	AudioCodecUninitializeProc = function( self: UnivPtr ): OSStatus;
+
+type
+	AudioCodecAppendInputDataProc = function( self: UnivPtr; inInputData: {const} UnivPtr; var ioInputDataByteSize: UInt32; var ioNumberPackets: UInt32; const (*var*) inPacketDescription: AudioStreamPacketDescription ): OSStatus;
+
+type
+	AudioCodecProduceOutputPacketsProc = function( self: UnivPtr; outOutputData: UnivPtr; var ioOutputDataByteSize: UInt32; var ioNumberPackets: UInt32; var outPacketDescription: AudioStreamPacketDescription; var outStatus: UInt32 ): OSStatus;
+
+type
+	AudioCodecResetProc = function( self: UnivPtr ): OSStatus;
+
+type
+	AudioCodecAppendInputBufferListProc = function( self: UnivPtr; const (*var*) ioBufferList: AudioBufferList; var inNumberPackets: UInt32; const (*var*) inPacketDescription: AudioStreamPacketDescription; var outBytesConsumed: UInt32 ): OSStatus;
+
+type
+	AudioCodecProduceOutputBufferListProc = function( self: UnivPtr; var ioBufferList: AudioBufferList; var ioNumberPackets: UInt32; var outPacketDescription: AudioStreamPacketDescription; var outStatus: UInt32 ): OSStatus;
+
 
 //=====================================================================================================================
 //#pragma mark -
 //#pragma mark Deprecated Properties
 
+{!
+    @enum		AudioCodecProperty
+    @deprecated
+ 
+    @constant	kAudioCodecPropertyMinimumDelayMode
+                    A UInt32 equal 1 sets the encoder, where applicable, in it's lowest possible delay mode. An encoder
+                    may prepend zero valued samples to the input signal in order to make additional delays, like e.g.
+                    from a filter, coincide on a block boundary. This operation, however, results in an increased
+                    encoding/ decoding delay which may be undesired and turned off with this property.
+                    Use the kAudioCodecPropertyDelayMode property instead with the value set to kAudioCodecDelayMode_Minimum
+}
+const
+	kAudioCodecPropertyMinimumDelayMode = FourCharCode('mdel');
+
+{!
+	@enum		AudioCodecProperty
+	@deprecated	in version 10.7
+
+	@constant	kAudioCodecPropertyNameCFString
+					The name of the codec component as a CFStringRef. The CFStringRef
+					retrieved via this property must be released by the caller.
+	@constant	kAudioCodecPropertyManufacturerCFString
+					The manufacturer of the codec as a CFStringRef. The CFStringRef 
+					retrieved via this property must be released by the caller.
+	@constant	kAudioCodecPropertyFormatCFString
+					The name of the codec's format as a CFStringRef. The CFStringRef
+					retrieved via this property must be released by the caller.
+
+}
+const
+	kAudioCodecPropertyNameCFString = FourCharCode('lnam');
+	kAudioCodecPropertyManufacturerCFString = FourCharCode('lmak');
+	kAudioCodecPropertyFormatCFString = FourCharCode('lfor');		
 
 {!
 	@enum		AudioCodecProperty
@@ -1140,7 +1229,7 @@ const
 
 	@discussion	Constants to be used with kAudioCodecBitRateFormat.
 					This is deprecated. 
-					Use kAudioCodecVariablePacketSizeBitRateControlMode instead.
+					Use kAudioCodecPropertyBitRateControlMode instead.
  
 	@constant	kAudioCodecBitRateFormat_CBR is mapped to kAudioCodecBitRateControlMode_Constant
 	@constant	kAudioCodecBitRateFormat_ABR is mapped to kAudioCodecBitRateControlMode_LongTermAverage
@@ -1201,7 +1290,6 @@ const
 	kHintAdvanced = 1;
 	kHintHidden = 2;
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

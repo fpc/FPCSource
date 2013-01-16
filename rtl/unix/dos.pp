@@ -47,12 +47,12 @@ Type
 {$i dosh.inc}
 
 {Extra Utils}
-function weekday(y,m,d : longint) : longint;
-Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime);
-Function  DTToUnixDate(DT: DateTime): LongInt;
+function weekday(y,m,d : longint) : longint; platform;
+Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime); platform;
+Function  DTToUnixDate(DT: DateTime): LongInt; platform;
 
 {Disk}
-Function AddDisk(const path:string) : byte;
+Function AddDisk(const path:string) : byte; platform;
 
 Implementation
 

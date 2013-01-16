@@ -1055,7 +1055,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
             supported_targets : [system_i386_go32v2];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1068,7 +1068,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_targets : [system_i386_win32];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1081,7 +1081,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
             supported_targets : [system_i386_embedded];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1094,7 +1094,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_targets : [system_i386_wdosx];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1108,7 +1108,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_linux];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1121,7 +1121,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_beos];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1134,7 +1134,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_haiku];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';

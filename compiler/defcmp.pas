@@ -204,6 +204,9 @@ implementation
          hct : tconverttype;
          hobjdef : tobjectdef;
          hpd : tprocdef;
+         i : longint;
+         diff : boolean;
+         symfrom,symto : tsym;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -260,6 +263,37 @@ implementation
                 compare_defs_ext:=te_exact;
                 exit;
               end;
+           end;
+
+         { two specializations are considered equal if they specialize the same
+           generic with the same types }
+         if (df_specialization in def_from.defoptions) and
+             (df_specialization in def_to.defoptions) and
+             (tstoreddef(def_from).genericdef=tstoreddef(def_to).genericdef) then
+           begin
+             if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
+               internalerror(2012091301);
+             diff:=false;
+             for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+               begin
+                 if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
+                   internalerror(2012091302);
+                 symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
+                 symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
+                 if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                   internalerror(2012121401);
+                 if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                   diff:=true;
+                 if diff then
+                   break;
+               end;
+             if not diff then
+               begin
+                 doconv:=tc_equal;
+                 { the definitions are not exactly the same, but only equal }
+                 compare_defs_ext:=te_equal;
+                 exit;
+               end;
            end;
 
          { we walk the wanted (def_to) types and check then the def_from
@@ -1220,7 +1254,8 @@ implementation
                      else
                       { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
-                         (tpointerdef(def_to).pointeddef.typ=forwarddef) then
+                         ((tpointerdef(def_to).pointeddef.typ=forwarddef) or
+                          (tpointerdef(def_from).pointeddef.typ=forwarddef)) then
                        begin
                          if (def_from.typesym=def_to.typesym) or
                             (fromtreetype=niln) then
@@ -1346,10 +1381,12 @@ implementation
                      if assigned(tsetdef(def_from).elementdef) and
                         assigned(tsetdef(def_to).elementdef) then
                       begin
-                        { sets with the same element base type and the same range are equal }
+                        { sets with the same size (packset setting), element
+                          base type and the same range are equal }
                         if equal_defs(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
-                          (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
-                          (tsetdef(def_from).setmax=tsetdef(def_to).setmax) then
+                           (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
+                           (tsetdef(def_from).setmax=tsetdef(def_to).setmax) and
+                           (def_from.size=def_to.size) then
                           eq:=te_equal
                         else if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
                           begin
@@ -1559,7 +1596,9 @@ implementation
              begin
                { similar to pointerdef wrt forwards }
                if assigned(def_to.typesym) and
-                  (tclassrefdef(def_to).pointeddef.typ=forwarddef) then
+                  (tclassrefdef(def_to).pointeddef.typ=forwarddef) or
+                  ((def_from.typ=classrefdef) and
+                   (tclassrefdef(def_from).pointeddef.typ=forwarddef)) then
                  begin
                    if (def_from.typesym=def_to.typesym) or
                       (fromtreetype=niln) then

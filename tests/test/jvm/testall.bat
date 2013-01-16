@@ -244,3 +244,11 @@ ppcjvm -O2 -g -B tsetansistr
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tsetansistr
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tw22807
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw22807
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B ttincdec.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa ttincdec
+if %errorlevel% neq 0 exit /b %errorlevel%

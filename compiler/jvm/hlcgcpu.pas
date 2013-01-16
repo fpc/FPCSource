@@ -69,6 +69,8 @@ uses
       procedure a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); override;
       procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister); override;
       procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
+      procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
+      procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
 
       procedure a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel); override;
       procedure a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel); override;
@@ -97,6 +99,9 @@ uses
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
+      procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
+      procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
+
       procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
@@ -105,6 +110,14 @@ uses
 
       procedure gen_entry_code(list: TAsmList); override;
       procedure gen_exit_code(list: TAsmList); override;
+
+      { unimplemented/unnecessary routines }
+      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
+      procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle); override;
+      procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+      procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
+      procedure g_local_unwind(list: TAsmList; l: TAsmLabel); override;
 
       { JVM-specific routines }
 
@@ -161,7 +174,6 @@ uses
       { adjust the stack height after a call based on the specified number of
         slots used for parameters and the provided resultdef }
       procedure g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
-
 
       property maxevalstackheight: longint read fmaxevalstackheight;
 
@@ -485,10 +497,13 @@ implementation
             { unsigned 64 bit division must be done via a helper }
             if op=OP_DIV then
               internalerror(2010120530);
-            { not = xor -1 }
+            { not = xor 1 for boolean, xor -1 for the rest}
             if op=OP_NOT then
               begin
-                a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                if not is_pasbool(size) then
+                  a_load_const_stack(list,s64inttype,-1,R_INTREGISTER)
+                else
+                  a_load_const_stack(list,s64inttype,1,R_INTREGISTER);
                 op:=OP_XOR;
               end;
             if TOpCG2LAsmOp[op]=A_None then
@@ -1153,6 +1168,105 @@ implementation
       a_op_reg_reg_reg(list,op,size,reg1,reg2,reg2);
     end;
 
+  procedure thlcgjvm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      tmpreg: tregister;
+    begin
+      if not setflags then
+        begin
+          inherited;
+          exit;
+        end;
+      tmpreg:=getintregister(list,size);
+      a_load_const_reg(list,size,a,tmpreg);
+      a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,true,ovloc);
+    end;
+
+  procedure thlcgjvm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      orgsrc1, orgsrc2: tregister;
+      docheck: boolean;
+      lab: tasmlabel;
+    begin
+      if not setflags then
+        begin
+          inherited;
+          exit;
+        end;
+      { anything else cannot overflow }
+      docheck:=size.size in [4,8];
+      if docheck then
+        begin
+          orgsrc1:=src1;
+          orgsrc2:=src2;
+          if src1=dst then
+            begin
+              orgsrc1:=getintregister(list,size);
+              a_load_reg_reg(list,size,size,src1,orgsrc1);
+            end;
+          if src2=dst then
+            begin
+              orgsrc2:=getintregister(list,size);
+              a_load_reg_reg(list,size,size,src2,orgsrc2);
+            end;
+        end;
+      a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+      if docheck then
+        begin
+          { * signed overflow for addition iff
+             - src1 and src2 are negative and result is positive (excep in case of
+               subtraction, then sign of src1 has to be inverted)
+             - src1 and src2 are positive and result is negative
+              -> Simplified boolean equivalent (in terms of sign bits):
+                 not(src1 xor src2) and (src1 xor dst)
+
+             for subtraction, multiplication: invert src1 sign bit
+             for division: handle separately (div by zero, low(inttype) div -1),
+               not supported by this code
+
+            * unsigned overflow iff carry out, aka dst < src1 or dst < src2
+          }
+          location_reset(ovloc,LOC_REGISTER,OS_S32);
+          { not pasbool8, because then we'd still have to convert the integer to
+            a boolean via branches for Dalvik}
+          ovloc.register:=getintregister(list,s32inttype);
+          if not ((size.typ=pointerdef) or
+                 ((size.typ=orddef) and
+                  (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                            pasbool8,pasbool16,pasbool32,pasbool64]))) then
+            begin
+              a_load_reg_stack(list,size,src1);
+              if op in [OP_SUB,OP_IMUL] then
+                a_op_stack(list,OP_NOT,size,false);
+              a_op_reg_stack(list,OP_XOR,size,src2);
+              a_op_stack(list,OP_NOT,size,false);
+              a_load_reg_stack(list,size,src1);
+              a_op_reg_stack(list,OP_XOR,size,dst);
+              a_op_stack(list,OP_AND,size,false);
+              a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
+              if size.size=8 then
+                begin
+                  list.concat(taicpu.op_none(a_l2i));
+                  decstack(list,1);
+                end;
+            end
+          else
+            begin
+              a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+              current_asmdata.getjumplabel(lab);
+              { can be optimized by removing duplicate xor'ing to convert dst from
+                signed to unsigned quadrant }
+              a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
+              a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
+              a_op_const_stack(list,OP_XOR,s32inttype,1);
+              a_label(list,lab);
+            end;
+          a_load_stack_reg(list,s32inttype,ovloc.register);
+        end
+      else
+        ovloc.loc:=LOC_VOID;
+    end;
+
   procedure thlcgjvm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
     begin
       if ref.base<>NR_EVAL_STACK_BASE then
@@ -1457,7 +1571,6 @@ implementation
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
       retdef: tdef;
-      cgsize: tcgsize;
       opc: tasmop;
     begin
       if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
@@ -1609,6 +1722,24 @@ implementation
       // do nothing
     end;
 
+  procedure thlcgjvm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
+    begin
+      { not possible, need the original operands }
+      internalerror(2012102101);
+    end;
+
+  procedure thlcgjvm.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
+    var
+      hl : tasmlabel;
+    begin
+      if not(cs_check_overflow in current_settings.localswitches) then
+        exit;
+      current_asmdata.getjumplabel(hl);
+      a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
+      g_call_system_proc(list,'fpc_overflow',nil);
+      a_label(list,hl);
+    end;
+
   procedure thlcgjvm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
     var
       tmploc: tlocation;
@@ -1738,6 +1869,36 @@ implementation
   procedure thlcgjvm.gen_exit_code(list: TAsmList);
     begin
       { nothing }
+    end;
+
+  procedure thlcgjvm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister);
+    begin
+      internalerror(2012090201);
+    end;
+
+  procedure thlcgjvm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012090202);
+    end;
+
+  procedure thlcgjvm.g_stackpointer_alloc(list: TAsmList; size: longint);
+    begin
+      internalerror(2012090203);
+    end;
+
+  procedure thlcgjvm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    begin
+      internalerror(2012090204);
+    end;
+
+  procedure thlcgjvm.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
+    begin
+      internalerror(2012090205);
+    end;
+
+  procedure thlcgjvm.g_local_unwind(list: TAsmList; l: TAsmLabel);
+    begin
+      internalerror(2012090206);
     end;
 
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
@@ -1995,7 +2156,7 @@ implementation
             a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
         end;
       { Conversions between 32 and 64 bit types have been completely handled
-        above. We still may have to truncare or sign extend in case the
+        above. We still may have to truncate or sign extend in case the
         destination type is smaller that the source type, or has a different
         sign. In case the destination is a widechar and the source is not, we
         also have to insert a conversion to widechar.

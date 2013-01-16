@@ -37,7 +37,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="12">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -78,6 +78,26 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcvarparser"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="tcclasstype.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcclasstype"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="tcexprparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcexprparser"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="tcprocfunc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcprocfunc"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="tcpassrcutil.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcpassrcutil"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

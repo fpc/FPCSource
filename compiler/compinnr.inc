@@ -86,6 +86,8 @@ const
    in_default_x         = 76;
    in_box_x             = 77; { managed platforms: wrap in class instance }
    in_unbox_x_y         = 78; { manage platforms: extract from class instance }
+   in_popcnt_x          = 79;
+   in_aligned_x         = 80;
 
 { Internal constant functions }
    in_const_sqr        = 100;

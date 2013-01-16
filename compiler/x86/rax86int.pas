@@ -42,9 +42,9 @@ Unit Rax86int;
        {------------------ Assembler directives --------------------}
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_END,
        {------------------ Assembler Operators  --------------------}
-      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
+      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
-      AS_AND,AS_OR,AS_XOR);
+      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL);
 
     type
        tx86intreader = class(tasmreader)
@@ -103,7 +103,7 @@ Unit Rax86int;
        firstdirective = AS_ALIGN;
        lastdirective  = AS_END;
        firstoperator  = AS_BYTE;
-       lastoperator   = AS_XOR;
+       lastoperator   = AS___GOTPCREL;
 
        _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
@@ -114,19 +114,19 @@ Unit Rax86int;
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
        _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
-        'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','NEAR','FAR','HIGH',
+        'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','OWORD','XMMWORD','YWORD','YMMWORD','NEAR','FAR','HIGH',
         'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
-        'OR','XOR');
+        'OR','XOR','WRT','GOTPCREL');
 
       token2str : array[tasmtoken] of string[10] = (
         '','Label','LLabel','String','Integer',
-        ',','[',']','(',
+        ',',',',',',',',',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
         '','','','','','END',
         '','','','','','','','','',
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
-        'and','or','xor'
+        'and','or','xor','wrt','..gotpcrel'
       );
 
     var
@@ -591,8 +591,26 @@ Unit Rax86int;
 
              '.' :
                begin
-                 actasmtoken:=AS_DOT;
                  c:=current_scanner.asmgetchar;
+{$ifdef x86_64}
+                 if c='.' then
+                   begin
+                     actasmpattern:='..';
+                     c:=current_scanner.asmgetchar;
+                     repeat
+                       actasmpattern:=actasmpattern+c;
+                       c:=current_scanner.asmgetchar;
+                     until not(c in ['A'..'Z','a'..'z','0'..'9','_']);
+                     if upper(actasmpattern)<>'..GOTPCREL' then
+                       begin
+                         actasmtoken:=AS_ID;
+                         consume(AS___GOTPCREL);
+                       end;
+                     actasmtoken:=AS___GOTPCREL
+                   end
+                 else
+{$endif x86_64}
+                   actasmtoken:=AS_DOT;
                  exit;
                end;
 
@@ -729,7 +747,7 @@ Unit Rax86int;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD,AS_REGISTER] then
+           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_REGISTER] then
              begin
                s:=s+'.'+actasmpattern;
                consume(actasmtoken);
@@ -1239,7 +1257,30 @@ Unit Rax86int;
                      begin
                        { force OPR_LOCAL to be a reference }
                        if oper.opr.typ=OPR_LOCAL then
-                         oper.opr.localforceref:=true;
+                         oper.opr.localforceref:=true
+                       else
+                         begin
+{$ifdef x86_64}
+                           if actasmtoken=AS_WRT then
+                             begin
+                               if (oper.opr.typ=OPR_REFERENCE) then
+                                 begin
+                                   Consume(AS_WRT);
+                                   Consume(AS___GOTPCREL);
+                                   if (oper.opr.ref.base<>NR_NO) or
+                                      (oper.opr.ref.index<>NR_NO) or
+                                      (oper.opr.ref.offset<>0) then
+                                     Message(asmr_e_wrong_gotpcrel_intel_syntax);
+                                   if tf_no_pic_supported in target_info.flags then
+                                     Message(asmr_e_no_gotpcrel_support);
+                                   oper.opr.ref.refaddr:=addr_pic;
+                                   oper.opr.ref.base:=NR_RIP;
+                                 end
+                               else
+                                 message(asmr_e_invalid_reference_syntax);
+                             end;
+{$endif x86_64}
+                         end;
                      end
                    else
                      Message1(sym_e_unknown_id,tempstr);
@@ -1255,6 +1296,7 @@ Unit Rax86int;
                         OPR_REFERENCE :
                           inc(oper.opr.ref.offset,l);
                       end;
+                      oper.SetSize(k,false);
                     end;
                    if GotOffset then
                     begin
@@ -1410,7 +1452,15 @@ Unit Rax86int;
                            end;
                        end
                       else
-                       oper.opr.ref.base:=hreg;
+                        begin
+                          oper.opr.ref.base:=hreg;
+{$ifdef x86_64}
+                          { non-GOT based RIP-relative accesses are also position-independent }
+                          if (oper.opr.ref.base=NR_RIP) and
+                             (oper.opr.ref.refaddr<>addr_pic) then
+                            oper.opr.ref.refaddr:=addr_pic_no_got;
+{$endif x86_64}
+                        end;
                     end;
                 end;
                 GotPlus:=false;
@@ -1459,7 +1509,10 @@ Unit Rax86int;
                            scale:=l;
                        end
                       else
-                       Inc(oper.opr.ref.offset,l);
+                      begin
+                        Inc(oper.opr.ref.offset,l);
+                        Inc(oper.opr.constoffset,l);
+                      end;
                     end;
                   OPR_LOCAL :
                     begin
@@ -1577,12 +1630,18 @@ Unit Rax86int;
                            (oper.opr.localsym.owner.symtabletype=parasymtable) and
                            (current_procinfo.procdef.proccalloption<>pocall_register) then
                           Message(asmr_e_cannot_access_field_directly_for_parameters);
-                        inc(oper.opr.localsymofs,toffset)
+                        inc(oper.opr.localsymofs,toffset);
+
+                        oper.opr.localvarsize := tsize;
                       end;
                     OPR_CONSTANT :
                       inc(oper.opr.val,toffset);
                     OPR_REFERENCE :
-                      inc(oper.opr.ref.offset,toffset);
+                      begin
+                        inc(oper.opr.ref.offset,toffset);
+                        oper.opr.varsize := tsize;
+                      end;
+
                     OPR_NONE :
                       begin
                         if (hs <> '') then
@@ -1626,6 +1685,14 @@ Unit Rax86int;
               begin
                 case oper.opr.typ of
                   OPR_REFERENCE :
+{$ifndef x86_64}
+                    { this is for the i386 scenario where you have
+                        <load got into ebx>
+                        mov eax, [ebx].offset globalvar
+
+                      x86-64 uses RIP-based addresses (both for GOT and non-GOT
+                      relative accesses)
+                    }
                     if (actasmtoken=AS_OFFSET) and
                        (cs_create_pic in current_settings.moduleswitches) then
                       begin
@@ -1634,9 +1701,19 @@ Unit Rax86int;
                         BuildOperand(oper,false);
                       end
                     else
-                      inc(oper.opr.ref.offset,BuildRefConstExpression);
+{$endif x86_64}
+                    begin
+                      l := BuildRefConstExpression;
+                      inc(oper.opr.ref.offset,l);
+                      inc(oper.opr.constoffset,l);
+                    end;
                   OPR_LOCAL :
-                    inc(oper.opr.localsymofs,BuildConstExpression);
+                    begin
+                      l := BuildConstExpression;
+                      inc(oper.opr.localsymofs,l);
+                      inc(oper.opr.localconstoffset,l);
+                    end;
+
                   OPR_NONE,
                   OPR_CONSTANT :
                     BuildConstantOperand(oper);
@@ -1708,9 +1785,18 @@ Unit Rax86int;
                     Begin
                       case oper.opr.typ of
                         OPR_REFERENCE :
-                          inc(oper.opr.ref.offset,BuildRefConstExpression);
+                          begin
+                            l := BuildRefConstExpression;
+                            inc(oper.opr.ref.offset,l);
+                            inc(oper.opr.constoffset,l);
+                          end;
+
                         OPR_LOCAL :
-                          inc(oper.opr.localsymofs,BuildRefConstExpression);
+                          begin
+                            l := BuildRefConstExpression;
+                            inc(oper.opr.localsymofs,l);
+                            inc(oper.opr.localconstoffset,l);
+                          end;
                         OPR_NONE,
                         OPR_CONSTANT :
                           BuildConstantOperand(oper);
@@ -1819,7 +1905,11 @@ Unit Rax86int;
             AS_WORD,
             AS_TBYTE,
             AS_DQWORD,
-            AS_QWORD :
+            AS_QWORD,
+            AS_OWORD,
+            AS_XMMWORD,
+            AS_YWORD,
+            AS_YMMWORD:
               begin
                 { Type specifier }
                 oper.hastype:=true;
@@ -1831,6 +1921,10 @@ Unit Rax86int;
                   AS_QWORD : oper.typesize:=8;
                   AS_DQWORD : oper.typesize:=16;
                   AS_TBYTE : oper.typesize:=10;
+                  AS_OWORD,                     
+                  AS_XMMWORD: oper.typesize:=16; 
+                  AS_YWORD,                     
+                  AS_YMMWORD: oper.typesize:=32;
                   else
                     internalerror(2010061101);
                 end;

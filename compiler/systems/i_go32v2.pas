@@ -87,6 +87,7 @@ unit i_go32v2;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            stackalign   : 4;
             abi          : abi_default;
           );
 

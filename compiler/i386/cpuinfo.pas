@@ -55,7 +55,11 @@ Type
       fpu_x87,
       fpu_sse,
       fpu_sse2,
-      fpu_sse3
+      fpu_sse3,
+      fpu_ssse3,
+      fpu_sse41,
+      fpu_sse42,
+      fpu_avx
      );
 
 
@@ -88,7 +92,11 @@ Const
      'X87',
      'SSE',
      'SSE2',
-     'SSE3'
+     'SSE3',
+     'SSSE3',
+     'SSE41',
+     'SSE42',
+     'AVX'
    );
 
    sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
@@ -109,6 +117,7 @@ Const
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
 
 Implementation
 

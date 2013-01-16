@@ -136,7 +136,8 @@ interface
          { macpas specific}
          cs_external_var, cs_externally_visible,
          { jvm specific }
-         cs_check_var_copyout
+         cs_check_var_copyout,
+         cs_zerobasedstrings
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -220,8 +221,11 @@ interface
            of the current class, then this virtual method may already have
            initialized that field with another value and the constructor
            initialization will result in data loss }
-         ts_jvm_enum_field_init
-
+         ts_jvm_enum_field_init,
+         { when automatically generating getters/setters for properties, use
+           these strings as prefixes for the generated getters/setter names }
+         ts_auto_getter_prefix,
+         ts_auto_setter_predix
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -244,7 +248,15 @@ interface
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
          cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,
-         cs_opt_reorder_fields,cs_opt_fastmath
+         cs_opt_reorder_fields,cs_opt_fastmath,
+         { Allow removing expressions whose result is not used, even when this
+           can change program behaviour (range check errors disappear,
+           access violations due to invalid pointer derefences disappear, ...).
+           Note: it does not (and must not) remove expressions that have
+             explicit side-effects, only implicit side-effects (like the ones
+             mentioned before) can disappear.
+         }
+         cs_opt_dead_values
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -259,8 +271,12 @@ interface
        { Used by ARM / AVR to differentiate between specific microcontrollers }
        tcontrollerdatatype = record
           controllertypestr, controllerunitstr: string[20];
-          interruptvectors:integer;
           flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
+       end;
+
+       ttargetswitchinfo = record
+          name: string[22];
+          hasvalue: boolean;
        end;
 
     const
@@ -269,7 +285,7 @@ interface
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH'
+         'ORDERFIELDS','FASTMATH','DEADVALUES'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -278,15 +294,20 @@ interface
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
-       TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
-         'SMALLTOC',
-         'COMPACTINTARRAYINIT',
-         'ENUMFIELDINIT');
+       TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
+         (name: '';                    hasvalue: false),
+         (name: 'SMALLTOC';            hasvalue: false),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false),
+         (name:  'ENUMFIELDINIT';      hasvalue: false),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true )
+       );
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
+       genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
          information from all loaded units
@@ -302,7 +323,7 @@ interface
 
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
-       tmodeswitch = (m_none,m_all, { needed for keyword }
+       tmodeswitch = (m_none,
          { generic }
          m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
          {$ifdef fpc_mode}m_gpc,{$endif}
@@ -343,6 +364,10 @@ interface
        );
        tmodeswitches = set of tmodeswitch;
 
+    const
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+
+    type
        { Win32, OS/2 & MacOS application types }
        tapptype = (
          app_none,
@@ -464,7 +489,7 @@ interface
 
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
-       modeswitchstr : array[tmodeswitch] of string[18] = ('','',
+       modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
@@ -539,7 +564,9 @@ interface
          { subroutine contains interprocedural gotos }
          pi_has_global_goto,
          { subroutine contains inherited call }
-         pi_has_inherited
+         pi_has_inherited,
+         { subroutine has nested exit }
+         pi_has_nested_exit
        );
        tprocinfoflags=set of tprocinfoflag;
 

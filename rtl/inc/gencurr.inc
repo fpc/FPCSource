@@ -29,7 +29,7 @@
         result := c
       end;
 
-
+{$ifndef FPUNONE}
     function round(c : currency) : int64;
       var
         rem, absrem: currency;
@@ -48,6 +48,7 @@
           else
             dec(result);
       end;
+{$endif FPUNONE}
 
 
 {$ifndef cpujvm}

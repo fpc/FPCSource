@@ -32,3 +32,4 @@ NR_R28 = tregister($0100001c);
 NR_R29 = tregister($0100001d);
 NR_R30 = tregister($0100001e);
 NR_R31 = tregister($0100001f);
+NR_SREG = tregister($05000000);

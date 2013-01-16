@@ -49,7 +49,6 @@ start:
 
    .globl _haltproc 
 _haltproc:
-   move.l   d0,returnValue
 
    | Swapping the stack back
    move.l   _ExecBase,a6
@@ -62,7 +61,7 @@ _haltproc:
 
 __exit:
    movem.l  (sp)+,d0-d7/a0-a6
-   move.l   returnValue,d0
+   move.l   operatingsystem_result,d0
    rts
 
    .data
@@ -72,11 +71,6 @@ __exit:
    .align 4
 SysBase:
 _ExecBase:
-   .long 0
-
-   .globl returnValue
-   .align 4
-returnValue:
    .long 0
 
    .globl stackArea

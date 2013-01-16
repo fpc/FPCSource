@@ -5,7 +5,7 @@ unit tcmoduleparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, pastree, pscanner, pparser,
+  Classes, SysUtils, fpcunit, pastree, pscanner, pparser,
   tcbaseparser, testregistry;
 
 Type

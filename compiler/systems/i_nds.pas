@@ -88,6 +88,7 @@ unit i_nds;
               );
             first_parm_offset : 8;
             stacksize    : $3CFF; //15615? or 16384?;
+            stackalign   : 8;
             abi : abi_eabi
           );
 

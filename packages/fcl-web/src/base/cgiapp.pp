@@ -686,7 +686,7 @@ begin
     Finally
       I.Free;
     end;
-    if Pos(ContentType,'MULTIPART/FORM-DATA')=0 then
+    if CompareText(ContentType,'MULTIPART/FORM-DATA')=0 then
       ProcessMultiPart(M,ContentType)
     else if CompareText(ContentType,'APPLICATION/X-WWW-FORM-URLENCODED')=0 then
       ProcessUrlEncoded(M)

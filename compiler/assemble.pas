@@ -66,7 +66,7 @@ interface
       }
       TExternalAssembler=class(TAssembler)
       private
-        procedure CreateSmartLinkPath(const s:string);
+        procedure CreateSmartLinkPath(const s:TPathStr);
       protected
       {outfile}
         AsmSize,
@@ -291,7 +291,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+    procedure TExternalAssembler.CreateSmartLinkPath(const s:TPathStr);
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
@@ -307,7 +307,7 @@ Implementation
         end;
 
       var
-        hs  : string;
+        hs  : TPathStr;
       begin
         if PathExists(s,false) then
          begin
@@ -580,10 +580,29 @@ Implementation
       begin
         result:=target_asm.asmcmd;
 {$ifdef m68k}
-        if current_settings.cputype = cpu_MC68020 then
-          result:='-m68020 '+result
+        { TODO: use a better approach for this }
+        if (target_info.system=system_m68k_amiga) then
+          begin
+            { m68k-amiga has old binutils, which doesn't support -march=* }
+            case current_settings.cputype of
+              cpu_MC68000:
+                result:='-m68000 '+result;
+              cpu_MC68020:
+                result:='-m68020 '+result;
+              { additionally, AmigaOS doesn't work on Coldfire }
+            end;
+          end
         else
-          result:='-m68000 '+result;
+          begin
+            case current_settings.cputype of
+              cpu_MC68000:
+                result:='-march=68000 '+result;
+              cpu_MC68020:
+                result:='-march=68020 '+result;
+              cpu_Coldfire:
+                result:='-march=cfv4e '+result;
+            end;
+          end;
 {$endif}
 {$ifdef arm}
         if (target_info.system=system_arm_darwin) then
@@ -605,13 +624,13 @@ Implementation
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
          if (cs_create_pic in current_settings.moduleswitches) then
-		   Replace(result,'$PIC','-KPIC')
+           Replace(result,'$PIC','-KPIC')
          else
-		   Replace(result,'$PIC','');
+           Replace(result,'$PIC','');
          if (cs_asm_source in current_settings.globalswitches) then
-		   Replace(result,'$NOWARN','')
-		 else
-		   Replace(result,'$NOWARN','-W');
+           Replace(result,'$NOWARN','')
+         else
+           Replace(result,'$NOWARN','-W');
       end;
 
 
@@ -1427,6 +1446,9 @@ Implementation
                    aitconst_64bit,
                    aitconst_32bit,
                    aitconst_16bit,
+                   aitconst_64bit_unaligned,
+                   aitconst_32bit_unaligned,
+                   aitconst_16bit_unaligned,
                    aitconst_8bit :
                      begin
                        if assigned(tai_const(hp).sym) and

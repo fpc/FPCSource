@@ -181,7 +181,7 @@ begin
   Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String;
 
 var rs : string;
 
@@ -236,7 +236,7 @@ begin
   end; {case}
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String;
 
 type
   // used for ParamPart
@@ -268,7 +268,7 @@ begin
   ParamCount:=0;
   NewQueryLength:=Length(SQL);
   SetLength(ParamPart,ParamAllocStepSize);
-  SetLength(Parambinding,ParamAllocStepSize);
+  SetLength(ParamBinding,ParamAllocStepSize);
   QuestionMarkParamCount:=0; // number of ? params found in query so far
 
   ReplaceString := '$';

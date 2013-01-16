@@ -288,6 +288,7 @@ end;
 
 procedure TCollection.Update(Item: TCollectionItem);
 begin
+  FPONotifyObservers(Self,ooChange,Pointer(Item));
 end;
 
 
@@ -395,6 +396,12 @@ end;
 
 procedure TCollection.Notify(Item: TCollectionItem;Action: TCollectionNotification);
 begin
+  if Assigned(FObservers) then
+    Case Action of
+      cnAdded      : FPONotifyObservers(Self,ooAddItem,Pointer(Item));
+      cnExtracting : FPONotifyObservers(Self,ooDeleteItem,Pointer(Item));
+      cnDeleting   : FPONotifyObservers(Self,ooDeleteItem,Pointer(Item));
+    end;
 end;
 
 procedure TCollection.Sort(Const Compare : TCollectionSortCompare);
@@ -412,6 +419,7 @@ procedure TCollection.Exchange(Const Index1, index2: integer);
 
 begin
   FItems.Exchange(Index1,Index2);
+  FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 

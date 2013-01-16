@@ -499,12 +499,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      if (sym.owner.symtabletype=globalsymtable) or
-         create_smartlink or
-         DLLSource or
-         (assigned(current_procinfo) and
-          (po_inline in current_procinfo.procdef.procoptions)) or
-         (vo_is_public in sym.varoptions) then
+      if sym.globalasmsym then
         begin
           { on AIX/stabx, we cannot generate debug information that encodes
             the address of a global symbol, you need a symbol with the same
@@ -710,7 +705,7 @@ implementation
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-       if ltvTable.first<>nil then
+       if not ltvTable.Empty then
         begin
           s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
           { end of the list marker }

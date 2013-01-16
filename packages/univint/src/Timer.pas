@@ -2,18 +2,12 @@
      File:       CarbonCore/Timer.h
  
      Contains:   Time Manager interfaces.
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -212,7 +211,7 @@ uses MacTypes,ConditionalMacros,OSUtils;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure Microseconds( var microTickCount: UnsignedWide ); external name '_Microseconds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {***************************************************************************
@@ -278,7 +277,7 @@ type
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure InsTime( tmTaskPtr: QElemPtr ); external name '_InsTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -293,7 +292,7 @@ procedure InsTime( tmTaskPtr: QElemPtr ); external name '_InsTime';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure InsXTime( tmTaskPtr: QElemPtr ); external name '_InsXTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -308,7 +307,7 @@ procedure InsXTime( tmTaskPtr: QElemPtr ); external name '_InsXTime';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure PrimeTime( tmTaskPtr: QElemPtr; count: SIGNEDLONG ); external name '_PrimeTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -323,7 +322,7 @@ procedure PrimeTime( tmTaskPtr: QElemPtr; count: SIGNEDLONG ); external name '_P
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure RmvTime( tmTaskPtr: QElemPtr ); external name '_RmvTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -362,7 +361,7 @@ procedure RmvTime( tmTaskPtr: QElemPtr ); external name '_RmvTime';
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function InstallTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_InstallTimeTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -412,7 +411,7 @@ function InstallTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_InstallT
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function InstallXTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_InstallXTimeTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -475,7 +474,7 @@ function InstallXTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_Install
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function PrimeTimeTask( tmTaskPtr: QElemPtr; count: SIGNEDLONG ): OSErr; external name '_PrimeTimeTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -523,7 +522,7 @@ function PrimeTimeTask( tmTaskPtr: QElemPtr; count: SIGNEDLONG ): OSErr; externa
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function RemoveTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_RemoveTimeTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -535,7 +534,7 @@ function RemoveTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_RemoveTim
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewTimerUPP( userRoutine: TimerProcPtr ): TimerUPP; external name '_NewTimerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeTimerUPP()
@@ -546,7 +545,7 @@ function NewTimerUPP( userRoutine: TimerProcPtr ): TimerUPP; external name '_New
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeTimerUPP( userUPP: TimerUPP ); external name '_DisposeTimerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeTimerUPP()
@@ -557,7 +556,7 @@ procedure DisposeTimerUPP( userUPP: TimerUPP ); external name '_DisposeTimerUPP'
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeTimerUPP( tmTaskPtr_: TMTaskPtr; userUPP: TimerUPP ); external name '_InvokeTimerUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {TARGET_OS_MAC}

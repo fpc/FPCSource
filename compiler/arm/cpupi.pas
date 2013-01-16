@@ -47,9 +47,8 @@ unit cpupi;
     uses
        globals,systems,
        cpubase,
-       aasmtai,aasmdata,
        tgobj,
-       symconst,symsym,paramgr,
+       symconst,paramgr,
        cgbase,cgutils,
        cgobj;
 
@@ -63,13 +62,20 @@ unit cpupi;
           is especially a problem when taking the address of a local. For now,
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
+        if (po_nostackframe in procdef.procoptions) then
+          begin
+             { maxpushedparasize sghould be zero,
+               if not we will get an error later. }
+             tg.setfirsttemp(maxpushedparasize);
+             exit;
+          end;
         if tg.direction = -1 then
           begin
             if (target_info.system<>system_arm_darwin) then
               { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
                 always adjust the frame pointer to point to the first stored
                 register (= last register in list above) -> + 4 }
-              tg.setfirsttemp(-28-16+4)
+              tg.setfirsttemp(-28-16)
             else
               { on Darwin first r4-r7,r14 are saved, then r7 is adjusted to
                 point to the saved r7, and next r8,r10,r11 gets saved -> -24
@@ -115,6 +121,14 @@ unit cpupi;
               floatsavesize:=0;
               regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
               for r:=RS_D0 to RS_D31 do
+                if r in regs then
+                  inc(floatsavesize,8);
+            end;
+          fpu_fpv4_s16:
+            begin
+              floatsavesize:=0;
+              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+              for r:=RS_D0 to RS_D15 do
                 if r in regs then
                   inc(floatsavesize,8);
             end;

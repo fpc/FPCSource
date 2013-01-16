@@ -1388,7 +1388,7 @@ Begin
 End;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-procedure fpc_Read_Text_Char(var f : Text; out c: char); [public, alias: 'FPC_READ_TEXT_CHAR']; iocheck;compilerproc;
+procedure fpc_Read_Text_Char(var f : Text; out c: char); [public, alias: 'FPC_READ_TEXT_CHAR']; iocheck; compilerproc;
 Begin
   c:=#0;
   If not CheckRead(f) then
@@ -1403,6 +1403,17 @@ Begin
 end;
 
 procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [external name 'FPC_READ_TEXT_CHAR'];
+
+
+function fpc_GetBuf(var f : Text) : pchar; iocheck; compilerproc;
+Begin
+  Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
+  If not CheckRead(f) then
+    exit;
+  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
+    exit;
+  Result:=@TextRec(f).Bufptr^[TextRec(f).BufPos];
+end;
 
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -1496,7 +1507,7 @@ end;
 Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; compilerproc;
 var
   hs   : String;
-  code : longint;
+  code : ValSInt;
 Begin
   l:=0;
   If not CheckRead(f) then
@@ -1526,7 +1537,7 @@ End;
 Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
   hs   : String;
-  code : longint;
+  code : ValSInt;
 Begin
   u:=0;
   If not CheckRead(f) then
@@ -1599,7 +1610,7 @@ end;
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; compilerproc;
 var
   hs : string;
-  code : Word;
+  code : ValSInt;
 begin
 {$ifdef FPUNONE}
   v:=0;

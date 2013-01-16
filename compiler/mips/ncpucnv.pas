@@ -124,7 +124,8 @@ var
   hregister: tregister;
   l1, l2:    tasmlabel;
   ai : TaiCpu;
-
+  addend: array[boolean] of longword;
+  bigendian: boolean;
 begin
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
   if is_signed(left.resultdef) then
@@ -137,7 +138,13 @@ begin
     hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
     hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
 
-    loadsigned;
+    { Always load into 64-bit FPU register }
+    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
+    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
+    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+    tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+    { Convert value in fpu register from integer to float }
+    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_D_W, location.Register, location.Register));
 
     ai := Taicpu.op_reg_reg_sym(A_BC, hregister, NR_R0, l2);
     ai.setCondition(C_GE);
@@ -152,9 +159,13 @@ begin
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
 
+        addend[false]:=0;
+        addend[true]:=$41f00000;
+        bigendian:=(target_info.endian=endian_big);
+
         { add double number 4294967296.0 = (1ull^32) = 0x41f00000,00000000 in little endian hex}
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(addend[bigendian]));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(addend[not bigendian]));
 
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));
@@ -294,7 +305,7 @@ begin
       location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
       if (is_cbool(resultdef)) then
        { reglo is either 0 or -1 -> reghi has to become the same }
-      	cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
        else
        { unsigned }
          cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);

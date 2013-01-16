@@ -46,7 +46,12 @@ interface
       fen_norecurse_true
     );
 
-    tforeachprocmethod = (pm_preprocess,pm_postprocess,
+    tforeachprocmethod = ({ children are processed before the parent node }
+                          pm_preprocess,
+                          { children are processed after the parent node }
+                          pm_postprocess,
+                          { children are processed after the parent node and
+                            then the parent node is processed again }
                           pm_postandagain);
 
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
@@ -89,7 +94,6 @@ interface
       containing no code }
     function has_no_code(n : tnode) : boolean;
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -132,12 +136,12 @@ implementation
       begin
         result:=res;
         case n.nodetype of
-        asn:
-          if assigned(tasnode(n).call) then
-            begin
-              result := foreachnode(procmethod,tasnode(n).call,f,arg);
-              exit
-            end;
+          asn:
+            if assigned(tasnode(n).call) then
+              begin
+                result := foreachnode(procmethod,tasnode(n).call,f,arg);
+                exit
+              end;
           calln:
             begin
               result := foreachnode(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;
@@ -153,7 +157,7 @@ implementation
             end;
           raisen:
             { frame tree }
-            result := foreachnode(traisenode(n).third,f,arg) or result;
+            result := foreachnode(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
             if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
@@ -250,7 +254,7 @@ implementation
             end;
           raisen:
             { frame tree }
-            result := foreachnodestatic(traisenode(n).third,f,arg) or result;
+            result := foreachnodestatic(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
             if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
@@ -539,7 +543,11 @@ implementation
           begin
             case p.nodetype of
               { floating point constants usually need loading from memory }
-              realconstn,
+              realconstn:
+                begin
+                  result:=2;
+                  exit;
+                end;
               setconstn,
               stringconstn,
               temprefn,
@@ -563,6 +571,8 @@ implementation
                      (vo_is_thread_var in tstaticvarsym(tloadnode(p).symtableentry).varoptions) then
                     inc(result,5)
                   else
+                    inc(result);
+                  if (tloadnode(p).symtableentry.typ=paravarsym) and tloadnode(p).is_addr_param_load then
                     inc(result);
                   if (result >= NODE_COMPLEXITY_INF) then
                     result := NODE_COMPLEXITY_INF;
@@ -593,7 +603,7 @@ implementation
               typeconvn:
                 begin
                   { may be more complex in some cases }
-                  if not(ttypeconvnode(p).convtype in [tc_equal,tc_int_2_int,tc_bool_2_bool,tc_real_2_real,tc_cord_2_pointer]) then
+                  if not(ttypeconvnode(p).retains_value_location) then
                     inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;
@@ -673,6 +683,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
+                    in_aligned_x,
                     in_unaligned_x,
                     in_prefetch_var:
                       begin
@@ -873,25 +884,6 @@ implementation
         else
           result:=cordconstnode.create(value,def,cs_check_range in current_settings.localswitches);
       end;
-
-
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
-    var
-      hpropsym : tpropertysym;
-    begin
-      result:=false;
-      { find property in the overridden list }
-      hpropsym:=propsym;
-      repeat
-        propaccesslist:=hpropsym.propaccesslist[pap];
-        if not propaccesslist.empty then
-          begin
-            result:=true;
-            exit;
-          end;
-        hpropsym:=hpropsym.overriddenpropsym;
-      until not assigned(hpropsym);
-    end;
 
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
