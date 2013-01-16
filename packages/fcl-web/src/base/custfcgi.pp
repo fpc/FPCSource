@@ -962,32 +962,37 @@ begin
       SetupSocket(FIAddress,FAddressLength)
     else
       Socket:=StdInputHandle;
-  if FHandle=THandle(-1) then
-    FHandle:=AcceptConnection;
-  if FHandle=THandle(-1) then
-    begin
-    if not terminated then
+  Repeat
+    if FHandle=THandle(-1) then
+      FHandle:=AcceptConnection;
+    if FHandle=THandle(-1) then
       begin
-      Terminate;
-      raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
-      end
-    end;
-  repeat
-    If (poUseSelect in ProtocolOptions) then
-      begin
-      While Not DataAvailable do
-        If (OnIdle<>Nil) then
-          OnIdle(Self);
+      if not terminated then
+        begin
+        Terminate;
+        raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+        end
       end;
-    AFCGI_Record:=Read_FCGIRecord;
-    if assigned(AFCGI_Record) then
-    try
-      Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
-    Finally
-      FreeMem(AFCGI_Record);
-      AFCGI_Record:=Nil;
-    end;
-  until Result;
+    repeat
+      If (poUseSelect in ProtocolOptions) then
+        begin
+        While Not DataAvailable do
+          If (OnIdle<>Nil) then
+            OnIdle(Self);
+        end;
+      AFCGI_Record:=Read_FCGIRecord;
+      // If connection closed gracefully, we have nil.
+      if Not Assigned(AFCGI_Record) then
+        CloseConnection
+      else
+        try
+        Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
+        Finally
+          FreeMem(AFCGI_Record);
+          AFCGI_Record:=Nil;
+        end;
+    until Result or (FHandle=THandle(-1));
+  Until Result;
 end;
 
 { TCustomFCgiApplication }
