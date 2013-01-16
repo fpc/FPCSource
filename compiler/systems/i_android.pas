@@ -89,6 +89,7 @@ unit i_android;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 8;
             abi : abi_eabi
           );
 
@@ -153,6 +154,7 @@ unit i_android;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
+            stackalign   : 4;
             abi : abi_default
           );
 
