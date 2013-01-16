@@ -1735,6 +1735,7 @@ implementation
       var
         selftree : tnode;
         selfdef  : tdef;
+        temp     : ttempcreatenode;
       begin
         selftree:=nil;
 
@@ -1775,7 +1776,17 @@ implementation
               else
                 begin
                   if methodpointer.nodetype=typen then
-                    selftree:=load_self_node
+                    if (methodpointer.resultdef.typ=recorddef) then
+                      begin
+                        { TSomeRecord.Constructor call. We need to allocate }
+                        { self node as a temp node of the result type       }
+                        temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
+                        add_init_statement(temp);
+                        add_done_statement(ctempdeletenode.create_normal_temp(temp));
+                        selftree:=ctemprefnode.create(temp);
+                      end
+                    else
+                      selftree:=load_self_node
                   else
                     selftree:=methodpointer.getcopy;
                 end;
@@ -3496,7 +3507,8 @@ implementation
            maybe_load_in_temp(methodpointer);
 
          { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
-         maybe_create_funcret_node;
+         if (procdefinition.proctypeoption<>potype_constructor) then
+           maybe_create_funcret_node;
 
          { Insert the self,vmt,function result in the parameters }
          gen_hidden_parameters;

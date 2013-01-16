@@ -168,8 +168,11 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
         if (tf_safecall_exceptions in target_info.flags) and
-           (pd.proccalloption=pocall_safecall) then
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
           begin
             result:=true;
             exit;
@@ -543,18 +546,13 @@ implementation
         { Constructors return self instead of a boolean }
         if p.proctypeoption=potype_constructor then
           begin
-            if is_implicit_pointer_object_type(tdef(p.owner.defowner)) then
-              retloc.def:=tdef(p.owner.defowner)
-            else
-              retloc.def:=getpointerdef(tdef(p.owner.defowner));
-            retcgsize:=OS_ADDR;
-            retloc.intsize:=sizeof(pint);
-          end
-        else
-          begin
-            retcgsize:=def_cgsize(retloc.def);
-            retloc.intsize:=retloc.def.size;
+            retloc.def:=tdef(p.owner.defowner);
+            if not (is_implicit_pointer_object_type(retloc.def) or
+               is_record(retloc.def)) then
+              retloc.def:=getpointerdef(retloc.def);
           end;
+        retcgsize:=def_cgsize(retloc.def);
+        retloc.intsize:=retloc.def.size;
         retloc.size:=retcgsize;
         { Return is passed as var parameter }
         if ret_in_param(retloc.def,p) then

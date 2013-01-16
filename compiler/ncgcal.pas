@@ -288,7 +288,15 @@ implementation
              { update return location in callnode when this is the function
                result }
              if assigned(parasym) and
-                (vo_is_funcret in parasym.varoptions) then
+                (
+                  { for record constructor check that it is self parameter }
+                  (
+                    (vo_is_self in parasym.varoptions)and
+                    (aktcallnode.procdefinition.proctypeoption=potype_constructor)and
+                    is_record(parasym.vardef)
+                  ) or
+                  (vo_is_funcret in parasym.varoptions)
+                ) then
                location_copy(aktcallnode.location,left.location);
            end;
 
@@ -371,7 +379,7 @@ implementation
       begin
         { Check that the return location is set when the result is passed in
           a parameter }
-        if (procdefinition.proctypeoption<>potype_constructor) and
+        if ((procdefinition.proctypeoption<>potype_constructor)or is_record(resultdef)) and
            paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             { self.location is set near the end of secondcallparan so it
