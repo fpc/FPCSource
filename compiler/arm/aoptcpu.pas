@@ -862,6 +862,7 @@ Implementation
                         DebugMsg('Peephole LsrAnd2Lsr done', hp1);
                         asml.remove(hp1);
                         hp1.free;
+                        result:=true;
                       end;
 
                     {
