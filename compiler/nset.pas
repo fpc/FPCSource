@@ -98,6 +98,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
+          procedure printnodetree(var t:text);override;
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -829,7 +830,6 @@ implementation
 
 
     function tcasenode.dogetcopy : tnode;
-
       var
          n : tcasenode;
          i : longint;
@@ -858,10 +858,42 @@ implementation
          dogetcopy:=n;
       end;
 
-    procedure tcasenode.insertintolist(l : tnodelist);
 
+    procedure tcasenode.printnodetree(var t: text);
+      var
+        hp : tbinarynode;
+        i : longint;
+      begin
+        write(t,printnodeindention,'(');
+        printnodeindent;
+        printnodeinfo(t);
+        writeln(t);
+        printnode(t,left);
+        for i:=0 to blocks.count-1 do
+          begin
+            writeln(t,printnodeindention,'(caseblock blockid: ',i);
+            printnodeindent;
+            printnode(t,pcaseblock(blocks[i])^.statement);
+            printnodeunindent;
+            writeln(t,printnodeindention,')');
+          end;
+        if assigned(elseblock) then
+          begin
+            writeln(t,printnodeindention,'(else: ',i);
+            printnodeindent;
+            printnode(t,elseblock);
+            printnodeunindent;
+            writeln(t,printnodeindention,')');
+          end;
+        printnodeunindent;
+        writeln(t,printnodeindention,')');
+      end;
+
+
+    procedure tcasenode.insertintolist(l : tnodelist);
       begin
       end;
+
 
     function caselabelsequal(n1,n2: pcaselabel): boolean;
       begin
