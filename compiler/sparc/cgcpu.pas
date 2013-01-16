@@ -1303,7 +1303,7 @@ implementation
       var
         hr : treference;
       begin
-        if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
+        if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
           begin
             reference_reset(hr,sizeof(pint));
             hr.offset:=12;

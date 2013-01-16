@@ -94,7 +94,7 @@ implementation
           but this one is never put into a register (vs_nonregable set)
           so funcret is always in EAX for register calling }
         if (target_info.system = system_i386_win32) and
-            paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) and
+            paramanager.ret_in_param(procdefinition.returndef,procdefinition) and
             not ((procdefinition.proccalloption=pocall_register) or
                  ((procdefinition.proccalloption=pocall_internproc) and
                   (pocall_default=pocall_register))) then

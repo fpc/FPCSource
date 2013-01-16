@@ -211,7 +211,7 @@ implementation
               retdef:=forcetempdef
             else
               retdef:=p.returndef;
-            if ret_in_param(retdef,p.proccalloption) and
+            if ret_in_param(retdef,p) and
               is_abi_record(retdef) then
               begin
                 if intparareg=0 then

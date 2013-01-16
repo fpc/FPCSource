@@ -1395,7 +1395,7 @@ implementation
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
                 not (df_generic in current_procinfo.procdef.defoptions) and
-                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
+                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
                begin
                  { Only need to set the framepointer, the locals will
                    be inserted with the correct reference in tcgasmnode.pass_generate_code }
@@ -1409,7 +1409,7 @@ implementation
         }
         if assigned(current_procinfo.procdef.funcretsym) and
             not (df_generic in current_procinfo.procdef.defoptions) and
-           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
+           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
           tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 
         { because the END is already read we need to get the

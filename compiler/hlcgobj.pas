@@ -4420,7 +4420,7 @@ implementation
          is_managed_type(ressym.vardef) then
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
-          if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
+          if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
             gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
         end
       else

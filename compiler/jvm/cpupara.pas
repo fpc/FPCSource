@@ -48,7 +48,7 @@ interface
         function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
-        function ret_in_param(def: tdef; calloption: tproccalloption): boolean; override;
+        function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -176,7 +176,7 @@ implementation
         result:=true;
       end;
 
-    function TJVMParaManager.ret_in_param(def: tdef; calloption: tproccalloption): boolean;
+    function TJVMParaManager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
         { not as efficient as returning in param for jvmimplicitpointertypes,
           but in the latter case the routines are harder to use from Java

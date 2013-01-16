@@ -692,7 +692,7 @@ begin
       begin
         if (m_tp7 in current_settings.modeswitches) and
           not (df_generic in defoptions) and
-          (not paramanager.ret_in_param(returndef,proccalloption)) then
+          (not paramanager.ret_in_param(returndef,current_procinfo.procdef)) then
           begin
             message(asmr_e_cannot_use_RESULT_here);
             exit;

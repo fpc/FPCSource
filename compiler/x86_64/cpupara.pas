@@ -40,7 +40,7 @@ unit cpupara;
        public
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
@@ -618,16 +618,16 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tx86_64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
       begin
         if (tf_safecall_exceptions in target_info.flags) and
-            (calloption=pocall_safecall) then
+           (pd.proccalloption=pocall_safecall) then
           begin
-          result := true;
-          exit;
+            result:=true;
+            exit;
           end;
         case def.typ of
           { for records it depends on their contents and size }
@@ -639,7 +639,7 @@ unit cpupara;
               result:=(numclasses=0);
             end;
           else
-            result:=inherited ret_in_param(def,calloption);
+            result:=inherited ret_in_param(def,pd);
         end;
       end;
 

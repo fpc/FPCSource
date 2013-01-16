@@ -372,7 +372,7 @@ implementation
         { Check that the return location is set when the result is passed in
           a parameter }
         if (procdefinition.proctypeoption<>potype_constructor) and
-           paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+           paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             { self.location is set near the end of secondcallparan so it
               refers to the implicit result parameter }
@@ -938,7 +938,7 @@ implementation
               c-side, so the funcret has to be pop'ed normally. }
             if not ((procdefinition.proccalloption=pocall_safecall) and
                     (tf_safecall_exceptions in target_info.flags)) and
-               paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
+               paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
               dec(pop_size,sizeof(pint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);

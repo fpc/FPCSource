@@ -44,10 +44,8 @@ unit paramgr;
        tparamanager = class
           { true if the location in paraloc can be reused as localloc }
           function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
-          {# Returns true if the return value is actually a parameter
-             pointer.
-          }
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          { Returns true if the return value is actually a parameter pointer }
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;virtual;
 
           function push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           function keep_para_array_range(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
@@ -168,10 +166,10 @@ implementation
 
 
     { true if uses a parameter as return value }
-    function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
         if (tf_safecall_exceptions in target_info.flags) and
-           (calloption=pocall_safecall) then
+           (pd.proccalloption=pocall_safecall) then
           begin
             result:=true;
             exit;
@@ -559,7 +557,7 @@ implementation
           end;
         retloc.size:=retcgsize;
         { Return is passed as var parameter }
-        if ret_in_param(retloc.def,p.proccalloption) then
+        if ret_in_param(retloc.def,p) then
           begin
             retloc.def:=getpointerdef(retloc.def);
             paraloc:=retloc.add_location;

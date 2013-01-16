@@ -34,7 +34,7 @@ unit cpupara;
     type
        ti386paramanager = class(tparamanager)
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_para_align(calloption : tproccalloption):byte;override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
@@ -92,12 +92,12 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function ti386paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         size: longint;
       begin
         if (tf_safecall_exceptions in target_info.flags) and
-           (calloption=pocall_safecall) then
+           (pd.proccalloption=pocall_safecall) then
           begin
             result:=true;
             exit;
@@ -112,9 +112,9 @@ unit cpupara;
 
                       For stdcall and register we follow delphi instead of GCC which returns
                       only records of a size of 1,2 or 4 bytes in FUNCTION_RETURN_REG }
-                    if ((calloption in [pocall_stdcall,pocall_register]) and
+                    if ((pd.proccalloption in [pocall_stdcall,pocall_register]) and
                         (def.size in [1,2,4])) or
-                       ((calloption in [pocall_cdecl,pocall_cppdecl]) and
+                       ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                         (def.size>0) and
                         (def.size<=8)) then
                      begin
@@ -129,7 +129,7 @@ unit cpupara;
           system_i386_darwin,
           system_i386_iphonesim :
             begin
-              if calloption in cdecl_pocalls then
+              if pd.proccalloption in cdecl_pocalls then
                 begin
                   case def.typ of
                     recorddef :
@@ -153,7 +153,7 @@ unit cpupara;
               end;
             end;
         end;
-        result:=inherited ret_in_param(def,calloption);
+        result:=inherited ret_in_param(def,pd);
       end;
 
 

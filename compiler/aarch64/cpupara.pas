@@ -38,7 +38,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
@@ -195,7 +195,7 @@ unit cpupara;
       end;
 
 
-    function taarch64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+    function taarch64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         i: longint;
         sym: tsym;
@@ -271,7 +271,7 @@ unit cpupara;
             else
               result:=false
           else
-            result:=inherited ret_in_param(def,calloption);
+            result:=inherited ret_in_param(def,pd);
         end;
       end;
 
