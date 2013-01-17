@@ -65,7 +65,7 @@ var
 begin
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
-  if DefConv <> nil then begin
+  if Result <> nil then begin
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;
