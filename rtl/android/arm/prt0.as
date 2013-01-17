@@ -57,8 +57,6 @@ _fpc_start:
         ldr ip,=operatingsystem_parameter_envp
         str r5,[ip]
         
-        b PASCALMAIN
-        
         /* Call __libc_init */
         /* ELF data block */
       	mov r0, sp
