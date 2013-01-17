@@ -271,13 +271,21 @@ begin
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  as1, as2: ansistring;
 begin
-  Result:=CompareUnicodeString(UnicodeString(Copy(s1, 1, MaxLen)), UnicodeString(Copy(s2, 1, MaxLen)));
+  SetString(as1, S1, MaxLen);
+  SetString(as2, S2, MaxLen);
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2));
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  as1, as2: ansistring;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(Copy(s1, 1, MaxLen)), UnicodeString(Copy(s2, 1, MaxLen)));
+  SetString(as1, S1, MaxLen);
+  SetString(as2, S2, MaxLen);
+  Result:=CompareTextUnicodeString(UnicodeString(as1), UnicodeString(as2));
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
