@@ -466,6 +466,7 @@ implementation
          hp  : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
+         offset: asizeint;
       begin
         result:=nil;
         typecheckpass(left);
@@ -574,10 +575,17 @@ implementation
 {$endif i386}
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
+                 offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
+                 hp:=left;
+                 while assigned(hp) and (hp.nodetype=subscriptn) do
+                   begin
+                     inc(offset,tsubscriptnode(hp).vs.fieldoffset);
+                     hp:=tunarynode(hp).left;
+                   end;
                  if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,getpointerdef(left.resultdef))
+                   result:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
                  else
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
+                   result:=cpointerconstnode.create(offset,voidpointertype);
                  exit;
                end
               else if (nf_internal in flags) or
