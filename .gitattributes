@@ -9947,6 +9947,13 @@ tests/test/cg/obj/linux/i386/tcext4.o -text
 tests/test/cg/obj/linux/i386/tcext5.o -text
 tests/test/cg/obj/linux/i386/tcext6.o -text
 tests/test/cg/obj/linux/m68k/ctest.o -text
+tests/test/cg/obj/linux/mips/cpptcl1.o -text
+tests/test/cg/obj/linux/mips/cpptcl2.o -text
+tests/test/cg/obj/linux/mips/ctest.o -text
+tests/test/cg/obj/linux/mips/tcext3.o -text
+tests/test/cg/obj/linux/mips/tcext4.o -text
+tests/test/cg/obj/linux/mips/tcext5.o -text
+tests/test/cg/obj/linux/mips/tcext6.o -text
 tests/test/cg/obj/linux/mipsel/cpptcl1.o -text
 tests/test/cg/obj/linux/mipsel/cpptcl2.o -text
 tests/test/cg/obj/linux/mipsel/ctest.o -text
