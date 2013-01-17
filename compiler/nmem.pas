@@ -168,8 +168,7 @@ implementation
         case left.resultdef.typ of
           classrefdef :
             resultdef:=left.resultdef;
-          objectdef,
-          recorddef:
+          objectdef:
             { access to the classtype while specializing? }
             if (df_generic in left.resultdef.defoptions) then
               begin

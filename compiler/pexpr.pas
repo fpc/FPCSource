@@ -923,7 +923,10 @@ implementation
                begin
                  { We are calling from the static class method which has no self node }
                  if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                   p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
+                   if st.symtabletype=recordsymtable then
+                     p1:=ctypenode.create(current_procinfo.procdef.struct)
+                   else
+                     p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -2445,7 +2448,10 @@ implementation
                           if assigned(current_structdef) and
                               (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                                (sp_static in srsym.symoptions)) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                            if srsymtable.symtabletype=recordsymtable then
+                              p1:=ctypenode.create(hdef)
+                            else
+                              p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
