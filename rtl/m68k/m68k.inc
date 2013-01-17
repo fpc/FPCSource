@@ -354,16 +354,16 @@ function abs(l : longint) : longint;
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
-    Result := Target;
     Dec(Target);
+    Result := Target;
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
-    Result := Target;
     Inc(Target);
+    Result := Target;
   end;
 
 
