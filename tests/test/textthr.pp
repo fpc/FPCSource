@@ -1,4 +1,4 @@
-{ %target=darwin,linux,freebsd,solaris,haiku,aix }
+{ %target=darwin,linux,freebsd,solaris,haiku,aix,android }
 
 {$mode objfpc}
 uses
