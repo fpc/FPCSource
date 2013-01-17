@@ -423,6 +423,10 @@ const
   parser_e_cannot_generate_property_getter_setter=03325;
   parser_w_overriding_property_getter_setter=03326;
   parser_w_case_difference_auto_property_getter_setter_prefix=03327;
+  parser_e_no_consts_in_local_anonymous_records=03328;
+  parser_e_no_methods_in_local_anonymous_records=03329;
+  parser_e_no_properties_in_local_anonymous_records=03330;
+  parser_e_no_class_in_local_anonymous_records=03331;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -963,9 +967,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 68093;
+  MsgTxtSize = 68401;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,93,328,120,87,56,126,26,202,63,
+    26,93,332,120,87,56,126,26,202,63,
     54,20,1,1,1,1,1,1,1,1
   );

@@ -1955,9 +1955,14 @@ implementation
         while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do
           begin
             if (result='') then
-              result:=symtable.name^
+              if symtable.name<>nil then
+                result:=symtable.name^
+              else
             else
-              result:=symtable.name^+delimiter+result;
+              if symtable.name<>nil then
+                result:=symtable.name^+delimiter+result
+              else
+                result:=delimiter+result;
             symtable:=symtable.defowner.owner;
           end;
       end;

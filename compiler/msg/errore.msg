@@ -392,7 +392,7 @@ scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the t
 #
 # Parser
 #
-# 03327 is the last used one
+# 03331 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1471,6 +1471,18 @@ parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Case mismatc
 % not can it add one using the correct case (it could conflict with the original declaration).
 % Manually correct the case of the getter/setter to conform to the desired coding rules.
 % \var{TChild} overrides
+parser_e_no_consts_in_local_anonymous_records=03328_E_Constants declarations are not allowed in local or anonymous records
+% Records with constants must be defined globally. Constants cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_methods_in_local_anonymous_records=03329_E_Method declarations are not allowed in local or anonymous records
+% Records with methods must be defined globally. Methods cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_properties_in_local_anonymous_records=03330_E_Property declarations are not allowed in local or anonymous records
+% Records with properties must be defined globally. Properties cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_class_in_local_anonymous_records=03331_E_Class memeber declarations are not allowed in local or anonymous records
+% Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
 %
 % \end{description}
 %
