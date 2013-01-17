@@ -4,6 +4,8 @@
 
 {$mode objfpc}
 
+uses sysutils;
+
 {$R tres1.res}
 
 procedure Fail(const Msg: string);
