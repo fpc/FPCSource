@@ -55,6 +55,8 @@ var
 	ucol_setStrength: procedure (coll: PUCollator; strength: int32_t); cdecl;
   u_errorName: function (code: UErrorCode): PAnsiChar; cdecl;
 
+threadvar
+  ThreadDataInited: boolean;
   DefConv, LastConv: PUConverter;
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
@@ -71,6 +73,22 @@ begin
   end;
 end;
 
+procedure InitThreadData;
+var
+  err: UErrorCode;
+  col: PUCollator;
+begin
+  if (hlibICU = 0) or ThreadDataInited then
+    exit;
+  ThreadDataInited:=True;
+  DefConv:=OpenConverter('utf8');
+  err:=0;
+  col:=ucol_open(nil, err);
+  if col <> nil then
+    ucol_setStrength(col, 2);
+  DefColl:=col;
+end;
+
 function GetConverter(cp: TSystemCodePage): PUConverter;
 var
   s: ansistring;
@@ -79,6 +97,7 @@ begin
     Result:=nil;
     exit;
   end;
+  InitThreadData;
   if (cp = DefaultSystemCodePage) or (cp = CP_ACP) then
     Result:=DefConv
   else begin
@@ -219,6 +238,7 @@ begin
     Result:=_CompareStr(s1, s2);
     exit;
   end;
+  InitThreadData;
   if DefColl <> nil then
     Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
   else
@@ -470,7 +490,6 @@ const
   TestProcName = 'ucnv_open';
 
 var
-  err: UErrorCode;
   i: longint;
   s: ansistring;
 begin
@@ -528,12 +547,6 @@ begin
   if not _GetProc('ucol_close', ucol_close, hlibICUi18n) then exit;
   if not _GetProc('ucol_strcoll', ucol_strcoll, hlibICUi18n) then exit;
   if not _GetProc('ucol_setStrength', ucol_setStrength, hlibICUi18n) then exit;
-
-  DefConv:=OpenConverter('utf8');
-  err:=0;
-  DefColl:=ucol_open(nil, err);
-  if DefColl <> nil then
-    ucol_setStrength(DefColl, 2);
 end;
 
 initialization
