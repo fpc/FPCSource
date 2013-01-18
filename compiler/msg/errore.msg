@@ -1385,8 +1385,8 @@ parser_e_no_destructor_in_records=03300_E_Destructors aren't allowed in records 
 parser_e_class_methods_only_static_in_records=03301_E_Class methods must be static in records
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_constructor_in_records=03302_E_Constructors aren't allowed in records or record helpers
-% Constructor declarations aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors aren't allowed in records or record helpers
+% Constructor declarations with no arguments aren't allowed in records or record helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Either the result or at least one parameter must be of type "$1"
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.

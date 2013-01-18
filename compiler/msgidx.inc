@@ -397,7 +397,7 @@ const
   parser_e_no_record_published=03299;
   parser_e_no_destructor_in_records=03300;
   parser_e_class_methods_only_static_in_records=03301;
-  parser_e_no_constructor_in_records=03302;
+  parser_e_no_parameterless_constructor_in_records=03302;
   parser_e_at_least_one_argument_must_be_of_type=03303;
   parser_e_cant_use_type_parameters_here=03304;
   parser_e_externals_no_section=03305;
@@ -967,7 +967,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 68401;
+  MsgTxtSize = 68415;
 
   MsgIdxMax : array[1..20] of longint=(
     26,93,332,120,87,56,126,26,202,63,

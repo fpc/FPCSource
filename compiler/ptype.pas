@@ -718,7 +718,11 @@ implementation
                 if is_classdef then
                   pd:=class_constructor_head(current_structdef)
                 else
-                  pd:=constructor_head;
+                  begin
+                    pd:=constructor_head;
+                    if pd.maxparacount = 0 then
+                      MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                  end;
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
