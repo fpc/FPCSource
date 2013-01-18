@@ -129,9 +129,11 @@ endif
 # Select 32/64 mode
 ifeq ($(ARCH),mips)
   ASTARGET=-32 -mips32 -EB
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
   ASTARGET=-32 -mips32 -EL
+  ASSHAREDOPT=-KPIC
 endif
 
 ifeq ($(ARCH),sparc)
@@ -150,8 +152,9 @@ endif
 prt0$(OEXT) : $(ARCH)/prt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 
+# ASSHAREDOPT adds -KPIC mandatoy for mips/mipsel objects in shared libs
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+        $(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 
 gprt0$(OEXT) : $(ARCH)/gprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
