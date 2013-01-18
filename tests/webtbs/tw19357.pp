@@ -1,6 +1,6 @@
 program tw19357;
 type
-  TLvl0 = packed record
+  TLvl0 = bitpacked record
     a,b: longword;
   end;
 

@@ -587,9 +587,18 @@ implementation
                begin
                  offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
                  hp:=left;
-                 while assigned(hp) and (hp.nodetype=subscriptn) do
+                 while assigned(hp)and(hp.nodetype=subscriptn) do
                    begin
-                     inc(offset,tsubscriptnode(hp).vs.fieldoffset);
+                     hsym:=tsubscriptnode(hp).vs;
+                     if tabstractrecordsymtable(hsym.owner).is_packed then
+                       begin
+                         { can't calculate the address of a non-byte aligned field }
+                         if (hsym.fieldoffset mod 8)<>0 then
+                           exit;
+                         inc(offset,hsym.fieldoffset div 8)
+                       end
+                     else
+                       inc(offset,hsym.fieldoffset);
                      hp:=tunarynode(hp).left;
                    end;
                  if nf_typedaddr in flags then
