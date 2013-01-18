@@ -1,21 +1,19 @@
-/* Startup code for ARM & ELF
-   Copyright (C) 1995, 1996, 1997, 1998, 2001, 2002 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+#
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 2013 by Yury Sidorov and other
+#   members of the Free Pascal development team.
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY;without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#**********************************************************************}
+#
+# Program startup code for Free Pascal. Android-ARM target.
+#
 
 /* At this entry point, most registers' values are unspecified, except:
 
@@ -29,9 +27,10 @@
                                         NULL
 */
 
-/* In our entry point we should save pointers to cmd line arguments
-   and environment vars, then pass control to libc entry point.
-   After needed libc init, it will call FPC main code.
+/*
+   In our entry point we should save pointers to cmd line arguments
+   and environment vars, then pass control to libc startup code.
+   It will call "PASCALMAIN" via alias "main".
 */
 
 .text
@@ -57,20 +56,8 @@ _fpc_start:
         ldr ip,=operatingsystem_parameter_envp
         str r5,[ip]
         
-        /* Call __libc_init */
-        /* ELF data block */
-      	mov r0, sp
-      	/* "onexit" function, not used on any platform supported by Bionic */
-        mov r1, #0
-        /* the "main" function of the program */
-        ldr r2, =PASCALMAIN
-        /* constructors and destructors list */
-        adr r3, 1f
-        b __libc_init
-
-1:      .long __PREINIT_ARRAY__
-        .long __INIT_ARRAY__
-        .long __FINI_ARRAY__
+        /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main" */
+        b _start
 
 /* --------------------------------------------------------- */
         .globl  _haltproc
