@@ -506,7 +506,8 @@ implementation
                               system_i386_freebsd,system_i386_haiku,
                               system_i386_openbsd,system_i386_netbsd,
                               system_i386_Netware,system_i386_netwlibc,
-                              system_i386_solaris,system_i386_embedded];
+                              system_i386_solaris,system_i386_embedded,
+                              system_i386_android];
          flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
          comment : '';
