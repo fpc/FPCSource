@@ -1,6 +1,7 @@
 #
 #   This file is part of the Free Pascal run time library.
-#   Copyright (c) 2001 by Peter Vreman
+#   Copyright (c) 2013 by Yury Sidorov and other
+#   members of the Free Pascal development team.
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -14,66 +15,58 @@
 # Linux ELF shared library startup code for Free Pascal
 #
 
-        .file   "dllprt0.as"
-        .text
-        .globl  _startlib
-        .type   _startlib,@function
-_startlib:
+.file   "dllprt0.as"
+.text
         .globl  FPC_SHARED_LIB_START
         .type   FPC_SHARED_LIB_START,@function
 FPC_SHARED_LIB_START:
         pushl   %ebp
         movl    %esp,%ebp
-
-        movl    8(%ebp),%eax
-        movl    12(%ebp),%ecx
-        movl    16(%ebp),%edx
-
-        movl    %edx,operatingsystem_parameter_envp    /* Move the environment pointer */
-        movl    %eax,operatingsystem_parameter_argc    /* Move the argument counter    */
-        movl    %ecx,operatingsystem_parameter_argv    /* Move the argument pointer    */
-
-        movb    $1,operatingsystem_islibrary
+        /* Align the stack to a 16 byte boundary */
+        andl $~15, %esp
 
         /* Save initial stackpointer */
         movl    %esp,__stkptr
 
-        call    PASCALMAIN
+        /* Get environment info from libc */
+        movl    environ,%eax
+        movl    %eax,operatingsystem_parameter_envp
 
+        /* Register exit handler. It is called only when the main process terminates */
+        leal    FPC_LIB_EXIT,%eax
+        pushl   %eax
+        call    atexit
+        addl    $4,%esp
+
+        /* call main and exit normally */
+        call    PASCALMAIN
         leave
         ret
 
+/* --------------------------------------------------------- */
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-_haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
-        .globl  FPC_SHARED_LIB_EXIT
-        .type   FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
-	call	lib_exit
-        xorl    %eax,%eax
-        incl    %eax                    /* eax=1, exit call */
         movzwl  operatingsystem_result,%ebx
-        int     $0x80
-        jmp     _haltproc2
+        pushl   %ebx
+        /* Call libc exit() */
+        call    exit
 
-.bss
-        .type   __stkptr,@object
-        .size   __stkptr,4
-        .global __stkptr
-__stkptr:
-        .skip   4
-
-        .type operatingsystem_parameters,@object
-        .size operatingsystem_parameters,12
-operatingsystem_parameters:
-        .skip 3*4
-
-        .global operatingsystem_parameter_envp
+/* --------------------------------------------------------- */
+.data
+        .comm __stkptr,4
+        .comm operatingsystem_parameter_envp,4
+operatingsystem_parameter_argc:
         .global operatingsystem_parameter_argc
+        .long 1
+operatingsystem_parameter_argv:
         .global operatingsystem_parameter_argv
-        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
-        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
-        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+        .long EmptyCmdLine
+EmptyCmdLine:
+        .long EmptyCmdStr
+EmptyCmdStr:
+        .ascii "\0"
 
-.section .note.GNU-stack,"",%progbits
+/* --------------------------------------------------------- */
+      	.section .init_array, "aw"
+	      .long FPC_SHARED_LIB_START
