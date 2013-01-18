@@ -720,7 +720,7 @@ implementation
                 else
                   begin
                     pd:=constructor_head;
-                    if pd.maxparacount = 0 then
+                    if pd.minparacount = 0 then
                       MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                   end;
 

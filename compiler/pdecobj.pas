@@ -916,7 +916,7 @@ implementation
                   result:=constructor_head;
                   if is_objectpascal_helper(astruct) and
                      is_record(tobjectdef(astruct).extendeddef) and
-                     (result.maxparacount=0) then
+                     (result.minparacount=0) then
                       { as long as parameterless constructors aren't allowed in records they
                        aren't allowed in helpers either }
                     MessagePos(result.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
