@@ -47,7 +47,6 @@ interface
       prtobj  : string[80];
       reorder : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
-      function GetLdOptions: string;
       function DoLink(IsSharedLib: boolean): boolean;
     public
       constructor Create;override;
@@ -129,7 +128,7 @@ begin
   with Info do
    begin
      { Specify correct max-page-size and common-page-size to prevent big gaps between sections in resulting executable }
-     s:='ld '+platform_select+'-z max-page-size=0x1000 -z common-page-size=0x1000 $OPT -L. -T $RES -o $EXE';
+     s:='ld '+platform_select+'-z max-page-size=0x1000 -z common-page-size=0x1000 -z noexecstack -z relro -z now $OPT -L. -T $RES -o $EXE';
      ExeCmd[1]:=s + ' --entry=_fpc_start';
      DllCmd[1]:=s + ' -shared -soname $SONAME';
      DllCmd[2]:='strip --strip-unneeded $EXE';
@@ -321,18 +320,6 @@ begin
   WriteResponseFile:=True;
 end;
 
-function tlinkerandroid.GetLdOptions: string;
-begin
-  Result:='';
-  if (cs_link_strip in current_settings.globalswitches) and
-     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
-    Result:=Result + ' -s';
-  if (cs_link_map in current_settings.globalswitches) then
-    Result:=Result + ' -Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if create_smartlink_sections then
-    Result:=Result + ' --gc-sections';
-end;
-
 function tlinkerandroid.DoLink(IsSharedLib: boolean): boolean;
 var
   i: longint;
@@ -366,7 +353,7 @@ begin
 
   if not IsSharedLib then
     begin
-      opts:=opts + ' --dynamic-linker=' + Info.DynamicLinker;
+      opts:=opts + ' --dynamic-linker ' + Info.DynamicLinker;
       { create dynamic symbol table? }
       if HasExports then
         opts:=opts+' -E';
