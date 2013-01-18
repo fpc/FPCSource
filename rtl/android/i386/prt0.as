@@ -12,7 +12,7 @@
 #
 #**********************************************************************}
 #
-# Linux ELF startup code for Free Pascal
+# Program startup code for Free Pascal. Android-i386 target.
 #
 # Stack layout at program start:
 #

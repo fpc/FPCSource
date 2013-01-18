@@ -12,7 +12,7 @@
 #
 #**********************************************************************}
 #
-# Linux ELF shared library startup code for Free Pascal
+# Shared library startup code for Free Pascal. Android-i386 target.
 #
 
 .file   "dllprt0.as"
