@@ -73,7 +73,7 @@ Type
 Implementation
 
   uses
-    cutils,verbose,globals,
+    cutils,verbose,globtype,globals,
     systems,
     cpuinfo,
     cgobj,cgutils,procinfo,
@@ -308,7 +308,7 @@ Implementation
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-      until not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
+      until not(cs_opt_level3 in current_settings.optimizerswitches) or not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
     end;
 
