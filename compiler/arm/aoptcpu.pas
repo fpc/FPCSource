@@ -829,10 +829,10 @@ Implementation
                           end;
                       end;
                     { Change the common
-                      mov r0, r0, lsr #24
-                      and r0, r0, #255
+                      mov r0, r0, lsr #xxx
+                      and r0, r0, #yyy/bic r0, r0, #xxx
 
-                      and remove the superfluous and
+                      and remove the superfluous and/bic if possible
 
                       This could be extended to handle more cases.
                     }
@@ -840,30 +840,46 @@ Implementation
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
                        (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
                        (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
-                       (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
                        GetNextInstructionUsingReg(p,hp1, taicpu(p).oper[0]^.reg) and
                        (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) and
-                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
-                       (taicpu(hp1).ops=3) and
-                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
-                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
-                       (taicpu(hp1).oper[2]^.typ = top_const) and
-                       { Check if the AND actually would only mask out bits beeing already zero because of the shift
-                         For LSR #25 and an AndConst of 255 that whould go like this:
-                         255 and ((2 shl (32-25))-1)
-                         which results in 127, which is one less a power-of-2, meaning all lower bits are set.
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                       begin
+                         if (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
+                           MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                           (taicpu(hp1).ops=3) and
+                           MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+                           (taicpu(hp1).oper[2]^.typ = top_const) and
+                           { Check if the AND actually would only mask out bits beeing already zero because of the shift
+                             For LSR #25 and an AndConst of 255 that whould go like this:
+                             255 and ((2 shl (32-25))-1)
+                             which results in 127, which is one less a power-of-2, meaning all lower bits are set.
 
-                         LSR #25 and AndConst of 254:
-                         254 and ((2 shl (32-25))-1) = 126 -> lowest bit is clear, so we can't remove it.
-                       }
-                       ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
-                      begin
-                        DebugMsg('Peephole LsrAnd2Lsr done', hp1);
-                        asml.remove(hp1);
-                        hp1.free;
-                        result:=true;
-                      end;
+                             LSR #25 and AndConst of 254:
+                             254 and ((2 shl (32-25))-1) = 126 -> lowest bit is clear, so we can't remove it.
+                           }
+                           ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
+                           begin
+                             DebugMsg('Peephole LsrAnd2Lsr done', hp1);
+                             taicpu(p).oper[0]^.reg:=taicpu(hp1).oper[0]^.reg;
+                             asml.remove(hp1);
+                             hp1.free;
+                             result:=true;
+                           end
+                         else if MatchInstruction(hp1, A_BIC, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                           (taicpu(hp1).ops=3) and
+                           MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+                           (taicpu(hp1).oper[2]^.typ = top_const) and
+                           { Check if the BIC actually would only mask out bits beeing already zero because of the shift }
+                           (taicpu(hp1).oper[2]^.val<>0) and
+                           (BsfDWord(taicpu(hp1).oper[2]^.val)>=32-taicpu(p).oper[2]^.shifterop^.shiftimm) then
+                           begin
+                             DebugMsg('Peephole LsrBic2Lsr done', hp1);
+                             taicpu(p).oper[0]^.reg:=taicpu(hp1).oper[0]^.reg;
+                             asml.remove(hp1);
+                             hp1.free;
+                             result:=true;
+                           end;
+                       end;
 
                     {
                       optimize
