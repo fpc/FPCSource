@@ -1600,27 +1600,19 @@ Implementation
                       MatchInstruction(hp1, A_SUB, [C_None], [PF_NONE]) and
                       (taicpu(hp1).oper[0]^.typ = top_reg) and
                       (taicpu(hp1).oper[0]^.reg = NR_STACK_POINTER_REG) and
-                      (taicpu(hp1).oper[1]^.typ = top_reg) and
-                      (taicpu(hp1).oper[1]^.reg = NR_STACK_POINTER_REG) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) and
                       (taicpu(hp1).oper[2]^.typ = top_const) and
 
                       MatchInstruction(hp3, A_ADD, [C_None], [PF_NONE]) and
-                      (taicpu(hp3).oper[0]^.typ = top_reg) and
-                      (taicpu(hp3).oper[0]^.reg = NR_STACK_POINTER_REG) and
-                      (taicpu(hp3).oper[1]^.typ = top_reg) and
-                      (taicpu(hp3).oper[1]^.reg = NR_STACK_POINTER_REG) and
-                      (taicpu(hp3).oper[2]^.typ = top_const) and
-                      (taicpu(hp1).oper[2]^.val = taicpu(hp3).oper[2]^.val) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp3).oper[0]^) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp3).oper[1]^) and
+                      MatchOperand(taicpu(hp1).oper[2]^,taicpu(hp3).oper[2]^) and
 
                       MatchInstruction(hp2, [A_BL,A_BLX], [C_None], [PF_NONE]) and
                       (taicpu(hp2).oper[0]^.typ = top_ref) and
 
                       MatchInstruction(hp4, A_LDM, [C_None], [PF_FD]) and
-                      (taicpu(hp4).oper[0]^.typ = top_ref) and
-                      (taicpu(hp4).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
-                      (taicpu(hp4).oper[0]^.ref^.base=NR_NO) and
-                      (taicpu(hp4).oper[0]^.ref^.offset=0) and
-                      (taicpu(hp4).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                      MatchOperand(taicpu(p).oper[0]^,taicpu(hp4).oper[0]^) and
                       (taicpu(hp4).oper[1]^.typ = top_regset) and
                       (taicpu(hp4).oper[1]^.regset^ = [RS_R15]) then
                       begin
