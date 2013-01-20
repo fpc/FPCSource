@@ -225,7 +225,8 @@ interface
          { when automatically generating getters/setters for properties, use
            these strings as prefixes for the generated getters/setter names }
          ts_auto_getter_prefix,
-         ts_auto_setter_predix
+         ts_auto_setter_predix,
+         ts_thumb_interworking
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -300,7 +301,8 @@ interface
          (name: 'COMPACTINTARRAYINIT'; hasvalue: false),
          (name:  'ENUMFIELDINIT';      hasvalue: false),
          (name: 'AUTOGETTERPREFIX';    hasvalue: true ),
-         (name: 'AUTOSETTERPREFIX';    hasvalue: true )
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true ),
+         (name: 'THUMBINTERWORKING';   hasvalue: true )
        );
 
        { switches being applied to all CPUs at the given level }

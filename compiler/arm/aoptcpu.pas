@@ -1581,7 +1581,8 @@ Implementation
                       into
                       b         abc
                     }
-                    if MatchInstruction(p, A_STM, [C_None], [PF_FD]) and
+                    if not(ts_thumb_interworking in current_settings.targetswitches) and
+                       MatchInstruction(p, A_STM, [C_None], [PF_FD]) and
                       GetNextInstruction(p, hp1) and
                       GetNextInstruction(hp1, hp2) and
                       SkipEntryExitMarker(hp2, hp2) and
