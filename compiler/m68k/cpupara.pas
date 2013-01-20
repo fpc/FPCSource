@@ -87,6 +87,7 @@ unit cpupara;
               loc:=LOC_REFERENCE;
               reference.index:=NR_STACK_POINTER_REG;
               reference.offset:=target_info.first_parm_offset+nr*4;
+              size:=OS_INT;
            end;
       end;
 
