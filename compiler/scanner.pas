@@ -933,6 +933,7 @@ In case not, the value returned can be arbitrary.
            setElemType : TCTETypeSet;
 
         begin
+           read_factor:='';
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
