@@ -764,7 +764,7 @@ Implementation
                           mov reg1,reg1, shift imm2
                           mov reg1,reg1, shift imm3 ...
                         }
-                        else if  GetNextInstructionUsingReg(hp1,hp2, taicpu(p).oper[0]^.reg) and
+                        else if GetNextInstructionUsingReg(hp1,hp2, taicpu(p).oper[0]^.reg) and
                           (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp2.Next))) or
                           regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp2)) and
                           MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
@@ -1219,6 +1219,72 @@ Implementation
                             asml.remove(p);
                             p.free;
                             p:=hp1;
+                          end
+                        {
+                          from
+                          and reg1,reg0,2^n-1
+                          mov reg2,reg1, lsl imm1
+                          (mov reg3,reg2, lsr/asr imm1)
+                          remove either the and or the lsl/xsr sequence if possible
+                        }
+
+                        else if cutils.ispowerof2(taicpu(p).oper[2]^.val+1,i) and
+                          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                          MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and
+                          (taicpu(hp1).ops=3) and
+                          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                          (taicpu(hp1).oper[2]^.typ = top_shifterop) and
+                          (taicpu(hp1).oper[2]^.shifterop^.rs = NR_NO) and
+                          (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                          (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                          begin
+                            {
+                              and reg1,reg0,2^n-1
+                              mov reg2,reg1, lsl imm1
+                              mov reg3,reg2, lsr/asr imm1
+                              =>
+                              and reg1,reg0,2^n-1
+                              if lsr and 2^n-1>=imm1 or asr and 2^n-1>imm1
+                            }
+                            if GetNextInstructionUsingReg(hp1,hp2,taicpu(p).oper[0]^.reg) and
+                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
+                              (taicpu(hp2).ops=3) and
+                              MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                              (taicpu(hp2).oper[2]^.typ = top_shifterop) and
+                              (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm=taicpu(hp2).oper[2]^.shifterop^.shiftimm) and
+                              (assigned(FindRegDealloc(taicpu(hp1).oper[0]^.reg,tai(hp2.Next))) or
+                              regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp2)) and
+                              ((i<32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) or
+                              ((i=32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
+                               (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSR))) then
+                              begin
+                                DebugMsg('Peephole AndLslXsr2And done', p);
+                                taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                asml.Remove(hp1);
+                                asml.Remove(hp2);
+                                hp1.free;
+                                hp2.free;
+                                result:=true;
+                              end
+                            {
+                              and reg1,reg0,2^n-1
+                              mov reg2,reg1, lsl imm1
+                              =>
+                              mov reg2,reg1, lsl imm1
+                              if imm1>i
+                            }
+                            else if i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm then
+                              begin
+                                DebugMsg('Peephole AndLsl2Lsl done', p);
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
+                                asml.Remove(p);
+                                p.free;
+                                p:=hp1;
+                                result:=true;
+                              end
                           end;
                       end;
                     {
