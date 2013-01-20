@@ -764,38 +764,55 @@ Implementation
                           mov reg1,reg1, shift imm2
                           mov reg1,reg1, shift imm3 ...
                         }
-                        else if getnextinstruction(hp1,hp2) and
+                        else if  GetNextInstructionUsingReg(hp1,hp2, taicpu(p).oper[0]^.reg) and
+                          (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp2.Next))) or
+                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp2)) and
                           MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
                           (taicpu(hp2).ops=3) and
-                          MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                           MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
                           (taicpu(hp2).oper[2]^.typ = top_shifterop) and
                           (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) then
                           begin
                             { mov reg1,reg0, lsl imm1
                               mov reg1,reg1, lsr/asr imm2
-                              mov reg1,reg1, lsl imm3 ...
-
-                              if imm3<=imm1 and imm2>=imm3
+                              mov reg2,reg1, lsl imm3 ...
                               to
                               mov reg1,reg0, lsl imm1
-                              mov reg1,reg1, lsr/asr imm2-imm3
+                              mov reg2,reg1, lsr/asr imm2-imm3
+                              if
+                              imm1>=imm2
                             }
                             if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSL) and
                               (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
-                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm<=taicpu(p).oper[2]^.shifterop^.shiftimm) and
-                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(hp2).oper[2]^.shifterop^.shiftimm) then
+                              (taicpu(p).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm) then
                               begin
-                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
-                                DebugMsg('Peephole ShiftShiftShift2ShiftShift 1 done', p);
-                                asml.remove(hp2);
-                                hp2.free;
-                                result := true;
-                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                if taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm then
                                   begin
+                                    DebugMsg('Peephole ShiftShiftShift2ShiftShift 1a done', p);
+                                    inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm-taicpu(hp1).oper[2]^.shifterop^.shiftimm);
+                                    taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
                                     asml.remove(hp1);
+                                    asml.remove(hp2);
                                     hp1.free;
+                                    hp2.free;
+
+                                    if taicpu(hp1).oper[2]^.shifterop^.shiftimm>=32 then
+                                      begin
+                                        taicpu(p).freeop(1);
+                                        taicpu(p).freeop(2);
+                                        taicpu(p).loadconst(1,0);
+                                      end;
+                                  end
+                                else
+                                  begin
+                                    DebugMsg('Peephole ShiftShiftShift2ShiftShift 1b done', p);
+
+                                    dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
+                                    taicpu(hp1).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                    asml.remove(hp2);
+                                    hp2.free;
                                   end;
+                                result := true;
                               end
                             { mov reg1,reg0, lsr/asr imm1
                               mov reg1,reg1, lsl imm2
