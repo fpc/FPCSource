@@ -1187,24 +1187,38 @@ Implementation
                         {
                           change
                           and reg2,reg1,const1
+                          ...
                           and reg3,reg2,const2
                           to
                           and reg3,reg1,(const1 and const2)
                         }
-                        if GetNextInstruction(p, hp1) and
+                        if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                         MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
-                        { either reg3 and reg2 are equal or reg2 is deallocated after the and }
-                        (MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^.reg) or
-                         assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next)))) and
+                        RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                         MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                         (taicpu(hp1).oper[2]^.typ = top_const) then
                           begin
-                            DebugMsg('Peephole AndAnd2And done', p);
-                            taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                            taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
-                            taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
-                            asml.remove(hp1);
-                            hp1.free;
+                            if not(RegUsedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) then
+                              begin
+                                DebugMsg('Peephole AndAnd2And 1 done', p);
+                                taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                                taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                                taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
+                                asml.remove(hp1);
+                                hp1.free;
+                                Result:=true;
+                              end
+                            else if not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                              begin
+                                DebugMsg('Peephole AndAnd2And 2 done', hp1);
+                                taicpu(hp1).loadConst(2,taicpu(hp1).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                                taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
+                                taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp1;
+                                Result:=true;
+                              end;
                           end
                         {
                           change
