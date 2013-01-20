@@ -41,6 +41,9 @@ Type
     procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
+    { returns true if reg reaches it's end of life at p, this means it is either
+      reloaded with a new value or it is deallocated afterwards }
+    function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
     { gets the next tai object after current that contains info relevant
       to the optimizer in p1 which used the given register or does a 
       change in program flow.
@@ -299,6 +302,13 @@ Implementation
           instructionLoadsFromReg(reg,p) or
           not(regLoadedWithNewValue(reg,p))
         );
+    end;
+
+
+  function TCpuAsmOptimizer.RegEndOfLife(reg : TRegister;p : taicpu) : boolean;
+    begin
+       Result:=assigned(FindRegDealloc(reg,tai(p.Next))) or
+         RegLoadedWithNewValue(reg,p);
     end;
 
 
@@ -763,13 +773,13 @@ Implementation
                           mov reg1,reg0, shift imm1
                           mov reg1,reg1, shift imm2
                           mov reg1,reg1, shift imm3 ...
+                          mov reg2,reg1, shift imm3 ...
                         }
-                        else if GetNextInstructionUsingReg(hp1,hp2, taicpu(p).oper[0]^.reg) and
-                          (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp2.Next))) or
-                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp2)) and
+                        else if GetNextInstructionUsingReg(hp1,hp2, taicpu(hp1).oper[0]^.reg) and
                           MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
                           (taicpu(hp2).ops=3) and
                           MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                          RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp2)) and
                           (taicpu(hp2).oper[2]^.typ = top_shifterop) and
                           (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) then
                           begin
@@ -1236,8 +1246,7 @@ Implementation
                           (taicpu(hp1).oper[2]^.typ = top_shifterop) and
                           (taicpu(hp1).oper[2]^.shifterop^.rs = NR_NO) and
                           (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSL) and
-                          (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                          RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) then
                           begin
                             {
                               and reg1,reg0,2^n-1
@@ -1255,8 +1264,7 @@ Implementation
                               (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) and
                               (taicpu(hp2).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
                               (taicpu(hp1).oper[2]^.shifterop^.shiftimm=taicpu(hp2).oper[2]^.shifterop^.shiftimm) and
-                              (assigned(FindRegDealloc(taicpu(hp1).oper[0]^.reg,tai(hp2.Next))) or
-                              regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp2)) and
+                              RegEndOfLife(taicpu(hp1).oper[0]^.reg,taicpu(hp2)) and
                               ((i<32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) or
                               ((i=32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
                                (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSR))) then
