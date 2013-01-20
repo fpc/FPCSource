@@ -796,24 +796,29 @@ Implementation
                               (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
                               (taicpu(p).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm) then
                               begin
-                                if taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm then
+                                if (taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm) then
                                   begin
-                                    DebugMsg('Peephole ShiftShiftShift2ShiftShift 1a done', p);
-                                    inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm-taicpu(hp1).oper[2]^.shifterop^.shiftimm);
-                                    taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
-                                    asml.remove(hp1);
-                                    asml.remove(hp2);
-                                    hp1.free;
-                                    hp2.free;
-
-                                    if taicpu(hp1).oper[2]^.shifterop^.shiftimm>=32 then
+                                    if not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,p,hp1)) and
+                                      not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2)) then
                                       begin
-                                        taicpu(p).freeop(1);
-                                        taicpu(p).freeop(2);
-                                        taicpu(p).loadconst(1,0);
+                                        DebugMsg('Peephole ShiftShiftShift2ShiftShift 1a done', p);
+                                        inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm-taicpu(hp1).oper[2]^.shifterop^.shiftimm);
+                                        taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                        asml.remove(hp1);
+                                        asml.remove(hp2);
+                                        hp1.free;
+                                        hp2.free;
+
+                                        if taicpu(hp1).oper[2]^.shifterop^.shiftimm>=32 then
+                                          begin
+                                            taicpu(p).freeop(1);
+                                            taicpu(p).freeop(2);
+                                            taicpu(p).loadconst(1,0);
+                                          end;
+                                        result := true;
                                       end;
                                   end
-                                else
+                                else if not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2)) then
                                   begin
                                     DebugMsg('Peephole ShiftShiftShift2ShiftShift 1b done', p);
 
@@ -821,8 +826,8 @@ Implementation
                                     taicpu(hp1).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
                                     asml.remove(hp2);
                                     hp2.free;
+                                    result := true;
                                   end;
-                                result := true;
                               end
                             { mov reg1,reg0, lsr/asr imm1
                               mov reg1,reg1, lsl imm2
@@ -1200,7 +1205,7 @@ Implementation
                           begin
                             if not(RegUsedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) then
                               begin
-                                DebugMsg('Peephole AndAnd2And 1 done', p);
+                                DebugMsg('Peephole AndAnd2And done', p);
                                 taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
                                 taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
                                 taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
@@ -1210,7 +1215,7 @@ Implementation
                               end
                             else if not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                               begin
-                                DebugMsg('Peephole AndAnd2And 2 done', hp1);
+                                DebugMsg('Peephole AndAnd2And done', hp1);
                                 taicpu(hp1).loadConst(2,taicpu(hp1).oper[2]^.val and taicpu(hp1).oper[2]^.val);
                                 taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
                                 taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
