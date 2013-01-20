@@ -267,10 +267,10 @@ implementation
              begin
                 if nf_swapped in flags then
                   case nodetype of
-                     ltn : getresflags:=F_GE;
-                     lten : getresflags:=F_G;
-                     gtn : getresflags:=F_LE;
-                     gten : getresflags:=F_L;
+                     ltn : getresflags:=F_G;
+                     lten : getresflags:=F_GE;
+                     gtn : getresflags:=F_L;
+                     gten : getresflags:=F_LE;
                   end
                 else
                   case nodetype of
@@ -284,10 +284,10 @@ implementation
              begin
                 if nf_swapped in flags then
                   case nodetype of
-                     ltn : getresflags:=F_AE;
-                     lten : getresflags:=F_A;
-                     gtn : getresflags:=F_BE;
-                     gten : getresflags:=F_B;
+                     ltn : getresflags:=F_A;
+                     lten : getresflags:=F_AE;
+                     gtn : getresflags:=F_B;
+                     gten : getresflags:=F_BE;
                   end
                 else
                   case nodetype of
