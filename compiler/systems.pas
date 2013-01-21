@@ -297,7 +297,7 @@ interface
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_ia64_win64]+systems_linux;
+                                         system_ia64_win64]+systems_linux+systems_android;
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;

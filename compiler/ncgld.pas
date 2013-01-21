@@ -360,7 +360,7 @@ implementation
                               location:=gvs.localloc;
 {$ifdef i386}
                             case target_info.system of
-                              system_i386_linux:
+                              system_i386_linux,system_i386_android:
                                 location.reference.segment:=NR_GS;
                             end;
 {$endif i386}

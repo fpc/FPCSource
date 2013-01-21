@@ -1107,7 +1107,7 @@ begin
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
    if (opcode=A_ENTER) and
-      (target_info.system in [system_i386_linux,system_i386_FreeBSD]) then
+      (target_info.system in [system_i386_linux,system_i386_FreeBSD,system_i386_android]) then
      Message(asmr_w_enter_not_supported_by_linux);
 
 

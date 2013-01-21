@@ -1003,7 +1003,7 @@ unit cgx86;
                     { Convert thread local address to a process global addres
                       as we cannot handle far pointers.}
                     case target_info.system of
-                      system_i386_linux:
+                      system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
                             reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,ref.alignment);

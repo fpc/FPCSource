@@ -1693,7 +1693,7 @@ implementation
         AsmWriteLn(#9'.subsections_via_symbols');
 
       { "no executable stack" marker for Linux }
-      if (target_info.system in systems_linux) and
+      if (target_info.system in (systems_linux + systems_android)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');
