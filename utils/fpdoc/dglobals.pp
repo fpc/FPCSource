@@ -25,6 +25,10 @@ interface
 
 uses Classes, DOM, PasTree, PParser, StrUtils,uriparser;
 
+Const
+  CacheSize = 20;
+  ContentBufSize = 4096 * 8;
+
 Var
   LEOL : Integer;
   modir : string;
@@ -332,7 +336,7 @@ type
     // Link tree support
     procedure AddLink(const APathName, ALinkTo: String);
     function FindAbsoluteLink(const AName: String): String;
-    function ResolveLink(AModule: TPasModule; const ALinkDest: String): String;
+    function ResolveLink(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
     function FindLinkedNode(ANode: TDocNode): TDocNode;
 
     // Documentation file support
@@ -615,7 +619,6 @@ var
 begin
   for i := 0 to FPackages.Count - 1 do
     TPasPackage(FPackages[i]).Release;
-  FPackages.Free;
   FRootDocNode.Free;
   FRootLinkNode.Free;
   DescrDocNames.Free;
@@ -977,11 +980,14 @@ end;
 
 var
   s: String;
+  buf : Array[1..ContentBufSize-1] of byte;
+
 begin
   if not FileExists(AFileName) then
     raise EInOutError.Create('File not found: ' + AFileName);
   Assign(f, AFilename);
   Reset(f);
+  SetTextBuf(F,Buf,SizeOf(Buf));
   while not EOF(f) do
   begin
     ReadLn(f, s);
@@ -1031,9 +1037,11 @@ var
   ClassDecl: TPasClassType;
   Member: TPasElement;
   s: String;
+  Buf : Array[0..ContentBufSize-1] of byte;
 begin
   Assign(ContentFile, AFilename);
   Rewrite(ContentFile);
+  SetTextBuf(ContentFile,Buf,SizeOf(Buf));
   try
     WriteLn(ContentFile, '# FPDoc Content File');
     WriteLn(ContentFile, ':link tree');
@@ -1243,8 +1251,8 @@ begin
     SetLength(Result, 0);
 end;
 
-function TFPDocEngine.ResolveLink(AModule: TPasModule;
-  const ALinkDest: String): String;
+
+function TFPDocEngine.ResolveLink(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
 var
   i: Integer;
   ThisPackage: TLinkNode;
@@ -1259,26 +1267,31 @@ var
   end;
 
 begin
-  // system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
-  if Length(ALinkDest) = 0 then
+{  if Assigned(AModule) then
+    system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ')
+  else
+    system.WriteLn('ResolveLink(Nil - ', ALinkDest, ')... ');
+}  if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
     exit;
   end;
 
-  if (ALinkDest[1] = '#') or (not assigned(AModule)) then
+  if (ALinkDest[1] = '#') then
     Result := FindAbsoluteLink(ALinkDest)
+  else if (AModule=Nil) then
+    Result:= FindAbsoluteLink(RootLinkNode.FirstChild.Name+'.'+ALinkDest)
   else
   begin
     if Pos(AModule.Name, ALinkDest) = 1 then
     begin
-      Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
+      Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest, Strict);
       if CanWeExit(Result) then
         Exit;
     end
     else
     begin
-      Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
+      Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest, Strict);
       if CanWeExit(Result) then
         Exit;
     end;
@@ -1288,7 +1301,7 @@ begin
     ThisPackage := RootLinkNode.FirstChild;
     while Assigned(ThisPackage) do
     begin
-      Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest);
+      Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest, Strict);
       if CanWeExit(Result) then
         Exit;
       ThisPackage := ThisPackage.NextSibling;
@@ -1305,7 +1318,7 @@ begin
         while Assigned(ThisPackage) do
         begin
           Result := ResolveLink(AModule, ThisPackage.Name + '.' +
-            TPasType(UnitList[i]).Name + '.' + ALinkDest);
+            TPasType(UnitList[i]).Name + '.' + ALinkDest, strict);
             if CanWeExit(Result) then
               Exit;
           ThisPackage := ThisPackage.NextSibling;
@@ -1313,12 +1326,12 @@ begin
       end;
     end;
   end;
-
-  if Length(Result) = 0 then
+  // Match on parent : class/enumerated/record/module
+  if (Length(Result) = 0) and not strict then
     for i := Length(ALinkDest) downto 1 do
       if ALinkDest[i] = '.' then
       begin
-        Result := ResolveLink(AModule, Copy(ALinkDest, 1, i - 1));
+        Result := ResolveLink(AModule, Copy(ALinkDest, 1, i - 1), Strict);
         exit;
       end;
 end;
