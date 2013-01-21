@@ -1848,8 +1848,6 @@ implementation
 
 
     procedure tcg.a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
-      var
-        tmpreg: tregister;
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:

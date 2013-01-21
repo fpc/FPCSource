@@ -345,7 +345,6 @@ var
   memrefsize: integer;
   memopsize: integer;
   memoffset: asizeint;
-  s1: string;
 begin
   ExistsMemRefNoSize := false;
   ExistsMemRef       := false;

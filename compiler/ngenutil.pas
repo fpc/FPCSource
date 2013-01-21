@@ -264,7 +264,6 @@ implementation
       stat: tstatementnode;
       block: tnode;
       psym: tsym;
-      tcinitproc: tprocdef;
     begin
       result:=maybe_insert_trashing(pd,n);
       if target_info.system in systems_typed_constants_node_init then
@@ -291,7 +290,6 @@ implementation
                     if (psym.typ<>procsym) or
                        (tprocsym(psym).procdeflist.count<>1) then
                       internalerror(2011040301);
-                    tcinitproc:=tprocdef(tprocsym(psym).procdeflist[0]);
                     addstatement(stat,ccallnode.create(nil,tprocsym(psym),
                       pd.struct.symtable,nil,[]));
                   end;

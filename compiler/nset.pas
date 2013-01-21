@@ -861,7 +861,6 @@ implementation
 
     procedure tcasenode.printnodetree(var t: text);
       var
-        hp : tbinarynode;
         i : longint;
       begin
         write(t,printnodeindention,'(');

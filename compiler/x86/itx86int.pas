@@ -60,22 +60,17 @@ implementation
 
     function findreg_by_intname(const s:string):integer;
       var
-        i,p : integer;
-        s1: string;
-
         l,r,m: integer;
       begin
         {Binary search.}
-        p:=0;
-        i := (high(tregisterindex) + 1) shr 1;
-           l := 0;
-           r := high(tregisterindex) + 1;
-           while l < r do
-           begin
-              m := (l + r) div 2;
-              if int_regname_table[int_regname_index[m]] < s then l := m + 1
-              else r := m;
-           end;
+        l := 0;
+        r := high(tregisterindex) + 1;
+        while l < r do
+          begin
+            m := (l + r) div 2;
+            if int_regname_table[int_regname_index[m]] < s then l := m + 1
+            else r := m;
+          end;
 
         if int_regname_table[int_regname_index[r]]=s then
           findreg_by_intname:=int_regname_index[r]

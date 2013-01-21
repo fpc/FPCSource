@@ -513,9 +513,9 @@ interface
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
-
+    {$ifdef jvm}
     var r:Treference;
-
+    {$endif}
     begin
 {$ifdef jvm}
 {$ifndef nounsupported}

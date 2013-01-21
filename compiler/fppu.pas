@@ -947,7 +947,6 @@ var
       var
         b : byte;
         newmodulename : string;
-        ns: string;
       begin
        { read interface part }
          repeat

@@ -2738,8 +2738,8 @@ var
   abi : tabi;
 {$if defined(arm) or defined(avr)}
   cpuflag : tcpuflags;
-{$endif defined(arm) or defined(avr)}
   hs : string;
+{$endif defined(arm) or defined(avr)}
 begin
   option:=coption.create;
   disable_configfile:=false;

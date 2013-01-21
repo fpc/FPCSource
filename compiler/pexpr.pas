@@ -226,7 +226,6 @@ implementation
          hdef  : tdef;
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
-         procinfo : tprocinfo;
        begin
          { Properties are not allowed, because the write can
            be different from the read }
