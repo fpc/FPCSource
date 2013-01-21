@@ -212,8 +212,11 @@ implementation
         R_X86_64_PLTOFF64,
         R_X86_64_GOTPLT64:
           begin
-            objsym:=ObjReloc.symbol.exesymbol.ObjSymbol;
-            objsym.refs:=objsym.refs or symref_plt;
+            if assigned(ObjReloc.symbol) and assigned(ObjReloc.symbol.exesymbol) then
+              begin
+                objsym:=ObjReloc.symbol.exesymbol.ObjSymbol;
+                objsym.refs:=objsym.refs or symref_plt;
+              end;
           end;
       end;
 
