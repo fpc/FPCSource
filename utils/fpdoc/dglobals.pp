@@ -301,6 +301,8 @@ type
   private
     FDocLogLevels: TFPDocLogLevels;
     FOnParseUnit: TOnParseUnitEvent;
+    function ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
+    function ResolveLinkInUsedUnits(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
   protected
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
@@ -1251,89 +1253,77 @@ begin
     SetLength(Result, 0);
 end;
 
+function TFPDocEngine.ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
+
+Var
+  ThisPackage: TLinkNode;
+
+begin
+  { Try all packages }
+  Result:='';
+  ThisPackage:=RootLinkNode.FirstChild;
+  while Assigned(ThisPackage) and (Result='') do
+    begin
+    Result:=ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest, Strict);
+    ThisPackage := ThisPackage.NextSibling;
+    end;
+end;
+
+function TFPDocEngine.ResolveLinkInUsedUnits(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
+
+var
+  i: Integer;
+  UL: TFPList;
+
+begin
+  Result:='';
+  UL:=AModule.InterfaceSection.UsesList;
+  I:=UL.Count-1;
+  While (Result='') and (I>=0) do
+    begin
+    Result:=ResolveLinkInPackages(AModule,TPasType(UL[i]).Name+'.'+ALinkDest, strict);
+    Dec(I);
+    end;
+end;
 
 function TFPDocEngine.ResolveLink(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
 var
   i: Integer;
-  ThisPackage: TLinkNode;
-  UnitList: TFPList;
-
-  function CanWeExit(AResult: string): boolean;
-  var
-    s: string;
-  begin
-    s := StringReplace(Lowercase(ALinkDest), '.', '_', [rfReplaceAll]);
-    Result := pos(s, AResult) > 0;
-  end;
 
 begin
-{  if Assigned(AModule) then
-    system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ')
-  else
-    system.WriteLn('ResolveLink(Nil - ', ALinkDest, ')... ');
-}  if Length(ALinkDest) = 0 then
-  begin
-    SetLength(Result, 0);
-    exit;
-  end;
-
+{
+  if Assigned(AModule) then
+      system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ')
+    else
+      system.WriteLn('ResolveLink(Nil - ', ALinkDest, ')... ');
+}
+  if (ALinkDest='') then
+    Exit('');
   if (ALinkDest[1] = '#') then
     Result := FindAbsoluteLink(ALinkDest)
   else if (AModule=Nil) then
     Result:= FindAbsoluteLink(RootLinkNode.FirstChild.Name+'.'+ALinkDest)
   else
-  begin
-    if Pos(AModule.Name, ALinkDest) = 1 then
     begin
-      Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest, Strict);
-      if CanWeExit(Result) then
-        Exit;
-    end
+    if Pos(AModule.Name,ALinkDest) = 1 then
+      Result := ResolveLink(AModule, AModule.packagename + '.' + ALinkDest, Strict)
     else
-    begin
       Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest, Strict);
-      if CanWeExit(Result) then
-        Exit;
-    end;
-
-    { Try all packages }
-    SetLength(Result, 0);
-    ThisPackage := RootLinkNode.FirstChild;
-    while Assigned(ThisPackage) do
-    begin
-      Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest, Strict);
-      if CanWeExit(Result) then
-        Exit;
-      ThisPackage := ThisPackage.NextSibling;
-    end;
-
-    if not CanWeExit(Result) then
-    begin
-      { Okay, then we have to try all imported units of the current module }
-      UnitList := AModule.InterfaceSection.UsesList;
-      for i := UnitList.Count - 1 downto 0 do
+    if (Result='') then
       begin
-        { Try all packages }
-        ThisPackage := RootLinkNode.FirstChild;
-        while Assigned(ThisPackage) do
-        begin
-          Result := ResolveLink(AModule, ThisPackage.Name + '.' +
-            TPasType(UnitList[i]).Name + '.' + ALinkDest, strict);
-            if CanWeExit(Result) then
-              Exit;
-          ThisPackage := ThisPackage.NextSibling;
-        end;
+      Result:=ResolveLinkInPackages(AModule,ALinkDest,Strict);
+      if (Result='') then
+        Result:=ResolveLinkInUsedUnits(Amodule,AlinkDest,Strict);
       end;
     end;
-  end;
   // Match on parent : class/enumerated/record/module
-  if (Length(Result) = 0) and not strict then
+  if (Result='') and not strict then
     for i := Length(ALinkDest) downto 1 do
       if ALinkDest[i] = '.' then
-      begin
+        begin
         Result := ResolveLink(AModule, Copy(ALinkDest, 1, i - 1), Strict);
         exit;
-      end;
+        end;
 end;
 
 procedure ReadXMLFileALT(OUT ADoc:TXMLDocument;const AFileName:ansistring);
