@@ -33,3 +33,6 @@ FreeBSD-i386 : gcc (GCC) 4.2.1 20070719  [FreeBSD] 8.2-RELEASE
 Linux-sparc : gcc (Debian 4.3.2-1.1) 4.3.2
 OpenBSD-x86_64 : gcc (GCC) 4.2.1 20070719 
 Linux-arm-gnueabihf : gcc version 4.6.3 (Debian 4.6.3-8+rpi1)
+
+Android-arm  : GCC 4.7
+Android-i386 : GCC 4.7
