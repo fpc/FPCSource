@@ -929,6 +929,7 @@ destructor TCustomDaemonApplication.Destroy;
 begin
   if assigned(FEventLog) then
     FEventLog.Free;
+  inherited Destroy;
 end;
 
 procedure TCustomDaemonApplication.DoRun;
