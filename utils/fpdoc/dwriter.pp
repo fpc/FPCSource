@@ -47,7 +47,7 @@ resourcestring
 
   SErrDescrTagUnknown = 'Warning: Unknown tag "%s" in description';
   SErrUnknownEntityReference = 'Warning: Unknown entity reference "&%s;" found';
-  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s" is unknown: "%s"';
+  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s", element "%s", is unknown: "%s"';
   SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
   SErrUnknownLink = 'Could not resolve link to "%s"';
   SErralreadyRegistered = 'Class for output format "%s" already registered';
@@ -75,6 +75,7 @@ type
     FEmitNotes: Boolean;
     FEngine  : TFPDocEngine;
     FPackage : TPasPackage;
+    FContext : TPasElement;
     FTopics  : TList;
     FImgExt : String;
     FBeforeEmitNote : TWriterNoteEvent;
@@ -159,6 +160,7 @@ type
     procedure DescrEndTableRow; virtual; abstract;
     procedure DescrBeginTableCell; virtual; abstract;
     procedure DescrEndTableCell; virtual; abstract;
+    Property CurrentContext : TPasElement Read FContext ;
   public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); virtual;
     destructor Destroy;  override;
@@ -491,20 +493,24 @@ begin
   Result := False;
   if not Assigned(El) then
     exit;
-
-  Node := El.FirstChild;
-  while Assigned(Node) do
-  begin
-    if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
-      ConvertLink(AContext, TDOMElement(Node))
-    else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
-      ConvertURL(AContext, TDOMElement(Node))
-    else
-      if not ConvertBaseShort(AContext, Node) then
-        exit;
-    Node := Node.NextSibling;
+  FContext:=AContext;
+  try
+    Node := El.FirstChild;
+    while Assigned(Node) do
+    begin
+      if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
+        ConvertLink(AContext, TDOMElement(Node))
+      else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
+        ConvertURL(AContext, TDOMElement(Node))
+      else
+        if not ConvertBaseShort(AContext, Node) then
+          exit;
+      Node := Node.NextSibling;
+    end;
+    Result := True;
+  finally
+    FContext:=Nil;
   end;
-  Result := True;
 end;
 
 function TFPDocWriter.ConvertNotes(AContext: TPasElement; El: TDOMElement
@@ -732,53 +738,58 @@ var
   Node, Child: TDOMNode;
   ParaCreated: Boolean;
 begin
-  if AutoInsertBlock then
-    if IsExtShort(El.FirstChild) then
-      DescrBeginParagraph
-    else
-      AutoInsertBlock := False;
-
-  Node := El.FirstChild;
-  if not ConvertExtShort(AContext, Node) then
-  begin
-    while Assigned(Node) do
-    begin
-      if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'section') then
-      begin
-        DescrBeginSectionTitle;
-        Child := Node.FirstChild;
-        while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
-        begin
-          if not IsDescrNodeEmpty(Child) then
-            Warning(AContext, SErrInvalidContentBeforeSectionTitle);
-          Child := Child.NextSibling;
-        end;
-        if not Assigned(Child) or (Child.NodeName <> 'title') then
-          Warning(AContext, SErrSectionTitleExpected)
-        else
-          ConvertShort(AContext, TDOMElement(Child));
-
-        DescrBeginSectionBody;
-
-        if IsExtShort(Child) then
-        begin
-          DescrBeginParagraph;
-          ParaCreated := True;
-        end else
-          ParaCreated := False;
-
-        ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
-
-        if ParaCreated then
-          DescrEndParagraph;
-        DescrEndSection;
-      end else if not ConvertNonSectionBlock(AContext, Node) then
-        Warning(AContext, SErrInvalidDescr, [Node.NodeName]);
-      Node := Node.NextSibling;
-    end;
-  end else
+  FContext:=AContext;
+  try
     if AutoInsertBlock then
-      DescrEndParagraph;
+      if IsExtShort(El.FirstChild) then
+        DescrBeginParagraph
+      else
+        AutoInsertBlock := False;
+
+    Node := El.FirstChild;
+    if not ConvertExtShort(AContext, Node) then
+    begin
+      while Assigned(Node) do
+      begin
+        if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'section') then
+        begin
+          DescrBeginSectionTitle;
+          Child := Node.FirstChild;
+          while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
+          begin
+            if not IsDescrNodeEmpty(Child) then
+              Warning(AContext, SErrInvalidContentBeforeSectionTitle);
+            Child := Child.NextSibling;
+          end;
+          if not Assigned(Child) or (Child.NodeName <> 'title') then
+            Warning(AContext, SErrSectionTitleExpected)
+          else
+            ConvertShort(AContext, TDOMElement(Child));
+
+          DescrBeginSectionBody;
+
+          if IsExtShort(Child) then
+          begin
+            DescrBeginParagraph;
+            ParaCreated := True;
+          end else
+            ParaCreated := False;
+
+          ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
+
+          if ParaCreated then
+            DescrEndParagraph;
+          DescrEndSection;
+        end else if not ConvertNonSectionBlock(AContext, Node) then
+          Warning(AContext, SErrInvalidDescr, [Node.NodeName]);
+        Node := Node.NextSibling;
+      end;
+    end else
+      if AutoInsertBlock then
+        DescrEndParagraph;
+  finally
+    FContext:=Nil;
+  end;
 end;
 
 procedure TFPDocWriter.ConvertExtShortOrNonSectionBlocks(AContext: TPasElement;
