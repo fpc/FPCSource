@@ -123,7 +123,7 @@ type
 
     Procedure CreateAllocator; virtual;
     procedure CreateCSSFile; virtual;
-    function ResolveLinkID(const Name: String): DOMString;
+    function ResolveLinkID(const Name: String; Level : Integer = 0): DOMString;
     function ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
       ASubpageIndex: Integer): String;
@@ -917,46 +917,13 @@ begin
     Result:=ResolveLinkID(AUnitName+'.'+Name);
 end;
 
-function THTMLWriter.ResolveLinkID(const Name: String): DOMString;
+function THTMLWriter.ResolveLinkID(const Name: String; Level : Integer = 0): DOMString;
+
 var
   i: Integer;
   ThisPackage: TLinkNode;
 begin
-  if Length(Name) = 0 then
-  begin
-    SetLength(Result, 0);
-    exit;
-  end;
-
-  if Name[1] = '#' then
-    Result := Engine.FindAbsoluteLink(Name)
-  else
-  begin
-    SetLength(Result, 0);
-    { Try all packages }
-    ThisPackage := Engine.RootLinkNode.FirstChild;
-    while Assigned(ThisPackage) do
-    begin
-      Result := Engine.FindAbsoluteLink(ThisPackage.Name + '.' + Name);
-      if Length(Result) = 0 then
-      begin
-        if Assigned(Module) then
-          begin
-          Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
-//          WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
-          end;
-        if Length(Result) = 0 then
-          for i := Length(Name) downto 1 do
-            if Name[i] = '.' then
-            begin
-              Result := ResolveLinkID(Copy(Name, 1, i - 1));
-              exit;
-            end;
-      end;
-      ThisPackage := ThisPackage.NextSibling;
-    end;
-  end;
-
+  Result:=Engine.ResolveLink(Module,Name, False);
   if Length(Result) > 0 then
     if Copy(Result, 1, Length(CurDirectory) + 1) = CurDirectory + '/' then
       Result := Copy(Result, Length(CurDirectory) + 2, Length(Result))
@@ -1192,7 +1159,7 @@ end;
 
 procedure THTMLWriter.DescrBeginLink(const AId: DOMString);
 var
-  a,s: String;
+  a,s,n : String;
 begin
   a:=AId;
   s := ResolveLinkID(a);
@@ -1203,7 +1170,11 @@ begin
     else
       s:='?';
     if a='' then a:='<empty>';
-    DoLog(SErrUnknownLinkID, [s,a]);
+    if Assigned(CurrentContext) then
+      N:=CurrentContext.Name
+    else
+      N:='?';
+    DoLog(SErrUnknownLinkID, [s,n,a]);
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
     PushOutputNode(CreateLink(CurOutputNode, s));
@@ -2146,7 +2117,7 @@ Procedure THTMLWriter.AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDoc
 var
   Node: TDOMNode;
   TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
-  l,s: String;
+  l,s,n: String;
   f: Text;
   IsFirstSeeAlso : Boolean;
 
@@ -2177,7 +2148,11 @@ begin
          else
            s:='?';
          if l='' then l:='<empty>';
-         DoLog(SErrUnknownLinkID, [s,l]);
+         if Assigned(AElement) then
+           N:=AElement.Name
+         else
+           N:='?';
+         DoLog(SErrUnknownLinkID, [s,N,l]);
          NewEl := CreateEl(ParaEl,'b')
          end
        else
@@ -3167,6 +3142,7 @@ var
     CurVisibility: TPasMemberVisibility;
     i: Integer;
     s: String;
+    t : TPasType;
     ah,ol,wt,ct,wc,cc  : boolean;
     ThisInterface,
     ThisClass: TPasClassType;
@@ -3285,13 +3261,6 @@ var
           AppendSym(CodeEl, ' = ');
           AppendText(CodeEl,TPasConst(Member).Expr.GetDeclaration(True));
           end
-        else if (Member is TPasVariable) then
-          begin
-          AppendHyperlink(CodeEl, Member);
-          AppendSym(CodeEl, ': ');
-          AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
-          AppendSym(CodeEl, ';');
-          end
         else if (Member is TPasType) then
           begin
           AppendHyperlink(CodeEl, Member);
@@ -3302,10 +3271,11 @@ var
           begin
           AppendKw(CodeEl, 'property ');
           AppendHyperlink(CodeEl, Member);
-          if Assigned(TPasProperty(Member).VarType) then
+          t:=TPasProperty(Member).ResolvedType;
+          if Assigned(T) then
           begin
             AppendSym(CodeEl, ': ');
-            AppendHyperlink(CodeEl, TPasProperty(Member).VarType);
+            AppendHyperlink(CodeEl, T);
           end;
           AppendSym(CodeEl, ';');
           if TPasProperty(Member).IsDefault then
@@ -3328,6 +3298,13 @@ var
             s := s + 's';
           if Length(s) > 0 then
             AppendText(CodeEl, '  [' + s + ']');
+          end
+        else if (Member is TPasVariable) then
+          begin
+          AppendHyperlink(CodeEl, Member);
+          AppendSym(CodeEl, ': ');
+          AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
+          AppendSym(CodeEl, ';');
           end
         else
           AppendText(CreateWarning(CodeEl), '<' + Member.ClassName + '>');
@@ -3602,15 +3579,18 @@ var
   procedure CreatePropertyPage(Element: TPasProperty);
   var
     NeedBreak: Boolean;
+    T : TPasType;
+
   begin
     AppendKw(CodeEl, 'property ');
     AppendHyperlink(CodeEl, Element.Parent);
     AppendSym(CodeEl, '.');
     AppendText(CodeEl, Element.Name);
-    if Assigned(Element.VarType) then
+    T:=Element.ResolvedType;
+    if Assigned(T) then
     begin
       AppendSym(CodeEl, ' : ');
-      AppendType(CodeEl, TableEl, Element.VarType, False);
+      AppendType(CodeEl, TableEl, T, False);
     end;
 
     NeedBreak := False;
