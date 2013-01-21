@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2012 by Peter Vreman
 
-    This unit implements support information structures for linux
+    This unit implements support information structures for Android
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ unit i_android;
               );
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
-            stackalign   : 4;
+            stackalign   : 16;
             abi : abi_default
           );
 
@@ -170,6 +170,6 @@ initialization
 {$ifdef CPUARM}
   {$ifdef android}
     set_source_info(system_arm_android_info);
-  {$endif linux}
+  {$endif android}
 {$endif CPUARM}
 end.
