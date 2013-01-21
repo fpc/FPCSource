@@ -225,7 +225,12 @@ var
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function of thread ',Win32GetCurrentThreadId);
 {$endif DEBUG_MT}
+{$ifdef FPC_USE_WIN64_SEH}
+        { use special 'top-level' exception handler around the thread function }
+        ThreadMain:=main_wrapper(ti.p,pointer(ti.f));
+{$else FPC_USE_WIN64_SEH}
         ThreadMain:=ti.f(ti.p);
+{$endif FPC_USE_WIN64_SEH}
       end;
 
 

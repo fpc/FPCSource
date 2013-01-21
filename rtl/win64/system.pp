@@ -125,6 +125,19 @@ implementation
 var
   SysInstance : qword;public;
 
+{$ifdef FPC_USE_WIN64_SEH}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
+asm
+    subq   $40, %rsp
+.seh_stackalloc 40
+.seh_endprologue
+    call   %rdx             { "arg" is passed in %rcx }
+    nop                     { this nop is critical for exception handling }
+    addq   $40, %rsp
+.seh_handler __FPC_default_handler,@except,@unwind
+end;
+{$endif FPC_USE_WIN64_SEH}
+
 { include system independent routines }
 {$I system.inc}
 
@@ -179,18 +192,6 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-{$ifdef FPC_USE_WIN64_SEH}
-procedure main_wrapper(p: TProcedure); assembler; nostackframe;
-asm
-    subq   $40, %rsp
-.seh_stackalloc 40
-.seh_endprologue
-    call   %rcx
-    nop                     { this nop is critical for exception handling }
-    addq   $40, %rsp
-.seh_handler __FPC_default_handler,@except,@unwind
-end;
-{$endif FPC_USE_WIN64_SEH}
 
 
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
@@ -209,7 +210,8 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movq %rbp,%rsi
         xorq %rbp,%rbp
 {$ifdef FPC_USE_WIN64_SEH}
-        lea  PASCALMAIN(%rip),%rcx
+        xor  %rcx,%rcx
+        lea  PASCALMAIN(%rip),%rdx
         call main_wrapper
 {$else FPC_USE_WIN64_SEH}
         call PASCALMAIN
