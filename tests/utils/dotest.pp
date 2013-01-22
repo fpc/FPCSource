@@ -1248,6 +1248,10 @@ begin
       exit(true);
     end;
   execres:=true;
+  { Check if library should be deleted. Do not copy to remote target in such case. }
+  if (deAfter in DelExecutable) and (Config.DelFiles <> '') then
+    if SplitFileName(FileToCopy) = DllPrefix + Trim(Config.DelFiles) + DllExt then
+      exit;
   { We don't want to create subdirs, remove paths from the test }
   TestRemoteExe:=RemotePath+'/'+SplitFileName(FileToCopy);
   if deBefore in DelExecutable then
