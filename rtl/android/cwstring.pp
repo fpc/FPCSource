@@ -486,7 +486,7 @@ var
   end;
 
 const
-  ICUver: array [1..4] of ansistring = ('3_8', '4_2', '44', '46');
+  ICUver: array [1..5] of ansistring = ('3_8', '4_2', '44', '46', '48');
   TestProcName = 'ucnv_open';
 
 var
@@ -511,14 +511,15 @@ begin
   if LibVer = '' then begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
-    for i:=i + 1 to 100 do begin
+    repeat
+      Inc(i, 2);
       Str(i, s);
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
         LibVer:=s;
         break;
       end;
-    end;
+    until i >= 100;
   end;
 
   if LibVer = '' then begin
