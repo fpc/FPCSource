@@ -342,6 +342,7 @@ type
   TSQLQuery = Class(TCustomSQLQuery)
   public
     property SchemaType;
+    Property StatementType;
   Published
     property MaxIndexesCount;
    // TDataset stuff
