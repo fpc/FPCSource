@@ -90,7 +90,7 @@ type
 {$endif}
 {$endif}
 
-{$ifdef defined(win64) or defined(wince)}
+{$if defined(win64) or defined(wince) or defined(android)}
   {$define longdouble_is_double}
 {$endif}
 
