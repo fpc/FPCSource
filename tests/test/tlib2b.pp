@@ -1,5 +1,6 @@
 { %target=linux,android }
 { %needlibrary }
+{ %delfiles=tlib2a }
 
 uses dl;
 
