@@ -1,5 +1,6 @@
 { %target=darwin,linux,freebsd,solaris,beos,haiku,aix,android }
 { %NEEDLIBRARY }
+{ %delfiles=tw12704a }
 
 {$mode delphi}
 program MainApp;

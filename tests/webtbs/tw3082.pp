@@ -2,6 +2,7 @@
 { %needlibrary }
 { %cpu=x86_64,i386,powerpc,sparc}
 { %skiptarget = go32v2,macos }
+{ %delfiles=tw3082 }
 { execute this test only on reasonable fast cpus }
 
 { we do not cut off too long strings silently anymore }

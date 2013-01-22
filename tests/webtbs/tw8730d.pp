@@ -1,5 +1,6 @@
 { %target=darwin,linux,freebsd,solaris,beos,aix,android}
 { %NEEDLIBRARY }
+{ %delfiles=tw8730a tw8730b }
 
 { same as tw8730c, but linking to libc so it uses different }
 { startup code                                              }
