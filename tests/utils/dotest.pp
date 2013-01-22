@@ -55,6 +55,8 @@ const
 {$endif MACOS}
 {$endif UNIX}
   ExeExt : string = '';
+  DllExt : string = '.so';
+  DllPrefix: string = 'lib';
   DefaultTimeout=60;
 
 var
@@ -323,6 +325,23 @@ begin
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
 
+type
+  TCharSet = set of char;
+  
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
+var
+  i : longint;
+  p: PChar;
+begin
+  p:=PChar(s);
+  i:=0;
+  while (p^ <> #0) and not (p^ in Delims) do begin
+    Inc(p);
+    Inc(i);
+  end;
+  GetToken:=Copy(s,1,i);
+  Delete(s,1,i+1);
+end;
 
 procedure mkdirtree(const s:string);
 var
@@ -454,18 +473,6 @@ end;
 
 
 function GetCompilerInfo(c:tcompinfo):boolean;
-
-  function GetToken(var s:string):string;
-  var
-    i : longint;
-  begin
-    i:=pos(' ',s);
-    if i=0 then
-     i:=length(s)+1;
-    GetToken:=Copy(s,1,i-1);
-    Delete(s,1,i);
-  end;
-
 var
   t  : text;
   hs : string;
@@ -648,23 +655,33 @@ begin
     (LTarget='android');
 
   { Set ExeExt for CompilerTarget.
-    This list has been set up 2011-06 using the information in
+    This list has been set up 2013-01 using the information in
     compiler/system/i_XXX.pas units.
     We should update this list when adding new targets PM }
-  if (TargetHasDosStyleDirectories) then
-    ExeExt:='.exe'
+  if (TargetHasDosStyleDirectories) or (LTarget='wince') then
+    begin
+      ExeExt:='.exe';
+      DllExt:='.dll';
+      DllPrefix:='';
+    end
   else if LTarget='atari' then
-    ExeExt:='.tpp'
+    begin
+      ExeExt:='.tpp';
+      DllExt:='.dll';
+      DllPrefix:='';
+    end
   else if LTarget='gba' then
     ExeExt:='.gba'
   else if LTarget='nds' then
     ExeExt:='.bin'
   else if (LTarget='netware') or (LTarget='netwlibc') then
-    ExeExt:='.nlm'
+    begin
+      ExeExt:='.nlm';
+      DllExt:='.nlm';
+      DllPrefix:='';
+    end
   else if LTarget='wii' then
-    ExeExt:='.dol'
-  else if LTarget='wince' then
-    ExeExt:='.exe';
+    ExeExt:='.dol';
 end;
 
 {$ifndef LIMIT83FS}
@@ -1285,7 +1302,7 @@ const
   CurrDir = '';
 {$endif}
 var
-  OldDir, s,
+  OldDir, s, ss,
   execcmd,
   FullExeLogFile,
   TestRemoteExe,
@@ -1327,7 +1344,7 @@ begin
         execcmd:=RemoteRshParas;
       execcmd:=execcmd+' '+rquote+
          'chmod 755 '+TestRemoteExe+
-          ' ; cd '+RemotePath+' ; ';
+          ' && cd '+RemotePath+' && { ';
       { Using -rpath . at compile time does not seem
         to work for programs copied over to remote machine,
         at least not for FreeBSD.
@@ -1357,7 +1374,7 @@ begin
         execcmd:=execcmd+' ./'+SplitFileName(TestRemoteExe)
       else
         execcmd:=execcmd+' '+TestRemoteExe;
-      execcmd:=execcmd+' ; echo "TestExitCode: $?"';
+      execcmd:=execcmd+' ; echo TestExitCode: $?';
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
         begin
@@ -1366,11 +1383,29 @@ begin
             execcmd:=execcmd+'-f ';
           execcmd:=execcmd+SplitFileName(TestRemoteExe);
         end;
-      execcmd:=execcmd+rquote;
+      execcmd:=execcmd+'; }'+rquote;
       execres:=ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
       { Check for TestExitCode error in output, sets ExecuteResult }
       if not CheckTestExitCode(EXELogFile) then
         Verbose(V_Debug,'Failed to check exit code for '+execcmd);
+      if (deAfter in DelExecutable) and ( (Config.DelFiles <> '') or (Config.Files <> '')) then
+        begin
+          ss:=Trim(Config.DelFiles + ' ' + Config.Files);
+          execcmd:=RemoteRshParas+' ' + rquote + 'cd ' + RemotePath + ' && { ';
+          while ss <> '' do
+            begin
+              s:=Trim(GetToken(ss, [' ',',',';']));
+              if s = '' then
+                break;
+              if ExtractFileExt(s) = '' then
+                // If file has no extension, treat it as exe or shared lib
+                execcmd:=execcmd + 'rm ' + s + ExeExt + '; rm ' + DllPrefix + s + DllExt
+              else
+                execcmd:=execcmd + 'rm ' + s;
+              execcmd:=execcmd + '; ';
+            end;
+          ExecuteRemote(rshprog,execcmd+'}'+rquote,StartTicks,EndTicks);
+        end;
     end
   else
     begin
@@ -1547,7 +1582,7 @@ procedure getargs;
          begin
            rshprog:='adb';
            rcpprog:='adb';
-           rquote:='';
+           rquote:='"';
            if RemoteAddr = '' then
              RemoteAddr:='1'; // fake remote addr (default device will be used)
          end
