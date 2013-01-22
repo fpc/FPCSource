@@ -396,8 +396,6 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check (TestFileName, CurDir + DirSep + TestFileName);
 {$IFDEF UNIX}
  S := GetEnv ('HOME');
- if S = '' then
-   {$IFDEF DIRECT}System.{$ENDIF DIRECT}GetDir (0, S);
  { On m68k netbsd at least, HOME contains a final slash
    remove it PM }
  if S[length(S)]=DirSep then

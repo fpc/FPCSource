@@ -163,11 +163,7 @@ begin
  {$ENDIF FPC_FEXPAND_SYSUTILS}
             if (S = '') or (Length (S) = 1)
                                           and (S [1] = DirectorySeparator) then
-                begin
-                    Delete (Pa, 1, 1);
-                    if Copy(Pa, 1, 1) = DirectorySeparator then
-                        Delete (Pa, 1, 1);
-                end
+                Delete (Pa, 1, 1)
             else
                 if S [Length (S)] = DirectorySeparator then
                     Pa := S + Copy (Pa, 3, Length (Pa) - 2)
