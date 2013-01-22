@@ -1176,7 +1176,7 @@ function MaybeCopyFiles(const FileToCopy : string) : boolean;
 var
   TestRemoteExe,
   pref     : string;
-  LocalFile, RemoteFile: string;
+  LocalFile, RemoteFile, s: string;
   LocalPath: string;
   i       : integer;
   execres : boolean;
@@ -1234,8 +1234,13 @@ begin
   { We don't want to create subdirs, remove paths from the test }
   TestRemoteExe:=RemotePath+'/'+SplitFileName(FileToCopy);
   if deBefore in DelExecutable then
-    ExecuteRemote(rshprog,RemoteRshParas+' rm -f '+TestRemoteExe,
-                  StartTicks,EndTicks);
+    begin
+      s:=RemoteRshParas+' rm ';
+      if rshprog <> 'adb' then
+        s:=s+'-f ';
+      ExecuteRemote(rshprog,s+TestRemoteExe,
+                    StartTicks,EndTicks);
+    end;
   execres:=ExecuteRemote(rcpprog,RemotePara+' '+FileToCopy+' '+
                          RemotePathPrefix+TestRemoteExe,StartTicks,EndTicks);
   if not execres then
@@ -1355,7 +1360,12 @@ begin
       execcmd:=execcmd+' ; echo "TestExitCode: $?"';
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
-        execcmd:=execcmd+' ; rm -f '+SplitFileName(TestRemoteExe);
+        begin
+          execcmd:=execcmd+' ; rm ';
+          if rshprog <> 'adb' then
+            execcmd:=execcmd+'-f ';
+          execcmd:=execcmd+SplitFileName(TestRemoteExe);
+        end;
       execcmd:=execcmd+rquote;
       execres:=ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
       { Check for TestExitCode error in output, sets ExecuteResult }
