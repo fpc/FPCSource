@@ -211,7 +211,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure verify(val1, val2 : cextended; nr : Integer); overload;
+procedure verify(val1, val2 : extended; nr : Integer); overload;
 begin
   success := success and (val1 = val2);
   Write('Testing test ', nr , ', was ', val1, ', should be ', val2, '...');
