@@ -161,7 +161,7 @@ begin
             S := GetEnv ('HOME');
   {$ENDIF FPC_FEXPAND_GETENV_PCHAR}
  {$ENDIF FPC_FEXPAND_SYSUTILS}
-            if (S = '') or (Length (S) = 1)
+            if (S = '') or (Length (S) = 1) and (Length (Pa) > 1)
                                           and (S [1] = DirectorySeparator) then
                 Delete (Pa, 1, 1)
             else
