@@ -1,4 +1,4 @@
-{ %target=go32v2,linux,freebsd,darwin,android }
+{ %target=go32v2,linux,freebsd,darwin }
 { %note=This test needs C libraries }
 { %OPT=-pg }
 
