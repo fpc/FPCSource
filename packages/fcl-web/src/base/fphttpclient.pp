@@ -127,6 +127,8 @@ Type
     Procedure FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
     // Simple form of Posting a file
     Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+    // Get HEAD
+    Class Procedure HEAD(AURL : String; Headers: TStrings);
   Protected
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
@@ -1154,6 +1156,17 @@ begin
   With Self.Create(nil) do
     try
       FileFormPost(AURL,AFieldName,AFileName,Response);
+    Finally
+      Free;
+    end;
+end;
+
+class procedure TFPCustomHTTPClient.HEAD(AURL : String; Headers: TStrings);
+begin
+  With Self.Create(nil) do
+    try
+      HTTPMethod('HEAD', AURL, Nil, [200]);
+      Headers.Assign(ResponseHeaders);
     Finally
       Free;
     end;
