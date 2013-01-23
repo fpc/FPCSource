@@ -59,7 +59,7 @@ Type
     // Check if response code is in AllowedResponseCodes. if not, an exception is raised.
     function CheckResponseCode(ACode: Integer;  const AllowedResponseCodes: array of Integer): Boolean; virtual;
     // Read response from server, and write any document to Stream.
-    procedure ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer); virtual;
+    procedure ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer; HeadersOnly: Boolean = False); virtual;
     // Read server response line and headers. Returns status code.
     Function ReadResponseHeaders : integer; virtual;
     // Allow header in request ? (currently checks only if non-empty and contains : token)
@@ -599,7 +599,7 @@ begin
   GetCookies.Assign(AValue);
 end;
 
-procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer);
+procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer; HeadersOnly: Boolean = False);
 
   Function Transfer(LB : Integer) : Integer;
 
@@ -719,6 +719,8 @@ begin
   FResponseStatusCode:=ReadResponseHeaders;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
     Raise EHTTPClient.CreateFmt(SErrUnexpectedResponse,[ResponseStatusCode]);
+  if HeadersOnly then
+    exit;
   if CompareText(CheckTransferEncoding,'chunked')=0 then
     ReadChunkedResponse
   else
@@ -765,7 +767,7 @@ begin
   ConnectToServer(URI.Host,URI.Port);
   try
     SendRequest(AMethod,URI);
-    ReadResponse(Stream,AllowedResponseCodes);
+    ReadResponse(Stream,AllowedResponseCodes,CompareText(AMethod,'HEAD')=0);
   finally
     DisconnectFromServer;
   end;
