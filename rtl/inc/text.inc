@@ -1698,7 +1698,11 @@ const
   { how many bytes of the string have been processed already (used for readstr) }
   BytesReadIndex = 17;
 
-threadvar
+{$ifdef FPC_HAS_FEATURE_THREADING}
+ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ReadWriteStrText: textrec;
 
 procedure WriteStrShort(var t: textrec);

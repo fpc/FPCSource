@@ -50,7 +50,7 @@ end;
 
 procedure init_all_unit_threadvars;
 var
-  i : integer;
+  i : longint;
 begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
@@ -84,7 +84,7 @@ end;
 
 procedure copy_all_unit_threadvars;
 var
-  i : integer;
+  i: longint;
 begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do

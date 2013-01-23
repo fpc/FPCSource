@@ -1077,6 +1077,9 @@ function TPQConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
 var s : string;
 
 begin
+  // select * from information_schema.tables with 
+  // where table_schema [not] in ('pg_catalog','information_schema') may be better.
+  // But the following should work:
   case SchemaType of
     stTables     : s := 'select '+
                           'relfilenode        as recno, '+
@@ -1086,7 +1089,7 @@ begin
                           '0                  as table_type '+
                         'from pg_class c '+
                           'left join pg_namespace n on c.relnamespace=n.oid '+
-                        'where relkind=''r''' +
+                        'where (relkind=''r'') and not (nspname in (''pg_catalog'',''information_schema''))' +
                         'order by relname';
 
     stSysTables  : s := 'select '+
@@ -1097,7 +1100,7 @@ begin
                           '0                  as table_type '+
                         'from pg_class c '+
                           'left join pg_namespace n on c.relnamespace=n.oid '+
-                        'where relkind=''r'' and nspname=''pg_catalog'' ' + // only system tables
+                        'where (relkind=''r'') and nspname in ((''pg_catalog'',''information_schema'')) ' + // only system tables
                         'order by relname';
     stColumns    : s := 'select '+
                           'a.attnum           as recno, '+

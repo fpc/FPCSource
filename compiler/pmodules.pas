@@ -1011,7 +1011,7 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        i,idx : longint;
+        i : longint;
         ag : boolean;
         finishstate : tfinishstate;
         globalstate : tglobalstate;

@@ -554,11 +554,10 @@ procedure fpc_raise_nested; compilerproc;
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);compilerproc;
 procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compilerproc;
-{$endif FPC_HAS_FEATURE_OBJECTS}
-
 
 procedure fpc_check_object(_vmt:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
+{$endif FPC_HAS_FEATURE_OBJECTS}
 
 
 {$ifdef FPC_HAS_FEATURE_RTTI}

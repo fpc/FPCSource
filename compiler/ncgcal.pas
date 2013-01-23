@@ -493,8 +493,6 @@ implementation
 
     procedure tcgcallnode.copy_back_paras;
       var
-        hp,
-        hp2 : tnode;
         ppn : tcallparanode;
       begin
         ppn:=tcallparanode(left);

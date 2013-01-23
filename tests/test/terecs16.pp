@@ -4,18 +4,18 @@ program terecs16;
 type
   TRec = record
     l: longint;
-    constructor Create;
+    constructor Create(a: longint);
   end;
 
 
 var
   r: TRec;
 
-  constructor TRec.Create;
+  constructor TRec.Create(a: longint);
   begin
-    l := 0;
+    l := a;
     r.l := 4;
-    if l <> 0 then
+    if l <> a then
       halt(1);
     l := 5;
     if r.l <> 4 then
@@ -24,7 +24,7 @@ var
   end;
 
 begin
-  r := TRec.Create;
+  r := TRec.Create(10);
   if r.l <> 5 then
     halt(3);
 end.

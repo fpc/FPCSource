@@ -210,14 +210,6 @@ endif
 ifeq ($(OS_TARGET),linux)
 linuxHier=1
 endif
-ifndef CROSSCOMPILE
-BUILDFULLNATIVE=1
-export BUILDFULLNATIVE
-endif
-ifdef BUILDFULLNATIVE
-BUILDNATIVE=1
-export BUILDNATIVE
-endif
 export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
@@ -3248,9 +3240,11 @@ ifeq ($(ARCH),powerpc64)
 endif
 ifeq ($(ARCH),mips)
   ASTARGET=-32 -mips32 -EB
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
   ASTARGET=-32 -mips32 -EL
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),sparc)
   ifneq ($(findstring -Cg ,$(COMPILER)),)
@@ -3263,7 +3257,7 @@ endif
 prt0$(OEXT) : $(ARCH)/prt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+	$(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 gprt0$(OEXT) : $(ARCH)/gprt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
 cprt0$(OEXT) : $(ARCH)/cprt0.as

@@ -901,11 +901,7 @@ implementation
               if is_objectpascal_helper(astruct) then
                 if is_classdef then
                   { class constructors are not allowed in class helpers }
-                  Message(parser_e_no_class_constructor_in_helpers)
-                else if is_record(tobjectdef(astruct).extendeddef) then
-                  { as long as constructors aren't allowed in records they
-                    aren't allowed in helpers either }
-                  Message(parser_e_no_constructor_in_records);
+                  Message(parser_e_no_class_constructor_in_helpers);
 
               { only 1 class constructor is allowed }
               if is_classdef and (oo_has_class_constructor in astruct.objectoptions) then
@@ -916,7 +912,15 @@ implementation
               if is_classdef then
                 result:=class_constructor_head(current_structdef)
               else
-                result:=constructor_head;
+                begin
+                  result:=constructor_head;
+                  if is_objectpascal_helper(astruct) and
+                     is_record(tobjectdef(astruct).extendeddef) and
+                     (result.minparacount=0) then
+                      { as long as parameterless constructors aren't allowed in records they
+                       aren't allowed in helpers either }
+                    MessagePos(result.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                end;
 
               chkcpp(result);
 

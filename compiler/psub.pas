@@ -493,7 +493,11 @@ implementation
                        end;
                     end
                 else
-                  if not is_record(current_structdef) then
+                  if not is_record(current_structdef) and
+                     not (
+                            is_objectpascal_helper(current_structdef) and
+                            is_record(tobjectdef(current_structdef).extendeddef)
+                          ) then
                     internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because

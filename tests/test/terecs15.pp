@@ -12,15 +12,15 @@ type
     Y: Integer;
   public
     // delphi does not allow constructors without arguments
-    constructor CreateAndTest;
-    constructor Create; overload;
+    constructor CreateAndTest(dummy: byte);
+    constructor Create(dummy: boolean); overload;
     constructor Create(AX, AY: Integer); overload;
     constructor Create(AY: Integer); overload;
   end;
 
 { TRec }
 
-constructor TRec.CreateAndTest;
+constructor TRec.CreateAndTest(dummy: byte);
 begin
   X := 1;
   if X <> 1 then
@@ -30,7 +30,7 @@ begin
     halt(2);
 end;
 
-constructor TRec.Create;
+constructor TRec.Create(dummy: boolean);
 begin
   X := 10;
   Y := 20;
@@ -44,7 +44,7 @@ end;
 
 constructor TRec.Create(AY: Integer);
 begin
-  Create;
+  Create(false);
   Y := AY;
 end;
 
@@ -59,8 +59,8 @@ end;
 var
   R: TRec;
 begin
-  R.CreateAndTest;
-  R := TRec.Create;
+  R.CreateAndTest(0);
+  R := TRec.Create(false);
   if R.X <> 10 then
     halt(3);
   if R.Y <> 20 then
@@ -68,6 +68,6 @@ begin
   TestRec(TRec.Create(1, 2), 1, 2, 5, 6);
   TestRec(TRec.Create(2), 10, 2, 7, 8);
   // delphi has an internal error here
-  TestRec(R.Create, 10, 20, 9, 10);
+  TestRec(R.Create(false), 10, 20, 9, 10);
 end.
 

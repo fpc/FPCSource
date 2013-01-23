@@ -278,6 +278,7 @@ type
     procedure SetReadOnly(AValue : Boolean); override;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -286,7 +287,6 @@ type
     destructor Destroy; override;
     procedure SetSchemaInfo( ASchemaType : TSchemaType; ASchemaObjectName, ASchemaPattern : string); virtual;
     property Prepared : boolean read IsPrepared;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function RowsAffected: TRowsCount; virtual;
     function ParamByName(Const AParamName : String) : TParam;
   protected
@@ -342,6 +342,7 @@ type
   TSQLQuery = Class(TCustomSQLQuery)
   public
     property SchemaType;
+    Property StatementType;
   Published
     property MaxIndexesCount;
    // TDataset stuff

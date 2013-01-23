@@ -168,30 +168,39 @@ implementation
         case left.resultdef.typ of
           classrefdef :
             resultdef:=left.resultdef;
-          objectdef,
-          recorddef:
-            { access to the classtype while specializing? }
-            if (df_generic in left.resultdef.defoptions) then
-              begin
-                defaultresultdef:=true;
-                if assigned(current_structdef) then
-                  begin
-                    if assigned(current_structdef.genericdef) then
-                      if current_structdef.genericdef=left.resultdef then
+          recorddef,
+          objectdef:
+            begin
+              if (left.resultdef.typ=objectdef) or
+                 ((target_info.system in systems_jvm) and
+                  (left.resultdef.typ=recorddef)) then
+                begin
+                  { access to the classtype while specializing? }
+                  if (df_generic in left.resultdef.defoptions) then
+                    begin
+                      defaultresultdef:=true;
+                      if assigned(current_structdef) then
                         begin
-                          resultdef:=tclassrefdef.create(current_structdef);
-                          defaultresultdef:=false;
+                          if assigned(current_structdef.genericdef) then
+                            if current_structdef.genericdef=left.resultdef then
+                              begin
+                                resultdef:=tclassrefdef.create(current_structdef);
+                                defaultresultdef:=false;
+                              end
+                            else
+                              CGMessage(parser_e_cant_create_generics_of_this_type);
                         end
                       else
-                        CGMessage(parser_e_cant_create_generics_of_this_type);
-                  end
-                else
-                  message(parser_e_cant_create_generics_of_this_type);
-                if defaultresultdef then
-                  resultdef:=tclassrefdef.create(left.resultdef);
-              end
-            else
-              resultdef:=tclassrefdef.create(left.resultdef);
+                        message(parser_e_cant_create_generics_of_this_type);
+                      if defaultresultdef then
+                        resultdef:=tclassrefdef.create(left.resultdef);
+                    end
+                  else
+                    resultdef:=tclassrefdef.create(left.resultdef);
+                end
+              else
+                CGMessage(parser_e_pointer_to_class_expected);
+            end
           else
             CGMessage(parser_e_pointer_to_class_expected);
         end;
@@ -467,6 +476,7 @@ implementation
          hp  : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
+         offset: asizeint;
       begin
         result:=nil;
         typecheckpass(left);
@@ -575,10 +585,26 @@ implementation
 {$endif i386}
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
+                 offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
+                 hp:=left;
+                 while assigned(hp)and(hp.nodetype=subscriptn) do
+                   begin
+                     hsym:=tsubscriptnode(hp).vs;
+                     if tabstractrecordsymtable(hsym.owner).is_packed then
+                       begin
+                         { can't calculate the address of a non-byte aligned field }
+                         if (hsym.fieldoffset mod 8)<>0 then
+                           exit;
+                         inc(offset,hsym.fieldoffset div 8)
+                       end
+                     else
+                       inc(offset,hsym.fieldoffset);
+                     hp:=tunarynode(hp).left;
+                   end;
                  if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,getpointerdef(left.resultdef))
+                   result:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
                  else
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
+                   result:=cpointerconstnode.create(offset,voidpointertype);
                  exit;
                end
               else if (nf_internal in flags) or

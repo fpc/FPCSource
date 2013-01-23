@@ -190,6 +190,7 @@ type
   private
     FTextFile: Text;
     FileOpened: Boolean;
+    FBuffer : Array[0..4096-1] of byte;
   public
     constructor Create(const AFilename: string); override;
     destructor Destroy; override;
@@ -797,10 +798,12 @@ end;
   ---------------------------------------------------------------------}
 
 constructor TFileLineReader.Create(const AFilename: string);
+
 begin
   inherited Create(AFileName);
   Assign(FTextFile, AFilename);
   Reset(FTextFile);
+  SetTextBuf(FTextFile,FBuffer,SizeOf(FBuffer));
   FileOpened := true;
 end;
 

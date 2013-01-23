@@ -839,7 +839,13 @@ implementation
         consume(_THREADVAR);
         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
-        read_var_decls([vd_threadvar]);
+        if f_threading in features then
+          read_var_decls([vd_threadvar])
+        else
+          begin
+            Message(parser_f_unsupported_feature);
+            read_var_decls([]);
+          end;
       end;
 
 

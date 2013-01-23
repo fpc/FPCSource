@@ -520,6 +520,13 @@ implementation
 
 
     procedure parse_record_members;
+
+      function IsAnonOrLocal: Boolean;
+        begin
+          result:=(current_structdef.objname^='') or
+                  not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
+        end;
+
       var
         pd : tprocdef;
         oldparse_only: boolean;
@@ -544,8 +551,7 @@ implementation
                 member_blocktype:=bt_type;
 
                 { local and anonymous records can not have inner types. skip top record symtable }
-                if (current_structdef.objname^='') or
-                   not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) then
+                if IsAnonOrLocal then
                   Message(parser_e_no_types_in_local_anonymous_records);
               end;
             _VAR :
@@ -560,6 +566,10 @@ implementation
               begin
                 consume(_CONST);
                 member_blocktype:=bt_const;
+
+                { local and anonymous records can not have constants. skip top record symtable }
+                if IsAnonOrLocal then
+                  Message(parser_e_no_consts_in_local_anonymous_records);
               end;
             _ID, _CASE, _OPERATOR :
               begin
@@ -661,6 +671,8 @@ implementation
               end;
             _PROPERTY :
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_properties_in_local_anonymous_records);
                 struct_property_dec(is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
@@ -676,17 +688,24 @@ implementation
                    not((token=_ID) and (idtoken=_OPERATOR)) then
                   Message(parser_e_procedure_or_function_expected);
 
+                if IsAnonOrLocal then
+                  Message(parser_e_no_class_in_local_anonymous_records);
+
                 is_classdef:=true;
               end;
             _PROCEDURE,
             _FUNCTION:
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 pd:=parse_record_method_dec(current_structdef,is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _CONSTRUCTOR :
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
                   Message(parser_w_constructor_should_be_public);
 
@@ -699,7 +718,11 @@ implementation
                 if is_classdef then
                   pd:=class_constructor_head(current_structdef)
                 else
-                  pd:=constructor_head;
+                  begin
+                    pd:=constructor_head;
+                    if pd.minparacount = 0 then
+                      MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                  end;
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -707,6 +730,8 @@ implementation
               end;
             _DESTRUCTOR :
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef then
                   Message(parser_e_no_destructor_in_records);
 

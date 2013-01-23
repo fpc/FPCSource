@@ -524,6 +524,8 @@ type
     Modifiers: TStringList;
     Interfaces : TFPList;
     GenericTemplateTypes : TFPList;
+    Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
+    Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function IsPacked : Boolean;
     Function InterfaceGUID : string;
   end;
@@ -660,6 +662,8 @@ type
   { TPasProperty }
 
   TPasProperty = class(TPasVariable)
+  Public
+    FResolvedType : TPasType;
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -672,6 +676,7 @@ type
     ReadAccessorName, WriteAccessorName,ImplementsName,
       StoredAccessorName: string;
     IsDefault, IsNodefault: Boolean;
+    Function ResolvedType : TPasType;
     Function IndexValue : String;
     Function DefaultValue : string;
   end;
@@ -1361,6 +1366,49 @@ begin
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
   end;
+end;
+
+function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;
+
+Var
+  I : Integer;
+
+begin
+//  Writeln('Looking for ',MemberName,'(',MemberClass.ClassName,') in ',Name);
+  Result:=Nil;
+  I:=0;
+  While (Result=Nil) and (I<Members.Count) do
+    begin
+    Result:=TPasElement(Members[i]);
+    if (Result.ClassType<>MemberClass) or (CompareText(Result.Name,MemberName)<>0) then
+      Result:=Nil;
+    Inc(I);
+    end;
+end;
+
+function TPasClassType.FindMemberInAncestors(MemberClass: TPTreeElement;
+  const MemberName: String): TPasElement;
+
+  Function A (C : TPasClassType) : TPasClassType;
+
+  begin
+    if C.AncestorType is TPasClassType then
+      C:=TPasClassType(C.AncestorType)
+    else
+      C:=Nil;
+  end;
+
+Var
+  C : TPasClassType;
+
+begin
+  Result:=Nil;
+  C:=A(Self);
+  While (Result=Nil) and (C<>Nil) do
+    begin
+    Result:=C.FindMember(MemberClass,MemberName);
+    C:=A(C);
+    end;
 end;
 
 function TPasClassType.InterfaceGUID: string;
@@ -2512,6 +2560,7 @@ begin
 end;
 
 
+
 function TPasVariable.Value: String;
 begin
   If Assigned(Expr) then
@@ -2557,6 +2606,40 @@ begin
   If IsDefault then
     Result:=Result+'; default';
   ProcessHints(True, Result);
+end;
+
+function TPasProperty.ResolvedType: TPasType;
+
+  Function GC(P : TPasProperty) : TPasClassType;
+
+  begin
+    if Assigned(P) and Assigned(P.Parent) and (P.Parent is TPasClassType) then
+      Result:=P.Parent as TPasClassType
+    else
+      Result:=Nil;
+  end;
+
+
+Var
+  P : TPasProperty;
+  C : TPasClassType;
+
+begin
+  Result:=FResolvedType;
+  if Result=Nil then
+    Result:=VarType;
+  P:=Self;
+  While (Result=Nil) and (P<>Nil) do
+    begin
+    C:=GC(P);
+//    Writeln('Looking for ',Name,' in ancestor ',C.Name);
+    P:=TPasProperty(C.FindMemberInAncestors(TPasProperty,Name));
+    if Assigned(P) then
+      begin
+//      Writeln('Found ',Name,' in ancestor : ',P.Name);
+      Result:=P.ResolvedType;
+      end
+    end;
 end;
 
 function TPasProperty.IndexValue: String;

@@ -100,7 +100,7 @@ unit cpugas;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
          { ARCH selection }
-         Replace(result,'$ARCH','-march='+cputypestr[mips_cpu]);
+         Replace(result,'$ARCH','-march='+lower(cputypestr[mips_cpu]));
       end;
 
 {****************************************************************************}

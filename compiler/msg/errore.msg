@@ -392,7 +392,7 @@ scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the t
 #
 # Parser
 #
-# 03327 is the last used one
+# 03331 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1385,8 +1385,8 @@ parser_e_no_destructor_in_records=03300_E_Destructors aren't allowed in records 
 parser_e_class_methods_only_static_in_records=03301_E_Class methods must be static in records
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_constructor_in_records=03302_E_Constructors aren't allowed in records or record helpers
-% Constructor declarations aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors aren't allowed in records or record helpers
+% Constructor declarations with no arguments aren't allowed in records or record helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Either the result or at least one parameter must be of type "$1"
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
@@ -1471,6 +1471,18 @@ parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Case mismatc
 % not can it add one using the correct case (it could conflict with the original declaration).
 % Manually correct the case of the getter/setter to conform to the desired coding rules.
 % \var{TChild} overrides
+parser_e_no_consts_in_local_anonymous_records=03328_E_Constants declarations are not allowed in local or anonymous records
+% Records with constants must be defined globally. Constants cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_methods_in_local_anonymous_records=03329_E_Method declarations are not allowed in local or anonymous records
+% Records with methods must be defined globally. Methods cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_properties_in_local_anonymous_records=03330_E_Property declarations are not allowed in local or anonymous records
+% Records with properties must be defined globally. Properties cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_class_in_local_anonymous_records=03331_E_Class memeber declarations are not allowed in local or anonymous records
+% Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
 %
 % \end{description}
 %
@@ -3614,6 +3626,7 @@ A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 A*2WR_Generate relocation code (Windows)
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2WX_Enable executable stack (Linux)
+A*2Wx_Generate thumb interworking safe code if possible
 **1X_Executable options:
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)

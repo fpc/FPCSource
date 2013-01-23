@@ -133,7 +133,7 @@ unit optcse;
         end;
 
       var
-        i,j : longint;
+        i : longint;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is

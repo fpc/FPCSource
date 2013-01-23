@@ -1023,7 +1023,7 @@ implementation
 
     procedure tabstractrecordsymtable.addfieldlist(list: tfpobjectlist; maybereorder: boolean);
       var
-        fieldvs, insertfieldvs, bestfieldvs: tfieldvarsym;
+        fieldvs, insertfieldvs: tfieldvarsym;
         base, fieldoffset, space, insertfieldsize, insertfieldoffset, bestinsertfieldoffset, bestspaceleft: asizeint;
         i, j, bestfieldindex: longint;
         globalfieldalignment,
@@ -1955,9 +1955,14 @@ implementation
         while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do
           begin
             if (result='') then
-              result:=symtable.name^
+              if symtable.name<>nil then
+                result:=symtable.name^
+              else
             else
-              result:=symtable.name^+delimiter+result;
+              if symtable.name<>nil then
+                result:=symtable.name^+delimiter+result
+              else
+                result:=delimiter+result;
             symtable:=symtable.defowner.owner;
           end;
       end;
@@ -2986,7 +2991,6 @@ implementation
     function  search_system_proc(const s: TIDString): tprocdef;
       var
         srsym: tsym;
-        pd: tprocdef;
       begin
         srsym:=tsym(systemunit.find(s));
         if not assigned(srsym) and
@@ -3233,7 +3237,6 @@ implementation
     function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        srsym      : tsym;
         srsymtable : tsymtable;
       begin
         { in case this is a formal class, first find the real definition }

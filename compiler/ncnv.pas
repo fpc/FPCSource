@@ -1996,7 +1996,6 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
-        nestinglevel : byte;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
