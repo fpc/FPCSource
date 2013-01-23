@@ -17,7 +17,7 @@ unit fphttpclient;
 { ---------------------------------------------------------------------
   Todo:
   * Proxy support ?
-  * Easy calls for POST/DELETE/etc.
+  * Easy calls for DELETE/etc.
   ---------------------------------------------------------------------}
 
 {$mode objfpc}{$H+}
