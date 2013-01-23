@@ -841,6 +841,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Stream : TStr
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,Stream);
     finally
       Free;
@@ -853,6 +854,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; const LocalFi
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,LocalFileName);
     finally
       Free;
@@ -865,6 +867,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Response : TS
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,Response);
     finally
       Free;
@@ -931,6 +934,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const Response
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,Response);
     finally
       Free;
@@ -943,6 +947,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; Response : TSt
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,Response);
     finally
       Free;
@@ -955,6 +960,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const LocalFil
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,LocalFileName);
     finally
       Free;
@@ -967,6 +973,7 @@ Class function TFPCustomHTTPClient.SimplePost(const URL: string) : String;
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=Post(URL);
     finally
       Free;
@@ -1053,6 +1060,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1065,6 +1073,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1077,6 +1086,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1088,6 +1098,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1099,6 +1110,7 @@ Class function TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string): 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=FormPost(URL,FormData);
     Finally
       Free;
@@ -1110,6 +1122,7 @@ Class function TFPCustomHTTPClient.SimpleFormPost(const URL: string; FormData : 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=FormPost(URL,FormData);
     Finally
       Free;
@@ -1155,6 +1168,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFileFormPost(const AURL, AFieldName, A
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FileFormPost(AURL,AFieldName,AFileName,Response);
     Finally
       Free;
@@ -1165,6 +1179,7 @@ class procedure TFPCustomHTTPClient.HEAD(AURL : String; Headers: TStrings);
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       HTTPMethod('HEAD', AURL, Nil, [200]);
       Headers.Assign(ResponseHeaders);
     Finally
