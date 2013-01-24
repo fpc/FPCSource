@@ -692,7 +692,9 @@ implementation
         if assigned(parasym) and
            (target_info.system in systems_managed_vm) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
-           (parasym.vardef.typ<>formaldef) then
+           (parasym.vardef.typ<>formaldef) and
+           { for record constructors }
+           (left.nodetype<>nothingn) then
           handlemanagedbyrefpara(left.resultdef);
 
         if assigned(fparainit) then
@@ -1780,12 +1782,21 @@ implementation
                   if methodpointer.nodetype=typen then
                     if (methodpointer.resultdef.typ=recorddef) then
                       begin
-                        { TSomeRecord.Constructor call. We need to allocate }
-                        { self node as a temp node of the result type       }
-                        temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
-                        add_init_statement(temp);
-                        add_done_statement(ctempdeletenode.create_normal_temp(temp));
-                        selftree:=ctemprefnode.create(temp);
+                        if not(target_info.system in systems_jvm) then
+                          begin
+                            { TSomeRecord.Constructor call. We need to allocate }
+                            { self node as a temp node of the result type       }
+                            temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
+                            add_init_statement(temp);
+                            add_done_statement(ctempdeletenode.create_normal_temp(temp));
+                            selftree:=ctemprefnode.create(temp);
+                          end
+                        else
+                          begin
+                            { special handling for Java constructors, handled in
+                              tjvmcallnode.extra_pre_call_code }
+                            selftree:=cnothingnode.create
+                          end;
                       end
                     else
                       selftree:=load_self_node

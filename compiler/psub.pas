@@ -474,13 +474,18 @@ implementation
                           ccallnode.createintern('fpc_help_constructor',para)));
                     end
                 else
-                  if is_javaclass(current_structdef) then
+                  if is_javaclass(current_structdef) or
+                     ((target_info.system in systems_jvm) and
+                      is_record(current_structdef)) then
                     begin
                       if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                          not current_procinfo.ConstructorCallingConstructor then
                        begin
                          { call inherited constructor }
-                         srsym:=search_struct_member(tobjectdef(current_structdef).childof,'CREATE');
+                         if is_javaclass(current_structdef) then
+                           srsym:=search_struct_member_no_helper(tobjectdef(current_structdef).childof,'CREATE')
+                         else
+                           srsym:=search_struct_member_no_helper(java_fpcbaserecordtype,'CREATE');
                          if assigned(srsym) and
                             (srsym.typ=procsym) then
                            begin

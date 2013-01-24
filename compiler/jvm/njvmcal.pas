@@ -387,6 +387,12 @@ implementation
           exit;
         if not(methodpointer.resultdef.typ in [classrefdef,recorddef]) then
           exit;
+        { in case of an inherited constructor call in a class, the methodpointer
+          is an objectdef rather than a classrefdef. That's not true in case
+          of records though, so we need an extra check }
+        if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+           (cnf_inherited in callnodeflags) then
+          exit;
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true))));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
