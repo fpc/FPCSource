@@ -1,4 +1,4 @@
-{ %target=linux,android }
+{ %target=linux }
 { %opt=-Xt }
 
 program phello;
