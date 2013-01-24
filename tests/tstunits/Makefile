@@ -1723,11 +1723,15 @@ endif
 .PHONY: cleanrtl distcleanrtl
 .PHONY: cleanfpcunit distcleanfpcunit
 .PHONY: cleanpackages distcleanpackages
+ifdef CROSSCOMPILE
+override CROSSOPT:=$(OPT)
+override OPT=
+endif
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 rtl-stamp.$(FULL_TARGET):
-	$(MAKE) -C ../../rtl all 'OPT=$(OPT) -n'
-	$(MAKE) -C ../../rtl install $(INSTALLOPT)
+	$(MAKE) -C ../../rtl all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+	$(MAKE) -C ../../rtl install $(INSTALLOPT) OPT= CROSSOPT=
 	$(ECHO) Compiled > rtl-stamp.$(FULL_TARGET)
 cleanrtl:
 	$(DELTREE) $(COMPILER_TARGETDIR)
@@ -1753,8 +1757,8 @@ DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 PACKAGESDIR=../../packages
 packages-stamp.$(FULL_TARGET):
-	$(MAKE) -C ../../packages all 'OPT=$(OPT) -n'
-	$(MAKE) -C ../../packages install $(INSTALLOPT)
+	$(MAKE) -C ../../packages all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+	$(MAKE) -C ../../packages install $(INSTALLOPT) OPT= CROSSOPT=
 	$(ECHO) Compiled > packages-stamp.$(FULL_TARGET)
 cleanpackages:
 	$(DELTREE) $(COMPILER_TARGETDIR)
