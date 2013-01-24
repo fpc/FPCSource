@@ -107,6 +107,7 @@ Type
     FOnGetObject: TJSONGetObjectEvent;
     FOnPropError: TJSONpropertyErrorEvent;
     FOnRestoreProp: TJSONRestorePropertyEvent;
+    FCaseInsensitive : Boolean;
     procedure DeStreamClassProperty(AObject: TObject; PropInfo: PPropInfo; PropData: TJSONData);
   protected
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
@@ -139,6 +140,8 @@ Type
     // Called when a object-typed property must be restored, and the property is Nil. Must return an instance for the property.
     // Published Properties of the instance will be further restored with available data.
     Property OngetObject : TJSONGetObjectEvent Read FOnGetObject Write FOnGetObject;
+    // JSON is by definition case sensitive. Should properties be looked up case-insentive ?
+    Property CaseInsensitive : Boolean Read FCaseInsensitive Write FCaseInsensitive;
   end;
 
   EJSONRTTI = Class(Exception);
@@ -447,7 +450,7 @@ begin
     try
       For I:=0 to PIL.Count-1 do
         begin
-        J:=JSON.IndexOfName(Pil.Items[i]^.Name);
+        J:=JSON.IndexOfName(Pil.Items[i]^.Name,FCaseInsensitive);
         If (J<>-1) then
           RestoreProperty(AObject,PIL.Items[i],JSON.Items[J]);
         end;
