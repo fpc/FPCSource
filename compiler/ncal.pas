@@ -2371,6 +2371,8 @@ implementation
       var
         temp : ttempcreatenode;
       begin
+        if procdefinition.proctypeoption=potype_constructor then
+          exit;
         { For the function result we need to create a temp node for:
             - Inlined functions
             - Types requiring initialization/finalization
@@ -3513,8 +3515,7 @@ implementation
            maybe_load_in_temp(methodpointer);
 
          { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
-         if (procdefinition.proctypeoption<>potype_constructor) then
-           maybe_create_funcret_node;
+         maybe_create_funcret_node;
 
          { Insert the self,vmt,function result in the parameters }
          gen_hidden_parameters;
