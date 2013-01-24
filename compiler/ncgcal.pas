@@ -291,8 +291,8 @@ implementation
                 (
                   { for record constructor check that it is self parameter }
                   (
-                    (vo_is_self in parasym.varoptions)and
-                    (aktcallnode.procdefinition.proctypeoption=potype_constructor)and
+                    (vo_is_self in parasym.varoptions) and
+                    (aktcallnode.procdefinition.proctypeoption=potype_constructor) and
                     is_record(parasym.vardef)
                   ) or
                   (vo_is_funcret in parasym.varoptions)
