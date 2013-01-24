@@ -791,7 +791,7 @@ unit cgcpu;
 
       begin
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
+        if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
