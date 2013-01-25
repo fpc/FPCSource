@@ -186,7 +186,14 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_x86_64_win64) then
+    if (target_info.system<>system_x86_64_win64) or (
+      { Don't create child procedures for generic methods, their nested-like
+        behavior causes compilation errors because real nested procedures
+        aren't allowed for generics. Not creating them doesn't harm because
+        generic node tree is discarded without generating code. }
+        assigned(current_procinfo.procdef.struct) and
+        (df_generic in current_procinfo.procdef.struct.defoptions)
+      ) then
       exit;
     finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
     finalizepi.force_nested;
@@ -205,6 +212,11 @@ constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
     inherited create_implicit(l, r, _t1);
     if (target_info.system<>system_x86_64_win64) then
       exit;
+
+    if assigned(current_procinfo.procdef.struct) and
+      (df_generic in current_procinfo.procdef.struct.defoptions) then
+      InternalError(2013012501);
+
     finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
     finalizepi.force_nested;
     finalizepi.procdef:=create_pd;
