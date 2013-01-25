@@ -144,6 +144,11 @@ unit paramgr;
           { common part of get_funcretloc; returns true if retloc is completely
             initialized afterwards }
           function set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+          { common part of ret_in_param; is called by ret_in_param at the
+            beginning and every tparamanager descendant can decide to call it
+            itself as well; parameter retinparam is only valid if function
+            returns true }
+          function handle_common_ret_in_param(def:tdef;pd:tabstractprocdef;out retinparam:boolean):boolean;
        end;
 
 
@@ -168,15 +173,8 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
-        { this must be system independent safecall and record constructor result
-          is always return in param }
-        if (tf_safecall_exceptions in target_info.flags) and
-           (pd.proccalloption=pocall_safecall) or
-           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
-          begin
-            result:=true;
-            exit;
-          end;
+         if handle_common_ret_in_param(def,pd,result) then
+           exit;
          ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
@@ -562,6 +560,26 @@ implementation
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
             exit;
+          end;
+        result:=false;
+      end;
+
+    function tparamanager.handle_common_ret_in_param(def: tdef;
+      pd: tabstractprocdef; out retinparam: boolean): boolean;
+      begin
+        { this must be system independent safecall and record constructor result
+          is always return in param }
+        if (tf_safecall_exceptions in target_info.flags) and
+           (pd.proccalloption=pocall_safecall) or
+           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
+          begin
+            retinparam:=true;
+            exit(true);
+          end;
+        if pd.proctypeoption=potype_constructor then
+          begin
+            retinparam:=false;
+            exit(true);
           end;
         result:=false;
       end;

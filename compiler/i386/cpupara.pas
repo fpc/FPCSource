@@ -96,15 +96,8 @@ unit cpupara;
       var
         size: longint;
       begin
-        { this must be system independent safecall and record constructor result
-          is always return in param }
-        if (tf_safecall_exceptions in target_info.flags) and
-           (pd.proccalloption=pocall_safecall) or
-           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
-          begin
-            result:=true;
-            exit;
-          end;
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
         case target_info.system of
           system_i386_win32 :
             begin

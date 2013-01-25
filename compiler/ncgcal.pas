@@ -379,8 +379,7 @@ implementation
       begin
         { Check that the return location is set when the result is passed in
           a parameter }
-        if ((procdefinition.proctypeoption<>potype_constructor)or is_record(resultdef)) and
-           paramanager.ret_in_param(resultdef,procdefinition) then
+        if paramanager.ret_in_param(resultdef,procdefinition) then
           begin
             { self.location is set near the end of secondcallparan so it
               refers to the implicit result parameter }

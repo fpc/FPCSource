@@ -182,15 +182,8 @@ unit cpupara;
 
     function tavrparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
-        { this must be system independent safecall and record constructor result
-          is always return in param }
-        if (tf_safecall_exceptions in target_info.flags) and
-           (pd.proccalloption=pocall_safecall) or
-           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
-          begin
-            result:=true;
-            exit;
-          end;
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
         case def.typ of
           recorddef:
             { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
