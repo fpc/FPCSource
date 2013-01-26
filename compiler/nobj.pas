@@ -429,7 +429,11 @@ implementation
                       if po_auto_raised_visibility in vmtpd.procoptions then
                         begin
                           if updatevalues then
-                            pd.visibility:=vmtentryvis;
+                            begin
+                              pd.visibility:=vmtentryvis;
+                              { this one's visibility is now also auto-raised }
+                              include(pd.procoptions,po_auto_raised_visibility);
+                            end
                         end
                       else
 {$ifdef jvm}
