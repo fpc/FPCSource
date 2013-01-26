@@ -386,8 +386,7 @@ implementation
         we simply declare a temporary instance on the stack, which will be
         allocated/initialized by the temp generator. We return its address as
         the result of the clone routine, so it remains live. }
-      str:='type _fpc_ptrt = ^'+struct.typesym.realname+
-        '; var __fpc_newcopy:'+ struct.typesym.realname+'; begin clone:=JLObject(@__fpc_newcopy);';
+      str:='var __fpc_newcopy:'+ struct.typesym.realname+'; begin clone:=JLObject(@__fpc_newcopy);';
       { copy all field contents }
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
