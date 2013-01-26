@@ -74,7 +74,11 @@ begin
   if index<1 then
    index:=1;
   if index>length(s) then
-   index:=length(s)+1;
+   begin
+     index:=length(s)+1;
+     if index>high(s) then
+      exit;
+   end;
   indexlen:=Length(s)-Index+1;
   srclen:=length(Source);
   if sizeInt(length(source))+sizeint(length(s))>=sizeof(s) then
@@ -104,7 +108,11 @@ begin
   if index<1 then
    index:=1;
   if index>length(s) then
-   index:=length(s)+1;
+   begin
+     index:=length(s)+1;
+     if index>high(s) then
+      exit;
+   end;
   indexlen:=Length(s)-Index+1;
   if (sizeint(length(s))+1=sizeof(s)) and (indexlen>0) then
    dec(indexlen);
