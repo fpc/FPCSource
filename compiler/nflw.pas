@@ -1072,12 +1072,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-           begin
-             if left.resultdef.typ=variantdef then
-               inserttypeconv(left,pasbool8type)
-             else
-               CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
-           end;
+             inserttypeconv(left,pasbool8type);
 
          { Give warnings for code that will never be executed for
            while false do }
@@ -1385,12 +1380,8 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-           begin
-             if left.resultdef.typ=variantdef then
-               inserttypeconv(left,pasbool8type)
-             else
-               Message1(type_e_boolean_expr_expected,left.resultdef.typename);
-           end;
+             inserttypeconv(left,pasbool8type);
+
          result:=internalsimplify(true);
       end;
 
