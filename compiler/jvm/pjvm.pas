@@ -932,8 +932,11 @@ implementation
                         parentpd:=tprocdef(tprocsym(sym).procdeflist[0]);
                       if parentpd.owner.defowner=p.owner.defowner then
                         begin
-                          parentpd.visibility:=p.visibility;
-                          include(parentpd.procoptions,po_auto_raised_visibility);
+                          if parentpd.visibility<p.visibility then
+                            begin
+                              parentpd.visibility:=p.visibility;
+                              include(parentpd.procoptions,po_auto_raised_visibility);
+                            end;
                           { we are done, no need to create a wrapper }
                           exit
                         end
