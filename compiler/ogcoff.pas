@@ -143,7 +143,7 @@ interface
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
-         procedure section_set_reloc_datapos(p:TObject;arg:pointer);
+         procedure section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
          procedure section_write_header(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
@@ -1213,7 +1213,10 @@ const pemagic : array[0..3] of byte = (
             { AUX }
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=Size;
-            secrec.nrelocs:=ObjRelocations.count;
+            if ObjRelocations.count<65535 then
+              secrec.nrelocs:=ObjRelocations.count
+            else
+              secrec.nrelocs:=65535;
             inc(symidx);
             FCoffSyms.write(secrec,sizeof(secrec));
           end;
@@ -1226,6 +1229,13 @@ const pemagic : array[0..3] of byte = (
         rel  : coffreloc;
         objreloc : TObjRelocation;
       begin
+        if (TObjSection(p).ObjRelocations.Count>65535) then
+          begin
+            rel.address:=TObjSection(p).ObjRelocations.Count+1;
+            rel.sym:=0;
+            rel.reloctype:=0;
+            FWriter.Write(rel,sizeof(rel));
+          end;
         for i:=0 to TObjSection(p).ObjRelocations.Count-1 do
           begin
             objreloc:=TObjRelocation(TObjSection(p).ObjRelocations[i]);
@@ -1361,10 +1371,17 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.section_set_reloc_datapos(p:TObject;arg:pointer);
+    procedure TCoffObjOutput.section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
       begin
-        TCoffObjSection(p).coffrelocpos:=paint(arg)^;
-        inc(paint(arg)^,sizeof(coffreloc)*TObjSection(p).ObjRelocations.count);
+        p.coffrelocpos:=datapos;
+        inc(datapos,sizeof(coffreloc)*p.ObjRelocations.count);
+        if p.ObjRelocations.count>65535 then
+          begin
+            if win32 then
+              inc(datapos,sizeof(coffreloc))
+            else
+              Message1(asmw_f_too_many_relocations,p.fullname);
+          end;
       end;
 
 
@@ -1400,10 +1417,17 @@ const pemagic : array[0..3] of byte = (
             if (Size>0) and
                (oso_data in secoptions) then
               sechdr.datapos:=datapos;
-            sechdr.nrelocs:=ObjRelocations.count;
+            if ObjRelocations.count<65535 then
+              sechdr.nrelocs:=ObjRelocations.count
+            else
+              sechdr.nrelocs:=65535;
             sechdr.relocpos:=coffrelocpos;
             if win32 then
-              sechdr.flags:=peencodesechdrflags(secoptions,secalign)
+              begin
+                sechdr.flags:=peencodesechdrflags(secoptions,secalign);
+                if ObjRelocations.count>65535 then
+                  sechdr.flags:=sechdr.flags or PE_SCN_LNK_NRELOC_OVFL;
+              end
             else
               sechdr.flags:=djencodesechdrflags(secoptions);
             FWriter.write(sechdr,sizeof(sechdr));
@@ -1431,7 +1455,8 @@ const pemagic : array[0..3] of byte = (
            { Sections first }
            layoutsections(datapos);
            { relocs }
-           ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
+           for i:=0 to ObjSectionList.Count-1 do
+             section_set_reloc_datapos(TCoffObjSection(ObjSectionList[i]),datapos);
            { Symbols }
            sympos:=datapos;
 
@@ -1541,6 +1566,15 @@ const pemagic : array[0..3] of byte = (
         i         : longint;
         p         : TObjSymbol;
       begin
+        if s.coffrelocs=high(aword) then
+          begin
+            { If number of relocations exceeds 65535, it is stored in address field
+              of the first record, and includes this first fake relocation. }
+            FReader.read(rel,sizeof(rel));
+            s.coffrelocs:=rel.address-1;
+            if s.coffrelocs<=65535 then
+              InternalError(2013012503);
+          end;
         for i:=1 to s.coffrelocs do
          begin
            FReader.read(rel,sizeof(rel));
@@ -1865,6 +1899,11 @@ const pemagic : array[0..3] of byte = (
                  objsec.mempos:=sechdr.rvaofs;
                objsec.orgmempos:=sechdr.rvaofs;
                objsec.coffrelocs:=sechdr.nrelocs;
+               if win32 then
+                 begin
+                   if (sechdr.flags and PE_SCN_LNK_NRELOC_OVFL)<>0 then
+                     objsec.coffrelocs:=high(aword);
+                 end;
                objsec.coffrelocpos:=sechdr.relocpos;
                objsec.datapos:=sechdr.datapos;
                objsec.Size:=sechdr.dataSize;

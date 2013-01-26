@@ -2637,7 +2637,7 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # Assembler/binary writers
 #
-# 08022 is the last used one
+# 08026 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2678,6 +2678,9 @@ asmw_e_prologue_too_large=08024_E_Function prologue exceeds 255 bytes
 asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without preceding .seh_handler
 % x86_64-win64: If .seh_handlerdata directive is used, then a .seh_handler directive must be
 % present earlier in the same function.
+asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 65535
+% Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
+% to store the relocation count. Targets using newer PECOFF format do not have this limitation.
 
 #
 # Executing linker/assembler
