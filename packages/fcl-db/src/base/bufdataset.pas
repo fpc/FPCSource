@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2006 by Joost van der Sluis, member of the
+    Copyright (c) 1999-2013 by Joost van der Sluis and other members of the
     Free Pascal development team
 
     BufDataset implementation
@@ -70,19 +70,19 @@ type
   TRecUpdateBuffer = record
     UpdateKind         : TUpdateKind;
 {  BookMarkData:
-     - Is -1 if the update has canceled out. For example: a appended record has been deleted again
-     - If UpdateKind is ukInsert it contains a bookmark to the new created record
-     - If UpdateKind is ukModify it contains a bookmark to the record with the new data
-     - If UpdateKind is ukDelete it contains a bookmark to the deleted record (ie: the record is still there)
+     - Is -1 if the update has canceled out. For example: an appended record has been deleted again
+     - If UpdateKind is ukInsert, it contains a bookmark to the newly created record
+     - If UpdateKind is ukModify, it contains a bookmark to the record with the new data
+     - If UpdateKind is ukDelete, it contains a bookmark to the deleted record (ie: the record is still there)
 }
     BookmarkData       : TBufBookmark;
 {  NextBookMarkData:
-     - If UpdateKind is ukDelete it contains a bookmark to the record just after the deleted record
+     - If UpdateKind is ukDelete, it contains a bookmark to the record just after the deleted record
 }
     NextBookmarkData   : TBufBookmark;
 {  OldValuesBuffer:
-     - If UpdateKind is ukModify it contains a record-buffer which contains the old data
-     - If UpdateKind is ukDelete it contains a record-buffer with the data of the deleted record
+     - If UpdateKind is ukModify, it contains a record buffer which contains the old data
+     - If UpdateKind is ukDelete, it contains a record buffer with the data of the deleted record
 }
     OldValuesBuffer    : TRecordBuffer;
   end;
@@ -90,7 +90,7 @@ type
 
   PBufBlobField = ^TBufBlobField;
   TBufBlobField = record
-    ConnBlobBuffer : array[0..11] of byte; // It's here where the db-specific data is stored
+    ConnBlobBuffer : array[0..11] of byte; // DB specific data is stored here
     BlobBuffer     : PBlobBuffer;
   end;
 
@@ -159,7 +159,7 @@ type
     // Normally only used in GetNextPacket
     procedure AddRecord; virtual; abstract;
     // Inserts a record before the current record, or if the record is sorted,
-    // insert it to the proper position
+    // inserts it in the proper position
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); virtual; abstract;
     procedure EndUpdate; virtual; abstract;
     
@@ -352,7 +352,7 @@ type
   public
     constructor create(AStream : TStream); virtual;
     // Load a dataset from stream:
-    // Load the field-definitions from a stream.
+    // Load the field definitions from a stream.
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); virtual; abstract;
     // Is called before the records are loaded
     procedure InitLoadRecords; virtual; abstract;
@@ -360,15 +360,15 @@ type
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
     // Returns if there is at least one more record available in the stream
     function GetCurrentRecord : boolean; virtual; abstract;
-    // Store a record from stream in the current record-buffer
+    // Store a record from stream in the current record buffer
     procedure RestoreRecord(ADataset : TCustomBufDataset); virtual; abstract;
     // Move the stream to the next record
     procedure GotoNextRecord; virtual; abstract;
 
     // Store a dataset to stream:
-    // Save the field-definitions to a stream.
+    // Save the field definitions to a stream.
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); virtual; abstract;
-    // Save a record from the current record-buffer to the stream
+    // Save a record from the current record buffer to the stream
     procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); virtual; abstract;
     // Is called after all records are stored
     procedure FinalizeStoreRecords; virtual; abstract;
@@ -805,7 +805,7 @@ begin
 end;
 
 {
-// Code to dump raw dataset data, including indexes information, usefull for debugging
+// Code to dump raw dataset data, including indexes information, useful for debugging
   procedure DumpRawMem(const Data: pointer; ALength: PtrInt);
   var
     b: integer;
@@ -911,8 +911,8 @@ var PCurRecLinkItem : PBufRecLinkItem;
   end;
 
 begin
- // Build the DBCompareStructure
- // One AS is enough, and makes debugging easier.
+  // Build the DBCompareStructure
+  // One AS is enough, and makes debugging easier.
   DblLinkIndex:=(AIndex as TDoubleLinkedBufIndex);
   Index0:=(FIndexes[0] as TDoubleLinkedBufIndex);
   with DblLinkIndex do
@@ -947,7 +947,7 @@ begin
     end;
     end;
 
-// This simply copies the index...
+  // This simply copies the index...
   PCurRecLinkItem:=Index0.FFirstRecBuf;
   PCurRecLinkItem[DblLinkIndex.IndNr].next := PCurRecLinkItem[0].next;
   PCurRecLinkItem[DblLinkIndex.IndNr].prior := PCurRecLinkItem[0].prior;
@@ -966,46 +966,43 @@ begin
     // Empty dataset
     Exit;
 
-// Set FirstRecBuf and FCurrentRecBuf
+  // Set FirstRecBuf and FCurrentRecBuf
   DblLinkIndex.FFirstRecBuf:=Index0.FFirstRecBuf;
   DblLinkIndex.FCurrentRecBuf:=DblLinkIndex.FFirstRecBuf;
-// Link in the FLastRecBuf that belongs to this index
+  // Link in the FLastRecBuf that belongs to this index
   PCurRecLinkItem[DblLinkIndex.IndNr].next:=DblLinkIndex.FLastRecBuf;
   DblLinkIndex.FLastRecBuf[DblLinkIndex.IndNr].prior:=PCurRecLinkItem;
 
-// Mergesort. Used the algorithm as described here by Simon Tatham
-// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
-// The comments in the code are from this website.
+  // Mergesort. Used the algorithm as described here by Simon Tatham
+  // http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+  // The comments in the code are from this website.
 
-// In each pass, we are merging lists of size K into lists of size 2K.
-// (Initially K equals 1.)
+  // In each pass, we are merging lists of size K into lists of size 2K.
+  // (Initially K equals 1.)
   k:=1;
 
   repeat
 
-// So we start by pointing a temporary pointer p at the head of the list,
-// and also preparing an empty list L which we will add elements to the end
-// of as we finish dealing with them.
-
+  // So we start by pointing a temporary pointer p at the head of the list,
+  // and also preparing an empty list L which we will add elements to the end
+  // of as we finish dealing with them.
   p := DblLinkIndex.FFirstRecBuf;
   DblLinkIndex.FFirstRecBuf := nil;
   q := p;
   MergeAmount := 0;
 
-// Then:
-//    * If p is null, terminate this pass.
+  // Then:
+  // * If p is null, terminate this pass.
   while p <> DblLinkIndex.FLastRecBuf do
     begin
 
-//    * Otherwise, there is at least one element in the next pair of length-K
-//      lists, so increment the number of merges performed in this pass.
-
+    //  * Otherwise, there is at least one element in the next pair of length-K
+    //    lists, so increment the number of merges performed in this pass.
     inc(MergeAmount);
 
-//    * Point another temporary pointer, q, at the same place as p. Step q along
-//      the list by K places, or until the end of the list, whichever comes
-//      first. Let psize be the number of elements you managed to step q past.
-
+    //  * Point another temporary pointer, q, at the same place as p. Step q along
+    //    the list by K places, or until the end of the list, whichever comes
+    //    first. Let psize be the number of elements you managed to step q past.
     i:=0;
     while (i<k) and (q<>DblLinkIndex.FLastRecBuf) do
       begin
@@ -1014,23 +1011,21 @@ begin
       end;
     psize :=i;
 
-//    * Let qsize equal K. Now we need to merge a list starting at p, of length
-//      psize, with a list starting at q of length at most qsize.
-
+    //  * Let qsize equal K. Now we need to merge a list starting at p, of length
+    //    psize, with a list starting at q of length at most qsize.
     qsize:=k;
 
-//    * So, as long as either the p-list is non-empty (psize > 0) or the q-list
-//      is non-empty (qsize > 0 and q points to something non-null):
-
+    //  * So, as long as either the p-list is non-empty (psize > 0) or the q-list
+    //    is non-empty (qsize > 0 and q points to something non-null):
     while (psize>0) or ((qsize>0) and (q <> DblLinkIndex.FLastRecBuf)) do
       begin
-//          o Choose which list to take the next element from. If either list
-//            is empty, we must choose from the other one. (By assumption, at
-//            least one is non-empty at this point.) If both lists are
-//            non-empty, compare the first element of each and choose the lower
-//            one. If the first elements compare equal, choose from the p-list.
-//            (This ensures that any two elements which compare equal are never
-//            swapped, so stability is guaranteed.)
+      //  * Choose which list to take the next element from. If either list
+      //    is empty, we must choose from the other one. (By assumption, at
+      //    least one is non-empty at this point.) If both lists are
+      //    non-empty, compare the first element of each and choose the lower
+      //    one. If the first elements compare equal, choose from the p-list.
+      //    (This ensures that any two elements which compare equal are never
+      //    swapped, so stability is guaranteed.)
       if (psize=0)  then
         PlaceQRec := true
       else if (qsize=0) or (q = DblLinkIndex.FLastRecBuf) then
@@ -1040,23 +1035,24 @@ begin
       else
         PlaceQRec := True;
         
-//          o Remove that element, e, from the start of its list, by advancing
-//            p or q to the next element along, and decrementing psize or qsize.
-//          o Add e to the end of the list L we are building up.
+      //  * Remove that element, e, from the start of its list, by advancing
+      //    p or q to the next element along, and decrementing psize or qsize.
+      //  * Add e to the end of the list L we are building up.
       if PlaceQRec then
         PlaceNewRec(q,qsize)
       else
         PlaceNewRec(p,psize);
       end;
-//    * Now we have advanced p until it is where q started out, and we have
-//      advanced q until it is pointing at the next pair of length-K lists to
-//      merge. So set p to the value of q, and go back to the start of this loop.
+      
+    //  * Now we have advanced p until it is where q started out, and we have
+    //    advanced q until it is pointing at the next pair of length-K lists to
+    //    merge. So set p to the value of q, and go back to the start of this loop.
     p:=q;
     end;
 
-// As soon as a pass like this is performed and only needs to do one merge, the
-// algorithm terminates, and the output list L is sorted. Otherwise, double the
-// value of K, and go back to the beginning.
+  // As soon as a pass like this is performed and only needs to do one merge, the
+  // algorithm terminates, and the output list L is sorted. Otherwise, double the
+  // value of K, and go back to the beginning.
 
   l[DblLinkIndex.IndNr].next:=DblLinkIndex.FLastRecBuf;
 
@@ -1101,8 +1097,8 @@ end;
 function TCustomBufDataset.AllocRecordBuffer: TRecordBuffer;
 begin
   result := AllocMem(FRecordsize + BookmarkSize + CalcfieldsSize);
-// The records are initialised, or else the fields of an empty, just-opened dataset
-// are not null
+  // The records are initialised, or else the fields of an empty, just-opened dataset
+  // are not null
   InitRecord(result);
 end;
 
@@ -1138,7 +1134,7 @@ begin
   // is not (correctly) created.
 
   // commented for now. If there are constant expressions in the select
-  // statement they are ftunknown, and not created.
+  // statement they are ftUnknown, and not created.
   // See mantis #22030
 
   //  if Fields.Count<FieldDefs.Count then
@@ -1146,7 +1142,7 @@ begin
 
   // If there is a field with FieldNo=0 then the fields are not found to the
   // FieldDefs which is a sign that there is no dataset created. (Calculated and
-  // lookupfields have FieldNo=-1)
+  // lookup fields have FieldNo=-1)
   for i := 0 to Fields.Count-1 do
     if fields[i].FieldNo=0 then
       DatabaseError(SErrNoDataset)
@@ -1386,7 +1382,7 @@ end;
 
 procedure TDoubleLinkedBufIndex.InitialiseIndex;
 begin
-// Do nothing
+  // Do nothing
 end;
 
 function TDoubleLinkedBufIndex.CanScrollForward: Boolean;
@@ -1790,7 +1786,7 @@ end;
 function TCustomBufDataset.GetRecordUpdateBufferCached(const ABookmark: TBufBookmark;
   IncludePrior: boolean): boolean;
 begin
-  // if the current update buffer complies, immediately return true
+  // if the current update buffer matches, immediately return true
   if (FCurrentUpdateBuffer < length(FUpdateBuffer)) and (
       FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) or
       (IncludePrior and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
@@ -1969,11 +1965,11 @@ begin
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind <> ukModify then
       begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;  //this 'disables' the updatebuffer
-      // Do NOT release record buffer (pointed by RemRecBookmrk.BookmarkData) here
-      //  - When record is inserted and deleted(and memory released) and again inserted then same memory block can be returned
-      //    which leads to confusion, because we get same BookmarkData for distinct records
-      //  - In CancelUpdates when records are restored it is expected, that deleted records still exists in memory
-      // There also could be record(s) in update-buffer, linked to this record.
+      // Do NOT release record buffer (pointed to by RemRecBookmrk.BookmarkData) here
+      //  - When record is inserted and deleted (and memory released) and again inserted then the same memory block can be returned
+      //    which leads to confusion, because we get the same BookmarkData for distinct records
+      //  - In CancelUpdates when records are restored, it is expected that deleted records still exist in memory
+      // There also could be record(s) in the update buffer that is linked to this record.
       end;
     end;
   FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
@@ -2022,7 +2018,7 @@ var StoreRecBM     : TBufBookmark;
         end
       else if (UpdateKind = ukInsert) then
         begin
-        // Process all upd-buffers linked to this record before this record is removed
+        // Process all update buffers linked to this record before this record is removed
         StoreUpdBuf:=FCurrentUpdateBuffer;
         Bm := BookmarkData;
         BookmarkData.BookmarkData:=nil; // Avoid infinite recursion...
@@ -2078,7 +2074,7 @@ begin
   FOnUpdateError := AValue;
 end;
 
-procedure TCustomBufDataset.ApplyUpdates; // For backwards-compatibility
+procedure TCustomBufDataset.ApplyUpdates; // For backward compatibility
 
 begin
   ApplyUpdates(0);
@@ -2246,7 +2242,7 @@ begin
           FIndexes[i].GotoBookmark(ABookmark);
 
         FIndexes[i].InsertRecordBeforeCurrentRecord(ABuff);
-        // new inserted record becomes current record
+        // newly inserted record becomes current record
         FIndexes[i].ScrollBackward;
       end;
 
@@ -2629,7 +2625,7 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
       ARowState := [rsvInserted];
 
     FFilterBuffer:=AUpdBuffer.OldValuesBuffer;
-    // If the record is inserted or inserted and afterwards deleted then OldValuesBuffer is nil
+    // OldValuesBuffer is nil if the record is either inserted or inserted and then deleted
     if assigned(FFilterBuffer) then
       FDatasetReader.StoreRecord(Self,AThisRowState,FCurrentUpdateBuffer);
   end;
@@ -2666,7 +2662,7 @@ var ScrollResult   : TGetResult;
 begin
   FDatasetReader := AWriter;
   try
-    //CheckActive;
+    //  CheckActive;
     ABookMark:=@ATBookmark;
     FDatasetReader.StoreFieldDefs(FieldDefs,FAutoIncValue);
 
@@ -2690,7 +2686,7 @@ begin
           ScrollResult := FCurrentIndex.ScrollForward;
         end;
       end;
-    // There could be a update-buffer linked to the last (spare) record
+    // There could be an update buffer linked to the last (spare) record
     FCurrentIndex.StoreSpareRecIntoBookmark(ABookmark);
     HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
 
@@ -3043,7 +3039,7 @@ begin
     begin
       FParser := TBufDatasetParser.Create(Self);
     end;
-    // have a parser now?
+    // is there a parser now?
     if FParser <> nil then
     begin
       // set options
@@ -3120,7 +3116,7 @@ begin
     SearchFields.Free;
   end;
 
-  // Set The filter-buffer
+  // Set the filter buffer
   StoreDSState:=SetTempState(dsFilter);
   FFilterBuffer:=FCurrentIndex.SpareBuffer;
   SetFieldValues(keyfields,KeyValues);
@@ -3136,7 +3132,7 @@ begin
       if Filtered then
         begin
         FFilterBuffer:=pointer(CurrLinkItem)+(sizeof(TBufRecLinkItem)*MaxIndexesCount);
-        // The dataset-state is still dsFilter at this point, so we don't have to set it.
+        // The dataset state is still dsFilter at this point, so we don't have to set it.
         DoFilterRecord(FiltAcceptable);
         if FiltAcceptable then
           begin
@@ -3178,7 +3174,7 @@ begin
   try
     if Locate(KeyFields,KeyValues,[]) then
       begin
-//      CalculateFields(ActiveBuffer); // not needed, done by Locate more than once
+      //  CalculateFields(ActiveBuffer); // not needed, done by Locate more than once
       result:=FieldValues[ResultFields];
       end;
     GotoBookmark(bm);
@@ -3280,8 +3276,8 @@ end;
 
 procedure TArrayBufIndex.SetToFirstRecord;
 begin
-// if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
-// in which case InternalFirst should do nothing (bug 7211)
+  // if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
+  // in which case InternalFirst should do nothing (bug 7211)
   if FCurrentRecInd <> FLastRecInd then
     FCurrentRecInd := -1;
 end;
@@ -3337,7 +3333,7 @@ end;
 
 procedure TArrayBufIndex.InitialiseIndex;
 begin
-//  FRecordArray:=nil;
+  //  FRecordArray:=nil;
   setlength(FRecordArray,FInitialBuffers);
   FCurrentRecInd:=-1;
   FLastRecInd:=-1;
@@ -3346,7 +3342,7 @@ end;
 procedure TArrayBufIndex.InitialiseSpareRecord(const ASpareRecord:  TRecordBuffer);
 begin
   FLastRecInd := 0;
- // FCurrentRecInd := 0;
+  // FCurrentRecInd := 0;
   FRecordArray[0] := ASpareRecord;
 end;
 
@@ -3381,7 +3377,7 @@ end;
 
 procedure TArrayBufIndex.BeginUpdate;
 begin
-//  inherited BeginUpdate;
+  //  inherited BeginUpdate;
 end;
 
 procedure TArrayBufIndex.AddRecord;
@@ -3396,7 +3392,7 @@ end;
 
 procedure TArrayBufIndex.EndUpdate;
 begin
-//  inherited EndUpdate;
+  //  inherited EndUpdate;
 end;
 
 { TDataPacketReader }
@@ -3491,7 +3487,7 @@ end;
 
 procedure TFpcBinaryDatapacketReader.FinalizeStoreRecords;
 begin
-//  Do nothing
+  //  Do nothing
 end;
 
 function TFpcBinaryDatapacketReader.GetCurrentRecord: boolean;
@@ -3502,12 +3498,12 @@ end;
 
 procedure TFpcBinaryDatapacketReader.GotoNextRecord;
 begin
-//  Do Nothing
+  //  Do Nothing
 end;
 
 procedure TFpcBinaryDatapacketReader.InitLoadRecords;
 begin
-//  SetLength(AChangeLog,0);
+  //  SetLength(AChangeLog,0);
 end;
 
 procedure TFpcBinaryDatapacketReader.RestoreRecord(ADataset: TCustomBufDataset);
@@ -3550,7 +3546,7 @@ begin
   // This code could be moved to the TBufIndex but that would make things
   // more complicated and probably slower. So use a 'fake' bookmark of
   // size TBufBookmark.
-  // When there are other TBufIndexes which also need special bookmark-code
+  // When there are other TBufIndexes which also need special bookmark code
   // this can be adapted.
   Result:=sizeof(TBufBookmark);
 end;
@@ -3562,7 +3558,7 @@ end;
 
 function TUniDirectionalBufIndex.GetCurrentRecord:  TRecordBuffer;
 begin
-//  Result:=inherited GetCurrentRecord;
+  //  Result:=inherited GetCurrentRecord;
 end;
 
 function TUniDirectionalBufIndex.GetIsInitialized: boolean;
@@ -3628,7 +3624,7 @@ end;
 
 function TUniDirectionalBufIndex.CanScrollForward: Boolean;
 begin
-  // should return true if a next record is already fetched
+  // should return true if next record is already fetched
   result := false;
 end;
 
