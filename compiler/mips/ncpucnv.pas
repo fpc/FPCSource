@@ -282,7 +282,7 @@ begin
              cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
          end;
        hreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SNE, hreg1, hreg2, NR_R0));
+       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg1, NR_R0, hreg2));
     end;
     LOC_JUMP:
     begin
@@ -298,6 +298,10 @@ begin
     else
       internalerror(10062);
   end;
+  { Now hreg1 is either 0 or 1. For C booleans it must be 0 or -1. }
+  if is_cbool(resultdef) then
+    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,hreg1,hreg1);
+
 {$ifndef cpu64bitalu}
   if (location.size in [OS_64,OS_S64]) then
     begin
@@ -314,10 +318,6 @@ begin
 {$endif not cpu64bitalu}
          location.Register := hreg1;
 
-{zfx
-  if location.size in [OS_64, OS_S64] then
-    internalerror(200408241);
-}
 
   current_procinfo.CurrTrueLabel  := oldtruelabel;
   current_procinfo.CurrFalseLabel := oldfalselabel;

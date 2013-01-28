@@ -282,10 +282,6 @@ begin
   begin
     secondpass(left);
     case left.location.loc of
-      LOC_FLAGS:
-      begin
-        internalerror(2007011501);
-      end;
       LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
       begin
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
@@ -297,9 +293,13 @@ begin
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,r64.reglo,left.location.register64.reglo,left.location.register64.reghi));
             { x=0 <=> unsigned(x)<1 }
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,r64.reglo,r64.reglo,1));
-            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,r64.reghi);
-            if not is_pasbool(resultdef) then
-              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,r64,r64);
+            if is_cbool(resultdef) then
+              begin
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,r64.reglo,r64.reglo);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,r64.reglo,r64.reghi);
+              end
+            else
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
             location_reset(location,LOC_REGISTER,OS_64);
             location.Register64:=r64;
           end
@@ -308,7 +308,7 @@ begin
             tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
             { x=0 <=> unsigned(x)<1 }
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU, tmpreg, left.location.Register, 1));
-            if not is_pasbool(resultdef) then
+            if is_cbool(resultdef) then
               cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,tmpreg,tmpreg);
             location_reset(location, LOC_REGISTER, OS_INT);
             location.Register := tmpreg;
