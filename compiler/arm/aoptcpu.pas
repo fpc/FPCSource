@@ -1216,7 +1216,7 @@ Implementation
                             else if not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                               begin
                                 DebugMsg('Peephole AndAnd2And done', hp1);
-                                taicpu(hp1).loadConst(2,taicpu(hp1).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                                taicpu(hp1).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
                                 taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
                                 taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                                 asml.remove(p);
