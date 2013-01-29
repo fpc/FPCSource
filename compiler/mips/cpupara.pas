@@ -343,7 +343,7 @@ implementation
                   paralen := tcgsize2size[paracgsize];
               end;
 
-            if (paracgsize in [OS_64, OS_S64, OS_F64]) or (hp.vardef.alignment = 8) then
+            if (paracgsize in [OS_64, OS_S64, OS_F64]) or (paradef.alignment = 8) then
               alignment := 8
             else
               alignment := 4;
