@@ -3249,6 +3249,9 @@ if (target_info.abi = abi_eabihf) then
       init_settings.optimizecputype:=cpu_armv7a;
 {$endif CPUARMV6}
   end;
+
+  if init_settings.cputype in cpu_thumb2 then
+    def_system_macro('CPUTHUMB2');
 {$endif arm}
 
 {$ifdef jvm}
