@@ -1771,7 +1771,7 @@ implementation
                       FReader.read(symversions^,shdrs[i].sh_size);
                       if source_info.endian<>target_info.endian then
                         for j:=0 to syms-1 do
-                          SwapEndian(symversions[j]);
+                          symversions[j]:=SwapEndian(symversions[j]);
                     end;
 
                   SHT_GNU_verdef:
