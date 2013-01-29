@@ -757,6 +757,8 @@ Var
 begin
   Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent));
   try
+    If (Result.Name='') then
+      Result.Name:='string';
     NextToken;
     if CurToken=tkSquaredBraceOpen then
       begin
