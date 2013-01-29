@@ -14,7 +14,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='objcrtl';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
     P.OSes:=[darwin,iphonesim];
     P.Author := 'Library: Apple, header: Dmitry "skalogryz" Boyarintsev';
     P.License := 'Library: Apple, header: LGPL with modification, ';

@@ -4,7 +4,7 @@
 
 [package]
 name=ggi
-version=2.6.1
+version=2.6.2
 
 [target]
 units=gii ggi ggi2d

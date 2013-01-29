@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='uuid';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('libuuid.pp');

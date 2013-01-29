@@ -16,9 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='bzip2';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
 
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.
     P.License := 'Library: 3 clause BSD, header: 3 clause BSD ';

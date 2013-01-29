@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='univint';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
     P.SourcePath.Add('src');
     P.OSes:=[darwin];
   T:=P.Targets.AddUnit('ABActions.pas');

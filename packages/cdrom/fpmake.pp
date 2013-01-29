@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cdrom';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.2';
     P.OSes:=[Win32,Win64,Linux];
 
     P.Author := 'Michael van Canneyt';

@@ -4,7 +4,7 @@
 
 [package]
 name=os2units
-version=2.6.1
+version=2.6.2
 
 [require]
 libc=y
