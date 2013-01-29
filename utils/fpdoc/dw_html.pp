@@ -923,7 +923,7 @@ var
   i: Integer;
   ThisPackage: TLinkNode;
 begin
-  Result:=Engine.ResolveLink(Module,Name, False);
+  Result:=Engine.ResolveLink(Module,Name, True);
   if Length(Result) > 0 then
     if Copy(Result, 1, Length(CurDirectory) + 1) = CurDirectory + '/' then
       Result := Copy(Result, Length(CurDirectory) + 2, Length(Result))
@@ -1758,17 +1758,18 @@ begin
         CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
         AppendSym(CodeEl, ')');
       end;
-  end else
-  begin
+  end
+  else
+    begin
     { Procedure or function without arguments }
     if Element.InheritsFrom(TPasFunctionType) then
-    begin
+      begin
       AppendSym(CodeEl, ': ');
       AppendHyperlink(CodeEl, TPasFunctionType(Element).ResultEl.ResultType);
-    end;
+      end;
     if Element.IsOfObject then
       AppendKw(CodeEl, ' of object');
-  end;
+    end;
   Result := CodeEl;
 end;
 
