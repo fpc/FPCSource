@@ -922,7 +922,7 @@ In case not, the value returned can be arbitrary.
 
         function read_factor(var factorType: TCTETypeSet; eval : Boolean) : string;
         var
-           hs : string;
+           hs,countstr : string;
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
@@ -1166,13 +1166,52 @@ In case not, the value returned can be arbitrary.
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := upper(current_scanner.preproc_pattern);
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                        if current_scanner.preproc_token in [_LT,_LSHARPBRACKET] then
+                          begin
+                            l:=1;
+                            preproc_consume(current_scanner.preproc_token);
+                            current_scanner.skipspace;
+                            while current_scanner.preproc_token=_COMMA do
+                              begin
+                                inc(l);
+                                preproc_consume(_COMMA);
+                                current_scanner.skipspace;
+                              end;
+                            if not (current_scanner.preproc_token in [_GT,_RSHARPBRACKET]) then
+                              Message(scan_e_error_in_preproc_expr)
+                            else
+                              preproc_consume(current_scanner.preproc_token);
+                            str(l,countstr);
+                            hs:=hs+'$'+countstr;
+                          end
+                        else
+                          { special case: <> }
+                          if current_scanner.preproc_token=_NE then
+                            begin
+                              hs:=hs+'$1';
+                              preproc_consume(_NE);
+                            end;
+                        current_scanner.skipspace;
                         if searchsym(hs,srsym,srsymtable) then
-                          hs := '1'
+                          begin
+                            { TSomeGeneric<...> also adds a TSomeGeneric symbol }
+                            if (sp_generic_dummy in srsym.symoptions) and
+                                (srsym.typ=typesym) and
+                                (
+                                  { mode delphi}
+                                  (ttypesym(srsym).typedef.typ in [undefineddef,errordef]) or
+                                  { non-delphi modes }
+                                  (df_generic in ttypesym(srsym).typedef.defoptions)
+                                ) then
+                              hs:='0'
+                            else
+                              hs:='1';
+                          end
                         else
                           hs := '0';
                         read_factor := hs;
-                        preproc_consume(_ID);
-                        current_scanner.skipspace;
                       end
                     else
                       Message(scan_e_error_in_preproc_expr);
