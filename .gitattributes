@@ -10409,6 +10409,7 @@ tests/test/jvm/topovl.pp svneol=native#text/plain
 tests/test/jvm/tprop.pp svneol=native#text/plain
 tests/test/jvm/tprop2.pp svneol=native#text/plain
 tests/test/jvm/tprop3.pp svneol=native#text/plain
+tests/test/jvm/tprop4.pp svneol=native#text/plain
 tests/test/jvm/tpvar.pp svneol=native#text/plain
 tests/test/jvm/tpvardelphi.pp svneol=native#text/plain
 tests/test/jvm/tpvarglobal.pp svneol=native#text/plain

@@ -993,6 +993,7 @@ implementation
               { getter/setter could have parameters in case of indexed access
                 -> copy original procdef }
               pd:=tprocdef(orgaccesspd.getcopy);
+              exclude(pd.procoptions,po_abstractmethod);
               { can only construct the artificial name now, because it requires
                 pd.defid }
               if not explicitwrapper then
