@@ -656,39 +656,34 @@ implementation
             genname : tidstring;
             s : shortstring;
           begin
-            result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
+            result:=not assigned(astruct)and
+                      (m_delphi in current_settings.modeswitches)and
+                      (token in [_LT,_LSHARPBRACKET]);
             if result then
               begin
+                consume(token);
                 { parse all parameters first so we can check whether we have
                   the correct generic def available }
                 genparalistdecl:=TFPHashList.Create;
-                if try_to_consume(_LT) then
-                  begin
-                    { start with 1, so Find can return Nil (= 0) }
-                    idx:=1;
-                    repeat
-                      if token=_ID then
-                        begin
-                          genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
-                          consume(_ID);
-                          inc(idx);
-                        end
-                      else
-                        begin
-                          message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
-                          if token<>_COMMA then
-                            consume(token);
-                        end;
-                    until not try_to_consume(_COMMA);
-                    if not try_to_consume(_GT) then
-                      consume(_RSHARPBRACKET);
-                  end
-                else
-                  begin
-                    { no generic }
-                    srsym:=nil;
-                    exit;
-                  end;
+
+                { start with 1, so Find can return Nil (= 0) }
+                idx:=1;
+                repeat
+                  if token=_ID then
+                    begin
+                      genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                      consume(_ID);
+                      inc(idx);
+                    end
+                  else
+                    begin
+                      message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                      if token<>_COMMA then
+                        consume(token);
+                    end;
+                until not try_to_consume(_COMMA);
+                if not try_to_consume(_GT) then
+                  consume(_RSHARPBRACKET);
 
                 s:='';
                 str(genparalistdecl.count,s);
@@ -706,7 +701,9 @@ implementation
                     srsym:=nil;
                     exit;
                   end
-              end;
+              end
+            else
+              srsym:=nil;
           end;
 
         procedure consume_generic_interface;
