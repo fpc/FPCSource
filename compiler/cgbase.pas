@@ -70,6 +70,9 @@ interface
          addr_full,
          addr_pic,
          addr_pic_no_got
+         {$ifdef mips}
+         ,addr_pic_call16
+         {$endif}
          {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
          ,
          addr_low,         // bits 48-63
