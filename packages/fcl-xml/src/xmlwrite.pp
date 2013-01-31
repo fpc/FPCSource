@@ -384,12 +384,17 @@ end;
 procedure CDSectSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
   var idx: Integer);
 begin
-  if (idx <= Length(s)-2) and (s[idx+1] = ']') and (s[idx+2] = '>') then
+  if s[idx]=']' then
   begin
-    Sender.wrtStr(']]]]><![CDATA[>');
-    Inc(idx, 2);
-    // TODO: emit warning 'cdata-section-splitted'
-  end
+    if (idx <= Length(s)-2) and (s[idx+1] = ']') and (s[idx+2] = '>') then
+    begin
+      Sender.wrtStr(']]]]><![CDATA[>');
+      Inc(idx, 2);
+      // TODO: emit warning 'cdata-section-splitted'
+    end
+    else
+      Sender.wrtChr(']');
+  end  
   else
     raise EConvertError.Create('Illegal character');
 end;
