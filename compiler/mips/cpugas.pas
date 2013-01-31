@@ -121,7 +121,7 @@ unit cpugas;
             if assigned(symbol) then
               begin
                 GetReferenceString := symbol.Name;
-                if symbol.typ=AT_FUNCTION then
+                if (symbol.typ=AT_FUNCTION) or (refaddr=addr_pic_call16) then
                   gotprefix:='%call16('
                 else
                   gotprefix:='%got(';
@@ -132,17 +132,20 @@ unit cpugas;
             else if offset < 0 then
               GetReferenceString := GetReferenceString + ToStr(offset);
             case refaddr of
+              addr_full : ;
               addr_high:
                 GetReferenceString := '%hi(' + GetReferenceString + ')';
               addr_low:
                 GetReferenceString := '%lo(' + GetReferenceString + ')';
-              addr_pic:
+              addr_pic,addr_pic_call16:
                 begin
                   if hasgot then
                     GetReferenceString := gotprefix + GetReferenceString + ')'
                   else
                     internalerror(2012070401);
                 end;
+            else
+              internalerror(2012070401);
             end;
           end
           else
@@ -160,9 +163,12 @@ unit cpugas;
                 GetReferenceString := ToStr(offset) + GetReferenceString;
               if assigned(symbol) then
               begin
-                if refaddr = addr_low then
-                  GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString
-                else if refaddr = addr_pic then
+                case refaddr of
+                  addr_full, addr_high :
+                  GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
+                addr_low :
+                  GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString;
+                addr_pic, addr_pic_call16 :
                   begin
                     if symbol.typ=AT_FUNCTION then
                       gotprefix:='%call16('
@@ -171,7 +177,8 @@ unit cpugas;
                     GetReferenceString := gotprefix + symbol.Name + ')' + GetReferenceString;
                    end
                 else
-                  GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
+                  internalerror(2012070401);
+                end;
               end;
             end
             else
@@ -197,11 +204,7 @@ unit cpugas;
             top_const:
               getopstr := tostr(longint(val));
             top_ref:
-              if (oper.ref^.refaddr in [addr_no, addr_pic]) or ((oper.ref^.refaddr = addr_low) and ((oper.ref^.base <> NR_NO) or
-                (oper.ref^.index <> NR_NO))) then
-                getopstr := getreferencestring(ref^)
-              else
-                getopstr := getreferencestring(ref^);
+              getopstr := getreferencestring(ref^);
             else
               internalerror(10001);
           end;
@@ -248,7 +251,14 @@ unit cpugas;
     function is_macro_instruction(op : TAsmOp) : boolean;
       begin
         is_macro_instruction :=
-          (op=A_SEQ) or (op=A_SNE);
+        { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
+          (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
+          (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
+          or (op=A_LA) or (op=A_BC) or (op=A_JAL)
+          or (op=A_REM) or (op=A_REMU)
+          or (op=A_DIV) or (op=A_DIVU) 
+          { A_LI is only a macro if the immediate is not in thez 16-bit range }
+          or (op=A_LI) or (op=A_AND) or (op=A_XOR);
       end;
 
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
