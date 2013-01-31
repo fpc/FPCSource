@@ -90,6 +90,9 @@ type
     { Transform unsupported methods into Internal errors }
     procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
     procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
+    procedure maybe_reload_gp(list : tasmlist);
+    procedure Load_PIC_Addr(list : tasmlist; tmpreg : Tregister;
+                                var ref : treference);
   end;
 
   TCg64MPSel = class(tcg64f32)
@@ -315,37 +318,23 @@ begin
     ref.base  := ref.index;
     ref.index := NR_NO;
   end;
-  if (cs_create_pic in current_settings.moduleswitches) and
+  if (ref.refaddr in [addr_pic,addr_pic_call16]) then
+    maybe_reload_gp(list);
+  if ((cs_create_pic in current_settings.moduleswitches) or 
+      (ref.refaddr in [addr_pic,addr_pic_call16])) and
     assigned(ref.symbol) then
   begin
     tmpreg := cg.GetIntRegister(list, OS_INT);
-    reference_reset(tmpref,sizeof(aint));
-    tmpref.symbol  := ref.symbol;
-    tmpref.refaddr := addr_pic;
-    if not (pi_needs_got in current_procinfo.flags) then
-      internalerror(200501161);
-    tmpref.index := current_procinfo.got;
-    list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
-    ref.symbol := nil;
-    if (ref.index <> NR_NO) then
-    begin
-      list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg, ref.index, tmpreg));
-      ref.index := tmpreg;
-    end
-    else
-    begin
-      if ref.base <> NR_NO then
-        ref.index := tmpreg
-      else
-        ref.base  := tmpreg;
-    end;
+    Load_PIC_Addr(list,tmpreg,ref);
+    { ref.symbol is nil now }
   end;
   { When need to use LUI, do it first }
   if assigned(ref.symbol) or
     (ref.offset < simm16lo) or
     (ref.offset > simm16hi) then
   begin
-    tmpreg := GetIntRegister(list, OS_INT);
+    if tmpreg=NR_NO then
+      tmpreg := GetIntRegister(list, OS_INT);
     reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := ref.symbol;
     tmpref.offset  := ref.offset;
@@ -411,31 +400,19 @@ begin
     ref.base  := ref.index;
     ref.index := NR_NO;
   end;
-  if (cs_create_pic in current_settings.moduleswitches) and
+
+  if (ref.refaddr in [addr_pic,addr_pic_call16]) then
+    maybe_reload_gp(list);
+  if ((cs_create_pic in current_settings.moduleswitches) or 
+      (ref.refaddr in [addr_pic,addr_pic_call16])) and
     assigned(ref.symbol) then
-  begin
-    tmpreg := GetIntRegister(list, OS_INT);
-    reference_reset(tmpref,sizeof(aint));
-    tmpref.symbol  := ref.symbol;
-    tmpref.refaddr := addr_pic;
-    if not (pi_needs_got in current_procinfo.flags) then
-      internalerror(200501161);
-    tmpref.index := current_procinfo.got;
-    list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
-    ref.symbol := nil;
-    if (ref.index <> NR_NO) then
     begin
-      list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg, ref.index, tmpreg));
-      ref.index := tmpreg;
-    end
-    else
-    begin
-      if ref.base <> NR_NO then
-        ref.index := tmpreg
-      else
-        ref.base  := tmpreg;
+      tmpreg := GetIntRegister(list, OS_ADDR);
+      Load_PIC_Addr(list,tmpreg,ref);
+      if (ref.base=NR_NO) and (ref.offset=0) then
+        exit;
     end;
-  end;
+
   { When need to use LUI, do it first }
   if (not assigned(ref.symbol)) and (ref.index = NR_NO) and
     (ref.offset > simm16lo + 1000) and (ref.offset < simm16hi - 1000)
@@ -700,7 +677,8 @@ begin
       reference_reset(href,sizeof(aint));
       href.symbol:=current_asmdata.RefAsmSymbol(s);
       a_loadaddr_ref_reg(list,href,NR_PIC_FUNC);
-      list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+      { Use JAL pseudo-instruction }
+      list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
     end
   else  
     list.concat(taicpu.op_sym(A_JAL,current_asmdata.RefAsmSymbol(s)));
@@ -714,7 +692,11 @@ begin
   if (cs_create_pic in current_settings.moduleswitches) and 
      (Reg <> NR_PIC_FUNC) then
     list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_PIC_FUNC));
-  list.concat(taicpu.op_reg(A_JALR, reg));
+
+  if (cs_create_pic in current_settings.moduleswitches) then
+    list.concat(taicpu.op_reg(A_JAL, NR_PIC_FUNC))
+  else
+    list.concat(taicpu.op_reg(A_JALR, reg));
   { Delay slot }
   list.concat(taicpu.op_none(A_NOP));
 end;
@@ -859,6 +841,88 @@ begin
 end;
 
 
+procedure TCGMIPS.maybe_reload_gp(list : tasmlist);
+var
+  tmpref: treference;
+begin
+  if not (cs_create_pic in current_settings.moduleswitches) then
+    begin
+      list.concat(tai_comment.create(
+        strpnew('Reloading _gp for non-pic code')));
+      reference_reset(tmpref,sizeof(aint));
+      tmpref.symbol:=current_asmdata.RefAsmSymbol('_gp');
+      cg.a_loadaddr_ref_reg(list,tmpref,NR_GP);
+    end;
+end;
+
+procedure TCGMIPS.Load_PIC_Addr(list : tasmlist; tmpreg : Tregister;
+                                var ref : treference);
+var 
+  tmpref : treference; 
+begin
+    reference_reset(tmpref,sizeof(aint));
+    tmpref.symbol  := ref.symbol;
+    { This only works correctly if pic generation is used,
+      so that -KPIC option is passed to GNU assembler }
+    if (cs_create_pic in current_settings.moduleswitches) then 
+      begin
+        tmpref.refaddr:=addr_full;
+        list.concat(taicpu.op_reg_ref(A_LA, tmpreg, tmpref));
+      end
+    else
+      begin
+        if (ref.refaddr=addr_pic_call16) or (ref.symbol.typ=AT_FUNCTION) then
+          begin
+            list.concat(tai_comment.create(strpnew('loadaddr pic %call16 code')));
+            tmpref.refaddr := addr_pic_call16;
+          end
+        else
+          begin
+            list.concat(tai_comment.create(strpnew('loadaddr pic %got code')));
+            tmpref.refaddr := addr_pic;
+          end;
+        if not (pi_needs_got in current_procinfo.flags) then
+          internalerror(200501161);
+        if current_procinfo.got=NR_NO then
+          current_procinfo.got:=NR_GP;
+        { for addr_pic NR_GP can be implicit or explicit }
+        if ref.refaddr in [addr_pic,addr_pic_call16] then
+          begin
+            if (ref.base=current_procinfo.got) then
+              ref.base:=NR_NO;
+            if (ref.index=current_procinfo.got) then
+              ref.index:=NR_NO;
+          end;
+        tmpref.base := current_procinfo.got;
+        list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
+        if (tmpref.refaddr<>addr_pic_call16) {and
+           and (ref.symbol is TAsmSymbolSect) and 
+           (TAsmSymbolSect(ref.symbol).sectype in needs_pic_lo16_set)} then
+          begin
+            { GOT also requires loading of low part }
+            { but apparently only for some type of sumbols :( }
+            list.concat(tai_comment.create(strpnew('pic %lo code')));
+            tmpref.refaddr := addr_low;
+            tmpref.base := NR_NO;
+            list.concat(taicpu.op_reg_reg_ref(A_ADDIU, tmpreg, tmpreg, tmpref));
+          end;
+      end;
+    ref.symbol:=nil;
+    { This is now a normal addr reference }
+    ref.refaddr:=addr_no;
+    if (ref.index <> NR_NO) then
+      begin
+        list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg, ref.index, tmpreg));
+        ref.index := tmpreg;
+      end
+    else
+      begin
+        if ref.base <> NR_NO then
+          ref.index := tmpreg
+        else
+          ref.base  := tmpreg;
+      end;
+end;
 procedure TCGMIPS.a_loadaddr_ref_reg(list: tasmlist; const ref: TReference; r: tregister);
 var
   tmpref, href: treference;
@@ -871,36 +935,11 @@ begin
     internalerror(200306171);
 
   if ((cs_create_pic in current_settings.moduleswitches) or
-      (ref.refaddr=addr_pic)) and
+      (ref.refaddr in [addr_pic,addr_pic_call16])) and
     assigned(href.symbol) then
   begin
-    tmpreg := r; //GetIntRegister(list, OS_ADDR);
+    Load_PIC_Addr(list,r,href);
     r_used := true;
-    reference_reset(tmpref,sizeof(aint));
-    tmpref.symbol  := href.symbol;
-    tmpref.refaddr := addr_pic;
-    if not (pi_needs_got in current_procinfo.flags) then
-      internalerror(200501161);
-    if current_procinfo.got=NR_NO then
-      current_procinfo.got:=NR_GP;
-    { for addr_pic NR_GP can be implicit or explicit }
-    if (href.refaddr=addr_pic) and (href.base=current_procinfo.got) then
-      href.base:=NR_NO;
-    tmpref.base := current_procinfo.got;
-    list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
-    href.symbol := nil;
-    if (href.index <> NR_NO) then
-    begin
-      list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg, href.index, tmpreg));
-      href.index := tmpreg;
-    end
-    else
-    begin
-      if href.base <> NR_NO then
-        href.index := tmpreg
-      else
-        href.base  := tmpreg;
-    end;
     if (href.base=NR_NO) and (href.offset=0) then
       exit;
   end;
@@ -956,7 +995,8 @@ begin
     end
     else if href.base <> NR_NO then   { Only base }
     begin
-      list.concat(taicpu.op_reg_reg_const(A_ADDIU, r, href.base, href.offset));
+      if (href.offset<>0) or (r<>href.base) then
+        list.concat(taicpu.op_reg_reg_const(A_ADDIU, r, href.base, href.offset));
     end
     else
       { only offset, can be generated by absolute }
@@ -1458,12 +1498,12 @@ begin
   list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,current_procinfo.framepointer,LocalSize,NR_R31));
   list.concat(Taicpu.op_const_const(A_P_MASK,mask,-(LocalSize-lastintoffset)));
   list.concat(Taicpu.op_const_const(A_P_FMASK,Fmask,-(LocalSize-lastfpuoffset)));
+  list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
     begin
       list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
     end;
-  list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
 
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
