@@ -86,6 +86,7 @@ type
     procedure g_concatcopy(list: tasmlist; const Source, dest: treference; len: tcgint); override;
     procedure g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: tcgint); override;
     procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
+    procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
     { Transform unsupported methods into Internal errors }
     procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
@@ -120,7 +121,7 @@ implementation
 uses
   globals, verbose, systems, cutils,
   paramgr, fmodule,
-  symtable,
+  symtable, symsym,
   tgobj,
   procinfo, cpupi;
 
@@ -1907,38 +1908,12 @@ end;
 
 
 procedure TCGMIPS.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint);
-
-  procedure loadvmttorvmt;
-    var
-      href: treference;
-    begin
-      { TODO: Hardcoded register is ugly!
-        Look for the 'self' parameter again? g_adjust_self_value() does it right before,
-        but the result is local to g_adjust_self_value. }
-      reference_reset_base(href, NR_R4, 0, sizeof(aint));
-      cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_VMT);
-    end;
-
-
-   procedure op_onrvmtmethodaddr;
-     var
-       href : treference;
-       reg : tregister;
-     begin
-       if (procdef.extnumber=$ffff) then
-         Internalerror(200006139);
-       { call/jmp  vmtoffs(%eax) ; method offs }
-       reference_reset_base(href, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
-       if (cs_create_pic in current_settings.moduleswitches) then
-         reg:=NR_PIC_FUNC
-       else
-         reg:=NR_VMT;
-       cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, reg);
-       list.concat(taicpu.op_reg(A_JR, reg));
-     end;
 var
   make_global: boolean;
+  hsym: tsym;
   href: treference;
+  paraloc: Pcgparalocation;
+  IsVirtual: boolean;
 begin
   if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
     Internalerror(200006137);
@@ -1959,22 +1934,79 @@ begin
   else
     List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0));
 
-  { set param1 interface to self  }
-  g_adjust_self_value(list, procdef, ioffset);
+  IsVirtual:=(po_virtualmethod in procdef.procoptions) and
+      not is_objectpascal_helper(procdef.struct);
 
-  if (po_virtualmethod in procdef.procoptions) and
-      not is_objectpascal_helper(procdef.struct) then
-  begin
-    loadvmttorvmt;
-    op_onrvmtmethodaddr;
-  end
+  if (cs_create_pic in current_settings.moduleswitches) and
+    (not IsVirtual) then
+    begin
+      list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
+      list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
+      list.concat(Taicpu.op_none(A_P_SET_REORDER));
+    end;
+
+  { set param1 interface to self  }
+  procdef.init_paraloc_info(callerside);
+  hsym:=tsym(procdef.parast.Find('self'));
+  if not(assigned(hsym) and
+    (hsym.typ=paravarsym)) then
+    internalerror(2010103101);
+  paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+  if assigned(paraloc^.next) then
+    InternalError(2013020101);
+
+  case paraloc^.loc of
+    LOC_REGISTER:
+      begin
+        if ((ioffset>=simm16lo) and (ioffset<=simm16hi)) then
+          a_op_const_reg(list,OP_SUB, paraloc^.size,ioffset,paraloc^.register)
+        else
+          begin
+            a_load_const_reg(list, paraloc^.size, ioffset, NR_R1);
+            a_op_reg_reg(list, OP_SUB, paraloc^.size, NR_R1, paraloc^.register);
+          end;
+      end;
   else
-   list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+    internalerror(2010103102);
+  end;
+
+  if IsVirtual then
+  begin
+    { load VMT pointer }
+    reference_reset_base(href,paraloc^.register,0,sizeof(aint));
+    list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
+
+    if (procdef.extnumber=$ffff) then
+      Internalerror(200006139);
+
+    { TODO: case of large VMT is not handled }
+    { We have no reason not to use $t9 even in non-PIC mode. }
+    reference_reset_base(href, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+    list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+    list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
+  end
+  else if not (cs_create_pic in current_settings.moduleswitches) then
+    list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+  else
+    begin
+      { GAS does not expand "J symbol" into PIC sequence }
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+      href.base:=NR_GP;
+      href.refaddr:=addr_pic_call16;
+      list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+      list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+    end;
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 
   List.concat(Tai_symbol_end.Createname(labelname));
 end;
+
+procedure TCGMIPS.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+  begin
+    { This method is integrated into g_intf_wrapper and shouldn't be called separately }
+    InternalError(2013020102);
+  end;
 
 procedure TCGMIPS.g_stackpointer_alloc(list : TAsmList;localsize : longint);
   begin
