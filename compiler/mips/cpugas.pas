@@ -58,7 +58,6 @@ unit cpugas;
     function gas_std_regname(r:Tregister):string;
       var
         hr: tregister;
-        p:  longint;
       begin
         { Double uses the same table as single }
         hr := r;
@@ -109,89 +108,64 @@ unit cpugas;
 
     function GetReferenceString(var ref: TReference): string;
       var
-        hasgot : boolean;
-        gotprefix : string;
+        reg: TRegister;
+        regstr: string;
       begin
-        GetReferenceString := '';
-        hasgot:=false;
-        with ref do
-        begin
-          if (base = NR_NO) and (index = NR_NO) then
+        result:='';
+        if assigned(ref.symbol) then
+          result:=ref.symbol.name;
+        if (ref.offset<0) then
+          result:=result+tostr(ref.offset)
+        else if (ref.offset>0) then
           begin
-            if assigned(symbol) then
-              begin
-                GetReferenceString := symbol.Name;
-                if (symbol.typ=AT_FUNCTION) or (refaddr=addr_pic_call16) then
-                  gotprefix:='%call16('
-                else
-                  gotprefix:='%got(';
-                hasgot:=true;
-              end;
-            if offset > 0 then
-              GetReferenceString := GetReferenceString + '+' + ToStr(offset)
-            else if offset < 0 then
-              GetReferenceString := GetReferenceString + ToStr(offset);
-            case refaddr of
-              addr_full : ;
-              addr_high:
-                GetReferenceString := '%hi(' + GetReferenceString + ')';
-              addr_low:
-                GetReferenceString := '%lo(' + GetReferenceString + ')';
-              addr_pic,addr_pic_call16:
-                begin
-                  if hasgot then
-                    GetReferenceString := gotprefix + GetReferenceString + ')'
-                  else
-                    internalerror(2012070401);
-                end;
-            else
-              internalerror(2012070401);
-            end;
-          end
-          else
-          begin
-      {$ifdef extdebug}
-            if assigned(symbol) and
-              not(refaddr in [addr_pic,addr_low]) then
-              internalerror(2003052601);
-      {$endif extdebug}
-            if base <> NR_NO then
-              GetReferenceString := GetReferenceString + '(' + asm_regname(base) + ')';
-            if index = NR_NO then
-            begin
-              if offset <> 0 then
-                GetReferenceString := ToStr(offset) + GetReferenceString;
-              if assigned(symbol) then
-              begin
-                case refaddr of
-                  addr_full, addr_high :
-                  GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
-                addr_low :
-                  GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString;
-                addr_pic, addr_pic_call16 :
-                  begin
-                    if symbol.typ=AT_FUNCTION then
-                      gotprefix:='%call16('
-                    else
-                      gotprefix:='%got(';
-                    GetReferenceString := gotprefix + symbol.Name + ')' + GetReferenceString;
-                   end
-                else
-                  internalerror(2012070401);
-                end;
-              end;
-            end
-            else
-            begin
-  {$ifdef extdebug}
-              if (Offset<>0) or assigned(symbol) then
-                internalerror(2003052603);
-  {$endif extdebug}
-              GetReferenceString := GetReferenceString + '(' + asm_regname(index) + ')';
-
-            end;
+            if assigned(ref.symbol) then
+              result:=result+'+';
+            result:=result+tostr(ref.offset);
           end;
+
+        { either base or index may be present, but not both }
+        reg:=ref.base;
+        if (reg=NR_NO) then
+          reg:=ref.index
+        else if (ref.index<>NR_NO) then
+          InternalError(2013013001);
+
+        if (reg=NR_NO) then
+          regstr:=''
+        else
+          regstr:='('+asm_regname(reg)+')';
+
+        case ref.refaddr of
+          addr_no,
+          addr_full:
+            if assigned(ref.symbol) and (reg<>NR_NO) then
+              InternalError(2013013002)
+            else
+              begin
+                result:=result+regstr;
+                exit;
+              end;
+          addr_pic:
+            result:='%got('+result;
+          addr_high:
+            result:='%hi('+result;
+          addr_low:
+            result:='%lo('+result;
+          addr_pic_call16:
+            result:='%call16('+result;
+          addr_low_pic:
+            result:='%got_lo('+result;
+          addr_high_pic:
+            result:='%got_hi('+result;
+          addr_low_call:
+            result:='%call_lo('+result;
+          addr_high_call:
+            result:='%call_hi('+result;
+        else
+          InternalError(2013013003);
         end;
+
+        result:=result+')'+regstr;
       end;
 
 

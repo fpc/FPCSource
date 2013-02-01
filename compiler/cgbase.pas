@@ -23,7 +23,7 @@
 unit cgbase;
 
 {$i fpcdefs.inc}
-
+{$J-}
 interface
 
     uses
@@ -70,9 +70,6 @@ interface
          addr_full,
          addr_pic,
          addr_pic_no_got
-         {$ifdef mips}
-         ,addr_pic_call16
-         {$endif}
          {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
          ,
          addr_low,         // bits 48-63
@@ -87,6 +84,14 @@ interface
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
+         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS}
+         {$IFDEF MIPS}
+         ,
+         addr_pic_call16,  // like addr_pic, but generates call16 reloc instead of got16
+         addr_low_pic,     // for large GOT model, generate got_hi16 and got_lo16 relocs
+         addr_high_pic,
+         addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
+         addr_high_call
          {$ENDIF}
          {$IFDEF AVR}
          ,addr_lo8
