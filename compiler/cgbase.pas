@@ -23,7 +23,7 @@
 unit cgbase;
 
 {$i fpcdefs.inc}
-{$J-}
+
 interface
 
     uses
