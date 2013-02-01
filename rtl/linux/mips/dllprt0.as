@@ -17,17 +17,19 @@
 
 	.align 4
 	.global _dynamic_start
-	.ent	_dynamic_start
+    .global FPC_SHARED_LIB_START
 	.type _dynamic_start,@function
+    .type  FPC_SHARED_LIB_START,@function
+FPC_SHARED_LIB_START:
 _dynamic_start:
-        .set noreorder
+	.ent  _dynamic_start 
+    .set noreorder
 	.cpload $25
-        /* TODO: check whether this code is correct */
-        la      $v0,__dl_fini
-        lw      $v0,($v0)
-	lw      $v1,%call16(_start)($gp)
-	move    $t9,$v1
-        jalr	$t9
+    /* TODO: check whether this code is correct */
+    la      $v0,__dl_fini
+    lw      $v0,($v0)
+	la      $t9,_start
+    jr	    $t9
 	nop
 
 	.end	_dynamic_start
@@ -35,8 +37,7 @@ _dynamic_start:
 
 	.align 4
 	.global _start
-        .set    nomips16
-        .ent    _start
+    .set    nomips16
  	.type	_start,@function
 /*  This is the canonical entry point, usually the first thing in the text
     segment.  The SVR4/Mips ABI (pages 3-31, 3-32) says that when the entry
@@ -56,55 +57,75 @@ _dynamic_start:
     ra ($31)	Return address set to zero.
 */
 _start:
-        /* load fp */
-        .set noreorder
+    .ent _start
+    /* load fp */
+    .set noreorder
 	.cpload $25
-	addiu   $sp,$sp,-32
-        move    $s8,$sp
-	.cprestore 16
-        la      $t1,__stkptr
-        sw      $s8,($t1)
 
-        /* align stack */
-        li      $at,-8
-        and     $sp,$sp,$at
+    /* Record $sp into $s8 */
+	move    $s8,$sp
 
-        addiu   $sp,$sp,-32
+    /* align stack */
+    li      $at,-8
+    and     $sp,$sp,$at
+    addiu   $sp,$sp,-32
 
-        lui     $s7,0x3d
-        addiu   $s7,$s7,2304
-        li      $at,-8
-        and     $s7,$s7,$at
-        addiu   $s7,$s7,-32
+    /* Compute and save sp offset */
+    subu    $t1,$s8,$sp
+    sw      $t1,24($sp)
 
-        /* store argc */
-        lw      $a0,0($s8)
-        la      $a1,operatingsystem_parameter_argc
-        sw      $a0,($a1)
+    /* Save $ra register */
+    sw      $ra,28($sp)
+    /* Save $gp register */
+	.cprestore 20 
 
-        /* store argv */
-        addiu   $a1,$s8,4
-        la      $a2,operatingsystem_parameter_argv
-        sw      $a1,($a2)
+    /* Set __stkptr variable */
+    move    $s8,$sp
+    la      $t1,__stkptr
+    sw      $s8,($t1)
 
-        /* store envp */
-        addiu   $a2,$a0,1
-        sll     $a2,$a2,0x2
-        addu    $a2,$a2,$a1
-        la      $a3,operatingsystem_parameter_envp
-        sw      $a2,($a3)
-        la      $t9,PASCALMAIN
-        jalr    $t9
-        nop
-	b       _haltproc
-        nop
+    /* store argc, which is in $a0 */
+    lw      $a0,0($s8)
+    la      $t1,operatingsystem_parameter_argc
+    sw      $a0,($t1)
+
+    /* store argv which is in $a1 */
+    addiu   $a1,$s8,4
+    la      $t1,operatingsystem_parameter_argv
+    sw      $a1,($t1)
+
+    /* store envp which is in $a2 */
+    la      $t1,operatingsystem_parameter_envp
+    sw      $a2,($t1)
+
+    /* Set IsLibrary to one */
+    la      $t1,operatingsystem_islibrary
+    li      $t2,1
+    sb      $t2,($t1)
+    /* Jump to PASCALMAIN */
+    la      $t9,PASCALMAIN
+    jalr    $t9
+    nop
+
+    /* Restore $ra */
+    lw      $ra,28($sp)
+
+    /* Restore old $sp */
+    lw      $t1,24($sp)
+    addu    $sp,$sp,$t1
+    /* Return to caller */
+    jr      $ra
+    nop
 
 	.end	_start
 	.size 	_start, .-_start
 
 	.globl  _haltproc
+    .globl  FPC_SHARED_LIB_EXIT
 	.ent	_haltproc
 	.type   _haltproc,@function
+    .type  FPC_SHARED_LIB_EXIT,@function
+FPC_SHARED_LIB_EXIT:
 _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
