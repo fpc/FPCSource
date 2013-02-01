@@ -49,6 +49,7 @@ implementation
   uses
     aasmtai,
     cutils,
+    globals,
     cgobj,
     cpubase,
     cgcpu;
@@ -59,16 +60,25 @@ implementation
     begin
       if pd.proccalloption=pocall_cdecl then
         begin
-          { Use $gp/$t9 registers as the code might be in a shared library }
-          reference_reset(ref,sizeof(aint));
-          ref.symbol:=current_asmdata.RefAsmSymbol('_gp');
-          list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
-          cg.a_loadaddr_ref_reg(list,ref,NR_GP);
-          reference_reset(ref,sizeof(aint));
-          ref.symbol:=current_asmdata.RefAsmSymbol(s);
-          ref.base:=NR_GP;
-          ref.refaddr:=addr_pic_call16;
-          cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+          if (cs_create_pic in current_settings.moduleswitches) then
+            begin
+              reference_reset(ref,sizeof(aint));
+              ref.symbol:=current_asmdata.RefAsmSymbol(s);
+              cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+            end
+          else
+            begin
+              { Use $gp/$t9 registers as the code might be in a shared library }
+              reference_reset(ref,sizeof(aint));
+              ref.symbol:=current_asmdata.RefAsmSymbol('_gp');
+              list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
+              cg.a_loadaddr_ref_reg(list,ref,NR_GP);
+              reference_reset(ref,sizeof(aint));
+              ref.symbol:=current_asmdata.RefAsmSymbol(s);
+              ref.base:=NR_GP;
+              ref.refaddr:=addr_pic_call16;
+              cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+            end;
           cg.a_call_reg(list,NR_PIC_FUNC);
         end
       else
