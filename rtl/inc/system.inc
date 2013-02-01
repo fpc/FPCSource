@@ -835,12 +835,21 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : longint;
+{$ifdef DEBUG}
+  pt : PInitFinalTable;
+{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef DEBUG}
+  pt := PInitFinalTable(EntryInformation.InitFinalTable);
+{$endif}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef DEBUG}
+  pt := @InitFinalTable;
+{$endif}
   with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
    begin
