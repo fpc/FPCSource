@@ -1154,6 +1154,24 @@ unit scandir;
       end;
 {$endif}
 
+    procedure dir_targetswitch;
+      var
+        name, value: string;
+      begin
+        { note: *not* recorded in the tokenstream, so not replayed for generics }
+        current_scanner.skipspace;
+        name:=current_scanner.readid;
+        if c='=' then
+          begin
+            current_scanner.readchar;
+            current_scanner.readid;
+            value:=orgpattern;
+            UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
+          end
+        else
+          UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
+      end;
+
     procedure dir_typedaddress;
       begin
         do_delphiswitch('T');
@@ -1591,6 +1609,7 @@ unit scandir;
 {$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
 {$endif powerpc}
+        AddDirective('TARGETSWITCH',directive_all, @dir_targetswitch);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
