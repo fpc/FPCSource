@@ -21,7 +21,7 @@ uses
 {$else not USE_FPCGI}
      cgiapp,
 {$endif not USE_FPCGI}
-     sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
+     sysutils,mysql55conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
@@ -370,7 +370,7 @@ Function TTestSuite.ConnectToDB : Boolean;
 
 begin
   Result:=False;
-  FDB:=TMySQl50Connection.Create(Self);
+  FDB:=TMySQl55Connection.Create(Self);
   FDB.HostName:=DefHost;
   FDB.DatabaseName:=DefDatabase;
   FDB.UserName:=DefDBUser;
@@ -793,8 +793,8 @@ end;
 Procedure TTestSuite.ShowRunOverview;
 Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
-               'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
-               'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION as SvnCompRev,'+
+               'TV_VERSION as Version,(select count(*) from TESTRESULTS where TR_TESTRUN_FK=TU_ID) as Count,'+
+               'TU_SVNCOMPILERREVISION as SvnCompRev,'+
                'TU_SVNRTLREVISION as SvnRTLRev,'+
                'TU_SVNPACKAGESREVISION as SvnPackRev,TU_SVNTESTSREVISION as SvnTestsRev,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
@@ -802,13 +802,12 @@ Const
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
                'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment %s '+
-              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION,TESTCATEGORY '+
+              'FROM TESTRUN force index (primary),TESTCPU,TESTOS,TESTVERSION,TESTCATEGORY '+
               'WHERE '+
                '(TC_ID=TU_CPU_FK) AND '+
                '(TO_ID=TU_OS_FK) AND '+
                '(TV_ID=TU_VERSION_FK) AND '+
-               '(TCAT_ID=TU_CATEGORY_FK) AND '+
-               '(TR_TESTRUN_FK=TU_ID) '+
+               '(TCAT_ID=TU_CATEGORY_FK) '+
                '%s '+
               'GROUP BY TU_ID '+
               'ORDER BY TU_ID DESC LIMIT %d';
@@ -845,7 +844,7 @@ begin
           'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
    else
      SC:='';
-   If GetCategoryName(FCategory)='All' then
+   If (FCategory='') or (GetCategoryName(FCategory)='All') then
      SC:=SC+', TCAT_NAME as Cat';
 
    A:=SDetailsURL;
@@ -1526,7 +1525,7 @@ Type
   PStatusLA = ^AStatusLA;
   PStatusDTA = ^AStatusDTA;
 Var
-  S,FL,cpu,version,os : String;
+  S,SS,FL,cpu,version,os : String;
   date : TDateTime;
   Qry : String;
   Base, Category : string;
@@ -1562,8 +1561,18 @@ begin
   ContentType:='text/html';
   EmitContentType;
   if (FTestFileID='') and (FTestFileName<>'') then
+  begin
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
      FTestFileName+'%''');
+    if FTestFileID = '' then
+      with FHTMLWriter do begin
+        EmitHistoryForm;
+        HeaderStart(2);
+        Write(Format('No test files matching "%s" found.', [FTestFileName]));
+        HeaderEnd(2);
+        exit;
+      end;
+  end;
   if FTestFileID<>'' then
     FTestFileName:=GetTestFileName(FTestFileID);
   if FTestFileName<>'' then
@@ -1642,7 +1651,7 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
+      SS:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
         +', TR_SKIP As Skip,TR_RESULT  As Result'
       //S:='SELECT * '
         +',TC_NAME AS CPU, TV_VERSION AS Version, TO_NAME AS OS'
@@ -1659,8 +1668,10 @@ begin
         +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
         +' LEFT JOIN TESTOS ON  (TU_OS_FK=TO_ID)'
         +' LEFT JOIN TESTCPU ON  (TU_CPU_FK=TC_ID)'
-        +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)'
-        +' WHERE  (TR_TEST_FK='+FTestFileID+')';
+        +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)';
+      S:='';
+      if FTestFileID<>'' then
+        S:=S+' AND (TR_TEST_FK='+FTestFileID+')';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
@@ -1739,6 +1750,15 @@ begin
         S:=S+' AND (TU_COMMENT LIKE '''+FComment+''')';
       if FDATE<>0 then
         S:=S+' AND (TU_DATE >= '''+FormatDateTime('YYYY-MM-DD',FDate)+''')';
+
+      if S <> '' then
+      begin
+        if LowerCase(Copy(S, 1, 4)) = ' and' then
+          Delete(S, 1, 4);
+        S:=SS + ' WHERE '+ S;
+      end
+      else
+        S:=SS;
 
       S:=S+' ORDER BY TU_ID DESC';
       if FDATE=0 then
@@ -2140,16 +2160,19 @@ begin
               Write('After log.');
             Source:='';
             Try
-            Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
-            if Source<>'' then
+              if ftestfileid <> '' then
               begin
-                HeaderStart(2);
-                Write('Source:');
-                HeaderEnd(2);
-                PreformatStart;
-                system.Write(Source);
-                system.flush(output);
-                PreformatEnd;
+                Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
+                if Source<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Source:');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Source);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
               end;
             Finally
             Base:='trunk';
