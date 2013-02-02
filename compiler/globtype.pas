@@ -278,6 +278,7 @@ interface
        ttargetswitchinfo = record
           name: string[22];
           hasvalue: boolean;
+          isglobal: boolean;
        end;
 
     const
@@ -296,13 +297,13 @@ interface
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
-         (name: '';                    hasvalue: false),
-         (name: 'SMALLTOC';            hasvalue: false),
-         (name: 'COMPACTINTARRAYINIT'; hasvalue: false),
-         (name:  'ENUMFIELDINIT';      hasvalue: false),
-         (name: 'AUTOGETTERPREFIX';    hasvalue: true ),
-         (name: 'AUTOSETTERPREFIX';    hasvalue: true ),
-         (name: 'THUMBINTERWORKING';   hasvalue: true )
+         (name: '';                    hasvalue: false; isglobal: true ),
+         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ),
+         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
+         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true )
        );
 
        { switches being applied to all CPUs at the given level }

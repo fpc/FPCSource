@@ -976,7 +976,7 @@ begin
                          include(init_settings.moduleswitches,cs_create_smart);
                     'T' :
                       begin
-                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches) then
+                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
                           IllegalPara(opt);
                         break;
                       end;

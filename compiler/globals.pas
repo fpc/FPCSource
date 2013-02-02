@@ -511,7 +511,7 @@ interface
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
-    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
+    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -1342,7 +1342,7 @@ implementation
       end;
 
 
-    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
+    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
       var
         tok,
         value : string;
@@ -1387,7 +1387,10 @@ implementation
             end;
           if found then
             begin
-              if not TargetSwitchStr[opt].hasvalue then
+              if not global and
+                 TargetSwitchStr[opt].isglobal then
+                result:=false
+              else if not TargetSwitchStr[opt].hasvalue then
                 begin
                   if gotvalue then
                     result:=false;
