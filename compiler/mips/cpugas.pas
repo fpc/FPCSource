@@ -228,7 +228,8 @@ unit cpugas;
         { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
           (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
           (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
-          or (op=A_LA) or (op=A_BC) or (op=A_JAL)
+          { JAL is not here! See comments in TCGMIPS.a_call_name. }
+          or (op=A_LA) or (op=A_BC) {or (op=A_JAL)}
           or (op=A_REM) or (op=A_REMU)
           or (op=A_DIV) or (op=A_DIVU) 
           { A_LI is only a macro if the immediate is not in thez 16-bit range }

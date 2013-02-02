@@ -88,6 +88,7 @@ type
     procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
     procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+    procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
     { Transform unsupported methods into Internal errors }
     procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
     procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -678,28 +679,50 @@ begin
       reference_reset(href,sizeof(aint));
       href.symbol:=current_asmdata.RefAsmSymbol(s);
       a_loadaddr_ref_reg(list,href,NR_PIC_FUNC);
-      { Use JAL pseudo-instruction }
+      { JAL handled as macro provides delay slot and correct restoring of GP. }
+      { Doing it ourselves requires a fixup pass, because GP restore location
+        becomes known only in g_proc_entry, when all code is already generated. }
+
+      { GAS <2.21 is buggy, it doesn't add delay slot in noreorder mode. As a result,
+        the code will crash if dealing with stack frame size >32767 or if calling
+        into shared library.
+        This can be remedied by enabling instruction reordering, but then we also
+        have to emit .set macro/.set nomacro pair and exclude JAL from the
+        list of macro instructions (because noreorder is not allowed after nomacro) }
+      list.concat(taicpu.op_none(A_P_SET_MACRO));
+      list.concat(taicpu.op_none(A_P_SET_REORDER));
       list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
+      list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+      list.concat(taicpu.op_none(A_P_SET_NOMACRO));
     end
-  else  
-    list.concat(taicpu.op_sym(A_JAL,current_asmdata.RefAsmSymbol(s)));
-  { Delay slot }
-  list.concat(taicpu.op_none(A_NOP));
+  else
+    begin
+      list.concat(taicpu.op_sym(A_JAL,current_asmdata.RefAsmSymbol(s)));
+      { Delay slot }
+      list.concat(taicpu.op_none(A_NOP));
+    end;
 end;
 
 
 procedure TCGMIPS.a_call_reg(list: tasmlist; Reg: TRegister);
 begin
-  if (cs_create_pic in current_settings.moduleswitches) and 
-     (Reg <> NR_PIC_FUNC) then
-    list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_PIC_FUNC));
-
   if (cs_create_pic in current_settings.moduleswitches) then
-    list.concat(taicpu.op_reg(A_JAL, NR_PIC_FUNC))
+    begin
+      if (Reg <> NR_PIC_FUNC) then
+        list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
+      { See comments in a_call_name }
+      list.concat(taicpu.op_none(A_P_SET_MACRO));
+      list.concat(taicpu.op_none(A_P_SET_REORDER));
+      list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
+      list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+      list.concat(taicpu.op_none(A_P_SET_NOMACRO));
+    end
   else
-    list.concat(taicpu.op_reg(A_JALR, reg));
-  { Delay slot }
-  list.concat(taicpu.op_none(A_NOP));
+    begin
+      list.concat(taicpu.op_reg(A_JALR, reg));
+      { Delay slot }
+      list.concat(taicpu.op_none(A_NOP));
+    end;
 end;
 
 
@@ -924,6 +947,8 @@ begin
           ref.base  := tmpreg;
       end;
 end;
+
+
 procedure TCGMIPS.a_loadaddr_ref_reg(list: tasmlist; const ref: TReference; r: tregister);
 var
   tmpref, href: treference;
@@ -2001,6 +2026,25 @@ begin
 
   List.concat(Tai_symbol_end.Createname(labelname));
 end;
+
+
+procedure TCGMIPS.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  var
+    href: treference;
+  begin
+    { Always do indirect jump using $t9, it won't harm in non-PIC mode.
+      .cpload is safe in this respect, too. }
+    list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+    list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
+    reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname),0,sizeof(aint));
+    href.refaddr:=addr_pic_call16;
+    list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+    list.concat(taicpu.op_reg(A_J,NR_PIC_FUNC));
+    { Delay slot }
+    list.Concat(taicpu.op_none(A_NOP));
+    list.Concat(taicpu.op_none(A_P_SET_REORDER));
+  end;
+
 
 procedure TCGMIPS.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
   begin
