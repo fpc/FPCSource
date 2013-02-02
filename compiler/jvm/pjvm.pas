@@ -892,7 +892,7 @@ implementation
             (getter and
              (prop_auto_getter_prefix<>'')) or
             (not getter and
-             (prop_auto_getter_prefix<>''));
+             (prop_auto_setter_prefix<>''));
           sym:=nil;
           procoptions:=[];
           if explicitwrapper then
