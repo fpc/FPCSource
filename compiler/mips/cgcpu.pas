@@ -2037,6 +2037,7 @@ procedure TCGMIPS.g_external_wrapper(list: TAsmList; procdef: tprocdef; const ex
     list.concat(taicpu.op_none(A_P_SET_NOREORDER));
     list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
     reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname),0,sizeof(aint));
+    href.base:=NR_GP;
     href.refaddr:=addr_pic_call16;
     list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
     list.concat(taicpu.op_reg(A_J,NR_PIC_FUNC));
