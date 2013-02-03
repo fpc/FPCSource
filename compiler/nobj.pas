@@ -1533,7 +1533,7 @@ implementation
             if (procdef.funcretloc[calleeside].Location^.loc=LOC_FPUREGISTER) then
               exit;
 {$endif x86}
-            procdef.init_paraloc_info(calleeside);
+            procdef.init_paraloc_info(callerside);
             { we can redirect the call if no memory parameter is passed }
             for i:=0 to procdef.paras.count-1 do
               begin
