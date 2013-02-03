@@ -2032,18 +2032,30 @@ procedure TCGMIPS.g_external_wrapper(list: TAsmList; procdef: tprocdef; const ex
   var
     href: treference;
   begin
-    { Always do indirect jump using $t9, it won't harm in non-PIC mode.
-      .cpload is safe in this respect, too. }
-    list.concat(taicpu.op_none(A_P_SET_NOREORDER));
-    list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
     reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname),0,sizeof(aint));
-    href.base:=NR_GP;
-    href.refaddr:=addr_pic_call16;
-    list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
-    list.concat(taicpu.op_reg(A_J,NR_PIC_FUNC));
-    { Delay slot }
-    list.Concat(taicpu.op_none(A_NOP));
-    list.Concat(taicpu.op_none(A_P_SET_REORDER));
+    { Always do indirect jump using $t9, it won't harm in non-PIC mode }
+    if (cs_create_pic in current_settings.moduleswitches) then
+      begin
+        list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+        list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
+        href.base:=NR_GP;
+        href.refaddr:=addr_pic_call16;
+        list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+        list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+        { Delay slot }
+        list.Concat(taicpu.op_none(A_NOP));
+        list.Concat(taicpu.op_none(A_P_SET_REORDER));
+      end
+    else
+      begin
+        href.refaddr:=addr_high;
+        list.concat(taicpu.op_reg_ref(A_LUI,NR_PIC_FUNC,href));
+        href.refaddr:=addr_low;
+        list.concat(taicpu.op_reg_ref(A_ADDIU,NR_PIC_FUNC,href));
+        list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+        { Delay slot }
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
   end;
 
 
