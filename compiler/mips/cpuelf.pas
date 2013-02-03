@@ -36,6 +36,7 @@ implementation
     TElfExeOutputMIPS=class(TElfExeOutput)
     private
       gpdispsym: TObjSymbol;
+      gnugpsym: TObjSymbol;
       dt_gotsym_value: longint;
       dt_local_gotno_value: longint;
       procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
@@ -84,6 +85,7 @@ implementation
     R_MIPS_GOT_LO16 = 22;
     R_MIPS_CALL_HI16 = 30;
     R_MIPS_CALL_LO16 = 31;
+    R_MIPS_JALR    = 37;
 
     { dynamic tags }
     DT_MIPS_RLD_VERSION  = $70000001;
@@ -159,8 +161,6 @@ implementation
 
 
   function elf_mips_loadsection(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
-    var
-      secname:string;
     begin
       case shdr.sh_type of
         SHT_MIPS_REGINFO:
@@ -192,8 +192,9 @@ implementation
       { TODO: must be an absolute symbol; binutils use linker script to define it  }
       gotsymbol:=internalObjData.SymbolDefine('_gp',AB_GLOBAL,AT_NONE);
       gotsymbol.offset:=$7ff0;
-      { also define _gp_disp }
+      { also define _gp_disp and __gnu_local_gp }
       gpdispsym:=internalObjData.SymbolDefine('_gp_disp',AB_GLOBAL,AT_NONE);
+      gnugpsym:=internalObjData.SymbolDefine('__gnu_local_gp',AB_GLOBAL,AT_NONE);
       { reserved entries }
       gotobjsec.WriteZeros(sizeof(pint));
       tmp:=$80000000;
@@ -331,7 +332,7 @@ implementation
 
   procedure TElfExeOutputMIPS.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
     var
-      gotoff,tmp:aword;
+      gotoff:aword;
     begin
       gotoff:=objsym.exesymbol.gotoffset;
       if gotoff=0 then
@@ -491,10 +492,15 @@ implementation
                     reloclist:=hr^.next;
                     // if relocval<>hr^.relocval then  // must be the same symbol
                     //   InternalError();
-                    { _gp_disp magic }
-                    is_gp_disp:=assigned(hr^.objrel.symbol) and
-                       assigned(hr^.objrel.symbol.exesymbol) and
-                      (hr^.objrel.symbol.exesymbol.objsymbol=gpdispsym);
+                    { _gp_disp and __gnu_local_gp magic }
+                    if assigned(hr^.objrel.symbol) and
+                      assigned(hr^.objrel.symbol.exesymbol) then
+                      begin
+                        is_gp_disp:=(hr^.objrel.symbol.exesymbol.objsymbol=gpdispsym);
+                        if (hr^.objrel.symbol.exesymbol.objsymbol=gnugpsym) then
+                          relocval:=gotsymbol.address;
+                      end;
+
                     if is_gp_disp then
                       relocval:=gotsymbol.address-curloc;
                     AHL_S:=(hr^.addend shl 16)+SmallInt(address)+relocval;
@@ -526,6 +532,8 @@ implementation
               //TODO: check overflow
               address:=(address and $FFFF0000) or ((((SmallInt(address) shl 2)+relocval-curloc) shr 2) and $FFFF);
 
+            R_MIPS_JALR: {optimization hint, ignore for now }
+              ;
           else
             begin
               writeln(objsec.fullname,'+',objreloc.dataoffset,' ',objreloc.ftype);
