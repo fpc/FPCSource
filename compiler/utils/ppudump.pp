@@ -1020,7 +1020,7 @@ procedure readprocinfooptions(space : string);
 type
   tprocinfoopt=record
     mask : tprocinfoflag;
-    str  : string[80];
+    str  : string[81];
   end;
 const
   procinfoopts=ord(high(tprocinfoflag)) - ord(low(tprocinfoflag));
