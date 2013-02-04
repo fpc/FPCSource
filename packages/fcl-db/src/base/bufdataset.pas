@@ -1162,12 +1162,7 @@ begin
   FOpen:=True;
 
   // parse filter expression
-  try
-    ParseFilter(Filter);
-  except
-    // oops, a problem with parsing, clear filter for now
-    on E: Exception do Filter := EmptyStr;
-  end;
+  ParseFilter(Filter);
 
   if assigned(FDatasetReader) then IntLoadRecordsFromFile;
 end;
