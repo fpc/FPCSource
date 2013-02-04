@@ -3647,7 +3647,6 @@ A*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (Darwin)
 A*2WR_Erzeuge "relocation code" (Windows)
 P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2WX_Ermögliche den executable stack (Linux)
-A*2Wx_Erzeuge "thumb interworking safe code", wenn möglich
 **1X_Programm-Optionen:
 **2Xc_Übergebe --shared an den Linker (nur Unix)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile, wenn nicht -XR verwendet wird)

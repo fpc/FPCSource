@@ -1918,18 +1918,6 @@ begin
                         else
                           IllegalPara(opt);
                       end;
-                    'x':
-                      begin
-                        if target_info.cpu=systems.cpu_arm then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              exclude(init_settings.targetswitches,ts_thumb_interworking)
-                            else
-                              include(init_settings.targetswitches,ts_thumb_interworking);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
                     else
                       IllegalPara(opt);
                   end;

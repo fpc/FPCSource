@@ -3629,7 +3629,6 @@ A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 A*2WR_Generate relocation code (Windows)
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2WX_Enable executable stack (Linux)
-A*2Wx_Generate thumb interworking safe code if possible
 **1X_Executable options:
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)

@@ -277,7 +277,9 @@ interface
 
        ttargetswitchinfo = record
           name: string[22];
+          { target switch can have an arbitratry value, not only on/off }
           hasvalue: boolean;
+          { target switch can be used only globally }
           isglobal: boolean;
        end;
 
