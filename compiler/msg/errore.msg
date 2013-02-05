@@ -3403,10 +3403,10 @@ p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
 J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
-J*2Cv_Var/out parameter copy-out checking
 J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
 J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
+J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file

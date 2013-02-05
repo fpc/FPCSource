@@ -1297,13 +1297,13 @@ const msgtxt : array[0..000285,1..240] of char=(
   'de for initializing integer array constants'#010+
   'J*3CTenumfieldinit_ Initiali','ze enumeration fields in constructors to'+
   ' enumtype(0), after calling inherited constructors'#010+
-  'J*2Cv_Var/out parameter copy-out checking'#010+
   'J*3CTautogetterprefix=X_ Automatically create getters for properties w'+
-  'ith prefix X (empty string disables)'#010,
-  'J*3CTautosetterprefix=X_ Automatically create setters for properties w'+
   'ith prefix X (empty string disables)'#010+
+  'J*3CTautosetterprefix=X_ Automatically cre','ate setters for properties'+
+  ' with prefix X (empty string disables)'#010+
   'A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possi'+
   'ble'#010+
+  'J*2Cv_Var/out parameter copy-out checking'#010+
   '**2CX_Create also smartlinked library'#010+
   '**1d<x>_Defines the s','ymbol <x>'#010+
   '**1D_Generate a DEF file'#010+

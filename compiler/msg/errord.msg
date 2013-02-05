@@ -3422,10 +3422,10 @@ p*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausfhrungsgeschwindigkeit (A
 P*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausfhrungsgeschwindigkeit (AIX)
 J*3CTcompactintarrayinit_ Erzeuge kleineren (aber m”glicherweise langsameren) Code fr die Initialisierung von Integer-Array-Konstanten
 J*3CTenumfieldinit_ Initialisiere Aufz„hlungsfelder in Konstruktoren mit enumtype(0), nach dem Aufruf geerbter Konstruktoren
-J*2Cv_Var/out Parameter copy-out šberprfung
 J*3CTautogetterprefix=X_ Erzeuge automatisch Getter fr Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
 J*3CTautosetterprefix=X_ Erzeuge automatisch Setter fr Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
 A*3CTthumbinterworking_ Erzeuge "Thumb interworking-safe code", wenn m”glich
+J*2Cv_Var/out Parameter copy-out šberprfung
 **2CX_Benutze Smartlinking
 **1d<x>_Definiere das Symbol <x>
 **1D_Erzeuge eine DEF-Datei
