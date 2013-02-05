@@ -49,8 +49,6 @@ type
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
     { parameter }
-    procedure a_load_const_cgpara(list: tasmlist; size: tcgsize; a: tcgint; const paraloc: TCGPara); override;
-    procedure a_load_ref_cgpara(list: tasmlist; sz: tcgsize; const r: TReference; const paraloc: TCGPara); override;
     procedure a_loadaddr_ref_cgpara(list: tasmlist; const r: TReference; const paraloc: TCGPara); override;
     procedure a_loadfpu_reg_cgpara(list: tasmlist; size: tcgsize; const r: tregister; const paraloc: TCGPara); override;
     procedure a_loadfpu_ref_cgpara(list: tasmlist; size: tcgsize; const ref: treference; const paraloc: TCGPara); override;
@@ -543,60 +541,6 @@ begin
 end;
 
 
-procedure TCGMIPS.a_load_const_cgpara(list: tasmlist; size: tcgsize; a: tcgint; const paraloc: TCGPara);
-var
-  Ref: TReference;
-begin
-  paraloc.check_simple_location;
-  paramanager.allocparaloc(list,paraloc.location);
-  case paraloc.location^.loc of
-    LOC_REGISTER, LOC_CREGISTER:
-      a_load_const_reg(list, size, a, paraloc.location^.Register);
-    LOC_REFERENCE:
-    begin
-      with paraloc.location^.Reference do
-      begin
-        if (Index = NR_SP) and (Offset < 0) then
-          InternalError(2002081104);
-        reference_reset_base(ref, index, offset, sizeof(aint));
-      end;
-      a_load_const_ref(list, size, a, ref);
-    end;
-    else
-      InternalError(2002122200);
-  end;
-end;
-
-
-procedure TCGMIPS.a_load_ref_cgpara(list: tasmlist; sz: TCgSize; const r: TReference; const paraloc: TCGPara);
-var
-  href, href2: treference;
-  hloc: pcgparalocation;
-begin
-  href := r;
-  hloc := paraloc.location;
-  while assigned(hloc) do
-   begin
-     paramanager.allocparaloc(list,hloc);
-     case hloc^.loc of
-       LOC_REGISTER,LOC_CREGISTER:
-         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
-       LOC_FPUREGISTER,LOC_CFPUREGISTER :
-         a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
-       LOC_REFERENCE:
-         begin
-           reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
-           a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
-         end
-      else
-        internalerror(200408241);
-     end;
-    Inc(href.offset, tcgsize2size[hloc^.size]);
-    hloc := hloc^.Next;
-  end;
-end;
-
-
 procedure TCGMIPS.a_loadaddr_ref_cgpara(list: tasmlist; const r: TReference; const paraloc: TCGPara);
 var
   Ref:    TReference;
@@ -630,6 +574,9 @@ var
   href, href2: treference;
   hloc: pcgparalocation;
 begin
+  { TODO: inherited cannot deal with individual locations for each of OS_32 registers.
+    Must change parameter management to allocate a single 64-bit register pair,
+    then this method can be removed.  }
   href := ref;
   hloc := paraloc.location;
   while assigned(hloc) do
@@ -642,8 +589,10 @@ begin
         a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
       LOC_REFERENCE:
         begin
-          reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
-          a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
+          paraloc.check_simple_location;
+          reference_reset_base(href2,paraloc.location^.reference.index,paraloc.location^.reference.offset,paraloc.alignment);
+          { concatcopy should choose the best way to copy the data }
+          g_concatcopy(list,ref,href2,tcgsize2size[size]);
         end;
       else
         internalerror(200408241);

@@ -384,6 +384,17 @@ implementation
                   paraloc^.size:=OS_32
                 else
                   paraloc^.size:=paracgsize;
+
+                { big-endian targets require that record data stored in parameter
+                  registers is left-aligned }
+                if (target_info.endian=endian_big) and
+                   (paradef.typ = recorddef) and
+                   (tcgsize2size[paraloc^.size] <> sizeof(aint)) then
+                  begin
+                    paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
+                    paraloc^.size := OS_INT;
+                  end;
+
                 { ret in param? }
                 if (vo_is_funcret in hp.varoptions) and
                   is_abi_record(hp.vardef) then
@@ -393,7 +404,7 @@ implementation
                       begin
                         TMIPSProcInfo(current_procinfo).register_used[0]:=true;
                         TMIPSProcInfo(current_procinfo).register_name[0]:='result';
-                        TMIPSProcInfo(current_procinfo).register_size[0]:=paracgsize;
+                        TMIPSProcInfo(current_procinfo).register_size[0]:=paraloc^.size;
                         TMIPSProcInfo(current_procinfo).register_offset[0]:=0;
                       end;
                     //if (intparareg<>1) then
@@ -453,7 +464,7 @@ implementation
                          begin
                            TMIPSProcInfo(current_procinfo).register_used[intparareg]:=true;
                            TMIPSProcInfo(current_procinfo).register_name[intparareg]:=hp.prettyname;
-                           TMIPSProcInfo(current_procinfo).register_size[intparareg]:=paracgsize;
+                           TMIPSProcInfo(current_procinfo).register_size[intparareg]:=paraloc^.size;
                            TMIPSProcInfo(current_procinfo).register_offset[intparareg]:=intparareg*mips_sizeof_register_param;
                          end;
                        if side=callerside then
@@ -481,14 +492,18 @@ implementation
                 else
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.size:=int_cgsize(paralen);
+
                     { Force size to multiple of 4 for records passed by value,
                       to obtain correct memory layout for big endian }
+(*
                     if (paradef.typ = recorddef) and 
                        (tcgsize2size[paraloc^.size] < tcgsize2size[OS_32]) then
                       begin
                         inc(paralen,tcgsize2size[OS_32]-tcgsize2size[paraloc^.size]);
                         paraloc^.size := OS_32;
                       end;
+*)
                     if side=callerside then
                       begin
                         paraloc^.reference.index := NR_STACK_POINTER_REG;
@@ -506,7 +521,8 @@ implementation
                           end;
                         paraloc^.reference.offset:=intparasize;
                       end;
-                    inc(intparasize,align(tcgsize2size[paraloc^.size],mips_sizeof_register_param));
+                    inc(intparasize,align(paralen,mips_sizeof_register_param));
+                    paralen:=0;
                   end;
                 dec(paralen,tcgsize2size[paraloc^.size]);
               end;
