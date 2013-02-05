@@ -1358,10 +1358,10 @@ implementation
           tok:=GetToken(s,',');
           if tok='' then
            break;
-          setstr:=upper(copy(tok,1,2));
-          if setstr='NO' then
+          setstr:=upper(copy(tok,length(tok),1));
+          if setstr='-' then
             begin
-              delete(tok,1,2);
+              setlength(tok,length(tok)-1);
               doset:=false;
             end
           else
