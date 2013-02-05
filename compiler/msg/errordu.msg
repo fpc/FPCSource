@@ -3417,6 +3417,8 @@ P*2CN_Erzeuge Überprüfungen auf Nil-Zeiger (nur AIX)
 **2Ct_Führe Stackprüfung durch (nur zum Testen, siehe Handbuch)
 p*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
 P*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+J*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+A*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
 p*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausführungsgeschwindigkeit (AIX)
 P*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausführungsgeschwindigkeit (AIX)
 J*3CTcompactintarrayinit_ Erzeuge kleineren (aber möglicherweise langsameren) Code für die Initialisierung von Integer-Array-Konstanten
@@ -3424,6 +3426,7 @@ J*3CTenumfieldinit_ Initialisiere Aufzählungsfelder in Konstruktoren mit enumty
 J*2Cv_Var/out Parameter copy-out Überprüfung
 J*3CTautogetterprefix=X_ Erzeuge automatisch Getter für Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
 J*3CTautosetterprefix=X_ Erzeuge automatisch Setter für Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
+A*3CTthumbinterworking_ Erzeuge "Thumb interworking-safe code", wenn möglich
 **2CX_Benutze Smartlinking
 **1d<x>_Definiere das Symbol <x>
 **1D_Erzeuge eine DEF-Datei
