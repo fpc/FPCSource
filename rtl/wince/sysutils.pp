@@ -780,23 +780,36 @@ end;
 ****************************************************************************}
 
 
-function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+function DoCompareString(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
 begin
   SetLastError(0);
-  Result:=CompareString(LOCALE_USER_DEFAULT,0,pwidechar(s1),
-    length(s1),pwidechar(s2),length(s2))-2;
+  Result:=CompareString(LOCALE_USER_DEFAULT,Flags,P1,L1,P2,L2)-2;
   if GetLastError<>0 then
     RaiseLastOSError;
 end;
 
 
+function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+end;
+
+
 function WinCECompareTextWideString(const s1, s2 : WideString) : PtrInt;
 begin
-  SetLastError(0);
-  Result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pwidechar(s1),
-    length(s1),pwidechar(s2),length(s2))-2;
-  if GetLastError<>0 then
-    RaiseLastOSError;
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+end;
+
+
+function WinCECompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+end;
+
+
+function WinCECompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
 end;
 
 
@@ -939,6 +952,8 @@ procedure InitWinCEWidestrings;
   begin
     widestringmanager.CompareWideStringProc:=@WinCECompareWideString;
     widestringmanager.CompareTextWideStringProc:=@WinCECompareTextWideString;
+    widestringmanager.CompareUnicodeStringProc:=@WinCECompareUnicodeString;
+    widestringmanager.CompareTextUnicodeStringProc:=@WinCECompareTextUnicodeString;
 
     widestringmanager.UpperAnsiStringProc:=@WinCEAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@WinCEAnsiLowerCase;
