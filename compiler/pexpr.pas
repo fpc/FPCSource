@@ -1681,6 +1681,52 @@ implementation
           addstatement(newstatement,ctemprefnode.create(arrnode));
         end;
 
+      function try_type_helper(var node:tnode;def:tdef):boolean;
+        var
+          srsym : tsym;
+          srsymtable : tsymtable;
+          n : tnode;
+          newstatement : tstatementnode;
+          temp : ttempcreatenode;
+          extdef : tdef;
+        begin
+          result:=false;
+          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except]) then
+            begin
+              if not assigned(def) then
+                if node.nodetype=addrn then
+                  { always use the pointer type for addr nodes as otherwise
+                    we'll have an anonymous pointertype with no name }
+                  def:=voidpointertype
+                else
+                  def:=node.resultdef;
+              result:=search_objectpascal_helper(def,nil,pattern,srsym,srsymtable);
+              if result then
+                begin
+                  if not (srsymtable.symtabletype=objectsymtable) or
+                      not is_objectpascal_helper(tdef(srsymtable.defowner)) then
+                    internalerror(2013011401);
+                  { convert const node to temp node of the extended type }
+                  if node.nodetype in (nodetype_const+[niln,addrn]) then
+                    begin
+                      extdef:=tobjectdef(srsymtable.defowner).extendeddef;
+                      newstatement:=nil;
+                      n:=internalstatements(newstatement);
+                      temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false);
+                      addstatement(newstatement,temp);
+                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),node));
+                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                      addstatement(newstatement,ctemprefnode.create(temp));
+                      node:=n;
+                      do_typecheckpass(node)
+                    end;
+                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                  consume(_ID);
+                  do_member_read(nil,getaddr,srsym,node,again,[]);
+                end;
+            end;
+        end;
+
     var
      protsym  : tpropertysym;
      p2,p3  : tnode;
@@ -1690,12 +1736,14 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     found,
      haderror,
      nodechanged    : boolean;
      calltype: tdispcalltype;
      valstr,expstr : string;
      intval : qword;
      code : integer;
+     strdef : tdef;
     label
      skipreckklammercheck,
      skippointdefcheck;
@@ -1886,6 +1934,9 @@ implementation
                    not is_boolean(p1.resultdef) and
                    not is_enum(p1.resultdef) then
                  begin
+                   { type helpers are checked first }
+                   if (token=_ID) and try_type_helper(p1,nil) then
+                     goto skippointdefcheck;
                    { only an "e" or "E" can follow an intconst with a ".", the
                      other case (another intconst) is handled by the scanner }
                    if (token=_ID) and (pattern[1]='E') then
@@ -1963,6 +2014,35 @@ implementation
                      end;
                  end;
 
+               if (p1.nodetype=stringconstn) and (token=_ID) then
+                 begin
+                   { the def of a string const is an array }
+                   case tstringconstnode(p1).cst_type of
+                     cst_conststring:
+                       if cs_refcountedstrings in current_settings.localswitches then
+                         if m_default_unicodestring in current_settings.modeswitches then
+                           strdef:=cunicodestringtype
+                         else
+                           strdef:=cansistringtype
+                       else
+                         strdef:=cshortstringtype;
+                     cst_shortstring:
+                       strdef:=cshortstringtype;
+                     cst_ansistring:
+                       { use getansistringdef? }
+                       strdef:=cansistringtype;
+                     cst_widestring:
+                       strdef:=cwidestringtype;
+                     cst_unicodestring:
+                       strdef:=cunicodestringtype;
+                     cst_longstring:
+                       { let's see when someone stumbles upon this...}
+                       internalerror(201301111);
+                   end;
+                   if try_type_helper(p1,strdef) then
+                     goto skippointdefcheck;
+                 end;
+
                { this is skipped if label skippointdefcheck is used }
                case p1.resultdef.typ of
                  recorddef:
@@ -1994,25 +2074,28 @@ implementation
                      if token=_ID then
                        begin
                          srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
-                         p1.destroy;
                          if assigned(srsym) and (srsym.typ=enumsym) then
                            begin
+                             p1.destroy;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                              p1:=genenumnode(tenumsym(srsym));
+                             consume(_ID);
                            end
                          else
-                           begin
-                             Message1(sym_e_id_no_member,orgpattern);
-                             p1:=cerrornode.create;
-                           end;
+                           if not try_type_helper(p1,nil) then
+                             begin
+                               p1.destroy;
+                               Message1(sym_e_id_no_member,orgpattern);
+                               p1:=cerrornode.create;
+                               consume(_ID);
+                             end;
                        end;
-                     consume(_ID);
                    end;
                  arraydef:
                    begin
                      if is_dynamic_array(p1.resultdef) then
                        begin
-                         if token=_ID then
+                         if (token=_ID) and not try_type_helper(p1,nil) then
                            begin
                              if pattern='CREATE' then
                                begin
@@ -2047,39 +2130,42 @@ implementation
                         v.ident(parameters) := rhs -> also property put }
                       if token=_ID then
                         begin
-                          dispatchstring:=orgpattern;
-                          consume(_ID);
-                          calltype:=dct_method;
-                          if try_to_consume(_LKLAMMER) then
+                          if not try_type_helper(p1,nil) then
                             begin
-                              p2:=parse_paras(false,true,_RKLAMMER);
-                              consume(_RKLAMMER);
-                            end
-                          else if try_to_consume(_LECKKLAMMER) then
-                            begin
-                              p2:=parse_paras(false,true,_RECKKLAMMER);
-                              consume(_RECKKLAMMER);
-                              calltype:=dct_propget;
-                            end
-                          else
-                            p2:=nil;
-                          { property setter? }
-                          if (token=_ASSIGNMENT) and not(afterassignment) then
-                            begin
-                              consume(_ASSIGNMENT);
-                              { read the expression }
-                              p3:=comp_expr(true,false);
-                              { concat value parameter too }
-                              p2:=ccallparanode.create(p3,p2);
-                              p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
-                            end
-                          else
-                          { this is only an approximation
-                            setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                          if afterassignment or in_args or (token<>_SEMICOLON) then
-                            p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
-                          else
-                            p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
+                              dispatchstring:=orgpattern;
+                              consume(_ID);
+                              calltype:=dct_method;
+                              if try_to_consume(_LKLAMMER) then
+                                begin
+                                  p2:=parse_paras(false,true,_RKLAMMER);
+                                  consume(_RKLAMMER);
+                                end
+                              else if try_to_consume(_LECKKLAMMER) then
+                                begin
+                                  p2:=parse_paras(false,true,_RECKKLAMMER);
+                                  consume(_RECKKLAMMER);
+                                  calltype:=dct_propget;
+                                end
+                              else
+                                p2:=nil;
+                              { property setter? }
+                              if (token=_ASSIGNMENT) and not(afterassignment) then
+                                begin
+                                  consume(_ASSIGNMENT);
+                                  { read the expression }
+                                  p3:=comp_expr(true,false);
+                                  { concat value parameter too }
+                                  p2:=ccallparanode.create(p3,p2);
+                                  p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
+                                end
+                              else
+                              { this is only an approximation
+                                setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                              if afterassignment or in_args or (token<>_SEMICOLON) then
+                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
+                              else
+                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
+                            end;
                         end
                       else { Error }
                         Consume(_ID);
@@ -2156,19 +2242,26 @@ implementation
                         end
                       else
                         begin
-                          Message(parser_e_invalid_qualifier);
-                          if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
-                            Message(parser_h_maybe_deref_caret_missing);
+                          if not try_type_helper(p1,nil) then
+                            begin
+                              Message(parser_e_invalid_qualifier);
+                              if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
+                                Message(parser_h_maybe_deref_caret_missing);
+                            end;
                         end
                     end;
                   else
                     begin
-                      if p1.resultdef.typ<>undefineddef then
-                        Message(parser_e_invalid_qualifier);
-                      p1.destroy;
-                      p1:=cerrornode.create;
-                      { Error }
-                      consume(_ID);
+                      found:=try_type_helper(p1,nil);
+                      if not found then
+                        begin
+                          if p1.resultdef.typ<>undefineddef then
+                            Message(parser_e_invalid_qualifier);
+                          p1.destroy;
+                          p1:=cerrornode.create;
+                          { Error }
+                          consume(_ID);
+                        end;
                     end;
                end;
                { processing an ordconstnode avoids the resultdef check }
@@ -2952,6 +3045,11 @@ implementation
                begin
                  p1:=real_const_node_from_pattern(pattern);
                  consume(_REALNUMBER);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _STRING :
@@ -3006,6 +3104,11 @@ implementation
                begin
                  p1:=cordconstnode.create(ord(pattern[1]),cansichartype,true);
                  consume(_CCHAR);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CWSTRING:
@@ -3023,6 +3126,11 @@ implementation
                begin
                  p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype,true);
                  consume(_CWCHAR);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _KLAMMERAFFE :
@@ -3140,12 +3248,22 @@ implementation
                begin
                  consume(_TRUE);
                  p1:=cordconstnode.create(1,pasbool8type,false);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _FALSE :
                begin
                  consume(_FALSE);
                  p1:=cordconstnode.create(0,pasbool8type,false);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _NIL :
@@ -3153,7 +3271,7 @@ implementation
                  consume(_NIL);
                  p1:=cnilnode.create;
                  { It's really ugly code nil^, but delphi allows it }
-                 if token in [_CARET] then
+                 if token in [_CARET,_POINT] then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);

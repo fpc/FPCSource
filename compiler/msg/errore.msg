@@ -1385,8 +1385,8 @@ parser_e_no_destructor_in_records=03300_E_Destructors aren't allowed in records 
 parser_e_class_methods_only_static_in_records=03301_E_Class methods must be static in records
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors aren't allowed in records or record helpers
-% Constructor declarations with no arguments aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors aren't allowed in records or record/type helpers
+% Constructor declarations with no arguments aren't allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Either the result or at least one parameter must be of type "$1"
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
@@ -1488,7 +1488,7 @@ parser_e_no_class_in_local_anonymous_records=03331_E_Class memeber declarations 
 %
 # Type Checking
 #
-# 04119 is the last used one
+# 04120 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1845,7 +1845,7 @@ type_e_record_type_expected=04100_E_Record type expected
 type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must extend a subclass of "$1" or the class itself
 % If a class helper inherits from another class helper the extended class must
 % extend either the same class as the parent class helper or a subclass of it
-type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
+type_e_record_helper_must_extend_same_record=04102_E_Derived record or type helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
 type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return no value
@@ -1910,11 +1910,13 @@ type_e_typeof_requires_vmt=04118_E_TYPEOF can only be used on object types with 
 type_e_invalid_default_value=04119_E_It is not possible to define a default value for a parameter of type "$1"
 % Parameters declared as structured types, such as files, variants, non-dynamic
 % arrays and TP-style objects, cannot have a default value.
+type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" can not be extended by a type helper
+% Types like procedural variables can not be extended by type helpers
 % \end{description}
 #
 # Symtable
 #
-# 05086 is the last used one
+# 05087 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2178,6 +2180,8 @@ sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate de
 % the parameterless constructor from the parent class inside this added constructor.
 % This is however impossible if the parent class does not declare such a constructor.
 % In this case you must add a valid constructor yourself.
+sym_d_adding_helper_for=05087_D_Adding helper for $1
+% A helper for the mentioned type is added to the current scope
 % \end{description}
 #
 # Codegenerator

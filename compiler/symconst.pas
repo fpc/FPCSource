@@ -392,7 +392,8 @@ type
   { defines the type of the extended "structure"; only used for parsing }
   thelpertype=(ht_none,
     ht_class,
-    ht_record
+    ht_record,
+    ht_type
   );
 
   { Variations in interfaces implementation }

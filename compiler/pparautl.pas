@@ -193,7 +193,12 @@ implementation
                 if (pd.proctypeoption in [potype_constructor,potype_destructor]) and
                    not(is_cppclass(tprocdef(pd).struct) or
                        is_record(tprocdef(pd).struct) or
-                       is_javaclass(tprocdef(pd).struct)) then
+                       is_javaclass(tprocdef(pd).struct) or
+                       (
+                         { no vmt for record/type helper constructors }
+                         is_objectpascal_helper(tprocdef(pd).struct) and
+                         (tobjectdef(tprocdef(pd).struct).extendeddef.typ<>objectdef)
+                       )) then
                  begin
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
@@ -216,7 +221,7 @@ implementation
                   hdef:=tclassrefdef.create(selfdef)
                 else
                   begin
-                    if is_object(selfdef) or is_record(selfdef) then
+                    if is_object(selfdef) or (selfdef.typ<>objectdef) then
                       vsp:=vs_var;
                     hdef:=selfdef;
                   end;

@@ -214,6 +214,8 @@ interface
 {*** Misc ***}
     function  FullTypeName(def,otherdef:tdef):string;
     function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    { def is the extended type of a helper }
+    function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
@@ -252,10 +254,10 @@ interface
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     { searches for the helper definition that's currently active for pd }
-    function  search_last_objectpascal_helper(pd,contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
+    function  search_last_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
     { searches whether the symbol s is available in the currently active }
     { helper for pd }
-    function  search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function  search_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
@@ -1967,6 +1969,18 @@ implementation
           end;
       end;
 
+
+    function generate_objectpascal_helper_key(def:tdef):string;
+      begin
+        if not assigned(def) then
+          internalerror(2013020501);
+        if def.typ in [recorddef,objectdef] then
+          result:=make_mangledname('',tabstractrecorddef(def).symtable,'')
+        else
+          result:=make_mangledname('',def.owner,def.typesym.name);
+      end;
+
+
     procedure incompatibletypes(def1,def2:tdef);
       begin
         { When there is an errordef there is already an error message show }
@@ -3022,7 +3036,7 @@ implementation
           end;
       end;
 
-    function search_last_objectpascal_helper(pd,contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
+    function search_last_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
       var
         s: string;
         list: TFPObjectList;
@@ -3036,7 +3050,11 @@ implementation
         if current_module.extendeddefs.count=0 then
           exit;
         { no helpers for anonymous types }
-        if not assigned(pd.objrealname) or (pd.objrealname^='') then
+        if (pd.typ in [recorddef,objectdef]) and
+            (
+              not assigned(tabstractrecorddef(pd).objrealname) or
+              (tabstractrecorddef(pd).objrealname^='')
+            ) then
           exit;
         { if pd is defined inside a procedure we must not use make_mangledname
           (as a helper may not be defined in a procedure this is no problem...)}
@@ -3046,7 +3064,7 @@ implementation
         if st.symtabletype=localsymtable then
           exit;
         { the mangled name is used as the key for tmodule.extendeddefs }
-        s:=make_mangledname('',pd.symtable,'');
+        s:=generate_objectpascal_helper_key(pd);
         list:=TFPObjectList(current_module.extendeddefs.Find(s));
         if assigned(list) and (list.count>0) then
           begin
@@ -3063,7 +3081,7 @@ implementation
           end;
       end;
 
-    function search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function search_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
 
       var
         hashedid  : THashedIDString;

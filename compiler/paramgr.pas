@@ -546,7 +546,7 @@ implementation
           begin
             retloc.def:=tdef(p.owner.defowner);
             if not (is_implicit_pointer_object_type(retloc.def) or
-               is_record(retloc.def)) then
+               (retloc.def.typ<>objectdef)) then
               retloc.def:=getpointerdef(retloc.def);
           end;
         retcgsize:=def_cgsize(retloc.def);
@@ -564,6 +564,7 @@ implementation
         result:=false;
       end;
 
+
     function tparamanager.handle_common_ret_in_param(def: tdef;
       pd: tabstractprocdef; out retinparam: boolean): boolean;
       begin
@@ -571,7 +572,17 @@ implementation
           is always return in param }
         if (tf_safecall_exceptions in target_info.flags) and
            (pd.proccalloption=pocall_safecall) or
-           ((pd.proctypeoption=potype_constructor)and is_record(def)) then
+           (
+             (pd.proctypeoption=potype_constructor)and
+             (
+               is_record(def) or
+               (
+                 (def.typ<>objectdef) and
+                 (pd.owner.symtabletype=objectsymtable) and
+                 is_objectpascal_helper(tdef(pd.owner.defowner))
+               )
+             )
+           ) then
           begin
             retinparam:=true;
             exit(true);
@@ -583,6 +594,7 @@ implementation
           end;
         result:=false;
       end;
+
 
 initialization
   ;

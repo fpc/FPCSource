@@ -1780,7 +1780,7 @@ implementation
               else
                 begin
                   if methodpointer.nodetype=typen then
-                    if (methodpointer.resultdef.typ=recorddef) then
+                    if (methodpointer.resultdef.typ<>objectdef) then
                       begin
                         if not(target_info.system in systems_jvm) then
                           begin

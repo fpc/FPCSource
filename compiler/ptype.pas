@@ -44,7 +44,7 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
@@ -865,7 +865,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -1679,7 +1679,16 @@ implementation
                     current_module.checkforwarddefs.add(def);
                 end
               else
-                expr_type;
+                if hadtypetoken and
+                    { don't allow "type helper" in mode delphi and require modeswitch class }
+                    ([m_delphi,m_class]*current_settings.modeswitches=[m_class]) and
+                    (token=_ID) and (idtoken=_HELPER) then
+                  begin
+                    consume(_HELPER);
+                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                  end
+                else
+                  expr_type;
          end;
 
          if def=nil then
@@ -1689,7 +1698,7 @@ implementation
 
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
       begin
-        read_named_type(def,nil,nil,nil,parseprocvardir);
+        read_named_type(def,nil,nil,nil,parseprocvardir,false);
       end;
 
 

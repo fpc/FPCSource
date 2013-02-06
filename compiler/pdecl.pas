@@ -609,7 +609,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,newtype,gendef,generictypelist,false);
+              read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin

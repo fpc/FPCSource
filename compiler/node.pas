@@ -196,6 +196,14 @@ interface
           'objcselectorn',
           'objcprotocoln');
 
+      { a set containing all const nodes }
+      nodetype_const = [ordconstn,
+                        pointerconstn,
+                        stringconstn,
+                        dataconstn,
+                        guidconstn,
+                        realconstn];
+
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflag = (

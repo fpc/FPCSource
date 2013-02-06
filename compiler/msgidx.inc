@@ -537,6 +537,7 @@ const
   type_e_interface_lower_visibility=04117;
   type_e_typeof_requires_vmt=04118;
   type_e_invalid_default_value=04119;
+  type_e_type_not_allowed_for_type_helper=04120;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -610,6 +611,7 @@ const
   sym_w_library_overload=05084;
   sym_e_duplicate_id_create_java_constructor=05085;
   sym_e_no_matching_inherited_parameterless_constructor=05086;
+  sym_d_adding_helper_for=05087;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -968,9 +970,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 68592;
+  MsgTxtSize = 68689;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,93,332,120,87,56,126,27,202,63,
+    26,93,332,121,88,56,126,27,202,63,
     54,20,1,1,1,1,1,1,1,1
   );

@@ -693,6 +693,29 @@ implementation
       end;
 
     procedure parse_extended_type(helpertype:thelpertype);
+
+      procedure validate_extendeddef_typehelper(var def:tdef);
+        begin
+          if def.typ in [undefineddef,procvardef,procdef,objectdef,recorddef,
+              filedef,classrefdef,abstractdef,forwarddef,formaldef] then
+            begin
+              Message1(type_e_type_not_allowed_for_type_helper,def.typename);
+              def:=generrordef;
+            end;
+        end;
+
+      procedure check_inheritance_record_type_helper(var def:tdef);
+        begin
+          if (def.typ<>errordef) and assigned(current_objectdef.childof) then
+            begin
+              if def<>current_objectdef.childof.extendeddef then
+                begin
+                  Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
+                  def:=generrordef;
+                end;
+            end;
+        end;
+
       var
         hdef: tdef;
       begin
@@ -703,48 +726,62 @@ implementation
 
         consume(_FOR);
         single_type(hdef,[stoParseClassParent]);
-        if (not assigned(hdef)) or
-           not (hdef.typ in [objectdef,recorddef]) then
+        if not assigned(hdef) or (hdef.typ=errordef) then
           begin
-            if helpertype=ht_class then
-              Message1(type_e_class_type_expected,hdef.typename)
-            else
-            if helpertype=ht_record then
-              Message1(type_e_record_type_expected,hdef.typename);
+            case helpertype of
+              ht_class:
+                Message1(type_e_class_type_expected,hdef.typename);
+              ht_record:
+                Message(type_e_record_type_expected);
+              ht_type:
+                Message1(type_e_type_id_expected,hdef.typename);
+            end;
           end
         else
           begin
             case helpertype of
               ht_class:
-                begin
-                  if not is_class(hdef) then
-                    Message1(type_e_class_type_expected,hdef.typename);
-                  { a class helper must extend the same class or a subclass
-                    of the class extended by the parent class helper }
-                  if assigned(current_objectdef.childof) then
-                    begin
-                      if not is_class(current_objectdef.childof.extendeddef) then
-                        Internalerror(2011021101);
-                      if not hdef.is_related(current_objectdef.childof.extendeddef) then
-                        Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
-                    end;
-                end;
+                if (hdef.typ<>objectdef) or
+                    not is_class(hdef) then
+                  Message1(type_e_class_type_expected,hdef.typename)
+                else
+                  begin
+                    { a class helper must extend the same class or a subclass
+                      of the class extended by the parent class helper }
+                    if assigned(current_objectdef.childof) then
+                      begin
+                        if not is_class(current_objectdef.childof.extendeddef) then
+                          Internalerror(2011021101);
+                        if not hdef.is_related(current_objectdef.childof.extendeddef) then
+                          Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                      end;
+                  end;
               ht_record:
+                if (hdef.typ=objectdef) or
+                    (
+                      { primitive types are allowed for record helpers in mode
+                        delphi }
+                      (hdef.typ<>recorddef) and
+                      not (m_delphi in current_settings.modeswitches)
+                    ) then
+                  Message1(type_e_record_type_expected,hdef.typename)
+                else
+                  begin
+                    if hdef.typ<>recorddef then
+                      { this is a primitive type in mode delphi, so validate
+                        the def }
+                      validate_extendeddef_typehelper(hdef);
+                    { a record helper must extend the same record as the
+                      parent helper }
+                    check_inheritance_record_type_helper(hdef);
+                  end;
+              ht_type:
                 begin
-                  if not is_record(hdef) then
-                    Message1(type_e_record_type_expected,hdef.typename);
-                  { a record helper must extend the same record as the
+                  validate_extendeddef_typehelper(hdef);
+                  { a type helper must extend the same type as the
                     parent helper }
-                  if assigned(current_objectdef.childof) then
-                    begin
-                      if not is_record(current_objectdef.childof.extendeddef) then
-                        Internalerror(2011021102);
-                      if hdef<>current_objectdef.childof.extendeddef then
-                        Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
-                    end;
+                  check_inheritance_record_type_helper(hdef);
                 end;
-              else
-                hdef:=nil;
             end;
           end;
 
@@ -854,9 +891,10 @@ implementation
                   if (m_mac in current_settings.modeswitches) then
                     include(result.procoptions,po_virtualmethod);
 
-                  { for record helpers only static class methods are allowed }
+                  { for record and type helpers only static class methods are
+                    allowed }
                   if is_objectpascal_helper(astruct) and
-                     is_record(tobjectdef(astruct).extendeddef) and
+                     (tobjectdef(astruct).extendeddef.typ<>objectdef) and
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
@@ -915,10 +953,10 @@ implementation
                 begin
                   result:=constructor_head;
                   if is_objectpascal_helper(astruct) and
-                     is_record(tobjectdef(astruct).extendeddef) and
+                     (tobjectdef(astruct).extendeddef.typ<>objectdef) and
                      (result.minparacount=0) then
                       { as long as parameterless constructors aren't allowed in records they
-                       aren't allowed in helpers either }
+                       aren't allowed in record/type helpers either }
                     MessagePos(result.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                 end;
 
@@ -1499,6 +1537,8 @@ implementation
         { generate vmt space if needed }
         if not(oo_has_vmt in current_structdef.objectoptions) and
            not(oo_is_forward in current_structdef.objectoptions) and
+           { no vmt for helpers ever }
+           not is_objectpascal_helper(current_structdef) and
            (
             ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[]) or
             (current_objectdef.objecttype in [odt_class])
@@ -1524,7 +1564,7 @@ implementation
           or inside the main project file, the extendeddefs list of the current
           module must be updated (it will be removed when poping the symtable) }
         if is_objectpascal_helper(current_structdef) and
-            (current_objectdef.extendeddef.typ in [recorddef,objectdef]) then
+            (current_objectdef.extendeddef.typ<>errordef) then
           begin
             { the topmost symtable must be a static symtable }
             st:=current_structdef.owner;
@@ -1532,7 +1572,11 @@ implementation
               st:=st.defowner.owner;
             if st.symtabletype=staticsymtable then
               begin
-                s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'');
+                if current_objectdef.extendeddef.typ in [recorddef,objectdef] then
+                  s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'')
+                else
+                  s:=make_mangledname('',current_objectdef.extendeddef.owner,current_objectdef.extendeddef.typesym.name);
+                Message1(sym_d_adding_helper_for,s);
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin

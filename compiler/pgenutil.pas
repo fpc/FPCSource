@@ -754,7 +754,7 @@ uses
                 current_filepos.moduleindex:=hmodule.unit_index;
                 current_tokenpos:=current_filepos;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf);
-                read_named_type(tt,srsym,genericdef,generictypelist,false);
+                read_named_type(tt,srsym,genericdef,generictypelist,false,false);
                 current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;

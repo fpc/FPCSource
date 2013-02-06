@@ -1245,10 +1245,10 @@ implementation
             if not (st.symlist[i] is ttypesym) then
               continue;
             def:=ttypesym(st.SymList[i]).typedef;
-            if is_objectpascal_helper(def) and
-                (tobjectdef(def).extendeddef.typ in [recorddef,objectdef]) then
+            if is_objectpascal_helper(def) then
               begin
-                s:=make_mangledname('',tabstractrecorddef(tobjectdef(def).extendeddef).symtable,'');
+                s:=generate_objectpascal_helper_key(tobjectdef(def).extendeddef);
+                Message1(sym_d_adding_helper_for,s);
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
