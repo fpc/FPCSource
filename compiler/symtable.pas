@@ -223,7 +223,7 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
-    function  is_owned_by(childdef,ownerdef:tdef):boolean;
+    function  is_owned_by(nesteddef,ownerdef:tdef):boolean;
     function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
     function  defs_belong_to_same_generic(def1,def2:tdef):boolean;
     function  get_generic_in_hierarchy_by_name(srsym:tsym;def:tdef):tdef;
@@ -2070,11 +2070,15 @@ implementation
        end;
 
 
-    function is_owned_by(childdef,ownerdef:tdef):boolean;
+    function is_owned_by(nesteddef,ownerdef:tdef):boolean;
       begin
-        result:=childdef=ownerdef;
-        if not result and assigned(childdef.owner.defowner) then
-          result:=is_owned_by(tdef(childdef.owner.defowner),ownerdef);
+        result:=nesteddef=ownerdef;
+        if not result and
+           { types declared locally in a record method are not defined in the
+             record itself }
+           not(nesteddef.owner.symtabletype in [localsymtable,parasymtable]) and
+           assigned(nesteddef.owner.defowner) then
+          result:=is_owned_by(tdef(nesteddef.owner.defowner),ownerdef);
       end;
 
     function sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
