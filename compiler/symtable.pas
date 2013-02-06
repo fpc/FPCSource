@@ -2085,7 +2085,7 @@ implementation
       begin
         result:=assigned(childsym) and (childsym.owner=symtable);
         if not result and assigned(childsym) and
-            (childsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
+           not(childsym.owner.symtabletype in [localsymtable,parasymtable]) then
           result:=sym_is_owned_by(tabstractrecorddef(childsym.owner.defowner).typesym,symtable);
       end;
 
