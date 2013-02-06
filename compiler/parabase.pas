@@ -80,9 +80,6 @@ unit parabase;
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
-{$ifdef powerpc}
-          composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
-{$endif powerpc}
           constructor init;
           destructor  done;
           procedure   reset;
@@ -135,9 +132,6 @@ implementation
         location:=nil;
         def:=nil;
         temporary:=false;
-{$ifdef powerpc}
-        composite:=false;
-{$endif powerpc}
       end;
 
 
@@ -160,9 +154,6 @@ implementation
         alignment:=0;
         size:=OS_NO;
         intsize:=0;
-{$ifdef powerpc}
-        composite:=false;
-{$endif powerpc}
       end;
 
     procedure TCGPara.resetiftemp;
@@ -187,9 +178,6 @@ implementation
         result.alignment:=alignment;
         result.size:=size;
         result.intsize:=intsize;
-{$ifdef powerpc}
-        result.composite:=composite;
-{$endif powerpc}
       end;
 
 
@@ -289,9 +277,6 @@ implementation
         ppufile.putbyte(byte(Alignment));
         ppufile.putbyte(ord(Size));
         ppufile.putaint(IntSize);
-{$ifdef powerpc}
-        ppufile.putbyte(byte(composite));
-{$endif}
         ppufile.putderef(defderef);
         nparaloc:=0;
         hparaloc:=location;
@@ -345,9 +330,6 @@ implementation
         Alignment:=shortint(ppufile.getbyte);
         Size:=TCgSize(ppufile.getbyte);
         IntSize:=ppufile.getaint;
-{$ifdef powerpc}
-        composite:=boolean(ppufile.getbyte);
-{$endif}
         ppufile.getderef(defderef);
         nparaloc:=ppufile.getbyte;
         while nparaloc>0 do

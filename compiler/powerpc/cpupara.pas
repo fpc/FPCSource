@@ -430,9 +430,6 @@ unit cpupara;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
               hp.paraloc[side].def:=paradef;
-              if (target_info.abi = abi_powerpc_aix) and
-                 (paradef.typ in [recorddef,arraydef]) then
-                hp.paraloc[side].composite:=true;
 {$ifndef cpu64bitaddr}
               if (target_info.abi=abi_powerpc_sysv) and
                  is_64bit(paradef) and

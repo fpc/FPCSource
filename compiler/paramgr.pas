@@ -383,9 +383,6 @@ implementation
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
         cgpara.def:=parasym.paraloc[callerside].def;
-{$ifdef powerpc}
-        cgpara.composite:=parasym.paraloc[callerside].composite;
-{$endif powerpc}
         while assigned(paraloc) do
           begin
             if paraloc^.size=OS_NO then
@@ -453,9 +450,6 @@ implementation
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
-{$ifdef powerpc}
-        cgpara.composite:=parasym.paraloc[callerside].composite;
-{$endif powerpc}
         paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
