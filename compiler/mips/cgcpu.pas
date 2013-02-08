@@ -326,7 +326,9 @@ begin
   begin
     tmpreg := cg.GetIntRegister(list, OS_INT);
     Load_PIC_Addr(list,tmpreg,ref);
-    { ref.symbol is nil now }
+    { ref.symbol is nil now, but we cannot reuse tmpreg below,
+      thus we need to reset it here, otherwise wrong code is generated }
+    tmpreg:=NR_NO;
   end;
   { When need to use LUI, do it first }
   if assigned(ref.symbol) or
