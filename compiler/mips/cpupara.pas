@@ -360,6 +360,16 @@ implementation
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].def:=paradef;
+
+            if (paralen=0) then
+              if (paradef.typ=recorddef) then
+                begin
+                  paraloc:=hp.paraloc[side].add_location;
+                  paraloc^.loc:=LOC_VOID;
+                end
+              else
+                internalerror(2013020601);
+
             { check the alignment, mips O32ABI require a nature alignment  }
             tmp := align(intparasize, alignment) - intparasize;
             while tmp > 0 do
