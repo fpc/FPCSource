@@ -349,12 +349,18 @@ interface
                 location.reference.base := left.location.register;
             end;
           LOC_REFERENCE,
-          LOC_CREFERENCE :
+          LOC_CREFERENCE,
+          { tricky type casting of parameters can cause these locations, see tb0593.pp on x86_64-linux }
+          LOC_SUBSETREG,
+          LOC_CSUBSETREG,
+          LOC_SUBSETREF,
+          LOC_CSUBSETREF:
             begin
               location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
-              location_freetemp(current_asmdata.CurrAsmList,left.location);
+              if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
             end;
           else
             internalerror(2002032216);
