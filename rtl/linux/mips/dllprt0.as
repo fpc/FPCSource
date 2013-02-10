@@ -58,26 +58,36 @@ _dynamic_start:
 */
 _start:
     .ent _start
+    .frame     $sp,36,$ra 
     /* load fp */
     .set noreorder
-	.cpload $25
+    .cpload $25
 
-    /* Record $sp into $s8 */
-	move    $s8,$sp
+    /* Record $sp into $t1,
+       to cope with unknown alignment value. */
+    move    $t1,$sp
 
     /* align stack */
     li      $at,-8
     and     $sp,$sp,$at
-    addiu   $sp,$sp,-32
+    addiu   $sp,$sp,-36
 
+    /* Save needed regs:
+       $t1, at offset 20
+       $gp ($28), at offset 24
+       $s8 ($30), at offset 28
+       $ra ($31), at offset 32
+    */
+       
     /* Compute and save sp offset */
-    subu    $t1,$s8,$sp
-    sw      $t1,24($sp)
-
-    /* Save $ra register */
-    sw      $ra,28($sp)
+    subu    $t1,$t1,$sp
+    sw      $t1,20($sp)
     /* Save $gp register */
-	.cprestore 20 
+    .cprestore 24
+    /* Save previous $s8 at offset 28 */
+    sw      $s8,28($sp)
+    /* Save $ra register */
+    sw      $ra,32($sp)
 
     /* Set __stkptr variable */
     move    $s8,$sp
@@ -104,14 +114,16 @@ _start:
     sb      $t2,($t1)
     /* Jump to PASCALMAIN */
     la      $t9,PASCALMAIN
-    jalr    $t9
+    jal     $t9
     nop
 
     /* Restore $ra */
-    lw      $ra,28($sp)
+    lw      $ra,32($sp)
+    /* Restore $s8 */
+    lw      $s8,28($sp)
 
     /* Restore old $sp */
-    lw      $t1,24($sp)
+    lw      $t1,20($sp)
     addu    $sp,$sp,$t1
     /* Return to caller */
     jr      $ra
