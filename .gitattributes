@@ -9784,6 +9784,7 @@ tests/tbs/tb0588.pp svneol=native#text/pascal
 tests/tbs/tb0589.pp svneol=native#text/pascal
 tests/tbs/tb0590.pp svneol=native#text/pascal
 tests/tbs/tb0591.pp svneol=native#text/pascal
+tests/tbs/tb0592.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain

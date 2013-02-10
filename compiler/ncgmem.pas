@@ -324,7 +324,12 @@ implementation
                           location.reference.base := left.location.register;
                       end;
                     LOC_CREFERENCE,
-                    LOC_REFERENCE:
+                    LOC_REFERENCE,
+                    { tricky type casting of parameters can cause these locations, see tb0592.pp on x86_64-linux }
+                    LOC_SUBSETREG,
+                    LOC_CSUBSETREG,
+                    LOC_SUBSETREF,
+                    LOC_CSUBSETREF:
                       begin
                          location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
