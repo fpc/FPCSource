@@ -427,6 +427,7 @@ const
   parser_e_no_methods_in_local_anonymous_records=03329;
   parser_e_no_properties_in_local_anonymous_records=03330;
   parser_e_no_class_in_local_anonymous_records=03331;
+  parser_e_not_allowed_in_record=03332;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -970,9 +971,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 68689;
+  MsgTxtSize = 68744;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,93,332,121,88,56,126,27,202,63,
+    26,93,333,121,88,56,126,27,202,63,
     54,20,1,1,1,1,1,1,1,1
   );

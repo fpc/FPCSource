@@ -392,7 +392,7 @@ scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the t
 #
 # Parser
 #
-# 03331 is the last used one
+# 03332 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1483,6 +1483,11 @@ parser_e_no_properties_in_local_anonymous_records=03330_E_Property declarations 
 parser_e_no_class_in_local_anonymous_records=03331_E_Class memeber declarations are not allowed in local or anonymous records
 % Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
+parser_e_not_allowed_in_record=03332_E_Visibility section "$1" not allowed in records
+% The visibility sections \var(protected) and \var(strict protected) are only
+% useful together with inheritance. Since records do not support that they are
+% forbidden.
+%
 %
 % \end{description}
 %
