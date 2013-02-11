@@ -293,16 +293,18 @@ interface
     {$linklib kvm}
   {$endif}
   {$undef NotImplemented}
-  {$LINKLIB gdb}
+  {$LINKLIB libgdb.a}
   {$ifdef GDB_HAS_SIM}
-    {$LINKLIB sim}
+    {$LINKLIB libsim.a}
   {$endif GDB_HAS_SIM}
-  {$LINKLIB bfd}
-  {$LINKLIB readline}
-  {$LINKLIB opcodes}
-  {$LINKLIB history}
-  {$LINKLIB iberty}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libgnu.a} // at least 7.4 generates this.
   {$LINKLIB ncurses}
+  {$LINKLIB z} // linked implictely by something on Linux
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$ifndef GDB_DISABLE_INTL}
