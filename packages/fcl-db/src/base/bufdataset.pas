@@ -161,10 +161,9 @@ type
     // Inserts a record before the current record, or if the record is sorted,
     // inserts it in the proper position
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); virtual; abstract;
+    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); virtual; abstract;
     procedure OrderCurrentRecord; virtual; abstract;
     procedure EndUpdate; virtual; abstract;
-    
-    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); virtual; abstract;
 
     function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; virtual;
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; virtual; abstract;
@@ -222,12 +221,12 @@ type
     procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
     procedure ReleaseSpareRecord; override;
 
-    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
+    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
     procedure OrderCurrentRecord; override;
     procedure EndUpdate; override;
   end;
@@ -268,12 +267,12 @@ type
     procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
     procedure ReleaseSpareRecord; override;
 
-    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
+    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
     procedure OrderCurrentRecord; override;
     procedure EndUpdate; override;
   end;
@@ -326,11 +325,11 @@ type
     procedure ReleaseSpareRecord; override;
 
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
-    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
-    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
+    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
     procedure EndUpdate; override;
   end;
 
@@ -401,9 +400,9 @@ type
     FReadFromFile   : boolean;
     FFileStream     : TFileStream;
     FDatasetReader  : TDataPacketReader;
+
     FIndexes        : array of TBufIndex;
     FMaxIndexesCount: integer;
-
     FIndexesCount   : integer;
     FCurrentIndex   : TBufIndex;
 
@@ -520,7 +519,7 @@ type
     procedure MergeChangeLog;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
-    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
     function UpdateStatus: TUpdateStatus; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
@@ -1093,12 +1092,12 @@ end;
 function TCustomBufDataset.IntAllocRecordBuffer: TRecordBuffer;
 begin
   // Note: Only the internal buffers of TDataset provide bookmark information
-  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
+  result := AllocMem(FRecordSize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 end;
 
 function TCustomBufDataset.AllocRecordBuffer: TRecordBuffer;
 begin
-  result := AllocMem(FRecordsize + BookmarkSize + CalcfieldsSize);
+  result := AllocMem(FRecordSize + BookmarkSize + CalcFieldsSize);
   // The records are initialised, or else the fields of an empty, just-opened dataset
   // are not null
   InitRecord(result);
@@ -1404,21 +1403,6 @@ begin
   FFirstRecBuf:= nil;
 end;
 
-procedure TDoubleLinkedBufIndex.RemoveRecordFromIndex(const ABookmark : TBufBookmark);
-var ARecord : PBufRecLinkItem;
-begin
-  ARecord := ABookmark.BookmarkData;
-  if ARecord = FCurrentRecBuf then DoScrollForward;
-  if ARecord <> FFirstRecBuf then
-    ARecord[IndNr].prior[IndNr].next := ARecord[IndNr].next
-  else
-    begin
-    FFirstRecBuf := ARecord[IndNr].next;
-    FLastRecBuf[IndNr].next := FFirstRecBuf;
-    end;
-  ARecord[IndNr].next[IndNr].prior := ARecord[IndNr].prior;
-end;
-
 function TDoubleLinkedBufIndex.GetRecNo(const ABookmark: PBufBookmark): integer;
 Var TmpRecBuffer    : PBufRecLinkItem;
     recnr           : integer;
@@ -1466,6 +1450,21 @@ begin
   else
     ANewRecord[IndNr].Prior[IndNr].next:=ANewRecord;
   ANewRecord[IndNr].next[IndNr].prior:=ANewRecord;
+end;
+
+procedure TDoubleLinkedBufIndex.RemoveRecordFromIndex(const ABookmark : TBufBookmark);
+var ARecord : PBufRecLinkItem;
+begin
+  ARecord := ABookmark.BookmarkData;
+  if ARecord = FCurrentRecBuf then DoScrollForward;
+  if ARecord <> FFirstRecBuf then
+    ARecord[IndNr].prior[IndNr].next := ARecord[IndNr].next
+  else
+    begin
+    FFirstRecBuf := ARecord[IndNr].next;
+    FLastRecBuf[IndNr].next := FFirstRecBuf;
+    end;
+  ARecord[IndNr].next[IndNr].prior := ARecord[IndNr].prior;
 end;
 
 procedure TDoubleLinkedBufIndex.OrderCurrentRecord;
@@ -1528,18 +1527,6 @@ begin
     SetLength(FIndexes,0);
     FPacketRecords := 1; // temporary
     FIndexesCount:=0;
-    end;
-end;
-
-procedure TCustomBufDataset.InitDefaultIndexes;
-begin
-  if FIndexesCount=0 then
-    begin
-    InternalAddIndex('DEFAULT_ORDER','',[],'','');
-    FCurrentIndex:=FIndexes[0];
-    if not IsUniDirectional then
-      InternalAddIndex('','',[],'','');
-    BookmarkSize := FCurrentIndex.BookmarkSize;
     end;
 end;
 
@@ -1641,6 +1628,73 @@ begin
   ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
 end;
 
+procedure TCustomBufDataset.InitDefaultIndexes;
+begin
+  if FIndexesCount=0 then
+    begin
+    InternalAddIndex('DEFAULT_ORDER','',[],'','');
+    FCurrentIndex:=FIndexes[0];
+    if not IsUniDirectional then
+      InternalAddIndex('','',[],'','');
+    BookmarkSize := FCurrentIndex.BookmarkSize;
+    end;
+end;
+
+procedure TCustomBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
+                               const ACaseInsFields: string = '');
+begin
+  CheckBiDirectional;
+  if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
+
+  if FIndexesCount=0 then
+    InitDefaultIndexes;
+
+  if Active and (FIndexesCount=FMaxIndexesCount) then
+    DatabaseError(SMaxIndexes);
+
+  // If not all packets are fetched, you can not sort properly.
+  if not Active then
+    FPacketRecords:=-1;
+  InternalAddIndex(AName,AFields,AOptions,ADescFields,ACaseInsFields);
+end;
+
+procedure TCustomBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+                                       const ACaseInsFields: string);
+var StoreIndNr : Integer;
+begin
+  if Active then FetchAll;
+  if FIndexesCount>0 then
+    StoreIndNr:=FCurrentIndex.IndNr
+  else
+    StoreIndNr:=0;
+  inc(FIndexesCount);
+  setlength(FIndexes,FIndexesCount); // This invalidates the currentindex! -> not anymore
+  FCurrentIndex:=FIndexes[StoreIndNr];
+  if IsUniDirectional then
+    FIndexes[FIndexesCount-1] := TUniDirectionalBufIndex.Create(self)
+  else
+    FIndexes[FIndexesCount-1] := TDoubleLinkedBufIndex.Create(self);
+//  FIndexes[FIndexesCount-1] := TArrayBufIndex.Create(self);
+  FIndexes[FIndexesCount-1].InitialiseIndex;
+  with (FIndexes[FIndexesCount-1] as TBufIndex) do
+    begin
+    Name:=AName;
+    FieldsName:=AFields;
+    DescFields:=ADescFields;
+    CaseinsFields:=ACaseInsFields;
+    Options:=AOptions;
+    IndNr:=FIndexesCount-1;
+    end;
+
+  if Active then
+    begin
+    FIndexes[FIndexesCount-1].InitialiseSpareRecord(IntAllocRecordBuffer);
+    BuildIndex(FIndexes[FIndexesCount-1]);
+    end
+  else if FIndexesCount>FMaxIndexesCount then
+    FMaxIndexesCount := FIndexesCount;
+end;
+
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
 begin
   if AValue<>'' then
@@ -1649,7 +1703,7 @@ begin
       InitDefaultIndexes;
     FIndexes[1].FieldsName:=AValue;
     FCurrentIndex:=FIndexes[1];
-    if active then
+    if Active then
       begin
       FetchAll;
       BuildIndex(FIndexes[1]);
@@ -1669,7 +1723,7 @@ begin
       begin
       (FIndexes[i] as TDoubleLinkedBufIndex).FCurrentRecBuf:=(FCurrentIndex as TDoubleLinkedBufIndex).FCurrentRecBuf;
       FCurrentIndex:=FIndexes[i];
-      if active then Resync([rmCenter]);
+      if Active then Resync([rmCenter]);
       exit;
       end;
 end;
@@ -1731,7 +1785,7 @@ begin
 
   i := 0;
   pb := FIndexes[0].SpareBuffer;
-  while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
+  while ((i < FPacketRecords) or (FPacketRecords = -1)) and (LoadBuffer(pb) = grOk) do
     begin
     with FIndexes[0] do
       begin
@@ -2141,7 +2195,7 @@ begin
           on E: EDatabaseError do
             begin
             Inc(FailedCount);
-            if failedcount > word(MaxErrors) then Response := rrAbort
+            if FailedCount > word(MaxErrors) then Response := rrAbort
             else Response := rrSkip;
             if assigned(FOnUpdateError) then
               begin
@@ -2168,7 +2222,7 @@ begin
       inc(r);
       end;
   finally
-    if failedcount = 0 then
+    if FailedCount = 0 then
       MergeChangeLog;
 
     InternalGotoBookmark(@StoreCurrRec);
@@ -2293,7 +2347,7 @@ begin
     // Store a bookmark of the current record into the updatebuffer's bookmark
     FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
 
-    if state = dsEdit then
+    if State = dsEdit then
       begin
       // Create an oldvalues buffer with the old values of the record
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
@@ -2583,24 +2637,6 @@ begin
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
     end;
-end;
-
-procedure TCustomBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
-                               const ACaseInsFields: string = '');
-begin
-  CheckBiDirectional;
-  if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
-
-  if FIndexesCount=0 then
-    InitDefaultIndexes;
-  
-  if active and (FIndexesCount=FMaxIndexesCount) then
-    DatabaseError(SMaxIndexes);
-
-  // If not all packets are fetched, you can not sort properly.
-  if not active then
-    FPacketRecords:=-1;
-  InternalAddIndex(AName,AFields,AOptions,ADescFields,ACaseInsFields);
 end;
 
 procedure TCustomBufDataset.SaveToFile(AFileName: string;
@@ -2935,43 +2971,6 @@ begin
       BuildIndex(FIndexes[x]);
 end;
 
-procedure TCustomBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
-                                       const ACaseInsFields: string);
-var StoreIndNr : Integer;
-begin
-  if Active then FetchAll;
-  if FIndexesCount>0 then
-    StoreIndNr:=FCurrentIndex.IndNr
-  else
-    StoreIndNr:=0;
-  inc(FIndexesCount);
-  setlength(FIndexes,FIndexesCount); // This invalidates the currentindex! -> not anymore
-  FCurrentIndex:=FIndexes[StoreIndNr];
-  if IsUniDirectional then
-    FIndexes[FIndexesCount-1] := TUniDirectionalBufIndex.Create(self)
-  else
-    FIndexes[FIndexesCount-1] := TDoubleLinkedBufIndex.Create(self);
-//  FIndexes[FIndexesCount-1] := TArrayBufIndex.Create(self);
-  FIndexes[FIndexesCount-1].InitialiseIndex;
-  with (FIndexes[FIndexesCount-1] as TBufIndex) do
-    begin
-    Name:=AName;
-    FieldsName:=AFields;
-    DescFields:=ADescFields;
-    CaseinsFields:=ACaseInsFields;
-    Options:=AOptions;
-    IndNr:=FIndexesCount-1;
-    end;
-
-  if Active then
-    begin
-    FIndexes[FIndexesCount-1].InitialiseSpareRecord(IntAllocRecordBuffer);
-    BuildIndex(FIndexes[FIndexesCount-1]);
-    end
-  else if FIndexesCount>FMaxIndexesCount then
-    FMaxIndexesCount := FIndexesCount;
-end;
-
 procedure TCustomBufDataset.DoFilterRecord(out Acceptable: Boolean);
 begin
   Acceptable := true;
@@ -3080,37 +3079,7 @@ begin
   end;
 end;
 
-function TArrayBufIndex.GetRecordFromBookmark(ABookMark: TBufBookmark) : integer;
-begin
-  // ABookmark.BookMarkBuf is nil if SetRecNo calls GotoBookmark
-  if (ABookmark.BookmarkData<>nil) and (FRecordArray[ABookmark.BookmarkInt]<>ABookmark.BookmarkData) then
-    begin
-    // Start searching two records before the expected record
-    if ABookmark.BookmarkInt > 2 then
-      Result := ABookmark.BookmarkInt-2
-    else
-      Result := 0;
-
-    while (Result<FLastRecInd) do
-      begin
-      if (FRecordArray[Result] = ABookmark.BookmarkData) then exit;
-      inc(Result);
-      end;
-
-    Result:=0;
-    while (Result<ABookmark.BookmarkInt) do
-      begin
-      if (FRecordArray[Result] = ABookmark.BookmarkData) then exit;
-      inc(Result);
-      end;
-
-    DatabaseError(SInvalidBookmark)
-    end
-  else
-    Result := ABookmark.BookmarkInt;
-end;
-
-Function TCustomBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
+Function TCustomBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
 
 var CurrLinkItem    : PBufRecLinkItem;
     bm              : TBufBookmark;
@@ -3148,10 +3117,10 @@ begin
   // Set the filter buffer
   StoreDSState:=SetTempState(dsFilter);
   FFilterBuffer:=FCurrentIndex.SpareBuffer;
-  SetFieldValues(keyfields,KeyValues);
+  SetFieldValues(KeyFields,KeyValues);
   CurrLinkItem := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
   FilterBuffer:=IntAllocRecordBuffer;
-  move((FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf^,FilterBuffer^,FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
+  move((FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf^,FilterBuffer^,FRecordSize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 
   // Iterate through the records until a match is found
   while (CurrLinkItem <> (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf) do
@@ -3355,6 +3324,36 @@ begin
     end;
 end;
 
+function TArrayBufIndex.GetRecordFromBookmark(ABookMark: TBufBookmark) : integer;
+begin
+  // ABookmark.BookMarkBuf is nil if SetRecNo calls GotoBookmark
+  if (ABookmark.BookmarkData<>nil) and (FRecordArray[ABookmark.BookmarkInt]<>ABookmark.BookmarkData) then
+    begin
+    // Start searching two records before the expected record
+    if ABookmark.BookmarkInt > 2 then
+      Result := ABookmark.BookmarkInt-2
+    else
+      Result := 0;
+
+    while (Result<FLastRecInd) do
+      begin
+      if (FRecordArray[Result] = ABookmark.BookmarkData) then exit;
+      inc(Result);
+      end;
+
+    Result:=0;
+    while (Result<ABookmark.BookmarkInt) do
+      begin
+      if (FRecordArray[Result] = ABookmark.BookmarkData) then exit;
+      inc(Result);
+      end;
+
+    DatabaseError(SInvalidBookmark)
+    end
+  else
+    Result := ABookmark.BookmarkInt;
+end;
+
 procedure TArrayBufIndex.GotoBookmark(const ABookmark : PBufBookmark);
 begin
   FCurrentRecInd:=GetRecordFromBookmark(ABookmark^);
@@ -3385,14 +3384,6 @@ begin
   Result := GetRecordFromBookmark(ABookmark^)+1;
 end;
 
-procedure TArrayBufIndex.RemoveRecordFromIndex(const ABookmark : TBufBookmark);
-var ARecordInd : integer;
-begin
-  ARecordInd:=GetRecordFromBookmark(ABookmark);
-  Move(FRecordArray[ARecordInd+1],FRecordArray[ARecordInd],sizeof(Pointer)*(FLastRecInd-ARecordInd));
-  dec(FLastRecInd);
-end;
-
 procedure TArrayBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
 begin
   inc(FLastRecInd);
@@ -3402,6 +3393,14 @@ begin
   Move(FRecordArray[FCurrentRecInd],FRecordArray[FCurrentRecInd+1],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
   FRecordArray[FCurrentRecInd]:=ARecord;
   inc(FCurrentRecInd);
+end;
+
+procedure TArrayBufIndex.RemoveRecordFromIndex(const ABookmark : TBufBookmark);
+var ARecordInd : integer;
+begin
+  ARecordInd:=GetRecordFromBookmark(ABookmark);
+  Move(FRecordArray[ARecordInd+1],FRecordArray[ARecordInd],sizeof(Pointer)*(FLastRecInd-ARecordInd));
+  dec(FLastRecInd);
 end;
 
 procedure TArrayBufIndex.BeginUpdate;
@@ -3692,11 +3691,6 @@ begin
   FSPareBuffer:=nil;
 end;
 
-procedure TUniDirectionalBufIndex.RemoveRecordFromIndex(const ABookmark: TBufBookmark);
-begin
-  DatabaseError(SUniDirectional);
-end;
-
 function TUniDirectionalBufIndex.GetRecNo(const ABookmark: PBufBookmark): integer;
 begin
   result := -1;
@@ -3715,6 +3709,11 @@ end;
 procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
 begin
   // Do nothing
+end;
+
+procedure TUniDirectionalBufIndex.RemoveRecordFromIndex(const ABookmark: TBufBookmark);
+begin
+  DatabaseError(SUniDirectional);
 end;
 
 procedure TUniDirectionalBufIndex.OrderCurrentRecord;

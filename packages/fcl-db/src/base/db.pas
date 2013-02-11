@@ -1605,7 +1605,7 @@ type
     function IsLinkedTo(ADataSource: TDataSource): Boolean;
     function IsSequenced: Boolean; virtual;
     procedure Last;
-    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; virtual;
+    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; virtual;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; virtual;
     function MoveBy(Distance: Longint): Longint;
     procedure Next;
