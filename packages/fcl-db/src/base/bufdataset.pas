@@ -161,13 +161,13 @@ type
     // Inserts a record before the current record, or if the record is sorted,
     // inserts it in the proper position
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); virtual; abstract;
+    procedure OrderCurrentRecord; virtual; abstract;
     procedure EndUpdate; virtual; abstract;
     
     procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); virtual; abstract;
-    
+
     function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; virtual;
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; virtual; abstract;
-
 
     property SpareRecord : TRecordBuffer read GetSpareRecord;
     property SpareBuffer : TRecordBuffer read GetSpareBuffer;
@@ -228,6 +228,7 @@ type
     procedure BeginUpdate; override;
     procedure AddRecord; override;
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
+    procedure OrderCurrentRecord; override;
     procedure EndUpdate; override;
   end;
 
@@ -273,6 +274,7 @@ type
     procedure BeginUpdate; override;
     procedure AddRecord; override;
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
+    procedure OrderCurrentRecord; override;
     procedure EndUpdate; override;
   end;
 
@@ -1466,6 +1468,37 @@ begin
   ANewRecord[IndNr].next[IndNr].prior:=ANewRecord;
 end;
 
+procedure TDoubleLinkedBufIndex.OrderCurrentRecord;
+var ARecord: PBufRecLinkItem;
+    ABookmark: TBufBookmark;
+begin
+  // all records except current are already sorted
+  // check prior records
+  ARecord := FCurrentRecBuf;
+  repeat
+    ARecord := ARecord[IndNr].prior;
+  until not assigned(ARecord) or (IndexCompareRecords(ARecord, FCurrentRecBuf, DBCompareStruct) <= 0);
+  if assigned(ARecord) then
+    ARecord := ARecord[IndNr].next
+  else
+    ARecord := FFirstRecBuf;
+  if ARecord = FCurrentRecBuf then
+  begin
+    // prior record is less equal than current
+    // check next records
+    repeat
+      ARecord := ARecord[IndNr].next;
+    until (ARecord=FLastRecBuf) or (IndexCompareRecords(ARecord, FCurrentRecBuf, DBCompareStruct) >= 0);
+    if ARecord = FCurrentRecBuf[IndNr].next then
+      Exit; // current record is on proper position
+  end;
+  StoreCurrentRecIntoBookmark(@ABookmark);
+  RemoveRecordFromIndex(ABookmark);
+  FCurrentRecBuf := ARecord;
+  InsertRecordBeforeCurrentRecord(TRecordBuffer(ABookmark.BookmarkData));
+  GotoBookmark(@ABookmark);
+end;
+
 procedure TDoubleLinkedBufIndex.EndUpdate;
 begin
   FLastRecBuf[IndNr].next := FFirstRecBuf;
@@ -2242,17 +2275,13 @@ begin
       end;
 
     // Link the newly created record buffer to the newly created TDataset record
-    with ABookmark^ do
-      begin
-      FCurrentIndex.StoreCurrentRecIntoBookmark(@BookmarkData);
-      BookmarkFlag := bfInserted;
-      end;
+    FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
+    ABookmark^.BookmarkFlag := bfInserted;
 
     inc(FBRecordCount);
     end
   else
     InternalSetToRecord(ActiveBuffer);
-
 
   // If there is no updatebuffer already, add one
   if not GetActiveRecordUpdateBuffer then
@@ -2281,6 +2310,11 @@ begin
     end;
 
   move(ActiveBuffer^,FCurrentIndex.CurrentBuffer^,FRecordSize);
+
+  // new data are now in current record so reorder current record if needed
+  for i := 1 to FIndexesCount-1 do
+    if (i<>1) or (FIndexes[i]=FCurrentIndex) then
+      FIndexes[i].OrderCurrentRecord;
 end;
 
 procedure TCustomBufDataset.CalcRecordSize;
@@ -3679,6 +3713,11 @@ begin
 end;
 
 procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
+begin
+  // Do nothing
+end;
+
+procedure TUniDirectionalBufIndex.OrderCurrentRecord;
 begin
   // Do nothing
 end;
