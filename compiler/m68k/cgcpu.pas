@@ -63,6 +63,7 @@ unit cgcpu;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);override;
 
         procedure a_loadmm_reg_reg(list: TAsmList;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
@@ -414,7 +415,6 @@ unit cgcpu;
               inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
-
 
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
@@ -936,6 +936,26 @@ unit cgcpu;
           list.concat(taicpu.op_reg_ref(A_MOVE,S_L,reg, ref))
         else
           list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
+      end;
+
+
+    procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
+      begin
+        case cgpara.location^.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              case size of
+                OS_F64:
+                  cg64.a_load64_ref_cgpara(list,ref,cgpara);
+                OS_F32:
+                  a_load_ref_cgpara(list,size,ref,cgpara);
+                else
+                  internalerror(2013021201);
+              end;
+            end;
+          else
+            inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+        end;
       end;
 
 
