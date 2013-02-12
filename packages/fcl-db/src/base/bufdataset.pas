@@ -3098,7 +3098,7 @@ var CurrLinkItem    : PBufRecLinkItem;
     SearchFields    : TList;
     DBCompareStruct : TDBCompareStruct;
     StoreDSState    : TDataSetState;
-    FilterBuffer    : TRecordBuffer;
+    FilterRecord    : TRecordBuffer;
     FiltAcceptable  : boolean;
 
 begin
@@ -3121,14 +3121,14 @@ begin
   StoreDSState:=SetTempState(dsFilter);
   FFilterBuffer:=FCurrentIndex.SpareBuffer;
   SetFieldValues(KeyFields,KeyValues);
-  FilterBuffer:=IntAllocRecordBuffer;
-  move(FCurrentIndex.SpareRecord^, FilterBuffer^, FRecordSize+BufferOffset);
+  FilterRecord:=IntAllocRecordBuffer;
+  move(FCurrentIndex.SpareRecord^, FilterRecord^, FRecordSize+BufferOffset);
 
   // Iterate through the records until a match is found
   CurrLinkItem := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
   while (CurrLinkItem <> (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf) do
     begin
-    if (IndexCompareRecords(FilterBuffer,CurrLinkItem,DBCompareStruct) = 0) then
+    if (IndexCompareRecords(FilterRecord,CurrLinkItem,DBCompareStruct) = 0) then
       begin
       if Filtered then
         begin
@@ -3153,7 +3153,7 @@ begin
     end;
 
   RestoreState(StoreDSState);
-  FreeRecordBuffer(FilterBuffer);
+  FreeRecordBuffer(FilterRecord);
 
   // If a match is found, jump to the found record
   if Result then
