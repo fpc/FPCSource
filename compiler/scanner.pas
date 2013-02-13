@@ -345,12 +345,15 @@ implementation
                 include(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   include(init_settings.localswitches,cs_refcountedstrings);
+                if m_default_unicodestring in current_settings.modeswitches then
+                  def_system_macro('FPC_UNICODESTRINGS');
               end
             else
               begin
                 exclude(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
+                undef_system_macro('FPC_UNICODESTRINGS');
               end;
           end;
 
