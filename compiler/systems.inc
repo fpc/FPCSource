@@ -153,7 +153,9 @@
              system_powerpc_aix,        { 73 }
              system_powerpc64_aix,      { 74 }
              system_jvm_java32,         { 75 }
-             system_jvm_android32       { 76 }
+             system_jvm_android32,      { 76 }
+             system_arm_android,        { 77 }
+             system_i386_android        { 78 }
        );
 
      type

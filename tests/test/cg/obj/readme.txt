@@ -36,3 +36,6 @@ Linux-arm-gnueabihf : gcc version 4.6.3 (Debian 4.6.3-8+rpi1)
 Linux-mipsel : gcc (Debian 4.4.5-8) 4.4.5
 Linux-mips : gcc (Debian 4.4.5-8) 4.4.5
 
+
+Android-arm  : GCC 4.7
+Android-i386 : GCC 4.7

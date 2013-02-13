@@ -1,3 +1,4 @@
+{%delfiles=texec1}
 {$mode objfpc}
 {$h+}
 

@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 program tcpstr19;
 
 // test conversions from and to rawbytestring

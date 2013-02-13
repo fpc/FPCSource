@@ -78,7 +78,13 @@ RESULT.............Exit code of execution of test expected
 TIMEOUT............Timeout indication for test in seconds (only used if
                    enabled by defining TEST_TIMEOUT)
 FILES..............List of files (separated by spaces) required by test,
-                   will be copied to remote before execution
+                   will be copied to remote before execution. If TEST_DELTEMP
+                   is set, all these files will be deleted after the test.
+DELFILES...........List of files (separated by spaces) to be deleted after
+                   the test. Files will be deleted only if TEST_DELTEMP is
+                   set. If no extension is specified for a file, the dotest
+                   program will try to delete executable and shared library
+                   of that name, using appropriate exe and dll extensions.
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second
@@ -172,6 +178,9 @@ TEST_RSH             set this to the hostname when you want to use rsh/rcp
                      to execute/copy the test
 TEST_SSH             set this to use ssh/scp to execute the test
 TEST_PUTTY           test using putty when remote testing (pscp and plink)
+TEST_ADB             run tests om remote Android device using ADB. Specify
+                     TEST_ADB=1 to run on default connected device. Specify  
+                     TEST_ADB=<serial> to run on specific connected device.
 TEST_REMOTEOPT       extra options to remote program
 TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELBEFORE       delete remote executable before uploading

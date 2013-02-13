@@ -206,7 +206,7 @@ begin
       T.Dependencies.AddUnit('baseunix',AllUnixOSes);
     T:=P.Targets.AddUnit('unix/dl.pp',AllUnixOSes);
       T.Dependencies.AddUnit('system');
-    T:=P.Targets.AddUnit('unix/ipc.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('unix/ipc.pp',AllUnixOSes - [Android]);
       With T.Dependencies do
         begin
           AddUnit('baseunix');

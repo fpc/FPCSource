@@ -1,4 +1,5 @@
 {%skiptarget=wince}
+{%delfiles=blockwritetest.tmp}
 var
   f:file;
   p:pointer;

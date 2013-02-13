@@ -2,7 +2,7 @@
 { Submitted by "Antonio Marti" on  2005-06-01 }
 { e-mail: windowze2000@yahoo.es }
 
-{ %skiptarget=wince }
+{ %skiptarget=wince,android }
 
 uses sysutils;
 var b: byte;

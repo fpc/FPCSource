@@ -24,7 +24,7 @@ begin
     P.Description := 'Header to the GTK widgetset (v1).';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes+[Win32,Win64,OS2,EMX]-[darwin,iphonesim];
+    P.OSes:=AllUnixOSes+[Win32,Win64,OS2,EMX]-[darwin,iphonesim,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 

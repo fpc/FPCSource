@@ -267,10 +267,12 @@ Function fpc_Char_To_UnicodeStr(const c : AnsiChar): UnicodeString; compilerproc
   Converts a AnsiChar to a UnicodeString;
 }
 var
-  arr: array[0..0] of ansichar;
+  str: JLString;
+  arr: array of jbyte;
 begin
-  arr[0]:=c;
-  widestringmanager.Ansi2UnicodeMoveProc(pansichar(@arr),DefaultSystemCodePage,result,1);
+  setlength(arr,1);
+  arr[0]:=ord(c);
+  result:=JLString.create(arr,0,1);
 end;
 
 

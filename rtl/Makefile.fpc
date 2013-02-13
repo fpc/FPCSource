@@ -7,6 +7,7 @@ name=rtl
 version=2.7.1
 
 [target]
+dirs_android=android
 dirs_linux=linux
 dirs_win32=win32
 dirs_wince=wince

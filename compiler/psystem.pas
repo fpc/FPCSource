@@ -300,10 +300,14 @@ implementation
             addtype('Extended',pbestrealtype^);
             { CExtended corresponds to the C version of the Extended type
               (either "long double" or "double") }
-            if tfloatdef(pbestrealtype^).floattype=s80real then
-              addtype('CExtended',sc80floattype)
+            if target_info.system in systems_android then
+              { Android has "long double"="double" even for x86 }
+              addtype('CExtended',s64floattype)
             else
-              addtype('CExtended',pbestrealtype^);
+              if tfloatdef(pbestrealtype^).floattype=s80real then
+                addtype('CExtended',sc80floattype)
+              else
+                addtype('CExtended',pbestrealtype^);
           end;
 {$ifdef x86}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}

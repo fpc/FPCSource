@@ -1,7 +1,7 @@
 {$ifdef Delphi}
 const fpmkunitsrc : array[0..809] of string[240]=(
 {$else Delphi}
-const fpmkunitsrc : array[0..809,1..240] of char=(
+const fpmkunitsrc : array[0..809,1..250] of char=(
 {$endif Delphi}
   '{'#013#010+
   '    This file is part of the Free Pascal Makefile Package'#013#010+
@@ -136,7 +136,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  AllOSes = [Low(TOS)..High(TOS)];'#013#010+
   '  AllCPUs = [Low(TCPU)..High(TCPU)];'#013#010+
   '  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Sol','ar'+
-  'is,Haiku,iphonesim];'#013#010+
+  'is,Haiku,iphonesim,Android];'#013#010+
   '  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];'#013#010+
   '  AllWindowsOSes  = [Win32,Win64,WinCE];'#013#010+
   '  AllLimit83fsOses= [go32v2,os2,emx,watcom];'#013#010+

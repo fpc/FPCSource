@@ -109,7 +109,7 @@ uses
                              Executable Loaders
 ****************************************************************************}
 
-{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos)}
+{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android)}
   {$ifdef cpu64}
     {$define ELF64}
   {$else}

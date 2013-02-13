@@ -154,7 +154,9 @@ const
   { 73 }  'AIX-powerpc',
   { 74 }  'AIX-powerpc64',
   { 75 }  'Java-JVM',
-  { 76 }  'Android-JVM'
+  { 76 }  'Android-JVM',
+  { 77 }  'Android-arm',
+  { 78 }  'Android-i386'
   );
 
 const

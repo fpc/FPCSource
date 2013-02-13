@@ -1003,7 +1003,7 @@ unit cgx86;
                     { Convert thread local address to a process global addres
                       as we cannot handle far pointers.}
                     case target_info.system of
-                      system_i386_linux:
+                      system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
                             reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,ref.alignment);
@@ -2155,7 +2155,7 @@ unit cgx86;
         { interrupt support for i386 }
         if (po_interrupt in current_procinfo.procdef.procoptions) and
            { this messes up stack alignment }
-           not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+           not(target_info.system in [system_i386_darwin,system_i386_iphonesim,system_i386_android]) then
           begin
             { .... also the segment registers }
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_GS));

@@ -42,6 +42,7 @@ type
     Files         : string;
     WpoParas      : string;
     WpoPasses     : longint;
+    DelFiles      : string;
   end;
 
 Const
@@ -279,6 +280,9 @@ begin
               else
                 if GetEntry('WPOPASSES') then
                  val(res,r.wpopasses,code)
+              else
+                if GetEntry('DELFILES') then
+                  r.DelFiles:=res
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;

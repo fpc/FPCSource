@@ -35,6 +35,9 @@ implementation
              Targets
 **************************************}
 
+    {$ifndef NOTARGETANDROID}
+      ,t_android
+    {$endif}
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}

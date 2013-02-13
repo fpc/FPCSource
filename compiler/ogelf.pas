@@ -1192,7 +1192,7 @@ implementation
            symtabsect:=TElfSymtab.create(data,esk_obj);
            shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
            { "no executable stack" marker for Linux }
-           if (target_info.system in systems_linux) and
+           if (target_info.system in (systems_linux + systems_android)) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { symbol for filename }

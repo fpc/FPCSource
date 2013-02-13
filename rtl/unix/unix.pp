@@ -1054,7 +1054,7 @@ end;
                         General information calls
 ******************************************************************************}
 
-{$ifdef Linux}
+{$if defined(Linux)}
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
 
@@ -1081,6 +1081,15 @@ Function GetDomainName:String;
   end;
 {$endif sunos}
 
+{$ifdef android}
+{ android doesn't seem to implement GetDomainName
+}
+Function GetDomainName:String;
+  begin
+    GetDomainName:='';
+  end;
+{$endif}
+
 {$if defined(BSD) or defined(aix)}
 
 function intGetDomainName(Name:PChar; NameLen:Cint):cint;
@@ -1104,7 +1113,6 @@ begin
    getdomainname[0]:=chr(strlen(@getdomainname[1]));
 end;
 {$endif}
-
 
 Function GetHostName:String;
 {

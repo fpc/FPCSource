@@ -1,4 +1,4 @@
-{ %TARGET=win64,wince,win32,linux }
+{ %TARGET=win64,wince,win32,linux,android }
 
 { Source provided for Free Pascal Bug Report 2364 }
 { Submitted by "Maarten Bekers" on  2003-02-08 }

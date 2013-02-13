@@ -135,7 +135,7 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllLimit83fsOses= [go32v2,os2,emx,watcom];
@@ -178,7 +178,7 @@ Const
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true ),
-    { android } ( false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true ),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false)
   );
 

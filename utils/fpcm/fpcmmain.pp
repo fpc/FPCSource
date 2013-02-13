@@ -141,7 +141,7 @@ interface
         { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false),
         { aix }     ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false,   false),
         { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true),
-        { android } ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true)
+        { android } ( true, false, false, false, false, true, false, false, false, false, false, false, false, false,   true)
       );
 
     type

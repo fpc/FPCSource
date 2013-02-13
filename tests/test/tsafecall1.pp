@@ -1,4 +1,4 @@
-{ %TARGET=win32,win64,wince,linux}
+{ %TARGET=win32,win64,wince,linux,android }
 {$ifdef fpc}
 {$mode objfpc}
 {$endif}

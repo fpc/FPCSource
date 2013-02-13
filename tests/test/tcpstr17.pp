@@ -11,8 +11,15 @@ uses
   cwstring;
 {$endif}
 
+const
+{$ifdef android}
+  OemCP = 1251;
+{$else}
+  OemCP = 866;
+{$endif}
+
 type
-  TOEMStr = type AnsiString(866);
+  TOEMStr = type AnsiString(OemCP);
 {$ifndef FPC}
   TSystemCodePage = Word;
 const
@@ -54,9 +61,9 @@ begin
   TestCodeConvRaw(s, CP_UTF8);
   TestCodeConvAnsi(u8, CP_UTF8);
   TestCodeConvAnsi(s, CP_UTF8);
-  // converts to 866
+  // converts to OemCP
   oemstr := u8;
-  TestCodeConvRaw(oemstr, 866);
+  TestCodeConvRaw(oemstr, OemCP);
   TestCodeConvAnsi(oemstr, DefaultSystemCodePage);
   s := 'test';
   TestCodeConvRaw(s, CP_UTF8);
@@ -67,5 +74,5 @@ begin
   // outputs in source codepage instead of OEM
   TestCodeConvRaw('привет', CP_UTF8);
   // outputs in OEM codepage
-  TestCodeConvRaw(TOEMStr('привет'), 866);
+  TestCodeConvRaw(TOEMStr('привет'), OemCP);
 end.

@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 program tcpstr9;
 {$mode delphiunicode}
 {$apptype console}
