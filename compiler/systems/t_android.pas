@@ -228,7 +228,7 @@ begin
         else
           s:='crtbegin_dynamic.o';
       librarysearchpath.FindFile(s,false,s1);
-      AddFileName(s1);
+      AddFileName(maybequoted(s1));
       { main objectfiles }
       while not ObjectFiles.Empty do
        begin
@@ -297,7 +297,7 @@ begin
       else
         s:='crtend_android.o';
       librarysearchpath.FindFile(s,false,s1);
-      AddFileName(s1);
+      AddFileName(maybequoted(s1));
       Add(')');
 
       { Additions to the linker script }
