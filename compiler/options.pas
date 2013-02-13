@@ -2960,6 +2960,16 @@ begin
   def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
+  { Set up a default prefix for binutils when cross-compiling }
+  if source_info.system<>target_info.system then
+    case target_info.system of
+      { Use standard Android NDK prefixes }
+      system_arm_android:
+        utilsprefix:='arm-linux-androideabi-';
+      system_i386_android:
+        utilsprefix:='i686-linux-android-';
+    end;
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
