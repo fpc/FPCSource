@@ -1717,9 +1717,9 @@ begin
                         if target_info.system in systems_all_windows then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_native;
+                              SetApptype(app_native);
                           end
                         else
                           IllegalPara(opt);
@@ -1729,9 +1729,9 @@ begin
                         if target_info.system in systems_darwin then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_bundle
+                              SetApptype(app_bundle)
                           end
                         else
                           IllegalPara(opt);
@@ -1766,9 +1766,9 @@ begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_gui
+                              SetApptype(app_gui)
                             else
-                              apptype:=app_cui;
+                              SetApptype(app_cui);
                           end
                         else
                           IllegalPara(opt);
@@ -1799,9 +1799,9 @@ begin
                         if target_info.system in systems_os2 then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_fs;
+                              SetApptype(app_fs);
                           end
                         else
                           IllegalPara(opt);
@@ -1811,9 +1811,9 @@ begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_gui;
+                              SetApptype(app_gui);
                           end
                         else
                           IllegalPara(opt);
@@ -1899,9 +1899,9 @@ begin
                         if target_info.system in systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_tool;
+                              SetApptype(app_tool);
                           end
                         else
                           IllegalPara(opt);
@@ -2766,7 +2766,9 @@ begin
 
 { target is set here, for wince the default app type is gui }
   if target_info.system in systems_wince then
-    apptype:=app_gui;
+    SetApptype(app_gui)
+  else
+    SetApptype(apptype);
 
 { default defines }
   def_system_macro(target_info.shortname);

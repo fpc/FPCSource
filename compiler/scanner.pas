@@ -261,6 +261,7 @@ interface
     { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
+    procedure SetAppType(NewAppType:tapptype);
 
 
 implementation
@@ -624,6 +625,14 @@ implementation
             end;
       end;
 
+    procedure SetAppType(NewAppType:tapptype);
+      begin
+        if apptype=app_cui then
+          undef_system_macro('CONSOLE');
+        apptype:=NewAppType;
+        if apptype=app_cui then
+          def_system_macro('CONSOLE');
+      end;
 {*****************************************************************************
                            Conditional Directives
 *****************************************************************************}

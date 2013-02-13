@@ -252,20 +252,20 @@ unit scandir;
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
                  if hs='GUI' then
-                   apptype:=app_gui
+                   SetApptype(app_gui)
                  else if hs='CONSOLE' then
-                   apptype:=app_cui
+                   SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
-                   apptype:=app_native
+                   SetApptype(app_native)
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
-                   apptype:=app_fs
+                   SetApptype(app_fs)
                  else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
-                   apptype:=app_tool
+                   SetApptype(app_tool)
                  else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
-                   apptype:=app_arm9
+                   SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
-                   apptype:=app_arm7
+                   SetApptype(app_arm7)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
               end;

@@ -58,7 +58,7 @@ begin
   StaticLibFiles.doubles:=true;
   // set arm9 as default apptype
   if (apptype <> app_arm9) or (apptype <> app_arm7) then
-    apptype := app_arm9;
+    apptype:=app_arm9;
 end;
 
 
