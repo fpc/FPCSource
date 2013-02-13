@@ -18,6 +18,7 @@
 
 
 {$ifndef FPC_UNICODESTRING_TYPE_DEFINED}
+{$define FPC_UNICODESTRING_TYPE_DEFINED}
 {
   This file contains the implementation of the UnicodeString type,
   and all things that are needed for it.
