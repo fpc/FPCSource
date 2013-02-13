@@ -373,16 +373,16 @@ interface
        alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
 
     type
-       { Win32, OS/2 & MacOS application types }
+       { Application types (platform specific) }
        tapptype = (
          app_none,
-         app_native,
-         app_gui,       { graphic user-interface application}
-         app_cui,       { console application}
+         app_native,    { native for Windows and NativeNT targets }
+         app_gui,       { graphic user-interface application }
+         app_cui,       { console application }
          app_fs,        { full-screen type application (OS/2 and EMX only) }
-         app_tool,      { tool application, (MPW tool for MacOS, MacOS only)}
-         app_arm7,
-         app_arm9,
+         app_tool,      { tool application, (MPW tool for MacOS, MacOS only) }
+         app_arm7,      { for Nintendo DS target }
+         app_arm9,      { for Nintendo DS target }
          app_bundle     { dynamically loadable bundle, Darwin only }
        );
 

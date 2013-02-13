@@ -316,7 +316,8 @@ interface
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
-       { windows / OS/2 application type }
+       { Application type (platform specific) 
+         see globtype.pas for description }
        apptype : tapptype;
 
        features : tfeatures;
