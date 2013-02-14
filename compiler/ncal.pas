@@ -3461,7 +3461,7 @@ implementation
            Message(parser_e_no_category_as_types);
 
          { can we get rid of the call? }
-         if (cs_opt_level2 in current_settings.optimizerswitches) and
+         if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
             not(cnf_return_value_used in callnodeflags) and
            (procdefinition.typ=procdef) and
            tprocdef(procdefinition).isempty and

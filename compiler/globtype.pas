@@ -257,7 +257,9 @@ interface
              explicit side-effects, only implicit side-effects (like the ones
              mentioned before) can disappear.
          }
-         cs_opt_dead_values
+         cs_opt_dead_values,
+         { compiler checks for empty procedures/methods and removes calls to them if possible }
+         cs_opt_remove_emtpy_proc
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -284,12 +286,12 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[11] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[16] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH','DEADVALUES'
+         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -310,7 +312,7 @@ interface
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
-       genericlevel2optimizerswitches = [cs_opt_level2];
+       genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
        genericlevel3optimizerswitches = [cs_opt_level3];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
