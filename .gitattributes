@@ -7544,6 +7544,7 @@ rtl/embedded/arm/at91sam7x256.pp svneol=native#text/plain
 rtl/embedded/arm/cortexm3_start.inc svneol=native#text/pascal
 rtl/embedded/arm/lm3fury.pp svneol=native#text/pascal
 rtl/embedded/arm/lm3tempest.pp svneol=native#text/pascal
+rtl/embedded/arm/lpc1343.pp svneol=native#text/pascal
 rtl/embedded/arm/lpc1768.pp svneol=native#text/pascal
 rtl/embedded/arm/lpc21x4.pp svneol=native#text/plain
 rtl/embedded/arm/sc32442b.pp svneol=native#text/pascal

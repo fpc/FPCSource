@@ -73,6 +73,7 @@ Type
      (ct_none,
 
       { Phillips }
+      ct_lpc1343,
       ct_lpc2114,
       ct_lpc2124,
       ct_lpc2194,
@@ -275,6 +276,15 @@ Const
         srambase:0;
         sramsize:0
    	),
+
+        (
+    	controllertypestr:'LPC1343';
+        controllerunitstr:'LPC1343';
+        flashbase:$00000000;
+        flashsize:$00008000;
+        srambase:$10000000;
+        sramsize:$00002000
+    	),
 
         (
     	controllertypestr:'LPC2114';

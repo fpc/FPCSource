@@ -328,15 +328,13 @@ unit cpupara;
                      else
                        internalerror(2005082901);
                    end
-                 else if (paracgsize in [OS_NO,OS_64,OS_S64]) then
-                   paraloc^.size := OS_32
+                 else if paracgsize<>OS_S8 then
+                   paraloc^.size := OS_8
                  else
                    paraloc^.size:=paracgsize;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        { this is not abi compliant
-                          why? (FK) }
                         if nextintreg>=RS_R8 then
                           begin
                             paraloc^.loc:=LOC_REGISTER;

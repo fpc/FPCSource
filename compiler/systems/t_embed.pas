@@ -223,6 +223,7 @@ begin
       ct_none:
            begin
            end;
+      ct_lpc1343,
       ct_lpc2114,
       ct_lpc2124,
       ct_lpc2194,
