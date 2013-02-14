@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 23463
+#   Based on errore.msg of SVN revision 23596
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2013 by the Free Pascal Development team
@@ -403,7 +403,7 @@ scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS wird für das Ziel-OS nic
 #
 # Parser
 #
-# 03331 is the last used one
+# 03332 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1397,8 +1397,8 @@ parser_e_no_destructor_in_records=03300_E_Destruktoren sind in Records und Helfe
 parser_e_class_methods_only_static_in_records=03301_E_Klassenmethoden müssen in Records statisch sein
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_parameterless_constructor_in_records=03302_E_Konstruktoren ohne Parameter sind in Records und Recordhelfern nicht erlaubt
-% Constructor declarations with no arguments aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Konstruktoren ohne Parameter sind in Records und Record/Typhelfern nicht erlaubt
+% Constructor declarations with no arguments aren't allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Entweder das Ergebnis oder mindestens ein Parameter müssen vom Typ "$1" sein
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
@@ -1495,6 +1495,10 @@ parser_e_no_properties_in_local_anonymous_records=03330_E_Deklarationen von Eige
 parser_e_no_class_in_local_anonymous_records=03331_E_Deklarationen von Klassenmitgliedern sind in lokalen oder anonymen Records nicht erlaubt
 % Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
+parser_e_not_allowed_in_record=03332_E_Sichtbarkeits-Abschnitt "$1" ist in Records nicht erlaubt
+% The visibility sections \var(protected) and \var(strict protected) are only
+% useful together with inheritance. Since records do not support that they are
+% forbidden.
 %
 % \end{description}
 # EndOfTeX
@@ -1502,7 +1506,7 @@ parser_e_no_class_in_local_anonymous_records=03331_E_Deklarationen von Klassenmi
 #
 # Type Checking
 #
-# 04119 is the last used one
+# 04120 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1859,7 +1863,7 @@ type_e_record_type_expected=04100_E_Recordtyp erwartet
 type_e_class_helper_must_extend_subclass=04101_E_Abgeleitete Klassenhelfer müssen eine Unterklasse von "$1" oder die Klasse selbst erweitern
 % If a class helper inherits from another class helper the extended class must
 % extend either the same class as the parent class helper or a subclass of it
-type_e_record_helper_must_extend_same_record=04102_E_Abgeleitete Recordhelfer müssen "$1" erweitern
+type_e_record_helper_must_extend_same_record=04102_E_Abgeleitete Record- und Typhelfer müssen "$1" erweitern
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
 type_e_procedures_return_no_value=04103_E_Ungültige Zuweisung, eine Prozedur gibt keinen Wert zurück
@@ -1924,6 +1928,8 @@ type_e_typeof_requires_vmt=04118_E_TYPEOF kann nur auf Objekttypen mit VMT angew
 type_e_invalid_default_value=04119_E_Der Defaultwert für einen Parameter des Typs "$1" kann nicht definiert werden
 % Parameters declared as structured types, such as files, variants, non-dynamic
 % arrays and TP-style objects, cannot have a default value.
+type_e_type_not_allowed_for_type_helper=04120_E_Typ "$1" kann durch einen Typhelfer nicht erweitert werden
+% Types like procedural variables can not be extended by type helpers
 %
 % \end{description}
 # EndOfTeX
@@ -1931,7 +1937,7 @@ type_e_invalid_default_value=04119_E_Der Defaultwert für einen Parameter des Ty
 #
 # Symtable
 #
-# 05086 is the last used one
+# 05087 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2195,6 +2201,8 @@ sym_e_no_matching_inherited_parameterless_constructor=05086_E_Kann den voreinges
 % the parameterless constructor from the parent class inside this added constructor.
 % This is however impossible if the parent class does not declare such a constructor.
 % In this case you must add a valid constructor yourself.
+sym_d_adding_helper_for=05087_D_Helfer für $1 hinzugefügt
+% A helper for the mentioned type is added to the current scope
 %
 % \end{description}
 # EndOfTeX
