@@ -1118,8 +1118,22 @@ implementation
                       if (current_settings.sourcecodepage<>CP_UTF8) then
                         begin
                           if tordconstnode(left).value.uvalue>127 then
-                            Message(type_w_unicode_data_loss);
-                          hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                            begin
+                              Message(type_w_unicode_data_loss);
+                              // compiler has different codepage than a system running an application
+                              // to prevent wrong codepage and data loss we are converting unicode char
+                              // using a helper routine. This is not delphi compatible behavior.
+                              // Delphi converts UniocodeChar to ansistring at the compile time
+                              // old behavior:
+                              // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
+                                   ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
+                                   ccallparanode.create(left,nil)),resultdef);
+                              left:=nil;
+                              exit;
+                            end
+                          else
+                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                         end
                       else
                         begin
