@@ -154,6 +154,7 @@ compiler/comprsrc.pas svneol=native#text/plain
 compiler/constexp.pas svneol=native#text/x-pascal
 compiler/cp1251.pas svneol=native#text/plain
 compiler/cp1252.pp svneol=native#text/plain
+compiler/cp1253.pp svneol=native#text/plain
 compiler/cp437.pas svneol=native#text/plain
 compiler/cp646.pas svneol=native#text/pascal
 compiler/cp850.pas svneol=native#text/plain
