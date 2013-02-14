@@ -5,7 +5,7 @@ uses
   SysUtils;
   
 type
-  ts1252 = type AnsiString(1252);
+  ts1253 = type AnsiString(1253);
   ts1251 = type AnsiString(1251);
 var
   s1 : ts1252;

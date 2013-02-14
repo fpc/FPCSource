@@ -4,7 +4,7 @@ uses
 {$endif}
 
 type
-  tcpstr1 = type AnsiString(1252);
+  tcpstr1 = type AnsiString(1253);
   tcpstr2 = type AnsiString(1251);
 var
   a1 : tcpstr1;
@@ -13,7 +13,7 @@ var
   u1 : unicodestring;
 begin
   a1:=' ';
-  a1[1]:=char($80); // Euro symbol in cp1252
+  a1[1]:=char($80); // Euro symbol in cp1253
   a2:=a1;
   if ord(a2[1])<>$E2 then
     halt(1);
