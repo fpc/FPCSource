@@ -8,7 +8,7 @@ type
   ts1253 = type AnsiString(1253);
   ts1251 = type AnsiString(1251);
 var
-  s1 : ts1252;
+  s1 : ts1253;
   s2 : ts1251;
   au : unicodestring;
 begin
