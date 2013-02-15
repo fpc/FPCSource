@@ -1069,8 +1069,11 @@ implementation
                  (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
                   gen_alloc_regloc(list,destloc);
+                  unget_para(paraloc^);
                   list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,destloc.register));
                 end
+{ TODO: Produces invalid code, needs fixing together with regalloc setup. }
+{
               else if (destloc.size = OS_F64) and
                       (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) and
                       (paraloc^.next^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1078,10 +1081,13 @@ implementation
                   gen_alloc_regloc(list,destloc);
 
                   tmpreg:=destloc.register;
+                  unget_para(paraloc^);
                   list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,tmpreg));
                   setsupreg(tmpreg,getsupreg(tmpreg)+1);
+                  unget_para(paraloc^.next^);
                   list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.Next^.register,tmpreg));
                 end
+}
               else
                 begin
                   sizeleft := TCGSize2Size[destloc.size];
