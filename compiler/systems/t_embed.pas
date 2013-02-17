@@ -387,6 +387,8 @@ begin
         begin
           Add('    } >ram');
         end;
+      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) }');
+
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
