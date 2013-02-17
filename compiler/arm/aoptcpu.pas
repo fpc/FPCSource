@@ -809,7 +809,7 @@ Implementation
                                         hp1.free;
                                         hp2.free;
 
-                                        if taicpu(hp1).oper[2]^.shifterop^.shiftimm>=32 then
+                                        if taicpu(p).oper[2]^.shifterop^.shiftimm>=32 then
                                           begin
                                             taicpu(p).freeop(1);
                                             taicpu(p).freeop(2);
