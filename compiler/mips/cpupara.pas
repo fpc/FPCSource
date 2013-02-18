@@ -216,31 +216,6 @@ implementation
               begin
                 if intparareg=0 then
                   inc(intparareg);
-                if side=calleeside then
-                  begin
-                    result.reset;
-                    paraloc:=result.add_location;
-                    paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                    { return is at offset zero }
-                    paraloc^.reference.offset:=0;
-                    paraloc^.size:=retcgsize;
-                    { Reserve first register for ret_in_param }
-                    if assigned(current_procinfo) then
-                      begin
-                        TMIPSProcInfo(current_procinfo).register_used[0]:=true;
-                        TMIPSProcInfo(current_procinfo).register_size[0]:=retcgsize;
-                        TMIPSProcInfo(current_procinfo).register_name[0]:='ret_in_param_result';
-                        TMIPSProcInfo(current_procinfo).register_offset[0]:=0;
-                      end;
-                  end
-                else
-                  begin
-                    getIntParaLoc(p,1,result);
-                    result.def:=retdef;
-                  end;
-                // This is now done in set_common_funcretloc_info already
-                // result.def:=getpointerdef(result.def);
               end;
             exit;
           end;
@@ -350,9 +325,17 @@ implementation
             //writeln('para: ',hp.Name,' typ=',hp.vardef.typ,' paracgsize=',paracgsize,' align=',hp.vardef.alignment);
             hp.paraloc[side].reset;
             hp.paraloc[side].Alignment:=alignment;
-            if paracgsize=OS_NO then
+            if (paracgsize=OS_NO) or
+              { Ordinals on caller side must be promoted to machine word }
+              ((target_info.endian=endian_big) and     // applies to little-endian too?
+              (paradef.typ<>recorddef) and
+              (side=callerside) and
+              (paralen<tcgsize2size[OS_INT]))then
               begin
-                paracgsize:=OS_32;
+                if is_signed(paradef) then
+                  paracgsize:=OS_S32
+                else
+                  paracgsize:=OS_32;
                 paralen:=align(paralen,4);
               end
             else
@@ -395,48 +378,15 @@ implementation
                 else
                   paraloc^.size:=paracgsize;
 
-                { big-endian targets require that record data stored in parameter
-                  registers is left-aligned }
-                if (target_info.endian=endian_big) and
-                   (paradef.typ = recorddef) and
-                   (tcgsize2size[paraloc^.size] <> sizeof(aint)) then
-                  begin
-                    paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
-                    paraloc^.size := OS_INT;
-                  end;
-
                 { ret in param? }
                 if (vo_is_funcret in hp.varoptions) and
                   is_abi_record(hp.vardef) then
                   begin
                     { This should be the first parameter }
-                    if (side=calleeside) and assigned(current_procinfo) then
-                      begin
-                        TMIPSProcInfo(current_procinfo).register_used[0]:=true;
-                        TMIPSProcInfo(current_procinfo).register_name[0]:='result';
-                        TMIPSProcInfo(current_procinfo).register_size[0]:=paraloc^.size;
-                        TMIPSProcInfo(current_procinfo).register_offset[0]:=0;
-                      end;
                     //if (intparareg<>1) then
                     //  Comment(V_Warning,'intparareg should be one for funcret in TMipsParaManager.create_paraloc_info_intern');
-                    if side=callerside then
-                    begin
-                      paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=newreg(R_INTREGISTER,parasupregs[0],R_SUBWHOLE);
-                    end
-                    else
-                    begin
-                      paraloc^.loc:=LOC_REFERENCE;
-                      if (po_nostackframe in p.procoptions) then
-                        paraloc^.reference.index := NR_STACK_POINTER_REG
-                      else
-                        begin
-                          paraloc^.reference.index := NR_FRAME_POINTER_REG;
-                          if assigned(current_procinfo) then
-                            TMIPSProcinfo(current_procinfo).needs_frame_pointer := true;
-                        end;
-                      paraloc^.reference.offset:=0;
-                    end;
+                    paraloc^.loc:=LOC_REGISTER;
+                    paraloc^.register:=newreg(R_INTREGISTER,parasupregs[0],R_SUBWHOLE);
                     inc(intparasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));
                   end
                 { In case of po_delphi_nested_cc, the parent frame pointer
@@ -470,30 +420,17 @@ implementation
                       end
                     else { not can use float }
                      begin
-                       if (side=calleeside) and assigned(current_procinfo) then
+                       paraloc^.loc:=LOC_REGISTER;
+                       paraloc^.register:=newreg(R_INTREGISTER,parasupregs[intparareg],R_SUBWHOLE);
+
+                       { big-endian targets require that record data stored in parameter
+                         registers is left-aligned }
+                       if (target_info.endian=endian_big) and
+                          (paradef.typ=recorddef) and
+                          (paralen<tcgsize2size[OS_INT]) then
                          begin
-                           TMIPSProcInfo(current_procinfo).register_used[intparareg]:=true;
-                           TMIPSProcInfo(current_procinfo).register_name[intparareg]:=hp.prettyname;
-                           TMIPSProcInfo(current_procinfo).register_size[intparareg]:=paraloc^.size;
-                           TMIPSProcInfo(current_procinfo).register_offset[intparareg]:=intparareg*mips_sizeof_register_param;
-                         end;
-                       if side=callerside then
-                         begin
-                           paraloc^.loc:=LOC_REGISTER;
-                           paraloc^.register:=newreg(R_INTREGISTER,parasupregs[intparareg],R_SUBWHOLE);
-                         end
-                       else
-                         begin
-                           paraloc^.loc:=LOC_REFERENCE;
-                           if (po_nostackframe in p.procoptions) then
-                             paraloc^.reference.index := NR_STACK_POINTER_REG
-                           else
-                             begin
-                               paraloc^.reference.index := NR_FRAME_POINTER_REG;
-                               if assigned(current_procinfo) then
-                                 TMIPSProcinfo(current_procinfo).needs_frame_pointer := true;
-                             end;
-                           paraloc^.reference.offset:=intparareg*mips_sizeof_register_param;
+                           paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
+                           paraloc^.size := OS_INT;
                          end;
                        inc(intparareg);
                        inc(intparasize,align(tcgsize2size[paraloc^.size],mips_sizeof_register_param));
@@ -504,16 +441,6 @@ implementation
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
 
-                    { Force size to multiple of 4 for records passed by value,
-                      to obtain correct memory layout for big endian }
-(*
-                    if (paradef.typ = recorddef) and 
-                       (tcgsize2size[paraloc^.size] < tcgsize2size[OS_32]) then
-                      begin
-                        inc(paralen,tcgsize2size[OS_32]-tcgsize2size[paraloc^.size]);
-                        paraloc^.size := OS_32;
-                      end;
-*)
                     if side=callerside then
                       begin
                         paraloc^.reference.index := NR_STACK_POINTER_REG;
@@ -530,6 +457,11 @@ implementation
                               TMIPSProcinfo(current_procinfo).needs_frame_pointer := true;
                           end;
                         paraloc^.reference.offset:=intparasize;
+
+                        if (target_info.endian=endian_big) and
+                           (paralen<tcgsize2size[OS_INT]) and
+                           (paradef.typ<>recorddef) then
+                          inc(paraloc^.reference.offset,4-paralen);
                       end;
                     inc(intparasize,align(paralen,mips_sizeof_register_param));
                     paralen:=0;
@@ -540,12 +472,6 @@ implementation
         { O32 ABI reqires at least 16 bytes }
         if (intparasize < 16) then
           intparasize := 16;
-        { Increase maxpushparasize, but only if not examining itself }
-        //if assigned(current_procinfo) and (side=callerside) and
-        //   (current_procinfo.procdef <> p) then
-        //  begin
-        //    TMIPSProcinfo(current_procinfo).allocate_push_parasize(intparasize);
-        //  end;
       end;
 
 

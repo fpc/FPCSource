@@ -710,11 +710,9 @@ procedure TCGMIPS.a_load_reg_ref(list: tasmlist; FromSize, ToSize: TCGSize; reg:
 var
   op: tasmop;
 begin
-
-  if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
-    fromsize := tosize;
-  case fromsize of
-    { signed integer registers }
+  if (TCGSize2Size[fromsize] < TCGSize2Size[tosize]) then
+    a_load_reg_reg(list,fromsize,tosize,reg,reg);
+  case tosize of
     OS_8,
     OS_S8:
       Op := A_SB;
@@ -1394,7 +1392,7 @@ begin
   if nostackframe then
     exit;
 
-  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
+  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
     a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   helplist:=TAsmList.Create;
@@ -1434,7 +1432,7 @@ begin
   nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
   include(saveregs,RS_R31);
-  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
+  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
     include(saveregs,RS_FRAME_POINTER_REG);
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
@@ -1561,44 +1559,11 @@ begin
             //  href.offset:=register_offset[i]+Localsize
             //else
             href.offset:=register_offset[i];
-{$ifdef MIPSEL}
             if cs_asm_source in current_settings.globalswitches then
               list.concat(tai_comment.Create(strpnew('Var '+
               register_name[i]+' Register '+std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))
                 +' saved to offset '+tostr(href.offset))));
             list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
-{$else not MIPSEL, for big endian, size matters}
-            case register_size[i] of
-               OS_8,
-               OS_S8:
-                 StoreOp := A_SB;
-               OS_16,
-               OS_S16:
-                 StoreOp := A_SH;
-               OS_32,
-               OS_NO,
-               OS_F32,
-               OS_S32:
-                 StoreOp := A_SW;
-               OS_F64,
-               OS_64,
-               OS_S64:
-                 begin
-{$ifdef cpu64bitalu}
-                   StoreOp:=A_SD;
-{$else not cpu64bitalu}
-                   StoreOp:= A_SW;
-{$endif not cpu64bitalu}
-                 end
-               else
-                 internalerror(2012061801);
-            end;
-          if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('Var '+
-              register_name[i]+' Register '+std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))
-              +' saved to offset '+tostr(href.offset))));
-          list.concat(taicpu.op_reg_ref(StoreOp, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
-{$endif}
         end;
     end;
   if (cs_create_pic in current_settings.moduleswitches) and
@@ -1646,7 +1611,7 @@ begin
        nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
        saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
        include(saveregs,RS_R31);
-       if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
+       if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
          include(saveregs,RS_FRAME_POINTER_REG);
        if (cs_create_pic in current_settings.moduleswitches) and
           (pi_needs_got in current_procinfo.flags) then
