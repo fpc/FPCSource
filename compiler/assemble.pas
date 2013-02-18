@@ -704,11 +704,21 @@ Implementation
       end;
 
     procedure TExternalAssembler.WriteSourceLine(hp: tailineinfo);
+      var
+        module : tmodule;
       begin
         { load infile }
-        if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+        if (lastfileinfo.moduleindex<>hp.fileinfo.moduleindex) or
+            (lastfileinfo.fileindex<>hp.fileinfo.fileindex) then
           begin
-            infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+            { in case of a generic the module can be different }
+            if current_module.unit_index=hp.fileinfo.moduleindex then
+              module:=current_module
+            else
+              module:=get_module(hp.fileinfo.moduleindex);
+            if not assigned(module) then
+              internalerror(2013021801);
+            infile:=module.sourcefiles.get_file(hp.fileinfo.fileindex);
             if assigned(infile) then
               begin
                 { open only if needed !! }
@@ -717,6 +727,7 @@ Implementation
               end;
             { avoid unnecessary reopens of the same file !! }
             lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+            lastfileinfo.moduleindex:=hp.fileinfo.moduleindex;
             { be sure to change line !! }
             lastfileinfo.line:=-1;
           end;
