@@ -100,6 +100,7 @@ begin
     BufDataset.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
     BufDataset.Post;
     end;
+  BufDataset.MergeChangeLog;
   BufDataset.TempFileName:=GetTempFileName;
   BufDataset.FileName:=BufDataset.TempFileName;
   BufDataset.Close; // Save data into file
@@ -162,8 +163,9 @@ begin
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
       Post;
     end;
-    BufDataset.TempFileName:=GetTempFileName;
-    BufDataset.FileName:=BufDataset.TempFileName;
+    MergeChangeLog;
+    TempFileName:=GetTempFileName;
+    FileName:=TempFileName;
     Close; // Save data into file
     end;
   Result := BufDataset;
