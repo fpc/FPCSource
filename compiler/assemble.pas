@@ -716,9 +716,12 @@ Implementation
               module:=current_module
             else
               module:=get_module(hp.fileinfo.moduleindex);
-            if not assigned(module) then
-              internalerror(2013021801);
-            infile:=module.sourcefiles.get_file(hp.fileinfo.fileindex);
+            { during the compilation of the system unit there are cases when
+              the fileinfo contains just zeros => invalid }
+            if assigned(module) then
+              infile:=module.sourcefiles.get_file(hp.fileinfo.fileindex)
+            else
+              infile:=nil;
             if assigned(infile) then
               begin
                 { open only if needed !! }
