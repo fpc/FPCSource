@@ -43,8 +43,6 @@ type
 ///    { needed by cg64 }
     procedure make_simple_ref(list: tasmlist; var ref: treference);
     procedure make_simple_ref_fpu(list: tasmlist; var ref: treference);
-    procedure handle_load_store(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
-    procedure handle_load_store_fpu(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
     procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
@@ -450,18 +448,6 @@ begin
   ref.offset := 0;
 end;
 
-procedure TCGMIPS.handle_load_store(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
-begin
-  make_simple_ref(list, ref);
-  list.concat(taicpu.op_reg_ref(op, reg, ref));
-end;
-
-procedure TCGMIPS.handle_load_store_fpu(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
-begin
-  make_simple_ref_fpu(list, ref);
-  list.concat(taicpu.op_reg_ref(op, reg, ref));
-end;
-
 
 procedure TCGMIPS.handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
 var
@@ -709,6 +695,7 @@ end;
 procedure TCGMIPS.a_load_reg_ref(list: tasmlist; FromSize, ToSize: TCGSize; reg: tregister; const Ref: TReference);
 var
   op: tasmop;
+  href: treference;
 begin
   if (TCGSize2Size[fromsize] < TCGSize2Size[tosize]) then
     a_load_reg_reg(list,fromsize,tosize,reg,reg);
@@ -725,13 +712,16 @@ begin
     else
       InternalError(2002122100);
   end;
-  handle_load_store(list, True, op, reg, ref);
+  href:=ref;
+  make_simple_ref(list,href);
+  list.concat(taicpu.op_reg_ref(op,reg,ref));
 end;
 
 
 procedure TCGMIPS.a_load_ref_reg(list: tasmlist; FromSize, ToSize: TCgSize; const ref: TReference; reg: tregister);
 var
   op: tasmop;
+  href: treference;
 begin
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
     fromsize := tosize;
@@ -754,7 +744,9 @@ begin
     else
       InternalError(2002122101);
   end;
-  handle_load_store(list, False, op, reg, ref);
+  href:=ref;
+  make_simple_ref(list,href);
+  list.concat(taicpu.op_reg_ref(op,reg,href));
   if (fromsize=OS_S8) and (tosize=OS_16) then
     a_load_reg_reg(list,fromsize,tosize,reg,reg);
 end;
@@ -1002,14 +994,15 @@ end;
 
 procedure TCGMIPS.a_loadfpu_ref_reg(list: tasmlist; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister);
 var
-  tmpref: treference;
-  tmpreg: tregister;
+  href: TReference;
 begin
+  href:=ref;
+  make_simple_ref_fpu(list,href);
   case fromsize of
     OS_F32:
-      handle_load_store_fpu(list, False, A_LWC1, reg, ref);
+      list.concat(taicpu.op_reg_ref(A_LWC1,reg,href));
     OS_F64:
-      handle_load_store_fpu(list, False, A_LDC1, reg, ref);
+      list.concat(taicpu.op_reg_ref(A_LDC1,reg,href));
     else
       InternalError(2007042701);
   end;
@@ -1019,16 +1012,17 @@ end;
 
 procedure TCGMIPS.a_loadfpu_reg_ref(list: tasmlist; fromsize, tosize: tcgsize; reg: tregister; const ref: TReference);
 var
-  tmpref: treference;
-  tmpreg: tregister;
+  href: TReference;
 begin
   if tosize<>fromsize then
     a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
+  href:=ref;
+  make_simple_ref_fpu(list,href);
   case tosize of
     OS_F32:
-      handle_load_store_fpu(list, True, A_SWC1, reg, ref);
+      list.concat(taicpu.op_reg_ref(A_SWC1,reg,href));
     OS_F64:
-      handle_load_store_fpu(list, True, A_SDC1, reg, ref);
+      list.concat(taicpu.op_reg_ref(A_SDC1,reg,href));
     else
       InternalError(2007042702);
   end;
