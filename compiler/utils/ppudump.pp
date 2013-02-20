@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by the FPC Development Team
+    Copyright (c) 1998-2013 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
 
@@ -38,9 +38,9 @@ uses
   tokens;
 
 const
-  Version   = 'Version 2.5.1';
+  Version   = 'Version 2.7.1';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2010 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2013 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -281,16 +281,21 @@ begin
   has_more_infos:=true;
 end;
 
+procedure SetHasErrors;
+begin
+  has_errors:=true;
+end;
+
 Procedure WriteError(const S : string);
 Begin
    Writeln(S);
-   has_errors:=true;
+   SetHasErrors;
 End;
 
 function Unknown(const st : string; val :longint) : string;
 Begin
   Unknown:='<!! Unknown'+st+' value '+tostr(val)+'>';
-  has_errors:=true;
+  SetHasErrors;
 end;
 
 function ToStr(w:longint):String;
@@ -439,7 +444,7 @@ begin
   if ntflags<>0 then
     begin
       s:=s+' unknown '+hexstr(ntflags,8);
-      has_errors:=true;
+      SetHasErrors;
     end;
   PPUFlags2Str:=s;
 end;
@@ -473,7 +478,7 @@ end;
        if t=-1 then
         begin
           Result := 'Not Found';
-          has_errors:=true;
+          SetHasErrors;
           exit;
         end;
        DT := FileDateToDateTime(t);
@@ -493,7 +498,7 @@ var
 begin
   if ppufile.readentry<>ibrecsymtableoptions then
     begin
-      has_errors:=true;
+      SetHasErrors;
       exit;
     end;
   writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
@@ -522,7 +527,7 @@ var
 begin
   if ppufile.readentry<>ibsymtableoptions then
     begin
-      has_errors:=true;
+      SetHasErrors;
       exit;
     end;
   ppufile.getsmallset(options);
@@ -744,7 +749,7 @@ begin
        else
          begin
            bindstr:='<Error !!>';
-           has_errors:=true;
+           SetHasErrors;
          end;
      end;
      case tasmsymtype(ppufile.getbyte) of
@@ -761,7 +766,7 @@ begin
        else
          begin
            typestr:='<Error !!>';
-           has_errors:=true;
+           SetHasErrors;
          end;
      end;
      Writeln(space,'  ',i,' : ',s,' [',bindstr,',',typestr,']');
@@ -829,7 +834,7 @@ begin
   if (idx>derefdatalen) then
     begin
       writeln('!! Error: Deref idx ',idx,' > ',derefdatalen);
-      has_errors:=true;
+      SetHasErrors;
       exit;
     end;
   write(derefspace,'(',idx,') ');
@@ -874,7 +879,7 @@ begin
        else
          begin
            writeln('!! unsupported dereftyp: ',ord(b));
-           has_errors:=true;
+           SetHasErrors;
            break;
          end;
      end;
@@ -1835,7 +1840,7 @@ begin
     begin
       writeln('!! ibcreatedobjtypes entry not found');
       ppufile.skipdata(ppufile.entrysize);
-      has_errors:=true;
+      SetHasErrors;
       exit
     end;
   writeln;
@@ -1996,6 +2001,8 @@ begin
                  end;
                constreal :
                  begin
+                   write  (space,'     RealType : ');
+                   readderef('');
                    write(space,'        Value : ');
                    if entryleft=sizeof(ppureal) then
                      begin
@@ -2021,7 +2028,7 @@ begin
                      begin
                        realvalue:=0.0;
                        writeln(realvalue,' Error reading real value');
-                       has_errors:=true;
+                       SetHasErrors;
                      end;
                  end;
                constset :
@@ -2238,7 +2245,7 @@ begin
          else
            begin
              WriteLn('!! Skipping unsupported PPU Entry in Symbols: ',b);
-             has_errors:=true;
+             SetHasErrors;
            end;
        end;
        if not EndOfEntry then
@@ -2664,7 +2671,7 @@ begin
          else
            begin
              WriteLn('!! Skipping unsupported PPU Entry in definitions: ',b);
-             has_errors:=true;
+             SetHasErrors;
            end;
        end;
        if not EndOfEntry then
@@ -2826,7 +2833,7 @@ begin
          else
            begin
              WriteLn('!! Skipping unsupported PPU Entry in General Part: ',b);
-             has_errors:=true;
+             SetHasErrors;
            end;
        end;
      until false;
@@ -2864,7 +2871,7 @@ begin
          else
            begin
              WriteLn('!! Skipping unsupported PPU Entry in Implementation: ',b);
-             has_errors:=true;
+             SetHasErrors;
            end;
        end;
      until false;
@@ -2889,7 +2896,7 @@ begin
   if not ppufile.CheckPPUID then
    begin
      writeln(Filename,' : Not a valid PPU file, Skipping');
-     has_errors:=true;
+     SetHasErrors;
      exit;
    end;
 { Check PPU Version }
@@ -2899,7 +2906,7 @@ begin
   if PPUVersion<16 then
    begin
      writeln(Filename,' : Old PPU Formats (<v16) are not supported, Skipping');
-     has_errors:=true;
+     SetHasErrors;
      exit;
    end;
 { Write PPU Header Information }
