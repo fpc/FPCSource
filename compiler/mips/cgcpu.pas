@@ -714,7 +714,7 @@ begin
   end;
   href:=ref;
   make_simple_ref(list,href);
-  list.concat(taicpu.op_reg_ref(op,reg,ref));
+  list.concat(taicpu.op_reg_ref(op,reg,href));
 end;
 
 
