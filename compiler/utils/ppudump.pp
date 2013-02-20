@@ -363,6 +363,23 @@ begin
     result:=Unknown('visibility',w);
 end;
 
+
+Function IntfEntryType2Str(w:longint):string;
+const
+  { tinterfaceentrytype type is defined in symconst unit }
+
+  Name : array[tinterfaceentrytype] of string = (
+    'standard','virtual method result','static method result','field value','virtual method class',
+    'static method class','field value class'
+  );
+begin
+  if w<=ord(high(Name)) then
+    result:=Name[tinterfaceentrytype(w)]
+  else
+    result:=Unknown('entry type',w);
+end;
+
+
 Function Synthetic2Str(w: byte): string;
 const
    syntheticName : array[tsynthetickind] of string[length('jvm procvar intf constructor')] = (
@@ -2549,7 +2566,7 @@ begin
                  writeln(space,'      Visibility: ',Visibility2Str(getbyte));
                end;
 
-             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+             if tobjecttyp(b) in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 l:=getlongint;
                 writeln(space,'  Impl Intf Count : ',l);
@@ -2557,7 +2574,10 @@ begin
                  begin
                    write  (space,'  - Definition : ');
                    readderef('');
+                   write  (space,'  - Getter Def : ');
+                   readderef('');
                    writeln(space,'       IOffset : ',getlongint);
+                   writeln(space,'    Entry type : ',IntfEntryType2Str(getbyte));
                  end;
               end;
 
