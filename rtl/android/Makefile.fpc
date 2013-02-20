@@ -16,10 +16,10 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
       charset character ucomplex getopts \
       errors sockets gpm serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst fmtbcd \
-      cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix clocale
+      cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
 implicitunits=exeinfo
 
-rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
+rsts=math varutils typinfo variants sysconst rtlconsts stdconvs strutils
 
 [require]
 nortl=y
@@ -64,8 +64,7 @@ SYSINIT_UNITS=
 LOADERS=prt0 dllprt0
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
-SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
+CPU_UNITS=cpu mmx
 endif
 
 SYSTEMUNIT=system
@@ -134,36 +133,52 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # $(SYSTEMUNIT) Dependent Units
 #
 
-unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 unxfunc.inc
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+                 $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
+                 $(LINUXINC)/unxfunc.inc
+        $(COMPILER) $(UNIXINC)/unix.pp
 
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
+syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/syscall.pp
 
-baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
+unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixutil.pp
+
+unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixtype.pp
+
+baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc \
   $(UNIXINC)/bunxh.inc \
-  bunxsysc.inc $(ARCH)/syscallh.inc $(ARCH)/sysnr.inc \
-  ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
+  $(LINUXINC)/bunxsysc.inc $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc \
+  $(LINUXINC)/ostypes.inc $(LINUXINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-
-ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/baseunix.pp
 
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/dl.pp
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) $(INC)/dynlibs.pas
+
+initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/initc.pp
 
 #
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/dos.pp
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/crt.pp
 
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/objects.pp
 
-printer$(PPUEXT) : printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/printer.pp
 
 #
 # Delphi Compatible Units
@@ -190,7 +205,7 @@ gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
+                    $(OBJPASDIR)/varutilh.inc $(UNIXINC)/varutils.pp sysutils$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
@@ -239,47 +254,90 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
+        $(COMPILER) $(PROCINC)/cpu.pp
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(PROCINC)/mmx.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/lineinfo.pp
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/lnfodwrf.pp
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/charset.pp
+
+matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/matrix.pp
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/ucomplex.pp
 
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+
+fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/fpintres.pp
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unixsock.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+                   $(LINUXINC)/unixsock.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/sockets.pp
 
-errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/errors.pp
 
-# Android does not support SysV IPC at all
-#ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
+terminfo$(PPUEXT) : $(UNIXINC)/terminfo.pp unix$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/terminfo.pp
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/callspec.pp
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/cmem.pp
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/cthreads.pp
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT)
+        $(COMPILER) cwstring.pp
 
-gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
+gpm$(PPUEXT): $(LINUXINC)/gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
+        $(COMPILER) $(LINUXINC)/gpm.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp
 
-fpcylix$(PPUEXT) :  fpcylix.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT)
+fpcylix$(PPUEXT) : $(LINUXINC)/fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(LINUXINC)/fpcylix.pp
+
+termio$(PPUEXT) : $(LINUXINC)/termio.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
+        $(COMPILER) $(LINUXINC)/termio.pp
+
+linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) unixtype$(PPUEXT)
+        $(COMPILER) $(LINUXINC)/linux.pp
+
+linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
+        $(COMPILER) $(LINUXINC)/linuxvcs.pp
+
+serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/serial.pp
+
+video$(PPUEXT) : $(UNIXINC)/video.pp baseunix$(PPUEXT) termio$(PPUEXT) strings$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/video.pp
+
+mouse$(PPUEXT) : $(UNIXINC)/mouse.pp baseunix$(PPUEXT) video$(PPUEXT) gpm$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/mouse.pp
+
+keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp baseunix$(PPUEXT) mouse$(PPUEXT) termio$(PPUEXT) linuxvcs$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/keyboard.pp
