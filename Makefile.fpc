@@ -88,6 +88,18 @@ endif
 PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
 endif
 
+# Use FPCFPMAKENEW to explicitly specify FPCFPMAKE later.
+# Otherwise pmkunit build will use wrong (starting) compiler
+# if there has been no compiler binary available in the compiler
+# dir before running make.
+ifndef FPCFPMAKENEW
+ifdef CROSSCOMPILE
+FPCFPMAKENEW=$(BASEDIR)/compiler/ppc$(SRCEXEEXT)
+else
+FPCFPMAKENEW=$(PPNEW)
+endif
+endif
+
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
 CVSINSTALL=install
@@ -151,20 +163,14 @@ endif
 # Temporary path to pack a file
 BASEPACKDIR=$(BASEDIR)/basepack
 
-# Newly created fpcmake
-ifndef FPCMAKE
-ifeq ($(FULL_SOURCE),$(FULL_TARGET))
-FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
-else
-FPCMAKENEW=fpcmake
-endif
-else
-FPCMAKENEW=$(FPCMAKE)
+# Always use newly created fpcmake
+ifndef FPCMAKENEW
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(SRCEXEEXT)
 endif
 
 # Build/install options
 CLEANOPTS=FPC=$(PPNEW)
-BUILDOPTS=FPC=$(PPNEW) RELEASE=1
+BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
 # Compile also IDE (check for ide and fv dir)
@@ -268,6 +274,11 @@ build: $(BUILDSTAMP)
 $(BUILDSTAMP):
 # create new compiler
         $(MAKE) compiler_cycle RELEASE=1
+ifdef CROSSCOMPILE
+# Buld a new native fpcmake when cross-compiling.
+# Fresh native compiler and RTL are ready at this stage.
+        $(MAKE) -C utils/fpcm bootstrap $(BUILDOPTS)
+endif
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)

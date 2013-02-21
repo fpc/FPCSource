@@ -19,6 +19,9 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
+[prerules]
+BS_UNITDIR=$(BASEDIR)/units/$(SOURCESUFFIX)
+
 [rules]
 .NOTPARALLEL:
 ifneq ($(DATA2INC),)
@@ -27,3 +30,8 @@ fpcmake.inc: fpcmake.ini
 endif
 
 fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc
+
+$(BS_UNITDIR):
+        $(MKDIRTREE) $(BS_UNITDIR)
+bootstrap: $(BS_UNITDIR) fpcmake.inc
+        $(FPCFPMAKE) fpcmake.pp $(FPMAKE_SKIP_CONFIG) -Fu$(UNITDIR_FPMAKE_RTL) -FU$(BS_UNITDIR) $(OPT)
