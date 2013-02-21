@@ -88,22 +88,25 @@ var BufDataset  : TPersistentBufDataSet;
 
 begin
   BufDataset := TPersistentBufDataSet.Create(nil);
-  BufDataset.Name := 'NDataset';
-  BufDataset.FieldDefs.Add('ID',ftInteger);
-  BufDataset.FieldDefs.Add('NAME',ftString,50);
-  BufDataset.CreateDataset;
-  BufDataset.Open;
-  for i := 1 to n do
+  with BufDataset do
     begin
-    BufDataset.Append;
-    BufDataset.FieldByName('ID').AsInteger := i;
-    BufDataset.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
-    BufDataset.Post;
+    Name := 'NDataset';
+    FieldDefs.Add('ID',ftInteger);
+    FieldDefs.Add('NAME',ftString,50);
+    CreateDataset;
+    Open;
+    for i := 1 to n do
+      begin
+      Append;
+      FieldByName('ID').AsInteger := i;
+      FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+      Post;
+      end;
+    MergeChangeLog;
+    TempFileName:=GetTempFileName;
+    FileName:=TempFileName;
+    Close; // Save data into file
     end;
-  BufDataset.MergeChangeLog;
-  BufDataset.TempFileName:=GetTempFileName;
-  BufDataset.FileName:=BufDataset.TempFileName;
-  BufDataset.Close; // Save data into file
   Result := BufDataset;
 end;
 
@@ -122,7 +125,6 @@ begin
   with BufDataset do
     begin
     Name := 'FieldDataset';
-    UniDirectional := FUniDirectional;
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
@@ -167,6 +169,9 @@ begin
     TempFileName:=GetTempFileName;
     FileName:=TempFileName;
     Close; // Save data into file
+    // When data are loaded from file, bidirectional is checked
+    // so unidirectional bufdataset can't be tested here
+    UniDirectional := TestUniDirectional;
     end;
   Result := BufDataset;
 end;
