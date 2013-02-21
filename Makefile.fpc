@@ -88,8 +88,8 @@ endif
 PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
 endif
 
-# Use FPCFPMAKENEW to explicitly specify FPCFPMAKE later.
-# Otherwise pmkunit build will use wrong (starting) compiler
+# Use FPCFPMAKENEW to explicitly specify FPCFPMAKE.
+# Otherwise fpmkunit build will use wrong (starting) compiler
 # if there has been no compiler binary available in the compiler
 # dir before running make.
 ifndef FPCFPMAKENEW
