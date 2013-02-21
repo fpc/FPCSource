@@ -69,6 +69,9 @@ implementation
         i : longint;
       begin
         inherited create(aparent);
+        { will call _mcount if profiling }
+        if cs_profile in current_settings.moduleswitches then
+          include(flags,pi_do_call);
         for i:=low(tparasupregs)  to high(tparasupregs) do
           begin
             register_used[i]:=false;
@@ -102,6 +105,11 @@ implementation
           tg.setfirsttemp(0)
         else
           begin
+            { Fixes the case when there are calls done by low-level means
+              (cg.a_call_name) but no child callnode }
+            if (pi_do_call in flags) then
+              allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+
             if not (po_nostackframe in procdef.procoptions) then
               tg.setfirsttemp(Align(maxpushedparasize+
                 floatregssave*sizeof(aint)+intregssave*sizeof(aint)
@@ -113,9 +121,6 @@ implementation
 
 
     function TMIPSProcInfo.calc_stackframe_size:longint;
-      var
-         r : byte;
-         regs: tcpuregisterset;
       begin
         result:=maxpushedparasize;
         floatregstart:=result;

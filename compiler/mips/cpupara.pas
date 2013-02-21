@@ -155,10 +155,6 @@ implementation
                 reference.offset:=nr*mips_sizeof_register_param;
               end;
             size:=OS_INT;
-            { Be sure to reserve enough stack space tp cope with
-              that parameter }
-            if assigned(current_procinfo) then
-              TMIPSProcinfo(current_procinfo).allocate_push_parasize((nr+1)*mips_sizeof_register_param);
           end;
       end;
 

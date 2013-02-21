@@ -611,6 +611,10 @@ procedure TCGMIPS.a_call_name(list: tasmlist; const s: string; weak: boolean);
 var
   href: treference;
 begin
+  if assigned(current_procinfo) and
+     not (pi_do_call in current_procinfo.flags) then
+    InternalError(2013022101);
+
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
       reference_reset(href,sizeof(aint));
@@ -643,6 +647,9 @@ end;
 
 procedure TCGMIPS.a_call_reg(list: tasmlist; Reg: TRegister);
 begin
+  if assigned(current_procinfo) and
+     not (pi_do_call in current_procinfo.flags) then
+    InternalError(2013022102);
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
       if (Reg <> NR_PIC_FUNC) then
@@ -1690,8 +1697,16 @@ var
 begin
   if len > high(longint) then
     internalerror(2002072704);
+  { A call (to FPC_MOVE) requires the outgoing parameter area to be properly
+    allocated on stack. This can only be done before tmipsprocinfo.set_first_temp_offset,
+    i.e. before secondpass. Other internal procedures request correct stack frame
+    by setting pi_do_call during firstpass, but for this particular one it is impossible.
+    Therefore, if the current procedure is a leaf one, we have to leave it that way. }
+
   { anybody wants to determine a good value here :)? }
-  if len > 100 then
+  if (len > 100) and
+     assigned(current_procinfo) and
+     (pi_do_call in current_procinfo.flags) then
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
@@ -1789,7 +1804,10 @@ var
   lab: tasmlabel;
   ai : TaiCpu;
 begin
-  if len > 31 then
+  if (len > 31) and
+    { see comment in g_concatcopy }
+     assigned(current_procinfo) and
+     (pi_do_call in current_procinfo.flags) then
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
