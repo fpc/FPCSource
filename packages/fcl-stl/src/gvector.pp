@@ -45,10 +45,11 @@ type
     TVectorEnumerator = class
     private
       FVector: TVector;
-      FPosition: Integer;
+      FPosition: SizeUInt;
+      FFirstDone: Boolean;
+      function GetCurrent: T; inline;
     public
       constructor Create(AVector: TVector);
-      function GetCurrent: T; inline;
       function MoveNext: Boolean; inline;
       property Current: T read GetCurrent;
     end;
@@ -67,7 +68,7 @@ type
     procedure Reserve(Num: SizeUInt); inline;
     procedure Resize(Num: SizeUInt); inline;
 
-    function GetEnumerator: TVectorEnumerator;
+    function GetEnumerator: TVectorEnumerator; inline;
 
     property Items[i : SizeUInt]: T read getValue write setValue; default;
     property Mutable[i : SizeUInt]: PT read getMutable;
@@ -80,7 +81,6 @@ implementation
 constructor TVector.TVectorEnumerator.Create(AVector: TVector);
 begin
   FVector := AVector;
-  FPosition := -1;
 end;
 
 function TVector.TVectorEnumerator.GetCurrent: T;
@@ -90,9 +90,14 @@ end;
 
 function TVector.TVectorEnumerator.MoveNext: Boolean;
 begin
-  Result := FPosition < FVector.Size - 1;
-  if Result then
-    inc(FPosition);
+  if not FFirstDone then begin
+    Result := FVector.Size > 0;
+    FFirstDone := True;
+  end else begin
+    Result := FPosition < FVector.Size - 1;
+    if Result then
+      inc(FPosition);
+  end;
 end;
 
 { TVector }
