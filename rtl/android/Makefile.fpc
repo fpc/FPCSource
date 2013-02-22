@@ -315,8 +315,8 @@ gpm$(PPUEXT): $(LINUXINC)/gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp
 
-clocale$(PPUEXT) :  clocale.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) clocale.pp
+clocale$(PPUEXT) :  $(UNIXINC)/clocale.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/clocale.pp
 	
 fpcylix$(PPUEXT) : $(LINUXINC)/fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(LINUXINC)/fpcylix.pp
