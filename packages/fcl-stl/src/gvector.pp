@@ -31,8 +31,8 @@ type
     FData:TArr;
 
     procedure SetValue(Position: SizeUInt; const Value: T); inline;
-    function GetValue(Position: SizeUInt):T; inline;
-    function GetMutable(Position: SizeUInt):PT; inline;
+    function GetValue(Position: SizeUInt): T; inline;
+    function GetMutable(Position: SizeUInt): PT; inline;
     procedure IncreaseCapacity; inline;
 
   const
@@ -65,8 +65,8 @@ type
     procedure Clear; inline;
     function Front: T; inline;
     function Back: T; inline;
-    procedure Reserve(Num: SizeUInt); inline;
-    procedure Resize(Num: SizeUInt); inline;
+    procedure Reserve(Num: SizeUInt);
+    procedure Resize(Num: SizeUInt);
 
     function GetEnumerator: TVectorEnumerator; inline;
 
@@ -114,41 +114,38 @@ begin
   FData[Position]:=Value;
 end;
 
-function TVector.GetValue(Position:SizeUInt):T;inline;
+function TVector.GetValue(Position: SizeUInt): T;
 begin
   Assert(position < size, SVectorPositionOutOfRange);
   GetValue:=FData[Position];
 end;
 
-function TVector.GetMutable(Position:SizeUInt):PT;inline;
+function TVector.GetMutable(Position: SizeUInt): PT;
 begin
   Assert(position < size, SVectorPositionOutOfRange);
   GetMutable:=@FData[Position];
 end;
 
-function TVector.Front():T;inline;
+function TVector.Front(): T;
 begin
   Assert(size > 0, SAccessingElementOfEmptyVector);
   Front:=FData[0];
 end;
 
-function TVector.Back():T;inline;
+function TVector.Back(): T;
 begin
   Assert(size > 0, SAccessingElementOfEmptyVector);
   Back:=FData[FDataSize-1];
 end;
 
-function TVector.Size():SizeUInt;inline;
+function TVector.Size(): SizeUInt;
 begin
   Size:=FDataSize;
 end;
 
-function TVector.IsEmpty():boolean;inline;
+function TVector.IsEmpty(): boolean;
 begin
-  if Size()=0 then 
-    IsEmpty:=true
-  else 
-    IsEmpty:=false;
+  IsEmpty := (Size() = 0);
 end;
 
 procedure TVector.PushBack(const Value: T);
@@ -159,7 +156,7 @@ begin
   inc(FDataSize);
 end;
 
-procedure TVector.IncreaseCapacity();inline;
+procedure TVector.IncreaseCapacity();
 begin
   if FCapacity=0 then
     FCapacity:=1
@@ -173,42 +170,51 @@ begin
   Result := TVectorEnumerator.Create(self);
 end;
 
-procedure TVector.PopBack();inline;
+procedure TVector.PopBack();
 begin
-  if FDataSize>0 then
-    FDataSize:=FDataSize-1;
+  if FDataSize > 0 then
+  begin
+    dec(FDataSize);
+    // if a managed type, decrease the popped element's reference count (see http://bugs.freepascal.org/view.php?id=23938#)
+    FData[FDataSize] := Default(T);
+  end;
 end;
 
 procedure TVector.Insert(Position: SizeUInt; const Value: T);
-var i:SizeUInt;
+var
+  def: T;
 begin
-  pushBack(Value);
-  for i:=Size-1 downto Position+1 do 
+  if Position <= Size then	// allow appending a new element at end of vector (but not beyond)
   begin
-    FData[i]:=FData[i-1];
-  end;
-  FData[Position]:=Value;
-end;
-
-procedure TVector.Erase(Position:SizeUInt);inline;
-var i:SizeUInt;
-begin
-  if Position <= Size then 
-  begin
-    for i:=Position to Size-2 do
-    begin
-      FData[i]:=FData[i+1];
-    end;
-    popBack();
+    if FDataSize = FCapacity then
+      IncreaseCapacity;
+    if Position < FDataSize then
+      System.Move (FData[Position], FData[Position+1], (FDataSize - Position) * SizeOf(T));
+    // update inserted item
+    def := Default(T);
+    Move(def, FData[Position], SizeOf(T)); // this will clear FData[Position] without changing the reference count
+    FData[Position] := Value;
+    inc(FDataSize);
   end;
 end;
 
-procedure TVector.Clear;inline;
+procedure TVector.Erase(Position: SizeUInt);
+begin
+  if Position < Size then 
+  begin
+    dec(FDataSize);
+    // ensure that the data we want to erase is released
+    FData[Position] := Default(T);
+    Move(FData[Position+1], FData[Position], (FDataSize - Position) * SizeOf(T));
+  end;
+end;
+
+procedure TVector.Clear;
 begin
   FDataSize:=0;
 end;
 
-procedure TVector.Reserve(Num:SizeUInt);inline;
+procedure TVector.Reserve(Num: SizeUInt);
 begin
   if(Num < FCapacity) then 
     exit
@@ -220,7 +226,7 @@ begin
   end;
 end;
 
-procedure TVector.Resize(Num:SizeUInt);inline;
+procedure TVector.Resize(Num: SizeUInt);
 begin
   Reserve(Num);
   FDataSize:=Num;
