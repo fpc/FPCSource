@@ -4,7 +4,7 @@
 
 [package]
 name=imagemagick
-version=2.6.1
+version=2.6.3
 
 [require]
 libc=y

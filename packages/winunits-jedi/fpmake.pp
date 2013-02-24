@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-jedi';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.3';
     P.OSes:=[win32,win64];
     P.Options.Add('-Ur');
     P.Author := 'Marcel van Brakel, Jedi-apilib team';

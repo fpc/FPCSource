@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-passrc';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.3';
     P.Dependencies.Add('fcl-base');
     P.Author := 'Sebastian Guenther';
     P.License := 'LGPL with modification, ';

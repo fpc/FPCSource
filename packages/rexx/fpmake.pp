@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='rexx';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.1';
+    P.Version:='2.6.3';
     P.SourcePath.Add('src');
     P.Oses:=[emx,os2];
     p.Targets.AddUnit('rexxsaa.pp',[OS2]);

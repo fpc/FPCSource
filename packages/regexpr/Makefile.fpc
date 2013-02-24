@@ -4,7 +4,7 @@
 
 [package]
 name=regexpr
-version=2.6.1
+version=2.6.3
 
 [target]
 units=regex regexpr oldregexpr

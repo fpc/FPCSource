@@ -19,7 +19,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='dblib';
 {$endif ALLPACKAGES}
-    P.Version:='1.0';
+    P.Version:='2.6.3';
     P.Author := 'Library: (FreeTDS/Microsoft), header: Lacack2';
     P.License := 'Library: FreeTDS License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

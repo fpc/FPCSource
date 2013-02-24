@@ -37,9 +37,9 @@ uses
   tokens;
 
 const
-  Version   = 'Version 2.6.1';
+  Version   = 'Version 2.6.3';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2010 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2013 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;

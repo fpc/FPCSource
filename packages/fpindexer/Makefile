@@ -287,7 +287,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fpindexer
-override PACKAGE_VERSION=2.6.1
+override PACKAGE_VERSION=2.6.3
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb dbindexer
 endif
