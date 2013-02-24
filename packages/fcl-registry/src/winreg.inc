@@ -260,12 +260,13 @@ begin
     else
       RegFlushKey(CurrentKey);
     fCurrentKey:=0;
-    end
+    end;
+  fCurrentPath:='';
 end;
 
 procedure TRegistry.CloseKey(key:HKEY);
 begin
-  RegCloseKey(CurrentKey)
+  RegCloseKey(key);
 end;
 
 procedure TRegistry.ChangeKey(Value: HKey; const Path: String);

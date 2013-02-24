@@ -216,7 +216,7 @@ end;
 procedure TFPTimerThread.Execute;
 var
   SleepTime: Integer;
-  Last: Cardinal;
+  S,Last: Cardinal;
   T : TFPCustomTimer;
   
 begin
@@ -229,9 +229,15 @@ begin
       SleepTime := T.FInterval - (_GetTickCount - Last);
       if SleepTime < 10 then
         SleepTime := 10;
-      Sleep(SleepTime);
+      Repeat  
+        S:=5;
+        If S>SleepTime then
+          S:=SleepTime;
+        Sleep(S);
+        Dec(Sleeptime,S);
+      until (SleepTime<=0) or Terminated;
       T:=Timer;
-      If Assigned(T) then
+      If Assigned(T) and not terminated then
         Synchronize(@T.Timer);
       end
     else

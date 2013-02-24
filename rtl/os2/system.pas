@@ -28,6 +28,7 @@ interface
 
 {$DEFINE OS2EXCEPTIONS}
 {$define DISABLE_NO_THREAD_MANAGER}
+{$DEFINE HAS_GETCPUCOUNT}
 
 {$I systemh.inc}
 
