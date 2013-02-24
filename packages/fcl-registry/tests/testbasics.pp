@@ -22,12 +22,17 @@ type
     procedure TestSimpleWinRegistry;
     procedure TestDoubleWrite;
     procedure bug16395;
+    procedure TestAdv;
   end;
 
 implementation
 
 uses
-  registry;
+  registry
+{$ifdef windows}
+  , tregistry2
+{$endif windows}
+  ;
 
 { TTestBasics }
 
@@ -138,6 +143,13 @@ begin
   end;
 
   DeleteUserXmlFile;
+end;
+
+procedure TTestBasics.TestAdv;
+begin
+{$ifdef windows}
+  DoRegTest2;
+{$endif windows}
 end;
 
 initialization

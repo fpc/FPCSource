@@ -40,6 +40,8 @@ type
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_GETENV_PCHAR}
+{$DEFINE HAS_GETTICKCOUNT}
+{$DEFINE HAS_GETTICKCOUNT64}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -647,6 +649,13 @@ begin
  DosSleep (Milliseconds);
 end;
 
+function SysTimerTick: QWord;
+var
+  L: cardinal;
+begin
+  DosQuerySysInfo (svMsCount, svMsCount, L, 4);
+  SysTimerTick := L;
+end;
 
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
@@ -806,6 +815,24 @@ begin
    else
     CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+
+function GetTickCount: LongWord;
+var
+  L: cardinal;
+begin
+  DosQuerySysInfo (svMsCount, svMsCount, L, 4);
+  GetTickCount := L;
+end;
+
+
+function GetTickCount64: QWord;
+var
+  L: cardinal;
+begin
+  DosQuerySysInfo (svMsCount, svMsCount, L, 4);
+  GetTickCount64 := L;
 end;
 
 

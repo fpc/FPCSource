@@ -45,7 +45,9 @@ type
   TRegistry = class(TObject)
   private
     FStringSizeIncludesNull : Boolean;
+{$ifdef XMLREG}
     FSysData : Pointer;
+{$endif XMLREG}
     fAccess: LongWord;
     fCurrentKey: HKEY;
     fRootKey: HKEY;
@@ -336,9 +338,6 @@ end;
 
 function TRegistry.ReadCurrency(const Name: string): Currency;
 
-Var
-  RegDataType: TRegDataType;
-
 begin
   ReadBinaryData(Name, Result, SizeOf(Currency));
 end;
@@ -351,8 +350,6 @@ begin
 end;
 
 function TRegistry.ReadDateTime(const Name: string): TDateTime;
-Var
-  RegDataType: TRegDataType;
 
 begin
   ReadBinaryData(Name, Result, SizeOf(TDateTime));

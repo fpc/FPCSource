@@ -140,30 +140,33 @@ Function TStrings.GetDelimitedText: string;
 Var
   I : integer;
   p : pchar;
-  c : set of char;
+  BreakChars : set of char;
   S : String;
   
 begin
   CheckSpecialChars;
   result:='';
   if StrictDelimiter then
-    c:=[#0,Delimiter]
+    BreakChars:=[#0,QuoteChar,Delimiter]
   else  
-    c:=[#0..' ',QuoteChar,Delimiter];
+    BreakChars:=[#0..' ',QuoteChar,Delimiter];
+
+  // Check for break characters and quote if required.
   For i:=0 to count-1 do
     begin
     S:=Strings[i];
     p:=pchar(S);
-    while not(p^ in c) do
+    //Quote strings that include BreakChars:
+    while not(p^ in BreakChars) do
      inc(p);
-// strings in list may contain #0
-    if (p<>pchar(S)+length(S)) and not StrictDelimiter then
+    if (p<>pchar(S)+length(S)) then
       Result:=Result+QuoteString(S,QuoteChar)
     else
       Result:=Result+S;
     if I<Count-1 then 
       Result:=Result+Delimiter;
     end;
+  // Quote empty string:
   If (Length(Result)=0) and (Count=1) then
     Result:=QuoteChar+QuoteChar;
 end;
@@ -268,22 +271,48 @@ begin
  j:=1;
  aNotFirst:=false;
 
+ { Paraphrased from Delphi XE2 help:
+ Strings must be separated by Delimiter characters or spaces.
+ They may be enclosed in QuoteChars.
+ QuoteChars in the string must be repeated to distinguish them from the QuoteChars enclosing the string.
+ }
  try
   Clear;
   If StrictDelimiter then
     begin
-    // Easier, faster loop.
-    While I<=Length(AValue) do
-      begin
-      If (AValue[I] in [FDelimiter,#0]) then
-        begin
-        Add(Copy(AValue,J,I-J));
-        J:=I+1;
-        end;
-      Inc(i);
+    while i<=length(AValue) do begin
+     // skip delimiter
+     if aNotFirst and (i<=length(AValue)) and (AValue[i]=FDelimiter) then inc(i);
+
+     // read next string
+     if i<=length(AValue) then begin
+      if AValue[i]=FQuoteChar then begin
+       // next string is quoted
+       j:=i+1;
+       while (j<=length(AValue)) and
+             ( (AValue[j]<>FQuoteChar) or
+               ( (j+1<=length(AValue)) and (AValue[j+1]=FQuoteChar) ) ) do begin
+        if (j<=length(AValue)) and (AValue[j]=FQuoteChar) then inc(j,2)
+                                                          else inc(j);
+       end;
+       // j is position of closing quote
+       Add( StringReplace (Copy(AValue,i+1,j-i-1),
+                           FQuoteChar+FQuoteChar,FQuoteChar, [rfReplaceAll]));
+       i:=j+1;
+      end else begin
+       // next string is not quoted; read until delimiter
+       j:=i;
+       while (j<=length(AValue)) and
+             (AValue[j]<>FDelimiter) do inc(j);
+       Add( Copy(AValue,i,j-i));
+       i:=j;
       end;
-    If (Length(AValue)>0) then
-      Add(Copy(AValue,J,I-J));  
+     end else begin
+      if aNotFirst then Add('');
+     end;
+
+     aNotFirst:=true;
+    end;
     end
   else 
     begin
@@ -310,7 +339,7 @@ begin
                            FQuoteChar+FQuoteChar,FQuoteChar, [rfReplaceAll]));
        i:=j+1;
       end else begin
-       // next string is not quoted
+       // next string is not quoted; read until control character/space/delimiter
        j:=i;
        while (j<=length(AValue)) and
              (Ord(AValue[j])>Ord(' ')) and

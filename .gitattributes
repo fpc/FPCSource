@@ -2278,6 +2278,7 @@ packages/fcl-registry/tests/Makefile svneol=native#text/plain
 packages/fcl-registry/tests/Makefile.fpc -text
 packages/fcl-registry/tests/regtestframework.pp -text
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
+packages/fcl-registry/tests/tregistry2.pp svneol=native#text/plain
 packages/fcl-res/Makefile svneol=native#text/plain
 packages/fcl-res/Makefile.fpc svneol=native#text/plain
 packages/fcl-res/fpmake.pp svneol=native#text/plain
@@ -11894,6 +11895,7 @@ tests/webtbs/tw1938.pp svneol=native#text/plain
 tests/webtbs/tw1948.pp svneol=native#text/plain
 tests/webtbs/tw1950.pp svneol=native#text/plain
 tests/webtbs/tw19548.pp svneol=native#text/pascal
+tests/webtbs/tw19610.pp svneol=native#text/plain
 tests/webtbs/tw1964.pp svneol=native#text/plain
 tests/webtbs/tw19700.pp svneol=native#text/plain
 tests/webtbs/tw19864.pp svneol=native#text/pascal

@@ -646,7 +646,7 @@ end;
 
 destructor TList.Destroy;
 begin
-  If (Flist<>Nil) then
+  if Assigned(Flist) then
     Clear;
   If Assigned(FObservers) then
     begin
@@ -726,9 +726,8 @@ end;
 procedure TList.Clear;
 
 begin
-  If Assigned(Flist) then
-    While (FList.Count>0) do
-      Delete(Count-1);
+  While (FList.Count>0) do
+    Delete(Count-1);
 end;
 
 procedure TList.Delete(Index: Integer);
