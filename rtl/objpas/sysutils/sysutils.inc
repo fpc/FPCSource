@@ -351,7 +351,7 @@ type
   end;
 
 const
-  exceptmap: array[0..27] of TExceptMapEntry = (
+  exceptmap: array[0..28] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -360,6 +360,7 @@ const
     (code: 207; cls: EInvalidOp;     msg: @SInvalidOp),
     { Delphi distinguishes reDivByZero from reZeroDivide, but maps both to code 200. }
     (code: 208; cls: EZeroDivide;    msg: @SZeroDivide),
+    (code: 210; cls: EObjectCheck;   msg: @SObjectCheckError),
     (code: 211; cls: EAbstractError; msg: @SAbstractError),
     (code: 212; cls: EExternalException; msg: @SExternalException),
     (code: 214; cls: EBusError;      msg: @SBusError),
