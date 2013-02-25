@@ -1617,7 +1617,7 @@ const
                       expr:=actasmpattern;
                       if asciiz then
                        expr:=expr+#0;
-                      ConcatPasString(curlist,expr);
+                      ConcatString(curlist,expr);
                       Consume(AS_STRING);
                     end;
           AS_COMMA:  begin
