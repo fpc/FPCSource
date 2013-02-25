@@ -106,8 +106,11 @@ implementation
         else
           begin
             { Fixes the case when there are calls done by low-level means
-              (cg.a_call_name) but no child callnode }
-            if (pi_do_call in flags) then
+              (cg.a_call_name) but no child callnode. !!For assembler procedure
+              there is no clean way to determine what it calls, unless it is
+              also declared as nostackframe and everything is managed manually. }
+            if (pi_do_call in flags) or
+               ((pi_is_assembler in flags) and not (po_nostackframe in procdef.procoptions)) then
               allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
 
             if not (po_nostackframe in procdef.procoptions) then
