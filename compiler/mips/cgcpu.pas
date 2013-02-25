@@ -122,9 +122,6 @@ uses
   tgobj,
   procinfo, cpupi;
 
-var
-  cgcpu_calc_stackframe_size: aint;
-
 
   function f_TOpCG2AsmOp(op: TOpCG; size: tcgsize): TAsmOp;
   begin
@@ -1382,9 +1379,7 @@ var
   ra_save,framesave,gp_save : taicpu;
   fmask,mask : dword;
   saveregs : tcpuregisterset;
-  StoreOp : TAsmOp;
   href:  treference;
-  usesfpr, usesgpr, gotgot : boolean;
   reg : Tsuperregister;
   helplist : TAsmList;
 begin
@@ -1397,12 +1392,10 @@ begin
     a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   helplist:=TAsmList.Create;
-  cgcpu_calc_stackframe_size := LocalSize;
 
   reference_reset(href,0);
   href.base:=NR_STACK_POINTER_REG;
 
-  usesfpr:=false;
   fmask:=0;
   nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
   lastfpuoffset:=LocalSize;
@@ -1410,12 +1403,9 @@ begin
     begin
       if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
         begin
-          usesfpr:=true;
           fmask:=fmask or (1 shl ord(reg));
           href.offset:=nextoffset;
           lastfpuoffset:=nextoffset;
-          if cs_asm_source in current_settings.globalswitches then
-            helplist.concat(tai_comment.Create(strpnew(std_regname(newreg(R_FPUREGISTER,reg,R_SUBFS))+' register saved.')));
           helplist.concat(taicpu.op_reg_ref(A_SWC1,newreg(R_FPUREGISTER,reg,R_SUBFS),href));
           inc(nextoffset,4);
           { IEEE Double values are stored in floating point
@@ -1428,7 +1418,6 @@ begin
         end;
     end;
 
-  usesgpr:=false;
   mask:=0;
   nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
@@ -1441,12 +1430,12 @@ begin
   lastintoffset:=LocalSize;
   framesave:=nil;
   gp_save:=nil;
+  ra_save:=nil;
 
   for reg:=RS_R1 to RS_R31 do
     begin
       if reg in saveregs then
         begin
-          usesgpr:=true;
           mask:=mask or (1 shl ord(reg));
           href.offset:=nextoffset;
           lastintoffset:=nextoffset;
@@ -1459,12 +1448,7 @@ begin
                   (pi_needs_got in current_procinfo.flags) then
             gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
           else
-            begin
-              if cs_asm_source in current_settings.globalswitches then
-                helplist.concat(tai_comment.Create(strpnew(
-                  std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
-              helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
-            end;
+            helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
           inc(nextoffset,4);
         end;
     end;
@@ -1484,47 +1468,25 @@ begin
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
-      if cs_asm_source in current_settings.globalswitches then
-        begin
-          list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size')));
-          list.concat(tai_comment.Create(strpnew(' 0-'+
-                   tostr(TMIPSProcInfo(current_procinfo).maxpushedparasize)+' for called function parameters')));
-          list.concat(tai_comment.Create(strpnew('Register save area at '+
-                   tostr(TMIPSProcInfo(current_procinfo).intregstart))));
-          list.concat(tai_comment.Create(strpnew('FPU register save area at '+
-                   tostr(TMIPSProcInfo(current_procinfo).floatregstart))));
-        end;
       list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
-      if cs_asm_source in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('RA register saved.')));
-      list.concat(ra_save);
+      if assigned(ra_save) then
+        list.concat(ra_save);
       if assigned(framesave) then
         begin
-          if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('Frame S8/FP register saved.')));
           list.concat(framesave);
-          if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('New frame FP register set to $sp+'+ToStr(LocalSize))));
           list.concat(Taicpu.op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,
             NR_STACK_POINTER_REG,LocalSize));
         end;
     end
   else
     begin
-      if cs_asm_source in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size using R9/t1 register')));
       list.concat(Taicpu.Op_reg_const(A_LI,NR_R9,-LocalSize));
       list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R9));
-      if cs_asm_source in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('RA register saved.')));
-      list.concat(ra_save);
+      if assigned(ra_save) then
+        list.concat(ra_save);
       if assigned(framesave) then
         begin
-          if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('Frame register saved.')));
           list.concat(framesave);
-          if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('Frame register updated to $SP+R9 value')));
           list.concat(Taicpu.op_reg_reg_reg(A_SUBU,NR_FRAME_POINTER_REG,
             NR_STACK_POINTER_REG,NR_R9));
         end;
@@ -1536,8 +1498,6 @@ begin
     end;
   if assigned(gp_save) then
     begin
-      if cs_asm_source in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('GOT register saved.')));
       list.concat(Taicpu.op_none(A_P_SET_MACRO));
       list.concat(gp_save);
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
@@ -1560,10 +1520,6 @@ begin
             //  href.offset:=register_offset[i]+Localsize
             //else
             href.offset:=register_offset[i];
-            if cs_asm_source in current_settings.globalswitches then
-              list.concat(tai_comment.Create(strpnew('Var '+
-              register_name[i]+' Register '+std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))
-                +' saved to offset '+tostr(href.offset))));
             list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
         end;
     end;
