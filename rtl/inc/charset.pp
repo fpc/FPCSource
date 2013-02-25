@@ -56,10 +56,20 @@ unit charset;
     function mappingavailable(const s : string) : boolean;
     function mappingavailable(cp :word) : boolean;
     function getunicode(c : char;p : punicodemap) : tunicodechar;
+    function getunicode(
+      AAnsiStr : pansichar;
+      AAnsiLen : SizeInt;
+      AMap     : punicodemap; 
+      ADest    : tunicodestring
+    ) : SizeInt;
     function getascii(c : tunicodechar;p : punicodemap) : string;
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : SizeInt) : SizeInt;
 
   implementation
 
+    const
+      UNKNOW_CHAR_A = ansichar(63);
+      UNKNOW_CHAR_W = tunicodechar(63);
     var
        mappings : punicodemap;
 
@@ -253,6 +263,75 @@ unit charset;
            getunicode:=0;
       end;
 
+    function getunicode(
+      AAnsiStr : pansichar;
+      AAnsiLen : SizeInt;
+      AMap     : punicodemap; 
+      ADest    : tunicodestring
+    ) : SizeInt;
+
+      var
+         i, c, k, destLen : longint;
+         ps : pansichar;
+         pd : ^tunicodechar;
+         
+      begin
+        if (AAnsiStr=nil) or (AAnsiLen<=0) then
+          exit(0);
+        ps:=AAnsiStr;   
+        if (ADest=nil) then
+          begin
+            c:=AAnsiLen-1;
+            destLen:=0;
+            i:=0;
+            while (i<=c) do
+              begin
+                if (ord(ps^)<=AMap^.lastchar) then
+                  begin
+                    if (AMap^.map[ord(ps^)].flag=umf_leadbyte) and (i<c) then
+                      Inc(ps);
+                  end;  
+                i:=i+1;  
+                Inc(ps);
+                destLen:=destLen+1;
+              end; 
+            exit(destLen);  
+          end;
+
+        pd:=ADest;
+        c:=AAnsiLen-1;
+        i:=0;
+        while (i<=c) do
+          begin
+            if (ord(ps^)<=AMap^.lastchar) then
+              begin
+                if (AMap^.map[ord(ps^)].flag=umf_leadbyte) then
+                  begin
+                    if (i<c) then 
+                      begin
+                        k:=(Ord(ps^)*256);
+                        Inc(ps);
+                        k:=k+Ord(ps^);
+                        if (k<=AMap^.lastchar) then
+                          pd^:=AMap^.map[k].unicode
+                        else
+                          pd^:=UNKNOW_CHAR_W;
+                      end
+                    else
+                      pd^:=UNKNOW_CHAR_W;
+                  end                       
+                else   
+                  pd^:=AMap^.map[ord(ps^)].unicode
+              end  
+            else
+              pd^:=UNKNOW_CHAR_W;
+            i:=i+1;  
+            Inc(ps);
+            Inc(pd);
+          end; 
+        result:=((PtrUInt(pd)-PtrUInt(ADest)) div SizeOf(tunicodechar));
+      end;
+
     function getascii(c : tunicodechar;p : punicodemap) : string;
 
       var
@@ -270,6 +349,52 @@ unit charset;
                   getascii:=chr(i div 256)+chr(i mod 256);
                 exit;
              end;
+      end;
+
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : SizeInt) : SizeInt;
+
+      var
+         i : longint;
+
+      begin
+         if (ABuffer<>nil) and (ABufferLen<=0) then
+           begin
+              Result:=-1;
+              exit;
+           end;
+         for i:=0 to p^.lastchar do
+           if p^.map[i].unicode=c then
+             begin
+                if (ABuffer=nil) then
+                  begin
+                     if i<256 then
+                       Result:=1
+                     else
+                       Result:=2;
+                     exit;
+                  end;
+                if i<256 then
+                  begin
+                    Result:=1;
+                    ABuffer^:=chr(i);
+                  end
+                else
+                  begin
+                    if (ABufferLen<2) then
+                      begin
+                        Result:=-1;
+                        exit;
+                      end;
+                    ABuffer^:=chr(i div 256);
+                    Inc(ABuffer);
+                    ABuffer^:=chr(i mod 256);
+                  end;
+                exit;
+             end;
+         { at least map to '?' }
+         Result := 1;
+         if (ABuffer<>nil) then
+           ABuffer^:=#63;
       end;
 
   var
