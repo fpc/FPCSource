@@ -86,7 +86,8 @@ interface
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {this was wrong, 6.6 doesn't have debug_file_directory }
+  { was define GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V606}
 
 { 6.7.x }
