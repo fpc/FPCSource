@@ -945,6 +945,9 @@ end;
 function TJSONFloatNumber.GetAsString: TJSONStringType;
 begin
   Str(FValue,Result);
+  // Str produces a ' ' in front where the - can go.
+  if (Result<>'') and (Result[1]=' ') then
+    Delete(Result,1,1);
 end;
 
 procedure TJSONFloatNumber.SetAsString(const AValue: TJSONStringType);
@@ -1308,7 +1311,7 @@ begin
     begin
     Result:=Result+Items[i].AsJSON;
     If (I<Count-1) then
-      Result:=Result+', '
+      Result:=Result+','
     end;
   Result:=Result+']';
 end;
@@ -1787,11 +1790,11 @@ begin
   For I:=0 to Count-1 do
     begin
     If (Result<>'') then
-      Result:=Result+', ';
-    Result:=Result+'"'+StringToJSONString(Names[i])+'" : '+Items[I].AsJSON;
+      Result:=Result+',';
+    Result:=Result+'"'+StringToJSONString(Names[i])+'":'+Items[I].AsJSON;
     end;
   If (Result<>'') then
-    Result:='{ '+Result+' }'
+    Result:='{'+Result+'}'
   else
     Result:='{}';
 end;
