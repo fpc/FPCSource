@@ -693,7 +693,7 @@ begin
           exit;
         end;
   { rawbytestring (or better raise an error?) }
-  result:=65535;
+  result:=CP_NONE;
 end;
 
 function GetSystemCodepage: TSystemCodePage;
@@ -702,14 +702,14 @@ var
   lang: ansistring;
 begin
   // Get one of non-empty environment variables in the next order:
-  // LC_ALL, LC_CTYPE, LANG. Default is 'ASCII'.
+  // LC_ALL, LC_CTYPE, LANG. Default is CP_UTF8.
   lang:=FpGetEnv('LC_ALL');
   if lang='' then
     lang:=FpGetEnv('LC_CTYPE');
   if lang='' then
     lang:=FpGetEnv('LANG');
   if lang='' then
-    Result:=0
+    Result:=CP_UTF8
   else
     begin
       // clean up, for example en_US.UTF-8 => UTF-8
@@ -718,6 +718,8 @@ begin
       p:=Pos('@',lang);
       if p>0 then Delete(lang,p,length(lang)-p+1);
       Result:=GetCodepageByName(lang);
+      if Result = CP_NONE then
+        Result:=CP_UTF8;
     end;
 end;
 
