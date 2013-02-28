@@ -31,8 +31,12 @@ uses
   emu387,
 {$endif GO32V2}
 {$ifdef WATCOM}
-    emu387,
+  emu387,
 {$endif WATCOM}
+{$ifdef unix}
+  { system code page stuff for unix }
+  unixcp,
+{$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,
 {$ELSE}
@@ -173,6 +177,10 @@ procedure InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
+{$ifdef unix}
+  { Set default code page for ansistrings on unix-like systems }
+  DefaultSystemCodePage:=GetSystemCodePage;
+{$endif}
 { inits which need to be done before the arguments are parsed }
   InitSystems;
   { fileutils depends on source_info so it must be after systems }
