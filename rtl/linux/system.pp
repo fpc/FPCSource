@@ -75,7 +75,7 @@ const calculated_cmdline:Pchar=nil;
 
 {$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
 
-{$I sysunix.inc}
+{$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -362,7 +362,7 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  InitUnixStrings;
+  initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Arguments }

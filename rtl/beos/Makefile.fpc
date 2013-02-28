@@ -15,7 +15,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
       rtlconsts syscall unix unixutil strutils termio initc \
       cmem crt video mouse keyboard \
-      dateutils fmtbcd sockets dynlibs cwstring
+      dateutils fmtbcd sockets dynlibs cwstring unixcp
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils
 implicitunits=exeinfo
 
@@ -134,6 +134,9 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
 
 linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixcp.pp
+        
 #
 # TP7 Compatible RTL Units
 #

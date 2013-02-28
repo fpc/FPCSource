@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       termio unix initc cmem \
       crt printer lnfogdb \
       sysutils typinfo math fgl classes matrix varutils \
-      charset ucomplex getopts \
+      charset unixcp ucomplex getopts \
       errors sockets \
       # ipc serial
       terminfo dl dynlibs \
@@ -152,6 +152,8 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixcp.pp
 
 #
 # TP7 Compatible RTL Units

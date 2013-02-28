@@ -1,19 +1,40 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2013 by the Free Pascal development team.
+
+    String code page support functions for unix styled systems.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ **********************************************************************}
+
+{$mode objfpc}
+unit unixcp;
+
+interface
+
+uses baseunix;
+
 { source: http://win-iconv.googlecode.com/svn-history/r6/trunk/win_iconv.c
   public domain
 }
 
 type
-twin2iconv = record
- cp: word;
- name: rawbytestring; { for null-termination }
-end;
+  TUnixCpData = record
+   cp: word;
+   name: rawbytestring; { for null-termination }
+  end;
 (*
 * Code Page Identifiers
 * http://msdn2.microsoft.com/en-us/library/ms776446.aspx
 *)
 const
-win2iconv_array_limit = 406{$ifndef aix}-83{$endif}{$ifdef ACCEPT_646}+1{$endif};
-win2iconv_arr: array[-1..win2iconv_array_limit] of twin2iconv =
+  UnixCpMapLimit = 406{$ifndef aix}-83{$endif}{$ifdef ACCEPT_646}+1{$endif};
+  UnixCpMap: array[-1..UnixCpMapLimit] of TUnixCpData =
   ((cp:0; name: 'UTF-8'), { invalid/unknown -> utf-8 }
    (cp:37; name:'IBM037'), (* IBM EBCDIC US-Canada *)
    (cp:37; name:'IBM-037'), (* IBM EBCDIC US-Canada, AIX *)
@@ -609,19 +630,26 @@ win2iconv_arr: array[-1..win2iconv_array_limit] of twin2iconv =
    (cp:65001; name:'UTF-8'),
    (cp:65001; name:'CP65001'),
    (cp:65001; name:'UTF8'));
-
-
-{ returns index in win2iconv_arr with first code page name with matching
+   
+{ returns index in UnixCpMap with first code page name with matching
 cp number (so that multiple names can be tried if necessary) }
-function win2iconv(cp: word): longint;
+function GetCodepageData(cp: TSystemCodePage): longint;
+function GetCodepageByName(cpname: rawbytestring): TSystemCodePage;
+function GetSystemCodepage: TSystemCodePage;
+
+implementation
+
+{ returns index in UnixCpMap with first code page name with matching
+cp number (so that multiple names can be tried if necessary) }
+function GetCodepageData(cp: TSystemCodePage): longint;
 var
   l, h, i, ccp: longint;
 begin
-  l:=low(win2iconv_arr);
-  h:=high(win2iconv_arr);
+  l:=low(UnixCpMap);
+  h:=high(UnixCpMap);
   repeat
     i:=(l+h+1) shr 1;
-    ccp:=win2iconv_arr[i].cp;
+    ccp:=UnixCpMap[i].cp;
     if cp=ccp then
       break;
     if cp>=ccp then
@@ -629,14 +657,14 @@ begin
     else
       h:=i-1;
   until l>=h;
-  if cp=win2iconv_arr[i].cp then
+  if cp=UnixCpMap[i].cp then
     begin
       { the array has been ordered so that in case multiple alias names
         exist, the first entry for the cp is the most commonly supported
         one
       }
-      while (i>low(win2iconv_arr)) and
-            (win2iconv_arr[i-1].cp=cp) do
+      while (i>low(UnixCpMap)) and
+            (UnixCpMap[i-1].cp=cp) do
         dec(i);
       result:=i;
     end
@@ -645,8 +673,7 @@ begin
     result:=-1;
 end;
 
-
-function iconv2win(cpname: rawbytestring): word;
+function GetCodepageByName(cpname: rawbytestring): TSystemCodePage;
 var
   i: longint;
 begin
@@ -658,13 +685,40 @@ begin
     building a separate array for -- start from index 1 rather than
     0, because 0 = fake "code page 0" that maps to UTF-8 as default
   }
-  for i:=low(win2iconv_arr)+1 to high(win2iconv_arr) do
-    if win2iconv_arr[i].name=cpname then
-      begin
-        result:=win2iconv_arr[i].cp;
-        exit;
-      end;
+  for i:=low(UnixCpMap)+1 to high(UnixCpMap) do
+    with UnixCpMap[i] do
+      if name=cpname then
+        begin
+          result:=cp;
+          exit;
+        end;
   { rawbytestring (or better raise an error?) }
   result:=65535;
 end;
 
+function GetSystemCodepage: TSystemCodePage;
+var
+  p: SizeInt;
+  lang: ansistring;
+begin
+  // Get one of non-empty environment variables in the next order:
+  // LC_ALL, LC_CTYPE, LANG. Default is 'ASCII'.
+  lang:=FpGetEnv('LC_ALL');
+  if lang='' then
+    lang:=FpGetEnv('LC_CTYPE');
+  if lang='' then
+    lang:=FpGetEnv('LANG');
+  if lang='' then
+    Result:=0
+  else
+    begin
+      // clean up, for example en_US.UTF-8 => UTF-8
+      p:=Pos('.',lang);
+      if p>0 then Delete(lang,1,p);
+      p:=Pos('@',lang);
+      if p>0 then Delete(lang,p,length(lang)-p+1);
+      Result:=GetCodepageByName(lang);
+    end;
+end;
+
+end.

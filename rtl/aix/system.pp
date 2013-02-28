@@ -33,7 +33,7 @@ implementation
 
 { OS independant parts}
 
-{$I sysunix.inc}
+{$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -283,7 +283,7 @@ Begin
   InitHeap;
   SysInitExceptions;
 
-  InitUnixStrings;
+  initunicodestringmanager;
 
 { Setup stdin, stdout and stderr }
   SysInitStdIO;

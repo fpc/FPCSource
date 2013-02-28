@@ -42,7 +42,8 @@ Uses
   unix,
   unixtype,
   initc,
-  dynlibs;
+  dynlibs,
+  unixcp;
 
 Const
 {$ifndef useiconv}
@@ -199,8 +200,6 @@ threadvar
   current_DefaultSystemCodePage: TSystemCodePage;
 
 
-{$i winiconv.inc}
-
 procedure InitThread;
 var
   transliterate: cint;
@@ -211,9 +210,9 @@ var
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
-  iconvindex:=win2iconv(DefaultSystemCodePage);
+  iconvindex:=GetCodepageData(DefaultSystemCodePage);
   if iconvindex<>-1 then
-    iconvname:=win2iconv_arr[iconvindex].name
+    iconvname:=UnixCpMap[iconvindex].name
   else
     { default to UTF-8 on Unix platforms }
     iconvname:='UTF-8';
@@ -270,18 +269,18 @@ function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_
         unsafe normally, but these are constant strings -> no
         problem }
     open_iconv_for_cps:=iconv_t(-1);
-    iconvindex:=win2iconv(cp);
+    iconvindex:=GetCodepageData(cp);
     if iconvindex=-1 then
       exit;
     repeat
       if cp_is_from then
-        open_iconv_for_cps:=iconv_open(otherencoding,pchar(win2iconv_arr[iconvindex].name))
+        open_iconv_for_cps:=iconv_open(otherencoding,pchar(UnixCpMap[iconvindex].name))
       else
-        open_iconv_for_cps:=iconv_open(pchar(win2iconv_arr[iconvindex].name),otherencoding);
+        open_iconv_for_cps:=iconv_open(pchar(UnixCpMap[iconvindex].name),otherencoding);
       inc(iconvindex);
     until (open_iconv_for_cps<>iconv_t(-1)) or
-          (iconvindex>high(win2iconv_arr)) or
-          (win2iconv_arr[iconvindex].cp<>cp);
+          (iconvindex>high(UnixCpMap)) or
+          (UnixCpMap[iconvindex].cp<>cp);
   end;
 
 
@@ -981,7 +980,7 @@ begin
   if not assigned(langinfo) or
      (langinfo^=#0) then
     langinfo:='UTF-8';
-  Result := iconv2win(ansistring(langinfo));
+  Result := GetCodepageByName(ansistring(langinfo));
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
