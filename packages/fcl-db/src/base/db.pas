@@ -1598,7 +1598,7 @@ type
     function GetCurrentRecord(Buffer: TRecordBuffer): Boolean; virtual;
     procedure GetFieldList(List: TList; const FieldNames: string);
     procedure GetFieldNames(List: TStrings);
-    procedure GotoBookmark(ABookmark: TBookmark);
+    procedure GotoBookmark(const ABookmark: TBookmark);
     procedure Insert;
     procedure InsertRecord(const Values: array of const);
     function IsEmpty: Boolean;

@@ -1843,7 +1843,7 @@ begin
   FFieldList.GetFieldNames(List);
 end;
 
-Procedure TDataset.GotoBookmark(ABookmark: TBookmark);
+Procedure TDataset.GotoBookmark(const ABookmark: TBookmark);
 
 
 begin
