@@ -95,7 +95,7 @@ implementation
         helplist : tasmlist;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>4095 then
+        if abs(spilltemp.offset)>32767 then
           begin
             helplist:=tasmlist.create;
 
@@ -104,13 +104,8 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref,sizeof(aint));
-            tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_high;
-            helplist.concat(taicpu.op_reg_ref(A_LUI,hreg,tmpref));
-
-            tmpref.refaddr:=addr_low;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIU,hreg,hreg,tmpref));
+            helplist.concat(taicpu.op_reg_const(A_LUI,hreg,spilltemp.offset shr 16));
+            helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
             reference_reset_base(tmpref,hreg,0,sizeof(aint));
@@ -131,7 +126,7 @@ implementation
         helplist : tasmlist;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>4095 then
+        if abs(spilltemp.offset)>32767 then
           begin
             helplist:=tasmlist.create;
 
@@ -140,13 +135,8 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref,sizeof(aint));
-            tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_high;
-            helplist.concat(taicpu.op_reg_ref(A_LUI,hreg,tmpref));
-
-            tmpref.refaddr:=addr_low;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIU,hreg,hreg,tmpref));
+            helplist.concat(taicpu.op_reg_const(A_LUI,hreg,spilltemp.offset shr 16));
+            helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
             reference_reset_base(tmpref,hreg,0,sizeof(aint));
