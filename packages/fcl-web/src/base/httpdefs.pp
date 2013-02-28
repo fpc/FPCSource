@@ -660,7 +660,7 @@ end;
 Function THttpHeader.GetFieldValue(Index : Integer) : String;
 
 begin
-  if (Index>1) and (Index<NoHTTPFields) then
+  if (Index>=1) and (Index<=NoHTTPFields) then
     Result:=FFields[Index]
   else
     case Index of
@@ -1231,16 +1231,12 @@ begin
   R:=Method;
   if (R='') then
     Raise Exception.Create(SErrNoRequestMethod);
-  if CompareText(R,'POST')=0 then
-    begin
+  // Always process QUERYSTRING.
+  InitGetVars;
+  // POST and PUT, force post var treatment.
+  // To catch other methods we do not treat specially, we'll do the same if contentlength>0
+  if (CompareText(R,'POST')=0) or (CompareText(R,'PUT')=0) or (ContentLength>0) then
     InitPostVars;
-    if FHandleGetOnPost then
-      InitGetVars;
-    end
-  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) or (CompareText(R,'OPTIONS')=0) then
-    InitGetVars
-  else
-    Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
 {$ifdef CGIDEBUG}
   SendMethodExit('TRequest.InitRequestVars');
 {$endif}
