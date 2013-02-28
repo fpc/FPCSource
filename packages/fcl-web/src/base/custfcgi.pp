@@ -384,7 +384,8 @@ const HttpToCGI : THttpToCGI =
       7,  // 33 'QUERY_STRING'
      27,  // 34 'HTTP_HOST'
       0,  // 35 'CONTENT'
-     36   // 36 'XHTTPREQUESTEDWITH'
+     36,  // 36 'XHTTPREQUESTEDWITH'
+     37   // 37 'HTTP_AUTHORIZATION'
     );
 
 var ACgiVarNr : Integer;

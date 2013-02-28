@@ -155,7 +155,8 @@ Const
     { 33: 'REMOTE_PORT'            } '',
     { 34: 'REQUEST_URI'            } '',
     { 35: 'CONTENT'                } '',
-    { 36: 'XHTTPREQUESTEDWITH'     } ''
+    { 36: 'XHTTPREQUESTEDWITH'     } '',
+    { 37: 'XHTTPREQUESTEDWITH'     } FieldAuthorization
   );
 
 Procedure TCgiHandler.GetCGIVarList(List : TStrings);
