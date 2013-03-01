@@ -1449,7 +1449,7 @@ begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
   AddHeader('Content-Type','multipart/form-data; boundary='+Sep);
   S:='--'+Sep+CRLF;
-  s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,AFileName]);
+  s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
   s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
   SS:=TStringStream.Create(s);
   try
