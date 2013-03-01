@@ -702,14 +702,14 @@ var
   lang: ansistring;
 begin
   // Get one of non-empty environment variables in the next order:
-  // LC_ALL, LC_CTYPE, LANG. Default is CP_UTF8.
+  // LC_ALL, LC_CTYPE, LANG. Default is ASCII.
   lang:=FpGetEnv('LC_ALL');
   if lang='' then
     lang:=FpGetEnv('LC_CTYPE');
   if lang='' then
     lang:=FpGetEnv('LANG');
   if lang='' then
-    Result:=CP_UTF8
+    Result:=CP_ASCII
   else
     begin
       // clean up, for example en_US.UTF-8 => UTF-8
@@ -719,7 +719,7 @@ begin
       if p>0 then Delete(lang,p,length(lang)-p+1);
       Result:=GetCodepageByName(lang);
       if Result = CP_NONE then
-        Result:=CP_UTF8;
+        Result:=CP_ASCII;
     end;
 end;
 
