@@ -195,9 +195,14 @@ const DefaultConfig : array[0..27,1..240] of char=(
   '#undef NEEDCROSSBINUTILS'#010+
   '#endif'#010+
   #010+
+  '# for android cross-prefix is set by compiler'#010+
+  '#ifdef android'#010+
+  '#undef NEEDCROSSBINUTILS'#010+
+  '#endif'#010+
+  #010+
   '# binutils prefix for cross compiling'#010+
   '#IFDEF FPC_CROSSCOMPILING'#010+
-  '#IFDEF NEEDCROSSBINUTILS'#010+
+  '#IFDEF NEEDCROSSBINUTILS'#010,
   '  -XP$FPCTARGET-'#010+
   '#ENDIF'#010+
   '#ENDIF'#010+
@@ -207,22 +212,21 @@ const DefaultConfig : array[0..27,1..240] of char=(
   '# Linking'#010+
   '# -------------'#010+
   #010+
-  '# generate always ','debugging information for GDB (slows down the comp'+
-  'iling'#010+
+  '# generate always debugging information for GDB (slows down the compil'+
+  'ing'#010+
   '# process)'#010+
   '#      -gc        generate checks for pointers'#010+
   '#      -gd        use dbx'#010+
-  '#      -gg        use gsym'#010+
+  '#     ',' -gg        use gsym'#010+
   '#      -gh        use heap trace unit (for memory leak debugging)'#010+
-  '#      ','-gl        use line info unit to show more info for backtrace'+
-  's'#010+
+  '#      -gl        use line info unit to show more info for backtraces'#010+
   '#      -gv        generates programs tracable with valgrind'#010+
-  '#      -gw        generate dwarf debugging info'#010+
+  '#      -gw        gener','ate dwarf debugging info'#010+
   '#'#010+
   '# Enable debuginfo and use the line info unit by default'#010+
   '#-gl'#010+
   #010+
-  '# al','ways pass an option to the linker'#010+
+  '# always pass an option to the linker'#010+
   '#-k-s'#010+
   #010+
   '# Always strip debuginfo from the executable'#010+
@@ -233,28 +237,28 @@ const DefaultConfig : array[0..27,1..240] of char=(
   '# Miscellaneous'#010+
   '# -------------'#010+
   #010+
-  '# Write always a nice FPC logo ;)'#010+
+  '# Wri','te always a nice FPC logo ;)'#010+
   '-l'#010+
   #010+
   '# Verbosity'#010+
-  '#      e : Show errors (default)       d : Show d','ebug info'#010+
+  '#      e : Show errors (default)       d : Show debug info'#010+
   '#      w : Show warnings               u : Show unit info'#010+
   '#      n : Show notes                  t : Show tried/used files'#010+
-  '#      h : Show hints                  s : Show time stamps'#010+
-  '#      i : Show general info           q : Show',' message numbers'#010+
+  '#      h : Sh','ow hints                  s : Show time stamps'#010+
+  '#      i : Show general info           q : Show message numbers'#010+
   '#      l : Show linenumbers            c : Show conditionals'#010+
-  '#      a : Show everything             0 : Show nothing (except errors'+
-  ')'#010+
+  '#      a : Show everything             0 : Show nothing (except erro','r'+
+  's)'#010+
   '#      b : Write file names messages   r : Rhide/GCC compatibility mod'+
   'e'#010+
-  '#          with fu','ll path              x : Executable info (Win32 on'+
-  'ly)'#010+
+  '#          with full path              x : Executable info (Win32 only'+
+  ')'#010+
   '#      v : write fpcdebug.txt with     p : Write tree.log with parse t'+
   'ree'#010+
-  '#          lots of debugging info'#010+
+  '#          lots of',' debugging info'#010+
   '#'#010+
   '# Display Info, Warnings and Notes'#010+
   '-viwn'#010+
-  '# If you don'#039't want so much verbosi','ty use'#010+
+  '# If you don'#039't want so much verbosity use'#010+
   '#-vw'#010
 );
