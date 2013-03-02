@@ -700,26 +700,30 @@ function GetSystemCodepage: TSystemCodePage;
 var
   p: SizeInt;
   lang: ansistring;
+  cp: TSystemCodePage;
 begin
   // Get one of non-empty environment variables in the next order:
-  // LC_ALL, LC_CTYPE, LANG. Default is ASCII.
+  // LC_ALL, LC_CTYPE, LANG. Default is UTF-8 or ASCII.
+{$ifdef linux}
+  Result:=CP_UTF8;
+{$else}
+  Result:=CP_ASCII;
+{$endif linux}
   lang:=FpGetEnv('LC_ALL');
   if lang='' then
     lang:=FpGetEnv('LC_CTYPE');
   if lang='' then
     lang:=FpGetEnv('LANG');
-  if lang='' then
-    Result:=CP_ASCII
-  else
+  if lang<>'' then
     begin
       // clean up, for example en_US.UTF-8 => UTF-8
       p:=Pos('.',lang);
       if p>0 then Delete(lang,1,p);
       p:=Pos('@',lang);
       if p>0 then Delete(lang,p,length(lang)-p+1);
-      Result:=GetCodepageByName(lang);
-      if Result = CP_NONE then
-        Result:=CP_ASCII;
+      cp:=GetCodepageByName(lang);
+      if cp <> CP_NONE then
+        Result:=cp;
     end;
 end;
 
