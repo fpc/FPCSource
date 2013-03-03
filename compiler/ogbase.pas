@@ -556,7 +556,7 @@ interface
         procedure ResolveSymbols(StaticLibraryList:TFPObjectList);
         procedure PrintMemoryMap;
         procedure FixupSymbols;
-        procedure FixupRelocations;
+        procedure FixupRelocations;virtual;
         procedure RemoveUnusedExeSymbols;
         procedure MergeStabs;
         procedure MarkEmptySections;

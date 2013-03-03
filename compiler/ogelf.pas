@@ -241,7 +241,6 @@ interface
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
          dyncopysyms: TFPObjectList;
-         dynrelsize: aword;
 
          function AttachSection(objsec:TObjSection):TElfExeSection;
          function CreateSegment(atype,aflags,aalign:longword):TElfSegment;
@@ -255,6 +254,8 @@ interface
          procedure datapos_segment(seg:TElfSegment);
          procedure MapSectionsToSegments;
          procedure WriteStaticSymtable;
+         procedure WriteShstrtab;
+         procedure FixupSectionLinks;
          procedure InitDynlink;
        protected
          dynamiclink: boolean;
@@ -272,6 +273,7 @@ interface
          tlsseg: TElfSegment;
          relative_reloc_count: longint;
          gotsize: aword;
+         dynrelsize: aword;
          procedure PrepareGOT;virtual;
          function AllocGOTSlot(objsym: TObjSymbol):boolean;virtual;
          procedure CreateGOTSection;virtual;
@@ -287,6 +289,7 @@ interface
          procedure ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
          procedure WriteDynTag(aTag:longword;aValue:longword);
          procedure WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword=0);
+         procedure Do_Mempos;virtual;
        public
          constructor Create;override;
          destructor Destroy;override;
@@ -2494,14 +2497,10 @@ implementation
       end;
 
 
-    procedure TElfExeOutput.MemPos_Start;
+    procedure TElfExeOutput.WriteShStrtab;
       var
-        i,j: longint;
-        dynstrndx,dynsymndx: longword;
-        seg: TElfSegment;
+        i: longint;
         exesec: TElfExeSection;
-        objsec: TObjSection;
-        tempmempos: qword;
       begin
         { Remove any existing .shstrtab contents }
         if (shstrtabsect.size>0) then
@@ -2511,8 +2510,6 @@ implementation
             shstrtabsect.SecOptions:=[oso_data];
           end;
 
-        { Assign section indices and fill .shstrtab
-          List of sections cannot be modified after this point. }
         shstrtabsect.writezeros(1);
         for i:=0 to ExeSectionList.Count-1 do
           begin
@@ -2520,10 +2517,15 @@ implementation
             exesec.shstridx:=shstrtabsect.writestr(exesec.Name);
             exesec.secshidx:=i+1;
           end;
+      end;
 
+
+    procedure TElfExeOutput.FixupSectionLinks;
+      var
+        dynstrndx,dynsymndx: longword;
+      begin
         if dynamiclink then
           begin
-            { fixup sh_link/sh_info members of various dynamic sections }
             dynstrndx:=TElfExeSection(dynsymtable.fstrsec.ExeSection).secshidx;
             dynsymndx:=TElfExeSection(dynsymtable.ExeSection).secshidx;
             TElfExeSection(hashobjsec.ExeSection).shlink:=dynsymndx;
@@ -2548,8 +2550,17 @@ implementation
           end
         else if assigned(ipltrelocsec) then
           TElfExeSection(ipltrelocsec.ExeSection).shinfo:=TElfExeSection(pltobjsec.ExeSection).secshidx;
+      end;
 
-        { The actual layout }
+
+    procedure TElfExeOutput.Do_Mempos;
+      var
+        i,j: longint;
+        seg: TElfSegment;
+        exesec: TElfExeSection;
+        objsec: TObjSection;
+        tempmempos: qword;
+      begin
         if IsSharedLibrary then
           CurrMemPos:=0
         else
@@ -2598,6 +2609,22 @@ implementation
                 seg.MemSize:=exesec.MemPos+exesec.Size-seg.MemPos;
               end;
           end;
+      end;
+
+
+    procedure TElfExeOutput.MemPos_Start;
+      var
+        i: longint;
+      begin
+        { Assign section indices and fill .shstrtab
+          List of sections cannot be modified after this point. }
+        WriteShStrtab;
+
+        { fixup sh_link/sh_info members of various dynamic sections }
+        FixupSectionLinks;
+
+        { The actual layout }
+        Do_Mempos;
 
         if (not gotwritten) then
           begin
