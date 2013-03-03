@@ -115,11 +115,8 @@ unit cgcpu;
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       end;
 
-      { tarmcgarm is shared between normal arm and thumb-2 }
-      tarmcgarm = class(tbasecgarm)
-        procedure init_register_allocators;override;
-        procedure done_register_allocators;override;
-
+      { tcgarm is shared between normal arm and thumb-2 }
+      tcgarm = class(tbasecgarm)
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
@@ -134,6 +131,13 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
       end;
 
+      { normal arm cg }
+      tarmcgarm = class(tcgarm)
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+      end;
+
+      { 64 bit cg for all arm flavours }
       tbasecg64farm = class(tcg64f32)
       end;
 
@@ -147,6 +151,9 @@ unit cgcpu;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister);override;
         procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
+      end;
+
+      tarmcg64farm = class(tcg64farm)
       end;
 
       tthumbcgarm = class(tbasecgarm)
@@ -170,7 +177,7 @@ unit cgcpu;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
       end;
 
-      tthumb2cgarm = class(tarmcgarm)
+      tthumb2cgarm = class(tcgarm)
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -291,7 +298,7 @@ unit cgcpu;
       end;
 
 
-     procedure tarmcgarm.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
+     procedure tcgarm.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
        var
           imm_shift : byte;
           l : tasmlabel;
@@ -332,7 +339,7 @@ unit cgcpu;
        end;
 
 
-     procedure tarmcgarm.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
+     procedure tcgarm.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
        var
          oppostfix:toppostfix;
          usedtmpref: treference;
@@ -616,13 +623,13 @@ unit cgcpu;
       end;
 
 
-     procedure tarmcgarm.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
+     procedure tcgarm.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
        begin
           a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
 
 
-     procedure tarmcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+     procedure tcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
        var
          so : tshifterop;
        begin
@@ -667,7 +674,7 @@ unit cgcpu;
         (PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
          PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None);
 
-    procedure tarmcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
+    procedure tcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
       size: tcgsize; a: tcgint; src, dst: tregister);
       var
         ovloc : tlocation;
@@ -676,7 +683,7 @@ unit cgcpu;
       end;
 
 
-    procedure tarmcgarm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
+    procedure tcgarm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
       size: tcgsize; src1, src2, dst: tregister);
       var
         ovloc : tlocation;
@@ -814,7 +821,7 @@ unit cgcpu;
       end;
 
 
-    procedure tarmcgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
+    procedure tcgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
         shift : byte;
         tmpreg : tregister;
@@ -962,7 +969,7 @@ unit cgcpu;
       end;
 
 
-    procedure tarmcgarm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
+    procedure tcgarm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
         so : tshifterop;
         tmpreg,overflowreg : tregister;
@@ -4923,7 +4930,7 @@ unit cgcpu;
         else
           begin
             cg:=tarmcgarm.create;
-            cg64:=tcg64farm.create;
+            cg64:=tarmcg64farm.create;
 
             casmoptimizer:=TCpuAsmOptimizer;
           end;
