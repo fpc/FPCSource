@@ -43,6 +43,7 @@ Type
        cpu_armv6k,
        cpu_armv6t2,
        cpu_armv6z,
+       cpu_armv6m,
        cpu_armv7,
        cpu_armv7a,
        cpu_armv7r,
@@ -52,7 +53,7 @@ Type
 
 Const
    cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5];
-   cpu_thumb = [];
+   cpu_thumb = [cpu_armv6m];
    cpu_thumb2 = [cpu_armv7m];
 
 Type
@@ -243,6 +244,7 @@ Const
      'ARMV6K',
      'ARMV6T2',
      'ARMV6Z',
+     'ARMV6M',
      'ARMV7',
      'ARMV7A',
      'ARMV7R',
@@ -1096,6 +1098,7 @@ Const
        { cpu_armv6k   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
        { cpu_armv6t2  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX],
        { cpu_armv6z   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6m   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_REV],
        { the identifier armv7 is should not be used, it is considered being equal to armv7a }
        { cpu_armv7    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],
        { cpu_armv7a   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_RBIT,CPUARM_HAS_LDREX,CPUARM_HAS_DMB],

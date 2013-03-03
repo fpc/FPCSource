@@ -861,12 +861,22 @@ implementation
         l : tasmlabel;
         doinsert,
         removeref : boolean;
+        multiplier : byte;
       begin
         curdata:=TAsmList.create;
         lastinspos:=-1;
         curinspos:=0;
         extradataoffset:=0;
-        limit:=1016;
+        if current_settings.cputype in cpu_thumb then
+          begin
+            multiplier:=2;
+            limit:=504;
+          end
+        else
+          begin
+            limit:=1016;
+            multiplier:=1;
+          end;
         curtai:=tai(list.first);
         doinsert:=false;
         while assigned(curtai) do
@@ -898,16 +908,16 @@ implementation
                                     ait_const:
                                       begin
                                         if (tai_const(hp).consttype=aitconst_64bit) then
-                                          inc(extradataoffset);
+                                          inc(extradataoffset,multiplier);
                                       end;
                                     ait_comp_64bit,
                                     ait_real_64bit:
                                       begin
-                                        inc(extradataoffset);
+                                        inc(extradataoffset,multiplier);
                                       end;
                                     ait_real_80bit:
                                       begin
-                                        inc(extradataoffset,2);
+                                        inc(extradataoffset,2*multiplier);
                                       end;
                                   end;
                                   if (hp.typ=ait_const) then
@@ -947,32 +957,32 @@ implementation
                             end;
                         end;
                     end;
-                  inc(curinspos);
+                  inc(curinspos,multiplier);
                 end;
               ait_align:
                 begin
                   { code is always 4 byte aligned, so we don't have to take care of .align 2 which would
                     requires also incrementing curinspos by 1 }
-                  inc(curinspos,(tai_align(curtai).aligntype div 4));
+                  inc(curinspos,(tai_align(curtai).aligntype div 4)*multiplier);
                 end;
               ait_const:
                 begin
-                  inc(curinspos);
+                  inc(curinspos,multiplier);
                   if (tai_const(curtai).consttype=aitconst_64bit) then
-                    inc(curinspos);
+                    inc(curinspos,multiplier);
                 end;
               ait_real_32bit:
                 begin
-                  inc(curinspos);
+                  inc(curinspos,multiplier);
                 end;
               ait_comp_64bit,
               ait_real_64bit:
                 begin
-                  inc(curinspos,2);
+                  inc(curinspos,2*multiplier);
                 end;
               ait_real_80bit:
                 begin
-                  inc(curinspos,3);
+                  inc(curinspos,3*multiplier);
                 end;
             end;
             { special case for case jump tables }
@@ -982,14 +992,14 @@ implementation
               (taicpu(hp).oper[0]^.typ=top_reg) and
               (taicpu(hp).oper[0]^.reg=NR_PC) then
               begin
-                penalty:=1;
+                penalty:=1*multiplier;
                 hp:=tai(hp.next);
                 { skip register allocations and comments inserted by the optimizer }
                 while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
                   hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
-                    inc(penalty);
+                    inc(penalty,multiplier);
                     hp:=tai(hp.next);
                   end;
               end
@@ -1023,10 +1033,19 @@ implementation
               begin
                 lastinspos:=-1;
                 extradataoffset:=0;
-                limit:=1016;
+
+                if current_settings.cputype in cpu_thumb then
+                  limit:=508
+                else
+                  limit:=1016;
+
                 doinsert:=false;
                 hp:=tai(curtai.next);
                 current_asmdata.getjumplabel(l);
+
+                { align thumb in thumb .text section to 4 bytes }
+                if not(curdata.empty) and (current_settings.cputype in cpu_thumb) then
+                  curdata.Insert(tai_align.Create(4));
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
                 list.insertlistafter(curtai,curdata);
@@ -1035,6 +1054,9 @@ implementation
             else
               curtai:=tai(curtai.next);
           end;
+        { align thumb in thumb .text section to 4 bytes }
+        if not(curdata.empty) and (current_settings.cputype in cpu_thumb) then
+          curdata.Insert(tai_align.Create(4));
         list.concatlist(curdata);
         curdata.free;
       end;

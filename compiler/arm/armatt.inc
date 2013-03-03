@@ -327,5 +327,6 @@
 'vsqrt',
 'vstm',
 'vstr',
-'vsub'
+'vsub',
+'neg'
 );

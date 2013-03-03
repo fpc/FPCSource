@@ -323,16 +323,16 @@ implementation
                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   tcgarm(cg).cgsetflags:=true;
+                   tbasecgarm(cg).cgsetflags:=true;
                    cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
-                   tcgarm(cg).cgsetflags:=false;
+                   tbasecgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
                    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                   tcgarm(cg).cgsetflags:=true;
+                   tbasecgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
-                   tcgarm(cg).cgsetflags:=false;
+                   tbasecgarm(cg).cgsetflags:=false;
                  end;
               end;
             LOC_FLAGS :
@@ -345,15 +345,15 @@ implementation
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,hregister);
-                   tcgarm(cg).cgsetflags:=true;
+                   tbasecgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
-                   tcgarm(cg).cgsetflags:=false;
+                   tbasecgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
-                   tcgarm(cg).cgsetflags:=true;
+                   tbasecgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
-                   tcgarm(cg).cgsetflags:=false;
+                   tbasecgarm(cg).cgsetflags:=false;
                  end;
               end;
             LOC_JUMP :
@@ -366,9 +366,9 @@ implementation
                 cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
                 cg.a_label(current_asmdata.CurrAsmList,hlabel);
-                tcgarm(cg).cgsetflags:=true;
+                tbasecgarm(cg).cgsetflags:=true;
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,hregister,hregister);
-                tcgarm(cg).cgsetflags:=false;
+                tbasecgarm(cg).cgsetflags:=false;
               end;
             else
               internalerror(200311301);

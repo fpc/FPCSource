@@ -240,11 +240,11 @@ implementation
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
-                      tcgarm(cg).cgsetflags:=true;
+                      tbasecgarm(cg).cgsetflags:=true;
                       { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be used }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tcgarm(cg).cgsetflags:=false;
+                      tbasecgarm(cg).cgsetflags:=false;
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
@@ -260,11 +260,11 @@ implementation
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
-                           tcgarm(cg).cgsetflags:=true;
+                           tbasecgarm(cg).cgsetflags:=true;
                            { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                              then genlinearlist wouldn't be use }
                            cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low)), hregister);
-                           tcgarm(cg).cgsetflags:=false;
+                           tbasecgarm(cg).cgsetflags:=false;
                          end;
                     end
                   else
@@ -273,22 +273,22 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      tcgarm(cg).cgsetflags:=true;
+                      tbasecgarm(cg).cgsetflags:=true;
                       { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be use }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tcgarm(cg).cgsetflags:=false;
+                      tbasecgarm(cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
-                  tcgarm(cg).cgsetflags:=true;
+                  tbasecgarm(cg).cgsetflags:=true;
                   { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                     then genlinearlist wouldn't be use }
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_32,aint(int64(t^._high-t^._low)),hregister);
-                  tcgarm(cg).cgsetflags:=false;
+                  tbasecgarm(cg).cgsetflags:=false;
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
                   last:=t^._high;

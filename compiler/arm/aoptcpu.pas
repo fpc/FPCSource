@@ -85,6 +85,7 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
+        not(current_settings.cputype in cpu_thumb) and
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
         ((taicpu(p).opcode<A_IT) or (taicpu(p).opcode>A_ITTTT)) and
@@ -1666,7 +1667,8 @@ Implementation
               begin
                 case taicpu(p).opcode Of
                   A_B:
-                    if taicpu(p).condition<>C_None then
+                    if (taicpu(p).condition<>C_None) and
+                      not(current_settings.cputype in cpu_thumb) then
                       begin
                          { check for
                                 Bxx   xxx

@@ -406,7 +406,11 @@ interface
               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,right.location.register64.reglo,right.location.register64.reghi),PF_S));
+
+            if current_settings.cputype in cpu_thumb then
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,right.location.register64.reglo,right.location.register64.reghi,dummyreg)
+            else
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,right.location.register64.reglo,right.location.register64.reghi),PF_S));
           end
         else if (nodetype in [equaln,unequaln]) and
           (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
@@ -417,7 +421,11 @@ interface
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
+
+            if current_settings.cputype in cpu_thumb then
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
+            else
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
           end
         else
           begin
@@ -431,7 +439,7 @@ interface
                 location.resflags:=getresflags(unsigned);
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-                if current_settings.cputype in cpu_thumb2 then
+                if current_settings.cputype in (cpu_thumb+cpu_thumb2) then
                   begin
                     current_asmdata.getjumplabel(l);
                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
@@ -599,7 +607,8 @@ interface
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if right.location.loc = LOC_CONSTANT then
           begin
-             if is_shifter_const(right.location.value,b) then
+             if (not(current_settings.cputype in cpu_thumb) and is_shifter_const(right.location.value,b)) or
+                ((current_settings.cputype in cpu_thumb) and is_thumb_imm(right.location.value)) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin

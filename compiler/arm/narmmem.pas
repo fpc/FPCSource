@@ -37,7 +37,8 @@ interface
 implementation
 
     uses
-      cutils,verbose,aasmdata,aasmcpu,cgobj;
+      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,
+      cpuinfo;
 
 {*****************************************************************************
                              TARMVECNODE
@@ -49,6 +50,7 @@ implementation
          hl : longint;
        begin
          if ((location.reference.base=NR_NO) and (location.reference.index=NR_NO)) or
+            (current_settings.cputype in cpu_thumb) or
             { simple constant? }
             (l=1) or ispowerof2(l,hl) or ispowerof2(l+1,hl) or ispowerof2(l-1,hl) then
            inherited update_reference_reg_mul(maybe_const_reg,l)

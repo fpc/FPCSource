@@ -221,7 +221,11 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
-    {$i arm.inc}  { Case dependent, don't change }
+    {$if defined(CPUARMV6M)}
+      {$i thumb.inc}  { Case dependent, don't change }
+    {$else}
+      {$i arm.inc}  { Case dependent, don't change }
+    {$endif}
   {$endif}
   {$define SYSPROCDEFINED}
 {$endif cpuarm}

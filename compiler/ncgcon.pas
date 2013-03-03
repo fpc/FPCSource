@@ -156,7 +156,7 @@ implementation
             lab_real := TAsmLabel(entry^.Data);  // is it needed anymore?
 
              { :-(, we must generate a new entry }
-             if not assigned(lab_real) then
+             if not(assigned(lab_real)) then
                begin
                   current_asmdata.getdatalabel(lastlabel);
                   entry^.Data:=lastlabel;

@@ -68,6 +68,7 @@ unit agarmgas;
         'armv6k',
         'armv6t2',
         'armv6z',
+        'armv6-m',
         'armv7',
         'armv7-a',
         'armv7-r',

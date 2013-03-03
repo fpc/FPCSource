@@ -135,18 +135,20 @@ implementation
                  begin
                     helper1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                     helper2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ASR;
-                    so.shiftimm:=31;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_MOV,helper1,numerator,so));
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_LSR;
-                    so.shiftimm:=32-power;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,helper2,numerator,helper1,so));
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ASR;
-                    so.shiftimm:=power;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_MOV,resultreg,helper2,so));
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
+                    if current_settings.cputype in cpu_thumb then
+                      begin
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
+                      end
+                    else
+                      begin
+                        shifterop_reset(so);
+                        so.shiftmode:=SM_LSR;
+                        so.shiftimm:=32-power;
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,helper2,numerator,helper1,so));
+                      end;
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,power,helper2,resultreg);
                   end
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
@@ -415,7 +417,7 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        if (current_settings.cputype in cpu_thumb2) then
+        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
           result:=inherited
         else
           result := nil;
@@ -490,7 +492,7 @@ implementation
         end;
 
       begin
-        if (current_settings.cputype in cpu_thumb2) then
+        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
         begin
           inherited;
           exit;

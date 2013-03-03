@@ -3250,6 +3250,13 @@ if (target_info.abi = abi_eabihf) then
 {$endif CPUARMV6}
   end;
 
+  if init_settings.cputype in cpu_thumb then
+    begin
+      def_system_macro('CPUTHUMB');
+      if not option.FPUSetExplicitly then
+        init_settings.fputype:=fpu_soft;
+    end;
+
   if init_settings.cputype in cpu_thumb2 then
     def_system_macro('CPUTHUMB2');
 {$endif arm}

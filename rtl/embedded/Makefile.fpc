@@ -62,6 +62,9 @@ endif
 ifeq ($(SUBARCH),armv4)
 CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
 endif
+ifeq ($(SUBARCH),armv6m)
+CPU_UNITS=
+endif
 endif
 
 ifeq ($(ARCH),avr)
