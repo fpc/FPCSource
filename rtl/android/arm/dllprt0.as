@@ -30,17 +30,17 @@ FPC_SHARED_LIB_START:
 
         /* Get environment info from libc */
         ldr ip,=environ
-        ldr r5,[ip]
+        ldr r0,[ip]
         ldr ip,=operatingsystem_parameter_envp
-        str r5,[ip]
+        str r0,[ip]
         
         /* Register exit handler. It is called only when the main process terminates */
         ldr r0,=FPC_LIB_EXIT
-        bl atexit
+        blx atexit
 
         /* call main and exit normally */
-        bl PASCALMAIN
-        ldmdb fp, {fp, sp, pc}
+        blx PASCALMAIN
+        ldmea fp, {fp, sp, pc}
 
 /* --------------------------------------------------------- */
         .globl  _haltproc
@@ -52,7 +52,8 @@ _haltproc_eabi:
         ldr r0,=operatingsystem_result
         ldr r0,[r0]
         /* Go to libc exit() */
-        b exit
+        ldr ip,=exit
+        bx ip
 
 /* --------------------------------------------------------- */
 .data

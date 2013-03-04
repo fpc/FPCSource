@@ -57,7 +57,8 @@ _fpc_start:
         str r5,[ip]
         
         /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main" */
-        b _start
+        ldr ip,=_start
+        bx ip
 
 /* --------------------------------------------------------- */
         .globl  _haltproc
@@ -69,7 +70,8 @@ _haltproc_eabi:
         ldr r0,=operatingsystem_result
         ldr r0,[r0]
         /* Go to libc exit() */
-        b exit
+        ldr ip,=exit
+        bx ip
 
 /* --------------------------------------------------------- */
 .data
