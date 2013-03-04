@@ -39,6 +39,10 @@ implementation
       gnugpsym: TObjSymbol;
       dt_gotsym_value: longint;
       dt_local_gotno_value: longint;
+      dt_local_gotno_offset: aword;
+      local_got_relocs: TFPObjectList;
+      local_got_slots: TFPHashObjectList;
+      got_content: array of pint;
       procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
     protected
       procedure PrepareGOT;override;
@@ -51,8 +55,11 @@ implementation
     //  procedure WriteIndirectPLTEntry(exesym:TExeSymbol);override;
       procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);override;
       procedure DoRelocationFixup(objsec:TObjSection);override;
+      procedure Do_Mempos;override;
     public
-      procedure DataPos_Start;override;
+      constructor Create;override;
+      destructor Destroy;override;
+      procedure FixupRelocations;override;
     end;
 
   const
@@ -176,6 +183,22 @@ implementation
                                  TElfExeOutputMIPS
 *****************************************************************************}
 
+  constructor TElfExeOutputMIPS.Create;
+    begin
+      inherited Create;
+      local_got_relocs:=TFPObjectList.Create(False);
+      local_got_slots:=TFPHashObjectList.Create(True);
+    end;
+
+
+  destructor TElfExeOutputMIPS.Destroy;
+    begin
+      local_got_slots.Free;
+      local_got_relocs.Free;
+      inherited Destroy;
+    end;
+
+
   procedure TElfExeOutputMIPS.CreateGOTSection;
     var
       tmp: longword;
@@ -222,6 +245,7 @@ implementation
         writeDynTag(DT_MIPS_BASE_ADDRESS,0)
       else
         writeDynTag(DT_MIPS_BASE_ADDRESS,ElfTarget.exe_image_base);
+      dt_local_gotno_offset:=dynamicsec.size;
       writeDynTag(DT_MIPS_LOCAL_GOTNO,dt_local_gotno_value);
       writeDynTag(DT_MIPS_SYMTABNO,dynsymlist.count+1);
       { ABI says: "Index of first external dynamic symbol not referenced locally" }
@@ -248,16 +272,8 @@ implementation
       result:=false;
       exesym:=objsym.exesymbol;
 
-      { Although local symbols should not be accessed through GOT,
-        this isn't strictly forbidden. In this case we need to fake up
-        the exesym to store the GOT offset in it.
-        TODO: name collision; maybe use a different symbol list object? }
-      if exesym=nil then
-        begin
-          exesym:=TExeSymbol.Create(ExeSymbolList,objsym.name+'*local*');
-          exesym.objsymbol:=objsym;
-          objsym.exesymbol:=exesym;
-        end;
+      if (exesym=nil) then
+        InternalError(2013030406);
       if exesym.GotOffset>0 then
         exit;
       make_dynamic_if_undefweak(exesym);
@@ -284,14 +300,32 @@ implementation
     end;
 
 
+  function address_ascending(p1,p2:pointer):longint;
+    var
+      reloc1: TObjRelocation absolute p1;
+      reloc2: TObjRelocation absolute p2;
+    begin
+      result:=(reloc1.symbol.address+reloc1.orgsize)-(reloc2.symbol.address+reloc2.orgsize);
+    end;
+
+
   procedure TElfExeOutputMIPS.PrepareGOT;
     var
       i: longint;
       exesym: TExeSymbol;
     begin
       inherited PrepareGOT;
+      { !! maybe incorrect, where do 'unmapped globals' belong? }
+      dt_local_gotno_value:=gotobjsec.size div sizeof(pint);
+
       if not dynamiclink then
         exit;
+      { make room for first R_MIPS_NONE entry }
+      if dynrelsize>0 then
+        begin
+          dynrelocsec.alloc(dynrelocsec.shentsize);
+          inc(dynrelsize,dynrelocsec.shentsize);
+        end;
       dynsymlist.sort(@put_externals_last);
       { reindex, as sorting could changed the order }
       for i:=0 to dynsymlist.count-1 do
@@ -306,8 +340,6 @@ implementation
               break;
             end;
         end;
-      { !! maybe incorrect, where do 'unmapped globals' belong? }
-      dt_local_gotno_value:=gotobjsec.size div sizeof(pint);
 
       { actually allocate GOT slots for imported symbols }
       for i:=dt_gotsym_value to dynsymlist.count-1 do
@@ -320,25 +352,119 @@ implementation
     end;
 
 
-  procedure TElfExeOutputMIPS.DataPos_Start;
+  procedure TElfExeOutputMIPS.Do_Mempos;
+    var
+      i:longint;
+      objrel:TObjRelocation;
+      addr,page:aword;
+      numpages,tmp:longint;
+      objsym:TObjSymbol;
+      exesym:TExeSymbol;
+      got_local_area_start:aword;
     begin
+      inherited Do_Mempos;
+      { determine required amount of 64k page entries }
+      local_got_relocs.Sort(@address_ascending);
+      numpages:=0;
+      page:=high(aword);
+      for i:=0 to local_got_relocs.count-1 do
+        begin
+          objrel:=TObjRelocation(local_got_relocs[i]);
+          addr:=objrel.symbol.address+objrel.orgsize;
+          addr:=addr-smallint(addr);
+          if (page<>addr shr 16) then
+            inc(numpages);
+          page:=addr shr 16;
+        end;
+
+      if (numpages=0) then
+        exit;
+
+      { An additional page may be consumed when we add slots to GOT }
+      inc(numpages);
+
+      { Make space in GOT }
+      got_local_area_start:=dt_local_gotno_value;
+      inc(gotsize,numpages*sizeof(pint));
+      gotobjsec.alloc(numpages*sizeof(pint));
+
+      { Redo layout }
+      inherited Do_Mempos;
+
+      { Now assign GOT offsets to local slots }
+      SetLength(got_content,numpages);
+      page:=high(aword);
+      tmp:=-1;
+      objsym:=nil;
+      for i:=0 to local_got_relocs.count-1 do
+        begin
+          objrel:=TObjRelocation(local_got_relocs[i]);
+          addr:=objrel.symbol.address+objrel.orgsize;
+          { the contents of slot }
+          addr:=addr-smallint(addr);
+          if (page<>addr) then
+            begin
+              Inc(tmp);
+              if (tmp>=numpages) then
+                InternalError(2013030402);
+              { replace relocation symbol with one pointing to GOT slot }
+              objsym:=TObjSymbol.Create(local_got_slots,hexstr(addr,8));
+              objsym.offset:=(got_local_area_start+tmp+1)*sizeof(pint);
+              objsym.bind:=AB_LOCAL;
+              if (source_info.endian=target_info.endian) then
+                got_content[tmp]:=addr
+              else
+                got_content[tmp]:=swapendian(addr);
+              page:=addr;
+            end;
+          objrel.symbol:=objsym;
+        end;
+
+      if dynamiclink then
+        begin
+          { Patch DT_LOCAL_GOTNO value }
+          if (dt_local_gotno_offset=0) then
+            InternalError(2013030401);
+          i:=dynamicsec.size;
+          dynamicsec.Data.Seek(dt_local_gotno_offset);
+          writeDynTag(DT_MIPS_LOCAL_GOTNO,dt_local_gotno_value+numpages);
+          dynamicsec.size:=i;
+
+          { Increase gotoffset of exesymbols that come after dt_gotsym }
+          for i:=dt_gotsym_value to dynsymlist.count-1 do
+            begin
+              exesym:=TExeSymbol(dynsymlist[i]);
+              exesym.GotOffset:=exesym.GotOffset+(numpages*sizeof(pint));
+            end;
+        end;
+    end;
+
+
+  procedure TElfExeOutputMIPS.FixupRelocations;
+    begin
+      if dynrelsize>0 then
+        WriteDynRelocEntry(0,R_MIPS_NONE,0,0);
+
+      inherited FixupRelocations;
       { Since we omit GOT slots for imported symbols during inherited PrepareGOT, they don't
-        get written in ResolveRelocations either. This must be compensated here.
-        Or better override ResolveRelocations and handle there. }
+        get written in FixupRelocations either. This must be compensated here. }
+      gotobjsec.write(got_content[0],length(got_content)*sizeof(pint));
+
       { TODO: shouldn't be zeroes, but address of stubs if address taken, etc. }
       gotobjsec.writeZeros(gotsize-gotobjsec.size);
-      inherited DataPos_Start;
     end;
 
   procedure TElfExeOutputMIPS.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
     var
       gotoff:aword;
     begin
+      if (objsym.bind=AB_LOCAL) then
+        InternalError(2013030403);
       gotoff:=objsym.exesymbol.gotoffset;
       if gotoff=0 then
         InternalError(2012060902);
 
-      { the GOT slot itself, and a dynamic relocation for it }
+      { On MIPS, GOT does not need dynamic relocations }
       if gotoff=gotobjsec.Data.size+sizeof(pint) then
         begin
           if source_info.endian<>target_info.endian then
@@ -350,7 +476,12 @@ implementation
   procedure TElfExeOutputMIPS.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
       objreloc:TObjRelocation;
+      lowreloc:TObjRelocation;
       reltyp:byte;
+      externsym:boolean;
+      found:boolean;
+      i:longint;
+      lopart,hipart:longword;
     begin
       objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
@@ -359,11 +490,56 @@ implementation
         reltyp:=ObjReloc.ftype;
 
       case reltyp of
+        R_MIPS_32:
+          begin
+            externsym:=assigned(objreloc.symbol) and
+              assigned(objreloc.symbol.exesymbol) and
+              (objreloc.symbol.exesymbol.dynindex<>0);
+
+            if IsSharedLibrary then
+              begin
+                dynrelocsec.alloc(dynrelocsec.shentsize);
+                objreloc.flags:=objreloc.flags or rf_dynamic;
+                if (not externsym) then
+                  Inc(relative_reloc_count);
+              end
+          end;
+
         R_MIPS_CALL16,
         R_MIPS_GOT16:
           begin
-            //TODO: GOT16 against local symbols need specialized handling
-            AllocGOTSlot(objreloc.symbol);
+            if objreloc.symbol.bind<>AB_LOCAL then
+              AllocGOTSlot(objreloc.symbol)
+            else
+              begin
+                { Extract the addend, which is stored split between this relocation and
+                  the following (maybe not immediately) R_MIPS_LO16 one. }
+                found:=false;
+                for i:=idx+1 to objsec.ObjRelocations.Count-1 do
+                  begin
+                    lowreloc:=TObjRelocation(objsec.ObjRelocations[i]);
+                    if (lowreloc.flags and rf_raw)=0 then
+                      InternalError(2013030101);
+                    if (lowreloc.ftype=R_MIPS_LO16) then
+                      begin;
+                        found:=true;
+                        break;
+                      end;
+                  end;
+                if not found then
+                  InternalError(2013030102);
+                objsec.Data.Seek(objreloc.DataOffset);
+                objsec.Data.Read(hipart,sizeof(hipart));
+                objsec.Data.Seek(lowreloc.DataOffset);
+                objsec.Data.Read(lopart,sizeof(lopart));
+                if (source_info.endian<>target_info.endian) then
+                  begin
+                    hipart:=swapendian(hipart);
+                    lopart:=swapendian(lopart);
+                  end;
+                objreloc.orgsize:=(hipart shl 16)+SmallInt(lopart);
+                local_got_relocs.add(objreloc);
+              end;
           end;
       end;
     end;
@@ -450,19 +626,17 @@ implementation
 
             R_MIPS_32:
               begin
+                address:=address+relocval;
                 if (objreloc.flags and rf_dynamic)<>0 then
                   begin
                     if (objreloc.symbol=nil) or
                        (objreloc.symbol.exesymbol=nil) or
                        (objreloc.symbol.exesymbol.dynindex=0) then
-                      begin
-                      end
+                      WriteDynRelocEntry(curloc,R_MIPS_REL32,0,address)
                     else
-                      ;
-                  end
-                else
-                  address:=address+relocval;
-              end;
+                      dynreloclist.add(TObjRelocation.CreateRaw(curloc,objreloc.symbol,R_MIPS_REL32));
+                  end;
+               end;
 
             R_MIPS_26:
               begin
@@ -486,6 +660,13 @@ implementation
 
             R_MIPS_LO16:
               begin
+                { LO16 may be without pair, e.g. in following sequence:
+                    lui   $v0, %hi(foo)
+                    lw    $a0, %lo(foo)($v0)
+                    lw    $a1, %lo(foo+4)($v0)
+                }
+                AHL_S:=SmallInt(address)+relocval;
+                is_gp_disp:=false;
                 while assigned(reloclist) do
                   begin
                     hr:=reloclist;
@@ -494,33 +675,57 @@ implementation
                     //   InternalError();
                     { _gp_disp and __gnu_local_gp magic }
                     if assigned(hr^.objrel.symbol) and
-                      assigned(hr^.objrel.symbol.exesymbol) then
+                      (hr^.objrel.symbol.bind<>AB_LOCAL) then
                       begin
                         is_gp_disp:=(hr^.objrel.symbol.exesymbol.objsymbol=gpdispsym);
                         if (hr^.objrel.symbol.exesymbol.objsymbol=gnugpsym) then
                           relocval:=gotsymbol.address;
                       end;
 
+                    { in case of _gp_disp, non-zero addend is not possible? }
+                    { 4 must be added right here, so possible overflow in low half
+                      is propagated into high one (e.g if displacement is $37ffc,
+                      high part must be 4, not 3) }
                     if is_gp_disp then
-                      relocval:=gotsymbol.address-curloc;
+                      relocval:=gotsymbol.address-curloc+4;
                     AHL_S:=(hr^.addend shl 16)+SmallInt(address)+relocval;
-                    { formula: ((AHL + S) – (short)(AHL + S)) >> 16 }
-                    tmp:=(hr^.addend and $FFFF0000) or ((AHL_S-SmallInt(AHL_S)) shr 16);
+
+                    case hr^.objrel.ftype of
+
+                      R_MIPS_HI16:
+                        tmp:=(AHL_S-SmallInt(AHL_S)) shr 16;
+
+                      R_MIPS_GOT16:
+                        tmp:=-(gotsymbol.offset-(hr^.objrel.symbol.offset-sizeof(pint)));
+
+                    else
+                      InternalError(2013030404);
+                    end;
+
+                    tmp:=(hr^.addend and $FFFF0000) or (tmp and $FFFF);
                     data.seek(hr^.objrel.dataoffset);
                     if source_info.endian<>target_info.endian then
                       tmp:=swapendian(tmp);
                     data.Write(tmp,4);
                     dispose(hr);
                   end;
-                if is_gp_disp then
-                  Inc(AHL_S,4);
                 address:=(address and $FFFF0000) or (AHL_S and $FFFF);
               end;
 
             R_MIPS_CALL16,
             R_MIPS_GOT16:
               begin
-                //TODO: GOT16 relocations against local symbols need specialized handling
+                { GOT16 relocations against local symbols are followed by LO16 }
+                if (objreloc.symbol.bind=AB_LOCAL) then
+                  begin
+                    new(hr);
+                    hr^.next:=reloclist;
+                    hr^.objrel:=objreloc;
+                    hr^.objsec:=objsec;
+                    hr^.addend:=address;  //TODO: maybe it can be saved in objrel.orgsize field
+                    reloclist:=hr;
+                    continue;
+                  end;
                 MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
                 // !! this is correct only while _gp symbol is defined relative to .got !!
                 relocval:=-(gotsymbol.offset-(objreloc.symbol.exesymbol.gotoffset-sizeof(pint)));

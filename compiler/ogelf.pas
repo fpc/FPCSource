@@ -237,7 +237,6 @@ interface
          symversec,
          verdefsec,
          verneedsec,
-         dynamicsec,
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
          dyncopysyms: TFPObjectList;
@@ -262,6 +261,7 @@ interface
          hastextrelocs: boolean;
          gotsymbol: TObjSymbol;
          dynsymlist: TFPObjectList;
+         dynamicsec,
          gotobjsec: TObjSection;
          dynbssobjsec,
          pltobjsec,
@@ -3021,8 +3021,10 @@ implementation
             writeDynTag(pltreltags[rela],dynrelocsec);
             writeDynTag(relsztags[rela],dynrelocsec.Size);
             writeDynTag(relenttags[rela],dynrelocsec.shentsize);
+{$ifndef MIPS}
             if (relative_reloc_count>0) then
               writeDynTag(relcnttags[rela],relative_reloc_count);
+{$endif MIPS}
           end;
 
         WriteTargetDynamicTags;
