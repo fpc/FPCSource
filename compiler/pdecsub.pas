@@ -1221,8 +1221,10 @@ implementation
               block_type:=old_block_type;
               if assigned(pd) then
                 begin
-                  { operators always need to be searched in all units }
+                  { operators always need to be searched in all units (that
+                    contain operators) }
                   include(pd.procoptions,po_overload);
+                  pd.procsym.owner.includeoption(sto_has_operator);
                   if pd.parast.symtablelevel>normal_function_level then
                     Message(parser_e_no_local_operator);
                   if isclassmethod then
