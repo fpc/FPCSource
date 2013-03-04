@@ -3218,16 +3218,26 @@ begin
 {$endif arm}
 
 {$ifdef arm}
-{ set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
-  to VFPv2 }
-if (target_info.system=system_arm_darwin) then
-  begin
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv6;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv6;
-    if not option.FPUSetExplicitly then
-      init_settings.fputype:=fpu_vfpv2;
+  case target_info.system of
+    system_arm_darwin:
+      begin
+        { set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
+          to VFPv2 }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv6;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv6;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_vfpv2;
+      end;
+    system_arm_android:
+      begin
+        { set default cpu type to ARMv5T for Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv5t;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv5t;
+      end;
   end;
 
 { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
