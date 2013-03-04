@@ -271,6 +271,8 @@ begin
           totaltime:=getrealtime-starttime;
           if totaltime<0 then
             totaltime:=totaltime+3600.0*24.0;
+          if round(frac(totaltime)*10) >= 10 then
+            totaltime:=trunc(totaltime) + 1;
           timestr:=tostr(trunc(totaltime))+'.'+tostr(round(frac(totaltime)*10));
           if status.codesize<>aword(-1) then
             linkstr:=', '+tostr(status.codesize)+' ' +strpas(MessagePChar(general_text_bytes_code))+', '+tostr(status.datasize)+' '+strpas(MessagePChar(general_text_bytes_data))
