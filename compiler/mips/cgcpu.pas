@@ -263,43 +263,6 @@ uses
       end;{ case }
   end;
 
-  function f_TOp64CG2AsmOp(op: TOpCG): TAsmOp;
-  begin
-    case op of
-      OP_ADD:       { simple addition          }
-        f_TOp64CG2AsmOp := A_DADDU;
-      OP_AND:       { simple logical and       }
-        f_TOp64CG2AsmOp := A_AND;
-      OP_DIV:       { simple unsigned division }
-        f_TOp64CG2AsmOp := A_DDIVU;
-      OP_IDIV:      { simple signed division   }
-        f_TOp64CG2AsmOp := A_DDIV;
-      OP_IMUL:      { simple signed multiply   }
-        f_TOp64CG2AsmOp := A_DMULO;
-      OP_MUL:       { simple unsigned multiply }
-        f_TOp64CG2AsmOp := A_DMULOU;
-      OP_NEG:       { simple negate            }
-        f_TOp64CG2AsmOp := A_DNEGU;
-      OP_NOT:       { simple logical not       }
-        f_TOp64CG2AsmOp := A_NOT;
-      OP_OR:        { simple logical or        }
-        f_TOp64CG2AsmOp := A_OR;
-      OP_SAR:       { arithmetic shift-right   }
-        f_TOp64CG2AsmOp := A_DSRA;
-      OP_SHL:       { logical shift left       }
-        f_TOp64CG2AsmOp := A_DSLL;
-      OP_SHR:       { logical shift right      }
-        f_TOp64CG2AsmOp := A_DSRL;
-      OP_SUB:       { simple subtraction       }
-        f_TOp64CG2AsmOp := A_DSUBU;
-      OP_XOR:       { simple exclusive or      }
-        f_TOp64CG2AsmOp := A_XOR;
-      else
-        InternalError(2007010702);
-    end;{ case }
-  end;
-
-
 
 procedure TCGMIPS.make_simple_ref(list: tasmlist; var ref: treference);
 var
