@@ -121,5 +121,7 @@ uses
 
 
 begin
+{$ifndef android}
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
+{$endif android}
 end.
