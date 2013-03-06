@@ -1,9 +1,9 @@
-Responds with the calling and system parameters, example
-================================================
-Demonstrates how to create a basic fpweb application. It responds to a request 
-with a list of received/sent parameters, server settings and variables.
+Example that responds with the calling and system parameters
+============================================================
+This demonstrates how to create a basic fpweb application. It responds to a 
+request with a list of received/sent parameters, server settings and variables.
 
-Note, that other than the main project file (echo.lpr) there is not much that 
+Note: apart from the main project file (echo.lpr), there is not much that 
 needs to change with using fpweb, no matter if we create CGI/FCGI applications 
 or Apache modules. The web server config is different for each, of course.
 
@@ -25,7 +25,7 @@ in the cgi/fcgi/apache directories.
 
 1.a; with FPC
 -------------
-Enter to the directory (cgi/fcgi/apache) that has the .lpr file you wish to 
+Go to the directory (cgi/fcgi/apache) that has the .lpr file you wish to 
 compile, and then execute the command 
 
 fpc -Fu../webmodule echo.lpr
@@ -35,8 +35,9 @@ three web applications share the same web module code.
 
 1.b; with Lazarus
 -----------------
-It needs the WebLaz Package installed. Open the .lpi file from the choosen 
-application directory (cgi/fcgi/apache), and then 
+The example needs the WebLaz Package installed. 
+If that is done, open the .lpi file from the choosen application directory 
+(cgi/fcgi/apache), and then 
 
 Run -> Build from the menu.
 
@@ -48,7 +49,7 @@ Run -> Build from the menu.
 -----------
 http://<WebServer>/cgi-bin/<CGIExecutableName>/ should start the example if 
 everything is set up properly.
-ex: http://127.0.0.1:8080/cgi-bin/echo.exe/
+example: http://127.0.0.1:8080/cgi-bin/echo.exe/
 
 Note: You need to change the CGI application name if needed (for example, on 
 Linux it is not echo.exe).
@@ -62,7 +63,7 @@ http://<WebServer>/<ApacheLocationName>/ should start the example if
 everything is set up properly.
 ex: http://127.0.0.1:8080/myapache/
 
-if in the Apache configuration file (ex: httpd.conf) it was set up as:
+An example for the needed Apache configuration file (example: httpd.conf) snippet:
 
 LoadModule mod_echo "<path_to_mod>/echo.dll"
 <Location /myapache>
@@ -76,9 +77,9 @@ the module can be libecho.so or just simply libecho and not echo.dll .
 
 Note: If you recompile an Apache module while the module itself is loaded into
 the Apache server, the compilation will fail, because the file is in use 
-(Apache modules stay in the memory). So first, you always need to stop the 
-Apache server before you recompile or before you copy over the new version of 
-the created module.
+(Apache modules stay in memory). 
+So first, you always need to stop the Apache server before you recompile 
+or before you copy over the new version of the created module.
 
 
 2.c; as FCGI
@@ -86,7 +87,8 @@ the created module.
 http://<WebServer>/<ApacheScriptAliasName>/ should start the example if 
 everything is set up properly.
 ex: http://127.0.0.1:8080/myfcgi/
-if in the Apache configuration file (ex: httpd.conf) it was set up as:
+
+An example for the needed Apache configuration file (example: httpd.conf) snippet:
 
 LoadModule fastcgi_module "<path_to_mod>/mod_fastcgi-2.4.6-AP22.dll"
 <IfModule mod_fastcgi.c>
@@ -102,7 +104,7 @@ LoadModule fastcgi_module "<path_to_mod>/mod_fastcgi-2.4.6-AP22.dll"
 </IfModule>
 
 Note: You need to change the module name if needed. For example on Linux, 
-the module is not mod_fastcgi-2.4.6-AP22.dll but mod_fastcgi.so (need to be 
+the module is not mod_fastcgi-2.4.6-AP22.dll but mod_fastcgi.so (needs to be 
 compiled from sources found at http://www.fastcgi.com/dist/ ).
 The port (2015 in this example) must match the one set in the project main 
 file (echo.lpr).
