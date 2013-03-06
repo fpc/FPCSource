@@ -206,7 +206,8 @@ unit cgx86;
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMD);
           OS_F32:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMS);
-          OS_M64,
+          OS_M64:
+            result:=rg[R_MMREGISTER].getregister(list,R_SUBQ);
           OS_M128:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMWHOLE);
           else
