@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
-    Contains the base types for the i386 and x86-64 architecture
+    Contains the base types for the i8086, i386 and x86-64 architecture
 
     * This code was inspired by the NASM sources
       The Netwide Assembler is Copyright (c) 1996 Simon Tatham and
@@ -91,6 +91,15 @@ uses
       RS_EDI        = RS_RDI;
       RS_EBP        = RS_RBP;
       RS_ESP        = RS_RSP;
+      { create aliases to allow code sharing between i386 and i8086 }
+      RS_AX        = RS_RAX;
+      RS_BX        = RS_RBX;
+      RS_CX        = RS_RCX;
+      RS_DX        = RS_RDX;
+      RS_SI        = RS_RSI;
+      RS_DI        = RS_RDI;
+      RS_BP        = RS_RBP;
+      RS_SP        = RS_RSP;
 
       { Number of first imaginary register }
       first_int_imreg     = $10;
@@ -141,9 +150,15 @@ uses
       R_SUBWHOLE    = R_SUBQ;
       R_SUBADDR     = R_SUBQ;
 {$else x86_64}
+  {$ifdef i386}
       { i386 }
       R_SUBWHOLE    = R_SUBD;
       R_SUBADDR     = R_SUBD;
+  {$else i386}
+      { i8086 }
+      R_SUBWHOLE    = R_SUBW;
+      R_SUBADDR     = R_SUBW;
+  {$endif i386}
 {$endif x86_64}
 
       { Available Registers }
