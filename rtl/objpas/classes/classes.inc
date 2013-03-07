@@ -387,10 +387,11 @@ class function TThread.GetCurrentThread: TThread;
 begin
   { if this is the first time GetCurrentThread is called for an external thread
     we need to create a corresponding TExternalThread instance }
-  if not Assigned(CurrentThreadVar) then
-    CurrentThreadVar := TExternalThread.Create;
-
   Result := CurrentThreadVar;
+  if not Assigned(Result) then begin
+    Result := TExternalThread.Create;
+    CurrentThreadVar := Result;
+  end;
 end;
 
 
