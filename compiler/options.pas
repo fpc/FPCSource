@@ -2960,6 +2960,14 @@ begin
   def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
+{$ifdef i8086}
+  def_system_macro('CPU86');  { Borland compatibility }
+  def_system_macro('CPU87');  { Borland compatibility }
+  def_system_macro('CPU8086');
+  def_system_macro('CPUI8086');
+  def_system_macro('CPU16');
+{$endif i8086}
+
   { Set up a default prefix for binutils when cross-compiling }
   if source_info.system<>target_info.system then
     case target_info.system of

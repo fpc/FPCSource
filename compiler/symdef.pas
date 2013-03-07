@@ -888,6 +888,9 @@ interface
        java_procvarbase          : tobjectdef;
 
     const
+{$ifdef i8086}
+       pbestrealtype : ^tdef = @s80floattype;
+{$endif}
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
 {$endif}

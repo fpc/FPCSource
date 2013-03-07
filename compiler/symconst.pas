@@ -659,6 +659,12 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
    }
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 {$endif}
+{$ifdef i8086}
+   { we only take this into account on i386, on other platforms we always
+     push in the same order
+   }
+   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
+{$endif}
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
