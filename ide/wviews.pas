@@ -250,7 +250,7 @@ function FormatStrF(const Format: string; var Params): string;
 function FormatStrStr(const Format, Param: string): string;
 function FormatStrStr2(const Format, Param1,Param2: string): string;
 function FormatStrStr3(const Format, Param1,Param2,Param3: string): string;
-function FormatStrInt(const Format: string; L: longint): string;
+function FormatStrInt(const Format: string; L: PtrInt): string;
 
 const UserButtonName : array[1..4] of string[40] = ('User~1~','User~2~','User~3~','User~4~');
 
@@ -2400,7 +2400,7 @@ begin
   FormatStrStr3:=S;
 end;
 
-function FormatStrInt(const Format: string; L: longint): string;
+function FormatStrInt(const Format: string; L: PtrInt): string;
 var S: string;
 begin
   FormatStr(S,Format,L);
