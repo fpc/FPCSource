@@ -48,7 +48,8 @@
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
-             cpu_jvm                       { 14 }
+             cpu_jvm,                      { 14 }
+             cpu_i8086                     { 15 }
        );
 
        tasmmode= (asmmode_none
@@ -155,7 +156,8 @@
              system_jvm_java32,         { 75 }
              system_jvm_android32,      { 76 }
              system_arm_android,        { 77 }
-             system_i386_android        { 78 }
+             system_i386_android,       { 78 }
+             system_i8086_msdos         { 79 }
        );
 
      type
