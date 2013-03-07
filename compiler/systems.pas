@@ -340,7 +340,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm');
+             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
@@ -919,6 +919,10 @@ begin
 {$ifdef jvm}
   default_target(system_jvm_java32);
 {$endif jvm}
+
+{$ifdef i8086}
+  default_target(system_i8086_msdos);
+{$endif i8086}
 end;
 
 
