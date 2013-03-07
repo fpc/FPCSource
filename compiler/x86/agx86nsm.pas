@@ -359,7 +359,15 @@ interface
                 end
               else
                 begin
+{$ifdef x86_64}
+                  asmwrite('qword ');
+{$endif}
+{$ifdef i386}
                   asmwrite('dword ');
+{$endif i386}
+{$ifdef i8086}
+                  asmwrite('word ');
+{$endif i8086}
                   if assigned(o.ref^.symbol) then
                    begin
                     if SmartAsm then
@@ -1018,7 +1026,11 @@ interface
       if current_module.mainsource<>'' then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
+{$ifdef i8086}
+      AsmWriteLn('BITS 16');
+{$else i8086}
       AsmWriteLn('BITS 32');
+{$endif i8086}
       AsmLn;
 
       WriteExternals;
@@ -1080,7 +1092,7 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
-            supported_targets : [system_i386_embedded];
+            supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
