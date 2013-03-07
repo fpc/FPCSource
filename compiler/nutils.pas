@@ -1029,7 +1029,8 @@ implementation
               { only orddefs and enumdefs are actually bitpacked. Don't consider
                 e.g. an access to a 3-byte record as "bitpacked", since it
                 isn't }
-              (tvecnode(n).left.resultdef.typ in [orddef,enumdef]) and
+              (tvecnode(n).left.resultdef.typ = arraydef) and
+              (tarraydef(tvecnode(n).left.resultdef).elementdef.typ in [orddef,enumdef]) and
               not(tarraydef(tvecnode(n).left.resultdef).elepackedbitsize in [8,16,32,64]);
           subscriptn:
             result:=
