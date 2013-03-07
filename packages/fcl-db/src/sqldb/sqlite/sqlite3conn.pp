@@ -115,7 +115,7 @@ type
   end;
   
 Var
-  SQLiteLibraryName : String = sqlite3lib; 
+  SQLiteLibraryName : String absolute sqlite3dyn.SQLiteDefaultLibrary deprecated 'use sqlite3dyn.SQLiteDefaultLibrary instead';
    
 implementation
 
@@ -732,7 +732,7 @@ var
 begin
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  InitializeSqlite(SQLiteLibraryName);
+  InitializeSqlite(SQLiteDefaultLibrary);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
@@ -933,7 +933,7 @@ function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
   Result:='';
   try
-    InitializeSqlite(SQLiteLibraryName);
+    InitializeSqlite(SQLiteDefaultLibrary);
     case InfoType of
       citServerType:
         Result:=TSQLite3ConnectionDef.TypeName;
