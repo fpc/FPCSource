@@ -735,10 +735,10 @@ begin
   when the define is the same as the source cpu then we use the source
   os, else we pick a default }
 {$ifdef i386}
-  {$ifdef cpu86}
+  {$ifdef cpui386}
     default_target(source_info.system);
     {$define default_target_set}
-  {$else cpu86}
+  {$else cpui386}
    {$ifdef linux}
     default_target(system_i386_linux);
     {$define default_target_set}
@@ -759,7 +759,7 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
-  {$endif cpu86}
+  {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
    default_target(system_i386_linux);

@@ -161,11 +161,11 @@ implementation
 
 initialization
 
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef Symbian}
   set_source_info(system_i386_symbian_info);
   {$endif Symbian}
-{$endif CPU86}
+{$endif CPUI386}
 
 {$ifdef CPUARM}
   {$ifdef Symbian}

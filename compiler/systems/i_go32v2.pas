@@ -94,9 +94,9 @@ unit i_go32v2;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef go32v2}
     set_source_info(system_i386_go32v2_info);
   {$endif go32v2}
-{$endif cpu86}
+{$endif cpui386}
 end.

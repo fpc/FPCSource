@@ -94,9 +94,9 @@ unit i_nwl;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef netwlibc}
     set_source_info(system_i386_netwlibc_info);
   {$endif netwlibc}
-{$endif CPU86}
+{$endif CPUI386}
 end.

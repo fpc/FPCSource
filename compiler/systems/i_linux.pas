@@ -940,14 +940,14 @@ unit i_linux;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef linux}
     { some FreeBSD versions define linux as well }
     {$ifndef FreeBSD}
       set_source_info(system_i386_linux_info);
     {$endif FreeBSD}
   {$endif}
-{$endif CPU86}
+{$endif CPUI386}
 {$ifdef CPU68}
   {$ifdef linux}
     set_source_info(system_m68k_linux_info);
