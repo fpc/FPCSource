@@ -66,6 +66,8 @@
             ,asmmode_x86_64_intel
             ,asmmode_x86_64_att
             ,asmmode_avr_gas
+            ,asmmode_i8086_intel
+            ,asmmode_i8086_att
        );
 
      (* IMPORTANT NOTE:

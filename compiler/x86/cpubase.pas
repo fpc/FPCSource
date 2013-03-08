@@ -276,6 +276,11 @@ uses
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+{$ifdef i8086}
+    { returns the next virtual register }
+    function GetNextReg(const r : TRegister) : TRegister;
+{$endif i8086}
+
 implementation
 
     uses
@@ -524,6 +529,14 @@ implementation
         if result=-1 then
           internalerror(200603251);
       end;
+
+
+{$ifdef i8086}
+    function GetNextReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)+1);
+      end;
+{$endif i8086}
 
 
 end.

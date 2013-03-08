@@ -352,6 +352,9 @@ Implementation
 {$ifdef i386}
                   if actasmpattern='GOT' then
 {$endif i386}
+{$ifdef i8086}
+                  if actasmpattern='GOT' then
+{$endif i8086}
                     begin
                       oper.opr.ref.refaddr:=addr_pic;
                       consume(AS_ID);

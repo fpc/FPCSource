@@ -35,7 +35,7 @@ uses
 {$endif WATCOM}
 {$ifdef unix}
   { system code page stuff for unix }
-  unixcp,
+//  unixcp,
 {$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,
@@ -179,7 +179,7 @@ begin
    DoneCompiler;
 {$ifdef unix}
   { Set default code page for ansistrings on unix-like systems }
-  DefaultSystemCodePage:=GetSystemCodePage;
+//  DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
 { inits which need to be done before the arguments are parsed }
   InitSystems;
