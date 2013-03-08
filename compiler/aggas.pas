@@ -105,9 +105,9 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
       itcpugas,
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
@@ -1438,7 +1438,7 @@ implementation
 
            ait_seh_directive :
              begin
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
                AsmWrite(sehdirectivestr[tai_seh_directive(hp).kind]);
                case tai_seh_directive(hp).datatype of
                  sd_none:;
@@ -1459,7 +1459,7 @@ implementation
                      tostr(tai_seh_directive(hp).data.offset));
                end;
                AsmLn;
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
              end;
            ait_varloc:
              begin

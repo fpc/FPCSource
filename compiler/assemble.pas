@@ -1519,10 +1519,10 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
            end;
            hp:=Tai(hp.next);
          end;

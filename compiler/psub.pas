@@ -972,9 +972,9 @@ implementation
             ((flags*([pi_has_assembler_block,pi_is_assembler,
                     pi_has_stackparameter,pi_needs_stackframe]+
                     exception_flags[(target_info.cpu=cpu_i386)
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
                     or (target_info.system=system_x86_64_win64)
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
                     ]))=[])
            )
         then

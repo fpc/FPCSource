@@ -3325,10 +3325,10 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_USE_TLS_DIRECTORY');
 {$endif not DISABLE_TLS_DIRECTORY}
 
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
     if target_info.system=system_x86_64_win64 then
       def_system_macro('FPC_USE_WIN64_SEH');
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
