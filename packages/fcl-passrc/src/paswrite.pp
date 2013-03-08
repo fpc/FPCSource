@@ -127,11 +127,11 @@ end;
 
 procedure TPasWriter.WriteElement(AElement: TPasElement);
 begin
-  if AElement.ClassType = TPasModule then
+  if AElement.InheritsFrom(TPasModule) then
     WriteModule(TPasModule(AElement))
-  else if AElement.ClassType = TPasSection then
+  else if AElement.InheritsFrom(TPasSection) then
     WriteSection(TPasSection(AElement))
-  else if AElement.ClassType = TPasVariable then
+  else if AElement.InheritsFrom(TPasVariable) then
     WriteVariable(TPasVariable(AElement))
   else if AElement.InheritsFrom(TPasType) then
     WriteType(TPasType(AElement))
