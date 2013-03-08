@@ -31,6 +31,7 @@ program creumap;
      i : longint;
      t : text;
      e : word;
+     c : longint;
 
 begin
    if paramcount<>2 then
@@ -73,11 +74,30 @@ begin
      end;
    writeln(t,'     );');
    writeln(t);
+   c:=p^.reversemaplength-1;
+   writeln(t,'     reversemap : array[0..',c,'] of treversecharmapping = (');
+   for i:=0 to c do
+     begin
+        write(t,'       (',
+                'unicode : ',p^.reversemap[i].unicode,
+                '; char1 : ',p^.reversemap[i].char1,
+                '; char2 : ',p^.reversemap[i].char2,
+                ')'
+        );
+        if i<>c then
+          writeln(t,',')
+        else
+          writeln(t);
+     end;
+   writeln(t,'     );');
+   writeln(t);
    writeln(t,'     unicodemap : tunicodemap = (');
    writeln(t,'       cpname : ''',p^.cpname,''';');
    writeln(t,'       cp : ',p^.cp,';');
    writeln(t,'       map : @map;');
    writeln(t,'       lastchar : ',p^.lastchar,';');
+   writeln(t,'       reversemap : @reversemap;');
+   writeln(t,'       reversemaplength : ',p^.reversemaplength,';');
    writeln(t,'       next : nil;');
    writeln(t,'       internalmap : true');
    writeln(t,'     );');
