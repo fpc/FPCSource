@@ -996,14 +996,14 @@ implementation
             { load a smaller size to OS_64 }
             if l.loc=LOC_REGISTER then
              begin
-{$ifdef AVR}
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
                { on avr, we cannot change the size of a register
                  due to the nature how register with size > OS8 are handled
                }
                hregister:=cg.getintregister(list,OS_32);
-{$else AVR}
+{$else}
                hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
-{$endif AVR}
+{$endif}
                cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
              end
             else
@@ -1028,7 +1028,7 @@ implementation
                   cg.a_label(list,hl);
                 end;
               else
-                a_load_loc_reg(list,src_size,osuinttype,l,hregister);
+                a_load_loc_reg(list,src_size,u32inttype,l,hregister);
             end;
             { reset hi part, take care of the signed bit of the current value }
             hregisterhi:=cg.getintregister(list,OS_32);
