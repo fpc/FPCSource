@@ -68,12 +68,12 @@ unit charset;
     function getunicode(c : char;p : punicodemap) : tunicodechar;inline;
     function getunicode(
       AAnsiStr : pansichar;
-      AAnsiLen : SizeInt;
+      AAnsiLen : LongInt;
       AMap     : punicodemap; 
       ADest    : tunicodestring
-    ) : SizeInt;
+    ) : LongInt;
     function getascii(c : tunicodechar;p : punicodemap) : string;
-    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : SizeInt) : SizeInt;
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : LongInt) : LongInt;
 
   implementation
 
@@ -125,7 +125,7 @@ unit charset;
     function find(
       const c     : tunicodechar;
       const AData : preversecharmapping;
-      const ALen  : SizeInt
+      const ALen  : LongInt
     ) : preversecharmapping;overload;
     var
        l, h, m : longint;
@@ -159,12 +159,12 @@ unit charset;
 
     function RemoveDuplicates(
       const AData      : preversecharmapping;
-      const ALen       : SizeInt;
-      out   AResultLen : SizeInt
+      const ALen       : LongInt;
+      out   AResultLen : LongInt
     ) : preversecharmapping;
     var
       r0, r, p, t : preversecharmapping;
-      i, c, actualCount : SizeInt;
+      i, c, actualCount : LongInt;
     begin
       c:=ALen;
       GetMem(r0,c*SizeOf(treversecharmapping));
@@ -199,8 +199,8 @@ unit charset;
 
     function buildreversemap(
       const AMapping   : punicodecharmapping;
-      const ALen       : SizeInt;
-      out   AResultLen : SizeInt
+      const ALen       : LongInt;
+      out   AResultLen : LongInt
     ) : preversecharmapping;
     var
       r0, r, t : preversecharmapping;
@@ -250,7 +250,7 @@ unit charset;
       Result:=r0;
     end;
 
-    procedure inititems(const p : punicodecharmapping; const ALen : SizeInt);
+    procedure inititems(const p : punicodecharmapping; const ALen : LongInt);
     const
       INIT_ITEM : tunicodecharmapping = (unicode:0; flag:umf_unused; reserved:0);
     var
@@ -468,10 +468,10 @@ unit charset;
 
     function getunicode(
       AAnsiStr : pansichar;
-      AAnsiLen : SizeInt;
+      AAnsiLen : LongInt;
       AMap     : punicodemap; 
       ADest    : tunicodestring
-    ) : SizeInt;
+    ) : LongInt;
 
       var
          i, c, k, destLen : longint;
@@ -562,7 +562,7 @@ unit charset;
           Result:=UNKNOW_CHAR_A;
       end;
 
-    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : SizeInt) : SizeInt;
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : LongInt) : LongInt;
       var
          rm : preversecharmapping;
       begin
