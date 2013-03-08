@@ -1882,6 +1882,7 @@ type
     FAfterDisconnect: TNotifyEvent;
     FBeforeConnect: TNotifyEvent;
     FBeforeDisconnect: TNotifyEvent;
+    FForcedClose: Boolean;
     FLoginPrompt: Boolean;
     FOnLogin: TLoginEvent;
     FStreamedConnected: Boolean;
@@ -1898,9 +1899,10 @@ type
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    property ForcedClose : Boolean read FForcedClose write FForcedClose;
     property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
-    procedure Close;
+    procedure Close(ForceClose: Boolean=False);
     destructor Destroy; override;
     procedure Open;
     property DataSetCount: Longint read GetDataSetCount;
