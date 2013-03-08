@@ -1682,20 +1682,21 @@ begin
   inc(FIndexesCount);
   setlength(FIndexes,FIndexesCount); // This invalidates the currentindex! -> not anymore
   FCurrentIndex:=FIndexes[StoreIndNr];
+
   if IsUniDirectional then
     FIndexes[FIndexesCount-1] := TUniDirectionalBufIndex.Create(self)
   else
     FIndexes[FIndexesCount-1] := TDoubleLinkedBufIndex.Create(self);
 //  FIndexes[FIndexesCount-1] := TArrayBufIndex.Create(self);
-  FIndexes[FIndexesCount-1].InitialiseIndex;
-  with (FIndexes[FIndexesCount-1] as TBufIndex) do
+  with FIndexes[FIndexesCount-1] do
     begin
+    InitialiseIndex;
+    IndNr:=FIndexesCount-1;
     Name:=AName;
     FieldsName:=AFields;
     DescFields:=ADescFields;
     CaseinsFields:=ACaseInsFields;
     Options:=AOptions;
-    IndNr:=FIndexesCount-1;
     end;
 
   if Active then
@@ -1705,6 +1706,8 @@ begin
     end
   else if FIndexesCount>FMaxIndexesCount then
     FMaxIndexesCount := FIndexesCount;
+
+  FIndexDefs.Updated:=false;
 end;
 
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
@@ -1721,6 +1724,7 @@ begin
       BuildIndex(FIndexes[1]);
       Resync([rmCenter]);
       end;
+    FIndexDefs.Updated:=false;
     end
   else
     SetIndexName('');
