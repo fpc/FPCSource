@@ -318,7 +318,7 @@ endif
 override PACKAGE_NAME=utils
 override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  rmwait
@@ -387,7 +387,7 @@ ifeq ($(FULL_TARGET),i386-android)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
@@ -411,7 +411,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
@@ -438,7 +438,7 @@ ifeq ($(FULL_TARGET),powerpc-aix)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
@@ -450,7 +450,7 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
@@ -474,7 +474,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
@@ -501,7 +501,7 @@ ifeq ($(FULL_TARGET),arm-android)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc unicode
@@ -516,16 +516,16 @@ ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),jvm-java)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
@@ -3362,6 +3362,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_FPPKG=1
@@ -3673,6 +3674,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_FPPKG=1
@@ -3777,6 +3779,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_FPPKG=1
@@ -3895,6 +3898,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_FPPKG=1
@@ -3949,6 +3953,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_FPPKG=1
@@ -4064,6 +4069,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_FPPKG=1
@@ -4181,6 +4187,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_FPPKG=1
@@ -4249,6 +4256,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 TARGET_DIRS_FPPKG=1
@@ -4275,6 +4283,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 TARGET_DIRS_FPPKG=1
@@ -4289,6 +4298,7 @@ TARGET_DIRS_PAS2UT=1
 TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),jvm-java)
 TARGET_DIRS_FPPKG=1
@@ -4854,6 +4864,51 @@ instantfpc:
 	$(MAKE) -C instantfpc all
 .PHONY: instantfpc_all instantfpc_debug instantfpc_smart instantfpc_release instantfpc_units instantfpc_examples instantfpc_shared instantfpc_install instantfpc_sourceinstall instantfpc_exampleinstall instantfpc_distinstall instantfpc_zipinstall instantfpc_zipsourceinstall instantfpc_zipexampleinstall instantfpc_zipdistinstall instantfpc_clean instantfpc_distclean instantfpc_cleanall instantfpc_info instantfpc_makefiles instantfpc
 endif
+ifdef TARGET_DIRS_UNICODE
+unicode_all:
+	$(MAKE) -C unicode all
+unicode_debug:
+	$(MAKE) -C unicode debug
+unicode_smart:
+	$(MAKE) -C unicode smart
+unicode_release:
+	$(MAKE) -C unicode release
+unicode_units:
+	$(MAKE) -C unicode units
+unicode_examples:
+	$(MAKE) -C unicode examples
+unicode_shared:
+	$(MAKE) -C unicode shared
+unicode_install:
+	$(MAKE) -C unicode install
+unicode_sourceinstall:
+	$(MAKE) -C unicode sourceinstall
+unicode_exampleinstall:
+	$(MAKE) -C unicode exampleinstall
+unicode_distinstall:
+	$(MAKE) -C unicode distinstall
+unicode_zipinstall:
+	$(MAKE) -C unicode zipinstall
+unicode_zipsourceinstall:
+	$(MAKE) -C unicode zipsourceinstall
+unicode_zipexampleinstall:
+	$(MAKE) -C unicode zipexampleinstall
+unicode_zipdistinstall:
+	$(MAKE) -C unicode zipdistinstall
+unicode_clean:
+	$(MAKE) -C unicode clean
+unicode_distclean:
+	$(MAKE) -C unicode distclean
+unicode_cleanall:
+	$(MAKE) -C unicode cleanall
+unicode_info:
+	$(MAKE) -C unicode info
+unicode_makefiles:
+	$(MAKE) -C unicode makefiles
+unicode:
+	$(MAKE) -C unicode all
+.PHONY: unicode_all unicode_debug unicode_smart unicode_release unicode_units unicode_examples unicode_shared unicode_install unicode_sourceinstall unicode_exampleinstall unicode_distinstall unicode_zipinstall unicode_zipsourceinstall unicode_zipexampleinstall unicode_zipdistinstall unicode_clean unicode_distclean unicode_cleanall unicode_info unicode_makefiles unicode
+endif
 ifdef TARGET_DIRS_RMWAIT
 rmwait_all:
 	$(MAKE) -C rmwait all
@@ -4988,51 +5043,6 @@ importtl_makefiles:
 importtl:
 	$(MAKE) -C importtl all
 .PHONY: importtl_all importtl_debug importtl_smart importtl_release importtl_units importtl_examples importtl_shared importtl_install importtl_sourceinstall importtl_exampleinstall importtl_distinstall importtl_zipinstall importtl_zipsourceinstall importtl_zipexampleinstall importtl_zipdistinstall importtl_clean importtl_distclean importtl_cleanall importtl_info importtl_makefiles importtl
-endif
-ifdef TARGET_DIRS_UNICODE
-unicode_all:
-	$(MAKE) -C unicode all
-unicode_debug:
-	$(MAKE) -C unicode debug
-unicode_smart:
-	$(MAKE) -C unicode smart
-unicode_release:
-	$(MAKE) -C unicode release
-unicode_units:
-	$(MAKE) -C unicode units
-unicode_examples:
-	$(MAKE) -C unicode examples
-unicode_shared:
-	$(MAKE) -C unicode shared
-unicode_install:
-	$(MAKE) -C unicode install
-unicode_sourceinstall:
-	$(MAKE) -C unicode sourceinstall
-unicode_exampleinstall:
-	$(MAKE) -C unicode exampleinstall
-unicode_distinstall:
-	$(MAKE) -C unicode distinstall
-unicode_zipinstall:
-	$(MAKE) -C unicode zipinstall
-unicode_zipsourceinstall:
-	$(MAKE) -C unicode zipsourceinstall
-unicode_zipexampleinstall:
-	$(MAKE) -C unicode zipexampleinstall
-unicode_zipdistinstall:
-	$(MAKE) -C unicode zipdistinstall
-unicode_clean:
-	$(MAKE) -C unicode clean
-unicode_distclean:
-	$(MAKE) -C unicode distclean
-unicode_cleanall:
-	$(MAKE) -C unicode cleanall
-unicode_info:
-	$(MAKE) -C unicode info
-unicode_makefiles:
-	$(MAKE) -C unicode makefiles
-unicode:
-	$(MAKE) -C unicode all
-.PHONY: unicode_all unicode_debug unicode_smart unicode_release unicode_units unicode_examples unicode_shared unicode_install unicode_sourceinstall unicode_exampleinstall unicode_distinstall unicode_zipinstall unicode_zipsourceinstall unicode_zipexampleinstall unicode_zipdistinstall unicode_clean unicode_distclean unicode_cleanall unicode_info unicode_makefiles unicode
 endif
 ifdef TARGET_DIRS_FPCRESLIPO
 fpcreslipo_all:
