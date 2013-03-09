@@ -43,6 +43,7 @@ unit cgcpu;
 
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
 
+        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         { passing parameter using push instead of mov }
@@ -143,6 +144,67 @@ unit cgcpu;
           else
             internalerror(2013030201);
         end;
+      end;
+
+
+    procedure tcg8086.a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize;
+      a: tcgint; reg: TRegister);
+      var
+        tmpreg: tregister;
+        op1, op2: TAsmOp;
+      begin
+        optimize_op_const(op, a);
+        check_register_size(size,reg);
+
+        if size in [OS_64, OS_S64] then
+          internalerror(2013030904);
+
+        if size in [OS_32, OS_S32] then
+          begin
+            case op of
+              OP_NONE:
+                begin
+                  { Opcode is optimized away }
+                end;
+              OP_MOVE:
+                begin
+                  { Optimized, replaced with a simple load }
+                  a_load_const_reg(list,size,a,reg);
+                end;
+              OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+                begin
+                  if (longword(a) = high(longword)) and
+                     (op in [OP_AND,OP_OR,OP_XOR]) then
+                    begin
+                      case op of
+                        OP_AND:
+                          exit;
+                        OP_OR:
+                          a_load_const_reg(list,size,high(longword),reg);
+                        OP_XOR:
+                          begin
+                            list.concat(taicpu.op_reg(A_NOT,S_W,reg));
+                            list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(reg)));
+                          end;
+                      end
+                    end
+                  else
+                  begin
+                    get_32bit_ops(op, op1, op2);
+                    list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
+                    list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
+                  end;
+                end;
+              else
+                begin
+                  tmpreg:=getintregister(list,size);
+                  a_load_const_reg(list,size,a,tmpreg);
+                  a_op_reg_reg(list,op,size,tmpreg,reg);
+                end;
+            end;
+          end
+        else
+          inherited a_op_const_reg(list, Op, size, a, reg);
       end;
 
 
