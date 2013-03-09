@@ -762,6 +762,13 @@ implementation
              resultdef:=left.resultdef
            end
 {$endif not cpu64bitaddr}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+         else if is_32bitint(left.resultdef) then
+           begin
+             inserttypeconv(left,s32inttype);
+             resultdef:=left.resultdef
+           end
+{$endif cpu16bitalu or cpu8bitalu}
          else if (left.resultdef.typ=orddef) then
            begin
 {$ifndef cpunodefaultint}
@@ -901,6 +908,13 @@ implementation
             left:=nil;
           end
 {$endif not cpu64bitaddr}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+         else if is_32bitint(left.resultdef) then
+           begin
+             inserttypeconv(left,s32inttype);
+             resultdef:=left.resultdef
+           end
+{$endif cpu16bitalu or cpu8bitalu}
         else if (left.resultdef.typ=orddef) then
           begin
             inserttypeconv(left,sinttype);
