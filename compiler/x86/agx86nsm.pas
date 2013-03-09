@@ -1048,6 +1048,15 @@ interface
           WriteSmartExternals;
           FreeExternChainList;
         end;
+{$ifdef i8086}
+      { NASM complains if you put a missing section in the GROUP directive, so }
+      { we add empty declarations to make sure they exist, even if empty }
+      AsmWriteLn('SECTION .rodata');
+      AsmWriteLn('SECTION .data');
+      AsmWriteLn('SECTION .bss');
+      { group these sections in the same segment }
+      AsmWriteLn('GROUP dgroup rodata data bss');
+{$endif i8086}
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
