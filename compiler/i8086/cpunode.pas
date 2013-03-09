@@ -41,6 +41,7 @@ unit cpunode;
        ncginl,
        ncgopt,
        ncgobjc,
+       ncgadd,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
