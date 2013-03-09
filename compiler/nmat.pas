@@ -912,7 +912,8 @@ implementation
          else if is_32bitint(left.resultdef) then
            begin
              inserttypeconv(left,s32inttype);
-             resultdef:=left.resultdef
+             result:=left;
+             left:=nil;
            end
 {$endif cpu16bitalu or cpu8bitalu}
         else if (left.resultdef.typ=orddef) then
