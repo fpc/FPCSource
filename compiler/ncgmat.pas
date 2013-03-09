@@ -245,7 +245,7 @@ implementation
         if (left.resultdef.size<=sinttype.size) then
           opsize:=sinttype
         else
-          opsize:=s64inttype;
+          opsize:={$ifdef cpu16bitalu}s32inttype{$else}s64inttype{$endif};
 {$endif cpunodefaultint}
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
