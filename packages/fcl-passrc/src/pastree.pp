@@ -1393,9 +1393,9 @@ function TPasClassType.FindMemberInAncestors(MemberClass: TPTreeElement;
 
   begin
     if C.AncestorType is TPasClassType then
-      C:=TPasClassType(C.AncestorType)
+      result:=TPasClassType(C.AncestorType)
     else
-      C:=Nil;
+      result:=Nil;
   end;
 
 Var
@@ -1520,9 +1520,17 @@ begin
     Result := nil
   else
   begin
-    Result := TPasModule(Self);
-    while Assigned(Result) and not (Result is TPasModule) do
-      Result := TPasModule(Result.Parent);
+    if self is TPasModule then
+      begin
+        Result := TPasModule(Self);
+        while Assigned(Result) and not (Result is TPasModule) do
+        Result := TPasModule(Result.Parent);
+      end
+    else
+     begin
+       // typical case that this happens: symbol was loaded from .XCT
+       result:=nil;
+     end;
   end;
 end;
 
