@@ -2513,7 +2513,7 @@ begin
     else if AElement.ClassType = TPasVariable then
       CreateVarPageBody(TPasVariable(AElement))
     else if AElement.InheritsFrom(TPasProcedureBase) then
-      CreateProcPageBody(TPasProcedure(AElement))
+      CreateProcPageBody(TPasProcedureBase(AElement))
     else if AElement.ClassType = TTopicELement then
       CreateTopicPageBody(TTopicElement(AElement))
   end;
