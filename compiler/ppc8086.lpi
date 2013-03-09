@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="12">
+    <Units Count="13">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -88,6 +88,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="rgcpu"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="i8086\n8086add.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="n8086add"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

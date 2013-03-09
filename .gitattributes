@@ -252,6 +252,7 @@ compiler/i8086/i386nop.inc svneol=native#text/plain
 compiler/i8086/i386op.inc svneol=native#text/plain
 compiler/i8086/i386prop.inc svneol=native#text/plain
 compiler/i8086/i386tab.inc svneol=native#text/plain
+compiler/i8086/n8086add.pas svneol=native#text/plain
 compiler/i8086/r386ari.inc svneol=native#text/plain
 compiler/i8086/r386att.inc svneol=native#text/plain
 compiler/i8086/r386con.inc svneol=native#text/plain

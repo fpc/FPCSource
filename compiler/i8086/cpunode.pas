@@ -41,16 +41,15 @@ unit cpunode;
        ncginl,
        ncgopt,
        ncgobjc,
-       ncgadd,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
        }
        nx86set,
        nx86con,
-       nx86cnv{,
+       nx86cnv,
 
-       n386add,
+       n8086add{,
        n386cal,
        n386mem,
        n386set,
