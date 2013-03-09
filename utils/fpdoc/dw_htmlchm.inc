@@ -341,7 +341,7 @@ begin
       begin
         ParentElement := TPasProcedureType(AModule.InterfaceSection.Functions[j]);
         TmpItem := Index.Items.NewItem;
-        TmpItem.Text := ParentElement.Name + ' ' + TPasFunction(ParentElement).ElementTypeName;
+        TmpItem.Text := ParentElement.Name + ' ' + ParentElement.ElementTypeName;
         TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // consts
