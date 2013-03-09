@@ -33,9 +33,9 @@ uses
 {$ifdef WATCOM}
   emu387,
 {$endif WATCOM}
-{$ifdef unix}
+{$if defined(unix) and (FPC_FULLVERSION>20700)}
   { system code page stuff for unix }
-//  unixcp,
+  unixcp,
 {$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,
@@ -177,9 +177,9 @@ procedure InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
-{$ifdef unix}
+{$if defined(unix) and (FPC_FULLVERSION>20700)}
   { Set default code page for ansistrings on unix-like systems }
-//  DefaultSystemCodePage:=GetSystemCodePage;
+  DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
 { inits which need to be done before the arguments are parsed }
   InitSystems;
