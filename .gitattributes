@@ -14531,6 +14531,7 @@ utils/unicode/data/readme.txt svneol=native#text/plain
 utils/unicode/grbtree.pas svneol=native#text/pascal
 utils/unicode/helper.pas svneol=native#text/pascal
 utils/unicode/parse-collations.bat svneol=native#text/plain
+utils/unicode/parse-collations.sh svneol=native#text/plain
 utils/unicode/trie.pas svneol=native#text/pascal
 utils/unicode/uca_test.pas svneol=native#text/pascal
 utils/unicode/unicodeset.pas svneol=native#text/pascal
