@@ -9,7 +9,7 @@ programs=cldrparser unihelper
 units=cldrhelper cldrtest cldrxml grbtree helper trie uca_test unicodeset
 
 [require]
-packages=rtl
+packages=rtl fcl-base fcl-xml
 
 [install]
 fpcpackage=y
