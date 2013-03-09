@@ -34,11 +34,16 @@ unit cgcpu;
        ;
 
     type
+
+      { tcg8086 }
+
       tcg8086 = class(tcgx86)
         procedure init_register_allocators;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
+
+        procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
@@ -62,6 +67,8 @@ unit cgcpu;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_maybe_got_init(list: TAsmList); override;
+
+        procedure get_32bit_ops(op: TOpCG; out op1,op2: TAsmOp);
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -136,6 +143,46 @@ unit cgcpu;
           else
             internalerror(2013030201);
         end;
+      end;
+
+
+    procedure tcg8086.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize;
+      src, dst: TRegister);
+      var
+        op1, op2: TAsmOp;
+      begin
+        check_register_size(size,src);
+        check_register_size(size,dst);
+        if size in [OS_32, OS_S32] then
+          begin
+            case op of
+              OP_NEG:
+                begin
+                  if src<>dst then
+                    a_load_reg_reg(list,size,size,src,dst);
+                  list.concat(taicpu.op_reg(A_NOT, S_W, GetNextReg(dst)));
+                  list.concat(taicpu.op_reg(A_NEG, S_W, dst));
+                  list.concat(taicpu.op_const_reg(A_SBB, S_W,-1, GetNextReg(dst)));
+                end;
+              OP_NOT:
+                begin
+                  if src<>dst then
+                    a_load_reg_reg(list,size,size,src,dst);
+                  list.concat(taicpu.op_reg(A_NOT, S_W, dst));
+                  list.concat(taicpu.op_reg(A_NOT, S_W, GetNextReg(dst)));
+                end;
+              OP_ADD,OP_SUB,OP_XOR,OP_OR,OP_AND:
+                begin
+                  get_32bit_ops(op, op1, op2);
+                  list.concat(taicpu.op_reg_reg(op1, S_W, src, dst));
+                  list.concat(taicpu.op_reg_reg(op2, S_W, GetNextReg(src), GetNextReg(dst)));
+                end;
+              else
+                internalerror(2013030901);
+            end;
+          end
+        else
+          inherited a_op_reg_reg(list, Op, size, src, dst);
       end;
 
 
@@ -877,6 +924,40 @@ unit cgcpu;
                 list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
               end;
           end;
+      end;
+
+
+    procedure tcg8086.get_32bit_ops(op: TOpCG; out op1, op2: TAsmOp);
+      begin
+        case op of
+          OP_ADD :
+            begin
+              op1:=A_ADD;
+              op2:=A_ADC;
+            end;
+          OP_SUB :
+            begin
+              op1:=A_SUB;
+              op2:=A_SBB;
+            end;
+          OP_XOR :
+            begin
+              op1:=A_XOR;
+              op2:=A_XOR;
+            end;
+          OP_OR :
+            begin
+              op1:=A_OR;
+              op2:=A_OR;
+            end;
+          OP_AND :
+            begin
+              op1:=A_AND;
+              op2:=A_AND;
+            end;
+          else
+            internalerror(200203241);
+        end;
       end;
 
 
