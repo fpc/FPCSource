@@ -132,27 +132,25 @@ unit cgx86;
       end;
 
    const
-{$ifdef x86_64}
+{$if defined(x86_64)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_Q,S_XMM,S_B,S_W,S_L,S_Q,S_XMM,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
          S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
-{$else x86_64}
-  {$ifdef i386}
+{$elseif defined(i386)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_T,S_B,S_W,S_L,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
          S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
-  {$else i386}
+{$elseif defined(i8086)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_W,S_W,S_T,S_B,S_W,S_W,S_W,S_W,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
          S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
-  {$endif i386}
-{$endif x86_64}
+{$endif}
 
 {$ifndef NOTARGETWIN}
       winstackpagesize = 4096;
