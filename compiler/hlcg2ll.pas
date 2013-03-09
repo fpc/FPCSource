@@ -112,7 +112,7 @@ unit hlcg2ll;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : aint;const cgpara : TCGPara);override;
+          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -160,9 +160,9 @@ unit hlcg2ll;
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
 
           { move instructions }
-          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
-          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);override;
-          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : aint;const loc : tlocation);override;
+          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
+          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
+          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);override;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
@@ -214,9 +214,9 @@ unit hlcg2ll;
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister); override;
-          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference); override;
-          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);override;
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); override;
+          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);override;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: tdef; reg: TRegister; const ref: TReference); override;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); override;
@@ -226,17 +226,17 @@ unit hlcg2ll;
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
           { are any processors that support it (JM)                         }
-          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister); override;
+          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister); override;
           procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister); override;
-          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
+          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
           procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;reg : tregister;
+          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);override;
-          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;const ref : treference;
+          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;const ref : treference;
             l : tasmlabel); override;
-          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: aint; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: tcgint; const loc: tlocation;
             l : tasmlabel);override;
           procedure a_cmp_reg_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
           procedure a_cmp_ref_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); override;
@@ -436,7 +436,7 @@ implementation
       cg.a_load_reg_cgpara(list,def_cgsize(size),r,cgpara);
     end;
 
-  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: aint; const cgpara: TCGPara);
+  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
       cg.a_load_const_cgpara(list,def_cgsize(tosize),a,cgpara);
     end;
@@ -478,17 +478,17 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);
+  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
       cg.a_load_const_reg(list,def_cgsize(tosize),a,register);
     end;
 
-  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: aint; const ref: treference);
+  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     begin
        cg.a_load_const_ref(list,def_cgsize(tosize),a,ref);
     end;
 
-  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: aint; const loc: tlocation);
+  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
@@ -746,17 +746,17 @@ implementation
       cg.a_loadmm_reg_intreg(list,def_cgsize(fromsize),def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
 *)
-  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister);
+  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
     begin
       cg.a_op_const_reg(list,op,def_cgsize(size),a,reg);
     end;
 
-  procedure thlcg2ll.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference);
+  procedure thlcg2ll.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     begin
       cg.a_op_const_ref(list,op,def_cgsize(size),a,ref);
     end;
 
-  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);
+  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);
     begin
 {$ifdef extdebug}
       if def_cgsize(size)<>loc.size then
@@ -816,7 +816,7 @@ implementation
       end;
     end;
 
-  procedure thlcg2ll.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister);
+  procedure thlcg2ll.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
       cg.a_op_const_reg_reg(list,op,def_cgsize(size),a,src,dst);
     end;
@@ -826,7 +826,7 @@ implementation
       cg.a_op_reg_reg_reg(list,op,def_cgsize(size),src1,src2,dst);
     end;
 
-  procedure thlcg2ll.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+  procedure thlcg2ll.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
       cg.a_op_const_reg_reg_checkoverflow(list,op,def_cgsize(size),a,src,dst,setflags,ovloc);
     end;
@@ -836,17 +836,17 @@ implementation
       cg.a_op_reg_reg_reg_checkoverflow(list,op,def_cgsize(size),src1,src2,dst,setflags,ovloc);
     end;
 
-  procedure thlcg2ll.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
       cg.a_cmp_const_reg_label(list,def_cgsize(size),cmp_op,a,reg,l);
     end;
 
-  procedure thlcg2ll.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     begin
       cg.a_cmp_const_ref_label(list,def_cgsize(size),cmp_op,a,ref,l);
     end;
 
-  procedure thlcg2ll.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const loc: tlocation; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const loc: tlocation; l: tasmlabel);
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,

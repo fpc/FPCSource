@@ -133,7 +133,7 @@ unit hlcgobj;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : aint;const cgpara : TCGPara);virtual;
+          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -205,9 +205,9 @@ unit hlcgobj;
           procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
 
           { move instructions }
-          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);virtual;abstract;
-          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);virtual;
-          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : aint;const loc : tlocation);virtual;
+          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);virtual;abstract;
+          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);virtual;
+          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);virtual;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;abstract;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);virtual;
           procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);virtual;abstract;
@@ -229,7 +229,7 @@ unit hlcgobj;
           procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tdef; const fromsreg, tosreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_ref(list : TAsmList; fromsubsetsize, tosize: tdef; const sreg: tsubsetregister; const destref: treference); virtual;
           procedure a_load_ref_subsetreg(list : TAsmList; fromsize, tosubsetsize: tdef; const fromref: treference; const sreg: tsubsetregister); virtual;
-          procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: aint; const sreg: tsubsetregister); virtual;
+          procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_loc(list: TAsmlist; fromsubsetsize, tosize: tdef; const sreg: tsubsetregister; const loc: tlocation); virtual;
 
           procedure a_load_subsetref_reg(list : TAsmList; fromsubsetsize, tosize: tdef; const sref: tsubsetreference; destreg: tregister); virtual;
@@ -253,12 +253,12 @@ unit hlcgobj;
 
           { bit set/clear instructions }
           procedure a_bit_set_reg_reg(list : TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber,dest: tregister); virtual;
-          procedure a_bit_set_const_ref(list: TAsmList; doset: boolean;destsize: tdef; bitnumber: aint; const ref: treference); virtual;
-          procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: aint; destreg: tregister); virtual;
-          procedure a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: aint; const destreg: tsubsetregister); virtual;
+          procedure a_bit_set_const_ref(list: TAsmList; doset: boolean;destsize: tdef; bitnumber: tcgint; const ref: treference); virtual;
+          procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); virtual;
+          procedure a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const destreg: tsubsetregister); virtual;
           procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); virtual;
           procedure a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);virtual;
-          procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: aint; const loc: tlocation);virtual;
+          procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: tcgint; const loc: tlocation);virtual;
 
          protected
            function  get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
@@ -319,11 +319,11 @@ unit hlcgobj;
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister); virtual; abstract;
-          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference); virtual;
-          procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : aint; const sreg: tsubsetregister); virtual;
-          procedure a_op_const_subsetref(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : aint; const sref: tsubsetreference); virtual;
-          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);virtual;
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); virtual; abstract;
+          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); virtual;
+          procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sreg: tsubsetregister); virtual;
+          procedure a_op_const_subsetref(list : TAsmList; Op : TOpCG; size, subsetsize : tdef; a : tcgint; const sref: tsubsetreference); virtual;
+          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);virtual;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); virtual; abstract;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: tdef; reg: TRegister; const ref: TReference); virtual;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); virtual;
@@ -335,17 +335,17 @@ unit hlcgobj;
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
           { are any processors that support it (JM)                         }
-          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister); virtual;
+          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister); virtual;
           procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister); virtual;
-          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
+          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
           procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;reg : tregister;
+          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);virtual;
-          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;const ref : treference;
+          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;const ref : treference;
             l : tasmlabel); virtual;
-          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: aint; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: tcgint; const loc: tlocation;
             l : tasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
           procedure a_cmp_ref_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
@@ -787,7 +787,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: aint; const cgpara: TCGPara);
+  procedure thlcgobj.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     var
        ref : treference;
     begin
@@ -901,7 +901,7 @@ implementation
         a_call_name(list,pd,s,nil,false);
       end;
 
-  procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: aint; const ref: treference);
+  procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
       tmpreg: tregister;
     begin
@@ -910,7 +910,7 @@ implementation
       a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
     end;
 
-  procedure thlcgobj.a_load_const_loc(list: TAsmList; tosize: tdef; a: aint; const loc: tlocation);
+  procedure thlcgobj.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REFERENCE,LOC_CREFERENCE:
@@ -1146,7 +1146,7 @@ implementation
       a_load_reg_subsetreg(list,tosubsetsize,tosubsetsize,tmpreg,sreg);
     end;
 
-  procedure thlcgobj.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: aint; const sreg: tsubsetregister);
+  procedure thlcgobj.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
     var
       subsetregdef: torddef;
       bitmask: aword;
@@ -1505,17 +1505,17 @@ implementation
         end;
     end;
 
-  procedure thlcgobj.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: aint; const ref: treference);
+  procedure thlcgobj.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
     begin
       a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,ref));
     end;
 
-  procedure thlcgobj.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: aint; destreg: tregister);
+  procedure thlcgobj.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
     begin
       a_load_const_subsetreg(list,u8inttype,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
     end;
 
-  procedure thlcgobj.a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: aint; const destreg: tsubsetregister);
+  procedure thlcgobj.a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const destreg: tsubsetregister);
     var
       tmpsreg: tsubsetregister;
     begin
@@ -1559,7 +1559,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: aint; const loc: tlocation);
+  procedure thlcgobj.a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: tcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REFERENCE:
@@ -2435,7 +2435,7 @@ implementation
       cg.a_loadmm_reg_intreg(list,def_cgsize(fromsize),def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
 *)
-  procedure thlcgobj.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference);
+  procedure thlcgobj.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     var
       tmpreg : tregister;
     begin
@@ -2445,7 +2445,7 @@ implementation
       a_load_reg_ref(list,size,size,tmpreg,ref);
     end;
 
-  procedure thlcgobj.a_op_const_subsetreg(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: aint; const sreg: tsubsetregister);
+  procedure thlcgobj.a_op_const_subsetreg(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
     var
       tmpreg: tregister;
     begin
@@ -2455,7 +2455,7 @@ implementation
       a_load_reg_subsetreg(list,size,subsetsize,tmpreg,sreg);
     end;
 
-  procedure thlcgobj.a_op_const_subsetref(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: aint; const sref: tsubsetreference);
+  procedure thlcgobj.a_op_const_subsetref(list: TAsmList; Op: TOpCG; size, subsetsize: tdef; a: tcgint; const sref: tsubsetreference);
     var
       tmpreg: tregister;
     begin
@@ -2465,7 +2465,7 @@ implementation
       a_load_reg_subsetref(list,size,subsetsize,tmpreg,sref);
     end;
 
-  procedure thlcgobj.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);
+  procedure thlcgobj.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REGISTER, LOC_CREGISTER:
@@ -2588,7 +2588,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister);
+  procedure thlcgobj.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
@@ -2618,7 +2618,7 @@ implementation
         end;
     end;
 
-  procedure thlcgobj.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+  procedure thlcgobj.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
       ovloc.loc:=LOC_VOID;
       if not setflags then
@@ -2636,7 +2636,7 @@ implementation
         internalerror(2010122911);
     end;
 
-  procedure thlcgobj.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+  procedure thlcgobj.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     var
       tmpreg: tregister;
     begin
@@ -2645,7 +2645,7 @@ implementation
       a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
     end;
 
-  procedure thlcgobj.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
+  procedure thlcgobj.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     var
       tmpreg: tregister;
     begin
@@ -2654,7 +2654,7 @@ implementation
       a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
     end;
 
-  procedure thlcgobj.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const loc: tlocation; l: tasmlabel);
+  procedure thlcgobj.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const loc: tlocation; l: tasmlabel);
     var
       tmpreg: tregister;
     begin
