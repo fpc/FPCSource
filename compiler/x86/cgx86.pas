@@ -1813,21 +1813,22 @@ unit cgx86;
     procedure Tcgx86.g_concatcopy(list:TAsmList;const source,dest:Treference;len:tcgint);
 
     const
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
         REGCX=NR_RCX;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
-{$else cpu64bitalu}
-  {$ifdef cpu32bitalu}
+        copy_len_sizes = [1, 2, 4, 8];
+{$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
-  {$else cpu32bitalu}
+        copy_len_sizes = [1, 2, 4];
+{$elseif defined(cpu16bitalu)}
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
-  {$endif cpu32bitalu}
-{$endif cpu64bitalu}
+        copy_len_sizes = [1, 2];
+{$endif}
 
     type  copymode=(copy_move,copy_mmx,copy_string);
 
@@ -1851,7 +1852,7 @@ unit cgx86;
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm=copy_mmx)) and
-         not(len in [1,2{$ifndef i8086},4{$endif i8086}{$ifdef x86_64},8{$endif x86_64}]) then
+         not(len in copy_len_sizes) then
         cm:=copy_string;
       if (source.segment<>NR_NO) or
          (dest.segment<>NR_NO) then
@@ -1875,13 +1876,13 @@ unit cgx86;
                     copysize:=2;
                     cgsize:=OS_16;
                   end
-{$ifndef cpu16bitalu}
+{$if defined(cpu32bitalu) or defined(cpu64bitalu)}
                 else if len<8 then
                   begin
                     copysize:=4;
                     cgsize:=OS_32;
                   end
-{$endif}
+{$endif cpu32bitalu or cpu64bitalu}
 {$ifdef cpu64bitalu}
                 else if len<16 then
                   begin
@@ -1967,12 +1968,9 @@ unit cgx86;
               end;
 
             getcpuregister(list,REGCX);
-{$ifdef i8086}
+{$if defined(i8086) or defined(i386)}
            list.concat(Taicpu.op_none(A_CLD,S_NO));
-{$endif i8086}
-{$ifdef i386}
-           list.concat(Taicpu.op_none(A_CLD,S_NO));
-{$endif i386}
+{$endif i8086 or i386}
             if (cs_opt_size in current_settings.optimizerswitches) and
                (len>sizeof(aint)+(sizeof(aint) div 2)) then
               begin
@@ -1991,15 +1989,13 @@ unit cgx86;
                   end;
                 if helpsize>0 then
                   begin
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
                     list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
-{$else}
-  {$ifdef cpu32bitalu}
+{$elseif defined(cpu32bitalu)}
                     list.concat(Taicpu.op_none(A_MOVSD,S_NO));
-  {$else}
+{$elseif defined(cpu16bitalu)}
                     list.concat(Taicpu.op_none(A_MOVSW,S_NO));
-  {$endif}
-{$endif cpu64bitalu}
+{$endif}
                   end;
                 if len>=4 then
                   begin

@@ -145,21 +145,19 @@ uses
 {$endif x86_64}
 
       { The subregister that specifies the entire register and an address }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       { Hammer }
       R_SUBWHOLE    = R_SUBQ;
       R_SUBADDR     = R_SUBQ;
-{$else x86_64}
-  {$ifdef i386}
+{$elseif defined(i386)}
       { i386 }
       R_SUBWHOLE    = R_SUBD;
       R_SUBADDR     = R_SUBD;
-  {$else i386}
+{$elseif defined(i8086)}
       { i8086 }
       R_SUBWHOLE    = R_SUBW;
       R_SUBADDR     = R_SUBW;
-  {$endif i386}
-{$endif x86_64}
+{$endif}
 
       { Available Registers }
 {$ifdef x86_64}
