@@ -547,7 +547,12 @@ implementation
                  arraydef :
                    begin
                      { array of char to string, the length check is done by the firstpass of this node }
-                     if is_chararray(def_from) or is_open_chararray(def_from) then
+                     if (is_chararray(def_from) or
+                         is_open_chararray(def_from)) and
+                        { bitpacked arrays of char whose element bitsize is not
+                          8 cannot be auto-converted to strings }
+                        (not is_packed_array(def_from) or
+                         (tarraydef(def_from).elementdef.packedbitsize=8)) then
                       begin
                         { "Untyped" stringconstn is an array of char }
                         if fromtreetype=stringconstn then
@@ -857,12 +862,14 @@ implementation
                         { strings in ISO Pascal (at least if the lower bound }
                         { is 1, but GPC makes all equal-length chararrays    }
                         { compatible), so treat those the same as regular    }
-                        { char arrays                                        }
+                        { char arrays -- except if they use subrange types   }
                         if (is_packed_array(def_from) and
-                            not is_chararray(def_from) and
+                            (not is_chararray(def_from) or
+                             (tarraydef(def_from).elementdef.packedbitsize<>8)) and
                             not is_widechararray(def_from)) xor
                            (is_packed_array(def_to) and
-                            not is_chararray(def_to) and
+                            (not is_chararray(def_to) or
+                             (tarraydef(def_to).elementdef.packedbitsize<>8)) and
                             not is_widechararray(def_to)) then
                           { both must be packed }
                           begin
@@ -965,7 +972,11 @@ implementation
                         else
                           { to array of char, from "Untyped" stringconstn (array of char) }
                           if (fromtreetype=stringconstn) and
-                             (is_chararray(def_to) or
+                             ((is_chararray(def_to) and
+                               { bitpacked arrays of char whose element bitsize is not
+                                 8 cannot be auto-converted from strings }
+                               (not is_packed_array(def_to) or
+                                (tarraydef(def_to).elementdef.packedbitsize=8))) or
                               is_widechararray(def_to)) then
                             begin
                               eq:=te_convert_l1;
@@ -1015,8 +1026,12 @@ implementation
                     stringdef :
                       begin
                         { string to char array }
-                        if (not is_special_array(def_to)) and
-                           (is_char(tarraydef(def_to).elementdef)or
+                        if not is_special_array(def_to) and
+                           ((is_char(tarraydef(def_to).elementdef) and
+                             { bitpacked arrays of char whose element bitsize is not
+                               8 cannot be auto-converted from strings }
+                             (not is_packed_array(def_to) or
+                              (tarraydef(def_to).elementdef.packedbitsize=8))) or
                             is_widechar(tarraydef(def_to).elementdef)) then
                          begin
                            doconv:=tc_string_2_chararray;
