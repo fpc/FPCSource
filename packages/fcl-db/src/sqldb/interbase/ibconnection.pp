@@ -100,7 +100,6 @@ type
     procedure AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-    function GetBlobSize(blobHandle : TIsc_Blob_Handle) : LongInt;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -1465,23 +1464,6 @@ begin
   Move(Dbl, Buffer^, 8);
 end;
 
-function TIBConnection.GetBlobSize(blobHandle: TIsc_Blob_Handle): LongInt;
-var
-  iscInfoBlobTotalLength : byte;
-  blobInfo : array[0..50] of byte;
-
-begin
-  iscInfoBlobTotalLength:=isc_info_blob_total_length;
-  if isc_blob_info(@Fstatus[0], @blobHandle, sizeof(iscInfoBlobTotalLength), pchar(@iscInfoBlobTotalLength), sizeof(blobInfo) - 2, pchar(@blobInfo[0])) <> 0 then
-    CheckError('isc_blob_info', FStatus);
-  if blobInfo[0]  = iscInfoBlobTotalLength then
-    begin
-      result :=  isc_vax_integer(pchar(@blobInfo[3]), isc_vax_integer(pchar(@blobInfo[1]), 2));
-    end
-  else
-     CheckError('isc_blob_info', FStatus);
-end;
-
 procedure TIBConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
@@ -1490,7 +1472,6 @@ var
   blobHandle : Isc_blob_Handle;
   blobSegment : pointer;
   blobSegLen : word;
-  blobSize: LongInt;
   TransactionHandle : pointer;
   blobId : PISC_QUAD;
   ptr : Pointer;
@@ -1503,35 +1484,29 @@ begin
   if isc_open_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-  blobSize := GetBlobSize(blobHandle);
-
   //For performance, read as much as we can, regardless of any segment size set in database.
   blobSegment := AllocMem(MAXBLOBSEGMENTSIZE);
 
   with ABlobBuf^.BlobBuffer^ do
     begin
     Size := 0;
-    // Test for Size is a workaround for Win64 Firebird embedded crashing in isc_get_segment when entire blob is read.
-    while (Size < blobSize) and (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, MAXBLOBSEGMENTSIZE, blobSegment) = 0) do
+    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, MAXBLOBSEGMENTSIZE, blobSegment) = 0) do
       begin
       ReAllocMem(Buffer,Size+blobSegLen);
       ptr := Buffer+Size;
       move(blobSegment^,ptr^,blobSegLen);
       inc(Size,blobSegLen);
       end;
+    freemem(blobSegment);
 
-   freemem(blobSegment);
-
-    // Throwing the proper error on failure is more important than closing the blob:
-    // Test for Size is another workaround.
-    if (Size = blobSize) or (FStatus[1] = isc_segstr_eof) then
+    if FStatus[1] = isc_segstr_eof then
       begin
         if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
           CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
       end
     else
       CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
-    end;
+  end;
 end;
 
 function TIBConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
