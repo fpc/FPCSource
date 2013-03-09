@@ -59,6 +59,9 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
 
+        procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
+        procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);override;
+
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
@@ -757,6 +760,47 @@ unit cgcpu;
                 internalerror(2013030211);
             end;
           end;
+      end;
+
+
+    procedure tcg8086.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
+      var
+        ai : taicpu;
+        hreg, hreg16 : tregister;
+        hl_skip: TAsmLabel;
+        invf: TResFlags;
+      begin
+        hreg:=makeregsize(list,reg,OS_8);
+
+        invf := f;
+        inverse_flags(invf);
+
+        list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, hreg));
+
+        current_asmdata.getjumplabel(hl_skip);
+        ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
+        ai.SetCondition(flags_to_cond(invf));
+        ai.is_jmp:=true;
+        list.concat(ai);
+
+        { 16-bit INC is shorter than 8-bit }
+        hreg16:=makeregsize(list,hreg,OS_16);
+        list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
+
+        a_label(list,hl_skip);
+
+        if reg<>hreg then
+          a_load_reg_reg(list,OS_8,size,hreg,reg);
+      end;
+
+
+    procedure tcg8086.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
+      var
+        tmpreg : tregister;
+      begin
+        tmpreg:=getintregister(list,size);
+        g_flags2reg(list,size,f,tmpreg);
+        a_load_reg_ref(list,size,size,tmpreg,ref);
       end;
 
 
