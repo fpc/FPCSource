@@ -39,7 +39,6 @@ begin
     ldr r1, [r0]
     orr r1, r1, #(0xF << 20)
     str r1, [r0]
-    bx lr
     {$ELSE FPUFPV4_S16}
     rfs r0
     and r0,r0,#0xffe0ffff

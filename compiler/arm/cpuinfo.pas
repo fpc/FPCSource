@@ -54,7 +54,7 @@ Type
 Const
    cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5];
    cpu_thumb = [cpu_armv6m];
-   cpu_thumb2 = [cpu_armv7m];
+   cpu_thumb2 = [cpu_armv7m,cpu_armv7em];
 
 Type
    tfputype =
@@ -197,6 +197,9 @@ Type
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
+      
+      { TI Stellaris }
+      ct_lm4f120h5,
       
       { SAMSUNG }
       ct_sc32442b,
@@ -1030,6 +1033,16 @@ Const
         flashsize:$00040000;
         srambase:$20000000;
         sramsize:$00010000
+        ),
+        
+        // ct_lm4f120h5,
+        (
+    	controllertypestr:'LM4F120H5';
+        controllerunitstr:'LM4F120';
+        flashbase:$00000000;
+        flashsize:$00040000;
+        srambase:$20000000;
+        sramsize:$00008000
         ),
         
         //ct_SC32442b,
