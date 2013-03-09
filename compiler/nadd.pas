@@ -1464,6 +1464,68 @@ implementation
                    end;
                end
 {$endif cpu64bitaddr}
+             { extra int handling for 16-bit and 8-bit cpus }
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+             { is there a signed 32 bit type ? }
+             else if ((torddef(rd).ordtype=s32bit) or (torddef(ld).ordtype=s32bit)) then
+               begin
+                  if (torddef(ld).ordtype<>s32bit) then
+                   inserttypeconv(left,s32inttype);
+                  if (torddef(rd).ordtype<>s32bit) then
+                   inserttypeconv(right,s32inttype);
+               end
+             { is there a unsigned 32 bit type ? }
+             else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
+               begin
+                  if (torddef(ld).ordtype<>u32bit) then
+                   inserttypeconv(left,u32inttype);
+                  if (torddef(rd).ordtype<>u32bit) then
+                   inserttypeconv(right,u32inttype);
+               end
+             { is there a word? }
+             else if ((torddef(rd).ordtype=u16bit) or (torddef(ld).ordtype=u16bit)) then
+               begin
+                 { convert positive constants to u16bit }
+                 if (torddef(ld).ordtype<>u16bit) and
+                    is_constintnode(left) and
+                    (tordconstnode(left).value >= 0) then
+                   inserttypeconv(left,u16inttype);
+                 if (torddef(rd).ordtype<>u16bit) and
+                    is_constintnode(right) and
+                    (tordconstnode(right).value >= 0) then
+                   inserttypeconv(right,u16inttype);
+                 { When one of the operand is signed then perform
+                   the operation in 32bit, can't use rd/ld here because there
+                   could be already typeconvs inserted.
+                   Note that on 16-bit CPUs subn between 2 unsigned ints isn't
+                   extended to 32-bit. This is Borland Pascal 7 compatible. }
+                 if is_signed(left.resultdef) or
+                    is_signed(right.resultdef) then
+                   begin
+                     { TODO: add new hint message for mixing 16-bit signed and unsigned ints }
+{                       CGMessage(type_h_mixed_signed_unsigned);}
+
+                     { mark as internal in case added for a or/xor, so }
+                     { ttypeconvnode.simplify can remove the 32 bit  }
+                     { typecast again if semantically correct. Even  }
+                     { if we could detect that here already, we      }
+                     { mustn't do it here because that would change  }
+                     { overload choosing behaviour etc. The code in  }
+                     { ncnv.pas is run after that is already decided }
+                     if nodetype in [orn,xorn] then
+                       include(flags,nf_internal);
+                     inserttypeconv(left,s32inttype);
+                     inserttypeconv(right,s32inttype);
+                   end
+                 else
+                   begin
+                     if (torddef(left.resultdef).ordtype<>u16bit) then
+                       inserttypeconv(left,u16inttype);
+                     if (torddef(right.resultdef).ordtype<>u16bit) then
+                       inserttypeconv(right,u16inttype);
+                   end;
+               end
+{$endif cpu16bitalu or cpu8bitalu}
              { generic ord conversion is sinttype }
              else
                begin
