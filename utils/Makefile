@@ -468,7 +468,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc unicode
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait instantfpc importtl
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait instantfpc importtl unicode
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
@@ -4043,6 +4043,7 @@ TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
 TARGET_DIRS_IMPORTTL=1
+TARGET_DIRS_UNICODE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_FPPKG=1
