@@ -6,7 +6,7 @@ based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
 {$goto on}
 unit lm3tempest;
-
+{$define highspeedports}
   interface
 
     type
@@ -17,8 +17,20 @@ unit lm3tempest;
       PeripheralBase 	= $40000000;
       PPBbase		= $E0000fff;
       APBbase 		= PeripheralBase;
-      AHBbase 		= PeripheralBase+$54000;
-      portAoffset=APBbase+$4000;
+      
+{$ifdef highspeedports}
+      portAoffset=APBbase+$58000;     
+      portBoffset=APBbase+$59000;
+      portCoffset=APBbase+$5A000;
+      portDoffset=APBbase+$5B000;
+      portEoffset=APBbase+$5C000;
+      portFoffset=APBbase+$5D000;
+      portGoffset=APBbase+$5E000;
+      portHoffset=APBbase+$5F000;
+      portJoffset=APBbase+$60000;
+      
+{$else}
+      portAoffset=APBbase+$4000;     
       portBoffset=APBbase+$5000;
       portCoffset=APBbase+$6000;
       portDoffset=APBbase+$7000;
@@ -27,9 +39,9 @@ unit lm3tempest;
       portGoffset=APBbase+$26000;
       portHoffset=APBbase+$27000;
       portJoffset=APBbase+$3d000;
+{$endif}
       sysconoffset=APBbase+$fe000;
-
-
+      
     type
       TgpioPort=record
         data:array[0..255] of dword;dir,_is,ibe,iev,im,ris,mis,icr,
@@ -57,9 +69,9 @@ unit lm3tempest;
       PortJ			:Tgpioport	absolute portJoffset;
 
       syscon			:Tsyscon	absolute sysconoffset;
-      rcgc0			:dword absolute (sysconoffset+$100);
-      rcgc1			:dword absolute (sysconoffset+$104);
-      rcgc2			:dword absolute (sysconoffset+$108);
+    //  rcgc0			:dword absolute (sysconoffset+$100);
+   //   rcgc1			:dword absolute (sysconoffset+$104);
+    //  rcgc2			:dword absolute (sysconoffset+$108);
 	
   implementation
 
@@ -85,6 +97,7 @@ procedure PWM_Fault_Interrupt; external name 'PWM_Fault_Interrupt';
 procedure PWM_Generator_0_Interrupt; external name 'PWM_Generator_0_Interrupt';
 procedure PWM_Generator_1_Interrupt; external name 'PWM_Generator_1_Interrupt';
 procedure PWM_Generator_2_Interrupt; external name 'PWM_Generator_2_Interrupt';
+procedure PWM_Generator_3_Interrupt; external name 'PWM_Generator_3_Interrupt';
 procedure QEI0_Interrupt; external name 'QEI0_Interrupt';
 procedure ADC0_Sequence_0_Interrupt; external name 'ADC0_Sequence_0_Interrupt';
 procedure ADC0_Sequence_1_Interrupt; external name 'ADC0_Sequence_1_Interrupt';
@@ -99,6 +112,7 @@ procedure Timer_2A_Interrupt; external name 'Timer_2A_Interrupt';
 procedure Timer_2B_Interrupt; external name 'Timer_2B_Interrupt';
 procedure Analog_Comparator_0_Interrupt; external name 'Analog_Comparator_0_Interrupt';
 procedure Analog_Comparator_1_Interrupt; external name 'Analog_Comparator_1_Interrupt';
+procedure Analog_Comparator_2_Interrupt; external name 'Analog_Comparator_2_Interrupt';
 procedure System_Control_Interrupt; external name 'System_Control_Interrupt';
 procedure Flash_Memory_Control_Interrupt; external name 'Flash_Memory_Control_Interrupt';
 procedure GPIO_Port_F_Interrupt; external name 'GPIO_Port_F_Interrupt';
@@ -112,6 +126,7 @@ procedure I2C1_Interrupt; external name 'I2C1_Interrupt';
 procedure QEI1_Interrupt; external name 'QEI1_Interrupt';
 procedure CAN0_Interrupt; external name 'CAN0_Interrupt';
 procedure CAN1_Interrupt; external name 'CAN1_Interrupt';
+procedure ETH_Interrupt; external name 'ETH_Interrupt';
 procedure Hibernation_Module_Interrupt; external name 'Hibernation_Module_Interrupt';
 procedure USB_Interrupt; external name 'USB_Interrupt';
 procedure uDMA_Software_Interrupt; external name 'uDMA_Software_Interrupt';
@@ -121,6 +136,7 @@ procedure ADC1_Sequence_1_Interrupt; external name 'ADC1_Sequence_1_Interrupt';
 procedure ADC1_Sequence_2_Interrupt; external name 'ADC1_Sequence_2_Interrupt';
 procedure ADC1_Sequence_3_Interrupt; external name 'ADC1_Sequence_3_Interrupt';
 procedure I2S0_Interrupt; external name 'I2S0_Interrupt';
+procedure EPI_interrupt; external name 'EPI_Interrupt';
 procedure GPIO_Port_J_Interrupt; external name 'GPIO_Port_J_Interrupt';
 
 {$i cortexm3_start.inc}
@@ -174,7 +190,7 @@ interrupt_vectors:
   .long Timer_2B_Interrupt
   .long Analog_Comparator_0_Interrupt
   .long Analog_Comparator_1_Interrupt
-  .long 0
+  .long Analog_Comparator_2_Interrupt
   .long System_Control_Interrupt
   .long Flash_Memory_Control_Interrupt
   .long GPIO_Port_F_Interrupt
@@ -189,10 +205,10 @@ interrupt_vectors:
   .long CAN0_Interrupt
   .long CAN1_Interrupt
   .long 0
-  .long 0
+  .long ETH_Interrupt
   .long Hibernation_Module_Interrupt
   .long USB_Interrupt
-  .long 0
+  .long PWM_Generator_3_Interrupt
   .long uDMA_Software_Interrupt
   .long uDMA_Error_Interrupt
   .long ADC1_Sequence_0_Interrupt
@@ -200,7 +216,7 @@ interrupt_vectors:
   .long ADC1_Sequence_2_Interrupt
   .long ADC1_Sequence_3_Interrupt
   .long I2S0_Interrupt
-  .long 0
+  .long EPI_Interrupt
   .long GPIO_Port_J_Interrupt
   
   .weak NMI_interrupt
@@ -226,6 +242,7 @@ interrupt_vectors:
   .weak PWM_Generator_0_Interrupt
   .weak PWM_Generator_1_Interrupt
   .weak PWM_Generator_2_Interrupt
+  .weak PWM_Generator_3_Interrupt
   .weak QEI0_Interrupt
   .weak ADC0_Sequence_0_Interrupt
   .weak ADC0_Sequence_1_Interrupt
@@ -240,6 +257,7 @@ interrupt_vectors:
   .weak Timer_2B_Interrupt
   .weak Analog_Comparator_0_Interrupt
   .weak Analog_Comparator_1_Interrupt
+  .weak Analog_Comparator_2_Interrupt
   .weak System_Control_Interrupt
   .weak Flash_Memory_Control_Interrupt
   .weak GPIO_Port_F_Interrupt
@@ -253,6 +271,7 @@ interrupt_vectors:
   .weak QEI1_Interrupt
   .weak CAN0_Interrupt
   .weak CAN1_Interrupt
+  .weak ETH_Interrupt
   .weak Hibernation_Module_Interrupt
   .weak USB_Interrupt
   .weak uDMA_Software_Interrupt
@@ -262,68 +281,73 @@ interrupt_vectors:
   .weak ADC1_Sequence_2_Interrupt
   .weak ADC1_Sequence_3_Interrupt
   .weak I2S0_Interrupt
+  .weak EPI_Interrupt
   .weak GPIO_Port_J_Interrupt
   
-  .set NMI_interrupt, Startup
-  .set Hardfault_interrupt, Startup
-  .set MemManage_interrupt, Startup
-  .set BusFault_interrupt, Startup
-  .set UsageFault_interrupt, Startup
-  .set SWI_interrupt, Startup
-  .set DebugMonitor_interrupt, Startup
-  .set PendingSV_interrupt, Startup
-  .set SysTick_interrupt, Startup
+  .set NMI_interrupt, haltproc
+  .set Hardfault_interrupt, haltproc
+  .set MemManage_interrupt, haltproc
+  .set BusFault_interrupt, haltproc
+  .set UsageFault_interrupt, haltproc
+  .set SWI_interrupt, haltproc
+  .set DebugMonitor_interrupt, haltproc
+  .set PendingSV_interrupt, haltproc
+  .set SysTick_interrupt, haltproc
 
-  .set GPIO_Port_A_Interrupt, Startup
-  .set GPIO_Port_B_Interrupt, Startup
-  .set GPIO_Port_C_Interrupt, Startup
-  .set GPIO_Port_D_Interrupt, Startup
-  .set GPIO_Port_E_Interrupt, Startup
-  .set UART0_Interrupt, Startup
-  .set UART1_Interrupt, Startup
-  .set SSI0_Interrupt, Startup
-  .set I2C0_Interrupt, Startup
-  .set PWM_Fault_Interrupt, Startup
-  .set PWM_Generator_0_Interrupt, Startup
-  .set PWM_Generator_1_Interrupt, Startup
-  .set PWM_Generator_2_Interrupt, Startup
-  .set QEI0_Interrupt, Startup
-  .set ADC0_Sequence_0_Interrupt, Startup
-  .set ADC0_Sequence_1_Interrupt, Startup
-  .set ADC0_Sequence_2_Interrupt, Startup
-  .set ADC0_Sequence_3_Interrupt, Startup
-  .set Watchdog_Timers_0_and_1_Interrupt, Startup
-  .set Timer_0A_Interrupt, Startup
-  .set Timer_0B_Interrupt, Startup
-  .set Timer_1A_Interrupt, Startup
-  .set Timer_1B_Interrupt, Startup
-  .set Timer_2A_Interrupt, Startup
-  .set Timer_2B_Interrupt, Startup
-  .set Analog_Comparator_0_Interrupt, Startup
-  .set Analog_Comparator_1_Interrupt, Startup
-  .set System_Control_Interrupt, Startup
-  .set Flash_Memory_Control_Interrupt, Startup
-  .set GPIO_Port_F_Interrupt, Startup
-  .set GPIO_Port_G_Interrupt, Startup
-  .set GPIO_Port_H_Interrupt, Startup
-  .set UART2_Interrupt, Startup
-  .set SSI1_Interrupt, Startup
-  .set Timer_3A_Interrupt, Startup
-  .set Timer_3B_Interrupt, Startup
-  .set I2C1_Interrupt, Startup
-  .set QEI1_Interrupt, Startup
-  .set CAN0_Interrupt, Startup
-  .set CAN1_Interrupt, Startup
-  .set Hibernation_Module_Interrupt, Startup
-  .set USB_Interrupt, Startup
-  .set uDMA_Software_Interrupt, Startup
-  .set uDMA_Error_Interrupt, Startup
-  .set ADC1_Sequence_0_Interrupt, Startup
-  .set ADC1_Sequence_1_Interrupt, Startup
-  .set ADC1_Sequence_2_Interrupt, Startup
-  .set ADC1_Sequence_3_Interrupt, Startup
-  .set I2S0_Interrupt, Startup
-  .set GPIO_Port_J_Interrupt, Startup
+  .set GPIO_Port_A_Interrupt, haltproc
+  .set GPIO_Port_B_Interrupt, haltproc
+  .set GPIO_Port_C_Interrupt, haltproc
+  .set GPIO_Port_D_Interrupt, haltproc
+  .set GPIO_Port_E_Interrupt, haltproc
+  .set UART0_Interrupt, haltproc
+  .set UART1_Interrupt, haltproc
+  .set SSI0_Interrupt, haltproc
+  .set I2C0_Interrupt, haltproc
+  .set PWM_Fault_Interrupt, haltproc
+  .set PWM_Generator_0_Interrupt, haltproc
+  .set PWM_Generator_1_Interrupt, haltproc
+  .set PWM_Generator_2_Interrupt, haltproc
+  .set PWM_Generator_3_Interrupt, haltproc
+  .set QEI0_Interrupt, haltproc
+  .set ADC0_Sequence_0_Interrupt, haltproc
+  .set ADC0_Sequence_1_Interrupt, haltproc
+  .set ADC0_Sequence_2_Interrupt, haltproc
+  .set ADC0_Sequence_3_Interrupt, haltproc
+  .set Watchdog_Timers_0_and_1_Interrupt, haltproc
+  .set Timer_0A_Interrupt, haltproc
+  .set Timer_0B_Interrupt, haltproc
+  .set Timer_1A_Interrupt, haltproc
+  .set Timer_1B_Interrupt, haltproc
+  .set Timer_2A_Interrupt, haltproc
+  .set Timer_2B_Interrupt, haltproc
+  .set Analog_Comparator_0_Interrupt, haltproc
+  .set Analog_Comparator_1_Interrupt, haltproc
+  .set Analog_Comparator_2_Interrupt, haltproc
+  .set System_Control_Interrupt, haltproc
+  .set Flash_Memory_Control_Interrupt, haltproc
+  .set GPIO_Port_F_Interrupt, haltproc
+  .set GPIO_Port_G_Interrupt, haltproc
+  .set GPIO_Port_H_Interrupt, haltproc
+  .set UART2_Interrupt, haltproc
+  .set SSI1_Interrupt, haltproc
+  .set Timer_3A_Interrupt, haltproc
+  .set Timer_3B_Interrupt, haltproc
+  .set I2C1_Interrupt, haltproc
+  .set QEI1_Interrupt, haltproc
+  .set CAN0_Interrupt, haltproc
+  .set CAN1_Interrupt, haltproc
+  .set ETH_Interrupt, haltproc
+  .set Hibernation_Module_Interrupt, haltproc
+  .set USB_Interrupt, haltproc
+  .set uDMA_Software_Interrupt, haltproc
+  .set uDMA_Error_Interrupt, haltproc
+  .set ADC1_Sequence_0_Interrupt, haltproc
+  .set ADC1_Sequence_1_Interrupt, haltproc
+  .set ADC1_Sequence_2_Interrupt, haltproc
+  .set ADC1_Sequence_3_Interrupt, haltproc
+  .set I2S0_Interrupt, haltproc
+  .set EPI_Interrupt, haltproc
+  .set GPIO_Port_J_Interrupt, haltproc
   
   .text
 end;

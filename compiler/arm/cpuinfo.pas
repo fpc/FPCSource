@@ -197,7 +197,9 @@ Type
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
-      
+
+      ct_lm3s5d51,
+
       { TI Stellaris }
       ct_lm4f120h5,
       
@@ -943,7 +945,7 @@ Const
         sramsize:$00010000
         ),
 
-        { TI - Tempest parts - 256 K Flash, 64 K SRAM }
+        { TI - Tempest parts - up to 512 K Flash, 96 K SRAM }
         // ct_lm3s5951,
         (
     	controllertypestr:'LM3S5951';
@@ -969,7 +971,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s2b93,
         (
@@ -978,7 +980,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s5b91,
         (
@@ -987,7 +989,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s9b81,
         (
@@ -996,7 +998,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s9b90,
         (
@@ -1005,7 +1007,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s9b92,
         (
@@ -1014,7 +1016,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s9b95,
         (
@@ -1023,7 +1025,7 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
         ),
         // ct_lm3s9b96,
         (
@@ -1032,7 +1034,17 @@ Const
         flashbase:$00000000;
         flashsize:$00040000;
         srambase:$20000000;
-        sramsize:$00010000
+        sramsize:$00018000
+        ),
+        
+        // ct_lm3s5d51,
+        (
+    	controllertypestr:'LM3S5D51';
+        controllerunitstr:'LM3TEMPEST';
+        flashbase:$00000000;
+        flashsize:$00080000;
+        srambase:$20000000;
+        sramsize:$00018000
         ),
         
         // ct_lm4f120h5,
@@ -1060,9 +1072,9 @@ Const
     	controllertypestr:'THUMB2_BARE';
         controllerunitstr:'THUMB2_BARE';
         flashbase:$00000000;
-        flashsize:$00100000;
+        flashsize:$00002000;
         srambase:$20000000;
-        sramsize:$00100000
+        sramsize:$00000400
         )
     );
 

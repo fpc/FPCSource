@@ -662,6 +662,10 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 [SXTAHcc]
 [SXTBcc]
 [SXTB16cc]
+
+[UXTBcc]
+[UXTHcc]
+
 [SXTHcc]
 
 [UADD16cc]
@@ -699,10 +703,7 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 [UXTABcc]
 [UXTAB16cc]
 [UXTAHcc]
-
-[UXTBcc]
 [UXTB16cc]
-[UXTHcc]
 
 [WFEcc]
 [WFIcc]

@@ -46,7 +46,7 @@ unit cpubase;
       TAsmOp= {$i armop.inc}
       {This is a bit of a hack, because there are more than 256 ARM Assembly Ops
        But FPC currently can't handle more than 256 elements in a set.}
-      TCommonAsmOps = Set of A_None .. A_UQASX;
+      TCommonAsmOps = Set of A_None .. A_UADD16;
 
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -368,6 +368,7 @@ unit cpubase;
       doesn't handle ROR_C detection }
     function is_thumb32_imm(d : aint) : boolean;
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
+    function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
     function dwarf_reg(r:tregister):shortint;
 
     function IsIT(op: TAsmOp) : boolean;
@@ -594,6 +595,18 @@ unit cpubase;
             result:=true;
             exit;
           end;
+      end;
+    
+    function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
+      var
+        msb : byte;
+      begin
+        lsb:=BsfDword(d);
+        msb:=BsrDword(d);
+        
+        width:=msb-lsb+1;
+        
+        result:=(lsb<>255) and (msb<>255) and ((((1 shl (msb-lsb+1))-1) shl lsb) = d);
       end;
 
 

@@ -180,6 +180,7 @@ uses
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
+         constructor op_reg_const_const(op : tasmop;_op1 : tregister; _op2,_op3: aint);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
@@ -473,6 +474,16 @@ implementation
       end;
 
 
+     constructor taicpu.op_reg_const_const(op : tasmop;_op1 : tregister; _op2,_op3: aint);
+       begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadconst(1,aint(_op2));
+         loadconst(2,aint(_op3));
+       end;
+
+
     constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
       begin
          inherited create(op);
@@ -735,9 +746,14 @@ implementation
               { check for pre/post indexed }
               result := operand_read;
           //Thumb2
-          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS:
+          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI:
             if opnr in [0] then
               result:=operand_write
+            else
+              result:=operand_read;
+          A_BFC:
+            if opnr in [0] then
+              result:=operand_readwrite
             else
               result:=operand_read;
           A_LDREX:

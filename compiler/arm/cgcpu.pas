@@ -186,6 +186,7 @@ unit cgcpu;
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
 
+        procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
 
@@ -1540,12 +1541,12 @@ unit cgcpu;
             list.Concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,31));
             list.Concat(taicpu.op_reg_reg_const(A_AND,dst,dst,255));
           end
-        { it is decided during the compilation of the system unit if this code is used or not 
+        { it is decided during the compilation of the system unit if this code is used or not
           so no additional check for rbit is needed                                           }
         else
           begin
             list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
-            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));            
+            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
             if current_settings.cputype in cpu_thumb2 then
@@ -4021,9 +4022,26 @@ unit cgcpu;
        end;
 
 
+    procedure tthumb2cgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+      begin
+        if op = OP_NOT then
+          begin
+            list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
+            case size of
+              OS_8: list.concat(taicpu.op_reg_reg(A_UXTB,dst,dst));
+              OS_S8: list.concat(taicpu.op_reg_reg(A_SXTB,dst,dst));
+              OS_16: list.concat(taicpu.op_reg_reg(A_UXTH,dst,dst));
+              OS_S16: list.concat(taicpu.op_reg_reg(A_SXTH,dst,dst));
+            end;
+          end
+        else
+          inherited a_op_reg_reg(list, op, size, src, dst);
+      end;
+
+
     procedure tthumb2cgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
-        shift : byte;
+        shift, width : byte;
         tmpreg : tregister;
         so : tshifterop;
         l1 : longint;
@@ -4198,8 +4216,15 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))}
             else if (op = OP_AND) and is_thumb32_imm(a) then
               list.concat(taicpu.op_reg_reg_const(A_MOV,dst,src,dword(a)))
+            else if (op = OP_AND) and (a = $FFFF) then
+              list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
             else if (op = OP_AND) and is_thumb32_imm(not(dword(a))) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
+            else if (op = OP_AND) and is_continuous_mask(not(a), shift, width) then
+              begin
+                a_load_reg_reg(list,size,size,src,dst);
+                list.concat(taicpu.op_reg_const_const(A_BFC,dst,shift,width))
+              end
             else
               begin
                 tmpreg:=getintregister(list,size);
