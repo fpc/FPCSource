@@ -4,13 +4,31 @@ unit system;
 
 interface
 
+{$ifdef FULL_RTL}
+{$I systemh.inc}
+{$endif FULL_RTL}
+
+const
+  maxExitCode = 255;
+
+{$ifndef FULL_RTL}
 type
+  DWord = LongWord;
+  Cardinal = LongWord;
+  Integer = SmallInt;
+  UInt64 = QWord;
+
   HRESULT = LongInt;
+{$endif FULL_RTL}
 
 procedure DebugWrite(const S: string);
 procedure DebugWriteLn(const S: string);
 
 implementation
+
+{$ifdef FULL_RTL}
+{$I system.inc}
+{$endif FULL_RTL}
 
 procedure fpc_Initialize_Units;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 begin
@@ -32,6 +50,7 @@ begin
     mov cl, al
     xor ch, ch
     mov ah, 2
+
 @@1:
     lodsb
     mov dl, al

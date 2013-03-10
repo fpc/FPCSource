@@ -114,6 +114,21 @@ Type
   {$endif}
 {$endif CPUI386}
 
+{$ifdef CPUI8086}
+  {$define CPU16}
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
+{$endif CPUI8086}
+
 {$ifdef CPUX86_64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   { win64 doesn't support the legacy fpu }
