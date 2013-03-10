@@ -54,7 +54,11 @@ type
   PGLcharARB = ^GLcharARB;
   PPGLchar = ^PGLchar;
 
+  {$ifdef DARWIN}
+  GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
+  {$else}
   GLhandleARB = Cardinal;
+  {$endif}
   TGLhandleARB = GLhandleARB;
   PGLhandleARB = ^GLhandleARB;
 
