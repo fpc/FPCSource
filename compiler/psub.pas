@@ -937,7 +937,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(x86) or defined(arm)}
+{$if defined(i386) or defined(x86_64) or defined(arm)}
         { try to strip the stack frame }
         { set the framepointer to esp if:
           - no assembler directive, those are handled in assembler_block
