@@ -1,0 +1,161 @@
+#
+#   Makefile.fpc for Go32v2 RTL
+#
+[package]
+main=rtl
+[target]
+loaders=prt0 # exceptn fpu
+units=system uuchar objpas macpas iso7185 strings \
+      go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
+      dos crt objects printer cmem \
+      sysutils classes math typinfo matrix \
+      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
+      msmouse charset varutils \
+      video mouse keyboard variants vesamode types fmtbcd \
+      sysconst rtlconst dateutil convutil strutils stdconvs
+rsts=math varutils typinfo classes variants dateutil sysconst
+implicitunits=exeinfo
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+fpcdir=../..
+target=msdos
+cpu=i8086
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+.NOTPARALLEL:
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+#
+# Loaders
+#
+prt0$(OEXT) : prt0.asm
+        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
+#
+# System Units (System, Objpas, Strings)
+#
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   system$(PPUEXT)
+#
+# System Dependent Units
+#
+go32$(PPUEXT) : go32.pp system$(PPUEXT)
+dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
+        $(COMPILER) -Sg dpmiexcp.pp
+initc$(PPUEXT) : initc.pp system$(PPUEXT)
+profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
+dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
+dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
+emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
+                  dpmiexcp$(PPUEXT)
+ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+#
+# TP7 Compatible RTL Units
+#
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
+               go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+printer$(PPUEXT) : printer.pp system$(PPUEXT)
+#
+# Delphi Compatible Units
+#
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
+        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
+        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
+
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) system$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+#
+# Mac Pascal Model
+#
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+#
+# Other system-independent RTL Units
+#
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
+charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+
+#
+# Other system-dependent RTL Units
+#
+msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
