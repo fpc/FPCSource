@@ -1276,6 +1276,7 @@ Implementation
                           begin
                             DebugMsg('Peephole AndUxt2And done', p);
                             taicpu(hp1).opcode:=A_AND;
+                            taicpu(hp1).ops:=3;
                             taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                             taicpu(hp1).loadconst(2,255);
                             GetNextInstruction(p,hp1);
