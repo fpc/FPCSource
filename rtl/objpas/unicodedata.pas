@@ -25,7 +25,7 @@ unit unicodedata;
 {$PACKENUM 1}
 {$SCOPEDENUMS ON}
 {$pointermath on}
-{ $modeswitch advancedrecords}
+{$define USE_INLINE}
 { $define uni_debug}
 
 interface
@@ -1379,9 +1379,9 @@ begin
   c := Length(ACEList);
   if (c = 0) then
     exit(nil);
-  SetLength(r,((3+1{Level Separator})*c)); //SetLength(r,(3*c));
-  ral := 0;
   levelCount := Length(ACEList[0].Weights);
+  SetLength(r,(levelCount*c + levelCount));
+  ral := 0;
   for i := 0 to levelCount - 1 do begin
     if not ACollation^.Backwards[i] then begin
       pce := @ACEList[0];
@@ -1419,9 +1419,9 @@ begin
   c := Length(ACEList);
   if (c = 0) then
     exit(nil);
-  SetLength(r,((3+1{Level Separator})*c)); //SetLength(r,(3*c));
-  ral := 0;
   levelCount := Length(ACEList[0].Weights);
+  SetLength(r,(levelCount*c + levelCount));
+  ral := 0;
   for i := 0 to levelCount - 1 do begin
     if not ACollation^.Backwards[i] then begin
       pce := @ACEList[0];
@@ -1460,9 +1460,9 @@ begin
   c := Length(ACEList);
   if (c = 0) then
     exit(nil);
-  SetLength(r,((3+1{Level Separator})*c)); //SetLength(r,(3*c));
-  ral := 0;
   levelCount := Length(ACEList[0].Weights);
+  SetLength(r,(levelCount*c + levelCount));
+  ral := 0;
   for i := 0 to levelCount - 1 do begin
     if not ACollation^.Backwards[i] then begin
       variableState := False;
@@ -1500,10 +1500,8 @@ begin
     ral := ral + 1;
   end;
   ral := ral - 1;
-  //SetLength(r,ral);
-  //Result := r;
-  SetLength(Result,ral);
-  Move(r[0],Result[0],(ral*SizeOf(r[0])));
+  SetLength(r,ral);
+  Result := r;
 end;
 
 function FormKeyShiftedTrimmed(
@@ -1552,314 +1550,6 @@ function ComputeSortKey(
 begin
   Result := ComputeSortKey(@AString[1],Length(AString),ACollation);
 end;
-
-function ComputeSortKeyOLD(
-  const AStr       : PUnicodeChar;
-  const ALength    : SizeInt;
-  const ACollation : PUCA_DataBook
-) : TUCASortKey;
-var
-  r : TUCA_PropWeightsArray;
-  ral {used length of "r"}: Integer;
-  rl  {capacity of "r"} : Integer;
-
-  procedure GrowKey(const AMinGrow : Integer = 0);inline;
-  begin
-    if (rl < AMinGrow) then
-      rl := rl + AMinGrow
-    else
-      rl := 2 * rl;
-    SetLength(r,rl);
-  end;
-
-  procedure AddWeights(AItem : PUCA_PropItemRec);inline;
-  begin
-    if ((ral + AItem^.WeightLength) > rl) then
-      GrowKey(AItem^.WeightLength);
-    AItem^.GetWeightArray(@r[ral]);
-    ral := ral + AItem^.WeightLength;
-  end;
-
-  procedure AddComputedWeights(ACodePoint : Cardinal);inline;
-  begin
-    if ((ral + 2) > rl) then
-      GrowKey();
-    DeriveWeight(ACodePoint,@r[ral]);
-    ral := ral + 2;
-  end;
-
-var
-  i : Integer;
-  s : UnicodeString;
-  ps : PUnicodeChar;
-  cp : Cardinal;
-  pp : PUCA_PropItemRec;
-  ppLevel : Byte;
-  removedCharIndex : array of DWord;
-  removedCharIndexLength : DWord;
-  locHistory : array[0..24] of record
-                                 i : Integer;
-                                 pp : PUCA_PropItemRec;
-                                 ppLevel : Byte;
-                                 cp : Cardinal;
-                                 removedCharIndexLength : DWord;
-                               end;
-  locHistoryTop : Integer;
-
-  procedure RecordStep();inline;
-  begin
-    Inc(locHistoryTop);
-    locHistory[locHistoryTop].i := i;
-    locHistory[locHistoryTop].pp := pp;
-    locHistory[locHistoryTop].ppLevel := ppLevel;
-    locHistory[locHistoryTop].cp := cp;
-    locHistory[locHistoryTop].removedCharIndexLength := removedCharIndexLength;
-  end;
-
-  procedure ClearHistory();inline;
-  begin
-    locHistoryTop := -1;
-  end;
-
-  function HasHistory() : Boolean;inline;
-  begin
-    Result := (locHistoryTop >= 0);
-  end;
-
-  procedure GoBack();inline;
-  begin
-    i := locHistory[locHistoryTop].i;
-    cp := locHistory[locHistoryTop].cp;
-    pp := locHistory[locHistoryTop].pp;
-    ppLevel := locHistory[locHistoryTop].ppLevel;
-    removedCharIndexLength := locHistory[locHistoryTop].removedCharIndexLength;
-    ps := @s[i];
-    Dec(locHistoryTop);
-  end;
-
-var
-  c : Integer;
-  lastUnblockedNonstarterCCC : Byte;
-
-  function IsUnblockedNonstarter(const AStartFrom : Integer) : Boolean;
-  var
-    k : DWord;
-    pk : PUnicodeChar;
-    puk : PUC_Prop;
-  begin
-    k := AStartFrom;
-    if (k > c) then
-      exit(False);
-    if (IndexDWord(removedCharIndex[0],removedCharIndexLength,k) >= 0) then
-      exit(False);
-    {if (k = (i+1)) or
-       ( (k = (i+2)) and UnicodeIsHighSurrogate(s[i]) )
-    then
-      lastUnblockedNonstarterCCC := 0;}
-    pk := @s[k];
-    if UnicodeIsHighSurrogate(pk^) then begin
-      if (k = c) then
-        exit(False);
-      if UnicodeIsLowSurrogate(pk[1]) then
-        puk := GetProps(pk[0],pk[1])
-      else
-        puk := GetProps(Word(pk^));
-    end else begin
-      puk := GetProps(Word(pk^));
-    end;
-    if (puk^.CCC = 0) or (lastUnblockedNonstarterCCC >= puk^.CCC) then
-      exit(False);
-    lastUnblockedNonstarterCCC := puk^.CCC;
-    Result := True;
-  end;
-
-  procedure RemoveChar(APos : Integer);inline;
-  begin
-    if (removedCharIndexLength >= Length(removedCharIndex)) then
-      SetLength(removedCharIndex,(2*removedCharIndexLength + 2));
-    removedCharIndex[removedCharIndexLength] := APos;
-    Inc(removedCharIndexLength);
-    if UnicodeIsHighSurrogate(s[APos]) and (APos < c) and UnicodeIsLowSurrogate(s[APos+1]) then begin
-      if (removedCharIndexLength >= Length(removedCharIndex)) then
-          SetLength(removedCharIndex,(2*removedCharIndexLength + 2));
-        removedCharIndex[removedCharIndexLength] := APos+1;
-        Inc(removedCharIndexLength);
-    end;
-  end;
-
-  procedure Inc_I();
-  begin
-    if (removedCharIndexLength = 0) then begin
-      Inc(i);
-      Inc(ps);
-      exit;
-    end;
-    while True do begin
-      Inc(i);
-      Inc(ps);
-      if (IndexDWord(removedCharIndex[0],removedCharIndexLength,i) = -1) then
-        Break;
-    end;
-  end;
-
-var
-  k : Integer;
-  pp1 : PUCA_PropItemRec;
-  locIsSurrogate, ok : Boolean;
-  pu : PUC_Prop;
-begin
-  if (ALength = 0) then
-    exit(nil);
-  c := ALength;
-  s := NormalizeNFD(AStr,c);
-  c := Length(s);
-  rl := 3*c;
-  SetLength(r,rl);
-  ral := 0;
-  ps := @s[1];
-  pp := nil;
-  ppLevel := 0;
-  locHistoryTop := -1;
-  removedCharIndexLength := 0;
-  i := 1;
-  while (i <= c) do begin
-    if UnicodeIsHighSurrogate(ps[0]) then begin
-      if (i = c) then
-        Break;
-      if UnicodeIsLowSurrogate(ps[1]) then begin
-        locIsSurrogate := True;
-        cp := ToUCS4(ps[0],ps[1]);
-      end else begin
-        locIsSurrogate := False;
-        cp := Word(ps[0]);
-      end;
-    end else begin
-      locIsSurrogate := False;
-      cp := Word(ps[0]);
-    end;
-    if (pp = nil) then begin // Start Matching
-      ppLevel := 0;
-      if locIsSurrogate then
-        pp := GetPropUCA(ps[0],ps[1],ACollation)
-      else
-        pp := GetPropUCA(ps[0],ACollation);
-      if (pp = nil) then begin
-        AddComputedWeights(cp);
-        ClearHistory();
-      end else begin
-        if (pp^.ChildCount = 0) or
-           (pp^.IsValid() and (i = c))
-        then begin
-          AddWeights(pp);
-          ClearHistory();
-          pp := nil;
-        end else begin
-          RecordStep();
-        end;
-      end;
-    end else begin
-      ok := False;
-      pp1 := PUCA_PropItemRec(PtrUInt(pp) + pp^.GetSelfOnlySize());
-      for k := 0 to pp^.ChildCount - 1 do begin
-        if (cp = pp1^.CodePoint) then begin
-          ok := True;
-          Break;
-        end;
-        pp1 := PUCA_PropItemRec(PtrUInt(pp1) + pp1^.Size);
-      end;
-      if not ok then begin
-        // permutations !
-        pu := GetProps(cp);
-        if (pu^.CCC > 0) then begin
-          lastUnblockedNonstarterCCC := pu^.CCC;
-          if locIsSurrogate then
-            k := i + 2
-          else
-            k := i + 1;
-          while IsUnblockedNonstarter(k) do begin
-            ok := UnicodeIsHighSurrogate(s[k]) and (k<c) and UnicodeIsLowSurrogate(s[k+1]);
-            if ok then
-              pp1 := FindChild(ToUCS4(s[k],s[k+1]),pp)
-            else
-              pp1 := FindChild(Word(s[k]),pp);
-            if (pp1 <> nil) then begin
-              pp := pp1;
-              RemoveChar(k);
-              Inc(ppLevel);
-              RecordStep();
-              if (pp^.ChildCount = 0 ) then
-                Break;
-            end;
-            if ok then
-              Inc(k);
-            Inc(k);
-          end;
-        end;
-
-        if pp^.IsValid() then begin
-          AddWeights(pp);
-          //GoBack();
-          ClearHistory();
-          pp := nil;
-          ppLevel := 0;
-          Continue;
-        end else begin
-          //walk back
-          ok := False;
-          while HasHistory() do begin
-            GoBack();
-            if pp^.IsValid() then begin
-              AddWeights(pp);
-              ClearHistory();
-              pp := nil;
-              ppLevel := 0;
-              ok := True;
-              Break;
-            end;
-          end;
-          if ok then begin
-            if UnicodeIsHighSurrogate(ps[0]) and (i<c) and UnicodeIsLowSurrogate(ps[1]) then begin
-              Inc(i);
-              Inc(ps);
-            end;
-            Inc_I();
-            Continue;
-          end;
-          if (pp <> nil) then
-            AddComputedWeights(cp);
-        end;
-      end else begin
-        pp := pp1;
-        if (pp^.ChildCount = 0) then begin
-          AddWeights(pp);
-          ClearHistory();
-          pp := nil;
-          ppLevel := 0;
-        end else begin
-          Inc(ppLevel);
-          RecordStep();
-        end;
-      end;
-    end;
-    if locIsSurrogate then begin
-      Inc(ps);
-      Inc(i);
-    end;
-    //
-    Inc_I();
-  end;
-  SetLength(r,ral);
-  case ACollation^.VariableWeight of
-    TUCA_VariableKind.ucaShifted        : Result := FormKeyShifted(r,ACollation);
-    TUCA_VariableKind.ucaBlanked        : Result := FormKeyBlanked(r,ACollation);
-    TUCA_VariableKind.ucaNonIgnorable   : Result := FormKeyNonIgnorable(r,ACollation);
-    TUCA_VariableKind.ucaShiftedTrimmed : Result := FormKeyShiftedTrimmed(r,ACollation);
-    else
-      Result := FormKeyShifted(r,ACollation);
-  end;
-end;
-
-//--------------------------------------------------------------------------
 
 function ComputeRawSortKey(
   const AStr       : PUnicodeChar;
