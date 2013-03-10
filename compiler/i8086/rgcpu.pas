@@ -38,11 +38,18 @@ unit rgcpu;
           procedure add_constraints(reg:Tregister);override;
        end;
 
+       trgintcpu = class(trgcpu)
+         procedure add_cpu_interferences(p : tai);override;
+       end;
+
+
 implementation
 
     uses
-       systems,
-       verbose;
+      systems,
+      verbose,
+      aasmcpu,
+      cgutils;
 
     const
        { This value is used in tsaved. If the array value is equal
@@ -67,5 +74,38 @@ implementation
           end;
       end;
 
+
+    procedure trgintcpu.add_cpu_interferences(p : tai);
+      var
+        href : treference;
+        i : integer;
+      begin
+        if p.typ=ait_instruction then
+          begin
+            for i:=0 to taicpu(p).ops-1 do
+              begin
+                if taicpu(p).oper[i]^.typ=top_ref then
+                  begin
+                    href:=taicpu(p).oper[i]^.ref^;
+                    if (href.base<>NR_NO) and (getsupreg(href.base)>=first_int_imreg) then
+                      begin
+                        add_edge(getsupreg(href.base),RS_AX);
+                        add_edge(getsupreg(href.base),RS_CX);
+                        add_edge(getsupreg(href.base),RS_DX);
+                        add_edge(getsupreg(href.base),RS_SI);
+                        add_edge(getsupreg(href.base),RS_DI);
+                      end;
+                    if (href.index<>NR_NO) and (getsupreg(href.index)>=first_int_imreg) then
+                      begin
+                        add_edge(getsupreg(href.index),RS_AX);
+                        add_edge(getsupreg(href.index),RS_BX);
+                        add_edge(getsupreg(href.index),RS_CX);
+                        add_edge(getsupreg(href.index),RS_DX);
+                        add_edge(getsupreg(href.index),RS_BP);
+                      end;
+                  end;
+              end;
+          end;
+      end;
 
 end.

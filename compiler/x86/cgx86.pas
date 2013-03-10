@@ -375,7 +375,7 @@ unit cgx86;
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
-{$ifdef x86_64}
+{$if defined(x86_64)}
         { Only 32bit is allowed }
         { Note that this isn't entirely correct: for RIP-relative targets/memory models,
           it is actually (offset+@symbol-RIP) that should fit into 32 bits. Since two last
@@ -511,7 +511,7 @@ unit cgx86;
 
                 end;
           end;
-{$else x86_64}
+{$elseif defined(i386)}
         add_hreg:=false;
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
@@ -567,7 +567,8 @@ unit cgx86;
                 ref.base:=hreg;
               end;
           end;
-{$endif x86_64}
+{$elseif defined(i8086)}
+{$endif}
       end;
 
 
