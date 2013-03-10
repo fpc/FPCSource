@@ -18,6 +18,9 @@ uses
 {$ifdef MSWINDOWS}
   Windows,
 {$endif MSWINDOWS}
+{$ifdef Unix}
+  unixcp,
+{$endif}
   sysutils, character, charset;
   
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
@@ -806,6 +809,7 @@ begin
   DefaultSystemCodePage:=GetACP();
 {$endif MSWINDOWS}
 {$ifdef UNIX}
+  DefaultSystemCodePage:=GetSystemCodepage;
   if (DefaultSystemCodePage = CP_NONE) then
     DefaultSystemCodePage:=CP_UTF8;
 {$endif UNIX}
