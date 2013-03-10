@@ -14,7 +14,7 @@
 	mov es, ax
 	jmp PASCALMAIN
 
-	segment stack stack
+	segment stack stack class=stack
 	resb 4096
 	stacktop:
 
