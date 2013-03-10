@@ -1269,14 +1269,19 @@ Implementation
                           MatchInstruction(p, A_AND, [C_None], [PF_None]) and
                           GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                           MatchInstruction(hp1, [A_UXTB,A_UXTH], [C_None], [PF_None]) and
-                          assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+                          RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                           MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                           { reg1 might not be modified inbetween }
                           not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                           begin
                             DebugMsg('Peephole AndUxt2And done', p);
-                            taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
-                            asml.remove(hp1);
+                            taicpu(hp1).opcode:=A_AND;
+                            taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                            taicpu(hp1).loadconst(2,255);
+                            GetNextInstruction(p,hp1);
+                            asml.remove(p);
+                            p.Free;
+                            p:=hp1;
                             result:=true;
                           end
                         {
@@ -1501,8 +1506,8 @@ Implementation
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
-                      (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                       (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { reg1 might not be modified inbetween }
                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                       begin
@@ -1526,8 +1531,8 @@ Implementation
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTB, [C_None], [PF_None]) and
-                      (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                       (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { reg1 might not be modified inbetween }
                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                       begin
@@ -1554,8 +1559,8 @@ Implementation
                       (taicpu(hp1).ops=3) and
                       (taicpu(hp1).oper[2]^.typ=top_const) and
                       ((taicpu(hp1).oper[2]^.val and $FF)=$FF) and
-                      (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                      (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { reg1 might not be modified inbetween }
                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                       begin
@@ -1588,7 +1593,7 @@ Implementation
                     if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_STR, [C_None], [PF_H]) and
-                      assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { the reference in strb might not use reg2 }
                       not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
                       { reg1 might not be modified inbetween }
@@ -1612,8 +1617,8 @@ Implementation
                     else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
-                      (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                      (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { reg1 might not be modified inbetween }
                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                       begin
@@ -1639,8 +1644,8 @@ Implementation
                       (taicpu(hp1).ops=3) and
                       (taicpu(hp1).oper[2]^.typ=top_const) and
                       ((taicpu(hp1).oper[2]^.val and $FFFF)=$FFFF) and
-                      (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
-                      (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                       { reg1 might not be modified inbetween }
                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                       begin
