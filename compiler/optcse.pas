@@ -179,7 +179,9 @@ unit optcse;
               current stack frame, those are in registers anyways if possible
             }
             (not(n.nodetype=loadn) or
-             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
+             { apply cse on non-regable static variables }
+             ((tloadnode(n).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(n).symtableentry).varregable=vr_none)) or
              (node_complexity(n)>1)
             ) and
 
