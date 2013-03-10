@@ -1062,6 +1062,7 @@ implementation
               if (destloc.size = paraloc^.Size) and
                  (paraloc^.Loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
                 begin
+                  unget_para(paraloc^);
                   gen_alloc_regloc(list,destloc);
                   cg.a_loadfpu_reg_reg(list,paraloc^.Size, destloc.size, paraloc^.register, destloc.register);
                 end
