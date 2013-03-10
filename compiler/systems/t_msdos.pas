@@ -24,7 +24,7 @@ unit t_msdos;
 
 {$i fpcdefs.inc}
 
-{$define USE_LINKER_ALINK}
+{$define USE_LINKER_WLINK}
 
 interface
 
@@ -51,6 +51,16 @@ implementation
 
       { the ALINK linker from http://alink.sourceforge.net/ }
       TExternalLinkerMsDosALink=class(texternallinker)
+      private
+         Function  WriteResponseFile(isdll:boolean) : Boolean;
+      public
+         constructor Create;override;
+         procedure SetDefaultInfo;override;
+         function  MakeExecutable:boolean;override;
+      end;
+
+      { the (Open) Watcom linker }
+      TExternalLinkerMsDosWLink=class(texternallinker)
       private
          Function  WriteResponseFile(isdll:boolean) : Boolean;
       public
@@ -215,6 +225,86 @@ begin
 end;
 
 
+
+{****************************************************************************
+                               TExternalLinkerMsDosWLink
+****************************************************************************}
+
+{ TExternalLinkerMsDosWLink }
+
+function TExternalLinkerMsDosWLink.WriteResponseFile(isdll: boolean): Boolean;
+Var
+  linkres  : TLinkRes;
+  s        : string;
+begin
+  WriteResponseFile:=False;
+
+  { Open link.res file }
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+
+  { Add all options to link.res instead of passing them via command line:
+    DOS command line is limited to 126 characters! }
+
+  { add objectfiles, start with prt0 always }
+  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0','',false)));
+  while not ObjectFiles.Empty do
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkRes.Add('file ' + maybequoted(s));
+  end;
+  LinkRes.Add('format dos');
+  LinkRes.Add('option dosseg');
+  LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+
+  { Write and Close response }
+  linkres.writetodisk;
+  LinkRes.Free;
+
+  WriteResponseFile:=True;
+end;
+
+constructor TExternalLinkerMsDosWLink.Create;
+begin
+  Inherited Create;
+  { allow duplicated libs (PM) }
+  SharedLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;
+end;
+
+procedure TExternalLinkerMsDosWLink.SetDefaultInfo;
+begin
+  with Info do
+   begin
+     ExeCmd[1]:='wlink $RES';
+   end;
+end;
+
+function TExternalLinkerMsDosWLink.MakeExecutable: boolean;
+var
+  binstr,
+  cmdstr  : TCmdStr;
+  success : boolean;
+begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.exefilename);
+
+  { Write used files and libraries and our own tlink script }
+  WriteResponsefile(false);
+
+  { Call linker }
+  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    DeleteFile(outputexedir+Info.ResName);
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
+
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
@@ -224,6 +314,8 @@ initialization
   RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosTLink);
 {$elseif defined(USE_LINKER_ALINK)}
   RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosALink);
+{$elseif defined(USE_LINKER_WLINK)}
+  RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosWLink);
 {$else}
   {$fatal no linker defined}
 {$endif}
