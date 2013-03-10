@@ -1071,7 +1071,7 @@ implementation
               curtai:=tai(curtai.next);
           end;
         { align thumb in thumb .text section to 4 bytes }
-        if not(curdata.empty) and (current_settings.cputype in cpu_thumb) then
+        if not(curdata.empty) and (current_settings.cputype in cpu_thumb+cpu_thumb2) then
           curdata.Insert(tai_align.Create(4));
         list.concatlist(curdata);
         curdata.free;

@@ -23,8 +23,6 @@ const
  APB2Base 			= PeripheralBase+$10000;
  AHBBase 			= PeripheralBase+$20000;
 
- SCS_BASE         = $E000E000;
-
  { FSMC }
  FSMCBank1NOR1		= FSMCBase+$00000000;
  FSMCBank1NOR2		= FSMCBase+$04000000;
@@ -329,51 +327,6 @@ type
   WRPR: longword;
  end;
 
- TNVICRegisters = record
-  ISER: array[0..7] of longword;
-   reserved0: array[0..23] of longword;
-  ICER: array[0..7] of longword;
-   reserved1: array[0..23] of longword;
-  ISPR: array[0..7] of longword;
-   reserved2: array[0..23] of longword;
-  ICPR: array[0..7] of longword;
-   reserved3: array[0..23] of longword;
-  IABR: array[0..7] of longword;
-   reserved4: array[0..55] of longword;
-  IP: array[0..239] of byte;
-   reserved5: array[0..643] of longword;
-  STIR: longword;
- end;
-
- TSCBRegisters = record
-  CPUID,                            {!< CPU ID Base Register                                     }
-  ICSR,                             {!< Interrupt Control State Register                         }
-  VTOR,                             {!< Vector Table Offset Register                             }
-  AIRCR,                            {!< Application Interrupt / Reset Control Register           }
-  SCR,                              {!< System Control Register                                  }
-  CCR: longword;                    {!< Configuration Control Register                           }
-  SHP: array[0..11] of byte;        {!< System Handlers Priority Registers (4-7, 8-11, 12-15)    }
-  SHCSR,                            {!< System Handler Control and State Register                }
-  CFSR,                             {!< Configurable Fault Status Register                       }
-  HFSR,                             {!< Hard Fault Status Register                               }
-  DFSR,                             {!< Debug Fault Status Register                              }
-  MMFAR,                            {!< Mem Manage Address Register                              }
-  BFAR,                             {!< Bus Fault Address Register                               }
-  AFSR: longword;                   {!< Auxiliary Fault Status Register                          }
-  PFR: array[0..1] of longword;     {!< Processor Feature Register                               }
-  DFR,                              {!< Debug Feature Register                                   }
-  ADR: longword;                    {!< Auxiliary Feature Register                               }
-  MMFR: array[0..3] of longword;    {!< Memory Model Feature Register                            }
-  ISAR: array[0..4] of longword;    {!< ISA Feature Register                                     }
- end;
-
- TSysTickRegisters = record
-  Ctrl,
-  Load,
-  Val,
-  Calib: longword;
- end;
-
 {$ALIGN 2}
 var
  { Timers }
@@ -457,15 +410,6 @@ var
 
  { CRC }
  CRC: TCRCRegisters			absolute (AHBBase+$3000);
-
- { SCB }
- SCB: TSCBRegisters        absolute (SCS_BASE+$0D00);
-
- { SysTick }
- SysTick: TSysTickRegisters   absolute (SCS_BASE+$0010);
-
- { NVIC }
- NVIC: TNVICRegisters      absolute (SCS_BASE+$0100);
 
 implementation
 
@@ -706,77 +650,77 @@ interrupt_vectors:
    .weak USB_On_The_Go_FS_global_interrupt
 
    
-   .set NMI_interrupt, Startup
-   .set Hardfault_interrupt, Startup
-   .set MemManage_interrupt, Startup
-   .set BusFault_interrupt, Startup
-   .set UsageFault_interrupt, Startup
-   .set SWI_interrupt, Startup
-   .set DebugMonitor_interrupt, Startup
-   .set PendingSV_interrupt, Startup
-   .set SysTick_interrupt, Startup
+   .set NMI_interrupt, HaltProc
+   .set Hardfault_interrupt, HaltProc
+   .set MemManage_interrupt, HaltProc
+   .set BusFault_interrupt, HaltProc
+   .set UsageFault_interrupt, HaltProc
+   .set SWI_interrupt, HaltProc
+   .set DebugMonitor_interrupt, HaltProc
+   .set PendingSV_interrupt, HaltProc
+   .set SysTick_interrupt, HaltProc
 
-   .set Window_Watchdog_interrupt, Startup
-   .set PVD_through_EXTI_Line_detection_interrupt, Startup
-   .set Tamper_interrupt, Startup
-   .set RTC_global_interrupt, Startup
-   .set Flash_global_interrupt, Startup
-   .set RCC_global_interrupt, Startup
-   .set EXTI_Line0_interrupt, Startup
-   .set EXTI_Line1_interrupt, Startup
-   .set EXTI_Line2_interrupt, Startup
-   .set EXTI_Line3_interrupt, Startup
-   .set EXTI_Line4_interrupt, Startup
-   .set DMA1_Channel1_global_interrupt, Startup
-   .set DMA1_Channel2_global_interrupt, Startup
-   .set DMA1_Channel3_global_interrupt, Startup
-   .set DMA1_Channel4_global_interrupt, Startup
-   .set DMA1_Channel5_global_interrupt, Startup
-   .set DMA1_Channel6_global_interrupt, Startup
-   .set DMA1_Channel7_global_interrupt, Startup
-   .set ADC1_and_ADC2_global_interrupt, Startup
-   .set CAN1_TX_interrupts, Startup
-   .set CAN1_RX0_interrupts, Startup
-   .set CAN1_RX1_interrupt, Startup
-   .set CAN1_SCE_interrupt, Startup
-   .set EXTI_Line9_5_interrupts, Startup
-   .set TIM1_Break_interrupt, Startup
-   .set TIM1_Update_interrupt, Startup
-   .set TIM1_Trigger_and_Commutation_interrupts, Startup
-   .set TIM1_Capture_Compare_interrupt, Startup
-   .set TIM2_global_interrupt, Startup
-   .set TIM3_global_interrupt, Startup
-   .set TIM4_global_interrupt, Startup
-   .set I2C1_event_interrupt, Startup
-   .set I2C1_error_interrupt, Startup
-   .set I2C2_event_interrupt, Startup
-   .set I2C2_error_interrupt, Startup
-   .set SPI1_global_interrupt, Startup
-   .set SPI2_global_interrupt, Startup
-   .set USART1_global_interrupt, Startup
-   .set USART2_global_interrupt, Startup
-   .set USART3_global_interrupt, Startup
-   .set EXTI_Line15_10_interrupts, Startup
-   .set RTC_alarm_through_EXTI_line_interrupt, Startup
-   .set USB_OTG_FS_Wakeup_through_EXTI_line_interrupt, Startup
-   .set TIM5_global_interrupt, Startup
-   .set SPI3_global_interrupt, Startup
-   .set UART4_global_interrupt, Startup
-   .set UART5_global_interrupt, Startup
-   .set TIM6_global_interrupt, Startup
-   .set TIM7_global_interrupt, Startup
-   .set DMA2_Channel1_global_interrupt, Startup
-   .set DMA2_Channel2_global_interrupt, Startup
-   .set DMA2_Channel3_global_interrupt, Startup
-   .set DMA2_Channel4_global_interrupt, Startup
-   .set DMA2_Channel5_global_interrupt, Startup
-   .set Ethernet_global_interrupt, Startup
-   .set Ethernet_Wakeup_through_EXTI_line_interrupt, Startup
-   .set CAN2_TX_interrupts, Startup
-   .set CAN2_RX0_interrupts, Startup
-   .set CAN2_RX1_interrupt, Startup
-   .set CAN2_SCE_interrupt, Startup
-   .set USB_On_The_Go_FS_global_interrupt, Startup
+   .set Window_Watchdog_interrupt, HaltProc
+   .set PVD_through_EXTI_Line_detection_interrupt, HaltProc
+   .set Tamper_interrupt, HaltProc
+   .set RTC_global_interrupt, HaltProc
+   .set Flash_global_interrupt, HaltProc
+   .set RCC_global_interrupt, HaltProc
+   .set EXTI_Line0_interrupt, HaltProc
+   .set EXTI_Line1_interrupt, HaltProc
+   .set EXTI_Line2_interrupt, HaltProc
+   .set EXTI_Line3_interrupt, HaltProc
+   .set EXTI_Line4_interrupt, HaltProc
+   .set DMA1_Channel1_global_interrupt, HaltProc
+   .set DMA1_Channel2_global_interrupt, HaltProc
+   .set DMA1_Channel3_global_interrupt, HaltProc
+   .set DMA1_Channel4_global_interrupt, HaltProc
+   .set DMA1_Channel5_global_interrupt, HaltProc
+   .set DMA1_Channel6_global_interrupt, HaltProc
+   .set DMA1_Channel7_global_interrupt, HaltProc
+   .set ADC1_and_ADC2_global_interrupt, HaltProc
+   .set CAN1_TX_interrupts, HaltProc
+   .set CAN1_RX0_interrupts, HaltProc
+   .set CAN1_RX1_interrupt, HaltProc
+   .set CAN1_SCE_interrupt, HaltProc
+   .set EXTI_Line9_5_interrupts, HaltProc
+   .set TIM1_Break_interrupt, HaltProc
+   .set TIM1_Update_interrupt, HaltProc
+   .set TIM1_Trigger_and_Commutation_interrupts, HaltProc
+   .set TIM1_Capture_Compare_interrupt, HaltProc
+   .set TIM2_global_interrupt, HaltProc
+   .set TIM3_global_interrupt, HaltProc
+   .set TIM4_global_interrupt, HaltProc
+   .set I2C1_event_interrupt, HaltProc
+   .set I2C1_error_interrupt, HaltProc
+   .set I2C2_event_interrupt, HaltProc
+   .set I2C2_error_interrupt, HaltProc
+   .set SPI1_global_interrupt, HaltProc
+   .set SPI2_global_interrupt, HaltProc
+   .set USART1_global_interrupt, HaltProc
+   .set USART2_global_interrupt, HaltProc
+   .set USART3_global_interrupt, HaltProc
+   .set EXTI_Line15_10_interrupts, HaltProc
+   .set RTC_alarm_through_EXTI_line_interrupt, HaltProc
+   .set USB_OTG_FS_Wakeup_through_EXTI_line_interrupt, HaltProc
+   .set TIM5_global_interrupt, HaltProc
+   .set SPI3_global_interrupt, HaltProc
+   .set UART4_global_interrupt, HaltProc
+   .set UART5_global_interrupt, HaltProc
+   .set TIM6_global_interrupt, HaltProc
+   .set TIM7_global_interrupt, HaltProc
+   .set DMA2_Channel1_global_interrupt, HaltProc
+   .set DMA2_Channel2_global_interrupt, HaltProc
+   .set DMA2_Channel3_global_interrupt, HaltProc
+   .set DMA2_Channel4_global_interrupt, HaltProc
+   .set DMA2_Channel5_global_interrupt, HaltProc
+   .set Ethernet_global_interrupt, HaltProc
+   .set Ethernet_Wakeup_through_EXTI_line_interrupt, HaltProc
+   .set CAN2_TX_interrupts, HaltProc
+   .set CAN2_RX0_interrupts, HaltProc
+   .set CAN2_RX1_interrupt, HaltProc
+   .set CAN2_SCE_interrupt, HaltProc
+   .set USB_On_The_Go_FS_global_interrupt, HaltProc
    
    .text
 end;

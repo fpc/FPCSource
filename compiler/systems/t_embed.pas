@@ -344,6 +344,12 @@ begin
       { TI - Stellaris something }
       ct_lm4f120h5,
       
+      { Infineon }
+      ct_xmc4500x1024,
+      ct_xmc4500x768,
+      ct_xmc4502x768,
+      ct_xmc4504x512,
+      
       ct_sc32442b,
       ct_thumb2bare:
         begin
@@ -379,6 +385,7 @@ begin
       Add('{');
       Add('     .text :');
       Add('    {');
+      Add('    _text_start = .;');
       Add('    KEEP(*(.init, .init.*))');
       Add('    *(.text, .text.*)');
       Add('    *(.strings)');

@@ -2,6 +2,7 @@ var
  _stack_top: record end; external name '_stack_top';
  _data: record end; external name '_data';
  _edata: record end; external name '_edata';
+ _text_start: record end; external name '_text_start';
  _etext: record end; external name '_etext';
  _bss_start: record end; external name '_bss_start';
  _bss_end: record end; external name '_bss_end';
@@ -36,6 +37,12 @@ asm
   strls r0,[r1],#4
   bls .Lzeroloop
 
+{$ifdef REMAP_VECTTAB}
+  ldr r0, .Lvtor
+  ldr r1, .Ltext_start
+  str r1, [r0]
+{$endif REMAP_VECTTAB}
+
   bl PASCALMAIN
   b HaltProc
 
@@ -49,4 +56,10 @@ asm
   .long _data
 .L_edata:
   .long _edata
+{$ifdef REMAP_VECTTAB}
+.Lvtor:
+  .long 0xE000ED08
+.Ltext_start:
+  .long _text_start
+{$endif REMAP_VECTTAB}
 end;
