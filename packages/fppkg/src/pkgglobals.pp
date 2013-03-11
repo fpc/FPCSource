@@ -75,7 +75,7 @@ Procedure Error(Const Msg : String);
 
 // Utils
 function maybequoted(const s:string):string;
-Function FixPath(const S : String) : string;
+Function FixPath(const S : String) : string; inline; deprecated 'Use fpmkunit.FixPath instead';
 Function DirectoryExistsLog(const ADir:string):Boolean;
 Function FileExistsLog(const AFileName:string):Boolean;
 procedure BackupFile(const AFileName: String);
@@ -243,10 +243,7 @@ end;
 
 Function FixPath(const S : String) : string;
 begin
-  If (S<>'') then
-    Result:=IncludeTrailingPathDelimiter(S)
-  else
-    Result:='';
+  Result:=fpmkunit.FixPath(S, True);
 end;
 
 

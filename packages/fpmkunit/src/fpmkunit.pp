@@ -1245,7 +1245,8 @@ Function ModeToString(Mode: TCompilerMode) : String;
 Function StringToMode(const S : String) : TCompilerMode;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
-Function FixPath (const APath : String) : String;
+Function FixPath (const APath : String) : String; inline; deprecated 'Use the overload with AIsDir instead';
+Function FixPath (const APath : String; AIsDir : Boolean) : String;
 Function IsRelativePath(const APath : String) : boolean;
 Procedure ChangeDir(const APath : String);
 Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
@@ -2022,6 +2023,11 @@ end;
 
 
 function FixPath (const APath : String) : String;
+begin
+  Result := FixPath(APath, False);
+end;
+
+function FixPath (const APath : String; AIsDir : Boolean) : String;
 Var
   P : PChar;
 begin
@@ -2037,6 +2043,8 @@ begin
           Inc(P);
         end;
     end;
+  if AIsDir and (Result <> '') then
+    Result := IncludeTrailingPathDelimiter(Result);;
 end;
 
 function IsRelativePath(const APath: String): boolean;
@@ -2854,12 +2862,12 @@ end;
 
 Function TPackage.GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
 begin
-  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
 end;
 
 function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
 end;
 
 procedure TPackage.InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
@@ -2903,7 +2911,7 @@ end;
 
 function TPackage.GetPackageUnitInstallDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]));
+  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
 end;
 
 procedure TPackage.SetPackageUnitInstallDir(AValue: string);
@@ -3484,7 +3492,7 @@ end;
 
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
-  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir));
+  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir), True);
 end;
 
 
@@ -3496,9 +3504,9 @@ end;
 function TCustomDefaults.GetFPDocOutputDir: String;
 begin
   If (FFPDocOutputDir<>'') then
-    Result:=IncludeTrailingPathDelimiter(FixPath(FFPDocOutputDir))
+    Result:=FixPath(FFPDocOutputDir, True)
   else
-    Result:=IncludeTrailingPathDelimiter(FixPath('.'+PathDelim+'docs'));
+    Result:=FixPath('.'+PathDelim+'docs', True);
 end;
 
 function TCustomDefaults.GetBuildCPU: TCpu;
@@ -3880,7 +3888,7 @@ begin
 
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
-  BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
   if BD='' then
     begin
       BD:='/usr/local/lib/fpc/'+FCompilerVersion;
@@ -3889,7 +3897,7 @@ begin
         BD:='/usr/lib/fpc/'+FCompilerVersion;
     end;
 {$else unix}
-  BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
   if BD='' then
     begin
       BD:=ExtractFilePath(FCompiler)+'..';
@@ -6930,7 +6938,7 @@ procedure TTarget.SetName(const AValue: String);
 Var
   D,N,E : String;
 begin
-  N:=FixPath(AValue);
+  N:=FixPath(AValue, False);
   D:=ExtractFilePath(N);
   E:=ExtractFileExt(N);
   N:=ExtractFileName(N);
@@ -6941,7 +6949,7 @@ end;
 
 procedure TTarget.SetXML(const AValue: string);
 begin
-  FXML:=FixPath(AValue);
+  FXML:=FixPath(AValue, False);
 end;
 
 procedure TTarget.GetCleanFiles(List: TStrings; const APrefixU, APrefixB : String; ACPU: TCPU; AOS : TOS);
@@ -7301,7 +7309,7 @@ Function TDependencies.AddInclude(Const Value : String;const CPUs:TCPUs;const OS
 Var
   N : String;
 begin
-  N:=FixPath(Value);
+  N:=FixPath(Value, False);
   if ExtractFileExt(N)='' then
     ChangeFileExt(N,IncExt);
   Result:=inherited Add(N,CPUs,OSes) as TDependency;
