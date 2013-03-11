@@ -435,14 +435,34 @@ implementation
          { load left operators in a register }
          if is_signed(left.resultdef) then
            begin
-             opsize:=OS_SINT;
-             opdef:=ossinttype
+             {$ifdef cpu16bitalu}
+               if left.resultdef.size > 2 then
+                 begin
+                   opsize:=OS_S32;
+                   opdef:=s32inttype;
+                 end
+               else
+             {$endif cpu16bitalu}
+                 begin
+                   opsize:=OS_SINT;
+                   opdef:=ossinttype
+                 end;
            end
          else
            begin
-             opsize:=OS_INT;
-             opdef:=osuinttype;
-           end;
+             {$ifdef cpu16bitalu}
+               if left.resultdef.size > 2 then
+                 begin
+                   opsize:=OS_32;
+                   opdef:=u32inttype;
+                 end
+               else
+             {$endif cpu16bitalu}
+                 begin
+                   opsize:=OS_INT;
+                   opdef:=osuinttype;
+                 end;
+             end;
 {$endif cpunodefaultint}
 
          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
