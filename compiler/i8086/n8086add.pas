@@ -55,18 +55,17 @@ interface
 
     function ti8086addnode.use_generic_mul32to64: boolean;
     begin
-      result := False;
+      result := True;
     end;
 
-    { handles all unsigned multiplications, and 32->64 bit signed ones.
-      32bit-only signed mul is handled by generic codegen }
+    { handles all multiplications }
     procedure ti8086addnode.second_addordinal;
     var
       unsigned: boolean;
     begin
       unsigned:=not(is_signed(left.resultdef)) or
                 not(is_signed(right.resultdef));
-      if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
+      if nodetype=muln then
         second_mul(unsigned)
       else
         inherited second_addordinal;
@@ -368,6 +367,15 @@ interface
 
     procedure ti8086addnode.second_mul(unsigned: boolean);
 
+      procedure add_mov(instr: Taicpu);
+        begin
+          { Notify the register allocator that we have written a move instruction so
+            it can try to eliminate it. }
+          if (instr.oper[0]^.reg<>current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
+            tcgx86(cg).add_move_instruction(instr);
+          current_asmdata.CurrAsmList.concat(instr);
+        end;
+
     var reg:Tregister;
         ref:Treference;
         use_ref:boolean;
@@ -382,8 +390,7 @@ interface
       {The location.register will be filled in later (JM)}
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       { Mul supports registers and references, so if not register/reference,
-        load the location into a register.
-        The variant of IMUL which is capable of doing 32->64 bits has the same restrictions. }
+        load the location into a register. }
       use_ref:=false;
       if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
         reg:=left.location.register
@@ -399,42 +406,41 @@ interface
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
-      {Allocate EAX.}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+      {Allocate AX.}
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
       {Load the right value.}
-      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
-      {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_AX);
+      {Also allocate DX, since it is also modified by a mul (JM).}
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
       if use_ref then
-        emit_ref(asmops[unsigned],S_L,ref)
+        emit_ref(asmops[unsigned],S_W,ref)
       else
-        emit_reg(asmops[unsigned],S_L,reg);
+        emit_reg(asmops[unsigned],S_W,reg);
       if (cs_check_overflow in current_settings.localswitches) and
-        { 32->64 bit cannot overflow }
-        (not is_64bit(resultdef)) then
+        { 16->32 bit cannot overflow }
+        (not is_32bitint(resultdef)) then
         begin
           current_asmdata.getjumplabel(hl4);
           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
           cg.a_label(current_asmdata.CurrAsmList,hl4);
         end;
-      {Free EAX,EDX}
-      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      if is_64bit(resultdef) then
+      {Free AX,DX}
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+      if is_32bitint(resultdef) then
       begin
-        {Allocate a couple of registers and store EDX:EAX into it}
-        location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EDX, location.register64.reghi);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-        location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EAX, location.register64.reglo);
+        {Allocate an imaginary 32-bit register, which consists of a pair of
+         16-bit registers and store DX:AX into it}
+        location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,location.register));
+        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_DX,GetNextReg(location.register)));
       end
       else
       begin
-        {Allocate a new register and store the result in EAX in it.}
+        {Allocate a new register and store the result in AX in it.}
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register);
+        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end;
       location_freetemp(current_asmdata.CurrAsmList,left.location);
       location_freetemp(current_asmdata.CurrAsmList,right.location);
