@@ -335,7 +335,6 @@ unit cgcpu;
                   internalerror(2013031101);
                 if cgpara.location^.Next^.Next <> nil then
                   internalerror(2013031101);
-                Writeln(cgpara.alignment);
                 if cgpara.alignment <> 4 then
                   internalerror(2013031101);
 
