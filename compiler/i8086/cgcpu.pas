@@ -323,12 +323,34 @@ unit cgcpu;
       begin
         if use_push(cgpara) then
           begin
-            cgpara.check_simple_location;
-            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
-              pushsize:=cgpara.location^.size
+            if tcgsize2size[cgpara.Size] > 2 then
+              begin
+                if tcgsize2size[cgpara.Size] <> 4 then
+                  internalerror(2013031101);
+                if tcgsize2size[cgpara.location^.size] <> 2 then
+                  internalerror(2013031101);
+                if cgpara.location^.Next = nil then
+                  internalerror(2013031101);
+                if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                  internalerror(2013031101);
+                if cgpara.location^.Next^.Next <> nil then
+                  internalerror(2013031101);
+                Writeln(cgpara.alignment);
+                if cgpara.alignment <> 4 then
+                  internalerror(2013031101);
+
+                list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a shr 16));
+                list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a and $FFFF));
+              end
             else
-              pushsize:=int_cgsize(cgpara.alignment);
-            list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
+              begin
+                cgpara.check_simple_location;
+                if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+                  pushsize:=cgpara.location^.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
+              end;
           end
         else
           inherited a_load_const_cgpara(list,size,a,cgpara);
