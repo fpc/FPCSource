@@ -314,6 +314,7 @@ begin
    end;
    if length(InterS) > 0 then Field.add(InterS);
    List_Field.add(Field);
+   Field.Free;
 end;
 {*************************************************************}
 constructor TSQLite.Create(DBFileName: String);
@@ -348,6 +349,7 @@ begin
       fError := SQLITE_OK;
    end;
    fMsg := sqlite3_errmsg(fSQLite);
+   strdispose(name);
 end;
 {*************************************************************}
 destructor TSQLite.Destroy;
