@@ -54,6 +54,7 @@
   {$define fewintregisters}
   {$define cpurox}
   {$define SUPPORT_SAFECALL}
+  {$define cpuneedsmulhelper}
 {$endif i8086}
 
 {$ifdef i386}
