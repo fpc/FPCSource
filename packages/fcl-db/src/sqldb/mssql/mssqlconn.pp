@@ -931,13 +931,20 @@ begin
 end;
 
 function TMSSQLConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
-const SCHEMA_QUERY='select name as %s from sysobjects where type=''%s'' order by 1';
+const SCHEMA_QUERY='select id as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, name as %s '+
+                   'from sysobjects '+
+                   'where type in (%s) '+
+                   'order by name';
 begin
   case SchemaType of
-    stTables     : Result := format(SCHEMA_QUERY, ['table_name','U']);
-    stSysTables  : Result := format(SCHEMA_QUERY, ['table_name','S']);
-    stProcedures : Result := format(SCHEMA_QUERY, ['proc_name','P']);
-    stColumns    : Result := 'select name as column_name from syscolumns where id=object_id(''' + SchemaObjectName + ''') order by colorder';
+    stTables     : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 1 as TABLE_TYPE', '''U''']);
+    stSysTables  : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 4 as TABLE_TYPE', '''S''']);
+    stProcedures : Result := format(SCHEMA_QUERY, ['PROC_NAME , case type when ''P'' then 1 else 2 end as PROC_TYPE', '''P'',''FN'',''IF'',''TF''']);
+    stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME, c.name as COLUMN_NAME,'+
+                                    'colid as COLUMN_POSITION, prec as COLUMN_PRECISION, scale as COLUMN_SCALE, length as COLUMN_LENGTH, case when c.status&8=8 then 1 else 0 end as COLUMN_NULLABLE '+
+                             'from syscolumns c join sysobjects o on c.id=o.id '+
+                             'where c.id=object_id(''' + SchemaObjectName + ''') '+
+                             'order by colid';
   else
     DatabaseError(SMetadataUnavailable)
   end;
