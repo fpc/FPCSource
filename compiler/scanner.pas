@@ -2635,7 +2635,7 @@ In case not, the value returned can be arbitrary.
             begin
               len:=length(cstringpattern);
               tokenwritesizeint(len);
-              recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
+              recordtokenbuf.write(cstringpattern[1],len);
             end;
           _CCHAR,
           _INTCONST,
