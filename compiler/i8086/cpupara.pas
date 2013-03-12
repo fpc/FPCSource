@@ -149,6 +149,15 @@ unit cpupara;
               end;
             end;
         end;
+
+        { 64-bit types are returned as a parameter pointer, since putting them
+          in registers would require 4 registers on the i8086 }
+        if def.size > 4 then
+          begin
+            result:=true;
+            exit;
+          end;
+
         result:=inherited ret_in_param(def,pd);
       end;
 
@@ -373,6 +382,8 @@ unit cpupara;
           begin
             paraloc:=result.add_location;
             paraloc^.loc:=LOC_REGISTER;
+            if retcgsize in [OS_64,OS_S64] then
+              internalerror(2013031201);
             if retcgsize in [OS_32,OS_S32] then
              begin
                { low 16bits }
