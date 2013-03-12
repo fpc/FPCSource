@@ -327,14 +327,20 @@ unit cgcpu;
               begin
                 if tcgsize2size[cgpara.Size] <> 4 then
                   internalerror(2013031101);
-                if tcgsize2size[cgpara.location^.size] <> 2 then
-                  internalerror(2013031101);
                 if cgpara.location^.Next = nil then
-                  internalerror(2013031101);
-                if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
-                  internalerror(2013031101);
-                if cgpara.location^.Next^.Next <> nil then
-                  internalerror(2013031101);
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 4 then
+                      internalerror(2013031101);
+                  end
+                else
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 2 then
+                      internalerror(2013031101);
+                    if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                      internalerror(2013031101);
+                    if cgpara.location^.Next^.Next <> nil then
+                      internalerror(2013031101);
+                  end;
                 if cgpara.alignment <> 4 then
                   internalerror(2013031101);
 
