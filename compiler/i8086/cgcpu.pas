@@ -78,8 +78,8 @@ unit cgcpu;
       tcg64f386 = class(tcg64f32)
 {        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;}
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
-{        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
-        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;}
+        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+{        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;}
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -300,7 +300,7 @@ unit cgcpu;
 
     procedure tcg8086.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
-        pushsize : tcgsize;
+        pushsize, pushsize2: tcgsize;
       begin
         check_register_size(size,r);
         if use_push(cgpara) then
@@ -310,7 +310,14 @@ unit cgcpu;
               pushsize:=cgpara.location^.size
             else
               pushsize:=int_cgsize(cgpara.alignment);
-            list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+            if tcgsize2size[pushsize] > 2 then
+              begin
+                pushsize2 := int_cgsize(tcgsize2size[pushsize] - 2);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize2],makeregsize(list,GetNextReg(r),pushsize2)));
+                list.concat(taicpu.op_reg(A_PUSH,S_W,makeregsize(list,r,OS_16)));
+              end
+            else
+              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
           end
         else
           inherited a_load_reg_cgpara(list,size,r,cgpara);
@@ -369,13 +376,13 @@ unit cgcpu;
           pushsize : tcgsize;
           opsize : topsize;
           tmpreg   : tregister;
-          href     : treference;
+          href,tmpref: treference;
         begin
           if not assigned(paraloc) then
             exit;
           if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
-             (tcgsize2size[paraloc^.size]>sizeof(aint)) then
+             (tcgsize2size[paraloc^.size]>4) then
             internalerror(200501162);
           { Pushes are needed in reverse order, add the size of the
             current location to the offset where to load from. This
@@ -404,6 +411,12 @@ unit cgcpu;
           else
             begin
               make_simple_ref(list,href);
+              if tcgsize2size[pushsize] > 2 then
+                begin
+                  tmpref := href;
+                  Inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[int_cgsize(tcgsize2size[pushsize]-2)],tmpref));
+                end;
               list.concat(taicpu.op_ref(A_PUSH,opsize,href));
             end;
         end;
@@ -1385,7 +1398,7 @@ unit cgcpu;
       end;
 
 
-(*    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
+    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -1399,8 +1412,10 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
-              list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
-              list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
+              list.concat(taicpu.op_const_reg(op1,S_W,aint(value and $ffff),reg.reglo));
+              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
+              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
+              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
             end;
           else
             internalerror(200204021);
@@ -1408,7 +1423,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
+(*    procedure tcg64f386.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
