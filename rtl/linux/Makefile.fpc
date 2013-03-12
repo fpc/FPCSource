@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
       sysutils typinfo math matrix varutils \
       charset cpall character unixcp ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard variants types dateutils sysconst fmtbcd \
+      video mouse keyboard variants types dateutils sysconst fmtbcd fpwidestring \
       cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix clocale
 implicitunits=exeinfo
 
@@ -363,6 +363,8 @@ iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
 
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #

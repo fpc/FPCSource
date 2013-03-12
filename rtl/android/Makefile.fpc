@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       linuxvcs sysutils typinfo math matrix varutils charset cpall character ucomplex \
       getopts errors sockets gpm serial terminfo dl dynlibs video mouse keyboard \
       variants types dateutils sysconst fmtbcd cthreads classes fgl convutils stdconvs \
-      strutils rtlconsts dos objects cwstring fpcylix clocale unixcp
+      strutils rtlconsts dos objects cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs strutils
@@ -289,6 +289,8 @@ iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
 
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #

@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       charset cpall character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio video crt mouse keyboard  \
       variants dateutils convutils stdconvs \
-      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
+      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp
 implicitunits=exeinfo
 
@@ -290,6 +290,8 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other system-dependent RTL Units
 #
