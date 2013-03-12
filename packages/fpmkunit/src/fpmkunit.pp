@@ -2862,12 +2862,12 @@ end;
 
 Function TPackage.GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
 begin
-  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
+  result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
 end;
 
 function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
+  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
 end;
 
 procedure TPackage.InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
@@ -2911,7 +2911,7 @@ end;
 
 function TPackage.GetPackageUnitInstallDir(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), True);
+  result:=FixPath(Dictionary.Substitute(FPackageUnitInstallDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
 end;
 
 procedure TPackage.SetPackageUnitInstallDir(AValue: string);
@@ -3492,7 +3492,7 @@ end;
 
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
-  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir), True);
+  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir), False);
 end;
 
 
@@ -3888,7 +3888,7 @@ begin
 
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
-  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), False);
   if BD='' then
     begin
       BD:='/usr/local/lib/fpc/'+FCompilerVersion;
@@ -3897,7 +3897,7 @@ begin
         BD:='/usr/lib/fpc/'+FCompilerVersion;
     end;
 {$else unix}
-  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), False);
   if BD='' then
     begin
       BD:=ExtractFilePath(FCompiler)+'..';
