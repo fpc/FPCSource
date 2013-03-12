@@ -129,8 +129,8 @@ interface
          begin
            if (right.location.loc<>LOC_REGISTER) then
             begin
-              hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-              hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+              hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
               cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
               location_reset(left.location,LOC_REGISTER,left.location.size);
               left.location.register64.reglo:=hregister;
