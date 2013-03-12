@@ -5,6 +5,9 @@ unit system;
 interface
 
 {$ifdef FULL_RTL}
+
+{$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
+
 {$I systemh.inc}
 {$endif FULL_RTL}
 
