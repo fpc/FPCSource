@@ -76,10 +76,10 @@ unit cgcpu;
      end;
 
       tcg64f386 = class(tcg64f32)
-        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+{        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;}
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
-        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+{        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;}
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -1324,7 +1324,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+(*    procedure tcg64f386.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1343,7 +1343,7 @@ unit cgcpu;
             a_load64_ref_reg(list,ref,reg);
             a_op64_reg_reg(list,op,size,reg,reg);
           end;
-      end;
+      end;*)
 
 
     procedure tcg64f386.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
@@ -1355,27 +1355,31 @@ unit cgcpu;
             begin
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
-              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
-              list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
-              list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reghi,regdst.reghi);
+              cg.a_op_reg_reg(list,OP_NEG,OS_32,regdst.reglo,regdst.reglo);
+              { there's no OP_SBB, so do it directly }
+              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,regdst.reghi));
+              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,GetNextReg(regdst.reghi)));
               exit;
             end;
           OP_NOT :
             begin
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
-              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
-              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reghi,regdst.reghi);
               exit;
             end;
         end;
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
-        list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        list.concat(taicpu.op_reg_reg(op1,S_W,regsrc.reglo,regdst.reglo));
+        list.concat(taicpu.op_reg_reg(op2,S_W,GetNextReg(regsrc.reglo),GetNextReg(regdst.reglo)));
+        list.concat(taicpu.op_reg_reg(op2,S_W,regsrc.reghi,regdst.reghi));
+        list.concat(taicpu.op_reg_reg(op2,S_W,GetNextReg(regsrc.reghi),GetNextReg(regdst.reghi)));
       end;
 
 
-    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
+(*    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -1423,7 +1427,7 @@ unit cgcpu;
           else
             internalerror(200204022);
         end;
-      end;
+      end;*)
 
     procedure create_codegen;
       begin
