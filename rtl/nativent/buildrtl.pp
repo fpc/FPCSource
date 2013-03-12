@@ -15,7 +15,7 @@ unit buildrtl;
 {$ifdef cpux86_64}
       cpu,
 {$endif}
-      charset, ucomplex, getopts,
+      charset, cpall, ucomplex, getopts,
       fmtbcd;
 
   implementation

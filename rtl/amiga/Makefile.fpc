@@ -12,6 +12,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       sysutils fgl classes strutils math typinfo varutils fmtbcd \
       charset cpall ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil objects
+implicitunits=cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
 # \
 #      exec timer doslib utility hardware inputevent graphics layers \
 #      intuition aboxlib mui \

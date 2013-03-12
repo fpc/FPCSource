@@ -20,8 +20,9 @@ implicitunits=ndk ndkutils ddk \
       convutils stdconvs $(CPU_UNITS) charset cpall ucomplex getopts \
 #      sockets printer \
 #      video mouse keyboard
-       fmtbcd #\
-#      sharemem exeinfo fpintres
+       fmtbcd \
+#      sharemem exeinfo fpintres \
+      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
 
 # shared=$(DLLS)
 

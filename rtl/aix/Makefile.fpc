@@ -23,6 +23,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       convutils stdconvs \
       dos objects \
       cwstring fpintres clocale $(CPU_UNITS)
+implicitunits=cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconst stdconvs
 

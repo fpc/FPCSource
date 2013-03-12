@@ -18,7 +18,10 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof \
       convutils stdconvs cpu mmx charset character ucomplex getopts \
       winevent sockets printer \
       video mouse keyboard fmtbcd fpwidestring \
-      winsysut sharemem exeinfo fpintres windirs
+      winsysut sharemem exeinfo fpintres windirs \
+      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5 \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+
 
 # shared=$(DLLS)
 

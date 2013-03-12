@@ -16,7 +16,8 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas heapmgr consoleio $(CPU_SPECIFIC_
 #       classes math typinfo varutils fmtbcd \
 #       charset cpall ucomplex getopts matrix \
 #       variants types rtlconsts sysconst dateutil
-#implicitunits=exeinfo
+#implicitunits=exeinfo \
+#      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
 
 #rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 

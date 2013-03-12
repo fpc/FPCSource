@@ -14,7 +14,8 @@ units=system uuchar objpas macpas iso7185 strings \
       video mouse keyboard variants vesamode types fmtbcd \
       sysconst rtlconst dateutil convutil strutils stdconvs
 rsts=math varutils typinfo classes variants dateutil sysconst
-implicitunits=exeinfo
+implicitunits=exeinfo \
+      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
 [require]
 nortl=y
 [install]
