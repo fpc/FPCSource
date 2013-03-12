@@ -17,7 +17,7 @@ implicitunits=ndk ndkutils ddk \
 #      dos crt objects \
       rtlconsts sysconst sysutils math types \
       strutils dateutils varutils variants typinfo fgl classes \
-      convutils stdconvs $(CPU_UNITS) charset ucomplex getopts \
+      convutils stdconvs $(CPU_UNITS) charset cpall ucomplex getopts \
 #      sockets printer \
 #      video mouse keyboard
        fmtbcd #\

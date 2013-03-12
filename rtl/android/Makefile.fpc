@@ -10,7 +10,7 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem crt printer \
-      linuxvcs sysutils typinfo math matrix varutils charset character ucomplex \
+      linuxvcs sysutils typinfo math matrix varutils charset cpall character ucomplex \
       getopts errors sockets gpm serial terminfo dl dynlibs video mouse keyboard \
       variants types dateutils sysconst fmtbcd cthreads classes fgl convutils stdconvs \
       strutils rtlconsts dos objects cwstring fpcylix clocale unixcp
@@ -273,6 +273,9 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/charset.pp
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/matrix.pp

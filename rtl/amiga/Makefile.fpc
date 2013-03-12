@@ -10,7 +10,7 @@ loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       dos heaptrc lineinfo \
       sysutils fgl classes strutils math typinfo varutils fmtbcd \
-      charset ucomplex getopts matrix \
+      charset cpall ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil objects
 # \
 #      exec timer doslib utility hardware inputevent graphics layers \
@@ -185,6 +185,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 #
 # Other system-dependent RTL Units

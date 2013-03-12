@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas strings \
 #      dos \
       sysutils \
       classes math typinfo varutils fmtbcd ctypes \
-      charset ucomplex getopts matrix \
+      charset cpall ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
@@ -174,6 +174,9 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 #lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 #
 # Other system-dependent RTL Units

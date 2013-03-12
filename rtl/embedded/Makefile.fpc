@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas heapmgr consoleio $(CPU_SPECIFIC_
 # macpas iso7185 strings
 #      dos \
 #       classes math typinfo varutils fmtbcd \
-#       charset ucomplex getopts matrix \
+#       charset cpall ucomplex getopts matrix \
 #       variants types rtlconsts sysconst dateutil
 #implicitunits=exeinfo
 
@@ -208,6 +208,9 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 #lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 #
 # Unit specific rules

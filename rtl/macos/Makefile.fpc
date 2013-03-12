@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macutils \
-      unixutil dos objects matrix cmem charset ctypes
+      unixutil dos objects matrix cmem charset cpall ctypes
 #      exec  \
 #      crt printer \
 #      lineinfo lnfodwrf  graph \
@@ -154,6 +154,9 @@ unixutil$(PPUEXT) : ../unix/unixutil.pp
         $(COMPILER) ../unix/unixutil.pp $(REDIR)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 

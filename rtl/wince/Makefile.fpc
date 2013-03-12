@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       strutils convutils math dateutils \
       varutils variants fmtbcd \
       matrix ucomplex \
-      charset getopts winsock winsock2 sockets \
+      charset cpall getopts winsock winsock2 sockets \
       cmem sharemem
 #    initc  signals \
 #    crt graph \
@@ -243,6 +243,9 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp

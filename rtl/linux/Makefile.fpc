@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
-      charset character unixcp ucomplex getopts \
+      charset cpall character unixcp ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst fmtbcd \
       cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix clocale
@@ -347,6 +347,9 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp

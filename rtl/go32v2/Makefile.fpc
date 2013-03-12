@@ -10,7 +10,7 @@ units=system uuchar objpas macpas iso7185 strings \
       dos crt objects printer cmem \
       sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
-      msmouse charset varutils \
+      msmouse charset cpall varutils \
       video mouse keyboard variants vesamode types fmtbcd \
       sysconst rtlconst dateutil convutil strutils stdconvs
 rsts=math varutils typinfo classes variants dateutil sysconst
@@ -155,6 +155,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
 #

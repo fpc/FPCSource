@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 buildrtl buildcollations lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinfo lnfodwrf
 implicitunits=ctypes strings \
       heaptrc matrix \
       dos crt objects messages \
@@ -108,6 +108,9 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(WINDIR) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas

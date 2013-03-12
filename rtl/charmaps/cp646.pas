@@ -5,12 +5,8 @@ unit cp646;
 
   implementation
 
-{$if FPC_FULLVERSION<20700}
-  {$DEFINE FPC_2_6_COMPAT}
-{$ifend}
-
   uses
-     {$ifdef FPC_2_6_COMPAT}ccharset{$else}charset{$endif};
+     charset;
 
   const
      map : array[0..127] of tunicodecharmapping = (
@@ -144,7 +140,6 @@ unit cp646;
        (unicode : 127; flag : umf_noinfo; reserved: 0)
      );
 
-  {$ifndef FPC_2_6_COMPAT}
      reversemap : array[0..127] of treversecharmapping = (
        (unicode : 0; char1 : 0; char2 : 0),
        (unicode : 1; char1 : 1; char2 : 0),
@@ -275,17 +270,14 @@ unit cp646;
        (unicode : 126; char1 : 126; char2 : 0),
        (unicode : 127; char1 : 127; char2 : 0)
      );
-  {$endif}
 
      unicodemap : tunicodemap = (
        cpname : 'ISO646-US';
        cp : 20127;
        map : @map;
        lastchar : 127;
-  {$ifndef FPC_2_6_COMPAT}
        reversemap : @reversemap;
        reversemaplength : 128;
-  {$endif}
        next : nil;
        internalmap : true
      );

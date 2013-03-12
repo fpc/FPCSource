@@ -5,12 +5,8 @@ unit cp8859_5;
 
   implementation
 
-{$if FPC_FULLVERSION<20700}
-  {$DEFINE FPC_2_6_COMPAT}
-{$ifend}
-
   uses
-     {$ifdef FPC_2_6_COMPAT}ccharset{$else}charset{$endif};
+     charset;
 
   const
      map : array[0..255] of tunicodecharmapping = (
@@ -272,7 +268,6 @@ unit cp8859_5;
        (unicode : 1119; flag : umf_noinfo; reserved: 0)
      );
 
-  {$ifndef FPC_2_6_COMPAT}
      reversemap : array[0..255] of treversecharmapping = (
        (unicode : 0; char1 : 0; char2 : 0),
        (unicode : 1; char1 : 1; char2 : 0),
@@ -531,17 +526,14 @@ unit cp8859_5;
        (unicode : 1119; char1 : 255; char2 : 0),
        (unicode : 8470; char1 : 240; char2 : 0)
      );
-  {$endif}
 
      unicodemap : tunicodemap = (
        cpname : '8859-5';
        cp : 28595;
        map : @map;
        lastchar : 255;
-  {$ifndef FPC_2_6_COMPAT}
        reversemap : @reversemap;
        reversemaplength : 256;
-  {$endif}
        next : nil;
        internalmap : true
      );
