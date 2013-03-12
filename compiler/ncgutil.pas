@@ -1039,10 +1039,14 @@ implementation
                         begin
                           unget_para(paraloc^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register,sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.Next^,destloc.registerhi,sizeof(aint));
+                          {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+                            cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          {$else}
+                            cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,destloc.registerhi,sizeof(aint));
+                          {$endif}
                         end
                       else
                         internalerror(200410105);

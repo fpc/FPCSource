@@ -97,24 +97,24 @@
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
       NR_PIC_OFFSET_REG = NR_BX;
-      { Results are returned in this register (32-bit values) }
+      { Results are returned in this register (16-bit values) }
       NR_FUNCTION_RETURN_REG = NR_AX;
       RS_FUNCTION_RETURN_REG = RS_AX;
-      { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64_LOW_REG = NR_AX;
-      RS_FUNCTION_RETURN64_LOW_REG = RS_AX;
-      { High part of 64bit return value }
-      NR_FUNCTION_RETURN64_HIGH_REG = NR_DX;
-      RS_FUNCTION_RETURN64_HIGH_REG = RS_DX;
+      { Low part of 32bit return value }
+      NR_FUNCTION_RETURN32_LOW_REG = NR_AX;
+      RS_FUNCTION_RETURN32_LOW_REG = RS_AX;
+      { High part of 32bit return value }
+      NR_FUNCTION_RETURN32_HIGH_REG = NR_DX;
+      RS_FUNCTION_RETURN32_HIGH_REG = RS_DX;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
-      { The lowh part of 64bit value returned from a function }
-      NR_FUNCTION_RESULT64_LOW_REG = NR_FUNCTION_RETURN64_LOW_REG;
-      RS_FUNCTION_RESULT64_LOW_REG = RS_FUNCTION_RETURN64_LOW_REG;
-      { The high part of 64bit value returned from a function }
-      NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
-      RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
+      { The lowh part of 32bit value returned from a function }
+      NR_FUNCTION_RESULT32_LOW_REG = NR_FUNCTION_RETURN32_LOW_REG;
+      RS_FUNCTION_RESULT32_LOW_REG = RS_FUNCTION_RETURN32_LOW_REG;
+      { The high part of 32bit value returned from a function }
+      NR_FUNCTION_RESULT32_HIGH_REG = NR_FUNCTION_RETURN32_HIGH_REG;
+      RS_FUNCTION_RESULT32_HIGH_REG = RS_FUNCTION_RETURN32_HIGH_REG;
 
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }

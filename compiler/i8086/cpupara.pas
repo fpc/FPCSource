@@ -32,7 +32,7 @@ unit cpupara;
        parabase,paramgr;
 
     type
-       ti386paramanager = class(tparamanager)
+       ti8086paramanager = class(tparamanager)
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -65,13 +65,13 @@ unit cpupara;
        defutil;
 
       const
-        parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
+        parasupregs : array[0..2] of tsuperregister = (RS_AX,RS_DX,RS_CX);
 
 {****************************************************************************
-                                TI386PARAMANAGER
+                                ti8086paramanager
 ****************************************************************************}
 
-    function ti386paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+    function ti8086paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -92,7 +92,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function ti8086paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         size: longint;
       begin
@@ -153,7 +153,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function ti8086paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         { var,out,constref always require address }
@@ -226,7 +226,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_para_align(calloption : tproccalloption):byte;
+    function ti8086paramanager.get_para_align(calloption : tproccalloption):byte;
       begin
         if calloption=pocall_oldfpccall then
           begin
@@ -240,7 +240,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function ti8086paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         case calloption of
           pocall_internproc :
@@ -251,30 +251,30 @@ unit cpupara;
           pocall_cdecl,
           pocall_cppdecl,
           pocall_mwpascal :
-            result:=[RS_EAX,RS_EDX,RS_ECX];
+            result:=[RS_AX,RS_DX,RS_CX];
           pocall_far16,
           pocall_pascal,
           pocall_oldfpccall :
-            result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX];
+            result:=[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI,RS_BX];
           else
             internalerror(200309071);
         end;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function ti8086paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_fpu_imreg-1];
       end;
 
 
-    function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
+    function ti8086paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
       end;
 
 
-    procedure ti386paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure ti8086paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         def : tdef;
@@ -316,7 +316,7 @@ unit cpupara;
       end;
 
 
-    function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
+    function  ti8086paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
@@ -373,23 +373,23 @@ unit cpupara;
           begin
             paraloc:=result.add_location;
             paraloc^.loc:=LOC_REGISTER;
-            if retcgsize in [OS_64,OS_S64] then
+            if retcgsize in [OS_32,OS_S32] then
              begin
-               { low 32bits }
+               { low 16bits }
                if side=callerside then
-                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT32_LOW_REG
                else
-                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc^.size:=OS_32;
+                 paraloc^.register:=NR_FUNCTION_RETURN32_LOW_REG;
+               paraloc^.size:=OS_16;
 
-               { high 32bits }
+               { high 16bits }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT32_HIGH_REG
                else
-                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
-               paraloc^.size:=OS_32;
+                 paraloc^.register:=NR_FUNCTION_RETURN32_HIGH_REG;
+               paraloc^.size:=OS_16;
              end
             else
              begin
@@ -403,7 +403,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
+    procedure ti8086paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
       var
         i  : integer;
         hp : tparavarsym;
@@ -541,7 +541,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+    procedure ti8086paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var parareg,parasize:longint);
       var
         hp : tparavarsym;
@@ -702,7 +702,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function ti8086paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         parasize,
         parareg : longint;
@@ -730,7 +730,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function ti8086paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
@@ -743,7 +743,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
+    procedure ti8086paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       begin
         { Never a need for temps when value is pushed (calls inside parameters
           will simply allocate even more stack space for their parameters) }
@@ -754,5 +754,5 @@ unit cpupara;
 
 
 begin
-   paramanager:=ti386paramanager.create;
+   paramanager:=ti8086paramanager.create;
 end.
