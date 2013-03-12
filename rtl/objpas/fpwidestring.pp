@@ -302,7 +302,10 @@ begin
   if (cp=CP_UTF8) then
     begin
       destLen:=Utf8ToUnicode(nil,source,len);
-      SetLength(dest,destLen);
+      if destLen > 0 then
+        SetLength(dest,destLen-1)
+      else
+        SetLength(dest,0);
       Utf8ToUnicode(@dest[1],source,len);
       exit;
     end;
@@ -486,7 +489,8 @@ begin
     begin
       //convert to UnicodeString,uppercase,convert back to utf8
       ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
-      SetLength(us,ulen);
+      if ulen>0 then
+        SetLength(us,ulen-1);
       Utf8ToUnicode(@us[1],@s[1],Length(s));
       us:=UpperUnicodeString(us);
       
@@ -557,7 +561,8 @@ begin
     begin
       //convert to UnicodeString,lowercase,convert back to utf8
       ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
-      SetLength(us,ulen);
+      if ulen>0 then
+        SetLength(us,ulen-1);
       Utf8ToUnicode(@us[1],@s[1],Length(s));
       us:=LowerUnicodeString(us);
       
