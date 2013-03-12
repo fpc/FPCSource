@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit implements the code generator for the i386
+    This unit implements the code generator for the i8086
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ unit cgcpu;
         procedure get_32bit_ops(op: TOpCG; out op1,op2: TAsmOp);
      end;
 
-      tcg64f386 = class(tcg64f32)
+      tcg64f8086 = class(tcg64f32)
 {        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;}
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
@@ -1309,7 +1309,7 @@ unit cgcpu;
 
 { ************* 64bit operations ************ }
 
-    procedure tcg64f386.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
+    procedure tcg64f8086.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       begin
         case op of
           OP_ADD :
@@ -1343,7 +1343,7 @@ unit cgcpu;
       end;
 
 
-(*    procedure tcg64f386.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+(*    procedure tcg64f8086.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1365,7 +1365,7 @@ unit cgcpu;
       end;*)
 
 
-    procedure tcg64f386.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
+    procedure tcg64f8086.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -1398,7 +1398,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
+    procedure tcg64f8086.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -1423,7 +1423,7 @@ unit cgcpu;
       end;
 
 
-(*    procedure tcg64f386.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
+(*    procedure tcg64f8086.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1453,7 +1453,7 @@ unit cgcpu;
     procedure create_codegen;
       begin
         cg := tcg8086.create;
-        cg64 := tcg64f386.create;
+        cg64 := tcg64f8086.create;
       end;
 
 end.

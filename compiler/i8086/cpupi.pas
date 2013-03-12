@@ -31,7 +31,7 @@ unit cpupi;
        psub,procinfo,aasmdata;
 
     type
-       ti386procinfo = class(tcgprocinfo)
+       ti8086procinfo = class(tcgprocinfo)
          constructor create(aparent:tprocinfo);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
@@ -50,14 +50,14 @@ unit cpupi;
       cgutils,
       symconst;
 
-    constructor ti386procinfo.create(aparent:tprocinfo);
+    constructor ti8086procinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         got:=NR_EBX;
       end;
 
 
-    procedure ti386procinfo.set_first_temp_offset;
+    procedure ti8086procinfo.set_first_temp_offset;
       begin
         if paramanager.use_fixed_stack then
           begin
@@ -72,7 +72,7 @@ unit cpupi;
       end;
 
 
-    function ti386procinfo.calc_stackframe_size:longint;
+    function ti8086procinfo.calc_stackframe_size:longint;
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
@@ -85,7 +85,7 @@ unit cpupi;
       end;
 
 
-    procedure ti386procinfo.generate_parameter_info;
+    procedure ti8086procinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
         { Para_stack_size is only used to determine how many bytes to remove }
@@ -95,7 +95,7 @@ unit cpupi;
           para_stack_size := 0;
       end;
 
-    procedure ti386procinfo.allocate_got_register(list: tasmlist);
+    procedure ti8086procinfo.allocate_got_register(list: tasmlist);
       begin
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
            (cs_create_pic in current_settings.moduleswitches) then
@@ -105,5 +105,5 @@ unit cpupi;
       end;
 
 begin
-   cprocinfo:=ti386procinfo;
+   cprocinfo:=ti8086procinfo;
 end.

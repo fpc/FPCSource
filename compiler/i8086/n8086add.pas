@@ -1,7 +1,7 @@
 {
     Copyright (c) 2000-2002 by Florian Klaempfl
 
-    Code generation for add nodes on the i386
+    Code generation for add nodes on the i8086
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

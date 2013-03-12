@@ -1,7 +1,7 @@
 {
     Copyright (c) 2002 by Florian Klaempfl
 
-    Generates the argument location information for i386
+    Generates the argument location information for i8086
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
