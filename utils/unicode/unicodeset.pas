@@ -256,7 +256,6 @@ begin
   c := FBuffer[FPosition];
   cp := Ord(c);
   Inc(FPosition);
-  cp := Ord(c);
   if (c = '\') and (FPosition < FBufferLength) then begin
     if IsThis('\') then begin
       Inc(FPosition);
@@ -299,6 +298,7 @@ begin
   Expect('[');
   charCount := 0;
   Inc(FPosition);
+  cp:=0;
   while (FPosition < FBufferLength) do begin
     lastCp := cp;
     cp := NextChar();
