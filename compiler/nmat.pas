@@ -604,18 +604,34 @@ implementation
            begin
              { keep singness of orignal type }
              if is_signed(left.resultdef) then
-{$ifdef cpunodefaultint}
-               inserttypeconv(left,nd)
-{$else cpunodefaultint}
-               inserttypeconv(left,s32inttype)
-{$endif cpunodefaultint}
+               begin
+{$if defined(cpunodefaultint)}
+                 inserttypeconv(left,nd)
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+                 inserttypeconv(left,s32inttype)
+{$elseif defined(cpu16bitalu)}
+                 if left.resultdef.size > 2 then
+                   inserttypeconv(left,s32inttype)
+                 else
+                   inserttypeconv(left,sinttype);
+{$else}
+                 internalerror(2013031301);
+{$endif}
+               end
              else
                begin
-{$ifdef cpunodefaultint}
+{$if defined(cpunodefaultint)}
                  inserttypeconv(left,nd)
-{$else cpunodefaultint}
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
-{$endif cpunodefaultint}
+{$elseif defined(cpu16bitalu)}
+                 if left.resultdef.size > 2 then
+                   inserttypeconv(left,u32inttype)
+                 else
+                   inserttypeconv(left,uinttype);
+{$else}
+                 internalerror(2013031301);
+{$endif}
                end
            end;
 
