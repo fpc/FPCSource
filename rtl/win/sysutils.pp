@@ -217,7 +217,7 @@ const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
     GENERIC_WRITE,
-    GENERIC_READ or GENERIC_WRITE);
+    GENERIC_READ or GENERIC_WRITE or FILE_WRITE_ATTRIBUTES);
   ShareModes: array[0..4] of Integer = (
                0,
                0,
