@@ -1,8 +1,19 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2013 by the Free Pascal development team
 
-    <What does this file>
+    DO NOT ADD ROUTINES TO THIS FILE!
+    THE ROUTINES IN THIS FILE ARE INTERNAL AND NOT FOR END USER USAGE!
+
+    Background: This unit contains leftovers from the unix restructure that
+    shouldn't be in the interface of unit baseunix/unix, but are needed
+    in these units. (at the time routines were still being moved
+    from baseunix to unix, and unit baseunix couldn't depend on unix) 
+    
+    The routines are fairly OS independent but can't move to
+    OS independent because the lowlevel units baseunix/unix depend
+    on them. If they need to be generally accessable, copy these
+    functions to a general purpose, OS independent, supportable unit.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
