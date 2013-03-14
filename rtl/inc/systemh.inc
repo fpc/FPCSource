@@ -505,6 +505,16 @@ const
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
+{$ifdef cpui8086}
+  { will be detected at startup }
+  { 0=8086, 1=80286, 2=80386 }
+  Test8086 : byte = 0;
+  { Always 387 or newer. Emulated if needed. }
+  Test8087 : byte = 3;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
+{$endif cpui8086}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
