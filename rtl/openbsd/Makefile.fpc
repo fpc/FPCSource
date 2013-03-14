@@ -9,7 +9,7 @@ main=rtl
 fpcpackage=y
 
 [target]
-loaders=prt0 cprt0
+loaders=prt0 cprt0 dllprt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
       $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
@@ -125,6 +125,9 @@ prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 #
 # System Units (System, Objpas, Strings)
