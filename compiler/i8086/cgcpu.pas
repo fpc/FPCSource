@@ -351,8 +351,8 @@ unit cgcpu;
                 if cgpara.alignment <> 4 then
                   internalerror(2013031101);
 
-                list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a shr 16));
-                list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a and $FFFF));
+                list.concat(taicpu.op_const(A_PUSH,S_W,a shr 16));
+                list.concat(taicpu.op_const(A_PUSH,S_W,a and $FFFF));
               end
             else
               begin
