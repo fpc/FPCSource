@@ -74,6 +74,8 @@ interface
 
        TElfObjData = class(TObjData)
        public
+         ident: TElfIdent;
+         flags: longword;
          constructor create(const n:string);override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
@@ -119,7 +121,6 @@ interface
          FLoaded: PBoolean;
          shdrs: TElfsecheaderarray;
          nsects: longword;
-         shentsize: longword;
          shoffset: aword;
          shstrndx: longword;
          symtabndx: longword;
@@ -133,7 +134,7 @@ interface
          symversions: PWord;
          dynobj: boolean;
          verdefs: TFPHashObjectList;
-         function LoadHeader:word;
+         function LoadHeader(out objdata:TObjData):boolean;
          procedure LoadSection(const shdr:TElfsechdr;index:longint;objdata:TObjData);
          procedure LoadRelocations(const secrec:TSectionRec);
          procedure LoadSymbols(objdata:TObjData;count,locals:longword);
@@ -1567,11 +1568,11 @@ implementation
       end;
 
 
-    function TElfObjInput.LoadHeader:word;
+    function TElfObjInput.LoadHeader(out objdata:TObjData):boolean;
       var
         header:TElfHeader;
       begin
-        result:=ET_NONE;
+        result:=false;
         if not FReader.read(header,sizeof(header)) then
           begin
             InputError('Can''t read ELF header');
@@ -1609,12 +1610,30 @@ implementation
             InputError('ELF file is for different CPU');
             exit;
           end;
+        if (header.e_type<>ET_REL) and (header.e_type<>ET_DYN) then
+          begin
+            InputError('Not a relocatable or dynamic ELF file');
+            exit;
+          end;
+        if header.e_shentsize<>sizeof(TElfsechdr) then
+          InternalError(2012062701);
 
         nsects:=header.e_shnum;
-        shentsize:=header.e_shentsize;
+        dynobj:=(header.e_type=ET_DYN);
         shoffset:=header.e_shoff;
         shstrndx:=header.e_shstrndx;
-        result:=header.e_type;
+
+        if dynobj then
+          begin
+            objdata:=TElfDynamicObjData.Create(InputFilename);
+            verdefs:=TElfDynamicObjData(objdata).versiondefs;
+          end
+        else
+          objdata:=CObjData.Create(InputFilename);
+
+        TElfObjData(objdata).ident:=header.e_ident;
+        TElfObjData(objdata).flags:=header.e_flags;
+        result:=true;
       end;
 
 
@@ -1659,26 +1678,8 @@ implementation
         InputFileName:=AReader.FileName;
         result:=false;
 
-        i:=LoadHeader;
-        if (i=ET_NONE) then    { error message already given in this case }
+        if not LoadHeader(objData) then
           exit;
-        if (i<>ET_REL) and (i<>ET_DYN) then
-          begin
-            InputError('Not a relocatable or dynamic ELF file');
-            exit;
-          end;
-        dynobj:=(i=ET_DYN);
-
-        if shentsize<>sizeof(TElfsechdr) then
-          InternalError(2012062701);
-
-        if dynobj then
-          begin
-            objdata:=TElfDynamicObjData.Create(InputFilename);
-            verdefs:=TElfDynamicObjData(objdata).versiondefs;
-          end
-        else
-          objdata:=CObjData.Create(InputFilename);
 
         FSecTbl:=AllocMem(nsects*sizeof(TSectionRec));
         FLoaded:=AllocMem(nsects*sizeof(boolean));

@@ -219,9 +219,11 @@ interface
 
 
   type
+    TElfIdent = array[0..15] of byte;
+
     { Structures which are written directly to the output file }
     TElf32header=record
-      e_ident           : array[0..15] of byte;
+      e_ident           : TElfIdent;
       e_type            : word;
       e_machine         : word;
       e_version         : longword;
@@ -284,7 +286,7 @@ interface
     end;
 
     telf64header=record
-      e_ident           : array[0..15] of byte;
+      e_ident           : TElfIdent;
       e_type            : word;
       e_machine         : word;
       e_version         : longword;
