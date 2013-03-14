@@ -1,1 +1,1 @@
-.include i386/cprt0.as
+.include "i386/cprt0.as"
