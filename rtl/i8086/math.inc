@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team.
 
-    Implementation of mathematical Routines (only for real)
+    Implementation of mathematical Routines (for extended type)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,3 +13,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$asmmode intel}
+
+{$define FPC_SYSTEM_HAS_INT}
+function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
+  asm
+    sub sp, 2
+    fnstcw [bp-2]
+    fwait
+    mov cx, word [bp-2]
+    or word [bp-2], $0f00
+    fldcw [bp-2]
+    fwait
+    fld tbyte [d]
+    frndint
+    fwait
+    mov word [bp-2], cx
+    fldcw [bp-2]
+  end;
+
