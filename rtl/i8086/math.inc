@@ -15,21 +15,81 @@
  **********************************************************************}
 
 {$asmmode intel}
+{****************************************************************************
+                       EXTENDED data type routines
+ ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_INT}
-function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
-  asm
-    sub sp, 2
-    fnstcw [bp-2]
-    fwait
-    mov cx, word [bp-2]
-    or word [bp-2], $0f00
-    fldcw [bp-2]
-    fwait
-    fld tbyte [d]
-    frndint
-    fwait
-    mov word [bp-2], cx
-    fldcw [bp-2]
-  end;
+    {$define FPC_SYSTEM_HAS_PI}
+    function fpc_pi_real : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_ABS}
+    function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_SQR}
+    function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_SQRT}
+    function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_ARCTAN}
+    function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_LN}
+    function fpc_ln_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_SIN}
+    function fpc_sin_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_COS}
+    function fpc_cos_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+    {$define FPC_SYSTEM_HAS_INT}
+    function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
+      asm
+        sub sp, 2
+        fnstcw [bp-2]
+        fwait
+        mov cx, word [bp-2]
+        or word [bp-2], $0f00
+        fldcw [bp-2]
+        fwait
+        fld tbyte [d]
+        frndint
+        fwait
+        mov word [bp-2], cx
+        fldcw [bp-2]
+      end;
 
