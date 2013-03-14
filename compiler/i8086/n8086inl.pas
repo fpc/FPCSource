@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Includes the i8086 code generator
+    Generate i8086 inline nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,42 +19,24 @@
 
  ****************************************************************************
 }
-unit cpunode;
+unit n8086inl;
 
 {$i fpcdefs.inc}
 
-  interface
-
-  implementation
+interface
 
     uses
-       { generic nodes }
-       ncgbas,
-       ncgld,
-       ncgflw,
-       ncgcnv,
-       ncgmem,
-       ncgmat,
-       ncgcon,
-       ncgcal,
-       ncgset,
-       ncginl,
-       ncgopt,
-       ncgobjc,
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       nx86set,
-       nx86con,
-       nx86cnv,
+       nx86inl;
 
-       n8086add{,
-       n386cal,
-       n386mem,
-       n386set},
-       n8086inl,
-       n8086mat
-       ;
+    type
+       ti8086inlinenode = class(tx86inlinenode)
+       end;
 
+implementation
+
+  uses
+    ninl;
+
+begin
+   cinlinenode:=ti8086inlinenode;
 end.
