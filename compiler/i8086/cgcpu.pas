@@ -305,19 +305,42 @@ unit cgcpu;
         check_register_size(size,r);
         if use_push(cgpara) then
           begin
-            cgpara.check_simple_location;
-            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
-              pushsize:=cgpara.location^.size
-            else
-              pushsize:=int_cgsize(cgpara.alignment);
-            if tcgsize2size[pushsize] > 2 then
+            if tcgsize2size[cgpara.Size] > 2 then
               begin
+                if tcgsize2size[cgpara.Size] <> 4 then
+                  internalerror(2013031101);
+                if cgpara.location^.Next = nil then
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 4 then
+                      internalerror(2013031101);
+                  end
+                else
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 2 then
+                      internalerror(2013031101);
+                    if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                      internalerror(2013031101);
+                    if cgpara.location^.Next^.Next <> nil then
+                      internalerror(2013031101);
+                  end;
+
+                if tcgsize2size[cgpara.size]>cgpara.alignment then
+                  pushsize:=cgpara.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
                 pushsize2 := int_cgsize(tcgsize2size[pushsize] - 2);
                 list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize2],makeregsize(list,GetNextReg(r),pushsize2)));
                 list.concat(taicpu.op_reg(A_PUSH,S_W,makeregsize(list,r,OS_16)));
               end
             else
-              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+              begin
+                cgpara.check_simple_location;
+                if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+                  pushsize:=cgpara.location^.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+              end;
           end
         else
           inherited a_load_reg_cgpara(list,size,r,cgpara);
