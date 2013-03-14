@@ -324,7 +324,9 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and (target_info.system in systems_freebsd) then
+      if isdll and 
+         ((target_info.system in systems_freebsd)
+          or (target_info.system in systems_openbsd)) then
         begin
           prtobj:='dllprt0';
           cprtobj:='dllprt0';
