@@ -622,9 +622,9 @@ interface
           procendtai   : tai;
           import_nr    : word;
           extnumber    : word;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           fpu_used     : byte;
-{$endif i386}
+{$endif i386 or i8086}
 {$ifdef mips}
           { needed for stabs debugging }
           total_local_size : longint;
@@ -4085,9 +4085,9 @@ implementation
          import_nr:=0;
          inlininginfo:=nil;
          deprecatedmsg:=nil;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           fpu_used:=maxfpuregs;
-{$endif i386}
+{$endif i386 or i8086}
       end;
 
 
@@ -4511,9 +4511,9 @@ implementation
           tprocdef(result).import_name:=stringdup(import_name^);
         tprocdef(result).import_nr:=import_nr;
         tprocdef(result).extnumber:=$ffff;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
         tprocdef(result).fpu_used:=fpu_used;
-{$endif i386}
+{$endif i386 or i8086}
         tprocdef(result).visibility:=visibility;
         tprocdef(result).synthetickind:=synthetickind;
         { we need a separate implementation for the copied def }
