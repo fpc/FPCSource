@@ -30,10 +30,10 @@
 {$inline on}
 {$define SYSTEMINLINE}
 
-{ don't use FPU registervariables on the i386 }
-{$ifdef CPUI386}
+{ don't use FPU registervariables on the i386 and i8086 }
+{$if defined(CPUI386) or defined(CPUI8086)}
   {$maxfpuregisters 0}
-{$endif CPUI386}
+{$endif CPUI386 or CPUI8086}
 
 { the assembler helpers need this}
 {$ifdef CPUPOWERPC}
