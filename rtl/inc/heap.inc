@@ -1571,6 +1571,9 @@ var
   i : longint;
 {$endif}
 begin
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode=203) or (errorcode=204) then
+    exit;
   loc_freelists := @freelists;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then

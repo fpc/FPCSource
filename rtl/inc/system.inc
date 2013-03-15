@@ -989,10 +989,14 @@ Begin
 {$endif}
 {$ifdef LINUX}
   {sysfreemem already checks for nil}
-  sysfreemem(calculated_cmdline);
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode<>203) and (errorcode<>204) then
+    sysfreemem(calculated_cmdline);
 {$endif}
 {$ifdef BSD}
-  sysfreemem(cmdline);
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode<>203) and (errorcode<>204) then
+    sysfreemem(cmdline);
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
