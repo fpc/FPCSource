@@ -2430,6 +2430,7 @@ implementation
       var
          hightree,
          hp        : tnode;
+         temp_pnode: pnode;
       begin
         result:=nil;
         { when handling writeln "left" contains no valid address }
@@ -2963,14 +2964,21 @@ implementation
               in_trunc_real,
               in_round_real :
                 begin
-                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  { on i8086, the int64 result is returned in a var param, because
+                    it's too big to fit in a register or a pair of registers. In
+                    that case we have 2 parameters and left.nodetype is a callparan. }
+                  if left.nodetype = callparan then
+                    temp_pnode := @tcallparanode(left).left
+                  else
+                    temp_pnode := @left;
+                  set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
                   { for direct float rounding, no best real type cast should be necessary }
-                  if not((left.resultdef.typ=floatdef) and
-                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
+                  if not((temp_pnode^.resultdef.typ=floatdef) and
+                         (tfloatdef(temp_pnode^.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
                      { converting an int64 to double on platforms without }
                      { extended can cause precision loss                  }
-                     not(left.nodetype in [ordconstn,realconstn]) then
-                    inserttypeconv(left,pbestrealtype^);
+                     not(temp_pnode^.nodetype in [ordconstn,realconstn]) then
+                    inserttypeconv(temp_pnode^,pbestrealtype^);
                   resultdef:=s64inttype;
                 end;
 
