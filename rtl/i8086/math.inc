@@ -76,6 +76,33 @@
       result:=0;
     end;
 
+    {$define FPC_SYSTEM_HAS_EXP}
+    function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+      var
+        cw1,cw2: word;
+      asm
+        // comes from DJ GPP
+        fld tbyte[d]
+        fldl2e
+        fmulp st1, st
+        fstcw CW1
+        fstcw CW2
+        fwait
+        and CW2, $f3ff
+        orw CW2, $0400
+        fldcw CW2
+        fld st0
+        frndint
+        fldcw CW1
+        fxch st1
+        fsub st, st1
+        f2xm1
+        fld1
+        faddp st1, st
+        fscale
+        fstp st1
+     end;
+
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
