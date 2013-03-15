@@ -459,7 +459,7 @@ begin
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
-      if (isdll) and (target_info.system in systems_freebsd) then
+      if (isdll) and (target_info.system in systems_bsd) then
         begin
           LinkRes.add('VERSION');
           LinkRes.add('{');
