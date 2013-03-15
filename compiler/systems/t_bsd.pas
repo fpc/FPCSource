@@ -325,8 +325,7 @@ begin
   if not IsDarwin Then
     begin
       if isdll and 
-         ((target_info.system in systems_freebsd)
-          or (target_info.system in systems_openbsd)) then
+         (target_info.system in systems_bsd) then
         begin
           prtobj:='dllprt0';
           cprtobj:='dllprt0';
