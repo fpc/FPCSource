@@ -12,44 +12,42 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
         .set noat
+        .set noreorder
+        .section ".text"
 
-	.section ".text"
-
-	.align 4
-	.global _dynamic_start
-	.ent	_dynamic_start
-	.type _dynamic_start,@function
+        .align 4
+        .global _dynamic_start
+        .ent    _dynamic_start
+        .type   _dynamic_start,@function
 _dynamic_start:
-        /* TODO: check whether this code is correct */
         lui     $a2,%hi(__dl_fini)
-        sw      $v0,%lo(__dl_fini)($a2)
         b _start
-	nop
+        sw      $v0,%lo(__dl_fini)($a2)
 
-	.end	_dynamic_start
-	.size 	_dynamic_start, .-_dynamic_start
+        .end    _dynamic_start
+        .size   _dynamic_start, .-_dynamic_start
 
-	.align 4
-	.global _start
+        .align 4
+        .global _start
         .set    nomips16
         .ent    _start
- 	.type	_start,@function
+        .type   _start,@function
 /*  This is the canonical entry point, usually the first thing in the text
     segment.  The SVR4/Mips ABI (pages 3-31, 3-32) says that when the entry
     point runs, most registers' values are unspecified, except for:
 
-    v0 ($2)	Function pointer of a function to be executed at exit
+    v0 ($2)     Function pointer of a function to be executed at exit
 
-    sp ($29)	The stack contains the arguments and environment:
- 		0(%sp)			argc
- 		4(%sp)			argv[0]
+    sp ($29)    The stack contains the arguments and environment:
+             0(%sp)    argc
+             4(%sp)    argv[0]
 
- 		...
- 		(4*argc)(%sp)		NULL
- 		(4*(argc+1))(%sp)	envp[0]
- 		...
- 					NULL
-    ra ($31)	Return address set to zero.
+               ...
+      (4*argc)(%sp)    NULL
+   4*(argc+1))(%sp)    envp[0]
+               ...
+                       NULL
+    ra ($31)    Return address set to zero.
 */
 _start:
         /* load fp */
@@ -62,12 +60,6 @@ _start:
         and     $sp,$sp,$at
 
         addiu   $sp,$sp,-32
-
-        lui     $s7,0x3d
-        addiu   $s7,$s7,2304
-        li      $at,-8
-        and     $s7,$s7,$at
-        addiu   $s7,$s7,-32
 
         /* store argc */
         lw      $a0,0($s8)
@@ -89,25 +81,33 @@ _start:
         addiu   $t9,$t9,%lo(PASCALMAIN)
         jalr    $t9
         nop
-	b       _haltproc
-        nop
-
-	.end	_start
-	.size 	_start, .-_start
-
-	.globl  _haltproc
-	.ent	_haltproc
-	.type   _haltproc,@function
-_haltproc:
-        /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
-
-        li      $v0,4001
-        syscall
         b       _haltproc
         nop
 
-	.end _haltproc
-	.size _haltproc, .-_haltproc
+        .end    _start
+        .size   _start, .-_start
+
+        .globl  _haltproc
+        .ent    _haltproc
+        .type   _haltproc,@function
+_haltproc:
+        addiu   $sp,$sp,-24
+        sw      $a0,16($sp)              /* $a0 contains the exitcode */
+        lui     $at,%hi(__dl_fini)
+        lw      $t9,%lo(__dl_fini)($at)
+        beqz    $t9,.L1
+        nop
+        jalr    $t9
+.L1:
+        lw      $a0,16($sp)
+        li      $v0,4001
+        syscall
+        nop
+        b       .L1
+        nop
+
+        .end _haltproc
+        .size _haltproc, .-_haltproc
 
         .comm __stkptr,4
         .comm __dl_fini,4
@@ -116,3 +116,4 @@ _haltproc:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
+.section .note.GNU-stack,"",@progbits
