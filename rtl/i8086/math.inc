@@ -84,23 +84,23 @@
         // comes from DJ GPP
         fld tbyte[d]
         fldl2e
-        fmulp st1, st
+        fmulp st(1), st
         fstcw CW1
         fstcw CW2
         fwait
         and CW2, $f3ff
-        orw CW2, $0400
+        or CW2, $0400
         fldcw CW2
-        fld st0
+        fld st(0)
         frndint
         fldcw CW1
-        fxch st1
-        fsub st, st1
+        fxch st(1)
+        fsub st, st(1)
         f2xm1
         fld1
-        faddp st1, st
+        faddp st(1), st
         fscale
-        fstp st1
+        fstp st(1)
      end;
 
     {$define FPC_SYSTEM_HAS_INT}
