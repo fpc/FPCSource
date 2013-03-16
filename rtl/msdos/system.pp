@@ -77,6 +77,7 @@ procedure fpc_Initialize_Units;[public,alias:'FPC_INITIALIZEUNITS']; compilerpro
 begin
 end;
 
+{$ifndef FULL_RTL}
 procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
 begin
   asm
@@ -84,6 +85,7 @@ begin
     int 21h
   end;
 end;
+{$endif not FULL_RTL}
 
 procedure DebugWrite(const S: string);
 begin
