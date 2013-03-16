@@ -2499,7 +2499,11 @@ implementation
 {$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            savesize:=96;
+            {$ifdef avr}
+              savesize:=96;
+            {$else avr}
+              savesize:=576;
+            {$endif avr}
           ft_typed,
           ft_untyped :
             savesize:=76;
