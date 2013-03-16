@@ -433,6 +433,13 @@ implementation
         left := nil;
         right := nil;
         firstpass(result);
+
+        if result.resultdef.typ<>orddef then
+          internalerror(2013031701);
+        if resultdef.typ<>orddef then
+          internalerror(2013031701);
+        if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
+          inserttypeconv(result,resultdef);
       end;
 {$else cpuneedsdiv32helper}
       begin
