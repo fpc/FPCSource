@@ -568,6 +568,15 @@ unit cgx86;
               end;
           end;
 {$elseif defined(i8086)}
+        { i8086 does not support stack relative addressing }
+        if ref.base = NR_STACK_POINTER_REG then
+          begin
+            href:=ref;
+            href.base:=getaddressregister(list);
+            { let the register allocator find a suitable register for the reference }
+            list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
+            ref:=href;
+          end
 {$endif}
       end;
 
