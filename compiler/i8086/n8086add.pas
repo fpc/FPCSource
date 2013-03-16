@@ -29,11 +29,16 @@ interface
        node,nadd,cpubase,nx86add;
 
     type
+
+       { ti8086addnode }
+
        ti8086addnode = class(tx86addnode)
          function use_generic_mul32to64: boolean; override;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
          procedure second_cmp64bit;override;
+         procedure second_cmp32bit;
+         procedure second_cmpordinal;override;
          procedure second_mul(unsigned: boolean);
        end;
 
@@ -362,6 +367,165 @@ interface
 
         { we have LOC_JUMP as result }
         location_reset(location,LOC_JUMP,OS_NO)
+      end;
+
+    procedure ti8086addnode.second_cmp32bit;
+      var
+        hregister : tregister;
+        href      : treference;
+        unsigned  : boolean;
+
+      procedure firstjmp32bitcmp;
+
+        var
+           oldnodetype : tnodetype;
+
+        begin
+{$ifdef OLDREGVARS}
+           load_all_regvars(current_asmdata.CurrAsmList);
+{$endif OLDREGVARS}
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn:
+                begin
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   { cheat a little bit for the negative test }
+                   toggleflag(nf_swapped);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   toggleflag(nf_swapped);
+                end;
+              lten,gten:
+                begin
+                   oldnodetype:=nodetype;
+                   if nodetype=lten then
+                     nodetype:=ltn
+                   else
+                     nodetype:=gtn;
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   { cheat for the negative test }
+                   if nodetype=ltn then
+                     nodetype:=gtn
+                   else
+                     nodetype:=ltn;
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   nodetype:=oldnodetype;
+                end;
+              equaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+              unequaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+           end;
+        end;
+
+      procedure secondjmp32bitcmp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn,lten,gten:
+                begin
+                   { the comparisaion of the low dword have to be }
+                   {  always unsigned!                            }
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                end;
+              equaln:
+                begin
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                end;
+              unequaln:
+                begin
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                end;
+           end;
+        end;
+
+      begin
+        pass_left_right;
+
+        unsigned:=((left.resultdef.typ=orddef) and
+                   (torddef(left.resultdef).ordtype=u32bit)) or
+                  ((right.resultdef.typ=orddef) and
+                   (torddef(right.resultdef).ordtype=u32bit));
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if (left.location.loc<>LOC_REGISTER) then
+         begin
+           if (right.location.loc<>LOC_REGISTER) then
+            begin
+              { we can reuse a CREGISTER for comparison }
+              if (left.location.loc<>LOC_CREGISTER) then
+               begin
+                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,hregister);
+                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+                 location_reset(left.location,LOC_REGISTER,left.location.size);
+                 left.location.register:=hregister;
+               end;
+            end
+           else
+            begin
+              location_swap(left.location,right.location);
+              toggleflag(nf_swapped);
+            end;
+         end;
+
+        { at this point, left.location.loc should be LOC_REGISTER }
+        if right.location.loc=LOC_REGISTER then
+         begin
+           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+           firstjmp32bitcmp;
+           emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
+           secondjmp32bitcmp;
+         end
+        else
+         begin
+           case right.location.loc of
+             LOC_CREGISTER :
+               begin
+                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+                 firstjmp32bitcmp;
+                 emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
+                 secondjmp32bitcmp;
+               end;
+             LOC_CREFERENCE,
+             LOC_REFERENCE :
+               begin
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+                 href:=right.location.reference;
+                 inc(href.offset,2);
+                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register));
+                 firstjmp32bitcmp;
+                 emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register);
+                 secondjmp32bitcmp;
+                 cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                 location_freetemp(current_asmdata.CurrAsmList,right.location);
+               end;
+             LOC_CONSTANT :
+               begin
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
+                 firstjmp32bitcmp;
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
+                 secondjmp32bitcmp;
+               end;
+             else
+               internalerror(200203282);
+           end;
+         end;
+
+        { we have LOC_JUMP as result }
+        location_reset(location,LOC_JUMP,OS_NO)
+      end;
+
+    procedure ti8086addnode.second_cmpordinal;
+      begin
+        if is_32bit(left.resultdef) then
+          second_cmp32bit
+        else
+          inherited second_cmpordinal;
       end;
 
 
