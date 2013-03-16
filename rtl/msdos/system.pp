@@ -73,11 +73,11 @@ implementation
 {$I system.inc}
 {$endif FULL_RTL}
 
+{$ifndef FULL_RTL}
 procedure fpc_Initialize_Units;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 begin
 end;
 
-{$ifndef FULL_RTL}
 procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
 begin
   asm
