@@ -118,7 +118,11 @@ implementation
         reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);
         href.index:=indexreg;
+{$ifdef i8086}
+        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_INT,1,indexreg);
+{$else i8086}
         href.scalefactor:=sizeof(aint);
+{$endif i8086}
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
