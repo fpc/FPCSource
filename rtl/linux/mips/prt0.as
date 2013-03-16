@@ -98,6 +98,7 @@ _haltproc:
         beqz    $t9,.L1
         nop
         jalr    $t9
+        nop
 .L1:
         lw      $a0,16($sp)
         li      $v0,4001
