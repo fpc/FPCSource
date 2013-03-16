@@ -1380,11 +1380,12 @@ implementation
             { we need its resultdef later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resultdef).ordtype = torddef(ptrsinttype).ordtype) then
+        else if (torddef(codepara.resultdef).ordtype <> torddef(ptrsinttype).ordtype) then
           { because code is a var parameter, it must match types exactly    }
-          { however, since it will return values in [0..255], both longints }
-          { and cardinals are fine. Since the formal code para type is      }
-          { longint, insert a typecoversion to longint for cardinal para's  }
+          { however, since it will return values >= 0, both signed and      }
+          { and unsigned ints of the same size are fine. Since the formal   }
+          { code para type is sinttype, insert a typecoversion to sint for  }
+          { unsigned para's  }
           begin
             codepara.left := ctypeconvnode.create_internal(codepara.left,ptrsinttype);
             { make it explicit, oterwise you may get a nonsense range }
