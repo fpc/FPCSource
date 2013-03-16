@@ -59,6 +59,9 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
 
+        { fpu move instructions }
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
         procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);override;
 
@@ -823,6 +826,27 @@ unit cgcpu;
                 internalerror(2013030211);
             end;
           end;
+      end;
+
+
+    procedure tcg8086.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+      var
+        tmpref: treference;
+      begin
+        { i8086 does not support stack relative addressing }
+        if ref.base = NR_STACK_POINTER_REG then
+          begin
+            tmpref := ref;
+            { TODO: is there a faster way to do this (e.g. rebase the address to
+              be relative to bp directly)? }
+            list.Concat(Taicpu.op_reg(A_PUSH, S_W, NR_BP));
+            list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, NR_BP));
+            reference_reset_base(tmpref,NR_BP,ref.offset + 2,ref.alignment);
+            inherited a_loadfpu_reg_ref(list, fromsize, tosize, reg, tmpref);
+            list.Concat(Taicpu.op_reg(A_POP, S_W, NR_BP));
+          end
+        else
+          inherited a_loadfpu_reg_ref(list, fromsize, tosize, reg, ref);
       end;
 
 
