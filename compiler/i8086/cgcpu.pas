@@ -69,6 +69,8 @@ unit cgcpu;
         procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
+
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_maybe_got_init(list: TAsmList); override;
 
@@ -91,7 +93,8 @@ unit cgcpu;
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
-       rgcpu,rgx86,cpuinfo;
+       rgcpu,rgx86,cpuinfo,
+       symtype,symsym;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -1177,6 +1180,56 @@ unit cgcpu;
       end;
 
 
+    procedure tcg8086.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      var
+        hsym : tsym;
+        href : treference;
+        paraloc : Pcgparalocation;
+      begin
+        { calculate the parameter info for the procdef }
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+               (hsym.typ=paravarsym)) then
+          internalerror(200305251);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
+            begin
+              case loc of
+                LOC_REGISTER:
+                  a_op_const_reg(list,OP_SUB,size,ioffset,register);
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    if (reference.index<>NR_BP) and (reference.index<>NR_BX) and (reference.index<>NR_DI)
+                      and (reference.index<>NR_SI) then
+                      begin
+                        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
+                        list.concat(taicpu.op_reg_reg(A_MOV,S_W,reference.index,NR_DI));
+
+                        if reference.index=NR_SP then
+                          reference_reset_base(href,NR_DI,reference.offset+sizeof(pint)+2,sizeof(pint))
+                        else
+                          reference_reset_base(href,NR_DI,reference.offset+sizeof(pint),sizeof(pint));
+                        a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                        list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+                      end
+                    else
+                      begin
+                        reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
+                        a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                      end;
+                  end
+                else
+                  internalerror(200309189);
+              end;
+              paraloc:=next;
+            end;
+      end;
+
+
     procedure tcg8086.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       {
       possible calling conventions:
@@ -1190,72 +1243,70 @@ unit cgcpu;
 
       (1): The wrapper code use %eax to reach the virtual method address
            set self to correct value
-           move self,%eax
-           mov  0(%eax),%eax ; load vmt
-           jmp  vmtoffs(%eax) ; method offs
+           move self,%bx
+           mov  0(%bx),%bx ; load vmt
+           jmp  vmtoffs(%bx) ; method offs
 
       (2): Virtual use values pushed on stack to reach the method address
            so the following code be generated:
            set self to correct value
-           push %ebx ; allocate space for function address
-           push %eax
-           mov  self,%eax
-           mov  0(%eax),%eax ; load vmt
-           mov  vmtoffs(%eax),eax ; method offs
-           mov  %eax,4(%esp)
-           pop  %eax
+           push %bx ; allocate space for function address
+           push %bx
+           push %di
+           mov  self,%bx
+           mov  0(%bx),%bx ; load vmt
+           mov  vmtoffs(%bx),bx ; method offs
+           mov  %sp,%di
+           mov  %bx,4(%di)
+           pop  %di
+           pop  %bx
            ret  0; jmp the address
 
       }
 
-      procedure getselftoeax(offs: longint);
+      procedure getselftobx(offs: longint);
         var
           href : treference;
           selfoffsetfromsp : longint;
         begin
-          { mov offset(%esp),%eax }
+          { "mov offset(%sp),%bx" }
           if (procdef.proccalloption<>pocall_register) then
             begin
+              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
               { framepointer is pushed for nested procs }
               if procdef.parast.symtablelevel>normal_function_level then
                 selfoffsetfromsp:=2*sizeof(aint)
               else
                 selfoffsetfromsp:=sizeof(aint);
-              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
-            end;
+              list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
+              reference_reset_base(href,NR_DI,selfoffsetfromsp+offs+2,2);
+              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
+              list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+            end
+          else
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_BX,NR_BX);
         end;
 
-      procedure loadvmttoeax;
+
+      procedure loadvmttobx;
         var
           href : treference;
         begin
-          { mov  0(%eax),%eax ; load vmt}
-          reference_reset_base(href,NR_EAX,0,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
-        end;
-
-      procedure op_oneaxmethodaddr(op: TAsmOp);
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          list.concat(taicpu.op_ref(op,S_L,href));
+          { mov  0(%bx),%bx ; load vmt}
+          reference_reset_base(href,NR_BX,0,2);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
         end;
 
 
-      procedure loadmethodoffstoeax;
+      procedure loadmethodoffstobx;
         var
           href : treference;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
-          { mov vmtoffs(%eax),%eax ; method offs }
-          reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          { mov vmtoffs(%bx),%bx ; method offs }
+          reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),2);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
         end;
 
 
@@ -1290,40 +1341,36 @@ unit cgcpu;
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
           begin
-            if (procdef.proccalloption=pocall_register) then
-              begin
-                { case 2 }
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
-                getselftoeax(8);
-                loadvmttoeax;
-                loadmethodoffstoeax;
-                { mov %eax,4(%esp) }
-                reference_reset_base(href,NR_ESP,4,4);
-                list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
-                { pop  %eax }
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
-                { ret  ; jump to the address }
-                list.concat(taicpu.op_none(A_RET,S_L));
-              end
-            else
-              begin
-                { case 1 }
-                getselftoeax(0);
-                loadvmttoeax;
-                op_oneaxmethodaddr(A_JMP);
-              end;
+            { case 1 & case 2 }
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
+            getselftobx(8);
+            loadvmttobx;
+            loadmethodoffstobx;
+            { set target address
+              "mov %bx,4(%sp)" }
+            reference_reset_base(href,NR_DI,4,2);
+            list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
+            list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_BX,href));
+
+            { load ax? }
+            if procdef.proccalloption=pocall_register then
+              list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BX,NR_AX));
+
+            { restore register
+              pop  %di,bx }
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_BX));
+
+            { ret  ; jump to the address }
+            list.concat(taicpu.op_none(A_RET,S_W));
           end
         { case 0 }
         else
           begin
-            if (target_info.system <> system_i386_darwin) then
-              begin
-                lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-                list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
-              end
-            else
-              list.concat(taicpu.op_sym(A_JMP,S_NO,get_darwin_call_stub(procdef.mangledname,false)))
+            lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+            list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
           end;
 
         List.concat(Tai_symbol_end.Createname(labelname));
