@@ -13,3 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+procedure fpc_cpuinit;
+  begin
+  end;
