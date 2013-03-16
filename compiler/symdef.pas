@@ -2506,7 +2506,11 @@ implementation
             {$endif avr}
           ft_typed,
           ft_untyped :
-            savesize:=76;
+            {$ifdef avr}
+              savesize:=76;
+            {$else avr}
+              savesize:=316;
+            {$endif avr}
         end;
 {$endif cpu16bitaddr}
       end;
