@@ -228,6 +228,9 @@ interface
     {# Returns true, if def is a 32 bit integer type }
     function is_32bitint(def : tdef) : boolean;
 
+    {# Returns true, if def is a 32 bit ordinal type }
+    function is_32bit(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
@@ -794,6 +797,11 @@ implementation
          result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit])
       end;
 
+    { true, if def is a 32 bit ordinal type }
+    function is_32bit(def: tdef): boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit,pasbool32,bool32bit])
+      end;
 
     { true, if def is a 64 bit int type }
     function is_64bitint(def : tdef) : boolean;
