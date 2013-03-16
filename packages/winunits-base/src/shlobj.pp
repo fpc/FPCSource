@@ -876,6 +876,8 @@ Const
   FOS_FORCESHOWHIDDEN     = $10000000;
   FOS_DEFAULTNOMINIMODE	  = $20000000;
   FOS_FORCEPREVIEWPANEON  = $40000000;
+  SHGFP_TYPE_CURRENT      =  0;   // shgetfolderpath, current value for user, verify it exists
+  SHGFP_TYPE_DEFAULT  	  =  1;   // shgetfolderpath, default value, may not exist
    
 Type
       SFGAOF  = ULONG;
