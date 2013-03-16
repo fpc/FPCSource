@@ -2910,7 +2910,11 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
+{$ifdef cpu16bitalu}
+                    expectloc:=LOC_JUMP;
+{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
+{$endif cpu16bitalu}
                end
 {$endif cpuneedsmulhelper}
              { generic s32bit conversion }
@@ -2946,8 +2950,12 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
+{$ifdef cpu16bitalu}
+                    expectloc:=LOC_JUMP;
+{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
-               end;
+{$endif cpu16bitalu}
+              end;
            end
 
          { left side a setdef, must be before string processing,
