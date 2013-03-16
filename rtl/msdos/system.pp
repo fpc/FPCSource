@@ -87,6 +87,7 @@ begin
 end;
 {$endif not FULL_RTL}
 
+
 procedure DebugWrite(const S: string);
 begin
   asm
@@ -108,6 +109,61 @@ procedure DebugWriteLn(const S: string);
 begin
   DebugWrite(S);
   DebugWrite(#13#10);
+end;
+
+{*****************************************************************************
+                              ParamStr/Randomize
+*****************************************************************************}
+
+function paramcount : longint;
+begin
+  paramcount := 0;
+end;
+
+
+function paramstr(l : longint) : string;
+begin
+  paramstr := '';
+end;
+
+procedure randomize;
+begin
+end;
+
+{*****************************************************************************
+                         System Dependent Exit code
+*****************************************************************************}
+
+procedure system_exit;
+begin
+  asm
+    mov al, byte [exitcode]
+    mov ah, 4Ch
+    int 21h
+  end;
+end;
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+procedure SysInitStdIO;
+begin
+{  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);}
+end;
+
+function GetProcessID: SizeUInt;
+begin
+  GetProcessID := 1;
+end;
+
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
 end;
 
 end.
