@@ -12,7 +12,47 @@ interface
 {$endif FULL_RTL}
 
 const
+  LineEnding = #13#10;
+  { LFNSupport is a variable here, defined below!!! }
+  DirectorySeparator = '\';
+  DriveSeparator = ':';
+  ExtensionSeparator = '.';
+  PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
+  { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   maxExitCode = 255;
+  MaxPathLen = 256;
+
+const
+{ Default filehandles }
+  UnusedHandle    = -1;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+
+  FileNameCaseSensitive : boolean = false;
+  FileNameCasePreserving: boolean = false;
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+
+{ Default memory segments (Tp7 compatibility) }
+  seg0040 = $0040;
+  segA000 = $A000;
+  segB000 = $B000;
+  segB800 = $B800;
+
+var
+  AllFilesMask: string [3];
+{$ifndef RTLLITE}
+{ System info }
+  LFNSupport : boolean;
+{$ELSE RTLLITE}
+const
+  LFNSupport = false;
+{$endif RTLLITE}
 
 {$ifndef FULL_RTL}
 type
