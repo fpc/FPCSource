@@ -7,6 +7,7 @@ interface
 {$ifdef FULL_RTL}
 
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
+{$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {$I systemh.inc}
 {$endif FULL_RTL}
