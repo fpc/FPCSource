@@ -2970,6 +2970,19 @@ begin
         utilsprefix:='i686-linux-android-';
     end;
 
+  { Set up default value for the heap }
+  if target_info.system in systems_embedded then
+    begin
+      case target_info.system of
+        system_avr_embedded:
+          heapsize:=128;
+        system_arm_embedded:
+          heapsize:=256;
+        else
+          heapsize:=256;
+      end;
+    end;
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then

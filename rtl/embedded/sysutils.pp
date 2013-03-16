@@ -26,7 +26,7 @@ interface
 implementation
 
 uses
-  sysconst;
+  sysconst,heapmgr;
 
   { Include platform independent implementation part }
   {$i sysutils.inc}

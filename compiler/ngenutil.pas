@@ -907,14 +907,21 @@ implementation
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(pint));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
-      { Initial heapsize }
+
+      { allocate an initial heap on embedded systems }
+      if target_info.system in systems_embedded then
+        begin
+          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+          new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_initialheap',current_settings.alignment.varalignmax);
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize));
+        end;
+
+      { Valgrind usage }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
     end;
-
-
 
 
    class procedure tnodeutils.add_main_procdef_paras(pd: tdef);

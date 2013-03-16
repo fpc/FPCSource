@@ -99,7 +99,7 @@ Unit heapmgr;
       end;
 
     procedure InternalFreeMem(Addr: Pointer; Size: ptruint);
-      var 
+      var
         b, p, prev: PHeapBlock;
         concatenated: boolean;
       begin
@@ -143,7 +143,7 @@ Unit heapmgr;
                         concatenated:=true;
                         break;
                       end;
-                    
+
                     prev := p;
                     p := p^.next;
                   end;
@@ -178,7 +178,7 @@ Unit heapmgr;
         sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
 
         InternalFreeMem(@pptruint(addr)[-1], sz);
-        
+
         result := sz;
       end;
 
@@ -239,9 +239,14 @@ Unit heapmgr;
         GetFPCHeapStatus: nil;
       );
 
+var
+  initialheap : record end; external name '__fpc_initialheap';
+  heapsize : PtrInt; external name '__heapsize';
+
 
 initialization
   SetMemoryManager(MyMemoryManager);
+  RegisterHeapBlock(@initialheap,heapsize);
 finalization
   //FinalizeHeap;
 end.
