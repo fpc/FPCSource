@@ -242,7 +242,7 @@ implementation
          { Additionally, do the same for cardinal/qwords and other positive types, but    }
          { always in a way that a smaller type is converted to a bigger type              }
          { (webtbs/tw8870)                                                                }
-         if (rd.ordtype in [u32bit,u64bit]) and
+         if (rd.ordtype in [u16bit,u32bit,u64bit]) and
             ((is_constintnode(left) and
               (tordconstnode(left).value >= 0)) or
              (not is_signed(ld) and
@@ -251,7 +251,7 @@ implementation
              inserttypeconv(left,right.resultdef);
              ld:=torddef(left.resultdef);
            end;
-         if (ld.ordtype in [u32bit,u64bit]) and
+         if (ld.ordtype in [u16bit,u32bit,u64bit]) and
             ((is_constintnode(right) and
               (tordconstnode(right).value >= 0)) or
              (not is_signed(rd) and
@@ -311,6 +311,45 @@ implementation
            end
          else
 {$endif not cpu64bitaddr}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+          { when there is one 32bit value, everything is done
+            in 32bit }
+          if (is_32bitint(left.resultdef) or
+              is_32bitint(right.resultdef)) then
+           begin
+             if is_signed(rd) or is_signed(ld) then
+               begin
+                  if (ld.ordtype<>s32bit) then
+                    inserttypeconv(left,s32inttype);
+                  if (rd.ordtype<>s32bit) then
+                    inserttypeconv(right,s32inttype);
+               end
+             else
+               begin
+                  if (ld.ordtype<>u32bit) then
+                    inserttypeconv(left,u32inttype);
+                  if (rd.ordtype<>u32bit) then
+                    inserttypeconv(right,u32inttype);
+               end;
+             resultdef:=left.resultdef;
+           end
+         else
+          { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
+          if ((rd.ordtype = u16bit) and
+              is_signed(ld)) or
+             ((ld.ordtype = u16bit) and
+              is_signed(rd)) then
+           begin
+              // TODO: 16->32 bit version of this message
+//              CGMessage(type_h_mixed_signed_unsigned);
+              if (ld.ordtype<>s32bit) then
+                inserttypeconv(left,s32inttype);
+              if (rd.ordtype<>s32bit) then
+                inserttypeconv(right,s32inttype);
+              resultdef:=left.resultdef;
+           end
+         else
+{$endif cpu16bitalu or cpu8bitalu}
            begin
               { Make everything always default singed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
