@@ -264,15 +264,59 @@ interface
            end;
         end;
 
-      procedure secondjmp64bitcmp;
+      procedure middlejmp64bitcmp;
+
+        var
+           oldnodetype : tnodetype;
+
+        begin
+{$ifdef OLDREGVARS}
+           load_all_regvars(current_asmdata.CurrAsmList);
+{$endif OLDREGVARS}
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn:
+                begin
+                   { the comparisaion of the low word have to be }
+                   {  always unsigned!                           }
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   { cheat a little bit for the negative test }
+                   toggleflag(nf_swapped);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrFalseLabel);
+                   toggleflag(nf_swapped);
+                end;
+              lten,gten:
+                begin
+                   oldnodetype:=nodetype;
+                   if nodetype=lten then
+                     nodetype:=ltn
+                   else
+                     nodetype:=gtn;
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   { cheat for the negative test }
+                   if nodetype=ltn then
+                     nodetype:=gtn
+                   else
+                     nodetype:=ltn;
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrFalseLabel);
+                   nodetype:=oldnodetype;
+                end;
+              equaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+              unequaln:
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+           end;
+        end;
+
+      procedure lastjmp64bitcmp;
 
         begin
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn,lten,gten:
                 begin
-                   { the comparisaion of the low dword have to be }
-                   {  always unsigned!                            }
+                   { the comparisaion of the low word have to be }
+                   {  always unsigned!                           }
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                 end;
@@ -306,8 +350,8 @@ interface
               { we can reuse a CREGISTER for comparison }
               if (left.location.loc<>LOC_CREGISTER) then
                begin
-                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                 hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                 hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                  cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
                  location_reset(left.location,LOC_REGISTER,left.location.size);
@@ -325,40 +369,58 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi);
+           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
            firstjmp64bitcmp;
-           emit_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo);
-           secondjmp64bitcmp;
+           emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
+           middlejmp64bitcmp;
+           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+           middlejmp64bitcmp;
+           emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
+           lastjmp64bitcmp;
          end
         else
          begin
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi);
+                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
-                 emit_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo);
-                 secondjmp64bitcmp;
+                 emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
+                 middlejmp64bitcmp;
+                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+                 middlejmp64bitcmp;
+                 emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
+                 lastjmp64bitcmp;
                end;
              LOC_CREFERENCE,
              LOC_REFERENCE :
                begin
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
-                 inc(href.offset,4);
-                 emit_ref_reg(A_CMP,S_L,href,left.location.register64.reghi);
+                 inc(href.offset,6);
+                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
-                 emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.register64.reglo);
-                 secondjmp64bitcmp;
+                 dec(href.offset,2);
+                 emit_ref_reg(A_CMP,S_W,href,left.location.register64.reghi);
+                 middlejmp64bitcmp;
+                 dec(href.offset,2);
+                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reglo));
+                 middlejmp64bitcmp;
+                 emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register64.reglo);
+                 lastjmp64bitcmp;
                  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                  location_freetemp(current_asmdata.CurrAsmList,right.location);
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 48) and $FFFF),GetNextReg(left.location.register64.reghi)));
                  firstjmp64bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
-                 secondjmp64bitcmp;
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 32) and $FFFF),left.location.register64.reghi));
+                 middlejmp64bitcmp;
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 16) and $FFFF),GetNextReg(left.location.register64.reglo)));
+                 middlejmp64bitcmp;
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value64 and $FFFF),left.location.register64.reglo));
+                 lastjmp64bitcmp;
                end;
              else
                internalerror(200203282);
