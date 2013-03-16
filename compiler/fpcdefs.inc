@@ -55,6 +55,8 @@
   {$define cpurox}
   {$define SUPPORT_SAFECALL}
   {$define cpuneedsmulhelper}
+  { TODO: add another define in order to disable the div helper for 16-bit divs? }
+  {$define cpuneedsdiv32helper}
 {$endif i8086}
 
 {$ifdef i386}
