@@ -1602,6 +1602,7 @@ Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil)
 Procedure ReleaseMysql;
 
 var MysqlLibraryHandle : TLibHandle;
+  MysqlLoadedLibrary : String;
 {$ENDIF}
 
 implementation
@@ -1615,7 +1616,6 @@ ResourceString
 
 var 
   RefCount : integer;
-  LoadedLibrary : String;
 
 Function TryInitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups: PPchar) : Integer;
 
@@ -1627,7 +1627,7 @@ begin
     if (MysqlLibraryHandle=nilhandle) then
       Exit;
     Inc(RefCount);
-    LoadedLibrary:=LibraryName;
+    MysqlLoadedLibrary:=LibraryName;
 // Only the procedure that are given in the c-library documentation are loaded, to
 // avoid problems with 'incomplete' libraries
     pointer(my_init) := GetProcedureAddress(MysqlLibraryHandle,'my_init');
@@ -1768,11 +1768,11 @@ begin
   Result := TryInitialiseMysql(LibraryName,argc,argv,groups);
   If Result = 0 then
     Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>LoadedLibrary) then
+  else If (LibraryName<>MysqlLoadedLibrary) then
     begin
     Dec(RefCount);
     Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[MysqlLoadedLibrary]);
     end;
 end;
 
@@ -1788,7 +1788,7 @@ begin
       begin
       Dec(RefCount);
       MysqlLibraryHandle := NilHandle;
-      LoadedLibrary:='';
+      MysqlLoadedLibrary:='';
       end
     end
 end;

@@ -1107,10 +1107,10 @@ begin
   if DataSize <= dsMaxStringSize then
     begin
     Result:=GetData(@Buf);
-    buf[Size]:=#0;  //limit string to Size
+    Buf[Size]:=#0;  //limit string to Size
     If Result then
       begin
-      if transliterate then
+      if Transliterate then
         begin
         DataSet.Translate(Buf,TBuf,False);
         AValue:=TBuf;
@@ -1123,10 +1123,10 @@ begin
     begin
     SetLength(DynBuf,DataSize);
     Result:=GetData(@DynBuf[0]);
-    Dynbuf[Size]:=#0;  //limit string to Size
+    DynBuf[Size]:=#0;  //limit string to Size
     If Result then
       begin
-      if transliterate then
+      if Transliterate then
         begin
         SetLength(TDynBuf,DataSize);
         DataSet.Translate(@DynBuf[0],@TDynBuf[0],False);
@@ -1168,28 +1168,35 @@ end;
 procedure TStringField.SetAsString(const AValue: string);
 
 var Buf      : TStringFieldBuffer;
+    DynBuf   : array of char;
 
 begin
-  IF Length(AValue)=0 then
+  if Length(AValue)=0 then
     begin
     Buf := #0;
-    SetData(@buf);
+    SetData(@Buf);
     end
-  else if FTransliterate then
+  else if DataSize <= dsMaxStringSize then
     begin
-    DataSet.Translate(@AValue[1],Buf,True);
+    if FTransliterate then
+      DataSet.Translate(@AValue[1],Buf,True)
+    else
+      // The data is copied into the buffer, since some TDataset descendents copy
+      // the whole buffer-length in SetData. (See bug 8477)
+      Buf := AValue;
+    // If length(AValue) > DataSize the buffer isn't terminated properly
     Buf[DataSize-1] := #0;
-    SetData(@buf);
+    SetData(@Buf);
     end
   else
     begin
-    // The data is copied into the buffer, since some TDataset descendents copy
-    // the whole buffer-length in SetData. (See bug 8477)
-    Buf := AValue;
-    // If length(AValue) > Datasize the buffer isn't terminated properly
-    Buf[DataSize-1] := #0;
-    SetData(@Buf);
-    end;
+    SetLength(DynBuf, DataSize);
+    if FTransliterate then
+      DataSet.Translate(@AValue[1],@DynBuf[0],True)
+    else
+      StrPLCopy(@DynBuf[0], AValue, DataSize);
+    SetData(@DynBuf[0]);
+    end
 end;
 
 procedure TStringField.SetVarValue(const AValue: Variant);
@@ -1347,11 +1354,8 @@ end;
 
 procedure TNumericField.SetAsBoolean(AValue: Boolean);
 begin
-  if AValue then
-    SetAsLongint(1)
-  else
-    SetAsLongint(0);
-end; 
+  SetAsLongint(ord(AValue));
+end;
 
 { ---------------------------------------------------------------------
     TLongintField
@@ -1925,7 +1929,7 @@ var b : wordbool;
 
 begin
   If GetData(@b) then
-    result := b
+    Result := b
   else
     Result:=False;
 end;
@@ -1968,15 +1972,12 @@ end;
 
 function TBooleanField.GetAsInteger: integer;
 begin
-   if GetAsBoolean then
-    Result:=1
-   else
-    Result:=0;
+  Result := ord(GetAsBoolean);
 end;
 
 procedure TBooleanField.SetAsInteger(AValue: Integer);
 begin
-  SetAsBoolean(avalue<>0);
+  SetAsBoolean(AValue<>0);
 end;
 
 procedure TBooleanField.SetAsBoolean(AValue: Boolean);

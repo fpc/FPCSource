@@ -94,6 +94,11 @@ type
     constructor Create(AOwner : TComponent); override;
     function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
+    // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
+    // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
+    // Warning: CollationName has to be a UTF-8 string
+    procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
@@ -921,7 +926,27 @@ begin
   GetDBInfo(stColumns,TableName,'name',List);
 end;
 
-procedure Tsqlite3connection.LoadExtension(Libraryfile: String);
+function UTF8CompareCallback(user: pointer; len1: longint; data1: pointer; len2: longint; data2: pointer): longint; cdecl;
+var S1, S2: AnsiString;
+begin
+  SetString(S1, data1, len1);
+  SetString(S2, data2, len2);
+  Result := WideCompareStr(UTF8Decode(S1), UTF8Decode(S2));
+end;
+
+procedure TSQLite3Connection.CreateCollation(const CollationName: string;
+  eTextRep: integer; Arg: Pointer; Compare: xCompare);
+begin
+  if eTextRep = 0 then
+  begin
+    eTextRep := SQLITE_UTF8;
+    Compare := @UTF8CompareCallback;
+  end;
+  CheckConnected;
+  CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
+end;
+
+procedure TSQLite3Connection.LoadExtension(LibraryFile: String);
 var
   LoadResult: integer;
 begin

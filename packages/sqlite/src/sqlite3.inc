@@ -5740,6 +5740,7 @@ function InitialiseSQLite(const LibraryName: String): Integer; deprecated;
 var
   SQLiteLibraryHandle: TLibHandle;
   SQLiteDefaultLibrary: String = Sqlite3Lib;
+  SQLiteLoadedLibrary: String;
 {$ENDIF LOAD_DYNAMICALLY}
 
 implementation
@@ -5927,7 +5928,6 @@ end;
 
 var
   RefCount: Integer;
-  LoadedLibrary: String;
 
 function TryInitializeSqlite(const LibraryName: string): Integer;
 begin
@@ -5940,7 +5940,7 @@ begin
       RefCount := 0;
       Exit(-1);
     end;
-    LoadedLibrary := LibraryName;
+    SQLiteLoadedLibrary := LibraryName;
     LoadAddresses(SQLiteLibraryHandle);
   end;
 end;
@@ -5952,8 +5952,8 @@ end;
 
 function  InitializeSQLite(const LibraryName: String) :integer;
 begin
-  if (LoadedLibrary <> '') and (LoadedLibrary <> LibraryName) then
-    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+  if (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
+    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
 
   result:= TryInitializeSQLIte(LibraryName);
   if result=-1 then
@@ -5972,7 +5972,7 @@ begin
     if SQLiteLibraryHandle <> NilHandle then
       UnloadLibrary(SQLiteLibraryHandle);
     SQLiteLibraryHandle := NilHandle;
-    LoadedLibrary := '';
+    SQLiteLoadedLibrary := '';
     RefCount := 0;
   end;
 end;
