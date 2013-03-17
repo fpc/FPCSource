@@ -144,6 +144,8 @@ type
 
   TCldrCollation = class;
 
+  { TCldrCollationItem }
+
   TCldrCollationItem = class
   private
     FBackwards: Boolean;
@@ -153,6 +155,7 @@ type
     FRules: TReorderSequenceArray;
     FTypeName: string;
   public
+    procedure Clear();
     property Parent : TCldrCollation read FParent;
     property TypeName : string read FTypeName write FTypeName;
     property Base : string read FBase write FBase;
@@ -186,6 +189,8 @@ type
     property ItemCount : Integer read GetItemCount;
     property Items[Index : Integer] : TCldrCollationItem read GetItem;
   end;
+
+  TCldrParserMode = (HeaderParsing, FullParsing);
 
   function ComputeWeigths(
     const AData        : PReorderUnit;
@@ -1102,6 +1107,17 @@ begin
     Inc(p);
   end;
   Result := locNotFound;
+end;
+
+{ TCldrCollationItem }
+
+procedure TCldrCollationItem.Clear();
+begin
+  FBackwards := False;
+  FBase := '';
+  FChangedFields := [];
+  SetLength(FRules,0);
+  FTypeName := '';
 end;
 
 { TCldrCollation }

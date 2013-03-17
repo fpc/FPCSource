@@ -32,13 +32,33 @@ uses
   procedure ParseInitialDocument(ASequence : POrderedCharacters; ADoc : TDOMDocument);overload;
   procedure ParseInitialDocument(ASequence : POrderedCharacters; AFileName : string);overload;
 
-  procedure ParseCollationDocument(ADoc : TDOMDocument; ACollation : TCldrCollation);
-  procedure ParseCollationDocument(const AFileName : string; ACollation : TCldrCollation);
+  procedure ParseCollationDocument(
+    ADoc       : TDOMDocument;
+    ACollation : TCldrCollation;
+    AMode      : TCldrParserMode
+  );overload;
+  procedure ParseCollationDocument(
+    const AFileName  : string;
+          ACollation : TCldrCollation;
+          AMode      : TCldrParserMode
+  );overload;
+
+  procedure ParseCollationDocument(
+    const AFileName  : string;
+          ACollation : TCldrCollationItem;
+          AType      : string
+  );overload;
+  procedure ParseCollationDocument(
+    ADoc       : TDOMDocument;
+    ACollation : TCldrCollationItem;
+    AType      : string
+  );overload;
 
 resourcestring
   sCaseNothandled = 'This case is not handled : "%s", Position = %d.';
   sCodePointExpected = 'Code Point node expected as child at this position "%d".';
   sCollationsNodeNotFound = '"collations" node not found.';
+  sCollationTypeNotFound = 'collation "Type" not found : "%s".';
   sHexAttributeExpected = '"hex" attribute expected at this position "%d".';
   sInvalidResetClause = 'Invalid "Reset" clause.';
   sNodeNameAssertMessage = 'Expected NodeName "%s", got "%s".';
@@ -500,7 +520,11 @@ begin
   SetLength(r,0);
 end;
 
-procedure ParseCollationItem(ACollationNode : TDOMElement; AItem : TCldrCollationItem);
+procedure ParseCollationItem(
+  ACollationNode : TDOMElement;
+  AItem          : TCldrCollationItem;
+  AMode          : TCldrParserMode
+);
 var
   n : TDOMNode;
   rulesElement : TDOMElement;
@@ -515,43 +539,49 @@ begin
   AItem.Backwards := (EvaluateXPathStr('settings/@backwards',ACollationNode) = 'on');
   if AItem.Backwards then
     AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWard];
-
-  SetLength(statementList,15);
-  sal := 0;
-  statement := @statementList[0];
-  s := EvaluateXPathStr('suppress_contractions',ACollationNode);
-  if (s <> '') then begin
-    if (ParseDeletion(s,statement) > 0) then begin
-      Inc(sal);
-      Inc(statement);
-    end else begin
-      statement^.Clear();
-    end;
-  end;
-  n := ACollationNode.FindNode(s_RULES);
-  if (n <> nil) then begin
-    rulesElement := n as TDOMElement;
-    c := rulesElement.ChildNodes.Count;
-    nextPos := 0;
-    i := 0;
-    while (i < c) do begin
-      statement^.Clear();
-      if not ParseStatement(rulesElement,i,statement,nextPos) then
-        Break;
-      i := nextPos;
-      Inc(statement);
-      Inc(sal);
-      if (sal >= Length(statementList)) then begin
-        SetLength(statementList,(sal*2));
-        statement := @statementList[(sal-1)];
+  AItem.Rules := nil;
+  if (AMode = TCldrParserMode.FullParsing) then begin
+    SetLength(statementList,15);
+    sal := 0;
+    statement := @statementList[0];
+    s := EvaluateXPathStr('suppress_contractions',ACollationNode);
+    if (s <> '') then begin
+      if (ParseDeletion(s,statement) > 0) then begin
+        Inc(sal);
+        Inc(statement);
+      end else begin
+        statement^.Clear();
       end;
     end;
+    n := ACollationNode.FindNode(s_RULES);
+    if (n <> nil) then begin
+      rulesElement := n as TDOMElement;
+      c := rulesElement.ChildNodes.Count;
+      nextPos := 0;
+      i := 0;
+      while (i < c) do begin
+        statement^.Clear();
+        if not ParseStatement(rulesElement,i,statement,nextPos) then
+          Break;
+        i := nextPos;
+        Inc(statement);
+        Inc(sal);
+        if (sal >= Length(statementList)) then begin
+          SetLength(statementList,(sal*2));
+          statement := @statementList[(sal-1)];
+        end;
+      end;
+    end;
+    SetLength(statementList,sal);
+    AItem.Rules := statementList;
   end;
-  SetLength(statementList,sal);
-  AItem.Rules := statementList;
 end;
 
-procedure ParseCollationDocument(ADoc : TDOMDocument; ACollation : TCldrCollation);
+procedure ParseCollationDocument(
+  ADoc       : TDOMDocument;
+  ACollation : TCldrCollation;
+  AMode      : TCldrParserMode
+);
 var
   rulesNodes, n : TDOMNode;
   collationsElement, rulesElement : TDOMElement;
@@ -576,7 +606,7 @@ begin
         n := nl[i];
         if (n.NodeName = s_COLLATION) then begin
           item := TCldrCollationItem.Create();
-          ParseCollationItem((n as TDOMElement),item);
+          ParseCollationItem((n as TDOMElement),item,AMode);
           ACollation.Add(item);
           item := nil;
         end
@@ -586,6 +616,25 @@ begin
       raise;
     end;
   end;
+end;
+
+procedure ParseCollationDocument(
+  ADoc       : TDOMDocument;
+  ACollation : TCldrCollationItem;
+  AType      : string
+);
+var
+  xv : TXPathVariable;
+begin
+  xv := EvaluateXPathExpression(Format('collations/collation[@type=%s]',[QuotedStr(AType)]),ADoc.DocumentElement);
+  try
+    if (xv.AsNodeSet.Count = 0) then
+      raise Exception.CreateFmt(sCollationTypeNotFound,[AType]);
+    ACollation.Clear();
+    ParseCollationItem((TDOMNode(xv.AsNodeSet[0]) as TDOMElement),ACollation,TCldrParserMode.FullParsing);
+  finally
+    xv.Free();
+  end
 end;
 
 function ReadXMLFile(f: TStream) : TXMLDocument;
@@ -618,14 +667,34 @@ begin
   end;
 end;
 
-procedure ParseCollationDocument(const AFileName : string; ACollation : TCldrCollation);
+procedure ParseCollationDocument(
+  const AFileName  : string;
+        ACollation : TCldrCollation;
+        AMode      : TCldrParserMode
+);
 var
   doc : TXMLDocument;
 begin
   doc := ReadXMLFile(AFileName);
   try
-    ParseCollationDocument(doc,ACollation);
+    ParseCollationDocument(doc,ACollation,AMode);
     ACollation.LocalID := ExtractFileName(ChangeFileExt(AFileName,''));
+  finally
+    doc.Free();
+  end;
+end;
+
+procedure ParseCollationDocument(
+  const AFileName  : string;
+        ACollation : TCldrCollationItem;
+        AType      : string
+);
+var
+  doc : TXMLDocument;
+begin
+  doc := ReadXMLFile(AFileName);
+  try
+    ParseCollationDocument(doc,ACollation,AType);
   finally
     doc.Free();
   end;

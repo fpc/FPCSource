@@ -102,6 +102,7 @@ var
   i , c: Integer;
   collation : TCldrCollation;
   dataPath, outputPath : string;
+  collationItem : TCldrCollationItem;
 begin
 {$ifdef test_suite}
   exec_tests();
@@ -150,17 +151,20 @@ begin
   endianStream := nil;
   collation := TCldrCollation.Create();
   try
-    ParseCollationDocument(collationFileName,collation);
+    ParseCollationDocument(collationFileName,collation,TCldrParserMode.HeaderParsing);
     WriteLn(Format('  Collation Count = %d',[collation.ItemCount]));
     if (collation.ItemCount = 0) then begin
       WriteLn('No collation in this file.');
     end else begin
       for i := 0 to collation.ItemCount - 1 do
-        WriteLn(Format('  Item[%d] = %d "resets"; Type = %s',[i, Length(collation.Items[i].Rules),collation.Items[i].TypeName]));
-      if (collation.Find(collationTypeName) = nil) then
+        WriteLn(Format('  Item[%d] = (Type = %s)',[i, collation.Items[i].TypeName]));
+      collationItem := collation.Find(collationTypeName);
+      if (collationItem = nil) then begin
         collationTypeName := FindCollationDefaultItemName(collation);
-      WriteLn('Collation Item Name : ',collationTypeName);
-
+        collationItem := collation.Find(collationTypeName);
+      end;
+      WriteLn(Format('Parsing Collation Item "%s" ...',[collationTypeName]));
+      ParseCollationDocument(collationFileName,collationItem,collationTypeName);
 
       s := dataPath + 'UCA_Rules_SHORT.xml';
       WriteLn;
