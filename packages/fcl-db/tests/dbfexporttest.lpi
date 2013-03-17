@@ -22,7 +22,7 @@
       <Item1 Name="Default" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
-          <Version Value="10"/>
+          <Version Value="11"/>
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -37,8 +37,7 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
-              <GenerateDebugInfo Value="True"/>
-              <GenerateDwarf Value="True"/>
+              <DebugInfoType Value="dsDwarf2Set"/>
               <UseHeaptrc Value="True"/>
             </Debugging>
           </Linking>
@@ -63,13 +62,10 @@
         <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
@@ -85,10 +81,14 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="dbfexporttest"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>
       <CompilerMessages>
