@@ -502,8 +502,6 @@ implementation
              end;
             pu:=tused_unit(pu.next);
           end;
-
-         consume(_SEMICOLON);
       end;
 
 
@@ -542,7 +540,10 @@ implementation
     procedure parse_implementation_uses;
       begin
          if token=_USES then
-           loadunits;
+           begin
+             loadunits;
+             consume(_SEMICOLON);
+           end;
       end;
 
 
@@ -743,6 +744,7 @@ type
          i,j : longint;
          finishstate:pfinishstate;
          globalstate:pglobalstate;
+         consume_semicolon_after_uses:boolean;
       begin
          result:=true;
 
@@ -847,7 +849,10 @@ type
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
                exit;
-           end;
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { move the global symtable from the temporary local to global }
          current_module.globalsymtable:=current_module.localsymtable;
@@ -856,6 +861,11 @@ type
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          { create whole program optimisation information (may already be
            updated in the interface, e.g., in case of classrefdef typed
@@ -1889,6 +1899,7 @@ type
          force_init_final : boolean;
          resources_used : boolean;
          program_name : ansistring;
+         consume_semicolon_after_uses : boolean;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2004,10 +2015,20 @@ type
 
          {Load the units used by the program we compile.}
          if token=_USES then
-           loadunits;
+           begin
+             loadunits;
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { All units are read, now give them a number }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
