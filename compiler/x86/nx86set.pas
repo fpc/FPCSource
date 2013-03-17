@@ -561,6 +561,30 @@ implementation
              begin
                if right.location.loc=LOC_CONSTANT then
                 begin
+{$ifdef i8086}
+                  location.resflags:=F_C;
+                  current_asmdata.getjumplabel(l);
+                  current_asmdata.getjumplabel(l2);
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+
+                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                  emit_const_reg(A_MOV,S_W,1,hreg);
+                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+
+                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,hreg,l);
+                  { reset carry flag }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                  cg.a_label(current_asmdata.CurrAsmList,l);
+                  emit_const_reg(A_TEST,S_W,right.location.value,hreg);
+
+                  cg.a_label(current_asmdata.CurrAsmList,l2);
+{$else i8086}
                   location.resflags:=F_C;
                   current_asmdata.getjumplabel(l);
                   current_asmdata.getjumplabel(l2);
@@ -608,6 +632,7 @@ implementation
                        end;
                   end;
                   cg.a_label(current_asmdata.CurrAsmList,l2);
+{$endif i8086}
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains values > 32 or < 0 }
