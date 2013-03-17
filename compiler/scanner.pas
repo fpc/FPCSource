@@ -504,7 +504,10 @@ implementation
            else
              current_settings.packenum:=4;
            if changeinit then
-             init_settings.packenum:=current_settings.packenum;
+             begin
+               init_settings.packenum:=current_settings.packenum;
+               init_settings.setalloc:=current_settings.setalloc;
+             end;
 {$ifdef i386}
            { Default to intel assembler for delphi/tp7 on i386 }
            if (m_delphi in current_settings.modeswitches) or
@@ -1909,7 +1912,7 @@ In case not, the value returned can be arbitrary.
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
-           if (ExtractFileExt(name)='') then
+           if (not found) and (ExtractFileExt(name)='') then
             begin
               { try default extensions .inc , .pp and .pas }
               if (not found) then
@@ -1928,6 +1931,7 @@ In case not, the value returned can be arbitrary.
                current_scanner.tempcloseinputfile;
                { load new file }
                hp:=do_openinputfile(foundfile);
+               hp.inc_path:=path;
                current_scanner.addfile(hp);
                current_module.sourcefiles.register_file(hp);
                if (not found) then
