@@ -1554,6 +1554,14 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+      const
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+        REGCX=NR_ECX;
+        REGCX_Size = OS_32;
+{$elseif defined(cpu16bitalu)}
+        REGCX=NR_CX;
+        REGCX_Size = OS_16;
+{$endif}
       var
         dstsize: topsize;
         instr:Taicpu;
@@ -1575,10 +1583,10 @@ unit cgx86;
           OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
             begin
               { Use ecx to load the value, that allows better coalescing }
-              getcpuregister(list,NR_ECX);
-              a_load_reg_reg(list,size,OS_32,src,NR_ECX);
+              getcpuregister(list,REGCX);
+              a_load_reg_reg(list,size,REGCX_Size,src,REGCX);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
-              ungetcpuregister(list,NR_ECX);
+              ungetcpuregister(list,REGCX);
             end;
           else
             begin
