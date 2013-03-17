@@ -50,7 +50,7 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
+      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
@@ -354,7 +354,7 @@ implementation
 
 
 {*****************************************************************************
-                             TI386SHLRSHRNODE
+                             TI8086SHLRSHRNODE
 *****************************************************************************}
 
 
@@ -368,6 +368,7 @@ implementation
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;
         l1,l2,l3:Tasmlabel;
+        ai: taicpu;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
@@ -376,93 +377,93 @@ implementation
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
 
-        { shifting by a constant directly coded: }
-        if (right.nodetype=ordconstn) then
+        if right.nodetype=ordconstn then
+          v:=Tordconstnode(right).value and 63;
+
+        { shifting by 0 directly coded: }
+        if (right.nodetype=ordconstn) and (v=0) then
           begin
-            v:=Tordconstnode(right).value and 63;
-            if v>31 then
+            { ultra hyper fast shift by 0 }
+          end
+        { shifting by 1 directly coded: }
+        else if (right.nodetype=ordconstn) and (v=1) then
+          begin
+            if nodetype=shln then
               begin
-                if nodetype=shln then
-                  begin
-                    emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
-                    if ((v and 31) <> 0) then
-                      emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
-                  end
-                else
-                  begin
-                    emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
-                    if ((v and 31) <> 0) then
-                      emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
-                  end;
-                location.register64.reghi:=hreg64lo;
-                location.register64.reglo:=hreg64hi;
+                emit_const_reg(A_SHL,S_W,1,hreg64lo);
+                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64lo));
+                emit_const_reg(A_RCL,S_W,1,hreg64hi);
+                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64hi));
               end
             else
               begin
-                if nodetype=shln then
-                  begin
-                    emit_const_reg_reg(A_SHLD,S_L,v.svalue and 31,hreg64lo,hreg64hi);
-                    emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
-                  end
-                else
-                  begin
-                    emit_const_reg_reg(A_SHRD,S_L,v.svalue and 31,hreg64hi,hreg64lo);
-                    emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
-                  end;
-                location.register64.reglo:=hreg64lo;
-                location.register64.reghi:=hreg64hi;
+                emit_const_reg(A_SHR,S_W,1,GetNextReg(hreg64hi));
+                emit_const_reg(A_RCR,S_W,1,hreg64hi);
+                emit_const_reg(A_RCR,S_W,1,GetNextReg(hreg64lo));
+                emit_const_reg(A_RCR,S_W,1,hreg64lo);
               end;
           end
         else
           begin
             { load right operators in a register }
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,NR_ECX);
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
 
-            { left operator is already in a register }
-            { hence are both in a register }
-            { is it in the case ECX ? }
-
-            { the damned shift instructions work only til a count of 32 }
-            { so we've to do some tricks here                           }
-            current_asmdata.getjumplabel(l1);
-            current_asmdata.getjumplabel(l2);
-            current_asmdata.getjumplabel(l3);
-            emit_const_reg(A_CMP,S_L,64,NR_ECX);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l1);
-            emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
-            emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
-            cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-            cg.a_label(current_asmdata.CurrAsmList,l1);
-            emit_const_reg(A_CMP,S_L,32,NR_ECX);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l2);
-            emit_const_reg(A_SUB,S_L,32,NR_ECX);
-            if nodetype=shln then
+            { shifting by a constant? }
+            if right.nodetype=ordconstn then
               begin
-                emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
-                emit_reg_reg(A_MOV,S_L,hreg64lo,hreg64hi);
-                emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-                cg.a_label(current_asmdata.CurrAsmList,l2);
-                emit_reg_reg_reg(A_SHLD,S_L,NR_CL,hreg64lo,hreg64hi);
-                emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
+                v:=Tordconstnode(right).value and 63;
+                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,u16inttype,v,NR_CX);
               end
             else
               begin
-                emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
-                emit_reg_reg(A_MOV,S_L,hreg64hi,hreg64lo);
-                emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-                cg.a_label(current_asmdata.CurrAsmList,l2);
-                emit_reg_reg_reg(A_SHRD,S_L,NR_CL,hreg64hi,hreg64lo);
-                emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,NR_CX);
+
+                { left operator is already in a register }
+                { hence are both in a register }
+                { is it in the case CX ? }
               end;
+
+            current_asmdata.getjumplabel(l1);
+            current_asmdata.getjumplabel(l2);
+            current_asmdata.getjumplabel(l3);
+            { for consts, we don't need the extra checks for 0 or >= 64, since
+              we've already handled them earlier as a special case }
+            if right.nodetype<>ordconstn then
+              begin
+                emit_const_reg(A_CMP,S_L,64,NR_CX);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l1);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64lo,hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64hi,hreg64hi);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
+                cg.a_label(current_asmdata.CurrAsmList,l1);
+                emit_reg_reg(A_TEST,S_W,NR_CX,NR_CX);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
+              end;
+            cg.a_label(current_asmdata.CurrAsmList,l2);
+            if nodetype=shln then
+              begin
+                emit_const_reg(A_SHL,S_W,1,hreg64lo);
+                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64lo));
+                emit_const_reg(A_RCL,S_W,1,hreg64hi);
+                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64hi));
+              end
+            else
+              begin
+                emit_const_reg(A_SHR,S_W,1,GetNextReg(hreg64hi));
+                emit_const_reg(A_RCR,S_W,1,hreg64hi);
+                emit_const_reg(A_RCR,S_W,1,GetNextReg(hreg64lo));
+                emit_const_reg(A_RCR,S_W,1,hreg64lo);
+              end;
+            ai:=Taicpu.Op_Sym(A_LOOP,S_W,l2);
+            ai.is_jmp := True;
+            current_asmdata.CurrAsmList.Concat(ai);
             cg.a_label(current_asmdata.CurrAsmList,l3);
 
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_ECX);
-            location.register64.reglo:=hreg64lo;
-            location.register64.reghi:=hreg64hi;
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
           end;
+
+        location.register64.reglo:=hreg64lo;
+        location.register64.reghi:=hreg64hi;
       end;
 
 
