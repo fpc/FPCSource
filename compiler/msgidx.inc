@@ -828,6 +828,7 @@ const
   exec_e_cant_open_resource_file=09031;
   exec_e_cant_write_resource_file=09032;
   exec_n_backquote_cat_file_not_found=09033;
+  exec_w_init_file_not_found=09034;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -971,7 +972,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 68744;
+  MsgTxtSize = 68811;
 
   MsgIdxMax : array[1..20] of longint=(
     26,93,333,121,88,56,126,27,202,63,
