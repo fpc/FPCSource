@@ -1127,7 +1127,12 @@ implementation
                 if (TCGSize2Size[dst_cgsize]<TCGSize2Size[l.size]) then
                  begin
                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     l.register:=cg.makeregsize(list,l.register,dst_cgsize);
+                     begin
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                       if TCGSize2Size[dst_cgsize]<=TCGSize2Size[OS_INT] then
+{$endif}
+                         l.register:=cg.makeregsize(list,l.register,dst_cgsize);
+                     end;
                    { for big endian systems, the reference's offset must }
                    { be increased in this case, since they have the      }
                    { MSB first in memory and e.g. byte(word_var) should  }
