@@ -348,8 +348,8 @@ implementation
            to 32 bits, the left side may also not contain higher values or be signed !! }
          use_small:=is_smallset(right.resultdef) and
                     not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<32) or
-                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<{$ifdef i8086}16{$else}32{$endif}) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<{$ifdef i8086}16{$else}32{$endif}));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -375,7 +375,11 @@ implementation
           swapleftright;
 
          orgopsize := def_cgsize(left.resultdef);
+{$ifdef i8086}
+         opsize := OS_16;
+{$else i8086}
          opsize := OS_32;
+{$endif i8086}
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
          opdef:=hlcg.tcgsize2orddef(opsize);
@@ -497,6 +501,37 @@ implementation
                 end
                else
                 begin
+{$ifdef i8086}
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                  if (tcgsize2size[right.location.size] < 2) or
+                     (right.location.loc = LOC_CONSTANT) then
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u16inttype,true);
+
+                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                  emit_const_reg(A_MOV,S_W,1,hreg);
+                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
+
+                  case right.location.loc of
+                    LOC_REGISTER,
+                    LOC_CREGISTER :
+                      begin
+                        emit_reg_reg(A_TEST,S_L,hreg,right.location.register);
+                      end;
+                     LOC_CREFERENCE,
+                     LOC_REFERENCE :
+                       begin
+                         emit_reg_ref(A_TEST,S_L,hreg,right.location.reference);
+                       end;
+                     else
+                       internalerror(2002032210);
+                  end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+{$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (tcgsize2size[right.location.size] < 4) or
@@ -518,6 +553,7 @@ implementation
                      else
                        internalerror(2002032210);
                   end;
+{$endif i8086}
                   location.resflags:=F_C;
                 end;
              end
