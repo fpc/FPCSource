@@ -781,7 +781,7 @@ begin
     begin
     S:=Strings[Result];
     len:=pos(FNameValueSeparator,S)-1;
-    if (len>0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
+    if (len>=0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
       exit;
     inc(result);
     end;
