@@ -44,7 +44,9 @@ unit nx86add;
         procedure second_addfloatsse;
       public
         procedure second_addfloat;override;
+{$ifndef i8086}
         procedure second_addsmallset;override;
+{$endif not i8086}
         procedure second_add64bit;override;
         procedure second_cmpfloat;override;
         procedure second_cmpsmallset;override;
@@ -332,6 +334,7 @@ unit nx86add;
                                 AddSmallSet
 *****************************************************************************}
 
+{$ifndef i8086}
     procedure tx86addnode.second_addsmallset;
       var
         setbase : aint;
@@ -439,6 +442,7 @@ unit nx86add;
         if opsize<>int_cgsize(resultdef.size) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,hlcg.tcgsize2orddef(int_cgsize(resultdef.size)),false);
       end;
+{$endif not i8086}
 
 
     procedure tx86addnode.second_cmpsmallset;
