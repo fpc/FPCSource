@@ -52,10 +52,15 @@ end;
 {   DateTimeToTimeStamp converts DateTime to a TTimeStamp   }
 
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
+
+Var
+  D : Double;
+
 begin
-  result.Time := Round(abs(Frac(DateTime)) * MSecsPerDay);
-  result.Date := DateDelta + trunc(DateTime);
-end ;
+  D:=DateTime * Single(MSecsPerDay);
+  result.Time := Abs(Round(D)) Mod MSecsPerDay;
+  result.Date := DateDelta + Round(D) div MSecsPerDay;
+end;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
 
@@ -190,7 +195,7 @@ procedure DecodeTime(Time: TDateTime; out Hour, Minute, Second, MilliSecond: wor
 Var
   l : cardinal;
 begin
- l := Round(abs(Frac(time)) * MSecsPerDay);
+ l := DateTimeToTimeStamp(Time).Time;
  Hour   := l div 3600000;
  l := l mod 3600000;
  Minute := l div 60000;
@@ -896,7 +901,7 @@ var
 
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
-
+  DT : TDateTime;
 
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
