@@ -340,26 +340,26 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 
 { all var rather than out, because they must not be trashed/finalized as they
   can appear inside the other arguments of writerstr }
-function fpc_SetupWriteStr_Shortstr(var s: shortstring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Shortstr(var ReadWriteStrText: text; var s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupWriteStr_Ansistr(var s: ansistring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupWriteStr_Unicodestr(var s: unicodestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Unicodestr(var ReadWriteStrText: text; var s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupWriteStr_Widestr(var s: widestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Widestr(var ReadWriteStrText: text; var s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
+procedure fpc_SetupReadStr_Shortstr(var ReadWriteStrText: text; const s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; compilerproc;
+procedure fpc_SetupReadStr_Ansistr(var ReadWriteStrText: text; const s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupReadStr_Unicodestr(const s: unicodestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$endif FPC_HAS_FEATURE_TEXTIO}
 

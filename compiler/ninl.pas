@@ -1171,9 +1171,34 @@ implementation
         { make inserting of additional statements easier                            }
         newblock:=internalstatements(newstatement);
 
+        if is_rwstr then
+          begin
+            { create a dummy temp text file that will be used to cache the
+              readstr/writestr state. Can't use a global variable in the system
+              unit because these can be nested (in case of parameters to
+              writestr that are function calls to functions that also call
+              readstr/writestr) }
+            textsym:=search_system_type('TEXT');
+            filetemp:=ctempcreatenode.create(textsym.typedef,textsym.typedef.size,tt_persistent,false);
+            addstatement(newstatement,filetemp);
+
+            if (do_read) then
+              name:='fpc_setupreadstr_'
+            else
+              name:='fpc_setupwritestr_';
+            name:=name+tstringdef(filepara.resultdef).stringtypname;
+            { remove the source/destination string parameter from the }
+            { parameter chain                                         }
+            left:=filepara.right;
+            filepara.right:=ccallparanode.create(ctemprefnode.create(filetemp),nil);
+            { pass the temp text file and the source/destination string to the
+              setup routine, which will store the string's address in the
+              textrec }
+            addstatement(newstatement,ccallnode.createintern(name,filepara));
+            filepara:=ccallparanode.create(ctemprefnode.create(filetemp),nil);
+          end
         { if we don't have a filepara, create one containing the default }
-        if not assigned(filepara) or
-           is_rwstr then
+        else if not assigned(filepara) then
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
@@ -1187,34 +1212,14 @@ implementation
             { typecheckpassed if the resultdef of the temp is known) }
             typecheckpass(tnode(filetemp));
 
-            if not is_rwstr then
-              begin
-                { assign the address of the file to the temp }
-                if do_read then
-                  name := 'input'
-                else
-                  name := 'output';
-                addstatement(newstatement,
-                  cassignmentnode.create(ctemprefnode.create(filetemp),
-                    ccallnode.createintern('fpc_get_'+name,nil)));
-              end
+            { assign the address of the file to the temp }
+            if do_read then
+              name := 'input'
             else
-              begin
-                if (do_read) then
-                  name := 'fpc_setupreadstr_'
-                else
-                  name := 'fpc_setupwritestr_';
-                name:=name+tstringdef(filepara.resultdef).stringtypname;
-                { remove the source/destination string parameter from the }
-                { parameter chain                                         }
-                left:=filepara.right;
-                filepara.right:=nil;
-                { pass the source/destination string to the setup routine, which }
-                { will store the string's address in the returned textrec        }
-                addstatement(newstatement,
-                  cassignmentnode.create(ctemprefnode.create(filetemp),
-                    ccallnode.createintern(name,filepara)));
-              end;
+              name := 'output';
+            addstatement(newstatement,
+              cassignmentnode.create(ctemprefnode.create(filetemp),
+                ccallnode.createintern('fpc_get_'+name,nil)));
 
             { create a new fileparameter as follows: file_type(temp^)    }
             { (so that we pass the value and not the address of the temp }
