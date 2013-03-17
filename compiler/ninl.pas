@@ -603,6 +603,9 @@ implementation
                     name := procprefixes[do_read]+'float';
                     readfunctype:=pbestrealtype^;
                   end;
+                { iso pascal needs a different handler }
+                if (m_iso in current_settings.modeswitches) and do_read then
+                  name:=name+'_iso';
               end;
             enumdef:
               begin
@@ -620,6 +623,9 @@ implementation
                   s32bit :
                     begin
                       name := procprefixes[do_read]+'sint';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=sinttype;
                     end;
 {$ifdef cpu64bitaddr}
@@ -630,6 +636,9 @@ implementation
                   u32bit :
                     begin
                       name := procprefixes[do_read]+'uint';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=uinttype;
                     end;
                   uchar :
@@ -649,17 +658,26 @@ implementation
                   s64bit :
                     begin
                       name := procprefixes[do_read]+'int64';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=s64inttype;
                     end;
                   u64bit :
                     begin
                       name := procprefixes[do_read]+'qword';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=u64inttype;
                     end;
 {$endif not cpu64bitaddr}
                   scurrency:
                     begin
                       name := procprefixes[do_read]+'currency';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=s64currencytype;
                       is_real:=true;
                     end;

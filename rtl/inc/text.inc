@@ -1139,6 +1139,130 @@ begin
 end;
 
 
+procedure ReadInteger(var f:Text;var s:string);
+{
+ Ignore leading blanks (incl. EOF) and return the first characters matching
+ an integer in the format recognized by the Val procedure:
+      [+-]?[0-9]+
+   or [+-]?(0x|0X|x|X)[0-9A-Za-z]+
+   or [+-]?&[0-7]+
+   or [+-]?%[0-1]+
+ A partial match may be returned, e.g.: '' or '+' or '0x'.
+ Used by some fpc_Read_Text_*_Iso functions which implement the read()
+ standard function in ISO mode.
+}
+var
+  Base: Integer;
+begin
+    s := '';
+    with TextRec(f) do begin
+        if not CheckRead(f) then Exit;
+
+        IgnoreSpaces(f);
+
+        if BufPos >= BufEnd then Exit;
+        if BufPtr^[BufPos] in ['+','-'] then
+            NextChar(f,s);
+
+        Base := 10;
+
+        if BufPos >= BufEnd then Exit;
+        if BufPtr^[BufPos] in ['$','x','X','%','&'] then
+        begin
+            case BufPtr^[BufPos] of
+              '$','x','X': Base := 16;
+	      '%': Base := 2;
+              '&': Base := 8;
+	    end;
+            NextChar(f,s);
+        end else if BufPtr^[BufPos] = '0' then
+        begin
+            NextChar(f,s);
+            if BufPos >= BufEnd then Exit;
+            if BufPtr^[BufPos] in ['x','X'] then
+            begin
+                Base := 16;
+                NextChar(f,s);
+            end;
+        end;
+
+        while (BufPos < BufEnd) and (Length(s) < High(s)) do
+            if (((Base = 2) and (BufPtr^[BufPos] in ['0'..'1']))
+	      or ((Base = 8) and (BufPtr^[BufPos] in ['0'..'7']))
+              or ((Base = 10) and (BufPtr^[BufPos] in ['0'..'9']))
+              or ((Base = 16) and (BufPtr^[BufPos] in ['0'..'9','a'..'f','A'..'F']))) then
+                 NextChar(f,s)
+	    else Exit;
+   end;
+end;
+
+
+procedure ReadReal(var f:Text;var s:string);
+{
+ Ignore leading blanks (incl. EOF) and return the first characters matching
+ a float number in the format recognized by the Val procedure:
+      [+-]?([0-9]+)?\.[0-9]+([eE][+-]?[0-9]+)?
+   or [+-]?[0-9]+\.([0-9]+)?([eE][+-]?[0-9]+)?
+ A partial match may be returned, e.g.: '' or '+' or '.' or '1e' or even '+.'.
+ Used by some fpc_Read_Text_*_Iso functions which implement the read()
+ standard function in ISO mode.
+}
+var digit: Boolean;
+begin
+    s := '';
+    with TextRec(f) do begin
+        if not CheckRead(f) then Exit;
+
+        IgnoreSpaces(f);
+
+        if BufPos >= BufEnd then Exit;
+        if BufPtr^[BufPos] in ['+','-'] then
+            NextChar(f,s);
+
+        digit := false;
+        if BufPos >= BufEnd then Exit;
+	if BufPtr^[BufPos] in ['0'..'9'] then
+        begin
+            digit := true;
+            repeat
+                NextChar(f,s);
+                if (BufPos >= BufEnd) or (Length(s) >= High(s)) then Exit;
+            until not (BufPtr^[BufPos] in ['0'..'9']);
+        end;
+
+        if BufPtr^[BufPos] = '.' then
+        begin
+            NextChar(f,s);
+
+            if (BufPos >= BufEnd) or (Length(s) >= High(s)) then Exit;
+	    if BufPtr^[BufPos] in ['0'..'9'] then
+            begin
+                digit := true;
+                repeat
+                    NextChar(f,s);
+                    if (BufPos >= BufEnd) or (Length(s) >= High(s)) then Exit;
+                until not (BufPtr^[BufPos] in ['0'..'9']);
+            end;
+        end;
+
+        {at least one digit is required on the left of the exponent}
+        if digit and (BufPtr^[BufPos] in ['e','E']) then
+        begin
+            NextChar(f,s);
+
+            if (BufPos >= BufEnd) or (Length(s) >= High(s)) then Exit;
+            if BufPtr^[BufPos] in ['+','-'] then
+                NextChar(f,s);
+
+	    while (BufPos < BufEnd) and (Length(s) < High(s)) do
+                if BufPtr^[BufPos] in ['0'..'9'] then
+                    NextChar(f,s)
+                else break;
+        end;
+    end;
+end;
+
+
 Procedure fpc_Read_End(var f:Text);[Public,Alias:'FPC_READ_END']; iocheck; compilerproc;
 begin
   if TextRec(f).FlushFunc<>nil then
@@ -1534,6 +1658,19 @@ Begin
 End;
 
 
+Procedure fpc_Read_Text_SInt_Iso(var f : Text; out l : ValSInt); iocheck; compilerproc;
+var
+  hs   : String;
+  code : ValSInt;
+Begin
+    ReadInteger(f,hs);
+
+    Val(hs,l,code);
+    if Code <> 0 then
+        InOutRes:=106;
+End;
+
+
 Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
   hs   : String;
@@ -1561,6 +1698,17 @@ Begin
     end;
 End;
 
+Procedure fpc_Read_Text_UInt_Iso(var f : Text; out u : ValUInt);  iocheck; compilerproc;
+var
+  hs   : String;
+  code : ValSInt;
+Begin
+   ReadInteger(f,hs);
+   Val(hs,u,code);
+   If code<>0 Then
+       InOutRes:=106;
+End;
+
 
 {$ifndef FPUNONE}
 procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; compilerproc;
@@ -1583,6 +1731,18 @@ begin
   val(hs,v,code);
   If code<>0 Then
    InOutRes:=106;
+end;
+
+
+procedure fpc_Read_Text_Float_Iso(var f : Text; out v : ValReal); iocheck; compilerproc;
+var
+  hs : string;
+  code : Word;
+begin
+  ReadReal(f,hs);
+  Val(hs,v,code);
+  If code<>0 Then
+    InOutRes:=106;
 end;
 {$endif}
 
@@ -1634,6 +1794,18 @@ begin
 end;
 
 
+procedure fpc_Read_Text_Currency_Iso(var f : Text; out v : Currency); iocheck; compilerproc;
+var
+  hs : string;
+  code : ValSInt;
+begin
+  ReadReal(f,hs);
+  Val(hs,v,code);
+  If code<>0 Then
+   InOutRes:=106;
+end;
+
+
 {$ifndef cpu64}
 
 procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; compilerproc;
@@ -1658,6 +1830,17 @@ Begin
    InOutRes:=106;
 End;
 
+procedure fpc_Read_Text_QWord_Iso(var f : text; out q : qword); iocheck; compilerproc;
+var
+  hs   : String;
+  code : longint;
+Begin
+   ReadInteger(f,hs);
+   Val(hs,q,code);
+   If code<>0 Then
+       InOutRes:=106;
+End;
+
 procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
 var
   hs   : String;
@@ -1679,6 +1862,18 @@ Begin
   If code<>0 Then
    InOutRes:=106;
 End;
+
+procedure fpc_Read_Text_Int64_Iso(var f : text; out i : int64); iocheck; compilerproc;
+var
+  hs   : String;
+  code : Longint;
+Begin
+    ReadInteger(f,hs);
+    Val(hs,i,code);
+    If code<>0 Then
+       InOutRes:=106;
+End;
+
 
 {$endif CPU64}
 

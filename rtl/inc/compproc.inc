@@ -443,15 +443,21 @@ procedure fpc_Read_Text_WideChar(var f : Text; out wc: widechar); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Read_Text_Char_Iso(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
+Procedure fpc_Read_Text_SInt_Iso(var f : Text; out l : ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
+Procedure fpc_Read_Text_UInt_Iso(var f : Text; out u : ValUInt); compilerproc;
 {$ifndef FPUNONE}
 Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
+Procedure fpc_Read_Text_Float_Iso(var f : Text; out v : ValReal); compilerproc;
 {$endif}
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); compilerproc;
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
+procedure fpc_Read_Text_Currency_Iso(var f : Text; out v : Currency); compilerproc;
 {$ifndef CPU64}
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
+procedure fpc_Read_Text_QWord_Iso(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
+procedure fpc_Read_Text_Int64_Iso(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
 function fpc_GetBuf(var f : Text) : pchar; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
