@@ -450,7 +450,7 @@ implementation
                           begin
                             paraloc^.reference.index := NR_FRAME_POINTER_REG;
                             if assigned(current_procinfo) then
-                              TMIPSProcinfo(current_procinfo).needs_frame_pointer := true;
+                              include(current_procinfo.flags,pi_needs_stackframe);
                           end;
                         paraloc^.reference.offset:=intparasize;
 

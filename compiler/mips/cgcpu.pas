@@ -1203,7 +1203,7 @@ begin
   if nostackframe then
     exit;
 
-  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
+  if (pi_needs_stackframe in current_procinfo.flags) then
     a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   helplist:=TAsmList.Create;
@@ -1236,15 +1236,12 @@ begin
   mask:=0;
   nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-  include(saveregs,RS_R31);
-  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
+  if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
+    include(saveregs,RS_R31);
+  if (pi_needs_stackframe in current_procinfo.flags) then
     include(saveregs,RS_FRAME_POINTER_REG);
-  if (cs_create_pic in current_settings.moduleswitches) and
-     (pi_needs_got in current_procinfo.flags) then
-    include(saveregs,RS_GP);
   lastintoffset:=LocalSize;
   framesave:=nil;
-  gp_save:=nil;
   ra_save:=nil;
 
   for reg:=RS_R1 to RS_R31 do
@@ -1258,10 +1255,6 @@ begin
             framesave:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
           else if (reg=RS_R31) then
             ra_save:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
-          else if (reg=RS_GP) and
-                  (cs_create_pic in current_settings.moduleswitches) and
-                  (pi_needs_got in current_procinfo.flags) then
-            gp_save:=taicpu.op_const(A_P_CPRESTORE,nextoffset)
           else
             helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
           inc(nextoffset,4);
@@ -1311,10 +1304,11 @@ begin
         even use AT register, which is why we use R9 instead of AT here for -LocalSize }
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
-  if assigned(gp_save) then
+  if (cs_create_pic in current_settings.moduleswitches) and
+     (pi_needs_got in current_procinfo.flags) then
     begin
       list.concat(Taicpu.op_none(A_P_SET_MACRO));
-      list.concat(gp_save);
+      list.concat(Taicpu.op_const(A_P_CPRESTORE,TMIPSProcinfo(current_procinfo).save_gp_ref.offset));
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
 
@@ -1337,11 +1331,6 @@ begin
             href.offset:=register_offset[i];
             list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
         end;
-    end;
-  if (cs_create_pic in current_settings.moduleswitches) and
-     (pi_needs_got in current_procinfo.flags) then
-    begin
-      current_procinfo.got := NR_GP;
     end;
   list.concatList(helplist);
   helplist.Free;
@@ -1382,12 +1371,11 @@ begin
 
        nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
        saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-       include(saveregs,RS_R31);
-       if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) or (pi_needs_stackframe in current_procinfo.flags) then
+       if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
+         include(saveregs,RS_R31);
+       if (pi_needs_stackframe in current_procinfo.flags) then
          include(saveregs,RS_FRAME_POINTER_REG);
-       if (cs_create_pic in current_settings.moduleswitches) and
-          (pi_needs_got in current_procinfo.flags) then
-         include(saveregs,RS_GP);
+       // GP does not need to be restored on exit
        for reg:=RS_R1 to RS_R31 do
          begin
            if reg in saveregs then
