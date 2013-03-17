@@ -1127,7 +1127,13 @@ implementation
     {# returns true, if the type passed is a varset }
     function is_smallset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$if defined(cpu8bitalu)}
+          result:=(p.typ=setdef) and (p.size = 1)
+        {$elseif defined(cpu16bitalu)}
+          result:=(p.typ=setdef) and (p.size in [1,2])
+        {$else}
+          result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$endif}
       end;
 
 
