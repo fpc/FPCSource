@@ -2629,13 +2629,15 @@ In case not, the value returned can be arbitrary.
           _CWSTRING :
             begin
               tokenwritesizeint(patternw^.len);
-              recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+              if patternw^.len>0 then
+                recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
               tokenwritesizeint(len);
-              recordtokenbuf.write(cstringpattern[1],len);
+              if len>0 then
+                recordtokenbuf.write(cstringpattern[1],len);
             end;
           _CCHAR,
           _INTCONST,
@@ -2731,7 +2733,8 @@ In case not, the value returned can be arbitrary.
               begin
                 wlen:=tokenreadsizeint;
                 setlengthwidestring(patternw,wlen);
-                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                if wlen>0 then
+                  replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
                 pattern:='';
                 cstringpattern:='';
@@ -2739,8 +2742,13 @@ In case not, the value returned can be arbitrary.
             _CSTRING:
               begin
                 wlen:=tokenreadsizeint;
-                setlength(cstringpattern,wlen);
-                replaytokenbuf.read(cstringpattern[1],wlen);
+                if wlen>0 then
+                  begin
+                    setlength(cstringpattern,wlen);
+                    replaytokenbuf.read(cstringpattern[1],wlen);
+                  end
+                else
+                  cstringpattern:='';
                 orgpattern:='';
                 pattern:='';
               end;

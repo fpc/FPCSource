@@ -72,7 +72,7 @@ implementation
             else r := m;
           end;
 
-        if int_regname_table[int_regname_index[r]]=s then
+        if (r<=high(tregisterindex)) and (int_regname_table[int_regname_index[r]]=s) then
           findreg_by_intname:=int_regname_index[r]
         else
           findreg_by_intname:=0;

@@ -1315,7 +1315,10 @@ implementation
             hstab.strpos:=1;
             hstab.ntype:=0;
             hstab.nother:=0;
+{$push}{$R-}
+            { for jwawindows.pas, this causes an range check error, it contains too much stab symbols }
             hstab.ndesc:=(StabsSec.Size div sizeof(TObjStabEntry))-1;
+{$pop}
             hstab.nvalue:=StabStrSec.Size;
             MaybeSwapStab(hstab);
             StabsSec.Data.seek(0);
