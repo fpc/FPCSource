@@ -920,9 +920,9 @@ begin
                         if upper(copy(more,1,pos('=',more)-1))='PACKSET' then
                           begin
                             delete(more,1,pos('=',more));
-                            if more='0' then
+                            if (more='0') or (more='DEFAULT') or (more='NORMAL') then
                               init_settings.setalloc:=0
-                            else if (more='1') or (more='DEFAULT') or (more='NORMAL') then
+                            else if  more='1' then
                               init_settings.setalloc:=1
                             else if more='2' then
                               init_settings.setalloc:=2

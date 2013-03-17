@@ -945,7 +945,7 @@ unit scandir;
         if not(c in ['1','2','4','8']) then
          begin
            hs:=current_scanner.readid;
-           if (hs='FIXED') or ((hs='DEFAULT') OR (hs='NORMAL')) then
+           if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
             current_settings.setalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
            else
             Message(scan_e_only_packset);
