@@ -198,6 +198,9 @@ type
 
 implementation
 
+Resourcestring
+  SErrCouldNotCreatePath = 'Could not create directory "%s"';
+
 const
    Brackets  : array[0..1] of Char = ('[', ']');
    Separator : Char = '=';
@@ -922,6 +925,8 @@ procedure TIniFile.UpdateFile;
 var
   slLines: TStringList;
   i, j: integer;
+  D : String;
+  
 begin
   slLines := TStringList.Create;
   try
@@ -944,7 +949,12 @@ begin
           slLines.Add('');
       end;
     if FFileName > '' then
-      slLines.SaveToFile(FFileName)
+      begin
+      D:=ExtractFilePath(FFileName);
+      if not ForceDirectories(D) then
+        Raise EInoutError.CreateFmt(SErrCouldNotCreatePath,[D]);
+      slLines.SaveToFile(FFileName);
+      end
     else if FStream <> nil then
       slLines.SaveToStream(FStream);
     FillSectionList(slLines);
