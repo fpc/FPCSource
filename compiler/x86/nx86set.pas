@@ -570,17 +570,16 @@ implementation
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
-
-                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                  emit_const_reg(A_MOV,S_W,1,hreg);
-                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
-
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,hreg,l);
+                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,NR_CX,l);
                   { reset carry flag }
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
                   cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+
+                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                   cg.a_label(current_asmdata.CurrAsmList,l);
+                  emit_const_reg(A_MOV,S_W,1,hreg);
+                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   emit_const_reg(A_TEST,S_W,right.location.value,hreg);
 
                   cg.a_label(current_asmdata.CurrAsmList,l2);
@@ -659,6 +658,72 @@ implementation
                 end
                else
                 begin
+{$ifdef i8086}
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+
+                  pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+
+                  if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+
+                  if (opsize >= OS_S8) or { = if signed }
+                     ((left.resultdef.typ=orddef) and
+                      ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
+                       (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
+                     ((left.resultdef.typ=enumdef) and
+                      ((tenumdef(left.resultdef).min < aint(tsetdef(right.resultdef).setbase)) or
+                       (tenumdef(left.resultdef).max > aint(tsetdef(right.resultdef).setmax)))) then
+                   begin
+
+                    { we have to check if the value is < 0 or > setmax }
+
+                    current_asmdata.getjumplabel(l);
+                    current_asmdata.getjumplabel(l2);
+
+                    { BE will be false for negative values }
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
+                    { reset carry flag }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+
+                    cg.a_label(current_asmdata.CurrAsmList,l);
+
+                    emit_const_reg(A_MOV,S_W,1,pleftreg);
+                    emit_reg_reg(A_SHL,S_W,NR_CL,pleftreg);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                    case right.location.loc of
+                      LOC_REGISTER, LOC_CREGISTER :
+                        emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                      LOC_CREFERENCE, LOC_REFERENCE :
+                        emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                    else
+                      internalerror(2007020301);
+                    end;
+
+                    cg.a_label(current_asmdata.CurrAsmList,l2);
+
+                    location.resflags:=F_C;
+
+                   end
+                  else
+                   begin
+                      emit_const_reg(A_MOV,S_W,1,pleftreg);
+                      emit_reg_reg(A_SHL,S_W,NR_CL,pleftreg);
+                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                      case right.location.loc of
+                        LOC_REGISTER, LOC_CREGISTER :
+                          emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                        LOC_CREFERENCE, LOC_REFERENCE :
+                          emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                      else
+                        internalerror(2007020302);
+                      end;
+                      location.resflags:=F_C;
+                   end;
+{$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -714,6 +779,7 @@ implementation
                       end;
                       location.resflags:=F_C;
                    end;
+{$endif i8086}
                 end;
              end;
           end;
