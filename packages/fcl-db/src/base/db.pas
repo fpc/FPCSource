@@ -1756,6 +1756,22 @@ type
     property OnMasterDisable: TNotifyEvent read FOnMasterDisable write FOnMasterDisable;
   end;
 
+{ TMasterParamsDataLink }
+
+  TMasterParamsDataLink = Class(TMasterDataLink)
+  Private
+    FParams : TParams;
+    Procedure SetParams(AVAlue : TParams);
+  Protected
+    Procedure DoMasterDisable; override;
+    Procedure DoMasterChange; override;
+  Public
+    constructor Create(ADataSet: TDataSet); override;
+    Procedure RefreshParamNames; virtual;
+    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
+    Property Params : TParams Read FParams Write SetParams;
+  end;
+
 { TDataSource }
 
   TDataChangeEvent = procedure(Sender: TObject; Field: TField) of object;
@@ -1796,7 +1812,7 @@ type
     property OnUpdateData: TNotifyEvent read FOnUpdateData write FOnUpdateData;
   end;
 
- { TDBDataset }
+  { TDBDataset }
 
   TDBDatasetClass = Class of TDBDataset;
   TDBDataset = Class(TDataset)
@@ -1813,7 +1829,7 @@ type
       Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     end;
 
- { TDBTransaction }
+  { TDBTransaction }
 
   TDBTransactionClass = Class of TDBTransaction;
   TDBTransaction = Class(TComponent)
@@ -1848,7 +1864,7 @@ type
     property Active : boolean read FActive write setactive;
   end;
 
-    { TCustomConnection }
+  { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
 
@@ -1946,20 +1962,6 @@ type
     property Params : TStrings read FParams Write SetParams;
   end;
 
-
-  TMasterParamsDataLink = Class(TMasterDataLink)
-  Private
-    FParams : TParams;
-    Procedure SetParams(AVAlue : TParams);  
-  Protected  
-    Procedure DoMasterDisable; override;
-    Procedure DoMasterChange; override;
-  Public
-    constructor Create(ADataSet: TDataSet); override;
-    Procedure RefreshParamNames; virtual;
-    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
-    Property Params : TParams Read FParams Write SetParams;  
-  end;
 
 const
   FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,

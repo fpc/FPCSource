@@ -80,6 +80,7 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
   published
@@ -99,6 +100,7 @@ type
     Class Function DefaultLibraryName : String; override;
     Class Function LoadFunction : TLibraryLoadFunction; override;
     Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName: string; override;
   end;
 
 implementation
@@ -332,9 +334,9 @@ begin
     dointernaldisconnect;
     DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + msg + ')',self);
     end;
-// This does only work for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
+// This only works for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
   if PQparameterStatus<>nil then
-    FIntegerDatetimes := pqparameterstatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
+    FIntegerDateTimes := PQparameterStatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
 end;
 
 procedure TPQConnection.DoInternalDisconnect;
@@ -864,7 +866,7 @@ begin
         ftDateTime, ftTime :
           begin
           dbl := pointer(buffer);
-          if FIntegerDatetimes then
+          if FIntegerDateTimes then
             dbl^ := BEtoN(pint64(CurrBuff)^) / 1000000
           else
             pint64(dbl)^ := BEtoN(pint64(CurrBuff)^);
@@ -1074,11 +1076,38 @@ begin
     Result := -1;
 end;
 
+function TPQConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    {$IFDEF LinkDynamically}
+    InitialisePostgres3;
+    {$ENDIF}
+    case InfoType of
+      citServerType:
+        Result:=TPQConnectionDef.TypeName;
+      citServerVersion,
+      citServerVersionString:
+        if Connected then
+          Result:=format('%6.6d', [PQserverVersion(FSQLDatabaseHandle)]);
+      citClientName:
+        Result:=TPQConnectionDef.LoadedLibraryName;
+    else
+      Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    {$IFDEF LinkDynamically}
+    ReleasePostgres3;
+    {$ENDIF}
+  end;
+end;
+
+
 { TPQConnectionDef }
 
 class function TPQConnectionDef.TypeName: String;
 begin
-  Result:='PostGreSQL';
+  Result:='PostgreSQL';
 end;
 
 class function TPQConnectionDef.ConnectionClass: TSQLConnectionClass;
@@ -1088,7 +1117,7 @@ end;
 
 class function TPQConnectionDef.Description: String;
 begin
-  Result:='Connect to a PostGreSQL database directly via the client library';
+  Result:='Connect to a PostgreSQL database directly via the client library';
 end;
 
 class function TPQConnectionDef.DefaultLibraryName: String;
@@ -1096,7 +1125,7 @@ begin
   {$IfDef LinkDynamically}
   Result:=pqlib;
   {$else}
-  result:='';
+  Result:='';
   {$endif}
 end;
 
@@ -1105,7 +1134,7 @@ begin
   {$IfDef LinkDynamically}
   Result:=@InitialisePostgres3;
   {$else}
-  result:=Nil;
+  Result:=Nil;
   {$endif}
 end;
 
@@ -1114,7 +1143,16 @@ begin
   {$IfDef LinkDynamically}
   Result:=@ReleasePostgres3;
   {$else}
-  result:=Nil;
+  Result:=Nil;
+  {$endif}
+end;
+
+class function TPQConnectionDef.LoadedLibraryName: string;
+begin
+  {$IfDef LinkDynamically}
+  Result:=Postgres3LoadedLibrary;
+  {$else}
+  Result:='';
   {$endif}
 end;
 
