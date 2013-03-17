@@ -1570,7 +1570,11 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
+        { generate far jump, leave it to the optimizer to get rid of it }
+        if current_settings.cputype in cpu_thumb then
+          ai:=taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s))
+        else
+          ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1580,7 +1584,11 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_B,l);
+        { generate far jump, leave it to the optimizer to get rid of it }
+        if current_settings.cputype in cpu_thumb then
+          ai:=taicpu.op_sym(A_BL,l)
+        else
+          ai:=taicpu.op_sym(A_B,l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1589,10 +1597,27 @@ unit cgcpu;
     procedure tbasecgarm.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
       var
         ai : taicpu;
+        inv_flags : TResFlags;
+        hlabel : TAsmLabel;
       begin
-        ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
-        ai.is_jmp:=true;
-        list.concat(ai);
+        if current_settings.cputype in cpu_thumb then
+          begin
+            inv_flags:=f;
+            inverse_flags(inv_flags);
+            { the optimizer has to fix this if jump range is sufficient short }
+            current_asmdata.getjumplabel(hlabel);
+            ai:=setcondition(taicpu.op_sym(A_B,hlabel),flags_to_cond(inv_flags));
+            ai.is_jmp:=true;
+            list.concat(ai);
+            a_jmp_always(list,l);
+            a_label(list,hlabel);
+          end
+        else
+          begin
+            ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
+            ai.is_jmp:=true;
+            list.concat(ai);
+          end;
       end;
 
 
@@ -2569,11 +2594,26 @@ unit cgcpu;
     procedure tbasecgarm.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
       var
         ai : taicpu;
+        hlabel : TAsmLabel;
       begin
-        ai:=Taicpu.Op_sym(A_B,l);
-        ai.SetCondition(OpCmp2AsmCond[cond]);
-        ai.is_jmp:=true;
-        list.concat(ai);
+        if current_settings.cputype in cpu_thumb then
+          begin
+            { the optimizer has to fix this if jump range is sufficient short }
+            current_asmdata.getjumplabel(hlabel);
+            ai:=Taicpu.Op_sym(A_B,hlabel);
+            ai.SetCondition(inverse_cond(OpCmp2AsmCond[cond]));
+            ai.is_jmp:=true;
+            list.concat(ai);
+            a_jmp_always(list,l);
+            a_label(list,hlabel);
+          end
+        else
+          begin
+            ai:=Taicpu.Op_sym(A_B,l);
+            ai.SetCondition(OpCmp2AsmCond[cond]);
+            ai.is_jmp:=true;
+            list.concat(ai);
+          end;
       end;
 
 
