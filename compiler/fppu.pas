@@ -493,7 +493,7 @@ var
             hp:=sourcefiles.files;
             for i:=1 to j-1 do
               hp:=hp.ref_next;
-            ppufile.putstring(hp.name);
+            ppufile.putstring(hp.inc_path+hp.name);
             ppufile.putlongint(hp.getfiletime);
             dec(j);
          end;
@@ -711,6 +711,7 @@ var
     procedure tppumodule.readsourcefiles;
       var
         temp,hs       : string;
+        inc_path      : string;
         temp_dir      : TCmdStr;
         main_dir      : TCmdStr;
         found,
@@ -724,7 +725,8 @@ var
         main_dir:='';
         while not ppufile.endofentry do
          begin
-           hs:=ppufile.getstring;
+           hs:=SetDirSeparators(ppufile.getstring);
+           inc_path:=ExtractFilePath(hs);
            orgfiletime:=ppufile.getlongint;
            temp_dir:='';
            if sources_avail then
@@ -793,6 +795,7 @@ var
                       temp:=' not found';
                     end;
                   hp:=tdosinputfile.create(hs);
+                  hp.inc_path:=inc_path;
                   { the indexing is wrong here PM }
                   sourcefiles.register_file(hp);
                 end;

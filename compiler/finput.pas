@@ -38,6 +38,7 @@ interface
 
        tinputfile = class
          path,name : TPathStr;       { path and filename }
+         inc_path  : TPathStr;       { path if file was included with $I directive }
          next      : tinputfile;    { next file for reading }
 
          is_macro,
@@ -195,6 +196,7 @@ uses
       begin
         name:=ExtractFileName(fn);
         path:=ExtractFilePath(fn);
+        inc_path:='';
         next:=nil;
         filetime:=-1;
       { file info }
