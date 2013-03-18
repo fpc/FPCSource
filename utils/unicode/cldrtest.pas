@@ -994,10 +994,7 @@ var
   sequence, sequenceClean : TOrderedCharacters;
   statement : TReorderSequence;
   wfirst, wresult : TUCA_LineRecArray;
-  i : Integer;
   unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
-  keyA, keyB : TUCASortKey;
-  us : UnicodeString;
 begin
   statement.Clear();
   test5_prepareWeigth(wfirst);
@@ -1336,7 +1333,6 @@ var
   statement : TReorderSequence;
   wfirst, wresult : TUCA_LineRecArray;
   unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
-  i : Integer;
 begin
   statement.Clear();
   test8_prepareWeigth(wfirst);
@@ -1856,10 +1852,7 @@ var
   sequence, sequenceClean : TOrderedCharacters;
   statement : TReorderSequence;
   wfirst, wresult : TUCA_LineRecArray;
-  i : Integer;
   unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
-  keyA, keyB : TUCASortKey;
-  us : UnicodeString;
 begin
   statement.Clear();
   test11_prepareWeigth(wfirst);

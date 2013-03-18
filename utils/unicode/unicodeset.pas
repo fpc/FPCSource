@@ -292,7 +292,7 @@ end;
 procedure TPatternParser.ParseItem();
 var
   cp, lastCp : TUnicodeCodePoint;
-  charCount, i : Integer;
+  charCount : Integer;
 begin
   SkipSpaces();
   Expect('[');

@@ -318,7 +318,7 @@ var
   function ReadNextItem(const APos : Integer) : Integer;
   var
     n, t : TDOMNode;
-    s, contextStr : DOMString;
+    contextStr : DOMString;
     w : TReorderWeigthKind;
     isSimpleCharTag : Boolean;
     simpleCharTag : AnsiChar;
@@ -583,8 +583,8 @@ procedure ParseCollationDocument(
   AMode      : TCldrParserMode
 );
 var
-  rulesNodes, n : TDOMNode;
-  collationsElement, rulesElement : TDOMElement;
+  n : TDOMNode;
+  collationsElement : TDOMElement;
   i, c : Integer;
   item : TCldrCollationItem;
   nl : TDOMNodeList;

@@ -107,7 +107,7 @@ function InsertWord(
   const AValue  : TDataType
 ) : Boolean;
 var
-  p, q : PTrieNode;
+  p : PTrieNode;
   i, k, c : Integer;
   searching : TKeyType;
   found : Boolean;
@@ -116,7 +116,6 @@ begin
   if (ARoot^.Key <> AWord[0]) then
     exit;
   p := ARoot;
-  q := p;
   i := 1;
   c := Length(AWord);
   while (i < c) do begin
@@ -124,7 +123,6 @@ begin
     found := False;
     for k := 0 to p^.ChildCount - 1 do begin
       if (p^.Children[k]^.Key = searching) then begin
-        q := p;
         p :=  p^.Children[k];
         found := True;
         Break;

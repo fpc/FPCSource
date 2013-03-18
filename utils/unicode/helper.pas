@@ -1017,9 +1017,9 @@ procedure ParseBlokcs(
       ADataAStream   : TMemoryStream;
   var ABlocks        : TBlocks
 );
-const READ_BUFFER_LENGTH = 1024*8;
-      LINE_LENGTH        = 1024;
-      DATA_LENGTH        = 25000;
+const
+  LINE_LENGTH        = 1024;
+  DATA_LENGTH        = 25000;
 var
   p : PAnsiChar;
   actualDataLen : Integer;
@@ -1028,7 +1028,7 @@ var
 
   function NextLine() : Boolean;
   var
-    k, locOldPos : Integer;
+    locOldPos : Integer;
     locOldPointer : PAnsiChar;
   begin
     Result := False;
@@ -1082,7 +1082,6 @@ var
 
   procedure ParseLine();
   var
-    locCP : Cardinal;
     locData : TBlockItemRec;
     s : ansistring;
   begin
@@ -1110,8 +1109,6 @@ var
   end;
 
   procedure Prepare();
-  var
-    r : TPropRec;
   begin
     SetLength(ABlocks,DATA_LENGTH);
     actualDataLen := 0;
@@ -1133,9 +1130,9 @@ procedure ParseProps(
       ADataAStream   : TMemoryStream;
   var APropList      : TPropListLineRecArray
 );
-const READ_BUFFER_LENGTH = 1024*8;
-      LINE_LENGTH        = 1024;
-      DATA_LENGTH        = 25000;
+const
+  LINE_LENGTH        = 1024;
+  DATA_LENGTH        = 25000;
 var
   p : PAnsiChar;
   actualDataLen : Integer;
@@ -1144,7 +1141,7 @@ var
 
   function NextLine() : Boolean;
   var
-    k, locOldPos : Integer;
+    locOldPos : Integer;
     locOldPointer : PAnsiChar;
   begin
     Result := False;
@@ -1228,8 +1225,6 @@ var
   end;
 
   procedure Prepare();
-  var
-    r : TPropRec;
   begin
     SetLength(APropList,DATA_LENGTH);
     actualDataLen := 0;
@@ -1279,9 +1274,9 @@ procedure ParseHangulSyllableTypes(
       ADataAStream   : TMemoryStream;
   var ACodePointList : TCodePointRecArray
 );
-const READ_BUFFER_LENGTH = 1024*8;
-      LINE_LENGTH        = 1024;
-      DATA_LENGTH        = 25000;
+const
+  LINE_LENGTH        = 1024;
+  DATA_LENGTH        = 25000;
 var
   p : PAnsiChar;
   actualDataLen : Integer;
@@ -1290,7 +1285,7 @@ var
 
   function NextLine() : Boolean;
   var
-    k, locOldPos : Integer;
+    locOldPos : Integer;
     locOldPointer : PAnsiChar;
   begin
     Result := False;
@@ -1348,7 +1343,6 @@ var
 
   procedure ParseLine();
   var
-    locCP : Cardinal;
     locData : TCodePointRec;
     s : ansistring;
   begin
@@ -1373,8 +1367,6 @@ var
   end;
 
   procedure Prepare();
-  var
-    r : TPropRec;
   begin
     SetLength(ACodePointList,DATA_LENGTH);
     actualDataLen := 0;
@@ -1498,10 +1490,10 @@ procedure Parse_UnicodeData(
   const AHangulList    : TCodePointRecArray;
   const AWhiteSpaces   : TCodePointRecArray
 );
-const READ_BUFFER_LENGTH = 1024*8;
-      LINE_LENGTH        = 1024;
-      PROP_LENGTH        = 5000;
-      DATA_LENGTH        = 25000;
+const
+  LINE_LENGTH        = 1024;
+  PROP_LENGTH        = 5000;
+  DATA_LENGTH        = 25000;
 var
   p : PAnsiChar;
   bufferLength, bufferPos : Integer;
@@ -1511,7 +1503,7 @@ var
 
   function NextLine() : Boolean;
   var
-    k, locOldPos : Integer;
+    locOldPos : Integer;
     locOldPointer : PAnsiChar;
   begin
     Result := False;
@@ -1558,7 +1550,7 @@ var
   function ParseCanonicalDecomposition(AStr : ansistring) : TUnicodeCodePointArray;
   var
     locStr, ks : ansistring;
-    k0,k, cp : Integer;
+    k0,k : Integer;
   begin
     SetLength(Result,0);
     locStr := UpperCase(Trim(AStr));
@@ -2058,10 +2050,8 @@ procedure GeneratePropTable(
 var
   i : Integer;
   locLine : string;
-  pti : PTypeInfo;
   p : PPropRec;
 begin
-  pti := TypeInfo(TUnicodeCategory);
   AddLine('');
   AddLine('const');
   AddLine('  UC_PROP_REC_COUNT = ' + IntToStr(Length(APropList)) + ';');
@@ -2338,9 +2328,9 @@ procedure ParseUCAFile(
       ADataAStream : TMemoryStream;
   var ABook        : TUCA_DataBook
 );
-const READ_BUFFER_LENGTH = 1024*8;
-      LINE_LENGTH        = 1024;
-      DATA_LENGTH        = 25000;
+const
+  LINE_LENGTH        = 1024;
+  DATA_LENGTH        = 25000;
 var
   p : PAnsiChar;
   actualDataLen : Integer;
@@ -2349,7 +2339,7 @@ var
 
   function NextLine() : Boolean;
   var
-    k, locOldPos : Integer;
+    locOldPos : Integer;
     locOldPointer : PAnsiChar;
   begin
     Result := False;
@@ -2485,7 +2475,6 @@ var
 
   procedure ParseLine();
   var
-    locCP : Cardinal;
     locData : ^TUCA_LineRec;
     s : ansistring;
     kc : Integer;
@@ -2526,7 +2515,6 @@ var
 
   procedure Prepare();
   var
-    r : TPropRec;
     k : Integer;
   begin
     ABook.VariableWeight := ucaShifted;
@@ -2653,7 +2641,6 @@ var
   i, c : Integer;
   p : PUCA_PropItemRec;
   pw : PUCA_PropWeights;
-  w : TUCA_WeightRec;
   pb : PByte;
   hasContext : Boolean;
   contextTree : PUCA_PropItemContextTreeRec;
@@ -2797,7 +2784,7 @@ function BuildTrie(
 ) : PTrieNode;
 var
   p : PUCA_LineRec;
-  root, n : PTrieNode;
+  root : PTrieNode;
   ki, k, i : Integer;
   key : array of TKeyType;
 begin
@@ -2889,7 +2876,6 @@ var
   i, c, k, kc : Integer;
   p, p1, p2 : PUCA_PropItemRec;
   lines, pl1, pl2 : PUCA_LineRec;
-  uc : Cardinal;
   childCount, lineCount, size : Integer;
   trieRoot : PTrieNode;
   MaxChildCount, MaxSize : Integer;
@@ -3279,7 +3265,7 @@ procedure GenerateUCA_PropTable(
   end;
 
 var
-  i, j, c : Integer;
+  i, c : Integer;
   locLine : string;
   p : PByte;
 begin
@@ -3801,7 +3787,7 @@ end;
 
 procedure TUCA_PropItemRec.GetWeightArray(ADest: PUCA_PropWeights);
 var
-  i, c : Integer;
+  c : Integer;
   p : PByte;
   pd : PUCA_PropWeights;
 begin
@@ -3931,7 +3917,6 @@ function ConstructContextTree(
 
   function CalcItemOnlySize(AItem : TAVLTreeNode) : Cardinal;
   var
-    kc : Integer;
     kitem : PUCA_LineContextItemRec;
   begin
     if (AItem = nil) then

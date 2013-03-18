@@ -196,7 +196,7 @@ end;
 
 class function TRBTree<T,KCOMP>.TreeCreateIterator() : PBaseIterator;static;
 begin
-  Result := AllocMem(SizeOf(Result^));
+  Result := AllocMem(SizeOf(TBaseIterator));
 end;
 
 class procedure TRBTree<T,KCOMP>.TreeFreeIterator(AItem : PBaseIterator);static;
