@@ -728,25 +728,17 @@ unit cgcpu;
             list.concat(instr);
           end;
 
-//      var
-//        op: tasmop;
-//        s: topsize;
-//        instr:Taicpu;
       begin
         check_register_size(fromsize,reg1);
         check_register_size(tosize,reg2);
 
-        if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
-          fromsize:=tosize;
-
-{        if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+        if tcgsize2size[fromsize]>tcgsize2size[tosize] then
           begin
+            if tosize in [OS_32, OS_S32] then
+              internalerror(2013031801);
             reg1:=makeregsize(list,reg1,tosize);
-            s:=tcgsize2opsize[tosize];
-            op:=A_MOV;
-          end
-        else
-          sizes2load(fromsize,tosize,op,s);}
+            fromsize:=tosize;
+          end;
 
         if (reg1<>reg2) then
           begin
