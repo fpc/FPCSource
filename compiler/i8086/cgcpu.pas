@@ -1344,7 +1344,7 @@ unit cgcpu;
               "mov %bx,4(%sp)" }
             reference_reset_base(href,NR_DI,4,2);
             list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
-            list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_BX,href));
+            list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
 
             { load ax? }
             if procdef.proccalloption=pocall_register then
@@ -1353,7 +1353,7 @@ unit cgcpu;
             { restore register
               pop  %di,bx }
             list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_BX));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_BX));
 
             { ret  ; jump to the address }
             list.concat(taicpu.op_none(A_RET,S_W));
