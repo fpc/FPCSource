@@ -2596,7 +2596,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_LINE;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
+            tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
           end;
         if current_tokenpos.column<>last_filepos.column then
@@ -2612,7 +2612,7 @@ In case not, the value returned can be arbitrary.
             else
               begin
                 recordtokenbuf.write(s,1);
-                recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+                tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
           end;
@@ -2621,7 +2621,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_FILEINDEX;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+            tokenwriteword(current_tokenpos.fileindex);
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
