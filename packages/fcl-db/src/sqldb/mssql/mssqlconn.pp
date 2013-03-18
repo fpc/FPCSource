@@ -44,6 +44,12 @@ uses
 
 type
 
+  TServerInfo = record
+    ServerVersion: string;
+    ServerVersionString: string;
+    UserName: string;
+  end;
+
   TClientCharset = (ccNone, ccUTF8, ccISO88591, ccUnknown);
 
   { TMSSQLConnection }
@@ -54,8 +60,9 @@ type
     FDBProc : PDBPROCESS;
     Ftds    : integer;     // TDS protocol version
     Fstatus : STATUS;      // current result/rows fetch status
+    FServerInfo: TServerInfo;
     function CheckError(const Ret: RETCODE): RETCODE;
-    procedure DBExecute(const cmd: string);
+    procedure Execute(const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function ClientCharset: TClientCharset;
@@ -72,10 +79,6 @@ type
     function AllocateCursorHandle:TSQLCursor; override;
     procedure DeAllocateCursorHandle(var cursor:TSQLCursor); override;
     function AllocateTransactionHandle:TSQLHandle; override;
-    // - Statement handling
-    function StrToStatementType(s : string) : TStatementType; override;
-    procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
-    procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Transaction handling
     function GetTransactionHandle(trans:TSQLHandle):pointer; override;
     function StartDBTransaction(trans:TSQLHandle; AParams:string):boolean; override;
@@ -83,6 +86,10 @@ type
     function Rollback(trans:TSQLHandle):boolean; override;
     procedure CommitRetaining(trans:TSQLHandle); override;
     procedure RollbackRetaining(trans:TSQLHandle); override;
+    // - Statement handling
+    function StrToStatementType(s : string) : TStatementType; override;
+    procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
+    procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
@@ -166,12 +173,20 @@ type
   { TDBLibCursor }
 
   TDBLibCursor = class(TSQLCursor)
-  protected
-    FQuery: string;         //:ParamNames converted to $1,$2,..,$n
-    FCanOpen: boolean;      //can return rows?
-    FRowsAffected: integer;
+  private
+    FConnection: TMSSQLConnection;                    // owner connection
+    FQuery: string;                                   // :ParamNames converted to $1,$2,..,$n
     FParamReplaceString: string;
-    function ReplaceParams(AParams: TParams; ASQLConnection: TMSSQLConnection): string; //replaces parameters placeholders $1,$2,..$n in FQuery with supplied values in AParams
+  protected
+    FCanOpen: boolean;                                // can return rows?
+    FRowsAffected: integer;
+    function ReplaceParams(AParams: TParams): string; // replaces parameters placeholders $1,$2,..$n in FQuery with supplied values in AParams
+    procedure Prepare(Buf: string; AParams: TParams);
+    procedure Execute(AParams: TParams);
+    function Fetch: boolean;
+    procedure Put(column: integer; out s: string); overload;
+  public
+    constructor Create(AConnection: TMSSQLConnection); overload;
   end;
 
 
@@ -202,8 +217,18 @@ end;
 
 { TDBLibCursor }
 
-function TDBLibCursor.ReplaceParams(AParams: TParams; ASQLConnection: TMSSQLConnection): string;
-var i:integer;
+procedure TDBLibCursor.Prepare(Buf: string; AParams: TParams);
+var
+  ParamBinding : TParamBinding;
+begin
+  if assigned(AParams) and (AParams.Count > 0) then
+    FQuery:=AParams.ParseSQL(Buf, false, sqEscapeSlash in FConnection.ConnOptions, sqEscapeRepeat in FConnection.ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
+  else
+    FQuery:=Buf;
+end;
+
+function TDBLibCursor.ReplaceParams(AParams: TParams): string;
+var i: integer;
     ParamNames, ParamValues: array of string;
 begin
   if Assigned(AParams) and (AParams.Count > 0) then //taken from mysqlconn, pqconnection
@@ -213,13 +238,38 @@ begin
     for i := 0 to AParams.Count -1 do
     begin
       ParamNames[AParams.Count-i-1] := format('%s%d', [FParamReplaceString, AParams[i].Index+1]);
-      ParamValues[AParams.Count-i-1] := ASQLConnection.GetAsSQLText(AParams[i]);
-      //showmessage(ParamNames[AParams.Count-i-1] + '=' + ParamValues[AParams.Count-i-1]);
+      ParamValues[AParams.Count-i-1] := FConnection.GetAsSQLText(AParams[i]);
     end;
     Result := stringsreplace(FQuery, ParamNames, ParamValues, [rfReplaceAll]);
   end
   else
     Result := FQuery;
+end;
+
+procedure TDBLibCursor.Execute(AParams: TParams);
+begin
+  Fconnection.Execute(Self, nil, AParams);
+end;
+
+function TDBLibCursor.Fetch: boolean;
+begin
+  Result := Fconnection.Fetch(Self);
+end;
+
+procedure TDBLibCursor.Put(column: integer; out s: string);
+var
+  data: PByte;
+  datalen: DBINT;
+begin
+  data := dbdata(Fconnection.FDBProc, column);
+  datalen := dbdatlen(Fconnection.FDBProc, column);
+  SetString(s, PAnsiChar(data), datalen);
+end;
+
+constructor TDBLibCursor.Create(AConnection: TMSSQLConnection);
+begin
+  inherited Create;
+  FConnection := AConnection;
 end;
 
 
@@ -285,7 +335,7 @@ begin
   DatabaseName:='';
   try
     Open;
-    DBExecute(Query);
+    Execute(Query);
   finally
     Close;
     DatabaseName:=ADatabaseName;
@@ -343,6 +393,7 @@ const
   IMPLICIT_TRANSACTIONS_OFF: array[boolean] of shortstring = ('SET IMPLICIT_TRANSACTIONS OFF', 'SET CHAINED OFF');
   ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
+  VERSION_NUMBER: array[boolean] of shortstring = ('SERVERPROPERTY(''ProductVersion'')', '@@version_number');
 begin
   // Do not call the inherited method as it checks for a non-empty DatabaseName, empty DatabaseName=default database defined for login
   //inherited DoInternalConnect;
@@ -394,19 +445,38 @@ begin
   //while dbresults(FDBProc) = SUCCEED do ;
 
   // Also SQL Server ODBC driver and Microsoft OLE DB Provider for SQL Server set ANSI_DEFAULTS to ON when connecting
-  //DBExecute(ANSI_DEFAULTS_ON[IsSybase]);
-  DBExecute('SET QUOTED_IDENTIFIER ON');
+  //Execute(ANSI_DEFAULTS_ON[IsSybase]);
+  Execute('SET QUOTED_IDENTIFIER ON');
 
   if Params.IndexOfName(STextSize) <> -1 then
-    DBExecute('SET TEXTSIZE '+Params.Values[STextSize])
+    Execute('SET TEXTSIZE '+Params.Values[STextSize])
   else
-    DBExecute('SET TEXTSIZE 16777216');
+    Execute('SET TEXTSIZE 16777216');
 
   if AutoCommit then
-    DBExecute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
+    Execute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
 
   if DatabaseName <> '' then
     CheckError( dbuse(FDBProc, PChar(DatabaseName)) );
+
+  with TDBLibCursor.Create(Self) do
+  begin
+    try
+      Prepare(format('SELECT cast(%s as varchar), @@version, user_name()', [VERSION_NUMBER[IsSybase]]), nil);
+      Execute(nil);
+      if Fetch then
+      begin
+        Put(1, FServerInfo.ServerVersion);
+        Put(2, FServerInfo.ServerVersionString);
+        Put(3, FServerInfo.UserName);
+      end;
+    except
+      FServerInfo.ServerVersion:='';
+      FServerInfo.ServerVersionString:='';
+      FServerInfo.UserName:='';
+    end;
+    Free;
+  end;
 end;
 
 procedure TMSSQLConnection.DoInternalDisconnect;
@@ -421,7 +491,7 @@ end;
 
 function TMSSQLConnection.AllocateCursorHandle: TSQLCursor;
 begin
-   Result:=TDBLibCursor.Create;
+   Result:=TDBLibCursor.Create(Self);
 end;
 
 procedure TMSSQLConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
@@ -438,26 +508,6 @@ begin
     Result:=inherited StrToStatementType(s);
 end;
 
-procedure TMSSQLConnection.PrepareStatement(cursor: TSQLCursor;
-   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
-var
-  ParamBinding : TParamBinding;
-begin
-  with cursor as TDBLibCursor do
-  begin
-    if assigned(AParams) and (AParams.Count > 0) then
-      FQuery:=AParams.ParseSQL(buf, false, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
-    else
-      FQuery:=buf;
-  end;
-end;
-
-procedure TMSSQLConnection.UnPrepareStatement(cursor: TSQLCursor);
-begin
-  if assigned(FDBProc) and (Fstatus <> NO_MORE_ROWS) then
-    dbcanquery(FDBProc);
-end;
-
 function TMSSQLConnection.AllocateTransactionHandle: TSQLHandle;
 begin
   Result:=nil;
@@ -472,45 +522,36 @@ function TMSSQLConnection.StartDBTransaction(trans: TSQLHandle; AParams: string)
 begin
   Result := not AutoCommit;
   if Result then
-    DBExecute(SBeginTransaction);
+    Execute(SBeginTransaction);
 end;
 
 function TMSSQLConnection.Commit(trans: TSQLHandle): boolean;
 begin
-  DBExecute('COMMIT');
+  Execute('COMMIT');
   Result:=true;
 end;
 
 function TMSSQLConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  DBExecute('ROLLBACK');
+  Execute('ROLLBACK');
   Result:=true;
 end;
 
 procedure TMSSQLConnection.CommitRetaining(trans: TSQLHandle);
 begin
   if Commit(trans) then
-    DBExecute(SBeginTransaction);
+    Execute(SBeginTransaction);
 end;
 
 procedure TMSSQLConnection.RollbackRetaining(trans: TSQLHandle);
 begin
   if Rollback(trans) then
-    DBExecute(SBeginTransaction);
+    Execute(SBeginTransaction);
 end;
 
 function TMSSQLConnection.AutoCommit: boolean;
 begin
   Result := StrToBoolDef(Params.Values[SAutoCommit], False);
-end;
-
-procedure TMSSQLConnection.DBExecute(const cmd: string);
-begin
-  DBErrorStr:='';
-  DBMsgStr  :='';
-  CheckError( dbcmd(FDBProc, PChar(cmd)) );
-  CheckError( dbsqlexec(FDBProc) );
-  CheckError( dbresults(FDBProc) );
 end;
 
 function TMSSQLConnection.ClientCharset: TClientCharset;
@@ -534,6 +575,27 @@ begin
 {$ENDIF}
 end;
 
+procedure TMSSQLConnection.PrepareStatement(cursor: TSQLCursor;
+   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
+begin
+  (cursor as TDBLibCursor).Prepare(buf, AParams);
+end;
+
+procedure TMSSQLConnection.UnPrepareStatement(cursor: TSQLCursor);
+begin
+  if assigned(FDBProc) and (Fstatus <> NO_MORE_ROWS) then
+    dbcanquery(FDBProc);
+end;
+
+procedure TMSSQLConnection.Execute(const cmd: string);
+begin
+  DBErrorStr:='';
+  DBMsgStr  :='';
+  CheckError( dbcmd(FDBProc, PChar(cmd)) );
+  CheckError( dbsqlexec(FDBProc) );
+  CheckError( dbresults(FDBProc) );
+end;
+
 procedure TMSSQLConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
 var c: TDBLibCursor;
     cmd: string;
@@ -541,8 +603,8 @@ var c: TDBLibCursor;
 begin
   c:=cursor as TDBLibCursor;
 
-  cmd := c.ReplaceParams(AParams, Self);
-  DBExecute(cmd);
+  cmd := c.ReplaceParams(AParams);
+  Execute(cmd);
 
   res := SUCCEED;
   repeat
@@ -556,7 +618,7 @@ begin
       repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
       res := CheckError( dbresults(FDBProc) );
     end;
-  until (res = NO_MORE_RESULTS) or c.FCanOpen;
+  until c.FCanOpen or (res = NO_MORE_RESULTS) or (res = FAIL);
 
   if res = NO_MORE_RESULTS then
     Fstatus := NO_MORE_ROWS
@@ -593,6 +655,7 @@ begin
     SQLBINARY:           Result:=ftBytes;
     SQLVARBINARY:        Result:=ftVarBytes;
     SYBUNIQUE:           Result:=ftGuid;
+    SYBVARIANT:          Result:=ftBlob;
   else
     DatabaseErrorFmt('Unsupported SQL DataType %d "%s"', [SQLDataType, dbprtype(SQLDataType)]);
     Result:=ftUnknown;
@@ -634,13 +697,6 @@ begin
         FieldType := ftAutoInc;
     end;
 
-{   // dbcolinfo(), dbcoltype() maps VARCHAR->CHAR, VARBINARY->BINARY:
-    if col.VarLength {true also when column is nullable} then
-      case FieldType of
-        ftFixedChar: FieldType := ftString;
-        ftBytes    : FieldType := ftVarBytes;
-      end;
-}
     with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
     begin
       // identity, timestamp and calculated column are not updatable
@@ -655,14 +711,14 @@ end;
 
 function TMSSQLConnection.Fetch(cursor: TSQLCursor): boolean;
 begin
-  //Compute rows resulting from the COMPUTE clause are not processed
+  // Compute rows resulting from the COMPUTE clause are not processed
   repeat
     Fstatus := dbnextrow(FDBProc);
     Result  := Fstatus=REG_ROW;
   until Result or (Fstatus = NO_MORE_ROWS);
 
   if Fstatus = NO_MORE_ROWS then
-    while dbresults(FDBProc) <> NO_MORE_RESULTS do //process remaining results if there are any
+    while dbresults(FDBProc) <> NO_MORE_RESULTS do // process remaining results if there are any
       repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
 end;
 
@@ -805,22 +861,19 @@ procedure TMSSQLConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;
    ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var data: PByte;
     datalen: DBINT;
-    srctype: INT;
 begin
-  //see also LoadField
-  srctype:=dbcoltype(FDBProc, FieldDef.FieldNo);
+  // see also LoadField
   data:=dbdata(FDBProc, FieldDef.FieldNo);
   datalen:=dbdatlen(FDBProc, FieldDef.FieldNo);
 
   ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, datalen);
-
-  ABlobBuf^.BlobBuffer^.Size :=
-    dbconvert(FDBProc, srctype, data , datalen, srctype, ABlobBuf^.BlobBuffer^.Buffer, datalen);
+  Move(data^, ABlobBuf^.BlobBuffer^.Buffer^, datalen);
+  ABlobBuf^.BlobBuffer^.Size := datalen;
 end;
 
 procedure TMSSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
-   inherited FreeFldBuffers(cursor);
+  inherited FreeFldBuffers(cursor);
 end;
 
 procedure TMSSQLConnection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
@@ -892,11 +945,21 @@ begin
 end;
 
 function TMSSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+const
+  SERVER_TYPE: array[boolean] of string = ('Microsoft SQL Server', 'ASE'); // product_name returned in TDS login token; same like ODBC SQL_DBMS_NAME
 begin
   Result:='';
   try
     InitialiseDBLib(DBLibLibraryName);
     case InfoType of
+      citServerType:
+        Result:=SERVER_TYPE[IsSybase];
+      citServerVersion:
+        if Connected then
+          Result:=FServerInfo.ServerVersion;
+      citServerVersionString:
+        if Connected then
+          Result:=FServerInfo.ServerVersionString;
       citClientName:
         Result:=TMSSQLConnectionDef.LoadedLibraryName;
     else

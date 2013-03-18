@@ -134,6 +134,7 @@ const
   SYBNTEXT=$63;
   SYBINT8=$7F;
   SYBUNIQUE=$24;
+  SYBVARIANT=$62;
   //XSYBVARCHAR=$A7;
   //XSYBNVARCHAR=$E7;
   //XSYBNCHAR = $EF;
@@ -379,7 +380,7 @@ procedure dbwinexit;
 function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
 
-function InitialiseDBLib(const LibraryName : shortstring = ''): integer;
+function InitialiseDBLib(const LibraryName : ansistring): integer;
 procedure ReleaseDBLib;
 
 implementation
@@ -390,7 +391,7 @@ uses SysUtils, Dynlibs;
 var DBLibLibraryHandle: TLibHandle;
     RefCount: integer;
 
-function InitialiseDBLib(const LibraryName : shortstring): integer;
+function InitialiseDBLib(const LibraryName : ansistring): integer;
 var libname : string;
 begin
   inc(RefCount);

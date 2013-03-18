@@ -2459,7 +2459,7 @@ var
   isc_suspend_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
 {$ENDIF}
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 function InitialiseIBase60 : integer;
 procedure ReleaseIBase60;
 
@@ -2481,7 +2481,7 @@ var
   RefCount : integer;
   LoadedLibrary : String;
 
-Function TryInitialiseIBase60(Const LibraryName : String) : integer;
+Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := 0;
@@ -2689,7 +2689,7 @@ begin
   Result := RefCount;
 end;
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := TryInitialiseIBase60(LibraryName);

@@ -1231,8 +1231,8 @@ type
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
