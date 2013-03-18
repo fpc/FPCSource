@@ -243,11 +243,9 @@ end;
 procedure TFileVersionInfo.SetFileName (Const AFileName : string);
 begin
   FVersionStrings.clear;
-  if FileExists(AFileName) or (AFileName='') then
-    begin
-    FFileName := FFileName;
+  FFileName := AFileName;
+  if FileExists(FFileName) or (FFileName='') then
     CheckRead;
-    end;
 end;
 
 procedure TFileVersionInfo.SetEnabled(AValue: Boolean);
