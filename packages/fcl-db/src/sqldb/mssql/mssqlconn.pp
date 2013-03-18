@@ -945,8 +945,7 @@ begin
                              'from syscolumns c join sysobjects o on c.id=o.id '+
                              'where c.id=object_id(''' + SchemaObjectName + ''') '+
                              'order by colid';
-  else
-    DatabaseError(SMetadataUnavailable)
+    else           Result := inherited;
   end;
 end;
 

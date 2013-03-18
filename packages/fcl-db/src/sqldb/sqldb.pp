@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
-type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
+type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
      TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
@@ -149,6 +149,7 @@ type
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
+    procedure GetSchemaNames(List: TStrings); virtual;
     function GetConnectionInfo(InfoType:TConnInfoType): string; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
@@ -691,8 +692,10 @@ end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
-  if not systemtables then GetDBInfo(stTables,'','table_name',List)
-    else GetDBInfo(stSysTables,'','table_name',List);
+  if not SystemTables then
+    GetDBInfo(stTables,'','table_name',List)
+  else
+    GetDBInfo(stSysTables,'','table_name',List);
 end;
 
 procedure TSQLConnection.GetProcedureNames(List: TStrings);
@@ -703,6 +706,11 @@ end;
 procedure TSQLConnection.GetFieldNames(const TableName: string; List: TStrings);
 begin
   GetDBInfo(stColumns,TableName,'column_name',List);
+end;
+
+procedure TSQLConnection.GetSchemaNames(List: TStrings);
+begin
+  GetDBInfo(stSchemata,'','SCHEMA_NAME',List);
 end;
 
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
@@ -791,7 +799,10 @@ end;
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
 begin
-  DatabaseError(SMetadataUnavailable);
+  case SchemaType of
+    stSchemata: Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
+    else DatabaseError(SMetadataUnavailable);
+  end;
 end;
 
 procedure TSQLConnection.CreateDB;

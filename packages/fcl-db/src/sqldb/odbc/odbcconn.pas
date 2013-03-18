@@ -663,14 +663,14 @@ begin
 
   // prepare statement
   ODBCCursor.FQuery:=Buf;
-  if ODBCCursor.FSchemaType=stNoSchema then
+  if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures]) then
     begin
       ODBCCheckResult(
         SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
       );
-    end
-  else
+    end;
+  if ODBCCursor.FSchemaType <> stNoSchema then
     ODBCCursor.FStatementType:=stSelect;
 end;
 
@@ -757,12 +757,11 @@ begin
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
     // execute the statement
     case ODBCCursor.FSchemaType of
-      stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
       stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
       stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
       stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
       stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
-      else          Res:=SQL_NO_DATA;
+      else          Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
     end; {case}
 
     if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
@@ -1450,12 +1449,15 @@ end;
 
 function TODBCConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
 begin
-  if SchemaObjectName<>'' then
-    Result := SchemaObjectName
+  if SchemaType in [stTables, stSysTables, stColumns, stProcedures] then
+  begin
+    if SchemaObjectName<>'' then
+      Result := SchemaObjectName
+    else
+      Result := ' ';
+  end
   else
-    Result := ' ';
-  if not (SchemaType in [stNoSchema, stTables, stSysTables, stColumns, stProcedures]) then
-    DatabaseError(SMetadataUnavailable);
+    Result := inherited;
 end;
 
 function TODBCConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
