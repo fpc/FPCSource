@@ -885,10 +885,10 @@ begin
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
-  //primary key fields
+  //primary key fields; 5th column "pk" is zero for columns that are not part of PK
   artableinfo := stringsquery('PRAGMA table_info('+TableName+');');
   for ii:=low(artableinfo) to high(artableinfo) do
-    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] = '1') then
+    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
       PKFields.Add(artableinfo[ii][1]);
 
   //list of all table indexes
