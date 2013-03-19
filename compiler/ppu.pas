@@ -814,11 +814,13 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitaddr}
+{$if defined(cpu64bitaddr)}
   result:=getint64;
-{$else cpu64bitaddr}
+{$elseif defined(cpu32bitaddr)}
   result:=getlongint;
-{$endif cpu32bitaddr}
+{$elseif defined(cpu16bitaddr)}
+  result:=getword;
+{$endif}
 {$endif not generic_cpu}
 end;
 
