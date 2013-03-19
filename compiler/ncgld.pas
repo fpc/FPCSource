@@ -566,6 +566,8 @@ implementation
                    end
                  else
                    begin
+                      { def_cgsize does not work for procdef }
+                      location.size:=OS_ADDR;
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
                       if not(po_weakexternal in pd.procoptions) then
                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
