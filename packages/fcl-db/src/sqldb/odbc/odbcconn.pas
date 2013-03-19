@@ -960,8 +960,10 @@ begin
   ODBCCursor:=cursor as TODBCCursor;
   // Try to discover BLOB data length
   //   NB MS ODBC requires that TargetValuePtr is not nil, so we supply it with a valid pointer, even though BufferLength is 0
+  StrLenOrInd:=0;
   Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, @BlobBuffer, 0, @StrLenOrInd);
-  ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
+  if Res<>SQL_NO_DATA then
+    ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
   // Read the data if not NULL
   if StrLenOrInd<>SQL_NULL_DATA then
   begin
