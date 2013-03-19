@@ -2039,7 +2039,7 @@ implementation
             else
               rex:=rex and $F7;
           end;
-        if not(exists_vex) then 
+        if not(exists_vex) then
         begin
           if rex<>0 then
             Inc(len);
@@ -2473,8 +2473,11 @@ implementation
             24,25,26 :     // 030..032
               begin
                 getvalsym(c-24);
+{$ifndef i8086}
+                { currval is an aint so this cannot happen on i8086 and causes only a warning }
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
+{$endif i8086}
                 if assigned(currsym) then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
