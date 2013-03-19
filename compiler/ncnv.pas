@@ -2281,8 +2281,13 @@ implementation
                   { Handle explicit type conversions }
                   if nf_explicit in flags then
                    begin
-                     { do common tc_equal cast }
-                     convtype:=tc_equal;
+                     { do common tc_equal cast, except when dealing with proc -> procvar
+                       (may have to get rid of method pointer) }
+                     if (left.resultdef.typ<>procdef) or
+                        (resultdef.typ<>procvardef) then
+                       convtype:=tc_equal
+                     else
+                       convtype:=tc_proc_2_procvar;
 
                      { ordinal constants can be resized to 1,2,4,8 bytes }
                      if (left.nodetype=ordconstn) then
