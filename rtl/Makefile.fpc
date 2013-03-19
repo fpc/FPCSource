@@ -39,6 +39,7 @@ dirs_wii=wii
 dirs_aix=aix
 dirs_java=java
 dirs_jvm_android=android/jvm
+dirs_msdos=msdos
 
 [install]
 fpcpackage=y
