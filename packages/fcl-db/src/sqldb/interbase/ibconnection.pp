@@ -1016,7 +1016,17 @@ begin
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
           begin
-          s := AParams[ParNr].AsString;
+          if AParams[ParNr].DataType=ftDate then begin
+            s := FormatDateTime('yyyy-mm-dd',AParams[ParNr].AsDate);
+          end else if AParams[ParNr].DataType=ftDateTime then begin
+            s := FormatDateTime('yyyy-mm-dd hh:nn:ss',AParams[ParNr].AsDate);
+          end else if AParams[ParNr].DataType=ftTimeStamp then begin
+            s := FormatDateTime('yyyy-mm-dd hh:nn:ss',AParams[ParNr].AsDate);
+          end else if AParams[ParNr].DataType=ftTime then begin
+            s := FormatDateTime('hh:nn:ss',AParams[ParNr].AsDate);
+          end else begin
+            s := AParams[ParNr].AsString;
+          end;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
             begin
