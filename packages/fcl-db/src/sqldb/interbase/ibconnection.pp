@@ -976,11 +976,18 @@ var ParNr,SQLVarNr : integer;
       {$pop}
   end;
 
+Const
+  DateF = 'yyyy-mm-dd';
+  TimeF = 'hh:nn:ss';
+  DateTimeF = DateF+' '+TimeF;
+
 var
   // This should be a pointer, because the ORIGINAL variables must
   // be modified.
   VSQLVar: ^XSQLVAR;
-
+  P: TParam;
+  ft : TFieldType;
+  D : TDateTime;
 begin
   {$push}
   {$R-}
@@ -1016,17 +1023,20 @@ begin
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
           begin
-          if AParams[ParNr].DataType=ftDate then begin
-            s := FormatDateTime('yyyy-mm-dd',AParams[ParNr].AsDate);
-          end else if AParams[ParNr].DataType=ftDateTime then begin
-            s := FormatDateTime('yyyy-mm-dd hh:nn:ss',AParams[ParNr].AsDate);
-          end else if AParams[ParNr].DataType=ftTimeStamp then begin
-            s := FormatDateTime('yyyy-mm-dd hh:nn:ss',AParams[ParNr].AsDate);
-          end else if AParams[ParNr].DataType=ftTime then begin
-            s := FormatDateTime('hh:nn:ss',AParams[ParNr].AsDate);
-          end else begin
-            s := AParams[ParNr].AsString;
-          end;
+          P:=AParams[ParNr];
+          ft:=P.DataType;
+          if Not (ft in [ftDate,ftTime,ftDateTime,ftTimeStamp]) then
+            S:=P.AsString
+          else
+            begin
+            Case ft of
+              ftDate : S:=DateF;
+              ftTime : S:=TimeF;
+              ftDateTime,
+              ftTimeStamp : S:=DateTimeF;
+            end;
+            S:=FormatDateTime(S,P.AsDateTime);
+            end;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
             begin
