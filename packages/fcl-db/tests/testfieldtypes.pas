@@ -1453,6 +1453,8 @@ begin
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;
+const
+  FieldValue='test1';
 begin
   with TSQLDBConnector(DBConnector) do
     begin
@@ -1465,11 +1467,11 @@ begin
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
-    Query.InsertRecord([1,'test1']);
+    Query.InsertRecord([1,FieldValue]);
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(query.FieldByName('NAME').AsString,'test1');
+    AssertEquals(query.FieldByName('NAME').AsString,FieldValue);
     query.Close;
     end;
 end;
@@ -1985,19 +1987,37 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
-  if SQLDbType in [interbase,mssql] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
+  if SQLDbType in [mssql] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    SQL.Add('CREATE TEMPORARY TABLE TEMP1 (id int)');
+    if SQLDbType=interbase then
+      // Global temporary table: introduced in Firebird 2.1
+      // has persistent metadata; data is per transaction (default) or per connection
+      SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
+    else
+      SQL.Add('CREATE TEMPORARY TABLE FPDEV_TEMP (id int)');
     ExecSQL;
-    SQL.Text := 'INSERT INTO TEMP1(id) values (5)';
-    ExecSQL;
-    SQL.Text := 'SELECT * FROM TEMP1';
-    Open;
-    AssertEquals(5,fields[0].AsInteger);
-    Close;
+    try
+      // Firebird/Interbase needs a commit after DDL:
+      TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+      SQL.Text := 'INSERT INTO FPDEV_TEMP(id) values (5)';
+      ExecSQL;
+      SQL.Text := 'SELECT * FROM FPDEV_TEMP';
+      Open;
+      AssertEquals(5, Fields[0].AsInteger);
+      Close;
+    finally
+      // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
+      if SQLDbType=interbase then
+        begin
+        SQL.Text := 'DROP TABLE FPDEV_TEMP';
+        ExecSQL;
+        TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+        end;
+    end;
     end;
 end;
 
