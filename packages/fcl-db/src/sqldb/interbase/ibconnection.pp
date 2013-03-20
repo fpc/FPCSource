@@ -113,8 +113,8 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
-    procedure CreateDB; override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
+    procedure CreateDB; override;
     procedure DropDB; override;
     //Segment size is not used in the code; property kept for backward compatibility
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
@@ -381,7 +381,7 @@ begin
     case InfoType of
       citServerType:
         // Firebird returns own name in ServerVersion; Interbase 7.5 doesn't.
-        if pos('FIREBIRD',UpperCase(FDatabaseInfo.ServerVersionString))=0 then
+        if Pos('Firebird', FDatabaseInfo.ServerVersionString)=0 then
           result := 'Interbase'
         else
           result := 'Firebird';
@@ -483,7 +483,6 @@ const
 var
   BeginPos,EndPos,StartLook,i: integer;
   NumericPart: string;
-  Version: integer;
 begin
   result := '';
   // Ignore 6.x version number in front of "Firebird"
@@ -742,8 +741,9 @@ begin
       isc_info_sql_stmt_delete: FStatementType := stDelete;
       isc_info_sql_stmt_exec_procedure: FStatementType := stExecProcedure;
     end;
+    FSelectable := FStatementType in [stSelect,stExecProcedure];
 
-    if FStatementType in [stSelect,stExecProcedure] then
+    if FSelectable then
       begin
       if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);

@@ -59,7 +59,6 @@ Type
   TCursorName = Class(TSQLCursor)
   protected
     FRes: PMYSQL_RES;                   { Record pointer }
-    FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
     Lengths : pculong;                  { Lengths of the columns of the current row }
@@ -515,8 +514,6 @@ begin
     FStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
       FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
-    if FStatementType in [stSelect,stExecProcedure] then
-      FNeedData:=True;
     end
 end;
 
@@ -540,8 +537,6 @@ Var
 
 begin
   C:=Cursor as TCursorName;
-  if c.FStatementType in [stSelect,stExecProcedure] then
-    c.FNeedData:=False;
   if assigned(C.FRes) then
     begin
     mysql_free_result(C.FRes);
@@ -582,15 +577,18 @@ begin
       begin
       C.RowsAffected := mysql_affected_rows(FMYSQL);
       C.LastInsertID := mysql_insert_id(FMYSQL);
-      if C.FNeedData then
-        repeat
-        Res:=mysql_store_result(FMySQL); //returns a null pointer if the statement didn't return a result set
+      C.FSelectable  := False;
+      repeat
+        Res:=mysql_store_result(FMySQL); //returns a null pointer also if the statement didn't return a result set
+        if mysql_errno(FMySQL)<>0 then
+          MySQLError(FMySQL, SErrGettingResult, Self);
         if Res<>nil then
           begin
           mysql_free_result(C.FRes);
           C.FRes:=Res;
+          C.FSelectable:=True;
           end;
-        until mysql_next_result(FMySQL)<>0;
+      until mysql_next_result(FMySQL)<>0;
       end;
     end;
 end;

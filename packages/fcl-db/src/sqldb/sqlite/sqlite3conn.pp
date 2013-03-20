@@ -273,8 +273,9 @@ begin
 {$endif}
   if (fstate<=sqliteerrormax) then
     checkerror(sqlite3_reset(fstatement));
+  FSelectable :=sqlite3_column_count(fstatement)>0;
   RowsAffected:=sqlite3_changes(fhandle);
-  if (fstate=sqlite_row) then 
+  if (fstate=sqlite_row) then
     fstate:= sqliteerrormax; //first row
 end;  
 

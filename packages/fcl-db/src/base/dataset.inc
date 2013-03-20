@@ -1543,7 +1543,7 @@ begin
 {$endif}
     DoBeforeDelete;
     DoBeforeScroll;
-    If Not TryDoing(@InternalDelete,OnPostError) then exit;
+    If Not TryDoing(@InternalDelete,OnDeleteError) then exit;
 {$ifdef dsdebug}
     writeln ('Delete: Internaldelete succeeded');
 {$endif}
@@ -2188,7 +2188,7 @@ begin
           Ev(Self,E,Retry);
         Case Retry of
           daFail : Raise;
-          daAbort : Result:=False;
+          daAbort : Abort;
         end;
         end;
     else
