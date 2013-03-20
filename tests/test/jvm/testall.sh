@@ -144,4 +144,6 @@ java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. ttincdec
 $PPC -O2 -g -B -CTautogetterprefix=Get tprop3
 $PPC -O2 -g -B -CTautogetterprefix=Get tprop4
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprop4
+$PPC -O2 -g -B -Sa tw24089
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tw24089
 
