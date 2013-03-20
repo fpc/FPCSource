@@ -79,6 +79,23 @@ user=sysdba
 password=masterkey
 hostname=localhost
 
+; Firebird embedded
+; Same as Firebird, except we leave the host name blank
+; and specify a db without path.
+; Make sure your Firebird embedded library files (.dll/.so/.dylib)
+; are installed; e.g. on Windows, you can put them in this
+; directory.
+; Test code will create db if it doesn't exist; you can
+; delete an existing db file before the test to start
+; fresh.
+[firebirdembedded]
+connector=sql
+connectorparams=interbase
+name=fbembedtest.fdb
+user=sysdba
+password=masterkey
+hostname=
+
 ; ODBC database:
 [odbc]
 connector=sql
@@ -99,7 +116,18 @@ name=test.db
 connector=sql
 connectorparams=mssql
 name=pubs
+; If you want to use trusted authentication/SSPI, leave
+; user and password blank
 user=sa
+password=
+hostname=127.0.0.1
+
+; Sybase ASE database
+[sybase]
+connector=sql
+connectorparams=sybase
+name=testdb
+usser=sa
 password=
 hostname=127.0.0.1
 

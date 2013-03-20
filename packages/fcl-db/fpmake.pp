@@ -11,7 +11,7 @@ const
   SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince,aix];
   DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince,aix];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
-  SqldbWithoutPostgresOSes = [win64];
+
 
 Var
   P : TPackage;
@@ -38,13 +38,14 @@ begin
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox');
     P.SourcePath.Add('src/sqldb');
-    P.SourcePath.Add('src/sqldb/postgres');
-    P.SourcePath.Add('src/sqldb/sqlite');
-    P.SourcePath.Add('src/sqldb/interbase');
-    P.SourcePath.Add('src/sqldb/mysql');
-    P.SourcePath.Add('src/sqldb/odbc');
-    P.SourcePath.Add('src/sqldb/examples');
-    P.SourcePath.Add('src/sqldb/oracle');
+    P.SourcePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/sqlite', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/interbase', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/odbc', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/examples', SqldbConnectionOSes);
+    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    P.SourcePath.Add('src/sqldb/mssql', MSSQLOSes);
     P.SourcePath.Add('src/sdf');
     P.SourcePath.Add('src/json');
     P.SourcePath.Add('src/datadict');
@@ -55,8 +56,8 @@ begin
     P.SourcePath.Add('src/dbase');
     P.IncludePath.Add('src/base');
     P.IncludePath.Add('src/sqldb');
-    P.IncludePath.Add('src/sqldb/postgres');
-    P.IncludePath.Add('src/sqldb/mysql');
+    P.IncludePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
+    P.IncludePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.IncludePath.Add('src/sdf');
     P.IncludePath.Add('src/memds');  
     P.IncludePath.Add('src/sqlite');
@@ -65,13 +66,15 @@ begin
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
-    P.Dependencies.Add('ibase');
-    P.Dependencies.Add('mysql');
-    P.Dependencies.Add('odbc');
-    P.Dependencies.Add('oracle');
-    P.Dependencies.Add('postgres');
-    P.Dependencies.Add('sqlite');
-    P.Dependencies.Add('pxlib');
+    P.Dependencies.Add('ibase', SqldbConnectionOSes);
+    P.Dependencies.Add('mysql', SqldbConnectionOSes);
+    P.Dependencies.Add('odbc', SqldbConnectionOSes);
+    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    P.Dependencies.Add('postgres', SqldbConnectionOSes);
+    P.Dependencies.Add('sqlite', SqldbConnectionOSes+SqliteOSes);
+    P.Dependencies.Add('dblib', MSSQLOSes);
+    P.Dependencies.Add('pxlib',ParadoxOSes);
+    P.Dependencies.Add('fcl-json');
 
     P.Options.Add('-S2h');
 
@@ -422,7 +425,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('oracleconnection');
         end;
-    T:=P.Targets.AddUnit('fpddpq.pp');
+    T:=P.Targets.AddUnit('fpddpq.pp', DatadictOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -430,7 +433,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('pqconnection');
         end;
-    T:=P.Targets.AddUnit('fpddregstd.pp');
+    T:=P.Targets.AddUnit('fpddregstd.pp', DatadictOSes-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('fpdatadict');
@@ -636,7 +639,7 @@ begin
           AddUnit('db');
           AddUnit('bufdataset_parser');
         end;
-    T:=P.Targets.AddUnit('pqconnection.pp');
+    T:=P.Targets.AddUnit('pqconnection.pp', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -645,7 +648,7 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
-    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
