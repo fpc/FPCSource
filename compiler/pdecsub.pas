@@ -1611,8 +1611,19 @@ end;
 
 procedure pd_static(pd:tabstractprocdef);
 begin
-  if pd.typ=procdef then
-    include(tprocdef(pd).procsym.symoptions,sp_static);
+  if pd.typ<>procdef then
+    internalerror(2013032001);
+  if not assigned(tprocdef(pd).struct) then
+    internalerror(2013032002);
+  include(tprocdef(pd).procsym.symoptions,sp_static);
+  { "static" is not allowed for operators or normal methods (except in objects) }
+  if (pd.proctypeoption=potype_operator) or
+      (
+        not (po_classmethod in pd.procoptions) and
+        not is_object(tprocdef(pd).struct)
+      )
+      then
+    Message1(parser_e_proc_dir_not_allowed,arraytokeninfo[_STATIC].str);
   include(pd.procoptions,po_staticmethod);
 end;
 
