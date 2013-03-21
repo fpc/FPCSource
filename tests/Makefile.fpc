@@ -501,13 +501,14 @@ $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
 
 # only include the targets to compile/run the tests when we want to
 # run them (in particular: not when cleaning)
+ifeq (,$(findstring clean,$(firstword $(MAKECMDGOALS))))
 ifneq (,$(findstring all,$(MAKECMDGOALS)))
 ifneq (,$(wildcard $(MAKEINC)))
 # incude the rules we just generated
 include $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 endif
 endif
-
+endif
 
 # this is pretty cool: MakeChunks-$(TEST_TARGETSUFFIX).inc will contain
 # additional prerequisites for the allexectests target, and after it is
