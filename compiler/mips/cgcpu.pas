@@ -84,6 +84,7 @@ type
     procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
     procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
+    procedure g_profilecode(list: TAsmList);override;
     { Transform unsupported methods into Internal errors }
     procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
     procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -1743,6 +1744,21 @@ procedure TCGMIPS.g_external_wrapper(list: TAsmList; procdef: tprocdef; const ex
         { Delay slot }
         list.Concat(taicpu.op_none(A_NOP));
       end;
+  end;
+
+
+procedure TCGMIPS.g_profilecode(list:TAsmList);
+  var
+    href: treference;
+  begin
+    if not (cs_create_pic in current_settings.moduleswitches) then
+      begin
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp'),0,sizeof(pint));
+        a_loadaddr_ref_reg(list,href,NR_GP);
+      end;
+    list.concat(taicpu.op_reg_reg(A_MOVE,NR_R1,NR_RA));
+    list.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_SP,NR_SP,-8));
+    a_call_sym_pic(list,current_asmdata.RefAsmSymbol('_mcount'));
   end;
 
 
