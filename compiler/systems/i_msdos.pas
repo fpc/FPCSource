@@ -65,7 +65,7 @@ unit i_msdos;
             assemextern  : as_i386_nasmobj;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_gnu_ar;
+            ar           : ar_watcom_wlib_omf;
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_dos;

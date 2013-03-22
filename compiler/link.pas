@@ -1571,9 +1571,16 @@ Implementation
             arfinishcmd : 'gar s $LIB'
           );
 
+      ar_watcom_wlib_omf_info : tarinfo =
+          ( id          : ar_watcom_wlib_omf;
+            arcmd       : 'wlib -fo -c $LIB $FILES';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
   RegisterAr(ar_gnu_ar_scripted_info);
   RegisterAr(ar_gnu_gar_info);
+  RegisterAr(ar_watcom_wlib_omf_info);
 end.
