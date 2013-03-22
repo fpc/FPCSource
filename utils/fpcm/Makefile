@@ -4,7 +4,7 @@
 default: all
 MAKEFILETARGETS=i386-linux i386-go32v2 i386-win32 i386-os2 i386-freebsd i386-beos i386-haiku i386-netbsd i386-solaris i386-qnx i386-netware i386-openbsd i386-wdosx i386-darwin i386-emx i386-watcom i386-netwlibc i386-wince i386-embedded i386-symbian i386-nativent i386-iphonesim i386-android m68k-linux m68k-freebsd m68k-netbsd m68k-amiga m68k-atari m68k-openbsd m68k-palmos m68k-embedded powerpc-linux powerpc-netbsd powerpc-amiga powerpc-macos powerpc-darwin powerpc-morphos powerpc-embedded powerpc-wii powerpc-aix sparc-linux sparc-netbsd sparc-solaris sparc-embedded x86_64-linux x86_64-freebsd x86_64-netbsd x86_64-solaris x86_64-openbsd x86_64-darwin x86_64-win64 x86_64-embedded arm-linux arm-palmos arm-darwin arm-wince arm-gba arm-nds arm-embedded arm-symbian arm-android powerpc64-linux powerpc64-darwin powerpc64-embedded powerpc64-aix avr-embedded armeb-linux armeb-embedded mips-linux mipsel-linux jvm-java jvm-android
 BSDs = freebsd netbsd openbsd darwin
-UNIXs = linux $(BSDs) solaris qnx haiku aix 
+UNIXs = linux $(BSDs) solaris qnx haiku aix
 LIMIT83fs = go32v2 os2 emx watcom
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
@@ -1574,7 +1574,11 @@ AS=$(ASPROG)
 LD=$(LDPROG)
 RC=$(RCPROG)
 AR=$(ARPROG)
+ifdef inUnix
+PPAS=./ppas$(SRCBATCHEXT)
+else
 PPAS=ppas$(SRCBATCHEXT)
+endif
 ifdef inUnix
 LDCONFIG=ldconfig
 else
@@ -3063,12 +3067,10 @@ endif
 revision :
 	$(DEL) revision.inc
 	$(MAKE) revision.inc
+fpcmwr$(PPUEXT): fpcmake.inc
+fpcmmain$(PPUEXT): $(REVINC)
 fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc $(REVINC)
-ifneq (,$(REVINC))
-	$(MAKE) fpcmmain$(PPUEXT)
-	$(COMPILER) fpcmake.pp
-	$(EXECPPAS)
-endif
+fpcmake$(EXEEXT): fpcmwr$(PPUEXT) fpcmmain$(PPUEXT)
 ifndef inCygWin
 $(BS_UNITDIR):
 	$(MKDIRTREE) $(BS_UNITDIR)

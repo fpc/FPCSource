@@ -67,14 +67,15 @@ revision :
 	$(MAKE) revision.inc
 
 
-fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc $(REVINC)
-ifneq (,$(REVINC))
-	$(MAKE) fpcmmain$(PPUEXT)
-	$(COMPILER) fpcmake.pp
-	$(EXECPPAS)
-endif
+fpcmwr$(PPUEXT): fpcmake.inc
 
-# Cygwin doesn't like c:/path/ 
+fpcmmain$(PPUEXT): $(REVINC)
+
+fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc $(REVINC)
+
+fpcmake$(EXEEXT): fpcmwr$(PPUEXT) fpcmmain$(PPUEXT)
+
+# Cygwin doesn't like c:/path/
 ifndef inCygWin
 $(BS_UNITDIR):
         $(MKDIRTREE) $(BS_UNITDIR)

@@ -14162,6 +14162,7 @@ utils/fpcm/fpcmpkg.pp svneol=native#text/plain
 utils/fpcm/fpcmwr.pp svneol=native#text/plain
 utils/fpcm/fpmake.pp svneol=native#text/plain
 utils/fpcm/get_revision.sh svneol=native#text/plain
+utils/fpcm/getrev.pp svneol=native#text/pascal
 utils/fpcm/makefile.exm -text
 utils/fpcm/printmakefilefpcrequirements.sh svneol=native#text/plain
 utils/fpcm/readme.txt svneol=native#text/plain
