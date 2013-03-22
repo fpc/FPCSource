@@ -31,13 +31,7 @@ override FPCOPT+=-dREVINC
 endif
 REVINC_FILES=$(wilcard fpcm*.pp fpcmake.ini Makefile.fpc)
 
-ifdef CALL_GET_REVISION
-# Must be a := for immediate execution
-# as it's the script itself that creates the new revision.inc
-#include file
-GET_REVISION_OUTPUT:=$(shell ./get_revision.sh $(REVINC_FILES))
-$(info get_revision script output is $(GET_REVISION_OUTPUT))
-endif
+SVN:=$(firstword $(wildcard $(addsuffix /svn$(SRCEXEEXT),$(SEARCHPATH))))
 
 [rules]
 .NOTPARALLEL:
@@ -54,10 +48,12 @@ ifdef inCygWin
 EnableRevIncRule=1
 endif
 
-ifdef EnableRevIncRule
+ifneq (,$(SVN))
 # revision.inc rule
 revision.inc : $(REVINC_FILES)
-	$(MAKE) CALL_GET_REVISION=1
+	$(SVN) info $(REVINC_FILES) > svninfo.log
+	$(MAKE) getrev$(EXEEXT)
+	./getrev$(EXEEXT) svninfo.log
 endif
 
 .PHONY : revision
