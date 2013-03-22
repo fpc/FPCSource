@@ -3,7 +3,11 @@
 # List of files which should be considered imprtant
 # for the behavior of fpcmake binary
 # fpcmake.inc and Makefile should be excluded from that list
+if [ "$#" -ge 1 ] ; then
+important_files="$*"
+else
 important_sources=`ls -1 fpcm*.pp fpcmake.ini Makefile.fpc`
+fi
 
 LANG=C
 export LANG
