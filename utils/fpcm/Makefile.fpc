@@ -22,6 +22,23 @@ fpcdir=../..
 [prerules]
 BS_UNITDIR=$(BASEDIR)/units/$(SOURCESUFFIX)
 
+# Check if revision.inc is present
+REVINC:=$(wildcard revision.inc)
+ifneq ($(REVINC),)
+# File revision.inc is present
+# Use it to compile fpcmmain.pp unit
+override FPCOPT+=-dREVINC
+endif
+REVINC_FILES=$(wilcard fpcm*.pp fpcmake.ini Makefile.fpc)
+
+ifdef CALL_GET_REVISION
+# Must be a := for immediate execution
+# as it's the script itself that creates the new revision.inc
+#include file
+GET_REVISION_OUTPUT:=$(shell ./get_revision.sh $(REVINC_FILES))
+$(info get_revision script output is $(GET_REVISION_OUTPUT))
+endif
+
 [rules]
 .NOTPARALLEL:
 ifneq ($(DATA2INC),)
@@ -29,9 +46,38 @@ fpcmake.inc: fpcmake.ini
         $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
 endif
 
-fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc
 
+ifdef inUnix
+EnableRevIncRule=1
+endif
+ifdef inCygWin
+EnableRevIncRule=1
+endif
+
+ifdef EnableRevIncRule
+# revision.inc rule
+revision.inc : $(REVINC_FILES)
+	$(MAKE) CALL_GET_REVISION=1
+endif
+
+.PHONY : revision
+
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
+
+
+fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc $(REVINC)
+ifneq (,$(REVINC))
+	$(MAKE) fpcmmain$(PPUEXT)
+	$(COMPILER) fpcmake.pp
+	$(EXECPPAS)
+endif
+
+# Cygwin doesn't like c:/path/ 
+ifndef inCygWin
 $(BS_UNITDIR):
         $(MKDIRTREE) $(BS_UNITDIR)
 bootstrap: $(BS_UNITDIR) fpcmake.inc
         $(FPCFPMAKE) fpcmake.pp $(FPMAKE_SKIP_CONFIG) -Fu$(UNITDIR_FPMAKE_RTL) -FU$(BS_UNITDIR) $(OPT)
+endif
