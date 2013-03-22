@@ -686,7 +686,7 @@ begin
         NewSize := ASize;
         end;
       end;
-    FIELD_TYPE_BLOB:
+    FIELD_TYPE_TINY_BLOB..FIELD_TYPE_BLOB:
       begin
 {$IFDEF MYSQL50_UP}
       if AField^.charsetnr = 63 then //character set is binary
@@ -1049,7 +1049,7 @@ begin
           end;
       end;
       end;
-    FIELD_TYPE_BLOB:
+    FIELD_TYPE_TINY_BLOB..FIELD_TYPE_BLOB:
       CreateBlob := True;
 {$IFDEF MYSQL50_UP}
     FIELD_TYPE_BIT:
