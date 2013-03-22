@@ -7,7 +7,6 @@ name=rtl
 version=2.7.1
 
 [target]
-dirs_android=android
 dirs_linux=linux
 dirs_win32=win32
 dirs_wince=wince
@@ -38,6 +37,8 @@ dirs_nativent=nativent
 dirs_wii=wii
 dirs_aix=aix
 dirs_java=java
+dirs_i386_android=android
+dirs_arm_android=android
 dirs_jvm_android=android/jvm
 
 [install]
