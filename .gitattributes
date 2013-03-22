@@ -14165,6 +14165,7 @@ utils/fpcm/get_revision.sh svneol=native#text/plain
 utils/fpcm/makefile.exm -text
 utils/fpcm/printmakefilefpcrequirements.sh svneol=native#text/plain
 utils/fpcm/readme.txt svneol=native#text/plain
+utils/fpcm/revision.inc svneol=native#text/plain
 utils/fpcmkcfg/Makefile svneol=native#text/plain
 utils/fpcmkcfg/Makefile.fpc svneol=native#text/plain
 utils/fpcmkcfg/default.cft svneol=native#text/plain
