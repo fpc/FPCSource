@@ -49,7 +49,7 @@ unit i_msdos;
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.dll';
-            staticlibext : '.a';
+            staticlibext : '.lib';
             staticlibprefix : '';
             sharedlibprefix : '';
             sharedClibext : '.dll';
