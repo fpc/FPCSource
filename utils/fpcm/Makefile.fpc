@@ -29,7 +29,7 @@ ifneq ($(REVINC),)
 # Use it to compile fpcmmain.pp unit
 override FPCOPT+=-dREVINC
 endif
-REVINC_FILES=$(wilcard fpcm*.pp fpcmake.ini Makefile.fpc)
+REVINC_FILES=$(wildcard fpcm*.pp fpcmake.ini Makefile.fpc)
 
 SVN:=$(firstword $(wildcard $(addsuffix /svn$(SRCEXEEXT),$(SEARCHPATH))))
 
