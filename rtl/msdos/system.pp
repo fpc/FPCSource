@@ -73,7 +73,7 @@ begin
     mov dl, al
     int 21h
     loop @@1
-  end;
+  end ['ax','bx','cx','dx','si','di'];
 end;
 
 procedure DebugWriteLn(const S: string);
