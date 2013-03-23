@@ -43,6 +43,12 @@ const
   segB800 = $B800;
 
 var
+{ C-compatible arguments and environment }
+  argc:longint; //!! public name 'operatingsystem_parameter_argc';
+  argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
+  envp:PPchar; //!! public name 'operatingsystem_parameter_envp';
+  dos_argv0 : pchar; //!! public name 'dos_argv0';
+
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
 { System info }
