@@ -1109,8 +1109,11 @@ implementation
               orddef :
                 begin
                   if torddef(def).ordtype in [uchar,
-                    u8bit,u16bit,
-                    s8bit,s16bit,s32bit,
+                    u8bit,
+                    s8bit,s16bit,
+{$if defined(cpu32bitaddr) or defined(cpu64bitaddr)}
+                    u16bit,s32bit,
+{$endif defined(cpu32bitaddr) or defined(cpu64bitaddr)}
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
