@@ -25,12 +25,10 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-Tmsdos -Pi8086 -XPmsdos- -Xr -Ur -Xs -O2 -n -Fi../inc -Fi../i8086 -FE. -FUc:/fpc/branches/i8086/rtl/units/msdos -O- -gl    -di8086 -dRELEASE  -Fi../objpas ../objpas/objpas.pp"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
-        <WorkingDirectory Value="c:/fpc/branches/i8086/rtl/msdos"/>
       </local>
     </RunParams>
-    <Units Count="16">
+    <Units Count="15">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -105,11 +103,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="n8086inl"/>
       </Unit14>
-      <Unit15>
-        <Filename Value="i8086\n8086set.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="n8086set"/>
-      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
