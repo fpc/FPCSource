@@ -932,7 +932,7 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 %     ....
 % \end{verbatim}
 % and the \var{interface} before the dot is not listed in the inheritance list.
-parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can't be used as array index type
+parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can not be used as array index type
 % Types like \var{qword} or \var{int64} aren't allowed as array index type.
 parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in interfaces
 % Constructor and destructor declarations aren't allowed in interfaces.
