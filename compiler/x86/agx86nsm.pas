@@ -588,7 +588,7 @@ interface
 
            ait_datablock :
              begin
-               if tai_datablock(hp).is_global then
+               if tai_datablock(hp).is_global or SmartAsm then
                 begin
                   AsmWrite(#9'GLOBAL ');
                   AsmWriteLn(tai_datablock(hp).sym.name);
@@ -842,7 +842,14 @@ interface
            ait_label :
              begin
                if tai_label(hp).labsym.is_used then
-                AsmWriteLn(tai_label(hp).labsym.name+':');
+                 begin
+                   if SmartAsm then
+                     begin
+                       AsmWrite(#9'GLOBAL ');
+                       AsmWriteLn(tai_label(hp).labsym.name);
+                     end;
+                   AsmWriteLn(tai_label(hp).labsym.name+':');
+                 end;
                if SmartAsm then
                  AddSymbol(tai_label(hp).labsym.name,true);
              end;
@@ -851,7 +858,7 @@ interface
              begin
                if tai_symbol(hp).has_value then
                  internalerror(2009090803);
-               if tai_symbol(hp).is_global then
+               if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   AsmWrite(#9'GLOBAL ');
                   AsmWriteLn(tai_symbol(hp).sym.name);
