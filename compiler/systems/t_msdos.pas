@@ -253,6 +253,12 @@ begin
     if s<>'' then
       LinkRes.Add('file ' + maybequoted(s));
   end;
+  while not StaticLibFiles.Empty do
+  begin
+    s:=StaticLibFiles.GetFirst;
+    if s<>'' then
+      LinkRes.Add('library '+MaybeQuoted(s));
+  end;
   LinkRes.Add('format dos');
   LinkRes.Add('option dosseg');
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
