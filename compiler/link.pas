@@ -1573,7 +1573,7 @@ Implementation
 
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
-            arcmd       : 'wlib -fo -c $LIB $FILES';
+            arcmd       : 'wlib -q -fo -c $LIB $FILES';
             arfinishcmd : ''
           );
 
