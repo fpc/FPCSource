@@ -374,7 +374,7 @@ unit cgcpu;
                     if cgpara.location^.Next^.Next <> nil then
                       internalerror(2013031101);
                   end;
-                if cgpara.alignment <> 4 then
+                if (cgpara.alignment <> 4) and (cgpara.alignment <> 2) then
                   internalerror(2013031101);
 
                 list.concat(taicpu.op_const(A_PUSH,S_W,a shr 16));

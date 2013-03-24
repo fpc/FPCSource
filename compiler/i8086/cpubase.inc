@@ -146,4 +146,4 @@
          The value of this constant is equal to the constant
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-      std_param_align = 4;
+      std_param_align = 2;

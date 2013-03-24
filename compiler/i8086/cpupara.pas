@@ -237,15 +237,7 @@ unit cpupara;
 
     function ti8086paramanager.get_para_align(calloption : tproccalloption):byte;
       begin
-        if calloption=pocall_oldfpccall then
-          begin
-            if target_info.system in [system_i386_go32v2,system_i386_watcom] then
-              result:=2
-            else
-              result:=4;
-          end
-        else
-          result:=std_param_align;
+        result:=std_param_align;
       end;
 
 
