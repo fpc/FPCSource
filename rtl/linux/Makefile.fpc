@@ -7,9 +7,9 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
+units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
-      fpintres heaptrc lineinfo lnfodwrf \
+      heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
@@ -146,6 +146,14 @@ ifeq ($(ARCH),sparc)
   endif
 endif
 
+ifeq ($(ARCH),arm)
+  ifeq ($(SUBARCH),armv6m)
+    ASTARGET+=-mthumb --def __thumb__=1
+    ARMTHUMB=1
+  endif
+endif
+
+
 #
 # Loaders
 #
@@ -153,24 +161,40 @@ endif
 prt0$(OEXT) : $(ARCH)/prt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 
+
 # ASSHAREDOPT adds -KPIC mandatoy for mips/mipsel objects in shared libs
+#
+# the following startup files do not support thumb yet
+#
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+endif ARMTHUMB
 
 gprt0$(OEXT) : $(ARCH)/gprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
+endif ARMTHUMB
 
 cprt0$(OEXT) : $(ARCH)/cprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
+endif ARMTHUMB
 
 cprt21$(OEXT) : $(ARCH)/cprt21.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
+endif ARMTHUMB
 
 gprt21$(OEXT) : $(ARCH)/gprt21.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
+endif ARMTHUMB
 
 ucprt0$(OEXT) : $(ARCH)/ucprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
+endif ARMTHUMB
 
 
 #
