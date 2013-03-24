@@ -229,7 +229,11 @@ implementation
                 cond_le:=F_BE;
              end;
            { do we need to generate cmps? }
+{$ifdef i8086}
+           if (with_sign and (min_label<0)) or (opcgsize in [OS_32, OS_S32]) then
+{$else i8086}
            if (with_sign and (min_label<0)) then
+{$endif i8086}
              genlinearcmplist(hp)
            else
              begin
