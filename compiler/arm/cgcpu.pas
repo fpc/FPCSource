@@ -3405,6 +3405,10 @@ unit cgcpu;
               if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
                 include(regs,RS_R14);
 
+            { safely estimate stack size }
+            if localsize+current_settings.alignment.localalignmax>508 then
+              include(regs,RS_R4);
+
             if regs<>[] then
                begin
                  for r:=RS_R0 to RS_R15 do
@@ -3428,19 +3432,15 @@ unit cgcpu;
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                if is_shifter_const(localsize,shift) then
+                if localsize<508 then
                   begin
-                    a_reg_dealloc(list,NR_R12);
                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-                  end
-                else if split_into_shifter_const(localsize, imm1, imm2) then
-                  begin
-                    a_reg_dealloc(list,NR_R12);
-                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
-                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
                   end
                 else
                   begin
+                    a_load_const_reg(list,OS_ADDR,-localsize,NR_R4);
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R4));
+
                     //!!!! if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                     //!!!!   a_reg_alloc(list,NR_R12);
                     //!!!! a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
