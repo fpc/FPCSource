@@ -29,6 +29,7 @@ begin
           res := 207;
         end;
     SIGILL:
+{$ifdef FPC_SYSTEM_FPC_MOVE}
         if in_edsp_test then
           begin
             res:=0;
@@ -36,6 +37,7 @@ begin
             inc(uContext^.uc_mcontext.arm_pc,4);
           end
         else
+{$endif FPC_SYSTEM_FPC_MOVE}
           res:=216;
     SIGSEGV :
         res:=216;
