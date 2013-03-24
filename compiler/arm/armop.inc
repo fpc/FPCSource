@@ -328,5 +328,6 @@ A_VSQRT,
 A_VSTM,
 A_VSTR,
 A_VSUB,
-A_NEG
+A_NEG,
+A_SVC
 );

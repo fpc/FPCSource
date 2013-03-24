@@ -328,5 +328,6 @@
 'vstm',
 'vstr',
 'vsub',
-'neg'
+'neg',
+'svc'
 );
