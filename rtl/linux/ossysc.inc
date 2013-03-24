@@ -247,7 +247,13 @@ procedure linux_restore; cdecl; nostackframe; assembler;
 asm
 {$ifdef FPC_ABI_EABI}
   mov r7, syscall_nr_sigreturn
+{$ifdef CPUTHUMB}
+  // svc   #0x0
+  // GNU 2.22 does not like svc #0x0
+  .byte 0,0xdf
+{$else CPUTHUMB}
   swi #0x0
+{$endif CPUTHUMB}
 {$else}
   swi syscall_nr_sigreturn
 {$endif}
@@ -276,7 +282,13 @@ procedure linux_restore_rt; cdecl; nostackframe; assembler;
 asm
 {$ifdef FPC_ABI_EABI}
   mov r7, syscall_nr_rt_sigreturn
+{$ifdef CPUTHUMB}
+  // svc   #0x0
+  // GNU 2.22 does not like svc #0x0
+  .byte 0,0xdf
+{$else CPUTHUMB}
   swi #0x0
+{$endif CPUTHUMB}
 {$else}
   swi syscall_nr_rt_sigreturn
 {$endif}
