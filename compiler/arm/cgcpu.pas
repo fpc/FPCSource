@@ -3417,14 +3417,6 @@ unit cgcpu;
                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,regs));
                end;
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              begin
-                { the framepointer now points to the saved R15, so the saved
-                  framepointer is at R11-12 (for get_caller_frame) }
-                //!!! list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
-                //!!! a_reg_dealloc(list,NR_R12);
-              end;
-
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
@@ -3440,6 +3432,7 @@ unit cgcpu;
                   begin
                     a_load_const_reg(list,OS_ADDR,-localsize,NR_R4);
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R4));
+                    include(regs,RS_R4);
 
                     //!!!! if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                     //!!!!   a_reg_alloc(list,NR_R12);
@@ -3447,6 +3440,11 @@ unit cgcpu;
                     //!!!! list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                     //!!!! a_reg_dealloc(list,NR_R12);
                   end;
+              end;
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              begin
+                list.concat(taicpu.op_reg_reg_const(A_ADD,current_procinfo.framepointer,NR_STACK_POINTER_REG,0));
               end;
           end;
       end;
@@ -3466,24 +3464,27 @@ unit cgcpu;
         if not(nostackframe) then
           begin
             stackmisalignment:=0;
-            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)        ;
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
             include(regs,RS_R15);
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              regs:=regs+[getsupreg(current_procinfo.framepointer)];
 
             for r:=RS_R0 to RS_R15 do
               if r in regs then
                 inc(stackmisalignment,4);
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            LocalSize:=current_procinfo.calc_stackframe_size;
+            localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (target_info.system in systems_darwin) then
               begin
-                LocalSize:=current_procinfo.calc_stackframe_size;
                 if (LocalSize<>0) or
                    ((stackmisalignment<>0) and
                     ((pi_do_call in current_procinfo.flags) or
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
-                    localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
                     if is_shifter_const(LocalSize,shift) then
                       list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
                     else if split_into_shifter_const(localsize, imm1, imm2) then
@@ -3517,9 +3518,18 @@ unit cgcpu;
               end
             else
               begin
+                list.concat(taicpu.op_reg_reg(A_MOV,NR_STACK_POINTER_REG,current_procinfo.framepointer));
+                if localsize<=508 then
+                  begin
+                    list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                  end
+                else
+                  begin
+                    a_load_const_reg(list,OS_ADDR,localsize,current_procinfo.framepointer);
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,current_procinfo.framepointer));
+                  end;
+
                 { restore int registers and return }
-                reference_reset(ref,4);
-                ref.index:=NR_FRAME_POINTER_REG;
                 list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
               end;
           end
