@@ -126,11 +126,11 @@ end;
 
 procedure SysInitStdIO;
 begin
-{  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);}
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;
@@ -143,4 +143,8 @@ begin
   result := stklen;
 end;
 
+begin
+  initunicodestringmanager;
+{ Setup stdin, stdout and stderr }
+  SysInitStdIO;
 end.
