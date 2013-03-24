@@ -112,6 +112,8 @@ unit agarmgas;
 
         if current_settings.cputype in cpu_thumb2 then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
+        else if current_settings.cputype in cpu_thumb then
+          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
         // EDSP instructions in RTL require armv5te at least to not generate error
         else if current_settings.cputype >= cpu_armv5te then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
