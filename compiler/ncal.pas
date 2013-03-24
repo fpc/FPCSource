@@ -3150,6 +3150,8 @@ implementation
                 hpt:=methodpointer;
                 while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                   hpt:=tunarynode(hpt).left;
+                { skip (absolute and other simple) type conversions }
+                hpt:=hpt.actualtargetnode;
 
                 if ((hpt.nodetype=loadvmtaddrn) or
                    ((hpt.nodetype=loadn) and assigned(tloadnode(hpt).resultdef) and (tloadnode(hpt).resultdef.typ=classrefdef))) and
@@ -3169,8 +3171,10 @@ implementation
                  Also allow it for simple loads }
                if (procdefinition.proctypeoption=potype_constructor) or
                   ((hpt.nodetype=loadn) and
-                   (methodpointer.resultdef.typ=objectdef) and
-                   not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)
+                   (((methodpointer.resultdef.typ=objectdef) and
+                     not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)) or
+                    (methodpointer.resultdef.typ=recorddef)
+                   )
                   ) then
                  { a constructor will and a method may write something to }
                  { the fields                                             }
