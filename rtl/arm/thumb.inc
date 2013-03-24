@@ -27,6 +27,12 @@ begin
   SysInitFPU;
 end;
 
+
+procedure fpc_cpucodeinit;
+begin
+end;
+
+
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
