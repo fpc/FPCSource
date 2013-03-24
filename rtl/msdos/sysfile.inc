@@ -34,6 +34,15 @@ end;
 
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
 begin
+  { TODO: add error checking }
+  asm
+    mov ah, 40h
+    mov bx, h
+    mov cx, len
+    mov dx, addr
+    int 21h
+  end ['ax','bx','cx','dx'];
+  do_write := len;
 end;
 
 
