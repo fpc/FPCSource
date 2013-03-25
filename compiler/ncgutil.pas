@@ -420,6 +420,12 @@ implementation
 
 
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
+      const
+{$ifdef cpu16bitalu}
+        setjmp_result_cgsize = OS_S16;
+{$else cpu16bitalu}
+        setjmp_result_cgsize = OS_S32;
+{$endif cpu16bitalu}
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
         pd: tprocdef;
@@ -452,7 +458,7 @@ implementation
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
         cg.g_exception_reason_save(list, t.reasonbuf);
-        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
+        cg.a_cmp_const_reg_label(list,setjmp_result_cgsize,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,setjmp_result_cgsize),exceptlabel);
         cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
         paraloc1.done;
         paraloc2.done;
