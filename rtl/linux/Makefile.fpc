@@ -169,32 +169,32 @@ prt0$(OEXT) : $(ARCH)/prt0.as
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
-endif ARMTHUMB
+endif
 
 gprt0$(OEXT) : $(ARCH)/gprt0.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
-endif ARMTHUMB
+endif
 
 cprt0$(OEXT) : $(ARCH)/cprt0.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
-endif ARMTHUMB
+endif
 
 cprt21$(OEXT) : $(ARCH)/cprt21.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
-endif ARMTHUMB
+endif
 
 gprt21$(OEXT) : $(ARCH)/gprt21.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
-endif ARMTHUMB
+endif
 
 ucprt0$(OEXT) : $(ARCH)/ucprt0.as
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
-endif ARMTHUMB
+endif
 
 
 #
