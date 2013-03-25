@@ -893,6 +893,61 @@ end;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_write_text_longword(len : longint;var t : text;q : longword); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(q,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_longint(len : longint;var t : text;i : longint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_longword_iso(len : longint;var t : text;q : longword); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+    exit;
+  str(q,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+
+
+procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+{$endif CPU16 or CPU8}
+
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; compilerproc;
 var

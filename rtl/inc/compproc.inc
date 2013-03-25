@@ -358,6 +358,12 @@ procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerpr
 procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); compilerproc;
 procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); compilerproc;
 {$endif CPU64}
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_write_text_longword(len : longint;var t : text;q : longword); compilerproc;
+procedure fpc_write_text_longint(len : longint;var t : text;i : longint); compilerproc;
+procedure fpc_write_text_longword_iso(len : longint;var t : text;q : longword); compilerproc;
+procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); compilerproc;
+{$endif CPU16 or CPU8}
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 Procedure fpc_Write_Text_Float_Iso(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
