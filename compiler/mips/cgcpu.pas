@@ -549,7 +549,7 @@ begin
   if assigned(current_procinfo) and
      not (pi_do_call in current_procinfo.flags) then
     InternalError(2013022102);
-  if (cs_create_pic in current_settings.moduleswitches) then
+  // if (cs_create_pic in current_settings.moduleswitches) then
     begin
       if (Reg <> NR_PIC_FUNC) then
         list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
@@ -559,12 +559,12 @@ begin
       list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
       list.concat(taicpu.op_none(A_P_SET_NOREORDER));
       list.concat(taicpu.op_none(A_P_SET_NOMACRO));
-    end
+  (*  end
   else
     begin
       list.concat(taicpu.op_reg(A_JALR, reg));
       { Delay slot }
-      list.concat(taicpu.op_none(A_NOP));
+      list.concat(taicpu.op_none(A_NOP)); *)
     end;
 end;
 
