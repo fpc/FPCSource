@@ -530,6 +530,82 @@ implementation
       end;
 
 
+    procedure get_read_write_int_func(ordtype: tordtype; out func_suffix: string; out readfunctype: tdef);
+    const
+{$if defined(cpu64bitaddr)}
+      oversized_types = [];
+{$elseif defined(cpu32bitalu)}
+      oversized_types = [s64bit,u64bit];
+{$elseif defined(cpu16bitalu)}
+      oversized_types = [s64bit,u64bit,s32bit,u32bit];
+{$elseif defined(cpu8bitalu)}
+      oversized_types = [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
+{$endif}
+    begin
+      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032601);
+
+      if ordtype in oversized_types then
+        begin
+          case ordtype of
+            s64bit:
+              begin
+                func_suffix := 'int64';
+                readfunctype:=s64inttype;
+              end;
+            u64bit :
+              begin
+                func_suffix := 'qword';
+                readfunctype:=u64inttype;
+              end;
+            s32bit:
+              begin
+                func_suffix := 'longint';
+                readfunctype:=s32inttype;
+              end;
+            u32bit :
+              begin
+                func_suffix := 'longword';
+                readfunctype:=u32inttype;
+              end;
+            s16bit:
+              begin
+                func_suffix := 'smallint';
+                readfunctype:=s16inttype;
+              end;
+            u16bit :
+              begin
+                func_suffix := 'word';
+                readfunctype:=u16inttype;
+              end;
+            else
+              internalerror(2013032602);
+          end;
+        end
+      else
+        begin
+          case ordtype of
+            s64bit,
+            s32bit,
+            s16bit,
+            s8bit:
+              begin
+                func_suffix := 'sint';
+                readfunctype := sinttype;
+              end;
+            u64bit,
+            u32bit,
+            u16bit,
+            u8bit:
+              begin
+                func_suffix := 'uint';
+                readfunctype := uinttype;
+              end;
+          end;
+        end;
+    end;
+
+
     function Tinlinenode.handle_text_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
 
     {Read(ln)/write(ln) for text files.}
@@ -546,6 +622,7 @@ implementation
         temp:Ttempcreatenode;
         readfunctype:Tdef;
         name:string[63];
+        func_suffix:string[8];
 
     begin
       para:=Tcallparanode(params);
@@ -612,25 +689,17 @@ implementation
             orddef :
               begin
                 case Torddef(para.left.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-                  s64bit,
-{$endif cpu64bitaddr}
                   s8bit,
                   s16bit,
-                  s32bit :
-                    begin
-                      name := procprefixes[do_read]+'sint';
-                      readfunctype:=sinttype;
-                    end;
-{$ifdef cpu64bitaddr}
-                  u64bit,
-{$endif cpu64bitaddr}
+                  s32bit,
+                  s64bit,
                   u8bit,
                   u16bit,
-                  u32bit :
+                  u32bit,
+                  u64bit:
                     begin
-                      name := procprefixes[do_read]+'uint';
-                      readfunctype:=uinttype;
+                      get_read_write_int_func(Torddef(para.left.resultdef).ordtype,func_suffix,readfunctype);
+                      name := procprefixes[do_read]+func_suffix;
                     end;
                   uchar :
                     begin
@@ -645,18 +714,6 @@ implementation
                       name := procprefixes[do_read]+'widechar';
                       readfunctype:=cwidechartype;
                     end;
-{$ifndef cpu64bitaddr}
-                  s64bit :
-                    begin
-                      name := procprefixes[do_read]+'int64';
-                      readfunctype:=s64inttype;
-                    end;
-                  u64bit :
-                    begin
-                      name := procprefixes[do_read]+'qword';
-                      readfunctype:=u64inttype;
-                    end;
-{$endif not cpu64bitaddr}
                   scurrency:
                     begin
                       name := procprefixes[do_read]+'currency';
