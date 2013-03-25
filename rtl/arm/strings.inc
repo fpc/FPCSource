@@ -15,6 +15,7 @@
 
  **********************************************************************}
 
+{$ifndef CPUTHUMB}
 {$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;nostackframe;
@@ -74,3 +75,4 @@ asm
         b       .LByteLoop
 end;
 {$endif FPC_UNIT_HAS_STRLOWER}
+{$endif CPUTHUMB}
