@@ -117,6 +117,9 @@ implementation
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
+{$if defined(arm)}
+       ,cpuinfo
+{$endif arm}
        {$ifndef NOOPT}
          {$ifdef i386}
            ,aopt386
@@ -999,6 +1002,10 @@ implementation
         framepointer:=NR_STACK_POINTER_REG;
         tg.direction:=1;
 {$endif MIPS}
+{$ifdef ARM}
+        if current_settings.cputype in cpu_thumb then
+          tg.direction:=1;
+{$endif ARM}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;
