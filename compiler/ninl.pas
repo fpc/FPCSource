@@ -156,6 +156,50 @@ implementation
       end;
 
 
+    function get_str_int_func(ordtype: tordtype): string;
+    const
+{$if defined(cpu64bitaddr)}
+      oversized_types = [];
+      highest_unsigned_type = u64bit;
+{$elseif defined(cpu32bitalu)}
+      oversized_types = [scurrency,s64bit,u64bit];
+      highest_unsigned_type = u32bit;
+{$elseif defined(cpu16bitalu)}
+      oversized_types = [scurrency,s64bit,u64bit,s32bit,u32bit];
+      highest_unsigned_type = u16bit;
+{$elseif defined(cpu8bitalu)}
+      oversized_types = [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
+      highest_unsigned_type = u8bit;
+{$endif}
+    begin
+      if not (ordtype in [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032603);
+
+      if ordtype in oversized_types then
+        begin
+          case ordtype of
+            scurrency,
+            s64bit: exit('int64');
+            u64bit: exit('qword');
+            s32bit: exit('longint');
+            u32bit: exit('longword');
+            s16bit: exit('smallint');
+            u16bit: exit('word');
+            else
+              internalerror(2013032604);
+          end;
+        end
+      else
+        begin
+          if ordtype = highest_unsigned_type then
+            exit('uint')
+          else
+            exit('sint');
+        end;
+      internalerror(2013032605);
+    end;
+
+
     function tinlinenode.handle_str : tnode;
       var
         lenpara,
@@ -324,23 +368,11 @@ implementation
           procname:=procname+'enum'
         else
           case torddef(source.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-            u64bit:
-              procname := procname + 'uint';
-{$else}
-            u32bit:
-              procname := procname + 'uint';
-            u64bit:
-              procname := procname + 'qword';
-            scurrency,
-            s64bit:
-              procname := procname + 'int64';
-{$endif}
             pasbool8,pasbool16,pasbool32,pasbool64,
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
             else
-              procname := procname + 'sint';
+              procname := procname + get_str_int_func(torddef(source.resultdef).ordtype);
           end;
 
         { for ansistrings insert the encoding argument }
