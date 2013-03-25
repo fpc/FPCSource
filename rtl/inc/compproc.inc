@@ -640,5 +640,5 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 function fpc_longword_to_double(i: longword): double; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
 
-function fpc_setjmp(var s : jmp_buf) : longint; compilerproc;
+function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$endif}; compilerproc;
 procedure fpc_longjmp(var s : jmp_buf; value : longint); compilerproc;

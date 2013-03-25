@@ -13,8 +13,21 @@
 
  **********************************************************************}
 
-Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
+Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
 asm
+  xchg ax, bx
+  mov word [bx + Jmp_buf.bx], ax
+  mov word [bx + Jmp_buf.si], si
+  mov word [bx + Jmp_buf.di], di
+  mov word [bx + Jmp_buf.bp], bp
+  mov di, sp
+  add di, 2
+  mov word [bx + Jmp_buf.sp], di
+  mov di, word [di - 2]
+  mov word [bx + Jmp_buf.pc], di
+  mov di, word [bx + Jmp_buf.di]
+  mov bx, ax
+  xor ax, ax
 end;
 
 

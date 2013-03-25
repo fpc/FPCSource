@@ -15,8 +15,10 @@
 
 Type
   jmp_buf = packed record
+    bx,si,di: Word;
+    bp,sp,pc: Pointer;
   end;
   PJmp_buf = ^jmp_buf;
 
-Function Setjmp (Var S : Jmp_buf) : longint; [external name 'FPC_SETJMP'];
+Function Setjmp (Var S : Jmp_buf) : smallint; [external name 'FPC_SETJMP'];
 Procedure longjmp (Var S : Jmp_buf; value : longint); [external name 'FPC_LONGJMP'];
