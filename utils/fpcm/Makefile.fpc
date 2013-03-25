@@ -32,6 +32,9 @@ endif
 REVINC_FILES=$(wildcard fpcm*.pp fpcmake.ini Makefile.fpc)
 
 SVN:=$(firstword $(wildcard $(addsuffix /svn$(SRCEXEEXT),$(SEARCHPATH))))
+SVNLOG:=svninfo.log
+# This one can be overriden on command line for debugging purposes
+GETREVEXE:=./getrev$(EXEEXT)
 
 [rules]
 .NOTPARALLEL:
@@ -51,16 +54,18 @@ endif
 ifneq (,$(SVN))
 # revision.inc rule
 revision.inc : $(REVINC_FILES)
-	$(SVN) info $(REVINC_FILES) > svninfo.log
+	-$(SVN) info $(REVINC_FILES) > $(SVNLOG)
 	$(MAKE) getrev$(EXEEXT)
-	./getrev$(EXEEXT) svninfo.log
+	$(GETREVEXE) $(SVNLOG)
+	-$(DEL) getrev$(EXEEXT)
 endif
 
 .PHONY : revision
 
+# Use -B option to force
+# regeneration of revision.inc
 revision :
-	$(DEL) revision.inc
-	$(MAKE) revision.inc
+	$(MAKE) -B revision.inc
 
 
 fpcmwr$(PPUEXT): fpcmake.inc
