@@ -413,9 +413,9 @@ implementation
          ref : treference;
          r : tregister;
        begin
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
          if current_settings.cputype>=cpu_Pentium3 then
-{$endif i386}
+{$endif i386 or i8086}
            begin
              secondpass(left);
              case left.location.loc of
