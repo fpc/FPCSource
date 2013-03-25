@@ -448,6 +448,23 @@ end;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_shortstr_longword(v : longword;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; compilerproc;
+begin
+  int_str_unsigned(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+
+procedure fpc_shortstr_longint(v : longint;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+{$endif CPU16 or CPU8}
+
 
 { fpc_shortstr_sInt must appear before this file is included, because }
 { it's used inside real2str.inc and otherwise the searching via the      }
@@ -867,6 +884,42 @@ begin
 end;
 
 {$endif CPU64}
+
+
+{$if defined(CPU16) or defined(CPU8)}
+
+procedure fpc_chararray_longword(v : longword;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str_unsigned(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+
+procedure fpc_chararray_longint(v : longint;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+{$endif CPU16 or CPU8}
 
 
 {$ifndef FPUNONE}

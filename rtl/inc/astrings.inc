@@ -1190,6 +1190,30 @@ end;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+Procedure fpc_AnsiStr_LongWord(v : LongWord;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Var
+  SS : ShortString;
+begin
+  str(v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+
+Procedure fpc_AnsiStr_LongInt(v : LongInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Var
+  SS : ShortString;
+begin
+  str (v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+{$endif CPU16 or CPU8}
+
 Procedure Delete(Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;

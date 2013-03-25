@@ -1557,6 +1557,28 @@ end;
 {$endif CPU64}
 
 
+{$if defined(CPU16) or defined(CPU8)}
+
+Procedure fpc_UnicodeStr_LongInt(v : LongInt; Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  Str (v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+
+Procedure fpc_UnicodeStr_LongWord(v : LongWord;Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  str(v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+{$endif CPU16 or CPU8}
+
+
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
