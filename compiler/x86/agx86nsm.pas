@@ -397,16 +397,19 @@ interface
               WriteReference(o.ref^)
             else
               begin
+{ NEAR forces NASM to emit near jumps, which are 386+ }
+{$ifndef i8086}
                 if not(
                        (op=A_JCXZ) or (op=A_JECXZ) or
-{$ifdef x86_64}
+    {$ifdef x86_64}
                        (op=A_JRCXZ) or
-{$endif x86_64}
+    {$endif x86_64}
                        (op=A_LOOP) or (op=A_LOOPE) or
                        (op=A_LOOPNE) or (op=A_LOOPNZ) or
                        (op=A_LOOPZ)
                       ) then
                   AsmWrite('NEAR ');
+{$endif i8086}
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
