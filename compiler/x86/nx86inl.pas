@@ -60,7 +60,9 @@ interface
 
           procedure second_prefetch;override;
 
+{$ifndef i8086}
           procedure second_abs_long;override;
+{$endif not i8086}
           procedure second_popcnt;override;
        private
           procedure load_fpu_location;
@@ -434,6 +436,7 @@ implementation
        end;
 
 
+{$ifndef i8086}
     procedure tx86inlinenode.second_abs_long;
       var
         hregister : tregister;
@@ -470,6 +473,7 @@ implementation
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
+{$endif not i8086}
 
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
