@@ -1038,6 +1038,7 @@ interface
 {$endif}
 {$ifdef i8086}
       AsmWriteLn('BITS 16');
+      AsmWriteLn('CPU 286');
 {$else i8086}
       AsmWriteLn('BITS 32');
 {$endif i8086}
