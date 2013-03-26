@@ -1205,7 +1205,7 @@ Begin
           fvDouble:
             Str(Double(Extended(Aligned(Value))):precision+7, Result);
           fvSingle:
-            Str(Single(Extended(Aligned(Value))):precision+66, Result);
+            Str(Single(Extended(Aligned(Value))):precision+6, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Aligned(Value)):precision+6, Result);
