@@ -83,5 +83,19 @@ end;
 
 
 function do_isdevice(handle:THandle):boolean;
+label
+  no_device;
 begin
+  { TODO: add error checking }
+  asm
+    mov ax, 4400h
+    mov bx, handle
+    int 21h
+    xor al, al
+    test dl, 80h
+    jz no_device
+    inc al
+no_device:
+    mov do_isdevice, al
+  end ['ax','bx','dx'];
 end;
