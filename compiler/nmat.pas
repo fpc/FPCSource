@@ -656,7 +656,7 @@ implementation
 {$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,s32inttype)
 {$elseif defined(cpu16bitalu)}
-                 if left.resultdef.size > 2 then
+                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
                    inserttypeconv(left,s32inttype)
                  else
                    inserttypeconv(left,sinttype);
@@ -671,7 +671,7 @@ implementation
 {$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
 {$elseif defined(cpu16bitalu)}
-                 if left.resultdef.size > 2 then
+                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
                    inserttypeconv(left,u32inttype)
                  else
                    inserttypeconv(left,uinttype);
