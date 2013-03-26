@@ -932,7 +932,7 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 %     ....
 % \end{verbatim}
 % and the \var{interface} before the dot is not listed in the inheritance list.
-parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can not be used as array index type
+parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" cannot be used as array index type
 % Types like \var{qword} or \var{int64} aren't allowed as array index type.
 parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in interfaces
 % Constructor and destructor declarations aren't allowed in interfaces.
@@ -1918,8 +1918,8 @@ type_e_typeof_requires_vmt=04118_E_TYPEOF can only be used on object types with 
 type_e_invalid_default_value=04119_E_It is not possible to define a default value for a parameter of type "$1"
 % Parameters declared as structured types, such as files, variants, non-dynamic
 % arrays and TP-style objects, cannot have a default value.
-type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" can not be extended by a type helper
-% Types like procedural variables can not be extended by type helpers
+type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by a type helper
+% Types like procedural variables cannot be extended by type helpers
 % \end{description}
 #
 # Symtable
