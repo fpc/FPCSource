@@ -484,7 +484,10 @@ implementation
                      hp:=hprev;
                    end
                   else
-                   hprevfree^.nextfree:=hp;
+                   begin
+                     hp^.nextfree:=hprevfree^.nextfree;
+                     hprevfree^.nextfree:=hp;
+                   end;
                 end
                else
                 begin
