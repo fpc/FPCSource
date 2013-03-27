@@ -142,19 +142,26 @@ interface
         );
 
     const
-{$ifdef cpu64bitaddr}
+{$if defined(cpu64bitaddr)}
        aitconst_ptr = aitconst_64bit;
        aitconst_ptr_unaligned = aitconst_64bit_unaligned;
-{$else cpu64bitaddr}
+{$elseif defined(cpu32bitaddr)}
        aitconst_ptr = aitconst_32bit;
        aitconst_ptr_unaligned = aitconst_32bit_unaligned;
-{$endif cpu64bitaddr}
+{$elseif defined(cpu16bitaddr)}
+       aitconst_ptr = aitconst_16bit;
+       aitconst_ptr_unaligned = aitconst_16bit_unaligned;
+{$endif}
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
        aitconst_aint = aitconst_64bit;
-{$else cpu64bitaddr}
+{$elseif defined(cpu32bitalu)}
        aitconst_aint = aitconst_32bit;
-{$endif cpu64bitaddr}
+{$elseif defined(cpu16bitalu)}
+       aitconst_aint = aitconst_16bit;
+{$elseif defined(cpu8bitalu)}
+       aitconst_aint = aitconst_8bit;
+{$endif}
 
        taitypestr : array[taitype] of string[24] = (
           '<none>',
