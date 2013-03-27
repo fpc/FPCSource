@@ -26,6 +26,7 @@ unit unicodedata;
 {$SCOPEDENUMS ON}
 {$pointermath on}
 {$define USE_INLINE}
+{$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 { $define uni_debug}
 
 interface
@@ -172,10 +173,7 @@ type
     property NumericValue : Double read GetNumericValue;
   end;
 
-const
-  BIT_POS_VALIDE    = 0;
 type
-  TWeightLength = 0..24;
   TUCA_PropWeights = packed record
     Weights  : array[0..2] of Word;
   end;
@@ -225,35 +223,36 @@ type
 
   TUCA_PropItemRec = packed record
   private
+    const FLAG_VALID      = 0;
     const FLAG_CODEPOINT  = 1;
     const FLAG_CONTEXTUAL = 2;
     const FLAG_DELETION   = 3;
+    const FLAG_COMPRESS_WEIGHT_1 = 6;
+    const FLAG_COMPRESS_WEIGHT_2 = 7;
   private
-    function GetWeightLength: TWeightLength;inline;
-    //procedure SetWeightLength(AValue: TWeightLength);inline;
     function GetCodePoint() : UInt24;inline;
   public
-    Valid        : Byte;// On First Bit
+    WeightLength : Byte;
     ChildCount   : Byte;
     Size         : Word;
     Flags        : Byte;
   public
     function HasCodePoint() : Boolean;inline;
     property CodePoint : UInt24 read GetCodePoint;
-    //WeightLength is stored in the 5 last bits of "Valid"
-    property WeightLength : TWeightLength read GetWeightLength;// write SetWeightLength;
     //Weights    : array[0..WeightLength] of TUCA_PropWeights;
 
     function IsValid() : Boolean;inline;
     //function GetWeightArray() : PUCA_PropWeights;inline;
     procedure GetWeightArray(ADest : PUCA_PropWeights);
-    function GetSelfOnlySize() : Word;inline;
+    function GetSelfOnlySize() : Cardinal;inline;
 
     function GetContextual() : Boolean;inline;
     property Contextual : Boolean read GetContextual;
     function GetContext() : PUCA_PropItemContextTreeRec;
 
     function IsDeleted() : Boolean;inline;
+    function IsWeightCompress_1() : Boolean;inline;
+    function IsWeightCompress_2() : Boolean;inline;
   end;
   PUCA_PropItemRec = ^TUCA_PropItemRec;
 
@@ -1191,9 +1190,14 @@ end;
 
 { TUCA_PropItemRec }
 
-function TUCA_PropItemRec.GetWeightLength: TWeightLength;
+function TUCA_PropItemRec.IsWeightCompress_1 : Boolean;
 begin
-  Result := TWeightLength(Valid and Byte($F8) shr 3);
+  Result := IsBitON(Flags,FLAG_COMPRESS_WEIGHT_1);
+end;
+
+function TUCA_PropItemRec.IsWeightCompress_2 : Boolean;
+begin
+  Result := IsBitON(Flags,FLAG_COMPRESS_WEIGHT_2);
 end;
 
 function TUCA_PropItemRec.GetCodePoint() : UInt24;
@@ -1202,7 +1206,7 @@ begin
     if Contextual then
       Result := PUInt24(
                   PtrUInt(@Self) + Self.GetSelfOnlySize()- SizeOf(UInt24) -
-                  Word(GetContext()^.Size)
+                  Cardinal(GetContext()^.Size)
                 )^
     else
       Result := PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^
@@ -1220,14 +1224,9 @@ begin
   Result := IsBitON(Flags,FLAG_CODEPOINT);
 end;
 
-{procedure TUCA_PropItemRec.SetWeightLength(AValue: TWeightLength);
-begin
-  Valid := Valid or Byte(Byte(AValue) shl 3);
-end;}
-
 function TUCA_PropItemRec.IsValid() : Boolean;
 begin
-  Result := IsBitON(Valid,BIT_POS_VALIDE);
+  Result := IsBitON(Flags,FLAG_VALID);
 end;
 
 {function TUCA_PropItemRec.GetWeightArray: PUCA_PropWeights;
@@ -1237,7 +1236,7 @@ end;}
 
 procedure TUCA_PropItemRec.GetWeightArray(ADest: PUCA_PropWeights);
 var
-  i, c : Integer;
+  c : Integer;
   p : PByte;
   pd : PUCA_PropWeights;
 begin
@@ -1246,14 +1245,14 @@ begin
   pd := ADest;
   pd^.Weights[0] := PWord(p)^;
   p := p + 2;
-  if IsBitON(Self.Valid,(BIT_POS_VALIDE+1)) then begin
+  if not IsWeightCompress_1() then begin
     pd^.Weights[1] := PWord(p)^;
     p := p + 2;
   end else begin
     pd^.Weights[1] := p^;
     p := p + 1;
   end;
-  if IsBitON(Self.Valid,(BIT_POS_VALIDE+2)) then begin
+  if not IsWeightCompress_2() then begin
     pd^.Weights[2] := PWord(p)^;
     p := p + 2;
   end else begin
@@ -1264,20 +1263,20 @@ begin
     Move(p^, (pd+1)^, ((c-1)*SizeOf(TUCA_PropWeights)));
 end;
 
-function TUCA_PropItemRec.GetSelfOnlySize() : Word;
+function TUCA_PropItemRec.GetSelfOnlySize() : Cardinal;
 begin
   Result := SizeOf(TUCA_PropItemRec);
   if (WeightLength > 0) then begin
     Result := Result + (WeightLength * Sizeof(TUCA_PropWeights));
-    if not IsBitON(Self.Valid,(BIT_POS_VALIDE+1)) then
+    if IsWeightCompress_1() then
       Result := Result - 1;
-    if not IsBitON(Self.Valid,(BIT_POS_VALIDE+2)) then
+    if IsWeightCompress_2() then
       Result := Result - 1;
   end;
   if HasCodePoint() then
     Result := Result + SizeOf(UInt24);
   if Contextual then
-    Result := Result + Word(GetContext()^.Size);
+    Result := Result + Cardinal(GetContext()^.Size);
 end;
 
 function TUCA_PropItemRec.GetContextual: Boolean;
@@ -1710,8 +1709,11 @@ var
     k := AStartFrom;
     if (k > c) then
       exit(False);
-    if (IndexDWord(removedCharIndex[0],removedCharIndexLength,k) >= 0) then
+    if (removedCharIndexLength>0) and
+       (IndexDWord(removedCharIndex[0],removedCharIndexLength,k) >= 0)
+    then begin
       exit(False);
+    end;
     {if (k = (i+1)) or
        ( (k = (i+2)) and UnicodeIsHighSurrogate(s[i]) )
     then
@@ -1827,7 +1829,7 @@ var
   var
     ctxNode : PUCA_PropItemContextTreeNodeRec;
   begin
-    if (pp^.GetWeightLength() > 0) then begin
+    if (pp^.WeightLength > 0) then begin
       AddWeights(pp);
     end else
     if (LastKeyOwner.Length > 0) and pp^.Contextual and
@@ -1849,7 +1851,7 @@ var
     begin
       while True do begin
         if pp^.IsValid() then begin
-          if (pp^.GetWeightLength() > 0) then
+          if (pp^.WeightLength > 0) then
             AddWeights(pp)
           else
           if (LastKeyOwner.Length > 0) and pp^.Contextual and
@@ -1886,7 +1888,7 @@ var
       end else begin
         if pp^.IsValid()then begin
           if (pp^.ChildCount = 0) then begin
-            if (pp^.GetWeightLength() > 0) then
+            if (pp^.WeightLength > 0) then
               AddWeights(pp)
             else
             if (LastKeyOwner.Length > 0) and pp^.Contextual and
@@ -1992,7 +1994,7 @@ begin
         if (pp^.ChildCount = 0) or (i = c) then begin
           ok := False;
           if pp^.IsValid() and (suppressState.CharCount = 0) then begin
-            if (pp^.GetWeightLength() > 0) then begin
+            if (pp^.WeightLength > 0) then begin
               AddWeightsAndClear();
               ok := True;
             end else
@@ -2049,7 +2051,7 @@ begin
           end;
           while True do begin
             if pp^.IsValid() and
-               (pp^.GetWeightLength() > 0) and
+               (pp^.WeightLength > 0) and
                ( ( (cl = suppressState.cl) and (ppLevel <> suppressState.CharCount) ) or
                  ( (cl <> suppressState.cl) and (ppLevel < suppressState.CharCount) )
                )
@@ -2067,7 +2069,7 @@ begin
         end;
         if not ok then begin
           if pp^.IsValid() and (suppressState.CharCount = 0) then begin
-            if (pp^.GetWeightLength() > 0) then begin
+            if (pp^.WeightLength > 0) then begin
               AddWeightsAndClear();
               ok := True;
             end else
@@ -2100,7 +2102,7 @@ begin
           while HasHistory() do begin
             GoBack();
             if pp^.IsValid() and
-               (pp^.GetWeightLength() > 0) and
+               (pp^.WeightLength > 0) and
                ( (suppressState.CharCount = 0) or
                  ( ( (cl = suppressState.cl) and (ppLevel <> suppressState.CharCount) ) or
                    ( (cl <> suppressState.cl) and (ppLevel < suppressState.CharCount) )

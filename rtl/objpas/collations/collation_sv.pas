@@ -135,8 +135,11 @@ const
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   );
 
-{$include collation_sv_le.inc}
-
+{$ifdef FPC_LITTLE_ENDIAN}
+  {$include collation_sv_le.inc}
+{$else FPC_LITTLE_ENDIAN}
+  {$include collation_sv_be.inc}
+{$endif FPC_LITTLE_ENDIAN}
 var
   CLDR_Collation : TUCA_DataBook = (
     Base               : nil;
