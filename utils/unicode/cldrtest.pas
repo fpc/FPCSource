@@ -22,6 +22,8 @@
 unit cldrtest;
 
 {$mode objfpc}{$H+}
+{$typedaddress on}
+{$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 
 interface
 
@@ -31,7 +33,8 @@ uses
 
   function ToAnsiChars(const AValue : array of TUnicodeCodePoint) : string;
   function DumpSequenceAnsi(const ASequence : TOrderedCharacters) : string;
-  function DumpWeigth(const AItem : TUCA_WeightRec) : string;
+  function DumpWeigth(const AItem : TUCA_WeightRec) : string;overload;
+  function DumpWeigth(const AItems : array of TUCA_WeightRec) : string;overload;
   function DumpLine(ALine : TUCA_LineRec) : string;
   function DumpLines(ALines : TUCA_LineRecArray) : string;
   function CodePointToArray(const ACodePoint : TUnicodeCodePoint) : TUnicodeCodePointArray;overload;
@@ -52,6 +55,10 @@ uses
   procedure test9();
   procedure test10();
   procedure test11();
+  procedure test12();
+  procedure test13();
+  procedure test14();
+  procedure test15();
 
 implementation
 
@@ -79,6 +86,14 @@ begin
   test10();
   WriteLn('***************************** TEST 11 ******************');
   test11();
+  WriteLn('***************************** TEST 12 ******************');
+  test12();
+  WriteLn('***************************** TEST 13 ******************');
+  test13();
+  WriteLn('***************************** TEST 14 ******************');
+  test14();
+  WriteLn('***************************** TEST 15 ******************');
+  test15();
 end;
 
 function ToAnsiChars(const AValue : array of TUnicodeCodePoint) : string;
@@ -132,7 +147,7 @@ begin
   Result := s;
 end;
 
-function DumpWeigth(const AItem : TUCA_WeightRec) : string;
+function DumpWeigth(const AItem : TUCA_WeightRec) : string;overload;
 var
   r : string;
 begin
@@ -144,6 +159,17 @@ begin
   r := r + Format('%x.%x.%x',[AItem.Weights[0],AItem.Weights[1],AItem.Weights[2]]);
   r := r + ']';
   Result := r;
+end;
+
+function DumpWeigth(const AItems : array of TUCA_WeightRec) : string;
+var
+  r : string;
+  i : Integer;
+begin
+  r := '';
+  for i := 0 to Length(AItems) - 1 do
+    r := r + ' ' +DumpWeigth(AItems[i]);
+  Result := Trim(r);
 end;
 
 function DumpKey(const AItem : TUCASortKey) : string;
@@ -161,10 +187,20 @@ function DumpLine(ALine : TUCA_LineRec) : string;
 var
   i : Integer;
   r : string;
+  ctxItem : TUCA_LineContextItemRec;
 begin
   r := '';
+  if ALine.HasContext() then begin
+    r := r + '*';
+    for i := 0 to Length(ALine.Context.Data) - 1 do begin
+      ctxItem := ALine.Context.Data[i];
+      r := r + sLineBreak +
+           '        ' + ToAnsiChars(ctxItem.CodePoints) + ' => ' + DumpWeigth(ctxItem.Weights);
+    end;
+    r := r + sLineBreak + '    ';
+  end;
   if (Length(ALine.Weights) = 0) then begin
-    r := '[]';
+    r := r + '[]';
   end else begin
     for i := Low(ALine.Weights) to High(ALine.Weights) do
       r := r + DumpWeigth(ALine.Weights[i]);
@@ -1654,7 +1690,7 @@ var
   sequence, sequenceClean : TOrderedCharacters;
   statement : TReorderSequence;
   wfirst, wresult : TUCA_LineRecArray;
-  unicodeBook1, unicodeBook2, unicodeBook3 : unicodedata.TUCA_DataBook;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
 begin
   statement.Clear();
   test10_prepareWeigth(wfirst);
@@ -1907,6 +1943,1324 @@ begin
     CheckInf('cha','Xa'{*},@unicodeBook2);
     CheckInf('chk','Xka'{*},@unicodeBook2);
     WriteLn('    -- test 2 - ok');
+
+end;
+
+//------------------------------------------------------
+
+procedure test12_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,1);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0120,$0002);
+end;
+
+procedure test12_PopulateSequence(var ASequence : TOrderedCharacters);
+var
+  i : Integer;
+begin
+  ASequence := TOrderedCharacters.Create();
+  ASequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  for i := 0 to ASequence.ActualLength - 1 do
+    ASequence.Data[i].Changed := False;
+end;
+
+procedure Check(const ACondition : Boolean; const AMsg : string);overload;
+begin
+  if not ACondition then
+    raise Exception.Create(AMsg);
+end;
+
+procedure Check(
+  const ACondition : Boolean;
+  const AFormatMsg : string;
+  const AArgs      : array of const
+);overload;
+begin
+  Check(ACondition,Format(AFormatMsg,AArgs));
+end;
+
+procedure Check(const ACondition : Boolean);overload;
+begin
+  Check(ACondition,'Check failed.')
+end;
+
+procedure CheckSimpleProps(
+  AItem          : PUCA_PropItemRec;
+  AHasCodePoint,
+  AIsValid       : Boolean;
+  AChildCount    : Byte;
+  AContextual    : Boolean
+);overload;
+var
+  p : PUCA_PropItemRec;
+begin
+  p := AItem;
+  Check(p<>nil,'p = nil');
+  Check(p^.HasCodePoint()=AHasCodePoint,'HasCodePoint');
+  Check(p^.IsValid()=AIsValid,'IsValid');
+  Check(p^.ChildCount=AChildCount,'ChildCount');
+  Check(p^.Contextual=AContextual,'Contextual');
+end;
+
+procedure CheckSimpleProps(
+  AItem          : PUCA_PropItemRec;
+  AHasCodePoint,
+  AIsValid       : Boolean;
+  AChildCount    : Byte;
+  AContextual,
+  AIsDeleted     : Boolean
+);overload;
+begin
+  CheckSimpleProps(AItem,AHasCodePoint,AIsValid,AChildCount,AContextual);
+  Check(AItem^.IsDeleted=AIsDeleted,'IsDeleted');
+end;
+
+procedure CheckWeigths(AItem : PUCA_PropItemRec; const AWeigths : array of Word);overload;
+var
+  p : PUCA_PropItemRec;
+  c, i : Integer;
+  pb : PByte;
+  pw : PWord;
+begin
+  p := AItem;
+  c := Length(AWeigths);
+  if ((c mod 3) > 0) then
+    Check(False,'Invalid Weigth Array.');
+  c := c div 3;
+  Check(c=p^.WeightLength,'WeightLength');
+  if (c = 0) then
+    exit;
+  pb := PByte(PtrUInt(p)+SizeOf(TUCA_PropItemRec));
+  pw := @AWeigths[Low(AWeigths)];
+//First Item
+  Check(PWord(pb)^ = pw^, 'First Item[0]');
+    pw := pw + 1;
+    pb := pb + 2;
+  if (pw^ > High(Byte)) then begin
+    Check(PWord(pb)^ = pw^, 'First Item[1]');
+    pb := pb + 2;
+  end else begin
+    Check(pb^ = pw^, 'First Item[1]');
+    pb := pb + 1;
+  end;
+  pw := pw + 1;
+  if (pw^ > High(Byte)) then begin
+    Check(PWord(pb)^ = pw^, 'First Item[2]');
+    pb := pb + 2;
+  end else begin
+    Check(pb^ = pw^, 'First Item[2]');
+    pb := pb + 1;
+  end;
+  pw := pw + 1;
+// Others
+  for i := 1 to c-1 do begin
+    Check(PWord(pb)^ = pw^, 'Item[0],i=%d',[i]);
+      Inc(pw);
+      pb := pb + 2;
+    Check(PWord(pb)^ = pw^, 'Item[1],i=%d',[i]);
+      Inc(pw);
+      pb := pb + 2;
+    Check(PWord(pb)^ = pw^, 'Item[2],i=%d',[i]);
+      Inc(pw);
+      pb := pb + 2;
+  end;
+end;
+
+procedure CheckWeigths(
+        AData      : PUCA_PropWeights;
+  const ADataCount : Integer;
+  const AWeigths   : array of Word
+);overload;
+var
+  c: Integer;
+begin
+  c := Length(AWeigths);
+  if ((c mod 3) > 0) then
+    Check(False,'Invalid Weigth Array.');
+  c := c div 3;
+  Check(c=ADataCount,'WeightLength');
+  if (c = 0) then
+    exit;
+  if not CompareMem(AData,@AWeigths[0],(ADataCount*3*SizeOf(Word))) then
+    Check(False,'Weight');
+end;
+
+function CalcWeigthSize(const AWeigths : array of Word) : Integer;
+var
+  c : Integer;
+begin
+  c := Length(AWeigths);
+  if ((c mod 3) > 0) then
+    Check(False,'Invalid Weigth Array.');
+  Result := c * SizeOf(Word);
+  if (c>0) then begin
+    if (AWeigths[1] <= High(Byte)) then
+      Result := Result - 1;
+    if (AWeigths[2] <= High(Byte)) then
+      Result := Result - 1;
+  end;
+end;
+
+procedure test12_check_1(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, px : PUCA_PropItemRec;
+  size, sizeTotal, t: Cardinal;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15F0,0,0, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'x'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  px := p;
+  CheckSimpleProps(p,False,False,1,False);
+  CheckWeigths(p,[]);
+  size := SizeOf(TUCA_PropItemRec);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+// for 'y'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False);
+  CheckWeigths(p,[$15F0,0,0, $15F2,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15F0,0,0, $15F2,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(y)');
+
+  Check(px^.Size = (t+size),'size(x)');
+
+  sizeTotal:= sizeTotal+size;
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test12_check_2(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, ph : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'h'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  ph := p;
+  CheckSimpleProps(p,False,False,1,False);
+  CheckWeigths(p,[]);
+  size := SizeOf(TUCA_PropItemRec);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+// for 'i'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False);
+  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(i)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ph^.Size = (t+size),'size(h)');
+
+// for 'k'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(k)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test12_check_3(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, pc : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  pc := p;
+  CheckSimpleProps(p,False,True,1,False);
+  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+
+// for 'i'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False);
+  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(i)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(pc^.Size = (t+size),'size(c)');
+
+// for 'k'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(k)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test12_check_4(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, pc : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size');
+  sizeTotal:= sizeTotal+size;
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  pc := p;
+  CheckSimpleProps(p,False,True,2,False);
+  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+
+// for 'i' as in 'ci'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False);
+  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(i)');
+  t := t+size;
+  sizeTotal:= sizeTotal+size;
+
+// for 's' as in 'cs'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False);
+  CheckWeigths(p,[$15EF,$123,1, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15EF,$123,1, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(s)');
+  t := t+size;
+  sizeTotal:= sizeTotal+size;
+
+  Check(pc^.Size = t,'size(c)');
+
+// for 'k'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False);
+  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(k)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test12();
+var
+  sequence, sequenceClean : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test12_prepareWeigth(wfirst);
+  test12_PopulateSequence(sequenceClean);
+
+  WriteLn('  Initial = ',sLineBreak,'    ',DumpSequenceAnsi(sequenceClean),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  //Generate the original tables
+  ConstructUnicodeBook(wfirst,'test','first',nil,unicodeBook1);
+
+  // --- test 1
+  sequence := sequenceClean.Clone();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,3);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  statement.Elements[2] := TReorderUnit.From([Ord('x'),Ord('y')],TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','b','c','xy'],@unicodeBook2);
+    test12_check_1(unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+
+  // --- test 2
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,4);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[2] := TReorderUnit.From([Ord('h'),Ord('i')],TReorderWeigthKind.Secondary,0);
+  statement.Elements[3] := TReorderUnit.From(Ord('k'),TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','b','c','hi','k'],@unicodeBook2);
+    test12_check_2(unicodeBook2);
+    WriteLn('    -- test 2 - ok');
+
+  // --- test 3
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,4);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[2] := TReorderUnit.From([Ord('c'),Ord('i')],TReorderWeigthKind.Secondary,0);
+  statement.Elements[3] := TReorderUnit.From(Ord('k'),TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #3 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','b','c','ci','k'],@unicodeBook2);
+    test12_check_3(unicodeBook2);
+    WriteLn('    -- test 3 - ok');
+
+  // --- test 4
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,5);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  statement.Elements[2] := TReorderUnit.From([Ord('c'),Ord('i')],TReorderWeigthKind.Secondary,0);
+  statement.Elements[3] := TReorderUnit.From(Ord('k'),TReorderWeigthKind.Tertiary,0);
+  statement.Elements[4] := TReorderUnit.From([Ord('c'),Ord('s')],TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #4 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','b','c','ci','k','cs'],@unicodeBook2);
+    test12_check_4(unicodeBook2);
+    WriteLn('    -- test 4 - ok');
+end;
+
+//------------------------------------------------------
+
+procedure test13_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,2);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0120,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray([Ord('b')]);
+    p^.Weights := ToWeight($15F0,$0120,$0002);
+end;
+
+procedure test13_PopulateSequence(var ASequence : TOrderedCharacters);
+var
+  i : Integer;
+begin
+  ASequence := TOrderedCharacters.Create();
+  ASequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  ASequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  for i := 0 to ASequence.ActualLength - 1 do
+    ASequence.Data[i].Changed := False;
+end;
+
+procedure test13_check_1(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, pb : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := p;
+  CheckSimpleProps(p,False,True,1,False,True);
+  CheckWeigths(p,[]);
+  size := SizeOf(TUCA_PropItemRec);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+
+// for 'u' as in 'bu'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False,False);
+  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(u)');
+  t := t+size;
+  sizeTotal:= sizeTotal+size;
+
+  Check(pb^.Size = t,'size(c)');
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test13_check_2(const ABook : unicodedata.TUCA_DataBook);
+var
+  p, pb : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := p;
+  CheckSimpleProps(p,False,True,1,False,True);
+  CheckWeigths(p,[]);
+  size := SizeOf(TUCA_PropItemRec);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  t := size;
+  sizeTotal:= sizeTotal+size;
+
+// for 'u' as in 'bu'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,True,True,0,False,False);
+  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          SizeOf(UInt24) +
+          CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(u)');
+  t := t+size;
+  sizeTotal:= sizeTotal+size;
+
+  Check(pb^.Size = t,'size(c)');
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15F0,0,0, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15F0,0,0, $15F1,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(c)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test13();
+var
+  sequence, sequenceClean : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test12_prepareWeigth(wfirst);
+  test12_PopulateSequence(sequenceClean);
+
+  WriteLn('  Initial = ',sLineBreak,'    ',DumpSequenceAnsi(sequenceClean),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  //Generate the original tables
+  ConstructUnicodeBook(wfirst,'test','first',nil,unicodeBook1);
+
+  // --- test 1
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Deletion,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From([Ord('b'),Ord('u')],TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','bu','b'{because b's weigth is now computed!}],@unicodeBook2);
+    test13_check_1(unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+
+  // --- test 2
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Deletion,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,2);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From([Ord('b'),Ord('u')],TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    CheckInf(['a','bu','c','b'{because b's weigth is now computed!}],@unicodeBook2);
+    test13_check_2(unicodeBook2);
+    WriteLn('    -- test 2 - ok');
+end;
+
+//------------------------------------------------------
+
+procedure test14_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,1);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0120,$0002);
+end;
+
+procedure test14_PopulateSequence(var ASequence : TOrderedCharacters);
+var
+  i : Integer;
+begin
+  ASequence := TOrderedCharacters.Create();
+  ASequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  for i := 0 to ASequence.ActualLength - 1 do
+    ASequence.Data[i].Changed := False;
+end;
+
+procedure test14_check_1(const ABook : unicodedata.TUCA_DataBook);
+var
+  p : PUCA_PropItemRec;
+  size, sizeTotal: Integer;
+  ctx : PUCA_PropItemContextTreeRec;
+  ctxItem : PUCA_PropItemContextTreeNodeRec;
+  pb : PByte;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := PByte(p);
+  size := 0;
+  CheckSimpleProps(p,True,True,0,True,False);
+  size := SizeOf(TUCA_PropItemRec)+SizeOf(UInt24){codepoint};
+  CheckWeigths(p,[]);
+  ctx := PUCA_PropItemContextTreeRec(PtrUInt(p)+SizeOf(TUCA_PropItemRec)+SizeOf(UInt24));
+  Check(ctx^.Size>0,'ctx^.Size');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctx)+SizeOf(ctx^.Size));
+  Check(ctxItem<>nil,'ctxItem');
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right=0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+
+  size := SizeOf(TUCA_PropItemRec)+
+          SizeOf(UInt24){codepoint}+
+          SizeOf(TUCA_PropItemContextTreeRec.Size)+
+          SizeOf(TUCA_PropItemContextTreeNodeRec) +
+          (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+          (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test14_check_2(const ABook : unicodedata.TUCA_DataBook);
+var
+  p : PUCA_PropItemRec;
+  size, sizeTotal : Integer;
+  ctx : PUCA_PropItemContextTreeRec;
+  ctxItem : PUCA_PropItemContextTreeNodeRec;
+  pb : PByte;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := PByte(p);
+  size := 0;
+  CheckSimpleProps(p,True,True,0,True,False);
+  CheckWeigths(p,[]);
+  ctx := PUCA_PropItemContextTreeRec(PtrUInt(p)+SizeOf(TUCA_PropItemRec)+SizeOf(UInt24));
+  Check(ctx^.Size>0,'ctx^.Size');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctx)+SizeOf(ctx^.Size));
+  Check(ctxItem<>nil,'ctxItem');
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right=0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec)+
+          SizeOf(UInt24){codepoint}+
+          SizeOf(TUCA_PropItemContextTreeRec.Size)+
+          SizeOf(TUCA_PropItemContextTreeNodeRec) +
+          (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+          (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  sizeTotal:= sizeTotal+size;
+
+// for 'c'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(u)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test14_check_3(const ABook : unicodedata.TUCA_DataBook);
+var
+  p : PUCA_PropItemRec;
+  size, sizeTotal, t: Integer;
+  ctx : PUCA_PropItemContextTreeRec;
+  ctxItem : PUCA_PropItemContextTreeNodeRec;
+  pb : PByte;
+begin
+  sizeTotal := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := PByte(p);
+  size := 0;
+  CheckSimpleProps(p,True,True,0,True,False);
+  CheckWeigths(p,[]);
+  ctx := PUCA_PropItemContextTreeRec(PtrUInt(p)+SizeOf(TUCA_PropItemRec)+SizeOf(UInt24));
+  Check(ctx^.Size>0,'ctx^.Size');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctx)+SizeOf(ctx^.Size));
+  Check(ctxItem<>nil,'ctxItem');
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right<>0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+
+  t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
+       (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+       (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  Check(ctxItem^.Right = t,'ctxItem^.Right');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctxItem)+t);
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right=0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('f'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$4, $15F1,0,0]);
+
+  size := SizeOf(TUCA_PropItemRec)+
+          SizeOf(UInt24){codepoint}+
+          SizeOf(TUCA_PropItemContextTreeRec.Size)+
+          t+
+          SizeOf(TUCA_PropItemContextTreeNodeRec) +
+          (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+          (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  sizeTotal:= sizeTotal+size;
+
+// for 'e'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(e)');
+  sizeTotal:= sizeTotal+size;
+
+// for 'f'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$3, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$3, $15F1,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(f)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test14_check_4(const ABook : unicodedata.TUCA_DataBook);
+var
+  p : PUCA_PropItemRec;
+  size, sizeTotal, t, ctxSize: Integer;
+  ctx : PUCA_PropItemContextTreeRec;
+  ctxItem, ctxItemParent : PUCA_PropItemContextTreeNodeRec;
+  pb : PByte;
+begin
+  sizeTotal := 0;
+  ctxSize := 0;
+// for 'b'
+  p := ABook.Props;
+  pb := PByte(p);
+  size := 0;
+  CheckSimpleProps(p,True,True,0,True,False);
+  CheckWeigths(p,[]);
+  ctx := PUCA_PropItemContextTreeRec(PtrUInt(p)+SizeOf(TUCA_PropItemRec)+SizeOf(UInt24));
+  Check(ctx^.Size>0,'ctx^.Size');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctx)+SizeOf(ctx^.Size));
+  ctxItemParent := ctxItem;
+  Check(ctxItem<>nil,'ctxItem');
+  Check(ctxItem^.Left<>0,'ctxItem^.Left');
+  Check(ctxItem^.Right<>0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('f'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$4, $15F1,0,0]);
+  t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
+       (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+       (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  ctxSize := ctxSize+t;
+
+  Check(ctxItem^.Left = t,'ctxItem^.Left');
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctxItem)+t);
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right=0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
+       (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+       (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  ctxSize := ctxSize+t;
+
+  ctxItem := PUCA_PropItemContextTreeNodeRec(PtrUInt(ctxItemParent)+ctxSize);
+  Check(ctxItem^.Left=0,'ctxItem^.Left');
+  Check(ctxItem^.Right=0,'ctxItem^.Right');
+  Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
+  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
+  Check(Cardinal(PUInt24(pb)^)=Ord('h'),'Context CodePoint');
+  pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$121,$6, $15F1,0,0]);
+  t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
+       (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
+       (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  ctxSize := ctxSize+t;
+
+  ctxSize := ctxSize + SizeOf(TUCA_PropItemContextTreeRec.Size);
+  Check(ctx^.Size = ctxSize,'ctx^.Size');
+  size := SizeOf(TUCA_PropItemRec)+
+          SizeOf(UInt24){codepoint}+
+          ctxSize;
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  sizeTotal:= sizeTotal+size;
+
+// for 'e'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(e)');
+  sizeTotal:= sizeTotal+size;
+
+// for 'f'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$3, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$3, $15F1,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(f)');
+  sizeTotal:= sizeTotal+size;
+
+// for 'g'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$120,$5, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$120,$5, $15F1,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(g)');
+  sizeTotal:= sizeTotal+size;
+
+// for 'h'
+  p := PUCA_PropItemRec(PtrUInt(p)+size);
+  CheckSimpleProps(p,False,True,0,False,False);
+  CheckWeigths(p,[$15EF,$121,$5, $15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) +
+          CalcWeigthSize([$15EF,$121,$5, $15F1,0,0]);
+  Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
+  Check(p^.Size = size,'size(h)');
+  sizeTotal:= sizeTotal+size;
+
+  Check(ABook.PropCount = sizeTotal,'size(total)');
+end;
+
+procedure test14();
+var
+  sequence, sequenceClean : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test12_prepareWeigth(wfirst);
+  test12_PopulateSequence(sequenceClean);
+
+  WriteLn('  Initial = ',sLineBreak,'    ',DumpSequenceAnsi(sequenceClean),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  //Generate the original tables
+  ConstructUnicodeBook(wfirst,'test','first',nil,unicodeBook1);
+
+  // --- test 1
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    test14_check_1(unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+    WriteLn;
+
+  // --- test 2
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    test14_check_2(unicodeBook2);
+    WriteLn('    -- test 2 - ok');
+    WriteLn;
+
+  // --- test 3
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('f');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('f')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+
+  WriteLn('    Statement #3 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    test14_check_3(unicodeBook2);
+    WriteLn('    -- test 3 - ok');
+    WriteLn;
+
+  // --- test 4
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,4);
+  statement.Elements[0] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  statement.Elements[2] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Tertiary,0);
+  statement.Elements[3] := TReorderUnit.From(Ord('h'),TReorderWeigthKind.Secondary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('f');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('f')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('h');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('h')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+
+  WriteLn('    Statement #4 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    test14_check_4(unicodeBook2);
+    WriteLn('    -- test 4 - ok');
+    WriteLn;
+end;
+
+//------------------------------------------------------
+
+procedure test15_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,1);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0120,$0002);
+end;
+
+procedure test15_PopulateSequence(var ASequence : TOrderedCharacters);
+var
+  i : Integer;
+begin
+  ASequence := TOrderedCharacters.Create();
+  ASequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  for i := 0 to ASequence.ActualLength - 1 do
+    ASequence.Data[i].Changed := False;
+end;
+
+function ConvertEndianFromNative(
+  const AData    : Pointer;
+  const ADataLen : Integer
+) : Boolean;
+type
+  PUCA_PropItemRec = helper.PUCA_PropItemRec;
+var
+  s : PUCA_PropItemRec;
+  x, y : array of Byte;
+  px, py : PUCA_PropItemRec;
+begin
+  if (ADataLen <= 0) then
+    exit(True);
+  s := PUCA_PropItemRec(AData);
+  SetLength(x,ADataLen);
+  px := PUCA_PropItemRec(@x[0]);
+  ReverseFromNativeEndian(s,ADataLen,px);
+
+  SetLength(y,ADataLen);
+  py := PUCA_PropItemRec(@y[0]);
+  ReverseToNativeEndian(px,ADataLen,py);
+  Result := CompareMem(AData,@y[0],Length(x));
+end;
+
+procedure test15();
+var
+  sequence, sequenceClean : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test12_prepareWeigth(wfirst);
+  test12_PopulateSequence(sequenceClean);
+
+  WriteLn('  Initial = ',sLineBreak,'    ',DumpSequenceAnsi(sequenceClean),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  //Generate the original tables
+  ConstructUnicodeBook(wfirst,'test','first',nil,unicodeBook1);
+
+  // --- test 1
+  sequence := sequenceClean.Clone();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 1 - ok');
+
+  // --- test 2
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 2 - ok');
+    WriteLn;
+
+  // --- test 3
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #3 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 3 - ok');
+    WriteLn;
+
+  // --- test 4
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('f');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('f')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #4 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 4 - ok');
+    WriteLn;
+
+  // --- test 5
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,4);
+  statement.Elements[0] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  statement.Elements[1] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  statement.Elements[2] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Tertiary,0);
+  statement.Elements[3] := TReorderUnit.From(Ord('h'),TReorderWeigthKind.Secondary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('f');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('f')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('h');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('b'),[Ord('h')],TReorderWeigthKind.Tertiary,0);
+  sequence.ApplyStatement(@statement);
+
+  WriteLn('    Statement #5 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 5 - ok');
+    WriteLn;
+
+  // --- test 6
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,2);
+  statement.Elements[0] := TReorderUnit.From([Ord('a'),Ord('d')],[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  statement.Elements[1] := TReorderUnit.From([Ord('a'),Ord('d')],TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #6 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 6 - ok');
+    WriteLn;
+
+  // --- test 7
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,3);
+  statement.Elements[0] := TReorderUnit.From([Ord('a'),Ord('d')],[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  statement.Elements[1] := TReorderUnit.From([Ord('a'),Ord('d')],TReorderWeigthKind.Primary,0);
+  statement.Elements[2] := TReorderUnit.From(Ord('e'),[Ord('a'),Ord('d')],TReorderWeigthKind.Identity,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #7 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 7 - ok');
+    WriteLn;
+
+  // --- test 8
+  sequence := sequenceClean.Clone();
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('a');
+  SetLength(statement.Elements,3);
+  statement.Elements[0] := TReorderUnit.From([Ord('a'),Ord('d')],[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  statement.Elements[1] := TReorderUnit.From([Ord('a'),Ord('x')],TReorderWeigthKind.Primary,0);
+  statement.Elements[2] := TReorderUnit.From([Ord('e'),Ord('a'),Ord('r')],[Ord('a'),Ord('d')],TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('    Statement #8 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  //Generate updatet tables
+  ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
+    Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
+    WriteLn('    -- test 8 - ok');
+    WriteLn;
 
 end;
 

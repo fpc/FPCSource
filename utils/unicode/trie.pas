@@ -145,7 +145,6 @@ begin
     k := p^.ChildCount;
     p^.Children[k] := CreateNode(AWord[i],AValue);
     p^.ChildCount := k + 1;
-    p := p^.Children[k];
     Result := True;
   end;
 end;

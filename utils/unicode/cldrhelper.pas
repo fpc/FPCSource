@@ -26,6 +26,7 @@ unit cldrhelper;
 {$PACKENUM 1}
 {$modeswitch advancedrecords}
 {$scopedenums on}
+{$typedaddress on}
 
 interface
 
@@ -200,13 +201,14 @@ type
   ) : Integer;
   function FindCollationDefaultItemName(ACollation : TCldrCollation) : string;
   procedure GenerateCdlrCollation(
-    ACollation    : TCldrCollation;
-    AItemName     : string;
-    AStoreName    : string;
+    ACollation           : TCldrCollation;
+    AItemName            : string;
+    AStoreName           : string;
     AStream,
-    AEndianStream : TStream;
-    ARootChars    : TOrderedCharacters;
-    ARootWeigths  : TUCA_LineRecArray
+    ANativeEndianStream,
+    AOtherEndianStream   : TStream;
+    ARootChars           : TOrderedCharacters;
+    ARootWeigths         : TUCA_LineRecArray
   );
 
   procedure GenerateUCA_CLDR_Head(
@@ -468,6 +470,8 @@ var
       exit(kr + 1);
     if not pst^.Before then begin
       kk := kr + 1;
+      if (kk >= ASequence.ActualLength) then
+        exit(kk);
       pd := @ASequence.Data[kk];
       for kk := kk to ASequence.ActualLength - 1 do begin
         if (pd^.WeigthKind <= pse^.WeigthKind) then
@@ -533,14 +537,17 @@ function SimpleFormKey(const ACEList : TUCA_WeightRecArray) : TUCASortKey;
 var
   r : TUCASortKey;
   i, c, k, ral, levelCount : Integer;
-  pce : PUCA_PropWeights;
+  pce : ^TUCA_WeightRec;
 begin
   c := Length(ACEList);
   if (c = 0) then
     exit(nil);
-  SetLength(r,((3+1{Level Separator})*c));
-  ral := 0;
+  //SetLength(r,((3+1{Level Separator})*c));
   levelCount := Length(ACEList[0].Weights);
+  if (levelCount > 3) then
+    levelCount := 3;
+  SetLength(r,(levelCount*c + levelCount));
+  ral := 0;
   for i := 0 to levelCount - 1 do begin
     for k := 0 to c - 1 do begin
       pce := @ACEList[k];
@@ -878,13 +885,13 @@ var
     kral : Integer;
     kres : TUCA_WeightRecArray;
 
-    procedure EnsureResultLength(const APlus : Integer);inline;
+    procedure EnsureResultLength(const APlus : Integer);//inline;
     begin
       if ((kral+APlus) > Length(kres)) then
         SetLength(kres,(2*(kral+APlus)));
     end;
 
-    procedure AddToResult(const AValue : TUCA_WeightRecArray);inline;
+    procedure AddToResult(const AValue : TUCA_WeightRecArray);//inline;
     begin
       EnsureResultLength(Length(AValue));
       Move(AValue[0],kres[kral],(Length(AValue)*SizeOf(kres[0])));
@@ -893,6 +900,7 @@ var
 
   var
     kc, k, ktempIndex, ki : Integer;
+    tmpWeight : array of TUCA_PropWeights;
   begin
     kc := Length(AList);
     kral := 0;
@@ -925,14 +933,30 @@ var
               Continue;
             end;
           end;
+          SetLength(tmpWeight,2);
+          DeriveWeight(AList[k][ki],@tmpWeight[0]);
           EnsureResultLength(2);
-          DeriveWeight(AList[k][ki],@kres[kral]);
+          kres[kral].Weights[0] := tmpWeight[0].Weights[0];
+          kres[kral].Weights[1] := tmpWeight[0].Weights[1];
+          kres[kral].Weights[2] := tmpWeight[0].Weights[2];
+          kres[kral+1].Weights[0] := tmpWeight[1].Weights[0];
+          kres[kral+1].Weights[1] := tmpWeight[1].Weights[1];
+          kres[kral+1].Weights[2] := tmpWeight[1].Weights[2];
           kral := kral + 2;
+          tmpWeight := nil;
         end
       end;
+      SetLength(tmpWeight,2);
+      DeriveWeight(AList[k][0],@tmpWeight[0]);
       EnsureResultLength(2);
-      DeriveWeight(AList[k][0],@kres[kral]);
+      kres[kral].Weights[0] := tmpWeight[0].Weights[0];
+      kres[kral].Weights[1] := tmpWeight[0].Weights[1];
+      kres[kral].Weights[2] := tmpWeight[0].Weights[2];
+      kres[kral+1].Weights[0] := tmpWeight[1].Weights[0];
+      kres[kral+1].Weights[1] := tmpWeight[1].Weights[1];
+      kres[kral+1].Weights[2] := tmpWeight[1].Weights[2];
       kral := kral + 2;
+      tmpWeight := nil;
     end;
     SetLength(kres,kral);
     Result := kres;
@@ -1021,13 +1045,13 @@ begin
             if ((p - 1) = pbase) then begin
               if (p^.WeigthKind = TReorderWeigthKind.Primary) then begin
                 SetLength(pr^.Weights,2);
-                FillByte(pr^.Weights[0],SizeOf(pr^.Weights[0]),0);
+                FillByte(pr^.Weights[0],(Length(pr^.Weights)*SizeOf(pr^.Weights[0])),0);
                 pr^.Weights[0].Weights[0] := (pwb^[0].Weights[0] + 1);
                 pr^.Weights[0].Variable := pwb^[0].Variable;
                 pr^.Weights[1] := pr^.Weights[0];
               end else if (p^.WeigthKind = TReorderWeigthKind.Secondary) then begin
                 SetLength(pr^.Weights,2);
-                FillByte(pr^.Weights[0],SizeOf(pr^.Weights[0]),0);
+                FillByte(pr^.Weights[0],(Length(pr^.Weights)*SizeOf(pr^.Weights[0])),0);
                 pr^.Weights[0].Weights[0] := pwb^[0].Weights[0];
                 pr^.Weights[0].Weights[1] := (pwb^[0].Weights[1] + 1);
                 pr^.Weights[0].Variable := pwb^[0].Variable;
@@ -1035,7 +1059,7 @@ begin
                 pr^.Weights[1].Variable := pr^.Weights[0].Variable;
               end else if (p^.WeigthKind = TReorderWeigthKind.Tertiary) then begin
                 SetLength(pr^.Weights,2);
-                FillByte(pr^.Weights[0],SizeOf(pr^.Weights[0]),0);
+                FillByte(pr^.Weights[0],(Length(pr^.Weights)*SizeOf(pr^.Weights[0])),0);
                 pr^.Weights[0].Weights[0] := pwb^[0].Weights[0];
                 pr^.Weights[0].Weights[1] := pwb^[0].Weights[1];
                 pr^.Weights[0].Weights[2] := (pwb^[0].Weights[2] + 1);
@@ -1345,6 +1369,13 @@ var
   p : PReorderUnit;
   i, c : Integer;
 begin
+  if (ActualLength=0) then begin
+    EnsureSize(ActualLength + 1);
+    p := @Data[0];
+    p^.Assign(AItem);
+    p^.Changed := True;
+    exit(0);
+  end;
   k := IndexOf(AItem.Characters,AItem.Context,@Data[0],ActualLength);
   if (k = ADestPos) then begin
     Data[ADestPos].Assign(AItem);
@@ -1362,10 +1393,12 @@ begin
     p^.Assign(AItem);
     p^.Changed := True;
   end else begin
-    p := @Data[c-1];
-    for i := finalPos to c - 1 do begin
-      Move(p^,(p+1)^,SizeOf(p^));
-      Dec(p);
+    if (c > 0) then begin
+      p := @Data[c-1];
+      for i := finalPos to c - 1 do begin
+        Move(p^,(p+1)^,SizeOf(p^));
+        Dec(p);
+      end;
     end;
     p := @Data[finalPos];
 
@@ -1519,9 +1552,7 @@ end;
 
 procedure GenerateUCA_CLDR_Registration(
   ADest  : TStream;
-  ABook  : PUCA_DataBook;
-  AProps : PUCA_PropBook;
-  ACollation : TCldrCollationItem
+  ABook  : PUCA_DataBook
 );
 
   procedure AddLine(const ALine : ansistring);
@@ -1577,14 +1608,34 @@ begin
   AddLine('end.');
 end;
 
+
+procedure CheckEndianTransform(const ASource : PUCA_PropBook);
+var
+  x, y : array of Byte;
+  px, py : PUCA_PropItemRec;
+begin
+  if (ASource = nil) or (ASource^.ItemSize = 0) then
+    exit;
+  SetLength(x,ASource^.ItemSize);
+  px := PUCA_PropItemRec(@x[0]);
+  ReverseFromNativeEndian(ASource^.Items,ASource^.ItemSize,px);
+
+  SetLength(y,ASource^.ItemSize);
+  py := PUCA_PropItemRec(@y[0]);
+  ReverseToNativeEndian(px,ASource^.ItemSize,py);
+  if not CompareMem(ASource^.Items,@y[0],Length(x)) then
+    CompareProps(ASource^.Items, PUCA_PropItemRec(@y[0]),ASource^.ItemSize);
+end;
+
 procedure GenerateCdlrCollation(
-  ACollation    : TCldrCollation;
-  AItemName     : string;
-  AStoreName    : string;
+  ACollation           : TCldrCollation;
+  AItemName            : string;
+  AStoreName           : string;
   AStream,
-  AEndianStream : TStream;
-  ARootChars    : TOrderedCharacters;
-  ARootWeigths  : TUCA_LineRecArray
+  ANativeEndianStream,
+  AOtherEndianStream   : TStream;
+  ARootChars           : TOrderedCharacters;
+  ARootWeigths         : TUCA_LineRecArray
 );
 
   procedure AddLine(const ALine : ansistring; ADestStream : TStream);
@@ -1626,6 +1677,7 @@ begin
   else
     MakeUCA_Props(@locUcaBook,locUcaProps);
   try
+    CheckEndianTransform(locUcaProps);
     if locHasProps then begin
       MakeUCA_BmpTables(ucaFirstTable,ucaSecondTable,locUcaProps);
       SetLength(ucaoSecondTable,100);
@@ -1634,13 +1686,20 @@ begin
     GenerateLicenceText(AStream);
     GenerateUCA_CLDR_Head(AStream,@locUcaBook,locUcaProps,locItem);
     if locHasProps then begin
-      GenerateUCA_BmpTables(AStream,AEndianStream,ucaFirstTable,ucaSecondTable,THIS_ENDIAN);
-      GenerateUCA_OBmpTables(AStream,AEndianStream,ucaoFirstTable,ucaoSecondTable,THIS_ENDIAN);
-      GenerateUCA_PropTable(AEndianStream,locUcaProps);
-      s := GenerateEndianIncludeFileName(AStoreName);
-      AddLine(Format('{$include %s}'+sLineBreak,[ExtractFileName(s)]),AStream);
+      GenerateUCA_BmpTables(AStream,ANativeEndianStream,AOtherEndianStream,ucaFirstTable,ucaSecondTable);
+      GenerateUCA_OBmpTables(AStream,ANativeEndianStream,AOtherEndianStream,ucaoFirstTable,ucaoSecondTable);
+      GenerateUCA_PropTable(ANativeEndianStream,locUcaProps,ENDIAN_NATIVE);
+      GenerateUCA_PropTable(AOtherEndianStream,locUcaProps,ENDIAN_NON_NATIVE);
+
+      AddLine('{$ifdef FPC_LITTLE_ENDIAN}',AStream);
+        s := GenerateEndianIncludeFileName(AStoreName,ekLittle);
+        AddLine(Format('  {$include %s}',[ExtractFileName(s)]),AStream);
+      AddLine('{$else FPC_LITTLE_ENDIAN}',AStream);
+        s := GenerateEndianIncludeFileName(AStoreName,ekBig);
+        AddLine(Format('  {$include %s}',[ExtractFileName(s)]),AStream);
+      AddLine('{$endif FPC_LITTLE_ENDIAN}',AStream);
     end;
-    GenerateUCA_CLDR_Registration(AStream,@locUcaBook,locUcaProps,locItem);
+    GenerateUCA_CLDR_Registration(AStream,@locUcaBook);
   finally
     locSequence.Clear();
     FreeUcaBook(locUcaProps);

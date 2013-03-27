@@ -31,6 +31,7 @@
 program unihelper;
 
 {$mode objfpc}{$H+}
+{$typedadress on}
 
 uses
   SysUtils, Classes,
@@ -64,7 +65,7 @@ end;
 
 var
   dataPath, outputPath : string;
-  stream, binStream, binStream2 : TMemoryStream;
+  stream, binStreamNE, binStreamOE, tmpStream : TMemoryStream;
   hangulSyllables : TCodePointRecArray;
   ucaBook : TUCA_DataBook;
   ucaPropBook : PUCA_PropBook;
@@ -124,12 +125,14 @@ begin
     Halt(1);
   end;
 
-  binStream2 := nil;
-  binStream := nil;
+  binStreamOE := nil;
+  binStreamNE := nil;
+  tmpStream := nil;
   stream := TMemoryStream.Create();
   try
-    binStream := TMemoryStream.Create();
-    binStream2 := TMemoryStream.Create();
+    binStreamNE := TMemoryStream.Create();
+    binStreamOE := TMemoryStream.Create();
+    tmpStream := TMemoryStream.Create();
     WriteLn('Load file HangulSyllableType.txt ...', DateTimeToStr(Now));
     stream.LoadFromFile(dataPath + 'HangulSyllableType.txt');
     stream.Position := 0;
@@ -204,21 +207,25 @@ begin
     uca_CheckProp_2y(ucaBook,ucaPropBook,@ucaoFirstTable,@ucaoSecondTable);
 {$ENDIF UCA_TEST}
     WriteLn('Generate UCA Props tables ...');
-    binStream.Clear();
-    GenerateLicenceText(binStream);
-    GenerateUCA_PropTable(binStream,ucaPropBook);
+    binStreamNE.Clear();
+    binStreamOE.Clear();
+    GenerateLicenceText(binStreamNE);
+      GenerateLicenceText(binStreamOE);
+    GenerateUCA_PropTable(binStreamNE,ucaPropBook,ENDIAN_NATIVE);
+      GenerateUCA_PropTable(binStreamOE,ucaPropBook,ENDIAN_NON_NATIVE);
     WriteLn('Generate UCA BMP tables ...');
     stream.Clear();
     GenerateLicenceText(stream);
     GenerateUCA_Head(stream,@ucaBook,ucaPropBook);
-    GenerateUCA_BmpTables(stream,binStream,ucaFirstTable,ucaSecondTable,THIS_ENDIAN);
+    GenerateUCA_BmpTables(stream,binStreamNE,binStreamOE,ucaFirstTable,ucaSecondTable);
     WriteLn('Generate UCA OBMP tables ...');
-    GenerateUCA_OBmpTables(stream,binStream,ucaoFirstTable,ucaoSecondTable,THIS_ENDIAN);
+    GenerateUCA_OBmpTables(stream,binStreamNE,binStreamOE,ucaoFirstTable,ucaoSecondTable);
     stream.SaveToFile(outputPath + 'ucadata.inc');
     s := outputPath + 'ucadata.inc';
-    s := GenerateEndianIncludeFileName(s);
-    binStream.SaveToFile(s);
-    binStream.Clear();
+    binStreamNE.SaveToFile(GenerateEndianIncludeFileName(s,ENDIAN_NATIVE));
+      binStreamOE.SaveToFile(GenerateEndianIncludeFileName(s,ENDIAN_NON_NATIVE));
+    binStreamNE.Clear();
+    binStreamOE.Clear();
 
 
     stream.Clear();
@@ -250,17 +257,18 @@ begin
       end;
     end;
 
-    binStream2.Clear();
+    binStreamNE.Clear();
+    binStreamOE.Clear();
     WriteLn('Source generation ...', DateTimeToStr(Now));
     WriteLn('BMP Tables sources ...', DateTimeToStr(Now));
       Generate3lvlBmpTables(stream,lvl3table1,lvl3table2,lvl3table3);
     WriteLn('Properties Table sources ...', DateTimeToStr(Now));
-      binStream.Clear();
-      GenerateNumericTable(binStream,numericTable,True);
-      binStream.SaveToFile(outputPath + 'unicodenumtable.pas');
-      binStream.Clear();
-      GeneratePropTable(binStream,props,ekLittle);
-      GeneratePropTable(binStream2,props,ekBig);
+      tmpStream.Clear();
+      GenerateNumericTable(tmpStream,numericTable,True);
+      tmpStream.SaveToFile(outputPath + 'unicodenumtable.pas');
+      tmpStream.Clear();
+      GeneratePropTable(binStreamNE,props,ENDIAN_NATIVE);
+      GeneratePropTable(binStreamOE,props,ENDIAN_NON_NATIVE);
 //-------------------------------------------
 
    r := Compress(data);
@@ -288,13 +296,13 @@ begin
 
   //---------------------
     WriteLn('Decomposition  Table sources ...', DateTimeToStr(Now));
-    GenerateDecompositionBookTable(binStream,decompositionBook,ekLittle);
-    GenerateDecompositionBookTable(binStream2,decompositionBook,ekBig);
+    GenerateDecompositionBookTable(binStreamNE,decompositionBook,ENDIAN_NATIVE);
+    GenerateDecompositionBookTable(binStreamOE,decompositionBook,ENDIAN_NON_NATIVE);
     stream.SaveToFile(outputPath + 'unicodedata.inc');
-    binStream.SaveToFile(outputPath + 'unicodedata_le.inc');
-    binStream2.SaveToFile(outputPath + 'unicodedata_be.inc');
-    binStream.Clear();
-    binStream2.Clear();
+    binStreamNE.SaveToFile(outputPath + 'unicodedata_'+ENDIAN_SUFFIX[ENDIAN_NATIVE]+'.inc');
+    binStreamOE.SaveToFile(outputPath + 'unicodedata_'+ENDIAN_SUFFIX[ENDIAN_NON_NATIVE]+'.inc');
+    binStreamNE.Clear();
+    binStreamOE.Clear();
 
 
     h := -1;
@@ -378,8 +386,9 @@ begin
     end;
     stream.SaveToFile(outputPath + 'diff2.txt');
   finally
-    binStream2.Free();
-    binStream.Free();
+    tmpStream.Free();
+    binStreamOE.Free();
+    binStreamNE.Free();
     stream.Free();
   end;
 end.

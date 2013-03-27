@@ -23,6 +23,8 @@ unit helper;
 {$H+}
 {$PACKENUM 1}
 {$pointermath on}
+{$typedaddress on}
+{$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 
 interface
 
@@ -113,6 +115,9 @@ type
     class operator Implicit(a : TUInt24Rec) : Word;{$ifdef USE_INLINE}inline;{$ENDIF}
     class operator Implicit(a : TUInt24Rec) : Byte;{$ifdef USE_INLINE}inline;{$ENDIF}
     class operator Implicit(a : Cardinal) : TUInt24Rec;{$ifdef USE_INLINE}inline;{$ENDIF}
+
+    class operator Explicit(a : TUInt24Rec) : Cardinal;{$ifdef USE_INLINE}inline;{$ENDIF}
+
     class operator Equal(a, b: TUInt24Rec): Boolean;{$ifdef USE_INLINE}inline;{$ENDIF}
 
     class operator Equal(a : TUInt24Rec; b : Cardinal): Boolean;{$ifdef USE_INLINE}inline;{$ENDIF}
@@ -276,12 +281,7 @@ type
   PUCA_DataBook = ^TUCA_DataBook;
   TUCA_DataBookIndex = array of Integer;
 
-const
-  BIT_POS_VALIDE = 0;
-  BIT_POS_COMPRESS_WEIGHT_1 = BIT_POS_VALIDE + 1;
-  BIT_POS_COMPRESS_WEIGHT_2 = BIT_POS_COMPRESS_WEIGHT_1 + 1;
 type
-  TWeightLength = 0..24;
   TUCA_PropWeights = packed record
     Weights  : array[0..2] of Word;
     //Variable : Byte;
@@ -315,27 +315,26 @@ type
 
   TUCA_PropItemRec = packed record
   private
+    const FLAG_VALID      = 0;
     const FLAG_CODEPOINT  = 1;
     const FLAG_CONTEXTUAL = 2;
     const FLAG_DELETION   = 3;
+    const FLAG_COMPRESS_WEIGHT_1 = 6;
+    const FLAG_COMPRESS_WEIGHT_2 = 7;
   private
-    function GetWeightLength: TWeightLength;inline;
-    procedure SetWeightLength(AValue: TWeightLength);inline;
     function GetWeightSize : Word;inline;
   public
-    //CodePoint    : UInt24;
-    Valid        : Byte;// On First Bit
+    WeightLength : Byte;
     ChildCount   : Byte;
     Size         : Word;
     Flags        : Byte;
   public
+    function HasCodePoint() : Boolean;inline;
     function GetCodePoint() : UInt24;//inline;
     property CodePoint : UInt24 read GetCodePoint;
-    //WeightLength is stored in the 5 last bits of "Valid"
-    property WeightLength : TWeightLength read GetWeightLength write SetWeightLength;
     //Weights    : array[0..WeightLength] of TUCA_PropWeights;
     procedure GetWeightArray(ADest : PUCA_PropWeights);
-    function GetSelfOnlySize() : Word;inline;
+    function GetSelfOnlySize() : Cardinal;inline;
 
     procedure SetContextual(AValue : Boolean);inline;
     function GetContextual() : Boolean;inline;
@@ -343,6 +342,9 @@ type
     function GetContext() : PUCA_PropItemContextTreeRec;
     procedure SetDeleted(AValue : Boolean);inline;
     function IsDeleted() : Boolean;inline;
+    function IsValid() : Boolean;inline;
+    function IsWeightCompress_1() : Boolean;inline;
+    function IsWeightCompress_2() : Boolean;inline;
   end;
   PUCA_PropItemRec = ^TUCA_PropItemRec;
   TUCA_PropIndexItem = packed record
@@ -353,7 +355,8 @@ type
   TUCA_PropBook = packed record
     ItemSize      : Integer;
     Index         : array of TUCA_PropIndexItem;
-    Items         : PUCA_PropItemRec;
+    Items         : PUCA_PropItemRec; //Native Endian
+    ItemsOtherEndian  : PUCA_PropItemRec;//Non Native Endian
     VariableLowLimit  : Word;
     VariableHighLimit : Word;
   end;
@@ -403,12 +406,14 @@ type
 type
   TEndianKind = (ekLittle, ekBig);
 const
-  THIS_ENDIAN =
+  ENDIAN_SUFFIX : array[TEndianKind] of string[2] = ('le','be');
 {$IFDEF ENDIAN_LITTLE}
-    ekLittle;
+  ENDIAN_NATIVE     = ekLittle;
+  ENDIAN_NON_NATIVE = ekBig;
 {$ENDIF ENDIAN_LITTLE}
 {$IFDEF ENDIAN_BIG}
-    ekBig;
+  ENDIAN_NATIVE = ekBig;
+  ENDIAN_NON_NATIVE = ekLittle;
 {$ENDIF ENDIAN_BIG}
 
   procedure GenerateLicenceText(ADest : TStream);
@@ -470,22 +475,22 @@ const
   );
   procedure GenerateUCA_BmpTables(
           AStream,
-          ABinStream    : TStream;
-    var   AFirstTable   : TucaBmpFirstTable;
-    var   ASecondTable  : TucaBmpSecondTable;
-    const AEndian       : TEndianKind
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaBmpFirstTable;
+    var   ASecondTable           : TucaBmpSecondTable
   );
   procedure GenerateUCA_PropTable(
-  // WARNING : files must be generated for each endianess (Little / Big)
           ADest     : TStream;
-    const APropBook : PUCA_PropBook
+    const APropBook : PUCA_PropBook;
+    const AEndian   : TEndianKind
   );
   procedure GenerateUCA_OBmpTables(
           AStream,
-          ABinStream    : TStream;
-    var   AFirstTable   : TucaOBmpFirstTable;
-    var   ASecondTable  : TucaOBmpSecondTable;
-    const AEndian       : TEndianKind
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaOBmpFirstTable;
+    var   ASecondTable           : TucaOBmpSecondTable
   );
 
   procedure Parse_UnicodeData(
@@ -505,7 +510,6 @@ const
   procedure MakeBmpTables(
     var   AFirstTable   : TBmpFirstTable;
     var   ASecondTable  : TBmpSecondTable;
-    const APropList     : TPropRecArray;
     const ADataLineList : TDataLineRecArray
   );
   procedure MakeBmpTables3Levels(
@@ -608,7 +612,26 @@ type
   function IsBitON(const AData : Byte; const ABit : TBitOrder) : Boolean ;{$IFDEF USE_INLINE}inline;{$ENDIF}
   procedure SetBit(var AData : Byte; const ABit : TBitOrder; const AValue : Boolean);{$IFDEF USE_INLINE}inline;{$ENDIF}
 
-  function GenerateEndianIncludeFileName(const AStoreName : string): string;inline;
+  function GenerateEndianIncludeFileName(
+    const AStoreName : string;
+    const AEndian    : TEndianKind
+  ): string;inline;
+
+  procedure ReverseFromNativeEndian(
+    const AData    : PUCA_PropItemRec;
+    const ADataLen : Cardinal;
+    const ADest    : PUCA_PropItemRec
+  );
+  procedure ReverseToNativeEndian(
+    const AData    : PUCA_PropItemRec;
+    const ADataLen : Cardinal;
+    const ADest    : PUCA_PropItemRec
+  );
+  procedure CompareProps(
+    const AProp1,
+          AProp2   : PUCA_PropItemRec;
+    const ADataLen : Integer
+  );
 
 resourcestring
   SInsufficientMemoryBuffer = 'Insufficient Memory Buffer';
@@ -638,6 +661,14 @@ type
   end;
 
 { TUInt24Rec }
+
+class operator TUInt24Rec.Explicit(a : TUInt24Rec) : Cardinal;
+begin
+  TCardinalRec(Result).byte0 := a.byte0;
+  TCardinalRec(Result).byte1 := a.byte1;
+  TCardinalRec(Result).byte2 := a.byte2;
+  TCardinalRec(Result).byte3 := 0;
+end;
 
 class operator TUInt24Rec.Implicit(a : TUInt24Rec) : Cardinal;
 begin
@@ -816,18 +847,13 @@ begin
   Result := a <= Cardinal(b);
 end;
 
-function GenerateEndianIncludeFileName(const AStoreName : string): string;inline;
-const
-  ENDIAN_SUFFIX =
-{$IFDEF ENDIAN_LITTLE}
-    'le';
-{$ENDIF ENDIAN_LITTLE}
-{$IFDEF ENDIAN_BIG}
-    'be';
-{$ENDIF ENDIAN_BIG}
+function GenerateEndianIncludeFileName(
+  const AStoreName : string;
+  const AEndian    : TEndianKind
+): string;inline;
 begin
   Result := ExtractFilePath(AStoreName) +
-            ChangeFileExt(ExtractFileName(AStoreName),Format('_%s.inc',[ENDIAN_SUFFIX]));
+            ChangeFileExt(ExtractFileName(AStoreName),Format('_%s.inc',[ENDIAN_SUFFIX[AEndian]]));
 end;
 
 function IsBitON(const AData : Byte; const ABit : TBitOrder) : Boolean ;
@@ -1771,7 +1797,6 @@ end;
 procedure MakeBmpTables(
   var   AFirstTable   : TBmpFirstTable;
   var   ASecondTable  : TBmpSecondTable;
-  const APropList     : TPropRecArray;
   const ADataLineList : TDataLineRecArray
 );
 var
@@ -2058,8 +2083,7 @@ begin
   AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');
   p := @APropList[0];
   for i := Low(APropList) to High(APropList) - 1 do begin
-    locLine := //'    (Category : TUnicodeCategory.' + GetEnumName(pti,Ord(p^.Category)) + ';' +
-               '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
+    locLine := '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
                ' CCC : ' + IntToStr(p^.CCC) + ';' +
                ' NumericIndex : ' + IntToStr(p^.NumericIndex) + ';' +
                ' SimpleUpperCase : ' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
@@ -2625,7 +2649,7 @@ end;
 function ConstructContextTree(
   const AContext : PUCA_LineContextRec;
   var   ADestBuffer;
-  const ADestBufferLength : Integer
+  const ADestBufferLength : Cardinal
 ) : PUCA_PropItemContextTreeRec;forward;
 function ConstructItem(
         AItem         : PUCA_PropItemRec;
@@ -2636,56 +2660,57 @@ function ConstructItem(
   const AStoreCP      : Boolean;
   const AContext      : PUCA_LineContextRec;
   const ADeleted      : Boolean
-) : Integer;
+) : Cardinal;
 var
-  i, c : Integer;
+  i : Integer;
   p : PUCA_PropItemRec;
   pw : PUCA_PropWeights;
   pb : PByte;
   hasContext : Boolean;
   contextTree : PUCA_PropItemContextTreeRec;
+  wl : Integer;
 begin
   p := AItem;
-  {if AStoreCP then begin
-    PUInt24(p)^ := ACodePoint;
-    p := PUCA_PropItemRec(PtrUInt(p) + SizeOf(UInt24));
-  end;  }
+  p^.Size := 0;
   p^.Flags := 0;
-  p^.Valid := 0;
-  SetBit(p^.Valid,BIT_POS_VALIDE,(AValid <> 0));
+  p^.WeightLength := 0;
+  SetBit(p^.Flags,AItem^.FLAG_VALID,(AValid <> 0));
   p^.ChildCount := AChildCount;
-  c := Length(AWeights);
-  p^.WeightLength := c;
-  if (c = 0) then begin
+  hasContext := (AContext <> nil) and (Length(AContext^.Data) > 0);
+  if hasContext then
+    wl := 0
+  else
+    wl := Length(AWeights);
+  p^.WeightLength := wl;
+  if (wl = 0) then begin
     Result := SizeOf(TUCA_PropItemRec);
     if ADeleted then
       SetBit(AItem^.Flags,AItem^.FLAG_DELETION,True);
   end else begin
-    Result := SizeOf(TUCA_PropItemRec) + (c*SizeOf(TUCA_PropWeights));//PtrUInt(pw) - PtrUInt(AItem);
-    //pw := PUCA_PropWeights(PtrUInt(p) + SizeOf(TUCA_PropItemRec));
+    Result := SizeOf(TUCA_PropItemRec) + (wl*SizeOf(TUCA_PropWeights));
     pb := PByte(PtrUInt(p) + SizeOf(TUCA_PropItemRec));
     PWord(pb)^ := AWeights[0].Weights[0];
     pb := pb + 2;
     if (AWeights[0].Weights[1] > High(Byte)) then begin
-      SetBit(p^.Valid,(BIT_POS_COMPRESS_WEIGHT_1),True);
       PWord(pb)^ := AWeights[0].Weights[1];
       pb := pb + 2;
     end else begin
+      SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_1,True);
       pb^ := AWeights[0].Weights[1];
       pb := pb + 1;
       Result := Result - 1;
     end;
     if (AWeights[0].Weights[2] > High(Byte)) then begin
-      SetBit(p^.Valid,(BIT_POS_COMPRESS_WEIGHT_2),True);
       PWord(pb)^ := AWeights[0].Weights[2];
       pb := pb + 2;
     end else begin
+      SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_2,True);
       pb^ := AWeights[0].Weights[2];
       pb := pb + 1;
       Result := Result - 1;
     end;
     pw := PUCA_PropWeights(pb);
-    for i := 1 to c - 1 do begin
+    for i := 1 to wl - 1 do begin
       pw^.Weights[0] := AWeights[i].Weights[0];
       pw^.Weights[1] := AWeights[i].Weights[1];
       pw^.Weights[2] := AWeights[i].Weights[2];
@@ -2700,7 +2725,7 @@ begin
     SetBit(AItem^.Flags,AItem^.FLAG_CODEPOINT,True);
   end;
   if hasContext then begin
-    contextTree := ConstructContextTree(AContext,Pointer(PtrUInt(AItem)+Result)^,-1);
+    contextTree := ConstructContextTree(AContext,Pointer(PtrUInt(AItem)+Result)^,MaxInt);
     Result := Result + Cardinal(contextTree^.Size);
     SetBit(AItem^.Flags,AItem^.FLAG_CONTEXTUAL,True);
   end;
@@ -2708,13 +2733,12 @@ begin
 end;
 
 function CalcCharChildCount(
-  const AChar           : Cardinal;
   const ASearchStartPos : Integer;
   const ALinePos        : Integer;
   const ABookLines      : PUCA_LineRec;
   const AMaxLength      : Integer;
   const ABookIndex      : TUCA_DataBookIndex;
-  out   ALineCount      : Integer
+  out   ALineCount      : Word
 ) : Byte;
 var
   locLinePos : Integer;
@@ -2724,21 +2748,6 @@ var
   begin
     Inc(locLinePos);
     p := @ABookLines[ABookIndex[locLinePos]];
-  end;
-
-  procedure DoDump();
-  var
-    px : PUCA_LineRec;
-    k, ki : Integer;
-  begin
-    WriteLn;
-    WriteLn('Dump');
-    for k := ALinePos to ALinePos + 15 do begin
-      px := @ABookLines[ABookIndex[k]];
-      for ki := 0 to Length(px^.CodePoints) -1 do
-        Write(px^.CodePoints[ki],' ');
-      WriteLn;
-    end;
   end;
 
 var
@@ -2758,9 +2767,9 @@ begin
     r := 1;
     locLastChar := p^.CodePoints[ASearchStartPos];
   end;
-  IncP();
   i := 1;
   while (i < AMaxLength) do begin
+    IncP();
     if (Length(p^.CodePoints) < locTargetLen) then
       Break;
     if not CompareMem(@locTarget[0],@p^.CodePoints[0],locTargetBufferSize) then
@@ -2769,7 +2778,6 @@ begin
       Inc(r);
       locLastChar := p^.CodePoints[ASearchStartPos];
     end;
-    IncP();
     Inc(i);
   end;
   ALineCount := i;
@@ -2823,9 +2831,10 @@ function InternalConstructFromTrie(
   const AItem  : PUCA_PropItemRec;
   const ALines : PUCA_LineRec;
   const AStoreCp : Boolean
-) : Integer;
+) : Cardinal;
 var
-  i, size : Integer;
+  i : Integer;
+  size : Cardinal;
   p : PUCA_PropItemRec;
   n : PTrieNode;
 begin
@@ -2876,16 +2885,18 @@ var
   i, c, k, kc : Integer;
   p, p1, p2 : PUCA_PropItemRec;
   lines, pl1, pl2 : PUCA_LineRec;
-  childCount, lineCount, size : Integer;
+  childCount, lineCount : Word;
+  size : Cardinal;
   trieRoot : PTrieNode;
-  MaxChildCount, MaxSize : Integer;
+  MaxChildCount, MaxSize : Cardinal;
+  childList : array of PUCA_PropItemRec;
 begin
   locIndex := CreateIndex(ABook);
   i := Length(ABook^.Lines);
   i := 30 * i * (SizeOf(TUCA_PropItemRec) + SizeOf(TUCA_PropWeights));
-  GetMem(AProps,SizeOf(TUCA_DataBook));
+  AProps := AllocMem(SizeOf(TUCA_DataBook));
   AProps^.ItemSize := i;
-  GetMem(AProps^.Items,i);
+  AProps^.Items := AllocMem(i);
   propIndexCount := 0;
   SetLength(AProps^.Index,Length(ABook^.Lines));
   p := AProps^.Items;
@@ -2909,26 +2920,28 @@ begin
           MaxSize := size;
       end else begin
         kc := Length(pl1^.CodePoints);
+        SetLength(childList,kc);
         for k := 0 to kc - 2 do begin
-          size := ConstructItem(p,pl1^.CodePoints[k],0,1,[],(k>0),@pl1^.Context,pl1^.Deleted);
+          size := ConstructItem(p,pl1^.CodePoints[k],0,1,[],(k>0),nil,False);
           if (k = 0) then
             CapturePropIndex(p,pl1^.CodePoints[k]);
+          childList[k] := p;
           p := PUCA_PropItemRec(PtrUInt(p) + size);
         end;
         size := ConstructItem(p,pl1^.CodePoints[kc-1],1,0,pl1^.Weights,True,@pl1^.Context,pl1^.Deleted);
+        childList[kc-1] := p;
         p := PUCA_PropItemRec(PtrUInt(p) + size);
-        p2 := p;
         for k := kc - 2 downto 0 do begin
-          p1 := PUCA_PropItemRec(PtrUInt(p2) - p2^.Size);
+          p1 := childList[k];
+          p2 := childList[k+1];
           p1^.Size := p1^.Size + p2^.Size;
-          p2 := p1;
         end;
         if (p1^.Size > MaxSize) then
           MaxSize := p1^.Size;
       end;
       lineCount := 1;
     end else begin
-      childCount := CalcCharChildCount(pl1^.CodePoints[0],1,i,lines,c,locIndex,lineCount);
+      childCount := CalcCharChildCount(1,i,lines,c,locIndex,lineCount);
       if (childCount < 1) then
         raise Exception.CreateFmt('Expected "child count > 1" but found %d.',[childCount]);
       if (lineCount < 2) then
@@ -2955,19 +2968,21 @@ begin
         MaxSize := size;
     end else begin
       kc := Length(pl1^.CodePoints);
+      SetLength(childList,kc);
       for k := 0 to kc - 2 do begin
         size := ConstructItem(p,pl1^.CodePoints[k],0,1,[],(k>0),@pl1^.Context,pl1^.Deleted);
         if (k = 0) then
           CapturePropIndex(p,pl1^.CodePoints[0]);
+        childList[k] := p;
         p := PUCA_PropItemRec(PtrUInt(p) + size);
       end;
       size := ConstructItem(p,pl1^.CodePoints[kc-1],1,0,pl1^.Weights,True,@pl1^.Context,pl1^.Deleted);
+      childList[kc-1] := p;
       p := PUCA_PropItemRec(PtrUInt(p) + size);
-      p2 := p;
-      for k := kc - 2 downto 0 do begin
-        p1 := PUCA_PropItemRec(PtrUInt(p2) - p2^.Size);
+      for i := kc - 2 downto 0 do begin
+        p1 := childList[i];
+        p2 := childList[i+1];
         p1^.Size := p1^.Size + p2^.Size;
-        p2 := p1;
       end;
       if (size > MaxSize) then
         MaxSize := size;
@@ -2977,6 +2992,8 @@ begin
   ReAllocMem(AProps^.Items,c);
   AProps^.ItemSize := c;
   SetLength(AProps^.Index,propIndexCount);
+  AProps^.ItemsOtherEndian := AllocMem(AProps^.ItemSize);
+  ReverseFromNativeEndian(AProps^.Items,AProps^.ItemSize,AProps^.ItemsOtherEndian);
 
   k := 0;
   c := High(Word);
@@ -3196,10 +3213,10 @@ end;
 
 procedure GenerateUCA_BmpTables(
         AStream,
-        ABinStream    : TStream;
-  var   AFirstTable   : TucaBmpFirstTable;
-  var   ASecondTable  : TucaBmpSecondTable;
-  const AEndian       : TEndianKind
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaBmpFirstTable;
+  var   ASecondTable           : TucaBmpSecondTable
 );
 
   procedure AddLine(AOut : TStream; const ALine : ansistring);
@@ -3231,31 +3248,52 @@ begin
   AddLine(AStream,locLine);
   AddLine(AStream,'  );' + sLineBreak);
 
-  AddLine(ABinStream,'const');
-  AddLine(ABinStream,'  UCA_TABLE_2 : array[0..(256*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
+  AddLine(ANativeEndianStream,'const');
+  AddLine(ANativeEndianStream,'  UCA_TABLE_2 : array[0..(256*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
   c := High(ASecondTable);
   for i := Low(ASecondTable) to c do begin
     locLine := '';
     for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
-      locLine := locLine + UInt24ToStr(value,AEndian) + ',';
+      locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
       if (((j+1) mod 2) = 0) then begin
         if (i = c) and (j = 255) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
-        AddLine(ABinStream,locLine);
+        AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
     end;
   end;
-  AddLine(ABinStream,'  );' + sLineBreak);
+  AddLine(ANativeEndianStream,'  );' + sLineBreak);
+
+  AddLine(ANonNativeEndianStream,'const');
+  AddLine(ANonNativeEndianStream,'  UCA_TABLE_2 : array[0..(256*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
+  c := High(ASecondTable);
+  for i := Low(ASecondTable) to c do begin
+    locLine := '';
+    for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
+      if (((j+1) mod 2) = 0) then begin
+        if (i = c) and (j = 255) then
+          Delete(locLine,Length(locLine),1);
+        locLine := '    ' + locLine;
+        AddLine(ANonNativeEndianStream,locLine);
+        locLine := '';
+      end;
+    end;
+  end;
+  AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
 procedure GenerateUCA_PropTable(
 // WARNING : files must be generated for each endianess (Little / Big)
         ADest     : TStream;
-  const APropBook : PUCA_PropBook
+  const APropBook : PUCA_PropBook;
+  const AEndian   : TEndianKind
 );
+
   procedure AddLine(const ALine : ansistring);
   var
     buffer : ansistring;
@@ -3273,7 +3311,10 @@ begin
   AddLine('const');
   AddLine('  UCA_PROPS : array[0..' + IntToStr(c-1) + '] of Byte = (');
   locLine := '';
-  p := PByte(APropBook^.Items);
+  if (AEndian = ENDIAN_NATIVE) then
+    p := PByte(APropBook^.Items)
+  else
+    p := PByte(APropBook^.ItemsOtherEndian);
   for i := 0 to c - 2 do begin
     locLine := locLine + IntToStr(p[i]) + ',';
     if (((i+1) mod 60) = 0) then begin
@@ -3290,10 +3331,10 @@ end;
 
 procedure GenerateUCA_OBmpTables(
         AStream,
-        ABinStream    : TStream;
-  var   AFirstTable   : TucaOBmpFirstTable;
-  var   ASecondTable  : TucaOBmpSecondTable;
-  const AEndian       : TEndianKind
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaOBmpFirstTable;
+  var   ASecondTable           : TucaOBmpSecondTable
 );
 
   procedure AddLine(AOut : TStream; const ALine : ansistring);
@@ -3325,23 +3366,41 @@ begin
   AddLine(AStream,locLine);
   AddLine(AStream,'  );' + sLineBreak);
 
-  AddLine(ABinStream,'  UCAO_TABLE_2 : array[0..('+IntToStr(LOW_SURROGATE_COUNT)+'*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
+  AddLine(ANativeEndianStream,'  UCAO_TABLE_2 : array[0..('+IntToStr(LOW_SURROGATE_COUNT)+'*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
   c := High(ASecondTable);
   for i := Low(ASecondTable) to c do begin
     locLine := '';
     for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
-      locLine := locLine + UInt24ToStr(value,AEndian) + ',';
+      locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
       if (((j+1) mod 2) = 0) then begin
         if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
-        AddLine(ABinStream,locLine);
+        AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
     end;
   end;
-  AddLine(ABinStream,'  );' + sLineBreak);
+  AddLine(ANativeEndianStream,'  );' + sLineBreak);
+
+  AddLine(ANonNativeEndianStream,'  UCAO_TABLE_2 : array[0..('+IntToStr(LOW_SURROGATE_COUNT)+'*' + IntToStr(Length(ASecondTable)) +'-1)] of UInt24 =(');
+  c := High(ASecondTable);
+  for i := Low(ASecondTable) to c do begin
+    locLine := '';
+    for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
+      if (((j+1) mod 2) = 0) then begin
+        if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
+          Delete(locLine,Length(locLine),1);
+        locLine := '    ' + locLine;
+        AddLine(ANonNativeEndianStream,locLine);
+        locLine := '';
+      end;
+    end;
+  end;
+  AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
 //-------------------------------------------
@@ -3760,17 +3819,6 @@ end;
 
 { TUCA_PropItemRec }
 
-function TUCA_PropItemRec.GetWeightLength: TWeightLength;
-begin
-  //Result := TWeightLength(Valid and Byte($FC) shr 3);
-  Result := TWeightLength((Valid and Byte($F8)) shr 3);
-end;
-
-procedure TUCA_PropItemRec.SetWeightLength(AValue: TWeightLength);
-begin
-  Valid := Valid or Byte(Byte(AValue) shl 3);
-end;
-
 function TUCA_PropItemRec.GetWeightSize : Word;
 var
   c : Integer;
@@ -3779,10 +3827,15 @@ begin
   if (c = 0) then
     exit(0);
   Result := c*SizeOf(TUCA_PropWeights);
-  if IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_1) then
+  if IsWeightCompress_1() then
     Result := Result - 1;
-  if IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_2) then
+  if IsWeightCompress_2() then
     Result := Result - 1;
+end;
+
+function TUCA_PropItemRec.HasCodePoint(): Boolean;
+begin
+  Result := IsBitON(Flags,FLAG_CODEPOINT);
 end;
 
 procedure TUCA_PropItemRec.GetWeightArray(ADest: PUCA_PropWeights);
@@ -3796,14 +3849,14 @@ begin
   pd := ADest;
   pd^.Weights[0] := PWord(p)^;
   p := p + 2;
-  if IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_1) then begin
+  if not IsWeightCompress_1() then begin
     pd^.Weights[1] := PWord(p)^;
     p := p + 2;
   end else begin
     pd^.Weights[1] := p^;
     p := p + 1;
   end;
-  if IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_2) then begin
+  if not IsWeightCompress_2() then begin
     pd^.Weights[2] := PWord(p)^;
     p := p + 2;
   end else begin
@@ -3814,16 +3867,20 @@ begin
     Move(p^, (pd+1)^, ((c-1)*SizeOf(TUCA_PropWeights)));
 end;
 
-function TUCA_PropItemRec.GetSelfOnlySize: Word;
+function TUCA_PropItemRec.GetSelfOnlySize() : Cardinal;
 begin
   Result := SizeOf(TUCA_PropItemRec);
   if (WeightLength > 0) then begin
     Result := Result + (WeightLength * Sizeof(TUCA_PropWeights));
-    if not IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_1) then
+    if IsWeightCompress_1() then
       Result := Result - 1;
-    if not IsBitON(Self.Valid,BIT_POS_COMPRESS_WEIGHT_2) then
+    if IsWeightCompress_2() then
       Result := Result - 1;
   end;
+  if HasCodePoint() then
+    Result := Result + SizeOf(UInt24);
+  if Contextual then
+    Result := Result + Cardinal(GetContext()^.Size);
 end;
 
 procedure TUCA_PropItemRec.SetContextual(AValue : Boolean);
@@ -3858,9 +3915,34 @@ begin
   Result := IsBitON(Flags,FLAG_DELETION);
 end;
 
+function TUCA_PropItemRec.IsValid() : Boolean;
+begin
+  Result := IsBitON(Flags,FLAG_VALID);
+end;
+
+function TUCA_PropItemRec.IsWeightCompress_1 : Boolean;
+begin
+  Result := IsBitON(Flags,FLAG_COMPRESS_WEIGHT_1);
+end;
+
+function TUCA_PropItemRec.IsWeightCompress_2 : Boolean;
+begin
+  Result := IsBitON(Flags,FLAG_COMPRESS_WEIGHT_2);
+end;
+
 function TUCA_PropItemRec.GetCodePoint: UInt24;
 begin
-  Result := PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize())^;
+  if HasCodePoint() then begin
+    if Contextual then
+      Result := PUInt24(
+                  PtrUInt(@Self) + Self.GetSelfOnlySize()- SizeOf(UInt24) -
+                  Cardinal(GetContext()^.Size)
+                )^
+    else
+      Result := PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^
+  end else begin
+    raise Exception.Create('TUCA_PropItemRec.GetCodePoint : "No code point available."');
+  end
 end;
 
 function avl_CompareCodePoints(Item1, Item2: Pointer): Integer;
@@ -3912,7 +3994,7 @@ end;
 function ConstructContextTree(
   const AContext : PUCA_LineContextRec;
   var   ADestBuffer;
-  const ADestBufferLength : Integer
+  const ADestBufferLength : Cardinal
 ) : PUCA_PropItemContextTreeRec;
 
   function CalcItemOnlySize(AItem : TAVLTreeNode) : Cardinal;
@@ -4012,6 +4094,465 @@ begin
     tempTree.Free();
   end;
   Result := r;
+end;
+
+procedure ReverseBytes(var AData; const ALength : Integer);
+var
+  i,j : PtrInt;
+  c : Byte;
+  p : PByte;
+begin
+  if (ALength = 1) then
+    exit;
+  p := @AData;
+  j := ALength div 2;
+  for i := 0 to Pred(j) do begin
+    c := p[i];
+    p[i] := p[(ALength - 1 ) - i];
+    p[(ALength - 1 ) - i] := c;
+  end;
+end;
+
+procedure ReverseArray(var AValue; const AArrayLength, AItemSize : PtrInt);
+var
+  p : PByte;
+  i : PtrInt;
+begin
+  if ( AArrayLength > 0 ) and ( AItemSize > 1 ) then begin
+    p := @AValue;
+    for i := 0 to Pred(AArrayLength) do begin
+      ReverseBytes(p^,AItemSize);
+      Inc(p,AItemSize);
+    end;
+  end;
+end;
+
+procedure ReverseContextNodeFromNativeEndian(s, d : PUCA_PropItemContextTreeNodeRec);
+var
+  k : PtrUInt;
+  p_s, p_d : PByte;
+begin
+  d^.Left := s^.Left;
+    ReverseBytes(d^.Left,SizeOf(d^.Left));
+  d^.Right := s^.Right;
+    ReverseBytes(d^.Right,SizeOf(d^.Right));
+  d^.Data.CodePointCount := s^.Data.CodePointCount;
+    ReverseBytes(d^.Data.CodePointCount,SizeOf(d^.Data.CodePointCount));
+  d^.Data.WeightCount := s^.Data.WeightCount;
+    ReverseBytes(d^.Data.WeightCount,SizeOf(d^.Data.WeightCount));
+
+  k := SizeOf(TUCA_PropItemContextTreeNodeRec);
+  p_s := PByte(PtrUInt(s) + k);
+  p_d := PByte(PtrUInt(d) + k);
+  k := (s^.Data.CodePointCount*SizeOf(UInt24));
+  Move(p_s^,p_d^, k);
+    ReverseArray(p_d^,s^.Data.CodePointCount,SizeOf(UInt24));
+  p_s := PByte(PtrUInt(p_s) + k);
+  p_d := PByte(PtrUInt(p_d) + k);
+  k := (s^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  Move(p_s^,p_d^,k);
+    ReverseArray(p_d^,s^.Data.WeightCount,SizeOf(TUCA_PropWeights));
+  if (s^.Left > 0) then
+    ReverseContextNodeFromNativeEndian(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + s^.Left),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(d) + s^.Left)
+    );
+  if (s^.Right > 0) then
+    ReverseContextNodeFromNativeEndian(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + s^.Right),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(d) + s^.Right)
+    );
+end;
+
+procedure ReverseContextFromNativeEndian(s, d : PUCA_PropItemContextTreeRec);
+var
+  k : PtrUInt;
+begin
+  d^.Size := s^.Size;
+    ReverseBytes(d^.Size,SizeOf(d^.Size));
+  if (s^.Size = 0) then
+    exit;
+  k := SizeOf(s^.Size);
+  ReverseContextNodeFromNativeEndian(
+    PUCA_PropItemContextTreeNodeRec(PtrUInt(s)+k),
+    PUCA_PropItemContextTreeNodeRec(PtrUInt(d)+k)
+  );
+end;
+
+procedure ReverseFromNativeEndian(
+  const AData    : PUCA_PropItemRec;
+  const ADataLen : Cardinal;
+  const ADest    : PUCA_PropItemRec
+);
+var
+  s, d : PUCA_PropItemRec;
+  sCtx, dCtx : PUCA_PropItemContextTreeRec;
+  dataEnd : PtrUInt;
+  k, i : PtrUInt;
+  p_s, p_d : PByte;
+  pw_s, pw_d : PUCA_PropWeights;
+begin
+  dataEnd := PtrUInt(AData) + ADataLen;
+  s := AData;
+  d := ADest;
+  while True do begin
+    d^.WeightLength := s^.WeightLength;
+      ReverseBytes(d^.WeightLength,SizeOf(d^.WeightLength));
+    d^.ChildCount := s^.ChildCount;
+      ReverseBytes(d^.ChildCount,SizeOf(d^.ChildCount));
+    d^.Size := s^.Size;
+      ReverseBytes(d^.Size,SizeOf(d^.Size));
+    d^.Flags := s^.Flags;
+      ReverseBytes(d^.Flags,SizeOf(d^.Flags));
+    if s^.Contextual then begin
+      k := SizeOf(TUCA_PropItemRec);
+      if s^.HasCodePoint() then
+        k := k + SizeOf(UInt24);
+      sCtx := PUCA_PropItemContextTreeRec(PtrUInt(s) + k);
+      dCtx := PUCA_PropItemContextTreeRec(PtrUInt(d) + k);
+      ReverseContextFromNativeEndian(sCtx,dCtx);
+    end;
+    if s^.HasCodePoint() then begin
+      if s^.Contextual then
+        k := s^.GetSelfOnlySize()- SizeOf(UInt24) - Cardinal(s^.GetContext()^.Size)
+      else
+        k := s^.GetSelfOnlySize() - SizeOf(UInt24);
+      p_s := PByte(PtrUInt(s) + k);
+      p_d := PByte(PtrUInt(d) + k);
+      PUInt24(p_d)^ := PUInt24(p_s)^;
+        ReverseBytes(p_d^,SizeOf(UInt24));
+    end;
+    if (s^.WeightLength > 0) then begin
+      k := SizeOf(TUCA_PropItemRec);
+      p_s := PByte(PtrUInt(s) + k);
+      p_d := PByte(PtrUInt(d) + k);
+      k := SizeOf(Word);
+      PWord(p_d)^ := PWord(p_s)^;
+        ReverseBytes(p_d^,k);
+      p_s := PByte(PtrUInt(p_s) + k);
+      p_d := PByte(PtrUInt(p_d) + k);
+      if s^.IsWeightCompress_1() then begin
+        k := SizeOf(Byte);
+        PByte(p_d)^ := PByte(p_s)^;
+      end else begin
+        k := SizeOf(Word);
+        PWord(p_d)^ := PWord(p_s)^;
+      end;
+      ReverseBytes(p_d^,k);
+      p_s := PByte(PtrUInt(p_s) + k);
+      p_d := PByte(PtrUInt(p_d) + k);
+      if s^.IsWeightCompress_2() then begin
+        k := SizeOf(Byte);
+        PByte(p_d)^ := PByte(p_s)^;
+      end else begin
+        k := SizeOf(Word);
+        PWord(p_d)^ := PWord(p_s)^;
+      end;
+      ReverseBytes(p_d^,k);
+      if (s^.WeightLength > 1) then begin
+        pw_s := PUCA_PropWeights(PtrUInt(p_s) + k);
+        pw_d := PUCA_PropWeights(PtrUInt(p_d) + k);
+        for i := 1 to s^.WeightLength - 1 do begin
+          pw_d^.Weights[0] := pw_s^.Weights[0];
+          pw_d^.Weights[1] := pw_s^.Weights[1];
+          pw_d^.Weights[2] := pw_s^.Weights[2];
+          ReverseArray(pw_d^,3,SizeOf(pw_s^.Weights[0]));
+          Inc(pw_s);
+          Inc(pw_d);
+        end;
+      end;
+    end;
+    k := s^.GetSelfOnlySize();
+    s := PUCA_PropItemRec(PtrUInt(s)+k);
+    d := PUCA_PropItemRec(PtrUInt(d)+k);
+    if (PtrUInt(s) >= dataEnd) then
+      Break;
+  end;
+  if ( (PtrUInt(s)-PtrUInt(AData)) <> (PtrUInt(d)-PtrUInt(ADest)) ) then
+    raise Exception.CreateFmt('Read data length(%d) differs from written data length(%d).',[(PtrUInt(s)-PtrUInt(AData)), (PtrUInt(d)-PtrUInt(ADest))]);
+end;
+//------------------------------------------------------------------------------
+
+procedure ReverseContextNodeToNativeEndian(s, d : PUCA_PropItemContextTreeNodeRec);
+var
+  k : PtrUInt;
+  p_s, p_d : PByte;
+begin
+  d^.Left := s^.Left;
+    ReverseBytes(d^.Left,SizeOf(d^.Left));
+  d^.Right := s^.Right;
+    ReverseBytes(d^.Right,SizeOf(d^.Right));
+  d^.Data.CodePointCount := s^.Data.CodePointCount;
+    ReverseBytes(d^.Data.CodePointCount,SizeOf(d^.Data.CodePointCount));
+  d^.Data.WeightCount := s^.Data.WeightCount;
+    ReverseBytes(d^.Data.WeightCount,SizeOf(d^.Data.WeightCount));
+
+  k := SizeOf(TUCA_PropItemContextTreeNodeRec);
+  p_s := PByte(PtrUInt(s) + k);
+  p_d := PByte(PtrUInt(d) + k);
+  k := (d^.Data.CodePointCount*SizeOf(UInt24));
+  Move(p_s^,p_d^, k);
+    ReverseArray(p_d^,d^.Data.CodePointCount,SizeOf(UInt24));
+  p_s := PByte(PtrUInt(p_s) + k);
+  p_d := PByte(PtrUInt(p_d) + k);
+  k := (d^.Data.WeightCount*SizeOf(TUCA_PropWeights));
+  Move(p_s^,p_d^,k);
+    ReverseArray(p_d^,d^.Data.WeightCount,SizeOf(TUCA_PropWeights));
+  if (d^.Left > 0) then
+    ReverseContextNodeToNativeEndian(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + d^.Left),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(d) + d^.Left)
+    );
+  if (d^.Right > 0) then
+    ReverseContextNodeToNativeEndian(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + d^.Right),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(d) + d^.Right)
+    );
+end;
+
+procedure ReverseContextToNativeEndian(s, d : PUCA_PropItemContextTreeRec);
+var
+  k : PtrUInt;
+begin
+  d^.Size := s^.Size;
+    ReverseBytes(d^.Size,SizeOf(d^.Size));
+  if (s^.Size = 0) then
+    exit;
+  k := SizeOf(s^.Size);
+  ReverseContextNodeToNativeEndian(
+    PUCA_PropItemContextTreeNodeRec(PtrUInt(s)+k),
+    PUCA_PropItemContextTreeNodeRec(PtrUInt(d)+k)
+  );
+end;
+
+procedure ReverseToNativeEndian(
+  const AData    : PUCA_PropItemRec;
+  const ADataLen : Cardinal;
+  const ADest    : PUCA_PropItemRec
+);
+var
+  s, d : PUCA_PropItemRec;
+  sCtx, dCtx : PUCA_PropItemContextTreeRec;
+  dataEnd : PtrUInt;
+  k, i : PtrUInt;
+  p_s, p_d : PByte;
+  pw_s, pw_d : PUCA_PropWeights;
+begin
+  dataEnd := PtrUInt(AData) + ADataLen;
+  s := AData;
+  d := ADest;
+  while True do begin
+    d^.WeightLength := s^.WeightLength;
+      ReverseBytes(d^.WeightLength,SizeOf(d^.WeightLength));
+    d^.ChildCount := s^.ChildCount;
+      ReverseBytes(d^.ChildCount,SizeOf(d^.ChildCount));
+    d^.Size := s^.Size;
+      ReverseBytes(d^.Size,SizeOf(d^.Size));
+    d^.Flags := s^.Flags;
+      ReverseBytes(d^.Flags,SizeOf(d^.Flags));
+    if d^.Contextual then begin
+      k := SizeOf(TUCA_PropItemRec);
+      if d^.HasCodePoint() then
+        k := k + SizeOf(UInt24);
+      sCtx := PUCA_PropItemContextTreeRec(PtrUInt(s) + k);
+      dCtx := PUCA_PropItemContextTreeRec(PtrUInt(d) + k);
+      ReverseContextToNativeEndian(sCtx,dCtx);
+    end;
+    if d^.HasCodePoint() then begin
+      if d^.Contextual then
+        k := d^.GetSelfOnlySize()- SizeOf(UInt24) - Cardinal(d^.GetContext()^.Size)
+      else
+        k := d^.GetSelfOnlySize() - SizeOf(UInt24);
+      p_s := PByte(PtrUInt(s) + k);
+      p_d := PByte(PtrUInt(d) + k);
+      PUInt24(p_d)^ := PUInt24(p_s)^;
+        ReverseBytes(p_d^,SizeOf(UInt24));
+    end;
+    if (d^.WeightLength > 0) then begin
+      k := SizeOf(TUCA_PropItemRec);
+      p_s := PByte(PtrUInt(s) + k);
+      p_d := PByte(PtrUInt(d) + k);
+      k := SizeOf(Word);
+      PWord(p_d)^ := PWord(p_s)^;
+        ReverseBytes(p_d^,k);
+      p_s := PByte(PtrUInt(p_s) + k);
+      p_d := PByte(PtrUInt(p_d) + k);
+      if d^.IsWeightCompress_1() then begin
+        k := SizeOf(Byte);
+        PByte(p_d)^ := PByte(p_s)^;
+      end else begin
+        k := SizeOf(Word);
+        PWord(p_d)^ := PWord(p_s)^;
+      end;
+      ReverseBytes(p_d^,k);
+      p_s := PByte(PtrUInt(p_s) + k);
+      p_d := PByte(PtrUInt(p_d) + k);
+      if d^.IsWeightCompress_2() then begin
+        k := SizeOf(Byte);
+        PByte(p_d)^ := PByte(p_s)^;
+      end else begin
+        k := SizeOf(Word);
+        PWord(p_d)^ := PWord(p_s)^;
+      end;
+      ReverseBytes(p_d^,k);
+      if (d^.WeightLength > 1) then begin
+        pw_s := PUCA_PropWeights(PtrUInt(p_s) + k);
+        pw_d := PUCA_PropWeights(PtrUInt(p_d) + k);
+        for i := 1 to d^.WeightLength - 1 do begin
+          pw_d^.Weights[0] := pw_s^.Weights[0];
+          pw_d^.Weights[1] := pw_s^.Weights[1];
+          pw_d^.Weights[2] := pw_s^.Weights[2];
+          ReverseArray(pw_d^,3,SizeOf(pw_s^.Weights[0]));
+          Inc(pw_s);
+          Inc(pw_d);
+        end;
+      end;
+    end;
+    k := d^.GetSelfOnlySize();
+    s := PUCA_PropItemRec(PtrUInt(s)+k);
+    d := PUCA_PropItemRec(PtrUInt(d)+k);
+    if (PtrUInt(s) >= dataEnd) then
+      Break;
+  end;
+  if ( (PtrUInt(s)-PtrUInt(AData)) <> (PtrUInt(d)-PtrUInt(ADest)) ) then
+    raise Exception.CreateFmt('Read data length(%d) differs from written data length(%d).',[(PtrUInt(s)-PtrUInt(AData)), (PtrUInt(d)-PtrUInt(ADest))]);
+end;
+
+procedure Check(const ACondition : Boolean; const AMsg : string);overload;
+begin
+  if not ACondition then
+    raise Exception.Create(AMsg);
+end;
+
+procedure Check(
+  const ACondition : Boolean;
+  const AFormatMsg : string;
+  const AArgs      : array of const
+);overload;
+begin
+  Check(ACondition,Format(AFormatMsg,AArgs));
+end;
+
+procedure Check(const ACondition : Boolean);overload;
+begin
+  Check(ACondition,'Check failed.')
+end;
+
+procedure CompareWeights(a, b : PUCA_PropWeights; const ALength : Integer);
+var
+  i : Integer;
+begin
+  if (ALength > 0) then begin
+    for i := 0 to ALength - 1 do begin
+      Check(a[i].Weights[0]=b[i].Weights[0]);
+      Check(a[i].Weights[1]=b[i].Weights[1]);
+      Check(a[i].Weights[2]=b[i].Weights[2]);
+    end;
+  end;
+end;
+
+procedure CompareCodePoints(a, b : PUInt24; const ALength : Integer);
+var
+  i : Integer;
+begin
+  if (ALength > 0) then begin
+    for i := 0 to ALength - 1 do
+      Check(a[i]=b[i]);
+  end;
+end;
+
+procedure CompareContextNode(AProp1, AProp2 : PUCA_PropItemContextTreeNodeRec);
+var
+  a, b : PUCA_PropItemContextTreeNodeRec;
+  k : Cardinal;
+begin
+  if (AProp1=nil) then begin
+    Check(AProp2=nil);
+    exit;
+  end;
+  a := AProp1;
+  b := AProp2;
+  Check(a^.Left=b^.Left);
+  Check(a^.Right=b^.Right);
+  Check(a^.Data.CodePointCount=b^.Data.CodePointCount);
+  Check(a^.Data.WeightCount=b^.Data.WeightCount);
+  k := SizeOf(a^.Data);
+  CompareCodePoints(
+    PUInt24(PtrUInt(a)+k),
+    PUInt24(PtrUInt(b)+k),
+    a^.Data.CodePointCount
+  );
+  k := SizeOf(a^.Data)+ (a^.Data.CodePointCount*SizeOf(UInt24));
+  CompareWeights(
+    PUCA_PropWeights(PtrUInt(a)+k),
+    PUCA_PropWeights(PtrUInt(b)+k),
+    a^.Data.WeightCount
+  );
+  if (a^.Left > 0) then begin
+    k := a^.Left;
+    CompareContextNode(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(a)+k),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(b)+k)
+    );
+  end;
+  if (a^.Right > 0) then begin
+    k := a^.Right;
+    CompareContextNode(
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(a)+k),
+      PUCA_PropItemContextTreeNodeRec(PtrUInt(b)+k)
+    );
+  end;
+end;
+
+procedure CompareContext(AProp1, AProp2 : PUCA_PropItemContextTreeRec);
+var
+  a, b : PUCA_PropItemContextTreeNodeRec;
+  k : Integer;
+begin
+  if (AProp1=nil) then begin
+    Check(AProp2=nil);
+    exit;
+  end;
+  Check(AProp1^.Size=AProp2^.Size);
+  k := Cardinal(AProp1^.Size);
+  a := PUCA_PropItemContextTreeNodeRec(PtrUInt(AProp1)+k);
+  b := PUCA_PropItemContextTreeNodeRec(PtrUInt(AProp2)+k);
+  CompareContextNode(a,b);
+end;
+
+procedure CompareProps(const AProp1, AProp2 : PUCA_PropItemRec; const ADataLen : Integer);
+var
+  a, b, pend : PUCA_PropItemRec;
+  wa, wb : array of TUCA_PropWeights;
+  k : Integer;
+begin
+  if (ADataLen <= 0) then
+    exit;
+  a := PUCA_PropItemRec(AProp1);
+  b := PUCA_PropItemRec(AProp2);
+  pend := PUCA_PropItemRec(PtrUInt(AProp1)+ADataLen);
+  while (a<pend) do begin
+    Check(a^.WeightLength=b^.WeightLength);
+    Check(a^.ChildCount=b^.ChildCount);
+    Check(a^.Size=b^.Size);
+    Check(a^.Flags=b^.Flags);
+    if a^.HasCodePoint() then
+      Check(a^.CodePoint = b^.CodePoint);
+    if (a^.WeightLength > 0) then begin
+      k := a^.WeightLength;
+      SetLength(wa,k);
+      SetLength(wb,k);
+      a^.GetWeightArray(@wa[0]);
+      b^.GetWeightArray(@wb[0]);
+      CompareWeights(@wa[0],@wb[0],k);
+    end;
+    if a^.Contextual then
+      CompareContext(a^.GetContext(),b^.GetContext());
+    Check(a^.GetSelfOnlySize()=b^.GetSelfOnlySize());
+    k := a^.GetSelfOnlySize();
+    a := PUCA_PropItemRec(PtrUInt(a)+k);
+    b := PUCA_PropItemRec(PtrUInt(b)+k);
+  end;
 end;
 
 initialization

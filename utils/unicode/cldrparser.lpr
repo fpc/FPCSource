@@ -23,9 +23,6 @@ program cldrparser;
 
 {$mode objfpc}{$H+}
 
-{ $define test_suite} // Define this to execute the parser test suite.
-{$define actual_parsing}
-
 uses
   SysUtils, classes, getopts,
   cldrhelper, helper, cldrtest, cldrxml, unicodeset;
@@ -34,7 +31,7 @@ const
   SUsageText =
     'This program creates pascal units from CLDR''s collation files for usage ' + sLineBreak +
     'with the FreePascal Native Unicode Manager.' + sLineBreak + sLineBreak +
-    'Usage : cldrparser <collationFileName> [<typeName>] [-d<dataDir>] [-o<outputDir>]' + sLineBreak + sLineBreak +
+    'Usage : cldrparser <collationFileName> [<typeName>] [-d<dataDir>] [-o<outputDir>] [-t]' + sLineBreak + sLineBreak +
     '  where :' + sLineBreak +
     ' ' + sLineBreak +
     '   - collationFileName : specify the target file.' + sLineBreak +
@@ -49,6 +46,7 @@ const
     '               The default value is the program''s directory.' + sLineBreak +
     '   - outputDir : specify the directory where the generated files will be stored.' + sLineBreak +
     '                 The default value is the program''s directory.' + sLineBreak +
+    '   - t : to execute parser the test suite. The program will execute only the test suite and exit.' + sLineBreak +
     ' ' + sLineBreak +
     '  The program expects some files to be present in the <dataDir> folder : ' + sLineBreak +
     '     - UCA_Rules_SHORT.xml found in the CollationAuxiliary.zip available on unicode.org' + sLineBreak +
@@ -57,7 +55,11 @@ const
 
 
 function ParseOptions(
-  var ADataDir, AOuputDir, ACollationFileName, ACollationTypeName : string
+  var ADataDir,
+      AOuputDir,
+      ACollationFileName,
+      ACollationTypeName : string;
+  var AExecTestSuite     : Boolean
 ) : Boolean;
 var
   c : Char;
@@ -67,8 +69,9 @@ begin
   if (ParamCount() = 0) then
     exit(False);
   Result := True;
+  AExecTestSuite := False;
   repeat
-    c := GetOpt('d:o:h');
+    c := GetOpt('d:o:ht');
     case c of
       'd' : ADataDir := ExpandFileName(Trim(OptArg));
       'o' : AOuputDir := ExpandFileName(Trim(OptArg));
@@ -77,6 +80,7 @@ begin
           WriteLn(SUsageText);
           Result := False;
         end;
+      't' : AExecTestSuite := True;
     end;
   until (c = EndOfOptions);
   idx := 0;
@@ -97,24 +101,25 @@ end;
 var
   orderedChars : TOrderedCharacters;
   ucaBook : TUCA_DataBook;
-  stream, endianStream : TMemoryStream;
+  stream, streamNE, streamOE : TMemoryStream;
   s, collationFileName, collationTypeName : string;
   i , c: Integer;
   collation : TCldrCollation;
   dataPath, outputPath : string;
   collationItem : TCldrCollationItem;
+  testSuiteFlag : Boolean;
 begin
-{$ifdef test_suite}
-  exec_tests();
-{$endif test_suite}
-
-{$ifdef actual_parsing}
   dataPath := '';
   outputPath := '';
   collationFileName := '';
   collationTypeName := '';
-  if not ParseOptions(dataPath,outputPath,collationFileName,collationTypeName) then
+  testSuiteFlag := False;
+  if not ParseOptions(dataPath,outputPath,collationFileName,collationTypeName,testSuiteFlag) then
     Halt(1);
+  if testSuiteFlag then begin
+    exec_tests();
+    Halt;
+  end;
   if (dataPath <> '') and not(DirectoryExists(dataPath)) then begin
     WriteLn('This directory does not exist : ',dataPath);
     Halt(1);
@@ -148,7 +153,8 @@ begin
 
   WriteLn(sLineBreak,'Collation Parsing ',QuotedStr(collationFileName),'  ...');
   stream := nil;
-  endianStream := nil;
+  streamNE := nil;
+  streamOE := nil;
   collation := TCldrCollation.Create();
   try
     ParseCollationDocument(collationFileName,collation,TCldrParserMode.HeaderParsing);
@@ -186,23 +192,25 @@ begin
 
       WriteLn('Start generation ...');
       stream.Clear();
-      endianStream := TMemoryStream.Create();
+      streamNE := TMemoryStream.Create();
+      streamOE := TMemoryStream.Create();
       s := COLLATION_FILE_PREFIX + ChangeFileExt(LowerCase(ExtractFileName(collationFileName)),'.pas');
       GenerateCdlrCollation(
-        collation,collationTypeName,s,stream,endianStream,
+        collation,collationTypeName,s,stream,streamNE,streamOE,
         orderedChars,ucaBook.Lines
       );
       stream.SaveToFile(ExtractFilePath(collationFileName)+s);
-      if (endianStream.Size > 0) then
-        endianStream.SaveToFile(ExtractFilePath(collationFileName)+GenerateEndianIncludeFileName(s));
+      if (streamNE.Size > 0) then begin
+        streamNE.SaveToFile(ExtractFilePath(collationFileName)+GenerateEndianIncludeFileName(s,ENDIAN_NATIVE));
+        streamOE.SaveToFile(ExtractFilePath(collationFileName)+GenerateEndianIncludeFileName(s,ENDIAN_NON_NATIVE));
+      end;
     end;
   finally
-    endianStream.Free();
+    streamOE.Free();
+    streamNE.Free();
     stream.Free();
     collation.Free();
   end;
-
-{$endif actual_parsing}
 
   WriteLn(sLineBreak,'Finished.');
 end.

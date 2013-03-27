@@ -73,18 +73,18 @@ uses
 
 const
   s_AT     = 'at';
-  s_BEFORE = 'before';
+  //s_BEFORE = 'before';
   s_CODEPOINT = 'codepoint';
   s_COLLATION = 'collation';
   s_COLLATIONS = 'collations';
   s_CONTEXT = 'context';
-  s_DEFAULT    = 'default';
+  //s_DEFAULT    = 'default';
   s_EXTEND = 'extend';
   s_HEX       = 'hex';
   s_POSITION = 'position';
   s_RESET = 'reset';
   s_RULES = 'rules';
-  s_STANDART = 'standard';
+  //s_STANDART = 'standard';
   s_TYPE     = 'type';
 
 procedure CheckNodeName(ANode : TDOMNode; const AExpectedName : DOMString);
@@ -225,23 +225,6 @@ var
      SetLength(statement^.Elements,k);
     end;
   end;
-
-  {procedure AddElement(AText : DOMString; AWeigthKind : TReorderWeigthKind);overload;
-  var
-    u4str : UCS4String;
-    k : Integer;
-    kp : PReorderUnit;
-  begin
-    u4str := WideStringToUCS4String(AText);
-    EnsureElementLength(elementActualCount+1);
-    kp := @statement^.Elements[elementActualCount];
-    k := Length(u4str) - 1{null terminated};
-   SetLength(kp^.Characters,k);
-    for k := 0 to k - 1 do
-      kp^.Characters[k] := u4str[k];
-    kp^.WeigthKind:= AWeigthKind;
-    elementActualCount := elementActualCount + 1;
-  end;}
 
   procedure AddElement(
     const AChars      : array of UCS4Char;

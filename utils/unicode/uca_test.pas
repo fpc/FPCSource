@@ -135,8 +135,6 @@ begin
     ok := False;
     kc := p^.ChildCount - 1;
     p := PUCA_PropItemRec(PtrUInt(p) + p^.GetSelfOnlySize());
-    if (i > 1) then
-      p := PUCA_PropItemRec(PtrUInt(p) + SizeOf(UInt24));
     for k := 0 to kc do begin
       if (AWord[i] = p^.CodePoint) then begin
         ok := True;
