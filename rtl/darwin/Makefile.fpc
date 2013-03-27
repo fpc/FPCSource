@@ -13,13 +13,14 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       unix initc cmem matrix dynlibs $(CPU_UNITS) \
       dos dl objects printer sockets \
       sysutils typinfo fgl classes math varutils types \
-      charset cpall character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
+      charset cpall buildcollations character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio video crt mouse keyboard  \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp
 implicitunits=exeinfo \
-      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5
+      cp1251 cp1252 cp1253 cp437 cp646 cp850 cp866 cp8859_1 cp8859_5 \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
 
@@ -288,6 +289,9 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
