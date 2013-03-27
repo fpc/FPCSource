@@ -30,6 +30,7 @@ nortl=y
 
 [install]
 fpcpackage=y
+buildunit=buildcollations
 
 [default]
 fpcdir=../..

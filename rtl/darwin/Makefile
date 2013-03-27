@@ -996,6 +996,7 @@ endif
 ifeq ($(FULL_TARGET),jvm-android)
 override TARGET_RSTS+=math varutils typinfo classes variants dateutils sysconst rtlconsts
 endif
+override INSTALL_BUILDUNIT=buildcollations
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
