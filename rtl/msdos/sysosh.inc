@@ -17,7 +17,7 @@
 
 {Platform specific information}
 type
-  THandle = Longint;
+  THandle = Word;
   TThreadID = THandle;
 
    PRTLCriticalSection = ^TRTLCriticalSection;
