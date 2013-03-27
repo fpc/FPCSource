@@ -42,7 +42,7 @@ unit tgcpu;
         protected
          procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
          function getifspecialtemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference): boolean;
-         function alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint; override;
+         procedure alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference); override;
         public
          procedure setfirsttemp(l : longint); override;
          procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
@@ -215,7 +215,7 @@ unit tgcpu;
       end;
 
 
-    function ttgjvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint;
+    procedure ttgjvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference);
       begin
         { the JVM only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
           FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
@@ -227,7 +227,7 @@ unit tgcpu;
           internalerror(2010121401);
         { don't pass on "def", since we don't care if a slot is used again for a
           different type }
-        result:=inherited alloctemp(list, size shr 2, 1, temptype, nil);
+        inherited alloctemp(list, size shr 2, 1, temptype, nil,ref);
       end;
 
 
