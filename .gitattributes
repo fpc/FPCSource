@@ -8202,6 +8202,7 @@ rtl/morphos/videodata.inc svneol=native#text/plain
 rtl/msdos/Makefile svneol=native#text/plain
 rtl/msdos/Makefile.fpc svneol=native#text/plain
 rtl/msdos/prt0.asm svneol=native#text/plain
+rtl/msdos/registers.inc svneol=native#text/plain
 rtl/msdos/sysdir.inc svneol=native#text/plain
 rtl/msdos/sysfile.inc svneol=native#text/plain
 rtl/msdos/sysheap.inc svneol=native#text/plain

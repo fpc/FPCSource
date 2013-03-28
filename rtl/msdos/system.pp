@@ -65,6 +65,15 @@ implementation
 
 {$I system.inc}
 
+{$I registers.inc}
+
+procedure Intr(IntNo: Byte; var Regs: Registers); external name 'FPC_INTR';
+
+procedure MsDos(var Regs: Registers);
+begin
+  Intr($21, Regs);
+end;
+
 procedure DebugWrite(const S: string);
 begin
   asm
