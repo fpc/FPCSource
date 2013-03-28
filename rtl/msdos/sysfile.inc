@@ -52,7 +52,21 @@ end;
 
 
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
+var
+  regs: Registers;
 begin
+  regs.AH := $3F;
+  regs.BX := h;
+  regs.CX := len;
+  regs.DS := DSeg;
+  regs.DX := Word(addr);
+  MsDos(regs);
+  if (regs.Flags and FCarry) <> 0 then
+  begin
+    GetInOutRes(regs.AX);
+    exit(0);
+  end;
+  do_read := regs.AX;
 end;
 
 
