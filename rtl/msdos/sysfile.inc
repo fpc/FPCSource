@@ -33,15 +33,16 @@ end;
 
 
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
+var
+  regs: Registers;
 begin
+  regs.AH := $40;
+  regs.BX := h;
+  regs.CX := len;
+  regs.DS := DSeg;
+  regs.DX := Word(addr);
+  MsDos(regs);
   { TODO: add error checking }
-  asm
-    mov ah, 40h
-    mov bx, h
-    mov cx, len
-    mov dx, addr
-    int 21h
-  end ['ax','bx','cx','dx'];
   do_write := len;
 end;
 
@@ -83,19 +84,12 @@ end;
 
 
 function do_isdevice(handle:THandle):boolean;
-label
-  no_device;
+var
+  regs: Registers;
 begin
+  regs.AX := $4400;
+  regs.BX := handle;
+  MsDos(regs);
   { TODO: add error checking }
-  asm
-    mov ax, 4400h
-    mov bx, handle
-    int 21h
-    xor al, al
-    test dl, 80h
-    jz no_device
-    inc al
-no_device:
-    mov do_isdevice, al
-  end ['ax','bx','dx'];
+  do_isdevice := (regs.DL and $80) <> 0;
 end;
