@@ -42,8 +42,12 @@ begin
   regs.DS := DSeg;
   regs.DX := Word(addr);
   MsDos(regs);
-  { TODO: add error checking }
-  do_write := len;
+  if (regs.Flags and fCarry) <> 0 then
+  begin
+    GetInOutRes(regs.AX);
+    exit(0);
+  end;
+  do_write := regs.AX;
 end;
 
 
@@ -90,6 +94,7 @@ begin
   regs.AX := $4400;
   regs.BX := handle;
   MsDos(regs);
-  { TODO: add error checking }
   do_isdevice := (regs.DL and $80) <> 0;
+  if (regs.Flags and fCarry) <> 0 then
+   GetInOutRes(regs.AX);
 end;

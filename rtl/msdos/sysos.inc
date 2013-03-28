@@ -14,3 +14,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+procedure GetInOutRes(def: Word);
+var
+  regs : Registers;
+begin
+  regs.AX:=$5900;
+  regs.BX:=$0;
+  MsDos(regs);
+  InOutRes:=regs.AX;
+  case InOutRes of
+   19 : InOutRes:=150;
+   21 : InOutRes:=152;
+   32 : InOutRes:=5;
+  end;
+  if InOutRes=0 then
+    InOutRes:=Def;
+end;
+

@@ -63,6 +63,9 @@ procedure DebugWriteLn(const S: string);
 
 implementation
 
+const
+  fCarry = 1;
+
 {$I registers.inc}
 
 procedure Intr(IntNo: Byte; var Regs: Registers); external name 'FPC_INTR';
