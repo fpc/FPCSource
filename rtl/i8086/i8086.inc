@@ -24,6 +24,24 @@ asm
   mov ax, sp
 end;
 
+{$define FPC_SYSTEM_HAS_CSEG}
+function CSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+asm
+  mov ax, cs
+end;
+
+{$define FPC_SYSTEM_HAS_DSEG}
+function DSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+asm
+  mov ax, ds
+end;
+
+{$define FPC_SYSTEM_HAS_SSEG}
+function SSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+asm
+  mov ax, ss
+end;
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;nostackframe;assembler;
 asm

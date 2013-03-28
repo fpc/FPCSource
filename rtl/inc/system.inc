@@ -657,20 +657,26 @@ Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
 
+{$ifndef FPC_SYSTEM_HAS_CSEG}
 Function CSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Cseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_CSEG}
 
+{$ifndef FPC_SYSTEM_HAS_DSEG}
 Function DSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Dseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_DSEG}
 
+{$ifndef FPC_SYSTEM_HAS_SSEG}
 Function SSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Sseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_SSEG}
 
 
 
