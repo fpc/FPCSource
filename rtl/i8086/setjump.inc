@@ -31,6 +31,22 @@ asm
 end;
 
 
-Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
+Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
+  mov bx, ax
+  mov ax, dx
+  test ax, ax
+  jnz @@L1
+  inc ax
+@@L1:
+  mov si, word [bx + Jmp_buf.si]
+  mov di, word [bx + Jmp_buf.di]
+  mov dx, word [bx + Jmp_buf.pc]
+  mov bp, word [bx + Jmp_buf.bp]
+  mov sp, word [bx + Jmp_buf.sp]
+  mov bx, word [bx + Jmp_buf.bx]
+  // we should also clear the fpu
+  // fninit no must be done elsewhere PM
+  // or we should reset the control word also
+  jmp dx
 end;

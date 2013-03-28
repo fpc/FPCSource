@@ -21,4 +21,4 @@ Type
   PJmp_buf = ^jmp_buf;
 
 Function Setjmp (Var S : Jmp_buf) : smallint; [external name 'FPC_SETJMP'];
-Procedure longjmp (Var S : Jmp_buf; value : longint); [external name 'FPC_LONGJMP'];
+Procedure longjmp (Var S : Jmp_buf; value : smallint); [external name 'FPC_LONGJMP'];
