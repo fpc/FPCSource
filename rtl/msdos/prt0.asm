@@ -27,6 +27,7 @@ FPC_INTR:
 	push bx
 	push cx
 	push si
+        push dx
 	push ds
 	mov si, dx
 	mov ax, word [si + 16]
@@ -74,6 +75,7 @@ int_number:
 	mov word [si + 18], ax
 	
 	pop ds
+        pop dx
 	pop si
 	pop cx
 	pop bx
