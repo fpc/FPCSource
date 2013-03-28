@@ -14,6 +14,10 @@
 	mov es, ax
 	jmp PASCALMAIN
 
+        global FPC_MSDOS
+FPC_MSDOS:
+        mov dx, ax
+        mov al, 21h
 	global FPC_INTR
 FPC_INTR:
 	mov byte [cs:int_number], al
