@@ -2596,7 +2596,12 @@ implementation
         sym1:TObjSymbol absolute item1;
         sym2:TObjSymbol absolute item2;
       begin
-        result:=sym1.address-sym2.address;
+        if sym1.address>sym2.address then
+          result:=1
+        else if sym1.address<sym2.address then
+          result:=-1
+        else
+          result:=0;
       end;
 
 
@@ -3023,7 +3028,7 @@ implementation
           if assigned(exemap) then
             begin
               objsym:=objreloc.symbol;
-              if assigned(objsym) then
+              if assigned(objsym) and (objsym.typ<>AT_SECTION) then
                 exemap.Add('  References  '+objsym.name+' in '
                   +refobjsec.fullname)
               else
