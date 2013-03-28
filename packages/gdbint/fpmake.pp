@@ -24,13 +24,20 @@ begin
 
   // First try the environment setting GDBLIBDIR
   GdbLibDir := GetEnvironmentVariable('GDBLIBDIR');
-  if (GdbLibDir<>'') and DirectoryExists(GdbLibDir) then
+  if (GdbLibDir<>'') then
     begin
-      GdbLibFile:=IncludeTrailingPathDelimiter(GdbLibDir)+GdbLibName;
-      if not FileExists(GdbLibFile) then
-        Installer.BuildEngine.Log(vlCommand,'GDBLIBDIR environment variable set, but libgdb not found. ('+GdbLibFile+')')
+      if DirectoryExists(GdbLibDir) then
+        begin
+          GdbLibFile:=IncludeTrailingPathDelimiter(GdbLibDir)+GdbLibName;
+          if not FileExists(GdbLibFile) then
+            Installer.BuildEngine.Log(vlCommand,
+              'GDBLIBDIR environment variable set, but libgdb not found. ('+GdbLibFile+')')
+          else
+            GdbLibFound:=true;
+        end
       else
-        GdbLibFound:=true;
+        Installer.BuildEngine.Log(vlCommand,
+          'GDBLIBDIR environment variable set, but directory does not exist. ('+GdbLibDir+')');
     end;
 
   // Try the default locations
@@ -54,6 +61,10 @@ begin
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
 
+  if GdbLibFound then
+    Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
+  else
+    Installer.BuildEngine.Log(vlCommand,'File libgdb.a not found');
   // When we're cross-compiling, running the gdbver executable to detect the
   // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
   // is performed.
@@ -168,6 +179,9 @@ begin
         begin
           AddInclude('gdbver.inc');
         end;
+    P.ExamplePath.add('tests');
+    P.Targets.AddExampleProgram('testgdb.pp');
+    P.Targets.AddExampleProgram('simify.pp');
     end;
 end;
 
