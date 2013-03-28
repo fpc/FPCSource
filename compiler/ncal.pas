@@ -3150,8 +3150,6 @@ implementation
                 hpt:=methodpointer;
                 while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                   hpt:=tunarynode(hpt).left;
-                { skip (absolute and other simple) type conversions }
-                hpt:=hpt.actualtargetnode;
 
                 if ((hpt.nodetype=loadvmtaddrn) or
                    ((hpt.nodetype=loadn) and assigned(tloadnode(hpt).resultdef) and (tloadnode(hpt).resultdef.typ=classrefdef))) and
@@ -3166,6 +3164,11 @@ implementation
                   (symtableproc.symtabletype=withsymtable) and
                   (tnode(twithsymtable(symtableproc).withrefnode).nodetype=temprefn) then
                  CGmessage(cg_e_cannot_call_cons_dest_inside_with);
+
+               { skip (absolute and other simple) type conversions -- only now,
+                 because the checks above have to take type conversions into
+                 e.g. class reference types account }
+               hpt:=hpt.actualtargetnode;
 
                { R.Init then R will be initialized by the constructor,
                  Also allow it for simple loads }
