@@ -54,6 +54,7 @@ interface
           procedure release_unused_return_value;
           procedure copy_back_paras;
           procedure release_para_temps;
+          procedure reorder_parameters;
           procedure pushparas;
           procedure freeparas;
        protected
@@ -134,6 +135,77 @@ implementation
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location.reference,tempcgpara);
+      end;
+
+
+    procedure tcgcallnode.reorder_parameters;
+      var
+        hpcurr,hpprev,hpnext,hpreversestart : tcgcallparanode;
+        currloc : tcgloc;
+      begin
+        { All parameters are now in temporary locations. If we move them to
+          their regular locations in the same order, then we get the
+          following pattern for register parameters:
+            mov para1, tempreg1
+            mov para2, tempreg2
+            mov para3, tempreg3
+            mov tempreg1, parareg1
+            mov tempreg2, parareg2
+            mov tempreg3, parareg3
+
+          The result is that all tempregs conflict with all pararegs.
+          A better solution is to use:
+            mov para1, tempreg1
+            mov para2, tempreg2
+            mov para3, tempreg3
+            mov tempreg3, parareg3
+            mov tempreg2, parareg2
+            mov tempreg1, parareg1
+          This way, tempreg2 can be the same as parareg1 etc.
+
+          To achieve this, we invert the order of all LOC_XREGISTER
+          paras (JM).
+        }
+        hpcurr:=tcgcallparanode(left);
+        { assume all LOC_REFERENCE parameters come first
+          (see tcallnode.order_parameters)
+        }
+        hpreversestart:=nil;
+        while assigned(hpcurr) do
+          begin
+            if not(hpcurr.parasym.paraloc[callerside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              hpreversestart:=hpcurr;
+            hpcurr:=tcgcallparanode(hpcurr.right);
+          end;
+
+        { since all register tempparalocs have basically a complexity of 1,
+          (unless there are large stack offsets that require a temp register on
+          some architectures, but that's minor), we don't have to care about
+          the internal relative order of different register type parameters
+        }
+        hpprev:=nil;
+        hpcurr:=tcgcallparanode(left);
+        while (hpcurr<>hpreversestart) do
+          begin
+            hpnext:=tcgcallparanode(hpcurr.right);
+            if not(hpcurr.parasym.paraloc[callerside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              begin
+                { remove hpcurr from chain }
+                if assigned(hpprev) then
+                  hpprev.right:=hpnext
+                else
+                  left:=hpnext;
+                { insert right after hpreversestart, so every element will
+                  be inserted right before the previously moved one ->
+                  reverse order; hpreversestart itself is the last register
+                  parameter }
+                hpcurr.right:=hpreversestart.right;
+                hpreversestart.right:=hpcurr;
+              end
+            else
+              hpprev:=hpcurr;
+            hpcurr:=hpnext;
+          end;
       end;
 
 
@@ -839,6 +911,7 @@ implementation
                    correct parameter register }
                  if assigned(left) then
                    begin
+                     reorder_parameters;
                      pushparas;
                      { free the resources allocated for the parameters }
                      freeparas;
@@ -866,6 +939,7 @@ implementation
                     correct parameter register }
                   if assigned(left) then
                     begin
+                      reorder_parameters;
                       pushparas;
                       { free the resources allocated for the parameters }
                       freeparas;
