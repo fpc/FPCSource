@@ -478,6 +478,10 @@ procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
+{$if defined(CPU16) or defined(CPU8)}
+Procedure fpc_Read_Text_LongWord(var f : text; out q : longword); compilerproc;
+Procedure fpc_Read_Text_LongInt(var f : text; out i : longint); compilerproc;
+{$endif CPU16 or CPU8}
 function fpc_GetBuf(var f : Text) : pchar; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 

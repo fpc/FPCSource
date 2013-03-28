@@ -1737,6 +1737,52 @@ End;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_Read_Text_LongWord(var f : text; out q : longword); iocheck; compilerproc;
+var
+  hs   : String;
+  code : longint;
+Begin
+  q:=0;
+  If not CheckRead(f) then
+    exit;
+  hs:='';
+  if IgnoreSpaces(f) then
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
+  val(hs,q,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
+
+procedure fpc_Read_Text_LongInt(var f : text; out i : longint); iocheck; compilerproc;
+var
+  hs   : String;
+  code : Longint;
+Begin
+  i:=0;
+  If not CheckRead(f) then
+    exit;
+  hs:='';
+  if IgnoreSpaces(f) then
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
+  Val(hs,i,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
+{$endif CPU16 or CPU8}
+
 
 
 {*****************************************************************************
