@@ -757,12 +757,12 @@ end;
 
 Function ReplaceStr(const AText, AFromText, AToText: string): string;inline;
 begin
-  AnsiReplaceStr(AText, AFromText, AToText);
+  result:=AnsiReplaceStr(AText, AFromText, AToText);
 end;
 
 Function ReplaceText(const AText, AFromText, AToText: string): string;inline;
 begin
-  AnsiReplaceText(AText, AFromText, AToText);
+  result:=AnsiReplaceText(AText, AFromText, AToText);
 end;
 
 { ---------------------------------------------------------------------
