@@ -17,6 +17,7 @@
 	global FPC_INTR
 FPC_INTR:
 	mov byte [cs:int_number], al
+        push bp
 	push es
 	push di
 	push bx
@@ -74,6 +75,7 @@ int_number:
 	pop bx
 	pop di
 	pop es
+        pop bp
 	ret
 
 	segment stack stack class=stack
