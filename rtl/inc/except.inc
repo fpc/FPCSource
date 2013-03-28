@@ -85,7 +85,7 @@ begin
 end;
 
 
-Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
+Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
 var
   _ExceptAddrstack : ^PExceptAddr;

@@ -422,8 +422,10 @@ implementation
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
       const
 {$ifdef cpu16bitalu}
+        pushexceptaddr_frametype_cgsize = OS_S16;
         setjmp_result_cgsize = OS_S16;
 {$else cpu16bitalu}
+        pushexceptaddr_frametype_cgsize = OS_S32;
         setjmp_result_cgsize = OS_S32;
 {$endif cpu16bitalu}
       var
@@ -440,7 +442,7 @@ implementation
         cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
         cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
         { push type of exceptionframe }
-        cg.a_load_const_cgpara(list,OS_S32,1,paraloc1);
+        cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
