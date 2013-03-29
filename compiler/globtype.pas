@@ -41,6 +41,8 @@ interface
 {$endif symansistr}
        PSymStr = ^TSymStr;
 
+       Int32 = Longint;
+
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}
        PUint = qword;
