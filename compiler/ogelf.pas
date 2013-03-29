@@ -113,6 +113,7 @@ interface
        end;
 
        TElfsecheaderarray=array of TElfsechdr;
+       TObjSymbolClass=class of TObjSymbol;
 
        TElfObjInput=class(TObjInput)
        private
@@ -133,6 +134,7 @@ interface
          localsyms: longword;
          symversions: PWord;
          dynobj: boolean;
+         CObjSymbol: TObjSymbolClass;
          verdefs: TFPHashObjectList;
          function LoadHeader(out objdata:TObjData):boolean;
          procedure LoadSection(const shdr:TElfsechdr;index:longint;objdata:TObjData);
@@ -162,6 +164,13 @@ interface
          constructor create(const n:string);override;
          destructor destroy;override;
          property versiondefs:TFPHashObjectList read FVersionDefs;
+       end;
+
+       TVersionedObjSymbol = class(TObjSymbol)
+       private
+         FVersion: TElfVersionDef;
+       public
+         property version: TElfVersionDef read FVersion write FVersion;
        end;
 
        TRelocNameProc=function(reltyp:byte):string;
@@ -246,6 +255,7 @@ interface
          function CreateSegment(atype,aflags,aalign:longword):TElfSegment;
          procedure WriteHeader;
          procedure WriteDynamicSymbolsHash;
+         procedure WriteVersionSections;
          procedure WriteDynamicTags;
          procedure FinishDynamicTags;
          procedure exesection_write_header(p:TObject;arg:Pointer);
@@ -1280,6 +1290,7 @@ implementation
       begin
         inherited Create;
         CObjData:=TElfObjData;
+        CObjSymbol:=TObjSymbol;
       end;
 
 
@@ -1433,7 +1444,7 @@ implementation
             { validity of name and objsection has been checked above }
             { !! all AT_SECTION symbols have duplicate (null) name,
               therefore TObjSection.CreateSymbol cannot be used here }
-            objsym:=TObjSymbol.Create(objdata.ObjSymbolList,string(PChar(@strtab[sym.st_name])));
+            objsym:=CObjSymbol.Create(objdata.ObjSymbolList,string(PChar(@strtab[sym.st_name])));
             objsym.bind:=bind;
             objsym.typ:=typ;
             if bind<>AB_COMMON then
@@ -1441,6 +1452,8 @@ implementation
             objsym.offset:=sym.st_value;
             objsym.size:=sym.st_size;
             FSymTbl[i]:=objsym;
+            if (ver>VER_NDX_GLOBAL) then
+              TVersionedObjSymbol(objsym).version:=TElfVersionDef(verdefs[ver]);
           end;
       end;
 
@@ -1627,6 +1640,7 @@ implementation
           begin
             objdata:=TElfDynamicObjData.Create(InputFilename);
             verdefs:=TElfDynamicObjData(objdata).versiondefs;
+            CObjSymbol:=TVersionedObjSymbol;
           end
         else
           objdata:=CObjData.Create(InputFilename);
@@ -2453,7 +2467,10 @@ implementation
         FixupSymbols;
 
         if dynamiclink then
-          WriteDynamicSymbolsHash;
+          begin
+            WriteVersionSections;
+            WriteDynamicSymbolsHash;
+          end;
 
         { Create .shstrtab section, which is needed in both exe and .dbg files }
         shstrtabsect:=TElfObjSection.Create_ext(internalObjData,'.shstrtab',SHT_STRTAB,0,1,0);
@@ -2893,6 +2910,104 @@ implementation
             hashdata[i]:=swapendian(hashdata[i]);
         hashobjsec.write(hashdata^,(2+nchains+nbuckets)*sizeof(longint));
         freemem(hashdata);
+      end;
+
+
+    procedure TElfExeOutput.WriteVersionSections;
+      var
+        i,j: longint;
+        idx,auxidx: longword;
+        exesym: TExeSymbol;
+        dynobj: TElfDynamicObjData;
+        ver: TElfVersionDef;
+        vn: TElfverneed;
+        vna: TElfvernaux;
+        symversions: pword;
+      begin
+        symversions:=AllocMem((dynsymlist.count+1)*sizeof(word));
+        { Assign version indices }
+        idx:=VER_NDX_GLOBAL+1;
+        for i:=0 to dynsymlist.count-1 do
+          begin
+            exesym:=TExeSymbol(dynsymlist[i]);
+            if (exesym.objsymbol.indsymbol is TVersionedObjSymbol) then
+              ver:=TVersionedObjSymbol(exesym.objsymbol.indsymbol).version
+            else
+              ver:=nil;
+            if assigned(ver) then
+              begin
+                if ver.index=0 then
+                  begin
+                    ver.index:=idx;
+                    inc(idx);
+                  end;
+                symversions[i+1]:=ver.index;
+              end
+            else if exesym.state in [symstate_undefined,symstate_undefweak] then
+              symversions[i+1]:=VER_NDX_LOCAL
+            else
+              symversions[i+1]:=VER_NDX_GLOBAL;
+          end;
+
+        { Count entries to be written }
+        verneedcount:=0;
+        for i:=0 to neededlist.count-1 do
+          begin
+            dynobj:=TElfDynamicObjData(neededlist[i]);
+            dynobj.vernaux_count:=0;
+            for j:=2 to dynobj.versiondefs.count-1 do
+              begin
+                ver:=TElfVersionDef(dynobj.versiondefs[j]);
+                if ver.index>VER_NDX_GLOBAL then
+                  inc(dynobj.vernaux_count);
+              end;
+            if (dynobj.vernaux_count>0) then
+              inc(verneedcount);
+          end;
+
+        { Now write }
+        idx:=0;
+        for i:=0 to neededlist.count-1 do
+          begin
+            dynobj:=TElfDynamicObjData(neededlist[i]);
+            if dynobj.vernaux_count=0 then
+              continue;
+            inc(idx);
+            vn.vn_version:=VER_NEED_CURRENT;
+            vn.vn_cnt:=dynobj.vernaux_count;
+            vn.vn_file:=dynobj.soname_strofs;
+            vn.vn_aux:=sizeof(TElfverneed);
+            vn.vn_next:=ord(idx<verneedcount)*(sizeof(TElfverneed)+vn.vn_cnt*sizeof(TElfvernaux));
+            MaybeSwapElfverneed(vn);
+            verneedsec.write(vn,sizeof(TElfverneed));
+
+            auxidx:=0;
+            for j:=2 to dynobj.versiondefs.count-1 do
+              begin
+                ver:=TElfVersionDef(dynobj.versiondefs[j]);
+                if ver.index<=VER_NDX_GLOBAL then
+                  continue;
+                inc(auxidx);
+                vna.vna_hash:=elfhash(ver.name);
+                vna.vna_flags:=0;   { BFD copies this from verdef.vd_flags?? }
+                vna.vna_other:=ver.index;
+                vna.vna_name:=dynsymtable.fstrsec.writestr(ver.name);
+                vna.vna_next:=ord(auxidx<dynobj.vernaux_count)*sizeof(TElfvernaux);
+                MaybeSwapElfvernaux(vna);
+                verneedsec.write(vna,sizeof(TElfvernaux));
+              end;
+          end;
+        TElfExeSection(verneedsec.ExeSection).shinfo:=verneedcount;
+
+        { If there are no needed versions, .gnu.version section is not needed }
+        if verneedcount>0 then
+          begin
+            if source_info.endian<>target_info.endian then
+              for i:=0 to dynsymlist.count+1 do
+                symversions[i]:=swapendian(symversions[i]);
+            symversec.write(symversions^,(dynsymlist.count+1)*sizeof(word));
+          end;
+        FreeMem(symversions);
       end;
 
 
