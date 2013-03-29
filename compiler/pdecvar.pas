@@ -1225,9 +1225,9 @@ implementation
           abssym : tabsolutevarsym;
           pt,hp  : tnode;
           st     : tsymtable;
-          {$ifdef i386}
+          {$if defined(i386) or defined(i8086)}
           tmpaddr : int64;
-          {$endif}
+          {$endif defined(i386) or defined(i8086)}
         begin
           abssym:=nil;
           { only allowed for one var }
@@ -1268,9 +1268,9 @@ implementation
              else
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
               abssym.absseg:=false;
-              if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                   try_to_consume(_COLON) then
                 begin
                   pt.free;

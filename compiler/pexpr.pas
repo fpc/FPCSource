@@ -1857,8 +1857,8 @@ implementation
                        arraydef:
                          begin
                            p2:=comp_expr(true,false);
-                           { support SEG:OFS for go32v2 Mem[] }
-                           if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                           { support SEG:OFS for go32v2/msdos Mem[] }
+                           if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                               (p1.nodetype=loadn) and
                               assigned(tloadnode(p1).symtableentry) and
                               assigned(tloadnode(p1).symtableentry.owner.name) and
