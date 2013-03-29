@@ -1,4 +1,4 @@
-unit dbf deprecated 'Abandoned by maintainer, no longer supported by FPC team. Help may be available at http://tdbf.sourceforge.net and http://sourceforge.net/projects/tdbf/forums/forum/107245';
+unit dbf;
 
 { design info in dbf_reg.pas }
 
