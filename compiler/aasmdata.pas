@@ -89,7 +89,8 @@ interface
          sp_objcvartypes,
          sp_objcprotocolrefs,
          sp_varsets,
-         sp_floats
+         sp_floats,
+         sp_guids
       );
       
     const

@@ -525,21 +525,35 @@ implementation
 
     procedure tcgguidconstnode.pass_generate_code;
       var
-        tmplabel : TAsmLabel;
-        i : integer;
+         lastlabel   : tasmlabel;
+         i           : longint;
+         entry       : PHashSetItem;
       begin
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
-        { label for GUID }
-        current_asmdata.getdatalabel(tmplabel);
-        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,tmplabel.name,const_align(16));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(tmplabel));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D3));
-        for i:=low(value.D4) to high(value.D4) do
-          current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(value.D4[i]));
-        location.reference.symbol:=tmplabel;
+        lastlabel:=nil;
+        { const already used ? }
+        if not assigned(lab_set) then
+          begin
+            entry := current_asmdata.ConstPools[sp_guids].FindOrAdd(@value,sizeof(value));
+            lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
+
+             { :-(, we must generate a new entry }
+             if not assigned(entry^.Data) then
+               begin
+                 current_asmdata.getdatalabel(lastlabel);
+                 lab_set:=lastlabel;
+                 entry^.Data:=lastlabel;
+                 maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(16));
+                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
+                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
+                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D3));
+                 for i:=low(value.D4) to high(value.D4) do
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(value.D4[i]));
+               end;
+          end;
+        location.reference.symbol:=lab_set;
       end;
 
 

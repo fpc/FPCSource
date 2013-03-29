@@ -168,6 +168,7 @@ interface
 
        tguidconstnode = class(tnode)
           value : tguid;
+          lab_set : tasmsymbol;
           constructor create(const g:tguid);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1144,6 +1145,7 @@ implementation
            value_set:=nil;
       end;
 
+
     destructor tsetconstnode.destroy;
       begin
         if assigned(value_set) then
@@ -1213,12 +1215,9 @@ implementation
       end;
 
 
-
     function tsetconstnode.dogetcopy : tnode;
-
       var
          n : tsetconstnode;
-
       begin
          n:=tsetconstnode(inherited dogetcopy);
          if assigned(value_set) then
@@ -1233,11 +1232,13 @@ implementation
          dogetcopy:=n;
       end;
 
+
     function tsetconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=typedef;
       end;
+
 
     function tsetconstnode.pass_1 : tnode;
       begin
@@ -1307,21 +1308,22 @@ implementation
 
 
     function tguidconstnode.dogetcopy : tnode;
-
       var
          n : tguidconstnode;
-
       begin
          n:=tguidconstnode(inherited dogetcopy);
          n.value:=value;
+         n.lab_set:=lab_set;
          dogetcopy:=n;
       end;
+
 
     function tguidconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=rec_tguid;
       end;
+
 
     function tguidconstnode.pass_1 : tnode;
       begin
@@ -1331,6 +1333,7 @@ implementation
           (tf_pic_uses_got in target_info.flags) then
           include(current_procinfo.flags,pi_needs_got);
       end;
+
 
     function tguidconstnode.docompare(p: tnode): boolean;
       begin
