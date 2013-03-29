@@ -1369,6 +1369,47 @@ implementation
       end;
 
 
+    function get_val_int_func(ordtype: tordtype): string;
+    const
+{$if defined(cpu64bitaddr)}
+      oversized_types = [];
+{$elseif defined(cpu32bitalu)}
+      oversized_types = [s64bit,u64bit];
+{$elseif defined(cpu16bitalu)}
+      oversized_types = [s64bit,u64bit,s32bit,u32bit];
+{$elseif defined(cpu8bitalu)}
+      oversized_types = [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
+{$endif}
+    begin
+      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032603);
+
+      if ordtype in oversized_types then
+        begin
+          case ordtype of
+            s64bit: exit('int64');
+            u64bit: exit('qword');
+            s32bit: exit('longint');
+            u32bit: exit('longword');
+            s16bit: exit('smallint');
+            u16bit: exit('word');
+            else
+              internalerror(2013032604);
+          end;
+        end
+      else
+        begin
+          case ordtype of
+            s64bit,s32bit,s16bit,s8bit: exit('sint');
+            u64bit,u32bit,u16bit,u8bit: exit('uint');
+            else
+              internalerror(2013032604);
+          end;
+        end;
+      internalerror(2013032605);
+    end;
+
+
     function tinlinenode.handle_val: tnode;
       var
         procname,
@@ -1490,29 +1531,15 @@ implementation
           orddef:
             begin
               case torddef(destpara.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-                s64bit,
-{$endif cpu64bitaddr}
-                s8bit,
-                s16bit,
-                s32bit:
+                s8bit,s16bit,s32bit,s64bit,
+                u8bit,u16bit,u32bit,u64bit:
                   begin
-                    suffix := 'sint_';
-                    { we also need a destsize para in this case }
-                    sizepara := ccallparanode.create(cordconstnode.create
-                      (destpara.resultdef.size,s32inttype,true),nil);
+                    suffix := get_val_int_func(torddef(destpara.resultdef).ordtype) + '_';
+                    { we also need a destsize para in the case of sint }
+                    if suffix = 'sint_' then
+                      sizepara := ccallparanode.create(cordconstnode.create
+                        (destpara.resultdef.size,s32inttype,true),nil);
                   end;
-{$ifdef cpu64bitaddr}
-                u64bit,
-{$endif cpu64bitaddr}
-                u8bit,
-                u16bit,
-                u32bit:
-                   suffix := 'uint_';
-{$ifndef cpu64bitaddr}
-                s64bit: suffix := 'int64_';
-                u64bit: suffix := 'qword_';
-{$endif not cpu64bitaddr}
                 scurrency: suffix := 'currency_';
                 else
                   internalerror(200304225);
