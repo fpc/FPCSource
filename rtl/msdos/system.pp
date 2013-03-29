@@ -49,6 +49,8 @@ var
   envp:PPchar; //!! public name 'operatingsystem_parameter_envp';
   dos_argv0 : pchar; //!! public name 'dos_argv0';
 
+  dos_psp:Word;public name 'dos_psp';
+
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
 { System info }
@@ -143,7 +145,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
-  GetProcessID := 1;
+  GetProcessID := dos_psp;
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
