@@ -44,8 +44,6 @@ FPC_INTR:
         mov si, dx
         mov ax, word [si + 16]
         mov es, ax
-        mov ax, word [si + 18]  ; flags
-        push ax
         mov ax, word [si + 14]  ; ds
         push ax
         mov ax, word [si]
@@ -57,7 +55,6 @@ FPC_INTR:
         mov si, word [si + 10]
         
         pop ds
-        popf
         db 0CDh  ; opcode of INT xx
 int_number:
         db 255
