@@ -43,6 +43,10 @@ const
   segB800 = $B800;
 
 var
+{ Mem[] support }
+  mem  : array[0..$7fff-1] of byte absolute $0:$0;
+  memw : array[0..($7fff div sizeof(word))-1] of word absolute $0:$0;
+  meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc:longint; //!! public name 'operatingsystem_parameter_argc';
   argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
