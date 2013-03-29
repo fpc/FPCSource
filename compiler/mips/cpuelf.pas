@@ -63,6 +63,27 @@ implementation
     end;
 
   const
+    { ELF header e_flags }
+    EF_MIPS_NOREORDER = 1;
+    EF_MIPS_PIC       = 2;
+    EF_MIPS_CPIC      = 4;
+    EF_MIPS_ABI       = $0000F000;
+      E_MIPS_ABI_O32    = $00001000;
+      E_MIPS_ABI_O64    = $00002000;
+      E_MIPS_ABI_EABI32 = $00003000;
+      E_MIPS_ABI_EABI64 = $00004000;
+    EF_MIPS_ARCH      = $F0000000;
+      E_MIPS_ARCH_1   = $00000000;    // -mips1
+      E_MIPS_ARCH_2   = $10000000;
+      E_MIPS_ARCH_3   = $20000000;
+      E_MIPS_ARCH_4   = $30000000;
+      E_MIPS_ARCH_5   = $40000000;
+      E_MIPS_ARCH_32  = $50000000;    // -mips32
+      E_MIPS_ARCH_64  = $60000000;
+      E_MIPS_ARCH_32R2= $70000000;    // -mips32r2
+      E_MIPS_ARCH_64R2= $80000000;
+
+
     { section types }
     SHT_MIPS_LIBLIST  = $70000000;
     SHT_MIPS_CONFLICT = $70000002;
@@ -70,6 +91,7 @@ implementation
     SHT_MIPS_UCODE    = $70000004;
     SHT_MIPS_DEBUG    = $70000005;
     SHT_MIPS_REGINFO  = $70000006;
+    SHT_MIPS_DWARF    = $7000001e;
 
     { section flags }
     SHF_MIPS_GPREL    = $10000000;
@@ -94,6 +116,20 @@ implementation
     R_MIPS_CALL_LO16 = 31;
     R_MIPS_JALR    = 37;
 
+    R_MIPS_TLS_DTPMOD32 = 38;
+    R_MIPS_TLS_DTPREL32 = 39;
+    R_MIPS_TLS_DTPMOD64 = 40;
+    R_MIPS_TLS_DTPREL64 = 41;
+    R_MIPS_TLS_GD = 42;
+    R_MIPS_TLS_LDM = 43;
+    R_MIPS_TLS_DTPREL_HI16 = 44;
+    R_MIPS_TLS_DTPREL_LO16 = 45;
+    R_MIPS_TLS_GOTTPREL = 46;
+    R_MIPS_TLS_TPREL32 = 47;
+    R_MIPS_TLS_TPREL64 = 48;
+    R_MIPS_TLS_TPREL_HI16 = 49;
+    R_MIPS_TLS_TPREL_LO16 = 50;
+
     { dynamic tags }
     DT_MIPS_RLD_VERSION  = $70000001;
     DT_MIPS_TIME_STAMP   = $70000002;
@@ -116,6 +152,9 @@ implementation
     RHF_QUICKSTART = 1;
     RHF_NOTPOT     = 2;
 
+    { TLS layout }
+    TP_OFFSET = $7000;
+    DTP_OFFSET = $8000;
 
   type
     TElfReginfo=record
@@ -136,6 +175,14 @@ implementation
             h.ri_cprmask[i]:=swapendian(h.ri_cprmask[i]);
           h.ri_gp_value:=swapendian(h.ri_gp_value);
         end;
+    end;
+
+
+  procedure putword(sec:TObjSection;d:longword);
+    begin
+      if source_info.endian<>target_info.endian then
+        d:=swapendian(d);
+      sec.write(d,4);
     end;
 
 {****************************************************************************
@@ -200,8 +247,6 @@ implementation
 
 
   procedure TElfExeOutputMIPS.CreateGOTSection;
-    var
-      tmp: longword;
     begin
       gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
         SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint));
@@ -220,10 +265,7 @@ implementation
       gnugpsym:=internalObjData.SymbolDefine('__gnu_local_gp',AB_GLOBAL,AT_NONE);
       { reserved entries }
       gotobjsec.WriteZeros(sizeof(pint));
-      tmp:=$80000000;
-      if target_info.endian<>source_info.endian then
-        tmp:=swapendian(tmp);
-      gotobjsec.Write(tmp,sizeof(pint));
+      putword(gotobjsec,$80000000);
     end;
 
 
