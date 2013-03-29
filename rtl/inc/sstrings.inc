@@ -1253,6 +1253,107 @@ end;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+  Function fpc_val_longint_shortstr(Const S: ShortString; out Code: ValSInt): LongInt; [public, alias:'FPC_VAL_LONGINT_SHORTSTR']; compilerproc;
+
+  var  u, temp, prev, maxprevvalue, maxnewvalue : longword;
+       base : byte;
+       negative : boolean;
+
+  const maxlongint=longword($7fffffff);
+        maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_longint_shortstr := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    maxprevvalue := maxlongword div base;
+    if (base = 10) then
+      maxnewvalue := maxlongint + ord(negative)
+    else
+      maxnewvalue := maxlongword;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*longword(base);
+     If (u >= base) or
+        (longword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
+       Begin
+         fpc_val_longint_shortstr := 0;
+         Exit
+       End;
+       Temp:=Temp+u;
+       inc(code);
+     end;
+    code:=0;
+    fpc_val_longint_shortstr:=longint(Temp);
+    If Negative Then
+      fpc_val_longint_shortstr:=-fpc_val_longint_shortstr;
+  end;
+
+
+  Function fpc_val_longword_shortstr(Const S: ShortString; out Code: ValSInt): LongWord; [public, alias:'FPC_VAL_LONGWORD_SHORTSTR']; compilerproc;
+
+  var  u, prev: LongWord;
+       base : byte;
+       negative : boolean;
+
+  const maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_longword_shortstr:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       prev := fpc_val_longword_shortstr;
+       If (u>=base) or
+         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
+         Begin
+           fpc_val_longword_shortstr := 0;
+           Exit
+         End;
+       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*LongWord(base) + u;
+       inc(code);
+     end;
+    code := 0;
+  end;
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}

@@ -230,6 +230,24 @@ Function fpc_Val_int64_UnicodeStr (Const S : UnicodeString; out Code : ValSInt):
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+Function fpc_val_longint_shortstr(Const S: ShortString; out Code: ValSInt): LongInt; compilerproc;
+Function fpc_val_longword_shortstr(Const S: ShortString; out Code: ValSInt): LongWord; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_Val_longword_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongWord;compilerproc;
+Function fpc_Val_longint_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongInt; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_longword_WideStr (Const S : WideString; out Code : ValSInt): LongWord; compilerproc;
+Function fpc_Val_longint_WideStr (Const S : WideString; out Code : ValSInt): LongInt; compilerproc;
+{$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_longword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongWord; compilerproc;
+Function fpc_Val_longint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongInt; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$endif CPU16 or CPU8}
+
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;

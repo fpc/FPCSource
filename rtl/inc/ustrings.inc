@@ -1478,6 +1478,38 @@ end;
 {$endif CPU64}
 
 
+{$if defined(CPU16) or defined(CPU8)}
+Function fpc_Val_longword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): longword; [public, alias:'FPC_VAL_LONGWORD_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_longword_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_longword_UnicodeStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_longint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongInt; [public, alias:'FPC_VAL_LONGINT_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_longint_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_longint_UnicodeStr,Code);
+    end;
+end;
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString);compilerproc;
 var
