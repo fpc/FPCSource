@@ -6,13 +6,13 @@ main=rtl
 [target]
 loaders=prt0 # exceptn fpu
 units=system uuchar objpas macpas iso7185 strings \
-      go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos crt objects printer cmem \
-      sysutils classes math typinfo matrix \
-      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
-      msmouse charset varutils \
-      video mouse keyboard variants vesamode types fmtbcd \
-      sysconst rtlconst dateutil convutil strutils stdconvs
+       dos # crt objects printer cmem
+#      initc ports profile dxetype dxeload emu387 \
+#      sysutils classes math typinfo matrix \
+#      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
+#      msmouse charset varutils \
+#      video mouse keyboard variants vesamode types fmtbcd \
+#      sysconst rtlconst dateutil convutil strutils stdconvs
 rsts=math varutils typinfo classes variants dateutil sysconst
 implicitunits=exeinfo
 [require]
@@ -75,12 +75,10 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
 #
 # System Dependent Units
 #
-go32$(PPUEXT) : go32.pp system$(PPUEXT)
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-        $(COMPILER) -Sg dpmiexcp.pp
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
@@ -92,10 +90,18 @@ ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-               go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+               strings$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) dos.pp
+
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) crt.pp
+
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/objects.pp
+
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
+	$(COMPILER) printer.pp
+
 #
 # Delphi Compatible Units
 #
