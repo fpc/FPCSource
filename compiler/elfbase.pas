@@ -218,6 +218,29 @@ interface
     GRP_COMDAT = 1;
 
 
+    { DT_FLAGS }
+    DF_ORIGIN     = 1;
+    DF_SYMBOLIC   = 2;         // supersedes DT_SYMBOLIC
+    DF_TEXTREL    = 4;         // supersedes DT_TEXTREL
+    DF_BIND_NOW   = 8;         // supersedes DT_BIND_NOW
+    DF_STATIC_TLS = 16;
+
+    { DT_FLAGS_1 }
+    DF_1_NOW       = $01;
+    DF_1_GLOBAL    = $02;
+    DF_1_GROUP     = $04;
+    DF_1_NODELETE  = $08;
+    DF_1_LOADFLTR  = $10;
+    DF_1_INITFIRST = $20;
+    DF_1_NOOPEN    = $40;
+    DF_1_ORIGIN    = $80;
+    DF_1_DIRECT    = $100;
+    DF_1_TRANS     = $200;
+    DF_1_INTERPOSE = $400;
+    DF_1_NODEFLIB  = $800;
+    DF_1_NODUMP    = $1000;
+    DF_1_CONFALT   = $2000;
+
   type
     TElfIdent = array[0..15] of byte;
 
