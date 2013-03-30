@@ -40,7 +40,7 @@ begin
   regs.BX := h;
   regs.CX := len;
   regs.DS := DSeg;
-  regs.DX := Word(addr);
+  regs.DX := Ofs(addr^);
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
   begin
@@ -59,7 +59,7 @@ begin
   regs.BX := h;
   regs.CX := len;
   regs.DS := DSeg;
-  regs.DX := Word(addr);
+  regs.DX := Ofs(addr^);
   MsDos(regs);
   if (regs.Flags and FCarry) <> 0 then
   begin

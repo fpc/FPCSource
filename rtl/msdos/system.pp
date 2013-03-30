@@ -155,10 +155,10 @@ begin
 { Call 'Get Volume Information' ($71A0) }
   regs.AX:=$71a0;
   regs.ES:=DSeg;
-  regs.DI:=Word(@buf);
+  regs.DI:=Ofs(buf);
   regs.CX:=32;
   regs.DS:=DSeg;
-  regs.DX:=Word(RootName);
+  regs.DX:=Ofs(RootName^);
   MsDos_Carry(regs);
 { If carryflag=0 and LFN API bit in ebx is set then use Long file names }
   CheckLFN:=(regs.Flags and fCarry=0) and (regs.BX and $4000=$4000);
