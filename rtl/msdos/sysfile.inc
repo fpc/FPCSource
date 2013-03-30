@@ -55,12 +55,42 @@ end;
 
 
 procedure do_erase(p : pchar);
+var
+  regs : Registers;
 begin
+  DoDirSeparators(p);
+  regs.DX:=Ofs(p^);
+  regs.DS:=Seg(p^);
+  if LFNSupport then
+   regs.AX:=$7141
+  else
+   regs.AX:=$4100;
+  regs.SI:=0;
+  regs.CX:=0;
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   GetInOutRes(regs.AX);
 end;
 
 
 procedure do_rename(p1,p2 : pchar);
+var
+  regs : Registers;
 begin
+  DoDirSeparators(p1);
+  DoDirSeparators(p2);
+  regs.DS:=Seg(p1^);
+  regs.DX:=Ofs(p1^);
+  regs.ES:=Seg(p2^);
+  regs.DI:=Ofs(p2^);
+  if LFNSupport then
+   regs.AX:=$7156
+  else
+   regs.AX:=$5600;
+  regs.CX:=$ff;            { attribute problem here ! }
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   GetInOutRes(regs.AX);
 end;
 
 
@@ -93,7 +123,7 @@ begin
   regs.DS := Seg(addr^);
   regs.DX := Ofs(addr^);
   MsDos(regs);
-  if (regs.Flags and FCarry) <> 0 then
+  if (regs.Flags and fCarry) <> 0 then
   begin
     GetInOutRes(regs.AX);
     exit(0);
@@ -103,29 +133,80 @@ end;
 
 
 function do_filepos(handle : thandle) : longint;
+var
+  regs : Registers;
 begin
+  regs.BX:=handle;
+  regs.CX:=0;
+  regs.DX:=0;
+  regs.AX:=$4201;
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   Begin
+     GetInOutRes(regs.AX);
+     do_filepos:=0;
+   end
+  else
+   do_filepos:=(regs.DX shl 16) + regs.AX;
 end;
 
 
 procedure do_seek(handle:thandle;pos : longint);
+var
+  regs : Registers;
 begin
+  regs.BX:=handle;
+  regs.CX:=pos shr 16;
+  regs.DX:=pos and $ffff;
+  regs.AX:=$4200;
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   GetInOutRes(regs.AX);
 end;
 
 
 
 function do_seekend(handle:thandle):longint;
+var
+  regs : Registers;
 begin
+  regs.BX:=handle;
+  regs.CX:=0;
+  regs.DX:=0;
+  regs.AX:=$4202;
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   Begin
+     GetInOutRes(regs.AX);
+     do_seekend:=0;
+   end
+  else
+   do_seekend:=(regs.DX shl 16) + regs.AX;
 end;
 
 
 function do_filesize(handle : thandle) : longint;
+var
+  aktfilepos : longint;
 begin
+  aktfilepos:=do_filepos(handle);
+  do_filesize:=do_seekend(handle);
+  do_seek(handle,aktfilepos);
 end;
 
 
 { truncate at a given position }
 procedure do_truncate (handle:thandle;pos:longint);
+var
+  regs : Registers;
 begin
+  do_seek(handle,pos);
+  regs.CX:=0;
+  regs.BX:=handle;
+  regs.AX:=$4000;
+  MsDos(regs);
+  if (regs.Flags and fCarry) <> 0 then
+   GetInOutRes(regs.AX);
 end;
 
 const
