@@ -217,4 +217,5 @@ begin
    AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
+  initvariantmanager;
 end.
