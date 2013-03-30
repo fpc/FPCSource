@@ -86,7 +86,7 @@ unit i_msdos;
                 maxCrecordalign : 2
               );
             first_parm_offset : 4;
-            stacksize    : 16384;
+            stacksize    : 4096;
             stackalign   : 2;
             abi          : abi_default;
           );
