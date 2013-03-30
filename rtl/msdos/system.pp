@@ -78,6 +78,11 @@ const
 procedure Intr(IntNo: Byte; var Regs: Registers); external name 'FPC_INTR';
 procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
 
+{ invokes int 21h with the carry flag set on entry; used for the LFN functions
+  to ensure that the carry flag is set on exit on older DOS versions which don't
+  support them }
+procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
+
 {$I system.inc}
 
 procedure DebugWrite(const S: string);
@@ -139,6 +144,26 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+function CheckLFN:boolean;
+var
+  regs     : Registers;
+  RootName : pchar;
+  buf      : array [0..31] of char;
+begin
+{ Check LFN API on drive c:\ }
+  RootName:='C:\';
+{ Call 'Get Volume Information' ($71A0) }
+  regs.AX:=$71a0;
+  regs.ES:=DSeg;
+  regs.DI:=Word(@buf);
+  regs.CX:=32;
+  regs.DS:=DSeg;
+  regs.DX:=Word(RootName);
+  MsDos_Carry(regs);
+{ If carryflag=0 and LFN API bit in ebx is set then use Long file names }
+  CheckLFN:=(regs.Flags and fCarry=0) and (regs.BX and $4000=$4000);
+end;
+
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
@@ -169,6 +194,15 @@ begin
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
+{ Use LFNSupport LFN }
+  LFNSupport:=CheckLFN;
+  if LFNSupport then
+   begin
+    FileNameCasePreserving:=true;
+    AllFilesMask := '*';
+   end
+  else
+   AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
 end.

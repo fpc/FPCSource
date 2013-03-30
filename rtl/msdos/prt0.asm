@@ -77,6 +77,9 @@ error_msg:
         mov ax, 4CFFh
         int 21h
 
+        global FPC_MSDOS_CARRY
+FPC_MSDOS_CARRY:
+        stc
         global FPC_MSDOS
 FPC_MSDOS:
         mov dx, ax
