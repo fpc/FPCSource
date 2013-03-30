@@ -103,7 +103,9 @@ begin
      GetInOutRes (regs.AX);
      Dir := char (DriveNr + 64) + ':\';
      exit;
-   end;
+   end
+  else
+    temp[252] := #0;  { to avoid shortstring buffer overflow }
 { conversion to Pascal string including slash conversion }
   i:=0;
   while (temp[i]<>#0) do
