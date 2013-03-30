@@ -21,7 +21,7 @@ begin
     P.Author := 'Free Pascal Development team';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
-    P.OSes := [darwin,iphonesim];
+    P.OSes := [darwin,iphonesim,linux,win32,win64,wince];
 
     P.SourcePath.Add('src');
 
