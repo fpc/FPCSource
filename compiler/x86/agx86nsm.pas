@@ -507,6 +507,11 @@ interface
             AsmWrite('.');
             AsmWrite(aname);
           end;
+{$ifdef i8086}
+        { WLINK requires this in order to leave the BSS section out of the executable }
+        if atype = sec_bss then
+           AsmWrite(' class=bss');
+{$endif i8086}
         AsmLn;
         LasTSecType:=atype;
       end;
@@ -1064,7 +1069,7 @@ interface
       { we add empty declarations to make sure they exist, even if empty }
       AsmWriteLn('SECTION .rodata');
       AsmWriteLn('SECTION .data');
-      AsmWriteLn('SECTION .bss');
+      AsmWriteLn('SECTION .bss class=bss');
       { group these sections in the same segment }
       AsmWriteLn('GROUP dgroup rodata data bss');
 {$endif i8086}
