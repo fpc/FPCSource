@@ -164,7 +164,7 @@ implementation
 {$if defined(cpu64bitaddr)}
       oversized_types = [];
       highest_unsigned_type = u64bit;
-{$elseif defined(cpu32bitalu)}
+{$elseif defined(cpu32bitaddr)}
       oversized_types = [scurrency,s64bit,u64bit];
       highest_unsigned_type = u32bit;
 {$elseif defined(cpu16bitalu)}
@@ -569,7 +569,7 @@ implementation
     const
 {$if defined(cpu64bitaddr)}
       oversized_types = [];
-{$elseif defined(cpu32bitalu)}
+{$elseif defined(cpu32bitaddr)}
       oversized_types = [s64bit,u64bit];
 {$elseif defined(cpu16bitalu)}
       oversized_types = [s64bit,u64bit,s32bit,u32bit];
@@ -1376,7 +1376,7 @@ implementation
     const
 {$if defined(cpu64bitaddr)}
       oversized_types = [];
-{$elseif defined(cpu32bitalu)}
+{$elseif defined(cpu32bitaddr)}
       oversized_types = [s64bit,u64bit];
 {$elseif defined(cpu16bitalu)}
       oversized_types = [s64bit,u64bit,s32bit,u32bit];
