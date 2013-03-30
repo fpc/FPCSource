@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2011 by the Free Pascal development team.
 
-    Near heap manager for i8086, based on the FPC embedded target heap
+    Tiny heap manager for the i8086 near heap, embedded targets, etc.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,34 +14,34 @@
  **********************************************************************}
 
     const
-      NearHeapMinBlock = 16;
+      TinyHeapMinBlock = 16;
 
     type
-      PNearHelpBlock = ^TNearHeapBlock;
-      TNearHeapBlock = record
+      PTinyHeapBlock = ^TTinyHeapBlock;
+      TTinyHeapBlock = record
         Size: ptruint;
-        Next: PNearHelpBlock;
+        Next: PTinyHeapBlock;
         EndAddr: pointer;
       end;
 
     var
-      NearHeapBlocks: PNearHelpBlock = nil;
+      TinyHeapBlocks: PTinyHeapBlock = nil;
 
-    procedure InternalFreeMem(Addr: Pointer; Size: ptruint); forward;
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint); forward;
 
     function FindSize(p: pointer): ptruint;
       begin
         FindSize := PPtrUInt(p)[-1];
       end;
 
-    function SysNearGetMem(Size: ptruint): pointer;
+    function SysTinyGetMem(Size: ptruint): pointer;
       var
-        p, prev: PNearHelpBlock;
+        p, prev: PTinyHeapBlock;
         AllocSize, RestSize: ptruint;
       begin
         AllocSize := align(size+sizeof(ptruint), sizeof(pointer));
 
-        p := NearHeapBlocks;
+        p := TinyHeapBlocks;
         prev := nil;
         while assigned(p) and (p^.Size < AllocSize) do
           begin
@@ -53,7 +53,7 @@
           begin
             result := @pptruint(p)[1];
 
-            if p^.Size-AllocSize >= NearHeapMinBlock then
+            if p^.Size-AllocSize >= TinyHeapMinBlock then
               RestSize := p^.Size-AllocSize
             else
               begin
@@ -62,19 +62,19 @@
               end;
 
             if prev = nil then
-              NearHeapBlocks := p^.Next
+              TinyHeapBlocks := p^.Next
             else
               prev^.next := p^.next;
 
             pptruint(p)^ := size;
 
-            InternalFreemem(pointer(ptruint(p)+AllocSize), RestSize);
+            InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
           end
         else
           Result := nil;
       end;
 
-    function GetAlignedMem(Size, Alignment: ptruint): pointer;
+    function TinyGetAlignedMem(Size, Alignment: ptruint): pointer;
       var
         mem: Pointer;
         memp: ptruint;
@@ -85,14 +85,14 @@
           begin
             mem := GetMem(Size+Alignment-1);
             memp := align(ptruint(mem), Alignment);
-            InternalFreemem(mem, ptruint(memp)-ptruint(mem));
+            InternalTinyFreeMem(mem, ptruint(memp)-ptruint(mem));
             result := pointer(memp);
           end;
       end;
 
-    procedure InternalFreeMem(Addr: Pointer; Size: ptruint);
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint);
       var 
-        b, p, prev: PNearHelpBlock;
+        b, p, prev: PTinyHeapBlock;
         concatenated: boolean;
       begin
         concatenated := true;
@@ -101,15 +101,15 @@
             concatenated := false;
             b := addr;
 
-            b^.Next := NearHeapBlocks;
+            b^.Next := TinyHeapBlocks;
             b^.Size := Size;
             b^.EndAddr := pointer(ptruint(addr)+size);
 
-            if NearHeapBlocks = nil then
-              NearHeapBlocks := b
+            if TinyHeapBlocks = nil then
+              TinyHeapBlocks := b
             else
               begin
-                p := NearHeapBlocks;
+                p := TinyHeapBlocks;
                 prev := nil;
 
                 while assigned(p) do
@@ -119,7 +119,7 @@
                         addr:=p;
                         size:=p^.size+size;
                         if prev = nil then
-                          NearHeapBlocks:=p^.next
+                          TinyHeapBlocks:=p^.next
                         else
                           prev^.next:=p^.next;
                         concatenated:=true;
@@ -129,7 +129,7 @@
                       begin
                         size:=p^.size+size;
                         if prev = nil then
-                          NearHeapBlocks:=p^.next
+                          TinyHeapBlocks:=p^.next
                         else
                           prev^.next:=p^.next;
                         concatenated:=true;
@@ -142,7 +142,7 @@
 
                 if not concatenated then
                   begin
-                    p := NearHeapBlocks;
+                    p := TinyHeapBlocks;
                     prev := nil;
 
                     while assigned(p) and (p^.Size < size) do
@@ -157,41 +157,41 @@
                         prev^.Next := b;
                       end
                     else
-                      NearHeapBlocks := b;
+                      TinyHeapBlocks := b;
                   end;
               end;
           end;
       end;
 
-    function SysNearFreeMem(Addr: Pointer): ptruint;
+    function SysTinyFreeMem(Addr: Pointer): ptruint;
       var
         sz: ptruint;
       begin
         sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
 
-        InternalFreeMem(@pptruint(addr)[-1], sz);
+        InternalTinyFreeMem(@pptruint(addr)[-1], sz);
         
         result := sz;
       end;
 
-    function SysNearFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint;
+    function SysTinyFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint;
       begin
-        result := SysNearFreeMem(addr);
+        result := SysTinyFreeMem(addr);
       end;
 
-    function SysNearMemSize(p: pointer): ptruint;
+    function SysTinyMemSize(p: pointer): ptruint;
       begin
         result := findsize(p);
       end;
 
-    function SysNearAllocMem(size: ptruint): pointer;
+    function SysTinyAllocMem(size: ptruint): pointer;
       begin
-        result := SysNearGetMem(size);
+        result := SysTinyGetMem(size);
         if result<>nil then
-          FillChar(result^,SysNearMemSize(result),0);
+          FillChar(result^,SysTinyMemSize(result),0);
       end;
 
-    function SysNearReAllocMem(var p: pointer; size: ptruint):pointer;
+    function SysTinyReAllocMem(var p: pointer; size: ptruint):pointer;
       var
         sz: ptruint;
       begin
@@ -206,11 +206,11 @@
                 move(pbyte(p)^, pbyte(result)^, sz);
               end;
           end;
-        SysNearFreeMem(p);
+        SysTinyFreeMem(p);
         p := result;
       end;
 
-    procedure RegisterNearHeapBlock(AAddress: pointer; ASize: ptruint);
+    procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
       begin
         if (ptruint(AAddress) and 1) = 0 then
           begin
@@ -222,14 +222,14 @@
       end;
 
     const
-      NearHeapMemoryManager: TMemoryManager = (
+      TinyHeapMemoryManager: TMemoryManager = (
         NeedLock: false;  // Obsolete
-        GetMem: @SysNearGetMem;
-        FreeMem: @SysNearFreeMem;
-        FreeMemSize: @SysNearFreeMemSize;
-        AllocMem: @SysNearAllocMem;
-        ReAllocMem: @SysNearReAllocMem;
-        MemSize: @SysNearMemSize;
+        GetMem: @SysTinyGetMem;
+        FreeMem: @SysTinyFreeMem;
+        FreeMemSize: @SysTinyFreeMemSize;
+        AllocMem: @SysTinyAllocMem;
+        ReAllocMem: @SysTinyReAllocMem;
+        MemSize: @SysTinyMemSize;
         InitThread: nil;
         DoneThread: nil;
         RelocateHeap: nil;

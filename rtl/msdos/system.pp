@@ -87,7 +87,7 @@ procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 
 {$I system.inc}
 
-{$I nearheap.inc}
+{$I tinyheap.inc}
 
 procedure DebugWrite(const S: string);
 begin
@@ -168,8 +168,8 @@ end;
 
 procedure InitNearHeap;
 begin
-  SetMemoryManager(NearHeapMemoryManager);
-  RegisterNearHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
+  SetMemoryManager(TinyHeapMemoryManager);
+  RegisterTinyHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
