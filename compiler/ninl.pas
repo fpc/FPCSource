@@ -4010,6 +4010,7 @@ implementation
      function tinlinenode.first_seg: tnode;
        begin
          internalerror(200104046);
+         result:=nil;
        end;
 
 
