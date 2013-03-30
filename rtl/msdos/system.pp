@@ -55,6 +55,8 @@ var
 
   dos_psp:Word;public name 'dos_psp';
   __stkbottom : pointer;public name '__stkbottom';
+  __nearheap_start: pointer;public name '__nearheap_start';
+  __nearheap_end: pointer;public name '__nearheap_end';
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -84,6 +86,8 @@ procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
 procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 
 {$I system.inc}
+
+{$I nearheap.inc}
 
 procedure DebugWrite(const S: string);
 begin
@@ -144,6 +148,12 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+procedure InitNearHeap;
+begin
+  SetMemoryManager(NearHeapMemoryManager);
+  RegisterNearHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
+end;
+
 function CheckLFN:boolean;
 var
   regs     : Registers;
@@ -190,6 +200,8 @@ begin
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
+{ Setup heap }
+  InitNearHeap;
   SysInitExceptions;
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }

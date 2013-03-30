@@ -13,6 +13,9 @@
         extern __stklen
         extern __stkbottom
 
+        extern __nearheap_start
+        extern __nearheap_end
+
 ..start:
         ; init the stack
         mov ax, dgroup
@@ -61,7 +64,11 @@
         cmp bx, _end wrt dgroup
         jb not_enough_mem
 
-        ; TODO: heap between [ds:_end wrt dgroup] and [ds:__stkbottom]
+        ; heap is between [ds:_end wrt dgroup] and [ds:__stkbottom - 1]
+        mov word [__nearheap_start], _end wrt dgroup
+        mov bx, word [__stkbottom]
+        dec bx
+        mov word [__nearheap_end], bx
 
         jmp PASCALMAIN
 
