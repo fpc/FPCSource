@@ -54,6 +54,7 @@ var
   dos_argv0 : pchar; //!! public name 'dos_argv0';
 
   dos_psp:Word;public name 'dos_psp';
+  __stkbottom : pointer;public name '__stkbottom';
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -158,6 +159,8 @@ begin
 end;
 
 begin
+  StackLength := CheckInitialStkLen(InitialStkLen);
+  StackBottom := __stkbottom;
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;

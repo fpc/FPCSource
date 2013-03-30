@@ -7,6 +7,12 @@
         extern PASCALMAIN
         extern dos_psp
 
+        extern _edata  ; defined by WLINK, indicates start of BSS
+        extern _end    ; defined by WLINK, indicates end of BSS
+
+        extern __stklen
+        extern __stkbottom
+
 ..start:
         ; init the stack
         mov ax, dgroup
@@ -16,15 +22,60 @@
         ; save the Program Segment Prefix
         push ds
 
-        ; init DS and ES
+        ; init DS
         mov ds, ax
-        mov es, ax
 
         ; pop the PSP from stack and store it in the pascal variable dos_psp
         pop ax
         mov word [dos_psp], ax
 
+        ; allocate max heap
+        ; TODO: also support user specified heap size
+        ; try to resize our main DOS memory block until the end of the data segment
+        mov bx, word [dos_psp]
+        mov es, bx
+        sub bx, dgroup
+        neg bx  ; bx = (ds - psp) in paragraphs
+        add bx, 1000h  ; 64kb in paragraphs
+        mov ah, 4Ah
+        int 21h
+        jc mem_realloc_err
+
+        ; init ES
+        mov ax, dgroup
+        mov es, ax
+
+        ; bx = the new size in paragraphs
+        add bx, word [dos_psp]
+        sub bx, dgroup
+        mov cl, 4
+        shl bx, cl
+        sub bx, 2
+        mov sp, bx
+
+        add bx, 2
+        sub bx, word [__stklen]
+        and bl, 0FEh
+        mov word [__stkbottom], bx
+
+        cmp bx, _end wrt dgroup
+        jb not_enough_mem
+
+        ; TODO: heap between [ds:_end wrt dgroup] and [ds:__stkbottom]
+
         jmp PASCALMAIN
+
+not_enough_mem:
+        mov dx, not_enough_mem_msg
+        jmp error_msg
+
+mem_realloc_err:
+        mov dx, mem_realloc_err_msg
+error_msg:
+        mov ah, 9
+        int 21h
+        mov ax, 4CFFh
+        int 21h
 
         global FPC_MSDOS
 FPC_MSDOS:
@@ -93,8 +144,16 @@ int_number:
         pop bp
         ret
 
+        segment data
+mem_realloc_err_msg:
+        db 'Memory allocation error', 13, 10, '$'
+not_enough_mem_msg:
+        db 'Not enough memory', 13, 10, '$'
+
+        segment bss class=bss
+
         segment stack stack class=stack
-        resb 4096
+        resb 256
         stacktop:
 
-        group dgroup stack
+        group dgroup data bss stack
