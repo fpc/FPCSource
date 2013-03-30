@@ -595,10 +595,10 @@ begin
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
       PDbfHdr(Header)^.VerDBF := $04;
-      // write language string
+      // write language string. FPC needs an explicit cast to pchar to avoid calling widestring version of StrPLCopy
       StrPLCopy(
-        @PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32],
-        ConstructLangName(FFileCodePage, lLocaleID, false), 
+        PChar(@PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
+        PChar(ConstructLangName(FFileCodePage, lLocaleID, false)),
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
