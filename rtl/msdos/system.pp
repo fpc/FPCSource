@@ -128,7 +128,14 @@ begin
 end;
 
 procedure randomize;
+var
+  hl   : longint;
+  regs : Registers;
 begin
+  regs.AH:=$2C;
+  MsDos(regs);
+  hl:=regs.DX;
+  randseed:=hl*$10000+ regs.CX;
 end;
 
 {*****************************************************************************
