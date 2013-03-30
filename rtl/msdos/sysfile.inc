@@ -39,7 +39,7 @@ begin
   regs.AH := $40;
   regs.BX := h;
   regs.CX := len;
-  regs.DS := DSeg;
+  regs.DS := Seg(addr^);
   regs.DX := Ofs(addr^);
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
@@ -58,7 +58,7 @@ begin
   regs.AH := $3F;
   regs.BX := h;
   regs.CX := len;
-  regs.DS := DSeg;
+  regs.DS := Seg(addr^);
   regs.DX := Ofs(addr^);
   MsDos(regs);
   if (regs.Flags and FCarry) <> 0 then

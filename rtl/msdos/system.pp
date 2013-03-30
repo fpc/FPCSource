@@ -154,10 +154,10 @@ begin
   RootName:='C:\';
 { Call 'Get Volume Information' ($71A0) }
   regs.AX:=$71a0;
-  regs.ES:=DSeg;
+  regs.ES:=Seg(buf);
   regs.DI:=Ofs(buf);
   regs.CX:=32;
-  regs.DS:=DSeg;
+  regs.DS:=Seg(RootName^);
   regs.DX:=Ofs(RootName^);
   MsDos_Carry(regs);
 { If carryflag=0 and LFN API bit in ebx is set then use Long file names }
