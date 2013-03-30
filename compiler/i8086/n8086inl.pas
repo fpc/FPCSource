@@ -26,7 +26,7 @@ unit n8086inl;
 interface
 
     uses
-       nx86inl;
+       nx86inl,node;
 
     type
 
@@ -35,6 +35,10 @@ interface
        ti8086inlinenode = class(tx86inlinenode)
          procedure second_round_real; override;
          procedure second_trunc_real; override;
+
+         function typecheck_seg: tnode; override;
+         function first_seg: tnode; override;
+         procedure second_seg; override;
        private
          procedure load_fpu_location;
        end;
@@ -55,7 +59,7 @@ implementation
     nbas,ncon,ncal,ncnv,nld,ncgutil,
     tgobj,
     cga,cgutils,cgx86,cgobj,hlcgobj,
-    node;
+    htypechk;
 
      procedure ti8086inlinenode.second_round_real;
        begin
@@ -86,6 +90,25 @@ implementation
          emit_none(A_FWAIT,S_NO);
          tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
          tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
+       end;
+
+     function ti8086inlinenode.typecheck_seg: tnode;
+       begin
+         result := nil;
+         resultdef:=u16inttype;
+       end;
+
+     function ti8086inlinenode.first_seg: tnode;
+       begin
+         expectloc:=LOC_REGISTER;
+         result:=nil;
+       end;
+
+     procedure ti8086inlinenode.second_seg;
+       begin
+         location_reset(location,LOC_REGISTER,OS_16);
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+         current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
        end;
 
      procedure ti8086inlinenode.load_fpu_location;

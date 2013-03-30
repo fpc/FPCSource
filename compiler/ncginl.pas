@@ -59,6 +59,7 @@ interface
           procedure second_setlength; virtual; abstract;
           procedure second_box; virtual; abstract;
           procedure second_popcnt; virtual;
+          procedure second_seg; virtual; abstract;
        end;
 
 implementation
@@ -187,6 +188,8 @@ implementation
                second_box;
             in_popcnt_x:
                second_popcnt;
+            in_seg_x:
+               second_seg;
             else internalerror(9);
          end;
       end;
