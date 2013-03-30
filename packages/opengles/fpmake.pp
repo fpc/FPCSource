@@ -23,6 +23,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.OSes := [darwin,iphonesim,linux,win32,win64,wince];
 
+    P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gles11.pp',[darwin,iphonesim]);
