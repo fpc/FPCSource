@@ -136,7 +136,18 @@ end;
 *****************************************************************************}
 
 procedure system_exit;
+var
+  h : byte;
 begin
+  for h:=0 to max_files-1 do
+    if openfiles[h] then
+      begin
+{$ifdef SYSTEMDEBUG}
+         writeln(stderr,'file ',opennames[h],' not closed at exit');
+{$endif SYSTEMDEBUG}
+         if h>=5 then
+           do_close(h);
+      end;
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch
