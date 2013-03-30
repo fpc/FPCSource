@@ -79,6 +79,9 @@ interface
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
           function first_popcnt: tnode; virtual;
+          { override these for Seg() support }
+          function typecheck_seg: tnode; virtual;
+          function first_seg: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -2805,10 +2808,7 @@ implementation
 
               in_seg_x :
                 begin
-                  if target_info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
-                  set_varstate(left,vs_read,[]);
-                  result:=cordconstnode.create(0,s32inttype,false);
+                  result := typecheck_seg;
                 end;
 
               in_pred_x,
@@ -3571,7 +3571,9 @@ implementation
             internalerror(2000101001);
 
           in_seg_x :
-            internalerror(200104046);
+            begin
+              result:=first_seg;
+            end;
 
           in_settextbuf_file_x,
           in_reset_typedfile,
@@ -3993,6 +3995,21 @@ implementation
          end;
          result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
          left:=nil;
+       end;
+
+
+     function tinlinenode.typecheck_seg: tnode;
+       begin
+         if target_info.system in systems_managed_vm then
+           message(parser_e_feature_unsupported_for_vm);
+         set_varstate(left,vs_read,[]);
+         result:=cordconstnode.create(0,s32inttype,false);
+       end;
+
+
+     function tinlinenode.first_seg: tnode;
+       begin
+         internalerror(200104046);
        end;
 
 
