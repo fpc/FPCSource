@@ -43,7 +43,13 @@ implementation
       local_got_relocs: TFPObjectList;
       local_got_slots: TFPHashObjectList;
       got_content: array of pint;
-      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
+      pic_stub_syms: TFPObjectList;
+      pic_stubs: THashSet;
+      nullstub: TObjSymbol;
+      stubcount: longint;
+      trampolinesection: TObjSection;
+      procedure MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
+      procedure CreatePICStub(objsym:TObjSymbol);
     protected
       procedure PrepareGOT;override;
       function AllocGOTSlot(objsym:TObjSymbol):boolean;override;
@@ -163,6 +169,10 @@ implementation
       ri_gp_value: longint;     // signed
     end;
 
+    TStubHashKey=record
+      objsec:TObjSection;
+      offset:aword;
+    end;
 
   procedure MaybeSwapElfReginfo(var h:TElfReginfo);
     var
@@ -234,6 +244,8 @@ implementation
     begin
       inherited Create;
       local_got_relocs:=TFPObjectList.Create(False);
+      pic_stub_syms:=TFPObjectList.Create(False);
+      pic_stubs:=THashSet.Create(64,True,False);
       local_got_slots:=TFPHashObjectList.Create(True);
     end;
 
@@ -241,6 +253,8 @@ implementation
   destructor TElfExeOutputMIPS.Destroy;
     begin
       local_got_slots.Free;
+      pic_stub_syms.Free;
+      pic_stubs.Free;
       local_got_relocs.Free;
       inherited Destroy;
     end;
@@ -248,6 +262,10 @@ implementation
 
   procedure TElfExeOutputMIPS.CreateGOTSection;
     begin
+      nullstub:=TObjSymbol.Create(internalobjdata.ObjSymbolList,'*null_pic_stub*');
+      nullstub.bind:=AB_LOCAL;
+      nullstub.typ:=AT_FUNCTION;
+
       gotobjsec:=TElfObjSection.create_ext(internalObjData,'.got',
         SHT_PROGBITS,SHF_ALLOC or SHF_WRITE or SHF_MIPS_GPREL,sizeof(pint),sizeof(pint));
       gotobjsec.SecOptions:=[oso_keep];
@@ -355,10 +373,32 @@ implementation
     var
       i: longint;
       exesym: TExeSymbol;
+      exesec: TExeSection;
+      newsec,objsec:TObjSection;
+      list:TFPObjectList;
     begin
       inherited PrepareGOT;
       { !! maybe incorrect, where do 'unmapped globals' belong? }
       dt_local_gotno_value:=gotobjsec.size div sizeof(pint);
+
+      { Insert PIC stubs (slow...) }
+      if assigned(trampolinesection) then
+        begin
+          exesec:=FindExeSection('.text');
+          exesec.ObjSectionList.Add(trampolinesection);
+          trampolinesection.ExeSection:=exesec;
+          trampolinesection.Used:=true;
+        end;
+      for i:=0 to pic_stub_syms.count-1 do
+        begin
+          exesym:=TExeSymbol(pic_stub_syms[i]);
+          newsec:=exesym.stubsymbol.objsection;
+          objsec:=exesym.objsymbol.objsection;
+          list:=objsec.ExeSection.ObjSectionList;
+          list.insert(list.IndexOf(objsec),newsec);
+          newsec.ExeSection:=objsec.ExeSection;
+          newsec.Used:=true;
+        end;
 
       if not dynamiclink then
         exit;
@@ -496,7 +536,7 @@ implementation
       gotobjsec.writeZeros(gotsize-gotobjsec.size);
     end;
 
-  procedure TElfExeOutputMIPS.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
+  procedure TElfExeOutputMIPS.MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
     var
       gotoff:aword;
     begin
@@ -515,6 +555,46 @@ implementation
         end;
     end;
 
+  procedure TElfExeOutputMIPS.CreatePICStub(objsym:TObjSymbol);
+    var
+      textsec,newsec:TObjSection;
+      newsym:TObjSymbol;
+      use_trampoline:boolean;
+    begin
+      textsec:=objsym.objsection;
+      use_trampoline:=(objsym.offset>0) or (textsec.SecAlign>16);
+
+      if use_trampoline then
+        begin
+          if trampolinesection=nil then
+            trampolinesection:=internalObjData.createsection(sec_code);
+          newsec:=trampolinesection;
+        end
+      else
+        begin
+          inc(stubcount);
+          newsec:=TElfObjSection.create_ext(internalObjData,'.text.stub.'+tostr(stubcount),
+            SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,0,textsec.SecAlign);
+          if (newsec.SecAlign>8) then
+            newsec.WriteZeros(newsec.SecAlign-8);
+          pic_stub_syms.add(objsym.ExeSymbol);
+        end;
+
+      { symbol for the stub }
+      internalObjData.SetSection(newsec);
+      newsym:=internalObjData.symboldefine('.pic.'+objsym.name,AB_LOCAL,AT_FUNCTION);
+      putword(newsec,$3c190000);      // lui   $t9,%hi(x)
+      newsec.addrawreloc(newsec.size-4,objsym,R_MIPS_HI16);
+      if use_trampoline then
+        begin
+          putword(newsec,$08000000);  // j     x
+          newsec.addrawreloc(newsec.size-4,objsym,R_MIPS_26);
+        end;
+      putword(newsec,$27390000);      // addiu $t9,$t9,%lo(x)
+      newsec.addrawreloc(newsec.size-4,objsym,R_MIPS_LO16);
+      objsym.exesymbol.stubsymbol:=newsym;
+    end;
+
   procedure TElfExeOutputMIPS.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
       objreloc:TObjRelocation;
@@ -524,6 +604,12 @@ implementation
       found:boolean;
       i:longint;
       lopart,hipart:longword;
+      objdata:TElfObjData;
+      exesym:TExeSymbol;
+      targetsec:TObjSection;
+      tmp:array[0..2] of longword;
+      key:TStubHashKey;
+      entry:PHashSetItem;
     begin
       objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
@@ -545,6 +631,59 @@ implementation
                 if (not externsym) then
                   Inc(relative_reloc_count);
               end
+          end;
+
+        R_MIPS_PC16,
+        R_MIPS_26:
+          begin
+            { Absolute calls into PIC code must go through stubs that load R25 }
+            exesym:=objreloc.symbol.exesymbol;
+            if (exesym=nil) or (exesym.dynindex<>0) then
+              exit;
+            { Stub already created? Redirect to it and be done. }
+            if assigned(exesym.stubsymbol) then
+              begin
+                if (exesym.stubsymbol<>nullstub) then
+                  begin
+                    objreloc.symbol.offset:=exesym.stubsymbol.offset;
+                    objreloc.symbol.objsection:=exesym.stubsymbol.objsection;
+                  end;
+                exit;
+              end;
+            targetsec:=exesym.ObjSymbol.objsection;
+            objdata:=TElfObjData(targetsec.ObjData);
+            if (objdata.flags and EF_MIPS_PIC)=0 then
+              exit;
+            { Same objdata? then it's responsibility of assembler, not linker }
+            if (objdata=objsec.objdata) then
+              exit;
+            { Check if destination begins with PIC prologue. If not, mark symbol
+              with 'null' stub so we don't waste time on subsequent relocs to it. }
+            targetsec.data.seek(exesym.ObjSymbol.offset);
+            targetsec.data.read(tmp,3*sizeof(longword));
+            if (source_info.endian<>target_info.endian) then
+              for i:=0 to 2 do
+                tmp[i]:=swapendian(tmp[i]);
+            if ((tmp[0] and $FFFF0000)<>$3C1C0000) or
+               ((tmp[1] and $FFFF0000)<>$279C0000) or
+               (tmp[2]<>$0399E021) then
+              begin
+                exesym.stubsymbol:=nullstub;
+                exit;
+              end;
+            { Avoid creating several stubs for an address due to symbol aliasing }
+            key.objsec:=targetsec;
+            key.offset:=exesym.ObjSymbol.offset;
+            entry:=pic_stubs.FindOrAdd(@key,sizeof(TStubHashKey));
+            if assigned(entry^.Data) then
+              exesym:=TExeSymbol(entry^.Data)
+            else
+              begin
+                entry^.Data:=exesym;
+                CreatePICStub(exesym.objsymbol);
+              end;
+            objreloc.symbol.offset:=exesym.stubsymbol.offset;
+            objreloc.symbol.objsection:=exesym.stubsymbol.objsection;
           end;
 
         R_MIPS_CALL16,
@@ -768,7 +907,7 @@ implementation
                     reloclist:=hr;
                     continue;
                   end;
-                MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
+                MaybeWriteGOTEntry(relocval,objreloc.symbol);
                 // !! this is correct only while _gp symbol is defined relative to .got !!
                 relocval:=-(gotsymbol.offset-(objreloc.symbol.exesymbol.gotoffset-sizeof(pint)));
                 // TODO: check overflow

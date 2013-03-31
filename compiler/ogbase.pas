@@ -400,6 +400,13 @@ interface
         { fields for ELF linking }
         gotoffset  : aword;
         dynindex   : aword;
+        { A thunk used to redirect some references to symbol (like absolute
+          jumps/calls to PIC code).
+          This probably is also needed for ARM/Thumb interworking and alike.
+          TODO: consider reusing objsymbol.indsymbol for this purpose }
+{$ifdef mips}
+        stubsymbol : TObjSymbol;
+{$endif mips}
       end;
 
       TExeSection = class(TFPHashObject)
