@@ -192,258 +192,9 @@ const
   DOS_MAX_COMMAND_LINE_LENGTH = 126;
 
 procedure exec_ansistring(path : string;comline : ansistring);
-type
-  realptr = packed record
-    ofs,seg : word;
-  end;
-  texecblock = packed record
-    envseg    : word;
-    comtail   : realptr;
-    firstFCB  : realptr;
-    secondFCB : realptr;
-{    iniStack  : realptr;
-    iniCSIP   : realptr;}
-  end;
-var
-  current_dos_buffer_pos,
-  arg_ofs,
-  i,la_env,
-  la_p,la_c,la_e,
-  fcb1_la,fcb2_la : longint;
-  use_proxy       : boolean;
-  proxy_argc      : longint;
-  execblock       : texecblock;
-  c               : ansistring;
-  p               : string;
-
-  function paste_to_dos(src : string;add_cr_at_end, include_string_length : boolean) : boolean;
-  {Changed by Laaca - added parameter N}
-  var
-    c : pchar;
-    CLen : cardinal;
-    start_pos,ls : longint;
-  begin
-     paste_to_dos:=false;
-     if include_string_length then
-       start_pos:=0
-     else
-       start_pos:=1;
-     ls:=Length(src)-start_pos;
-     if current_dos_buffer_pos+ls+3>transfer_buffer+tb_size then
-      RunError(217);
-     getmem(c,ls+3);
-     move(src[start_pos],c^,ls+1);
-     if add_cr_at_end then
-      begin
-        c[ls+1]:=#13;
-        c[ls+2]:=#0;
-      end
-     else
-      c[ls+1]:=#0;
-     CLen := StrLen (C) + 1;
-     seg_move(get_ds,longint(c),dosmemselector,current_dos_buffer_pos,CLen);
-     current_dos_buffer_pos:=current_dos_buffer_pos+CLen;
-     freemem(c,ls+3);
-     paste_to_dos:=true;
-  end;
-
-  procedure setup_proxy_cmdline;
-  const
-    MAX_ARGS = 128;
-  var
-    i : longint;
-    quote : char;
-    end_of_arg, skip_char : boolean;
-    la_proxy_seg    : word;
-    la_proxy_ofs    : longint;
-    current_arg : string;
-    la_argv_ofs : array [0..MAX_ARGS] of word;
-  begin
-    quote:=#0;
-    current_arg:='';
-    proxy_argc:=0;
-    end_of_arg:=false;
-    while current_dos_buffer_pos mod 16 <> 0 do
-      inc(current_dos_buffer_pos);
-    la_proxy_seg:=current_dos_buffer_pos shr 4;
-    { Also copy parameter 0 }
-    la_argv_ofs[0]:=current_dos_buffer_pos-la_proxy_seg*16;
-    { Note that this should be done before
-      alteriing p value }
-    paste_to_dos(p,false,false);
-    inc(proxy_argc);
-    for i:=1 to length(c) do
-      begin
-        skip_char:=false;
-        case c[i] of
-          #1..#32:
-            begin
-              if quote=#0 then
-                end_of_arg:=true;
-            end;
-          '"' :
-            begin
-              if quote=#0 then
-                begin
-                  quote:='"';
-                  skip_char:=true;
-                end
-              else if quote='"' then
-                end_of_arg:=true;
-            end;
-          '''' :
-            begin
-              if quote=#0 then
-                begin
-                  quote:='''';
-                  skip_char:=true;
-                end
-              else if quote='''' then
-                end_of_arg:=true;
-            end;
-        end;
-        if not end_of_arg and not skip_char then
-          current_arg:=current_arg+c[i];
-        if i=length(c) then
-          end_of_arg:=true;
-        if end_of_arg then
-          begin
-            { Allow empty args using "" or '' }
-            if (current_arg<>'') or (quote<>#0) then
-              begin
-                if proxy_argc>MAX_ARGS then
-                  begin
-                    writeln(stderr,'Too many arguments in Dos.exec');
-                    RunError(217);
-                  end;
-                la_argv_ofs[proxy_argc]:=current_dos_buffer_pos-la_proxy_seg*16;
-    {$ifdef DEBUG_PROXY}
-                writeln(stderr,'arg ',proxy_argc,'="',current_arg,'"');
-    {$endif DEBUG_PROXY}
-                paste_to_dos(current_arg,false,false);
-                inc(proxy_argc);
-                quote:=#0;
-                current_arg:='';
-              end;
-            { Always reset end_of_arg boolean }
-            end_of_arg:=false;
-          end;
-      end;
-    la_proxy_ofs:=current_dos_buffer_pos - la_proxy_seg*16;
-    seg_move(get_ds,longint(@la_argv_ofs),dosmemselector,
-             current_dos_buffer_pos,proxy_argc*sizeof(word));
-    current_dos_buffer_pos:=current_dos_buffer_pos + proxy_argc*sizeof(word);
-    c:='!proxy '+hexstr(proxy_argc,4)+' '+hexstr(la_proxy_seg,4)
-       +' '+hexstr(la_proxy_ofs,4);
-{$ifdef DEBUG_PROXY}
-    writeln(stderr,'Using comline "',c,'"');
-{$endif DEBUG_PROXY}
-  end;
-
-
 begin
-{ create command line }
-  c:=comline;
-  use_proxy:=false;
-  if force_go32v2_proxy then
-    Use_proxy:=true
-  else if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
-    begin
-      if Use_go32v2_proxy then
-        begin
-          Use_Proxy:=true;
-        end
-      else
-        begin
-           writeln(stderr,'Dos.exec command line truncated to ',
-                   DOS_MAX_COMMAND_LINE_LENGTH,' chars');
-           writeln(stderr,'Before: "',c,'"');
-           setlength(c, DOS_MAX_COMMAND_LINE_LENGTH);
-           writeln(stderr,'After: "',c,'"');
-         end;
-    end;
-{ create path }
-{$ifdef DEBUG_PROXY}
-  writeln(stderr,'Dos.exec path="',path,'"');
-{$endif DEBUG_PROXY}
-  p:=path;
-{ create buffer }
-  la_env:=transfer_buffer;
-  while (la_env and 15)<>0 do
-   inc(la_env);
-  current_dos_buffer_pos:=la_env;
-{ copy environment }
-  for i:=1 to envcount do
-   paste_to_dos(envstr(i),false,false);
-  {the behaviour is still suboptimal because variable COMMAND is stripped out}
-  paste_to_dos(chr(0),false,false); { adds a double zero at the end }
-  if use_proxy then
-    setup_proxy_cmdline;
-{ allow slash as backslash }
-  DoDirSeparators(p);
-  if LFNSupport then
-    GetShortName(p);
-  { Add program to DosBuffer with
-    length at start }
-  la_p:=current_dos_buffer_pos;
-  paste_to_dos(p,false,true);
-  { Add command line args to DosBuffer with
-    length at start and Carriage Return at end }
-  la_c:=current_dos_buffer_pos;
-  paste_to_dos(c,true,true);
-
-  la_e:=current_dos_buffer_pos;
-  fcb1_la:=la_e;
-  la_e:=la_e+16;
-  fcb2_la:=la_e;
-  la_e:=la_e+16;
-{ allocate FCB see dosexec code }
-  arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) and
-   (arg_ofs<length(c)) do
-    inc(arg_ofs);
-  dosregs.ax:=$2901;
-  dosregs.ds:=(la_c+arg_ofs) shr 4;
-  dosregs.esi:=(la_c+arg_ofs) and 15;
-  dosregs.es:=fcb1_la shr 4;
-  dosregs.edi:=fcb1_la and 15;
-  msdos(dosregs);
-{ allocate second FCB see dosexec code }
-  dosregs.ax:=$2901;
-  dosregs.ds:=(la_c+arg_ofs) shr 4;
-  dosregs.esi:=(la_c+arg_ofs) and 15;
-  dosregs.es:=fcb2_la shr 4;
-  dosregs.edi:=fcb2_la and 15;
-{$ifdef DEBUG_PROXY}
-  flush(stderr);
-{$endif DEBUG_PROXY}
-  msdos(dosregs);
-  with execblock do
-   begin
-     envseg:=la_env shr 4;
-     comtail.seg:=la_c shr 4;
-     comtail.ofs:=la_c and 15;
-     firstFCB.seg:=fcb1_la shr 4;
-     firstFCB.ofs:=fcb1_la and 15;
-     secondFCB.seg:=fcb2_la shr 4;
-     secondFCB.ofs:=fcb2_la and 15;
-   end;
-  seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
-  dosregs.edx:=la_p and 15+1;
-  dosregs.ds:=la_p shr 4;
-  dosregs.ebx:=la_p and 15+la_e-la_p;
-  dosregs.es:=la_p shr 4;
-  dosregs.ax:=$4b00;
-  msdos(dosregs);
-  LoadDosError;
-  if DosError=0 then
-   begin
-     dosregs.ax:=$4d00;
-     msdos(dosregs);
-     LastDosExitCode:=DosRegs.al
-   end
-  else
-   LastDosExitCode:=0;
+  {TODO: implement}
+  runerror(304);
 end;
 
 procedure exec(const path : pathstr;const comline : comstr);
@@ -536,157 +287,9 @@ type
 
 
 function do_diskdata(drive : byte; Free : boolean) : Int64;
-var
-  blocksize, freeblocks, totblocks : longword;
-
-  { Get disk data via old int21/36 (GET FREE DISK SPACE). It's always supported
-    even if it returns wrong values for volumes > 2GB and for cdrom drives when
-    in pure DOS. Note that it's also the only way to get some data on WinNTs. }
-  function DiskData_36 : boolean;
-  begin
-    DiskData_36:=false;
-    dosregs.dl:=drive;
-    dosregs.ah:=$36;
-    msdos(dosregs);
-    if dosregs.ax=$FFFF then exit;
-
-    blocksize:=dosregs.ax*dosregs.cx;
-    freeblocks:=dosregs.bx;
-    totblocks:=dosregs.dx;
-    Diskdata_36:=true;
-  end;
-
-  { Get disk data via int21/7303 (FAT32 - GET EXTENDED FREE SPACE ON DRIVE).
-    It is supported by win9x even in pure DOS }
-  function DiskData_7303 : boolean;
-  var
-    s : shortstring;
-    rec : ExtendedFat32FreeSpaceRec;
-  begin
-    DiskData_7303:=false;
-    s:=chr(drive+$40)+':\'+#0;
-
-    rec.Strucversion:=0;
-    rec.RetSize := 0;
-    dosmemput(tb_segment,tb_offset,Rec,sizeof(ExtendedFat32FreeSpaceRec));
-    dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,s[1],4);
-    dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-    dosregs.ds:=tb_segment;
-    dosregs.di:=tb_offset;
-    dosregs.es:=tb_segment;
-    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
-    dosregs.ax:=$7303;
-    msdos(dosregs);
-    if (dosregs.flags and fcarry) <> 0 then
-      exit;
-    copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-    if Rec.RetSize = 0 then
-      exit;
-
-    blocksize:=rec.SecPerClus*rec.BytePerSec;
-    freeblocks:=rec.AvailAllocUnits;
-    totblocks:=rec.TotalAllocUnits;
-    DiskData_7303:=true;
-  end;
-
-  { Get disk data asking to MSCDEX. Pure DOS returns wrong values with
-    int21/7303 or int21/36 if the drive is a CDROM drive }
-  function DiskData_CDROM : boolean;
-  var req : TRequestHeader;
-      sectreq : TCDSectSizeReq;
-      sizereq : TCDVolSizeReq;
-      i : integer;
-      status,byteswritten : word;
-      drnum : byte;
-  begin
-    DiskData_CDROM:=false;
-    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
-
-    { Is this a CDROM drive? }
-    dosregs.ax:=$150b;
-    dosregs.cx:=drnum;
-    realintr($2f,dosregs);
-    if (dosregs.bx<>$ADAD) or (dosregs.ax=0) then
-      exit; // no, it isn't
-
-    { Prepare the request header to send to the cdrom driver }
-    FillByte(req,sizeof(req),0);
-    req.length:=sizeof(req);
-    req.command:=IOCTL_INPUT;
-    req.transf_ofs:=tb_offset+sizeof(req); //CDROM control block will follow
-    req.transf_seg:=tb_segment;            //the request header
-    req.numbytes:=sizeof(sectreq);
-
-    { We're asking the sector size }
-    sectreq.func:=CDFUNC_SECTSIZE;
-    sectreq.mode:=0; //cooked
-    sectreq.secsize:=0;
-
-    for i:=1 to 2 do
-    begin
-      { Send the request to the cdrom driver }
-      dosmemput(tb_segment,tb_offset,req,sizeof(req));
-      dosmemput(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
-      dosregs.ax:=$1510;
-      dosregs.cx:=drnum;
-      dosregs.es:=tb_segment;
-      dosregs.bx:=tb_offset;
-      realintr($2f,dosregs);
-      dosmemget(tb_segment,tb_offset+3,status,2);
-      { status = $800F means "disk changed". Try once more. }
-      if (status and $800F) <> $800F then break;
-    end;
-    dosmemget(tb_segment,tb_offset+$12,byteswritten,2);
-    if (status<>$0100) or (byteswritten<>sizeof(sectreq)) then
-      exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
-
-  { Update the request header for the next request }
-    req.numbytes:=sizeof(sizereq);
-
-    { We're asking the volume size (in blocks) }
-    sizereq.func:=CDFUNC_VOLSIZE;
-    sizereq.size:=0;
-
-    { Send the request to the cdrom driver }
-    dosmemput(tb_segment,tb_offset,req,sizeof(req));
-    dosmemput(tb_segment,tb_offset+sizeof(req),sizereq,sizeof(sizereq));
-    dosregs.ax:=$1510;
-    dosregs.cx:=drnum;
-    dosregs.es:=tb_segment;
-    dosregs.bx:=tb_offset;
-    realintr($2f,dosregs);
-    dosmemget(tb_segment,tb_offset,req,sizeof(req));
-    if (req.status<>$0100) or (req.numbytes<>sizeof(sizereq)) then
-      exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req)+1,sizereq.size,4);
-
-    blocksize:=sectreq.secsize;
-    freeblocks:=0; //always 0 for a cdrom
-    totblocks:=sizereq.size;
-    DiskData_CDROM:=true;
-  end;
-
 begin
-  if drive=0 then
-  begin
-    dosregs.ax:=$1900;    //get current default drive
-    msdos(dosregs);
-    drive:=dosregs.al+1;
-  end;
-
-  if not DiskData_CDROM then
-  if not DiskData_7303 then
-  if not DiskData_36 then
-  begin
-    do_diskdata:=-1;
-    exit;
-  end;
-  do_diskdata:=blocksize;
-  if free then
-    do_diskdata:=do_diskdata*freeblocks
-  else
-    do_diskdata:=do_diskdata*totblocks;
+  {TODO: implement}
+  runerror(304);
 end;
 
 function diskfree(drive : byte) : int64;
@@ -752,85 +355,23 @@ var
 {$endif DEBUG_LFN}
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
-var
-  i : longint;
-  w : LFNSearchRec;
 begin
-  { allow slash as backslash }
-  DoDirSeparators(path);
-  dosregs.si:=1; { use ms-dos time }
-  { don't include the label if not asked for it, needed for network drives }
-  if attr=$8 then
-   dosregs.ecx:=8
-  else
-   dosregs.ecx:=attr and (not 8);
-  dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
-  dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=tb_segment;
-  dosregs.edi:=tb_offset;
-  dosregs.es:=tb_segment;
-  dosregs.ax:=$714e;
-  msdos(dosregs);
-  LoadDosError;
-  if DosError=2 then
-    DosError:=18;
-{$ifdef DEBUG_LFN}
-  if (DosError=0) and LogLFN then
-    begin
-      Append(lfnfile);
-      inc(LFNOpenNb);
-      Writeln(lfnfile,LFNOpenNb,' LFNFindFirst called ',path);
-      close(lfnfile);
-    end;
-{$endif DEBUG_LFN}
-  copyfromdos(w,sizeof(LFNSearchRec));
-  LFNSearchRec2Dos(w,dosregs.ax,s,true);
+  {TODO: implement}
+  runerror(304);
 end;
 
 
 procedure LFNFindNext(var s:searchrec);
-var
-  hdl : longint;
-  w   : LFNSearchRec;
 begin
-  Move(s.Fill,hdl,4);
-  dosregs.si:=1; { use ms-dos time }
-  dosregs.edi:=tb_offset;
-  dosregs.es:=tb_segment;
-  dosregs.ebx:=hdl;
-  dosregs.ax:=$714f;
-  msdos(dosregs);
-  LoadDosError;
-  copyfromdos(w,sizeof(LFNSearchRec));
-  LFNSearchRec2Dos(w,hdl,s,false);
+  {TODO: implement}
+  runerror(304);
 end;
 
 
 procedure LFNFindClose(var s:searchrec);
-var
-  hdl : longint;
 begin
-  Move(s.Fill,hdl,4);
-  { Do not call MsDos if FindFirst returned with an error }
-  if hdl=-1 then
-    begin
-      DosError:=0;
-      exit;
-    end;
-  dosregs.ebx:=hdl;
-  dosregs.ax:=$71a1;
-  msdos(dosregs);
-  LoadDosError;
-{$ifdef DEBUG_LFN}
-  if (DosError=0) and LogLFN  then
-    begin
-      Append(lfnfile);
-      Writeln(lfnfile,LFNOpenNb,' LFNFindClose called ');
-      close(lfnfile);
-      if LFNOpenNb>0 then
-        dec(LFNOpenNb);
-    end;
-{$endif DEBUG_LFN}
+  {TODO: implement}
+  runerror(304);
 end;
 
 
@@ -853,40 +394,16 @@ end;
 
 
 procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
-var
-   i : longint;
 begin
-  { allow slash as backslash }
-  DoDirSeparators(path);
-  copytodos(f,sizeof(searchrec));
-  dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_segment;
-  dosregs.ah:=$1a;
-  msdos(dosregs);
-  dosregs.ecx:=attr;
-  dosregs.edx:=tb_offset+Sizeof(searchrec)+1;
-  dosmemput(tb_segment,tb_offset+Sizeof(searchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=tb_segment;
-  dosregs.ah:=$4e;
-  msdos(dosregs);
-  copyfromdos(f,sizeof(searchrec));
-  LoadDosError;
-  dossearchrec2searchrec(f);
+  {TODO: implement}
+  runerror(304);
 end;
 
 
 procedure Dosfindnext(var f : searchrec);
 begin
-  copytodos(f,sizeof(searchrec));
-  dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_segment;
-  dosregs.ah:=$1a;
-  msdos(dosregs);
-  dosregs.ah:=$4f;
-  msdos(dosregs);
-  copyfromdos(f,sizeof(searchrec));
-  LoadDosError;
-  dossearchrec2searchrec(f);
+  {TODO: implement}
+  runerror(304);
 end;
 
 
@@ -997,57 +514,17 @@ end;
 
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
-var
-  c : array[0..255] of char;
 begin
-  move(p[1],c[0],length(p));
-  c[length(p)]:=#0;
-  copytodos(c,length(p)+1);
-  dosregs.ax:=$7160;
-  dosregs.cx:=1;
-  dosregs.ds:=tb_segment;
-  dosregs.si:=tb_offset;
-  dosregs.es:=tb_segment;
-  dosregs.di:=tb_offset;
-  msdos(dosregs);
-  LoadDosError;
-  if DosError=0 then
-   begin
-     copyfromdos(c,256);
-     move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
-     GetShortName:=true;
-   end
-  else
-   GetShortName:=false;
+  {TODO: implement}
+  runerror(304);
 end;
 
 
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
-var
-  c : array[0..255] of char;
 begin
-  move(p[1],c[0],length(p));
-  c[length(p)]:=#0;
-  copytodos(c,length(p)+1);
-  dosregs.ax:=$7160;
-  dosregs.cx:=2;
-  dosregs.ds:=tb_segment;
-  dosregs.si:=tb_offset;
-  dosregs.es:=tb_segment;
-  dosregs.di:=tb_offset;
-  msdos(dosregs);
-  LoadDosError;
-  if DosError=0 then
-   begin
-     copyfromdos(c,256);
-     move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
-     GetLongName:=true;
-   end
-  else
-   GetLongName:=false;
+  {TODO: implement}
+  runerror(304);
 end;
 
 
@@ -1078,43 +555,15 @@ end;
 
 procedure getfattr(var f;var attr : word);
 begin
-  copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-  dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_segment;
-  if LFNSupport then
-   begin
-     dosregs.ax:=$7143;
-     dosregs.bx:=0;
-   end
-  else
-   dosregs.ax:=$4300;
-  msdos(dosregs);
-  LoadDosError;
-  Attr:=dosregs.cx;
+  {TODO: implement}
+  runerror(304);
 end;
 
 
 procedure setfattr(var f;attr : word);
 begin
-  { Fail for setting VolumeId. }
-  if ((attr and VolumeID)<>0) then
-  begin
-    doserror:=5;
-    exit;
-  end;
-  copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-  dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_segment;
-  if LFNSupport then
-   begin
-     dosregs.ax:=$7143;
-     dosregs.bx:=1;
-   end
-  else
-   dosregs.ax:=$4301;
-  dosregs.cx:=attr;
-  msdos(dosregs);
-  LoadDosError;
+  {TODO: implement}
+  runerror(304);
 end;
 
 
