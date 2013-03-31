@@ -159,26 +159,25 @@ implementation
       end;
 
 
-    function get_str_int_func(ordtype: tordtype): string;
+    function get_str_int_func(def: tdef): string;
     const
 {$if defined(cpu64bitaddr)}
-      oversized_types = [];
       highest_unsigned_type = u64bit;
 {$elseif defined(cpu32bitaddr)}
-      oversized_types = [scurrency,s64bit,u64bit];
       highest_unsigned_type = u32bit;
 {$elseif defined(cpu16bitalu)}
-      oversized_types = [scurrency,s64bit,u64bit,s32bit,u32bit];
       highest_unsigned_type = u16bit;
 {$elseif defined(cpu8bitalu)}
-      oversized_types = [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
       highest_unsigned_type = u8bit;
 {$endif}
+    var
+      ordtype: tordtype;
     begin
+      ordtype := torddef(def).ordtype;
       if not (ordtype in [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
         internalerror(2013032603);
 
-      if ordtype in oversized_types then
+      if is_oversizedord(def) then
         begin
           case ordtype of
             scurrency,
@@ -375,7 +374,7 @@ implementation
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
             else
-              procname := procname + get_str_int_func(torddef(source.resultdef).ordtype);
+              procname := procname + get_str_int_func(source.resultdef);
           end;
 
         { for ansistrings insert the encoding argument }
@@ -565,22 +564,15 @@ implementation
       end;
 
 
-    procedure get_read_write_int_func(ordtype: tordtype; out func_suffix: string; out readfunctype: tdef);
-    const
-{$if defined(cpu64bitaddr)}
-      oversized_types = [];
-{$elseif defined(cpu32bitaddr)}
-      oversized_types = [s64bit,u64bit];
-{$elseif defined(cpu16bitalu)}
-      oversized_types = [s64bit,u64bit,s32bit,u32bit];
-{$elseif defined(cpu8bitalu)}
-      oversized_types = [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
-{$endif}
+    procedure get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
+    var
+      ordtype: tordtype;
     begin
+      ordtype := torddef(def).ordtype;
       if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
         internalerror(2013032601);
 
-      if ordtype in oversized_types then
+      if is_oversizedint(def) then
         begin
           case ordtype of
             s64bit:
@@ -733,7 +725,7 @@ implementation
                   u32bit,
                   u64bit:
                     begin
-                      get_read_write_int_func(Torddef(para.left.resultdef).ordtype,func_suffix,readfunctype);
+                      get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
                       name := procprefixes[do_read]+func_suffix;
                     end;
                   uchar :
@@ -1372,22 +1364,15 @@ implementation
       end;
 
 
-    function get_val_int_func(ordtype: tordtype): string;
-    const
-{$if defined(cpu64bitaddr)}
-      oversized_types = [];
-{$elseif defined(cpu32bitaddr)}
-      oversized_types = [s64bit,u64bit];
-{$elseif defined(cpu16bitalu)}
-      oversized_types = [s64bit,u64bit,s32bit,u32bit];
-{$elseif defined(cpu8bitalu)}
-      oversized_types = [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit];
-{$endif}
+    function get_val_int_func(def: tdef): string;
+    var
+      ordtype: tordtype;
     begin
+      ordtype := torddef(def).ordtype;
       if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
         internalerror(2013032603);
 
-      if ordtype in oversized_types then
+      if is_oversizedint(def) then
         begin
           case ordtype of
             s64bit: exit('int64');
@@ -1537,7 +1522,7 @@ implementation
                 s8bit,s16bit,s32bit,s64bit,
                 u8bit,u16bit,u32bit,u64bit:
                   begin
-                    suffix := get_val_int_func(torddef(destpara.resultdef).ordtype) + '_';
+                    suffix := get_val_int_func(destpara.resultdef) + '_';
                     { we also need a destsize para in the case of sint }
                     if suffix = 'sint_' then
                       sizepara := ccallparanode.create(cordconstnode.create
