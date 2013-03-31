@@ -36,6 +36,9 @@ uses
 {$ifdef os2}
   {$define LIMIT83FS}
 {$endif}
+{$ifdef msdos}
+  {$define LIMIT83FS}
+{$endif}
 
 type
   tcompinfo = (compver,comptarget,compcpu);
@@ -327,7 +330,7 @@ end;
 
 type
   TCharSet = set of char;
-  
+
 function GetToken(var s: string; Delims: TCharSet = [' ']):string;
 var
   i : longint;
@@ -697,6 +700,7 @@ begin
   LTarget := CompilerTarget;
   UseOSOnly:= (LTarget='emx') or
               (LTarget='go32v2') or
+              (LTarget='msdos') or
               (LTarget='os2');
 end;
 {$endif not LIMIT83FS}
