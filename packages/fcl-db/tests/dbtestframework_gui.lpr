@@ -35,6 +35,7 @@ uses
 
 var
   DBSelectForm: TFormIniEditor;
+  TestRunForm: TGUITestRunner;
 begin
   Application.Initialize;
   DBSelectForm:=TFormIniEditor.Create(nil);
@@ -47,7 +48,10 @@ begin
   finally
     DBSelectForm.Free;
   end;
-  Application.CreateForm(TGuiTestRunner, TestRunner);
+  // Manually run this form because autocreation could have loaded an old
+  // database.ini file (if the user changed it using DBSelectForm)
+  TestRunForm:=TGUITestRunner.Create(nil);
+  TestRunForm.Show;
   Application.Run;
 end.
 

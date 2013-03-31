@@ -161,7 +161,7 @@ hostname=127.0.0.1
 [dbf]
 connector=dbf
 
-; Give here the path where the *.dbf file can be generated
+; The path where the *.dbf file can be generated:
 name=/tmp
 
 ; MemDS in memory dataset:

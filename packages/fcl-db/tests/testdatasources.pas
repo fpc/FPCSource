@@ -365,7 +365,7 @@ begin
     open;
     AssertTrue(THackDataset(ds).InternalCalcFields);
     // If there are InternalCalcFields and 'normal' Calculated fields, only
-    // RefreshIntenralCalcFields is called
+    // RefreshInternalCalcFields is called
     AFld := FieldByName('id');
     DataEvents := '';
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
@@ -377,7 +377,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:NAME;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then IntenralCalcFields shoudn't get called
+    // If the TDataset.State is dsSetKey then InternalCalcFields shoudn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';

@@ -1,5 +1,10 @@
 unit DBFToolsUnit;
 
+{ Sets up dbf datasets for testing
+Tests expect Get*Dataset to return a dataset with structure and test data, but closed.
+Because of this, we use file-backed dbfs instead of memory backed dbfs
+}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
 {$ENDIF}
@@ -38,6 +43,9 @@ type
 
 implementation
 
+const
+  FieldDatasetTableName='fpdev_field.db';
+
 procedure TDBFDBConnector.CreateNDatasets;
 var countID,n : integer;
 begin
@@ -45,7 +53,7 @@ begin
     begin
     with TDbf.Create(nil) do
       begin
-      FilePath := dbname;
+      FilePath := dbname; //specified in database.ini name= field
       TableName := 'fpdev_'+inttostr(n)+'.db';
       FieldDefs.Add('ID',ftInteger);
       FieldDefs.Add('NAME',ftString,50);
@@ -74,8 +82,8 @@ var i : integer;
 begin
   with TDbf.Create(nil) do
     begin
-    FilePath := dbname;
-    TableName := 'fpdev_field.db';
+    FilePath := dbname; //specified in database.ini name=
+    TableName := FieldDatasetTableName;
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
@@ -117,7 +125,7 @@ end;
 
 procedure TDBFDBConnector.DropFieldDataset;
 begin
-  DeleteFile(ExtractFilePath(dbname)+'fpdev_field.db');
+  DeleteFile(ExtractFilePath(dbname)+FieldDatasetTableName);
 end;
 
 function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
@@ -125,7 +133,7 @@ begin
   Result := TDbf.Create(nil);
   with (result as TDbf) do
     begin
-    FilePath := dbname;
+    FilePath := dbname; //specified in database.ini name= field
     TableName := 'fpdev_'+inttostr(n)+'.db';
     end;
 end;
@@ -135,8 +143,8 @@ begin
   Result := TDbf.Create(nil);
   with (result as TDbf) do
     begin
-    FilePath := dbname;
-    TableName := 'fpdev_field.db';
+    FilePath := dbname; //specified in database.ini name= field
+    TableName := FieldDatasetTableName;
     end;
 end;
 
@@ -168,7 +176,7 @@ procedure TDbfTraceDataset.InternalInitFieldDefs;
 var i : integer;
     IntCalcFieldName : String;
 begin
-  // To fake a internal calculated field, set it's fielddef InternalCalcField
+  // To fake an internal calculated field, set its fielddef InternalCalcField
   // property to true, before the dataset is opened.
   // This procedure takes care of setting the automatically created fielddef's
   // InternalCalcField property to true. (works for only one field)
