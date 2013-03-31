@@ -692,6 +692,8 @@ var
         Inc(i);
       NewNode := TLinkNode.Create(Copy(s, ThisSpaces + 1, i - ThisSpaces - 1),
         ALinkPrefix + Copy(s, i + 1, Length(s)));
+      if pos(' ',newnode.link)>0 then
+        writeln(stderr,'Bad format imported node: name="',newnode.name,'" link="',newnode.link,'"');
       if Assigned(PrevSibling) then
         PrevSibling.FNextSibling := NewNode
       else
