@@ -913,8 +913,8 @@ function THTMLWriter.ResolveLinkIDInUnit(const Name,AUnitName: String): DOMStrin
 
 begin
   Result:=ResolveLinkID(Name);
-  If (Result='') and (AUnitName<>'')  then
-    Result:=ResolveLinkID(AUnitName+'.'+Name);
+  If (Result='') and (AUnitName<>'') and (length(Name)>0) and (Name[1]<>'#') then
+     Result:=ResolveLinkID(AUnitName+'.'+Name);
 end;
 
 function THTMLWriter.ResolveLinkID(const Name: String; Level : Integer = 0): DOMString;
@@ -1387,8 +1387,6 @@ procedure THTMLWriter.DescrEndTableCell;
 begin
   PopOutputNode;
 end;
-
-
 
 
 procedure THTMLWriter.AppendText(Parent: TDOMNode; const AText: DOMString);
