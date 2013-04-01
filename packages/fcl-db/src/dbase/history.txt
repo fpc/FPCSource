@@ -32,6 +32,7 @@ BUGS & WARNINGS
 
 
 FreePascal trunk:
+- implemented FindFirst,FindNext,FindPrior,FindLast
 - compile fix for FPC 2.6.2 (r24069), possibly useful for Delphi
 
 ------------------------

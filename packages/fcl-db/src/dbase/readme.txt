@@ -17,3 +17,5 @@ License is LGPL (Library General Public License); see COPYING.LIB for details.
 Development notes/additions to end user documentation
 
 property RecNo: approximate record number. Does not take deleted records into account. Used mainly in grids.
+
+

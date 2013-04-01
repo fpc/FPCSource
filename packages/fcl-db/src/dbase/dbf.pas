@@ -260,7 +260,11 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer);
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
-    { virtual methods (mostly optionnal) }
+    { virtual methods (mostly optional) }
+    function  FindFirst: Boolean; override;
+    function  FindLast: Boolean; override;
+    function  FindNext: Boolean; override;
+    function  FindPrior: Boolean; override;
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
     function  GetRecordCount: Integer; override; {virtual}
     function  GetRecNo: Integer; override; {virtual}
@@ -751,6 +755,30 @@ procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual a
 begin
   { calling through 'old' delphi 3 interface, use compatible/'native' format }
   SetFieldData(Field, Buffer, true);
+end;
+
+function TDbf.FindFirst: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindFirst or FindRecord(True, True);
+end;
+
+function TDbf.FindLast: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindLast or FindRecord(True, False);
+end;
+
+function TDbf.FindNext: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindNext or FindRecord(False, True);
+end;
+
+function TDbf.FindPrior: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindPrior or FindRecord(False, False);
 end;
 
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); {overload; override;}
@@ -1299,7 +1327,7 @@ begin
     Result := 0;
 end;
 
-function TDbf.GetLanguageStr: String;
+function TDbf.GetLanguageStr: string;
 begin
   if FDbfFile <> nil then
     Result := FDbfFile.LanguageStr;
@@ -2293,7 +2321,7 @@ begin
   end;
 end;
 
-procedure TDbf.SetTableName(const s: string);
+procedure TDbf.SetTableName(const S: string);
 var
   lPath: string;
 begin
