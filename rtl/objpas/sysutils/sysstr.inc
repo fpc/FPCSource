@@ -1084,27 +1084,38 @@ Begin
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
-  case ValueType of
-    fvCurrency:
+  try
+    case ValueType of
+      fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-      Val(S,Currency(Value),E);
+        Val(S,Currency(Value),E);
 {$else FPC_HAS_STR_CURRENCY}
-      begin
-        // needed for platforms where Currency = Int64
-        Val(S,TempValue,E);
-        Currency(Value) := TempValue;
-      end;
+        begin
+          // needed for platforms where Currency = Int64
+          Val(S,TempValue,E);
+          Currency(Value) := TempValue;
+        end;
 {$endif FPC_HAS_STR_CURRENCY}
-    fvExtended:
-      Val(S,Extended(Value),E);
-    fvDouble:
-      Val(S,Double(Value),E);
-    fvSingle:
-      Val(S,Single(Value),E);
-    fvComp:
-      Val(S,Comp(Value),E);
-    fvReal:
-      Val(S,Real(Value),E);
+      fvExtended:
+        Val(S,Extended(Value),E);
+      fvDouble:
+        Val(S,Double(Value),E);
+      fvSingle:
+        Val(S,Single(Value),E);
+      fvComp:
+        Val(S,Comp(Value),E);
+      fvReal:
+        Val(S,Real(Value),E);
+    end;
+  { on x87, a floating point exception may be pending in case of an invalid
+    input value -> trigger it now }
+{$ifdef cpux86}
+    asm
+      fwait
+    end;
+{$endif}
+  except
+    E:=1;
   end;
   Result:=(E=0);
 End;
