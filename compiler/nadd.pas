@@ -1040,7 +1040,6 @@ implementation
              exit;
            end;
 
-
          { Kylix allows enum+ordconstn in an enum type declaration, we need to do
            the conversion here before the constant folding }
          if (m_delphi in current_settings.modeswitches) and

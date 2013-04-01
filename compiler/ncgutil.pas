@@ -101,13 +101,12 @@ interface
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
-    { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding }
-    { loadn and change its location to a new register (= SSA). In case reload  }
-    { is true, transfer the old to the new register                            }
+    { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding
+      loadn and change its location to a new register (= SSA). In case reload
+      is true, transfer the old to the new register                            }
     procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
 
-   {#
-      Allocate the buffers for exception management and setjmp environment.
+   {  Allocate the buffers for exception management and setjmp environment.
       Return a pointer to these buffers, send them to the utility routine
       so they are registered, and then call setjmp.
 
@@ -119,11 +118,8 @@ interface
       It is to note that this routine may be called *after* the stackframe of a
       routine has been called, therefore on machines where the stack cannot
       be modified, all temps should be allocated on the heap instead of the
-      stack.
-    }
-
+      stack. }
     const
-
       EXCEPT_BUF_SIZE = 3*sizeof(pint);
     type
       texceptiontemps=record
