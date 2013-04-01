@@ -41,49 +41,112 @@ type
     procedure ClearCalcFields(Buffer: PChar); override;
   end;
 
+  { TDBFAutoClean }
+  // DBF descendant that saves to a temp file and removes file when closed
+  TDBFAutoClean=class(TDBF)
+  public
+    constructor Create;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
 implementation
 
-const
-  FieldDatasetTableName='fpdev_field.db';
+
+
+{ TDBFAutoClean }
+
+constructor TDBFAutoClean.Create;
+var
+  DBFFileName: string;
+  TableLevelProvided: integer;
+begin
+  DBFFileName:=GetTempFileName;
+  FilePathFull:=ExtractFilePath(DBFFileName);
+  TableName := ExtractFileName(DBFFileName);
+  // User can specify table level as a connector param, e.g.:
+  // connectorparams=4
+  // If none given, default to DBase IV
+  TableLevelProvided:=StrToIntDef(dbconnectorparams,4);
+  if not ((TableLevelProvided = 3) or (TableLevelProvided = 4) or (TableLevelProvided = 7) or (TableLevelProvided = 25)) then
+  begin
+    writeln('Invalid tablelevel specified in connectorparams= field. Aborting');
+    exit;
+  end;
+  TableLevel := TableLevelProvided;
+  CreateTable; //write out header to disk
+end;
+
+constructor TDBFAutoClean.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Self.Create;
+end;
+
+destructor TDBFAutoClean.Destroy;
+var
+  FileName: string;
+begin
+  FileName:=AbsolutePath+TableName;
+  inherited Destroy;
+  deletefile(FileName);
+end;
+
 
 procedure TDBFDBConnector.CreateNDatasets;
-var countID,n : integer;
 begin
-  for n := 0 to MaxDataSet do
-    begin
-    with TDbf.Create(nil) do
-      begin
-      FilePath := dbname; //specified in database.ini name= field
-      TableName := 'fpdev_'+inttostr(n)+'.db';
-      FieldDefs.Add('ID',ftInteger);
-      FieldDefs.Add('NAME',ftString,50);
-      CreateTable;
-      Open;
-      if n > 0 then for countId := 1 to n do
-        begin
-        Append;
-        FieldByName('ID').AsInteger := countID;
-        FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
-        // Explicitly call .post, since there could be a bug which disturbs
-        // the automatic call to post. (example: when TDataset.DataEvent doesn't
-        // work properly)
-        Post;
-        end;
-      if state = dsinsert then
-        Post;
-      Close;
-      Free;
-      end;
-    end;
+  // All datasets are created in InternalGet*Dataset
 end;
 
 procedure TDBFDBConnector.CreateFieldDataset;
-var i : integer;
 begin
-  with TDbf.Create(nil) do
+  // All datasets are created in InternalGet*Dataset
+end;
+
+procedure TDBFDBConnector.DropNDatasets;
+begin
+  // Nothing to be done here; the dataset is cleaned up in TDBFAutoClean.Destroy
+end;
+
+procedure TDBFDBConnector.DropFieldDataset;
+begin
+  // Nothing to be done here; the dataset is cleaned up in TDBFAutoClean.Destroy
+end;
+
+function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
+var
+  countID: integer;
+begin
+  result:=(TDBFAutoClean.Create(nil) as TDataSet);
+  with (result as TDBFAutoclean) do
     begin
-    FilePath := dbname; //specified in database.ini name=
-    TableName := FieldDatasetTableName;
+    FieldDefs.Add('ID',ftInteger);
+    FieldDefs.Add('NAME',ftString,50);
+    CreateTable;
+    Open;
+    if n > 0 then for countId := 1 to n do
+      begin
+      Append;
+      FieldByName('ID').AsInteger := countID;
+      FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
+      // Explicitly call .post, since there could be a bug which disturbs
+      // the automatic call to post. (example: when TDataset.DataEvent doesn't
+      // work properly)
+      Post;
+      end;
+    if state = dsinsert then
+      Post;
+    Close;
+    end;
+end;
+
+function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
+var
+  i : integer;
+begin
+  result:=(TDbfAutoClean.Create(nil) as TDataSet);
+  with (result as TDBFAutoClean) do
+    begin
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
@@ -113,38 +176,6 @@ begin
       Post;
       end;
     Close;
-    end;
-end;
-
-procedure TDBFDBConnector.DropNDatasets;
-var n : integer;
-begin
-  for n := 0 to MaxDataSet do
-    DeleteFile(ExtractFilePath(dbname)+'fpdev_'+inttostr(n)+'.db');
-end;
-
-procedure TDBFDBConnector.DropFieldDataset;
-begin
-  DeleteFile(ExtractFilePath(dbname)+FieldDatasetTableName);
-end;
-
-function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
-begin
-  Result := TDbf.Create(nil);
-  with (result as TDbf) do
-    begin
-    FilePath := dbname; //specified in database.ini name= field
-    TableName := 'fpdev_'+inttostr(n)+'.db';
-    end;
-end;
-
-function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
-begin
-  Result := TDbf.Create(nil);
-  with (result as TDbf) do
-    begin
-    FilePath := dbname; //specified in database.ini name= field
-    TableName := FieldDatasetTableName;
     end;
 end;
 

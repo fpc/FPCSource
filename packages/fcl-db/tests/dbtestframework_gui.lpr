@@ -29,6 +29,7 @@ uses
   TestDatasources,
   TestBufDatasetStreams,
   TestSpecificTBufDataset,
+  TestSpecificTDBF,
   TestDBExport;
 
 {$R *.res}
@@ -51,7 +52,11 @@ begin
   // Manually run this form because autocreation could have loaded an old
   // database.ini file (if the user changed it using DBSelectForm)
   TestRunForm:=TGUITestRunner.Create(nil);
-  TestRunForm.Show;
-  Application.Run;
+  try
+    TestRunForm.Show;
+    Application.Run;
+  finally
+    TestRunForm.Free;
+  end;
 end.
 
