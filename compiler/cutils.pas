@@ -29,6 +29,9 @@ unit cutils;
 
 interface
 
+  uses
+    constexp;
+
   type
     Tcharset=set of char;
 
@@ -42,6 +45,17 @@ interface
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+
+    { These functions are intenionally put here and not in the constexp unit.
+      Since Tconstexprint may be automatically converted to int, which causes
+      loss of data and since there are already min and max functions for ints in
+      this unit, we put min and max for Tconstexprint as well. This way we avoid
+      potential bugs, caused by code unintentionally calling the int versions of
+      min/max on Tconstexprint, because of only including cutils and forgetting
+      the constexp unit in the uses clause. }
+    function min(const a,b : Tconstexprint) : Tconstexprint;{$ifdef USEINLINE}inline;{$endif}
+    function max(const a,b : Tconstexprint) : Tconstexprint;{$ifdef USEINLINE}inline;{$endif}
+
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     { if you have an address aligned using "oldalignment" and add an
@@ -190,6 +204,18 @@ implementation
       end;
 
 
+    function min(const a,b : Tconstexprint) : Tconstexprint;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the minimal of a and b
+    }
+      begin
+         if a<=b then
+           min:=a
+         else
+           min:=b;
+      end;
+
+
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
@@ -203,6 +229,18 @@ implementation
 
 
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the maximum of a and b
+    }
+      begin
+         if a>=b then
+           max:=a
+         else
+           max:=b;
+      end;
+
+
+    function max(const a,b : Tconstexprint) : Tconstexprint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
     }
