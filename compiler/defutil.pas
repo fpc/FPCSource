@@ -1221,7 +1221,7 @@ implementation
         llow, lhigh: tconstexprint;
       begin
         llow:=rd.low;
-        if llow<ld.low then
+        if llow>ld.low then
           llow:=ld.low;
         lhigh:=rd.high;
         if lhigh<ld.high then
