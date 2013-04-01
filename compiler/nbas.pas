@@ -950,6 +950,8 @@ implementation
         inherited printnodedata(t);
         writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        writeln(t,printnodeindention,'tempinit =');
+        printnode(t,tempinfo^.tempinitcode);
       end;
 
 {*****************************************************************************
