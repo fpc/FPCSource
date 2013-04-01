@@ -2037,6 +2037,7 @@ SHORTSUFFIX=android
 endif
 endif
 ifeq ($(OS_TARGET),msdos)
+STATICLIBPREFIX=
 STATICLIBEXT=.lib
 SHORTSUFFIX=d16
 endif
