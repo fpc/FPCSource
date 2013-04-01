@@ -1499,7 +1499,7 @@ implementation
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
 
-        procedure setlocalloc(vs:tabstractnormalvarsym);
+      procedure setlocalloc(vs:tabstractnormalvarsym);
         begin
           if cs_asm_source in current_settings.globalswitches then
             begin
@@ -1513,6 +1513,7 @@ implementation
               end;
             end;
           vs.localloc:=vs.initialloc;
+          FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
         end;
 
       var
