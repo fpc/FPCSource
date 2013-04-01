@@ -621,6 +621,7 @@ begin
         xFoxPro: PDbfHdr(Header)^.VerDBF := $02; {FoxBASE}
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar} //todo: check autoincrement, Varchar, Varbinary, or Blob-enabled
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/dBASE III PLUS, no memo!?}
+      end;
       // standard language WE, dBase III no language support
       if FDbfVersion = xBaseIII then
         PDbfHdr(Header)^.Language := 0
@@ -656,9 +657,9 @@ begin
       lPrec := lFieldDef.Precision;
       if (lFieldDef.NativeFieldType = 'C')
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion in [xFoxPro,xVisualFoxPro])
+        and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
-                then
+        then
       begin
         lPrec := lSize shr 8;
         lSize := lSize and $FF;
@@ -724,7 +725,6 @@ begin
       an associated database (.dbc) file, information. If the first byte is 0x00, 
       the file is not associated with a database. Therefore, database files always 
       contain 0x00. }
-    end;
     if FDbfVersion = xVisualFoxPro then
       Inc(PDbfHdr(Header)^.FullHdrSize, 263);
 
