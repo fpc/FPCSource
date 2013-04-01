@@ -25,7 +25,6 @@ type
 
   TTestSpecificTDBF = class(TTestCase)
   private
-    function GetTableLevel: integer;
     procedure WriteReadbackTest(ADBFDataset: TDbf; AutoInc: boolean = false);
   protected
     procedure SetUp; override;
@@ -39,6 +38,14 @@ type
     procedure OpenNonExistingDataset_Fails;
     procedure TestCreationDatasetWithCalcFields;
     procedure TestAutoIncField;
+    // Tests findfirst
+    procedure FindFirst;
+    // Tests findlast
+    procedure FindLast;
+    // Tests findnext
+    procedure FindNext;
+    // Tests findprior
+    procedure FindPrior;
   end;
 
 
@@ -49,19 +56,6 @@ uses
   FmtBCD;
 
 { TTestSpecificTDBF }
-
-function TTestSpecificTDBF.GetTableLevel: integer;
-var
-  TableLevelProvided: integer;
-begin
-  TableLevelProvided:=StrToIntDef(dbconnectorparams,4);
-  if not ((TableLevelProvided = 3) or (TableLevelProvided = 4) or (TableLevelProvided = 7) or (TableLevelProvided = 25)) then
-  begin
-    writeln('Invalid tablelevel specified in connectorparams= field. Aborting');
-    exit;
-  end;
-  result := TableLevelProvided;
-end;
 
 procedure TTestSpecificTDBF.WriteReadbackTest(ADBFDataset: TDbf;
   AutoInc: boolean);
@@ -225,11 +219,62 @@ begin
   ds.Free;
 end;
 
+procedure TTestSpecificTDBF.FindFirst;
+const
+  NumRecs=8;
+var
+  DS: TDataSet;
+begin
+  DS:=DBConnector.GetNDataset(NumRecs);
+  DS.Open;
+  DS.Last;
+  CheckEquals(true,DS.FindFirst,'Findfirst should return true');
+  CheckEquals(1,DS.fieldbyname('ID').asinteger);
+end;
+
+procedure TTestSpecificTDBF.FindLast;
+const
+  NumRecs=8;
+var
+  DS: TDataSet;
+begin
+  DS:=DBConnector.GetNDataset(NumRecs);
+  DS.Open;
+  DS.First;
+  CheckEquals(true,DS.FindLast,'Findlast should return true');
+  CheckEquals(NumRecs,DS.fieldbyname('ID').asinteger);
+end;
+
+procedure TTestSpecificTDBF.FindNext;
+const
+  NumRecs=8;
+var
+  DS: TDataSet;
+begin
+  DS:=DBConnector.GetNDataset(NumRecs);
+  DS.Open;
+  DS.First;
+  CheckEquals(true,DS.FindNext,'FindNext should return true');
+  CheckEquals(2,DS.fieldbyname('ID').asinteger);
+end;
+
+procedure TTestSpecificTDBF.FindPrior;
+const
+  NumRecs=8;
+var
+  DS: TDataSet;
+begin
+  DS:=DBConnector.GetNDataset(NumRecs);
+  DS.Open;
+  DS.Last;
+  CheckEquals(true,DS.FindPrior,'FindPrior should return true');
+  CheckEquals(NumRecs-1,DS.fieldbyname('ID').asinteger);
+end;
+
 
 
 initialization
 {$ifdef fpc}
-
   if uppercase(dbconnectorname)='DBF' then
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestSpecificTDBF);

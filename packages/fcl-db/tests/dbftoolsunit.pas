@@ -13,7 +13,7 @@ interface
 
 uses
   Classes, SysUtils, toolsunit,
-  db, Dbf;
+  db, Dbf, dbf_common;
 
 type
 { TDBFDBConnector }
@@ -68,7 +68,7 @@ begin
   // connectorparams=4
   // If none given, default to DBase IV
   TableLevelProvided:=StrToIntDef(dbconnectorparams,4);
-  if not ((TableLevelProvided = 3) or (TableLevelProvided = 4) or (TableLevelProvided = 7) or (TableLevelProvided = 25)) then
+  if not (TableLevelProvided in [3,4,5,7,TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
   begin
     writeln('Invalid tablelevel specified in connectorparams= field. Aborting');
     exit;
@@ -151,15 +151,18 @@ begin
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
     FieldDefs.Add('FINTEGER',ftInteger);
-//    FieldDefs.Add('FWORD',ftWord);
+    FieldDefs.Add('FWORD',ftWord);
     FieldDefs.Add('FBOOLEAN',ftBoolean);
     FieldDefs.Add('FFLOAT',ftFloat);
-//    FieldDefs.Add('FCURRENCY',ftCurrency);
-//    FieldDefs.Add('FBCD',ftBCD);
+    if (result as TDBF).TableLevel>=25 then
+      FieldDefs.Add('FCURRENCY',ftCurrency);
+    if (result as TDBF).TableLevel>=25 then
+      FieldDefs.Add('FBCD',ftBCD);
     FieldDefs.Add('FDATE',ftDate);
 //    FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
     FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FMEMO',ftMemo);
     CreateTable;
     Open;
     for i := 0 to testValuesCount-1 do

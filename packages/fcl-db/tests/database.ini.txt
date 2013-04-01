@@ -164,7 +164,8 @@ connector=dbf
 ; 3=DBase III
 ; 4=DBase IV
 ; 7=Visual DBase 7 for Windows
-; 25=FoxPro/Visual FoxPro
+; 25=FoxPro
+; 30=Visual FoxPro
 connectorparams=4
 
 ; MemDS in memory dataset:
