@@ -184,7 +184,7 @@ begin
     RecordSize := GetBlockLen;
     // checking for right blocksize not needed for foxpro?
     // mod 128 <> 0 <-> and 0x7F <> 0
-    if (RecordSize = 0) and ((FDbfVersion = xFoxPro) or ((RecordSize and $7F) <> 0)) then
+    if (RecordSize = 0) and ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
     begin
       SetBlockLen(512);
       RecordSize := 512;
@@ -371,7 +371,7 @@ begin
     if bytesBefore=8 then
     begin
       totsize := Src.Size + bytesBefore + bytesAfter;
-      if FDbfVersion <> xFoxPro then
+      if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
       begin
         PBlockHdr(FBuffer)^.MemoType := SwapIntLE($0008FFFF);
         PBlockHdr(FBuffer)^.MemoSize := SwapIntLE(totsize);

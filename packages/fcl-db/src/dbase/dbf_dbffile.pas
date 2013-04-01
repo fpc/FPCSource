@@ -354,24 +354,35 @@ begin
       //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
 
       version := PDbfHdr(Header)^.VerDBF;
-      case (version and $07) of
-        $03:
-          if LanguageID = 0 then
-            FDbfVersion := xBaseIII
-          else
-            FDbfVersion := xBaseIV;
-        $04:
-          FDbfVersion := xBaseVII;
-        $02, $05:
-          FDbfVersion := xFoxPro;
-      else
-        // check visual foxpro
-        if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
-        begin
-          FDbfVersion := xFoxPro;
-        end else begin
-          // not a valid DBF file
-          raise EDbfError.Create(STRING_INVALID_DBF_FILE);
+      FDbfVersion := xUnknown;
+      // Some hardcode versions for Visual FoxPro; see MS documentation
+      // (including the correction at the bottom):
+      // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
+      case version of
+        $30, $31, $32: FDbfVersion:=xVisualFoxPro;
+        $F5: FDbfVersion:=xFoxPro;
+      end;
+      if FDbfVersion = xUnknown then
+      begin
+        case (version and $07) of
+          $03:
+            if LanguageID = 0 then
+              FDbfVersion := xBaseIII
+            else
+              FDbfVersion := xBaseIV;
+          $04:
+            FDbfVersion := xBaseVII;
+          $02, $05:
+            FDbfVersion := xFoxPro;
+        else
+          // todo: check visual foxpro, modify
+          if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
+          begin
+            FDbfVersion := xFoxPro;
+          end else begin
+            // not a valid DBF file
+            raise EDbfError.Create(STRING_INVALID_DBF_FILE);
+          end;
         end;
       end;
       FFieldDefs.DbfVersion := FDbfVersion;
@@ -449,7 +460,7 @@ begin
         // open blob file
         if not FileExists(lMemoFileName) then
           MemoFileClass := TNullMemoFile
-        else if FDbfVersion = xFoxPro then
+        else if FDbfVersion in [xFoxPro,xVisualFoxPro]  then
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
@@ -461,19 +472,19 @@ begin
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
         // set header blob flag corresponding to field list
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
           lModified := true;
         end;
       end else
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF and $7F;
           lModified := true;
         end;
       // check if mdx flagged
-      if (FDbfVersion <> xFoxPro) and (PDbfHdr(Header)^.MDXFlag <> 0) then
+      if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) and (PDbfHdr(Header)^.MDXFlag <> 0) then
       begin
         // open mdx file if present
         lMdxFileName := ChangeFileExt(FileName, '.mdx');
@@ -606,11 +617,10 @@ begin
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrIII);
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
-      if FDbfVersion = xFoxPro then
-      begin
-        PDbfHdr(Header)^.VerDBF := $02
-      end else
-        PDbfHdr(Header)^.VerDBF := $03;
+      case FDbfVersion of
+        xFoxPro: PDbfHdr(Header)^.VerDBF := $02; {FoxBASE}
+        xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar} //todo: check autoincrement, Varchar, Varbinary, or Blob-enabled
+        else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/dBASE III PLUS, no memo!?}
       // standard language WE, dBase III no language support
       if FDbfVersion = xBaseIII then
         PDbfHdr(Header)^.Language := 0
@@ -646,7 +656,7 @@ begin
       lPrec := lFieldDef.Precision;
       if (lFieldDef.NativeFieldType = 'C')
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion = xFoxPro)
+          and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
                 then
       begin
@@ -670,12 +680,12 @@ begin
         lFieldDescIII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescIII.FieldSize := lSize;
         lFieldDescIII.FieldPrecision := lPrec;
-        if FDbfVersion = xFoxPro then
+        if FDbfVersion in [xFoxPro,xVisualFoxPro] then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
         if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
-          PDbfHdr(Header)^.VerDBF := $30;
+          PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
         if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
-          PDbfHdr(Header)^.VerDBF := $31;
+          PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
       end;
 
       // update our field list
@@ -696,26 +706,26 @@ begin
     // write memo bit
     if lHasBlob then
     begin
-      if FDbfVersion = xBaseIII then
-        PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80
-      else
-      if FDbfVersion = xFoxPro then
-      begin
-        if PDbfHdr(Header)^.VerDBF = $02 then
-          PDbfHdr(Header)^.VerDBF := $F5;
-      end else
-        PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $88;
+      case FDbfVersion of
+        xBaseIII: PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
+        xFoxPro: if PDbfHdr(Header)^.VerDBF = $02 then {change from FoxBASE to...}
+          PDbfHdr(Header)^.VerDBF := $F5; {...FoxPro 2.x (or earlier) with memo}
+        xVisualFoxPro: //MSDN says field 28 or $02 to set memo flag
+          PDbfHdr(Header)^.MDXFlag := PDbfHdr(Header)^.MDXFlag or $02;
+        else PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $88;
+      end;
     end;
 
     // update header
     PDbfHdr(Header)^.RecordSize := lFieldOffset;
     PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
-    // add empty "back-link" info, whatever it is: 
-    { A 263-byte range that contains the backlink, which is the relative path of 
+    { For Visual FoxPro only, add empty "back-link" info:
+      A 263-byte range that contains the backlink, which is the relative path of
       an associated database (.dbc) file, information. If the first byte is 0x00, 
       the file is not associated with a database. Therefore, database files always 
       contain 0x00. }
-    if FDbfVersion = xFoxPro then
+    end;
+    if FDbfVersion = xVisualFoxPro then
       Inc(PDbfHdr(Header)^.FullHdrSize, 263);
 
     // write dbf header to disk
@@ -731,7 +741,7 @@ begin
   if HasBlob and (FMemoFile=nil) then
   begin
     lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
-    if FDbfVersion = xFoxPro then
+    if FDbfVersion in [xFoxPro,xVisualFoxPro] then
       FMemoFile := TFoxProMemoFile.Create(Self)
     else
       FMemoFile := TDbaseMemoFile.Create(Self);
@@ -756,10 +766,10 @@ end;
 
 function TDbfFile.GetMemoExt: string;
 begin
-  if FDbfVersion = xFoxPro then
-    Result := '.fpt'
-  else
-    Result := '.dbt';
+  case FDbfVersion of
+    xFoxPro, xVisualFoxPro: Result := '.fpt'
+    else Result := '.dbt';
+  end;
 end;
 
 procedure TDbfFile.Zap;
@@ -854,7 +864,8 @@ begin
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
-        lCanHoldNull := (FDbfVersion = xFoxPro) and 
+        // todo: verify but AFAIU only Visual FoxPro supports null fields. Leave in FoxPro for now
+        lCanHoldNull := (FDbfVersion in [xFoxPro,xVisualFoxPro]) and
           ((lFieldDescIII.FoxProFlags and $2) <> 0) and
           (lFieldName <> '_NULLFLAGS');
       end;
@@ -862,7 +873,7 @@ begin
       // apply field transformation tricks
       if (lNativeFieldType = 'C') 
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion = xFoxPro) 
+          and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
                 then
       begin
@@ -1486,9 +1497,9 @@ begin
   Result := true;
   // field types that are binary and of which the fieldsize should not be truncated
   case AFieldDef.NativeFieldType of
-    '+', 'I':
+    '+', 'I': //Autoincrement, integer
       begin
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           Result := PDWord(Src)^ <> 0;
           if Result and (Dst <> nil) then
@@ -1558,9 +1569,9 @@ begin
         end;
 {$endif}
       end;
-    'B':    // foxpro double
+    'B':    // Foxpro double
       begin
-        if FDbfVersion = xFoxPro then
+        if FDbfVersion in [xFoxPro,xVisualFoxPro] then
         begin
           Result := true;
           if Dst <> nil then
@@ -1737,10 +1748,11 @@ begin
   // copy field data to record buffer
   Dst := PChar(Dst) + TempFieldDef.Offset;
   asciiContents := false;
+  // todo: check/add xvisualfoxpro autoincrement capability, null values, DateTime, Currency, and Double data types
   case TempFieldDef.NativeFieldType of
-    '+', 'I':
+    '+', 'I' {autoincrement, integer}:
       begin
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           if Src = nil then
             IntValue := 0
@@ -1821,9 +1833,9 @@ begin
         end;
 {$endif}
       end;
-    'B':
+    'B' {(Visual) FoxPro Double}:
       begin
-        if DbfVersion = xFoxPro then
+        if DbfVersion in [xFoxPro,xVisualFoxPro] then
         begin
           if Src = nil then
             PDouble(Dst)^ := 0

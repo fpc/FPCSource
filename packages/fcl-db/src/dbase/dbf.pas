@@ -496,9 +496,10 @@ const
 function TableLevelToDbfVersion(TableLevel: integer): TXBaseVersion;
 begin
   case TableLevel of
-    3:                      Result := xBaseIII;
-    7:                      Result := xBaseVII;
-    TDBF_TABLELEVEL_FOXPRO: Result := xFoxPro;
+    3:                            Result := xBaseIII;
+    7:                            Result := xBaseVII;
+    TDBF_TABLELEVEL_FOXPRO:       Result := xFoxPro;
+    TDBF_TABLELEVEL_VISUALFOXPRO: Result := xVisualFoxPro;
   else
     {4:} Result := xBaseIV;
   end;
@@ -1071,7 +1072,7 @@ begin
 
     if TempFieldDef.FieldType = ftFloat then
       begin
-      FieldDefs[I].Size := 0;                      // Size is not defined for float-fields
+      FieldDefs[I].Size := 0; // Size is not defined for float fields
       FieldDefs[I].Precision := TempFieldDef.Size;
       end;
 
@@ -1220,10 +1221,11 @@ begin
 
   // determine dbf version
   case FDbfFile.DbfVersion of
-    xBaseIII: FTableLevel := 3;
-    xBaseIV:  FTableLevel := 4;
-    xBaseVII: FTableLevel := 7;
-    xFoxPro:  FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xBaseIII:      FTableLevel := 3;
+    xBaseIV:       FTableLevel := 4;
+    xBaseVII:      FTableLevel := 7;
+    xFoxPro:       FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xVisualFoxPro: FTableLevel := TDBF_TABLELEVEL_VISUALFOXPRO;
   end;
   FLanguageID := FDbfFile.LanguageID;
 

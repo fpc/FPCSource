@@ -21,6 +21,7 @@ const
   TDBF_SUB_MINOR_VERSION  = 2;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
+  TDBF_TABLELEVEL_VISUALFOXPRO = 30; {Source: http://www.codebase.com/support/kb/?article=C01059}
 
   JulianDateDelta = 1721425; { number of days between 1.1.4714 BC and "0" }
 
@@ -30,7 +31,7 @@ type
 
   TDbfFieldType = char;
 
-  TXBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII);
+  TXBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII, xVisualFoxPro);
   TSearchKeyType = (stEqual, stGreaterEqual, stGreater);
 
   TDateTimeHandling       = (dtDateTime, dtBDETimeStamp);
