@@ -309,7 +309,7 @@ interface
 implementation
 
     uses
-       verbose;
+       verbose,cutils;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -1220,12 +1220,8 @@ implementation
       var
         llow, lhigh: tconstexprint;
       begin
-        llow:=rd.low;
-        if llow>ld.low then
-          llow:=ld.low;
-        lhigh:=rd.high;
-        if lhigh<ld.high then
-          lhigh:=ld.high;
+        llow:=min(ld.low,rd.low);
+        lhigh:=max(ld.high,rd.high);
         case range_to_basetype(llow,lhigh) of
           s8bit:
             result:=torddef(s8inttype);
