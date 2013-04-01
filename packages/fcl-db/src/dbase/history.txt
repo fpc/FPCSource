@@ -31,6 +31,8 @@ BUGS & WARNINGS
     - storedefs is not updated automatically when fielddefs are changed
 
 
+FreePascal trunk:
+- compile fix for FPC 2.6.2 (r24069), possibly useful for Delphi
 
 ------------------------
 V6.9.2
