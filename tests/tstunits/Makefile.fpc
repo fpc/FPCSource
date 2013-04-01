@@ -23,6 +23,10 @@ fpcdir=../..
 .PHONY: cleanfpcunit distcleanfpcunit
 .PHONY: cleanpackages distcleanpackages
 
+ifeq ($(OS_TARGET),msdos)
+override OPT=-CX
+endif
+
 ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
