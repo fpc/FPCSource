@@ -468,11 +468,13 @@ interface
         FOrdNr  : longint;
         FIsVar  : boolean;
         FMangledName : string;
+        FCachedExeSymbol: TExeSymbol;
       public
         constructor create(AList:TFPHashObjectList;const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
         property OrdNr: longint read FOrdNr;
         property MangledName: string read FMangledName;
         property IsVar: boolean read FIsVar;
+        property CachedExeSymbol: TExeSymbol read FCachedExeSymbol write FCachedExeSymbol;
       end;
 
       TExeWriteMode = (ewm_exefull,ewm_dbgonly,ewm_exeonly);

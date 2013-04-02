@@ -221,10 +221,18 @@ interface
 
        TPECoffexeoutput = class(TCoffexeoutput)
        private
+         FImports: TFPHashObjectList;
+         textobjsection,
+         idata2objsection,
+         idata4objsection,
+         idata5objsection,
+         idata6objsection,
+         idata7objsection : TObjSection;
          FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
          constructor create;override;
+         procedure AfterUnusedSectionRemoval;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
@@ -1988,7 +1996,10 @@ const pemagic : array[0..3] of byte = (
           internalerror(200603053);
         with texesymbol(p).objsymbol do
           begin
-            exesec:=TExeSection(objsection.exesection);
+            if assigned(objsection) then
+              exesec:=TExeSection(objsection.exesection)
+            else
+              exesec:=nil;
             { There is no exesection defined for special internal symbols
               like __image_base__ }
             if assigned(exesec) then
@@ -2461,14 +2472,8 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TPECoffexeoutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
+    procedure TPECoffexeoutput.AfterUnusedSectionRemoval;
       var
-        textobjsection,
-        idata2objsection,
-        idata4objsection,
-        idata5objsection,
-        idata6objsection,
-        idata7objsection : TObjSection;
         basedllname : string;
 
         procedure StartImport(const dllname:string);
@@ -2479,26 +2484,17 @@ const pemagic : array[0..3] of byte = (
               exemap.Add('Importing from DLL '+dllname);
             end;
           basedllname:=ExtractFileName(dllname);
-          idata2objsection:=internalobjdata.createsection(sec_idata2,basedllname);
-          idata4objsection:=internalobjdata.createsection(sec_idata4,basedllname);
-          idata5objsection:=internalobjdata.createsection(sec_idata5,basedllname);
-          idata7objsection:=internalobjdata.createsection(sec_idata7,basedllname);
           { idata2 }
-          idata2objsection.writereloc_internal(idata4objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata4objsection,idata4objsection.size,sizeof(longint),RELOC_RVA);
           idata2objsection.writezeros(2*sizeof(longint));
-          idata2objsection.writereloc_internal(idata7objsection,0,sizeof(longint),RELOC_RVA);
-          idata2objsection.writereloc_internal(idata5objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata7objsection,idata7objsection.size,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata5objsection,idata5objsection.size,sizeof(longint),RELOC_RVA);
           { idata7 }
           idata7objsection.writestr(basedllname);
         end;
 
         procedure EndImport;
         begin
-          { These are referenced from idata2, oso_keep is not necessary. }
-          idata4objsection:=internalobjdata.createsection(sec_idata4, basedllname+'_z_');
-          idata5objsection:=internalobjdata.createsection(sec_idata5, basedllname+'_z_');
-          idata2objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
-          idata2objsection.writereloc_internal(idata5objsection,0,0,RELOC_NONE);
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
           if target_info.system=system_x86_64_win64 then
@@ -2525,25 +2521,13 @@ const pemagic : array[0..3] of byte = (
             $90,$90
           );
         var
-          secname: string;
+          ordint: dword;
 
           procedure WriteTableEntry(objsec:TObjSection);
-          var
-            ordint: dword;
           begin
             if AOrdNr <= 0 then
               begin
-                { import by name }
-                if idata6objsection=nil then
-                  begin
-                    idata6objsection:=internalobjdata.createsection(sec_idata6,secname);
-                    ordint:=Abs(AOrdNr);
-                    { index hint, function name, null terminator and align }
-                    idata6objsection.write(ordint,2);
-                    idata6objsection.writestr(afuncname);
-                    idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
-                  end;
-                objsec.writereloc_internal(idata6objsection,0,sizeof(longint),RELOC_RVA);
+                objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
                 if target_info.system=system_x86_64_win64 then
                   objsec.writezeros(sizeof(longint));
               end
@@ -2567,8 +2551,6 @@ const pemagic : array[0..3] of byte = (
 
         begin
           result:=nil;
-          textobjsection:=nil;
-          idata6objsection:=nil;
           if assigned(exemap) then
             begin
               if AOrdNr <= 0 then
@@ -2577,35 +2559,36 @@ const pemagic : array[0..3] of byte = (
                 exemap.Add(' Importing Function '+afuncname+' (OrdNr='+tostr(AOrdNr)+')');
             end;
 
-          secname:=basedllname+'_i_'+amangledname;
-          idata4objsection:=internalobjdata.createsection(sec_idata4, secname);
-          idata5objsection:=internalobjdata.createsection(sec_idata5, secname);
-
           { idata4, import lookup table }
           WriteTableEntry(idata4objsection);
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
-          { dummy back links }
-          idata5objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
-          idata5objsection.writereloc_internal(idata2objsection,0,0,RELOC_NONE);
           if isvar then
             result:=internalobjdata.SymbolDefine(amangledname,AB_GLOBAL,AT_DATA)
           else
             begin
-              textobjsection:=internalobjdata.createsection(internalobjdata.sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,
-                internalobjdata.sectiontype2options(sec_code) - [oso_keep]);
+              internalobjdata.SetSection(textobjsection);
+              textobjsection.writezeros(align_aword(textobjsection.size,16)-textobjsection.size);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               textobjsection.write(jmpopcode,sizeof(jmpopcode));
 {$ifdef x86_64}
-              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_RELATIVE);
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_RELATIVE);
 {$else}
-              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_ABSOLUTE32);
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
 {$endif x86_64}
 
               textobjsection.write(nopopcodes,align(textobjsection.size,sizeof(nopopcodes))-textobjsection.size);
             end;
           { idata5 section data }
           WriteTableEntry(idata5objsection);
+          if (AOrdNr<=0) then
+            begin
+              { index hint, function name, null terminator and align }
+              ordint:=abs(AOrdNr);
+              idata6objsection.write(ordint,2);
+              idata6objsection.writestr(afuncname);
+              idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
+            end;
         end;
 
       var
@@ -2613,15 +2596,58 @@ const pemagic : array[0..3] of byte = (
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TImportSymbol;
         exesym     : TExeSymbol;
+        newdll : boolean;
       begin
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+            newdll:=False;
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=ImportSymbol.CachedExeSymbol;
+                if assigned(exesym) and
+                   exesym.Used then
+                  begin
+                    if (not newdll) then
+                      StartImport(ImportLibrary.Name);
+                    newdll:=True;
+                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                  end;
+              end;
+            if newdll then
+              EndImport;
+          end;
+        FixupSymbols;
+      end;
+
+
+    procedure TPECoffexeoutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
+      var
+        i,j: longint;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        { Here map import symbols to exe symbols and create necessary sections.
+          Actual import generation is done after unused sections (and symbols) are removed. }
+        FImports:=ImportLibraryList;
+        textobjsection:=internalObjData.CreateSection(sec_code);
+        textobjsection.SecOptions:=[oso_keep];
+        idata2objsection:=internalObjData.CreateSection(sec_idata2);
+        idata2objsection.SecOptions:=[oso_keep];
+        idata4objsection:=internalObjData.CreateSection(sec_idata4);
+        idata4objsection.SecOptions:=[oso_keep];
+        idata5objsection:=internalObjData.CreateSection(sec_idata5);
+        idata5objsection.SecOptions:=[oso_keep];
+        idata6objsection:=internalObjData.CreateSection(sec_idata6);
+        idata6objsection.SecOptions:=[oso_keep];
+        idata7objsection:=internalObjData.CreateSection(sec_idata7);
+        idata7objsection.SecOptions:=[oso_keep];
+
         for i:=0 to ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
-            idata2objsection:=nil;
-            idata4objsection:=nil;
-            idata5objsection:=nil;
-            idata6objsection:=nil;
-            idata7objsection:=nil;
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
@@ -2629,14 +2655,10 @@ const pemagic : array[0..3] of byte = (
                 if assigned(exesym) and
                    (exesym.State<>symstate_defined) then
                   begin
-                    if not assigned(idata2objsection) then
-                      StartImport(ImportLibrary.Name);
-                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                    ImportSymbol.CachedExeSymbol:=exesym;
                     exesym.State:=symstate_defined;
                   end;
               end;
-            if assigned(idata2objsection) then
-              EndImport;
           end;
         PackUnresolvedExeSymbols('after DLL imports');
       end;
