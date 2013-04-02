@@ -10,7 +10,7 @@ Because of this, we use file-backed dbfs instead of memory backed dbfs
 {$ENDIF}
 
 // If defined, do not delete the dbf files when done but print out location to stdout:
-{$DEFINE KEEPDBFFILES}
+{.$DEFINE KEEPDBFFILES}
 
 interface
 
