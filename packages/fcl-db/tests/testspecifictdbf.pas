@@ -17,7 +17,7 @@ uses
   TestFramework,
 {$ENDIF FPC}
   Classes, SysUtils,
-  db, dbf, dbf_common, ToolsUnit, DBFToolsUnit;
+  ToolsUnit, dbf;
 
 type
 
@@ -30,6 +30,8 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    // Verifies that requested tablelevel is delivered:
+    procedure TestTableLevel;
     // Create fields using indexdefs:
     procedure TestCreateDatasetFromFielddefs;
     // Specifying fields from field objects
@@ -54,7 +56,8 @@ implementation
 
 uses
   variants,
-  FmtBCD;
+  FmtBCD,
+  db, dbf_common, DBFToolsUnit;
 
 { TTestSpecificTDBF }
 
@@ -63,6 +66,7 @@ procedure TTestSpecificTDBF.WriteReadbackTest(ADBFDataset: TDbf;
 var
   i  : integer;
 begin
+  // Add sample data
   for i := 1 to 10 do
     begin
     ADBFDataset.Append;
@@ -92,6 +96,19 @@ begin
   DBConnector.StopTest;
 end;
 
+procedure TTestSpecificTDBF.TestTableLevel;
+var
+  ds : TDBF;
+begin
+  ds := TDBFAutoClean.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.CreateTable;
+  DS.Open;
+  CheckEquals((DS as TDBFAutoClean).UserRequestedTableLevel,DS.TableLevel,'User specified tablelevel should match dbf tablelevel.');
+  DS.Close;
+  ds.free;
+end;
+
 procedure TTestSpecificTDBF.TestCreateDatasetFromFielddefs;
 var
   ds : TDBF;
@@ -112,6 +129,7 @@ var
   f: TField;
 begin
   ds := TDBFAutoClean.Create(nil);
+  DS.CreateTable;
   F := TIntegerField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -119,7 +137,7 @@ begin
   F.FieldName:='NAME';
   F.DataSet:=ds;
   F.Size:=50;
-  DS.CreateTable;
+
   DS.Open;
   ds.free;
 end;
@@ -153,20 +171,20 @@ begin
   //todo: find out which tablelevels support calculated/lookup fields
   ds := TDBFAutoClean.Create(nil);
   try
-    F := TIntegerField.Create(ds);
-    F.FieldName:='ID';
-    F.DataSet:=ds;
-
-    F := TStringField.Create(ds);
-    F.FieldName:='NAME';
-    F.DataSet:=ds;
-    F.Size:=50;
+    ds.FieldDefs.Add('ID',ftInteger);
+    ds.FieldDefs.Add('NAME',ftString,50);
+    ds.CreateTable;
+    for i:=0 to ds.FieldDefs.Count-1 do
+    begin
+      ds.FieldDefs[i].CreateField(ds); // make fields persistent
+    end;
 
     F := TStringField.Create(ds);
     F.FieldKind:=fkCalculated;
     F.FieldName:='NAME_CALC';
     F.DataSet:=ds;
     F.Size:=50;
+    F.ProviderFlags:=[];
 
     F := TStringField.Create(ds);
     F.FieldKind:=fkLookup;
@@ -178,7 +196,6 @@ begin
     F.DataSet:=ds;
     F.Size:=50;
 
-    DS.CreateTable;
     DS.Open;
     WriteReadbackTest(ds);
 

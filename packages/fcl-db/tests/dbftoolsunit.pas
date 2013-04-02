@@ -9,6 +9,9 @@ Because of this, we use file-backed dbfs instead of memory backed dbfs
   {$mode objfpc}{$H+}
 {$ENDIF}
 
+// If defined, do not delete the dbf files when done but print out location to stdout:
+{.$DEFINE KEEPDBFFILES}
+
 interface
 
 uses
@@ -45,20 +48,24 @@ type
   // DBF descendant that saves to a temp file and removes file when closed
   TDBFAutoClean = class(TDBF)
   private
-    function GetUserRequestedTableLevel: integer;
+    FCreatedBy: string;
   public
+    // Keeps track of which function created the dataset, useful for troubleshooting
+    property CreatedBy: string read FCreatedBy write FCreatedBy;
     constructor Create;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function UserRequestedTableLevel: integer;
   end;
 
 implementation
 
-
+uses
+  FmtBCD;
 
 { TDBFAutoClean }
 
-function TDBFAutoClean.GetUserRequestedTableLevel: integer;
+function TDBFAutoClean.UserRequestedTableLevel: integer;
   // User can specify table level as a connector param, e.g.:
   // connectorparams=4
   // If none given, default to DBase IV
@@ -66,8 +73,8 @@ var
   TableLevelProvided: integer;
 begin
   TableLevelProvided := StrToIntDef(dbconnectorparams, 4);
-  if not (TableLevelProvided in [3, 4, 5, 7, TDBF_TABLELEVEL_FOXPRO,
-    TDBF_TABLELEVEL_VISUALFOXPRO]) then
+  if not (TableLevelProvided in [3, 4, 5, 7, 
+    TDBF_TABLELEVEL_FOXPRO, TDBF_TABLELEVEL_VISUALFOXPRO]) then
   begin
     Result := -1; // hope this crashes the tests so user is alerted.
     //Invalid tablelevel specified in connectorparams= field. Aborting
@@ -84,7 +91,7 @@ begin
   DBFFileName := GetTempFileName;
   FilePathFull := ExtractFilePath(DBFFileName);
   TableName := ExtractFileName(DBFFileName);
-  TableLevelProvided := GetUserRequestedTableLevel;
+  TableLevelProvided := UserRequestedTableLevel;
   TableLevel := TableLevelProvided;
   CreateTable; //write out header to disk
 end;
@@ -101,7 +108,11 @@ var
 begin
   FileName := AbsolutePath + TableName;
   inherited Destroy;
+  {$IFDEF KEEPDBFFILES}
+  writeln('TDBFAutoClean: file created by ',CreatedBy,' left file: ',FileName);
+  {$ELSE}
   deletefile(FileName);
+  {$ENDIF}
 end;
 
 
@@ -132,6 +143,7 @@ begin
   Result := (TDBFAutoClean.Create(nil) as TDataSet);
   with (Result as TDBFAutoclean) do
   begin
+    CreatedBy:='InternalGetNDataset('+inttostr(n)+')';
     FieldDefs.Add('ID', ftInteger);
     FieldDefs.Add('NAME', ftString, 50);
     CreateTable;
@@ -160,6 +172,7 @@ begin
   Result := (TDbfAutoClean.Create(nil) as TDataSet);
   with (Result as TDBFAutoClean) do
   begin
+    CreatedBy:='InternalGetFieldDataset';
     FieldDefs.Add('ID', ftInteger);
     FieldDefs.Add('FSTRING', ftString, 10);
     FieldDefs.Add('FSMALLINT', ftSmallint);
@@ -187,6 +200,10 @@ begin
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
+      if (Result as TDBF).TableLevel >= 25 then
+        FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
+      if (Result as TDBF).TableLevel >= 25 then
+        FieldByName('FBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
       FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
