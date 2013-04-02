@@ -2008,6 +2008,9 @@ endif
 endif
 endif
 endif
+ifeq ($(TEST_OS_TARGET),msdos)
+override TEST_OPT+=-XX
+endif
 TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 C_SUBDIR=$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)
 ifneq ($(DATE),__missing_command_DATE)
