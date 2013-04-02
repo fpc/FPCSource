@@ -2356,7 +2356,7 @@ begin
   if NewLevel <> FTableLevel then
   begin
     // check validity
-    if not ((NewLevel = 3) or (NewLevel = 4) or (NewLevel = 7) or (NewLevel = 25)) then
+    if not (NewLevel in [3,4,7,TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
       exit;
 
     // can only assign tablelevel if table is closed
