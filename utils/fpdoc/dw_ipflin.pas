@@ -518,13 +518,10 @@ var
     if List.Objects[i] <> nil then
     begin
       o := List.Objects[i] as TPasClassType;
-      DocNode := Engine.FindDocNode(o);
-      if Assigned(DocNode) then
+      if ClassDecl.Name <> o.Name then
       begin
-        s := ExtractFileName(o.SourceFilename);
-        t := ExtractFileExt(s);
-        s := StringReplace(s, t, '', []);
-        s := s + '.' + o.Name;
+        s := ChangeFileExt(ExtractFileName(o.SourceFilename), '');
+        s := '#' + PackageName + '.' + s + '.' + o.Name;
         DescrBeginLink(s);
         Write(o.Name);
         DescrEndLink;
@@ -532,6 +529,7 @@ var
       end
       else
       begin
+        { The topic being viewed doesn't need a link to itself }
         writeln(List[i]);
       end;
     end
@@ -622,12 +620,12 @@ end;
 
 procedure TIPFNewWriter.DescrBeginURL(const AURL: DOMString);
 begin
-  //Write(EscapeText(AURL));
+  Write(':link reftype=launch object=''netscape'' data=''' + AURL + '''.');
 end;
 
 procedure TIPFNewWriter.DescrEndURL;
 begin
-  // do nothing
+  Write(':elink.');
 end;
 
 function TIPFNewWriter.GetLabel(AElement: TPasElement): String;
