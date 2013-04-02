@@ -2461,10 +2461,10 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
         Negative: boolean;
         DS, TS: char;
 
-    procedure RoundDecimalDigits(const D: integer);
+    procedure RoundDecimalDigits(const d: integer);
     var i,j: integer;
     begin
-      j:=P+D;
+      j:=P+d;
       if (Length(Result) > j) and (Result[j+1] >= '5') then
         for i:=j downto 1+ord(Negative) do
         begin
@@ -2484,20 +2484,25 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
             break;
           end;
         end;
+      if d = 0 then dec(j); // if decimal separator is last char then do not copy them
       Result := copy(Result, 1, j);
     end;
 
-    procedure AddDecimalDigits;
-    var n,d: integer;
+    procedure AddDecimalDigits(d: integer);
+    var n: integer;
     begin
-      if Digits < 0 then d := 2 else d := Digits;
+      if P > Length(Result) then // there isn't decimal separator
+        if d = 0 then
+          Exit
+        else
+          Result := Result + DS;
 
       n := d + P - Length(Result);
 
-       if n > 0 then
-         Result := Result + StringOfChar('0', n)
-       else if n < 0 then
-         RoundDecimalDigits(d);
+      if n > 0 then
+        Result := Result + StringOfChar('0', n)
+      else if n < 0 then
+        RoundDecimalDigits(d);
     end;
 
     procedure AddThousandSeparators;
@@ -2521,18 +2526,14 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       Negative := Result[1] = '-';
       P := Pos(DS, Result);
       if P = 0 then
-      begin
         P := Length(Result) + 1;
-        if Digits <> 0 then
-          Result := Result + DS;
-      end;
 
       Case Format Of
         ffExponent:
         Begin
           E := P - 2 - ord(Negative);
 
-          if (E = 0) and (Result[P-1] = '0') then
+          if (E = 0) and (Result[P-1] = '0') then // 0.###
             repeat
               dec(E);
             until (Length(Result) <= P-E) or (Result[P-E] <> '0');
@@ -2544,7 +2545,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
             Insert(DS, Result, P);
           end;
 
-          RoundDecimalDigits(Precision-1);
+          AddDecimalDigits(Precision-1);
 
           if E < 0 then
           begin
@@ -2557,12 +2558,12 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
         ffFixed:
         Begin
-          AddDecimalDigits;
+          AddDecimalDigits(Digits);
         End;
 
         ffNumber:
         Begin
-          AddDecimalDigits;
+          AddDecimalDigits(Digits);
           AddThousandSeparators;
         End;
 
@@ -2571,7 +2572,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
           //implementation based on FloatToStrFIntl()
           if Negative then System.Delete(Result, 1, 1);
 
-          AddDecimalDigits;
+          AddDecimalDigits(Digits);
           AddThousandSeparators;
 
           If Not Negative Then
@@ -2606,10 +2607,252 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
   function FormatBCD ( const Format : string;
                              BCD : tBCD ) : FmtBCDStringtype;
+    // Tests: tests/test/units/fmtbcd/
+    type
+      TSection=record
+        FmtStart, FmtEnd,      // positions in Format string,
+        Fmt1Dig,               // position of 1st digit placeholder,
+        FmtDS: PChar;          // position of decimal point
+        Digits: integer;       // number of all digit placeholders
+        DigDS: integer;        // number of digit placeholders after decimal separator
+        HasTS, HasDS: boolean; // has thousand or decimal separator?
+      end;
+
+    var
+      PFmt: PChar;
+      i, j, j1, je, ReqSec, Sec, Scale: integer;
+      Section: TSection;
+      FF: TFloatFormat;
+      BCDStr: string;                   // BCDToStrF of given BCD parameter
+      Buf: array [0..85] of char;       // output buffer
+
+    // Parses Format parameter, their sections (positive;negative;zero) and
+    //  builds Section information for requested section
+    procedure ParseFormat;
+    var C,Q: Char;
+        PFmtEnd: PChar;
+        Section1: TSection;
     begin
-      not_implemented;
-      result:='';
+      PFmt:=@Format[1];
+      PFmtEnd:=PFmt+length(Format);
+      Section.FmtStart:=PFmt;
+      Section.Fmt1Dig:=nil;
+      Section.Digits:=0;
+      Section.HasTS:=false; // has thousand separator?
+      Section.HasDS:=false; // has decimal separator?
+      Sec:=1;
+      while true do begin
+        if PFmt>=PFmtEnd then
+          C:=#0 // hack if short strings used
+        else
+          C:=PFmt^;
+        case C of
+          '''', '"':
+            begin
+            Q:=PFmt^;
+            inc(PFmt);
+            while (PFmt<PFmtEnd-1) and (PFmt^<>Q) do
+              inc(PFmt);
+            end;
+          #0, ';': // end of Format string or end of section
+            begin
+            if Sec > 1 then
+              Section.FmtStart:=Section.FmtEnd+1;
+            Section.FmtEnd:=PFmt;
+            if not assigned(Section.Fmt1Dig) then
+              Section.Fmt1Dig:=Section.FmtEnd;
+            if not Section.HasDS then
+              begin
+              Section.FmtDS := Section.FmtEnd;
+              Section.DigDS := 0;
+              end;
+            if Sec = 1 then
+              Section1 := Section;
+            if (C = #0) or (Sec=ReqSec) then
+              break;
+            Section.Fmt1Dig:=nil;
+            Section.Digits:=0;
+            Section.HasTS:=false;
+            Section.HasDS:=false;
+        		inc(Sec);
+            end;
+          '.':     // decimal point
+            begin
+            Section.HasDS:=true;
+            Section.FmtDS:=PFmt;
+            Section.DigDS:=0;
+            end;
+          ',':     // thousand separator
+            Section.HasTS:=true;
+          '0','#': // digits placeholders
+            begin
+            if not assigned(Section.Fmt1Dig) then Section.Fmt1Dig:=PFmt;
+            inc(Section.Digits);
+            inc(Section.DigDS);
+            end;
+        end;
+        inc(PFmt);
+      end;
+
+      // if requested section does not exists or is empty use first section
+      if (ReqSec > Sec) or (Section.FmtStart=Section.FmtEnd) then
+      begin
+        Section := Section1;
+        Sec := 1;
+      end;
     end;
+
+    procedure PutFmtDigit(var AFmt: PChar; var iBCDStr, iBuf: integer; MoveBy: integer);
+    var ADig, Q: Char;
+    begin
+      if (iBuf < low(Buf)) or (iBuf > high(Buf)) then
+        raise eBCDOverflowException.Create ( 'in FormatBCD' );
+
+      if (iBCDStr < 1) or (iBCDStr > length(BCDStr)) then
+        ADig:=#0
+      else
+        ADig:=BCDStr[iBCDStr];
+
+      // write remaining leading part of BCDStr if there are no more digit placeholders in Format string
+      if ((AFmt < Section.Fmt1Dig) and (AFmt < Section.FmtDS) and (ADig <> #0)) or
+         (ADig = DefaultFormatSettings.ThousandSeparator) then
+      begin
+        Buf[iBuf] := BCDStr[iBCDStr];
+        inc(iBCDStr, MoveBy);
+        inc(iBuf, MoveBy);
+        Exit;
+      end;
+
+      case AFmt^ of
+        '''','"':
+          begin
+          Q:=AFmt^;
+          inc(AFmt, MoveBy);
+          // write all characters between quotes
+          while (AFmt>Section.FmtStart) and (AFmt<Section.FmtEnd) and (AFmt^ <> Q) do
+            begin
+            Buf[iBuf] := AFmt^;
+            inc(AFmt, MoveBy);
+            inc(iBuf, MoveBy);
+            end;
+          end;
+        '0','.':
+          begin
+          if AFmt^ = '.' then
+            Buf[iBuf] := DefaultFormatSettings.DecimalSeparator
+          else if ADig = #0 then
+            Buf[iBuf] := '0'
+          else
+            Buf[iBuf] := ADig;
+          inc(AFmt, MoveBy);
+          inc(iBCDStr, MoveBy);
+          inc(iBuf, MoveBy);
+          end;
+        '#':
+          begin
+          if ADig = #0 then
+            inc(AFmt, MoveBy)
+          else if (ADig = '0') and (iBCDStr = 1) then // skip leading zero
+            begin
+            inc(AFmt, MoveBy);
+            inc(iBCDStr, MoveBy);
+            end
+          else
+            begin
+            Buf[iBuf] := ADig;
+            inc(AFmt, MoveBy);
+            inc(iBCDStr, MoveBy);
+            inc(iBuf, MoveBy);
+            end;
+          end;
+        ',':
+          begin
+          inc(AFmt, MoveBy); // thousand separators are already in BCDStr
+          end;
+        else                 // write character what is in Format as is
+          begin
+          Buf[iBuf] := AFmt^;
+          inc(AFmt, MoveBy);
+          inc(iBuf, MoveBy);
+          end;
+      end;
+    end;
+
+  begin
+    case BCDCompare(BCD, NullBCD) of
+       1: ReqSec := 1;
+       0: ReqSec := 3;
+      -1: ReqSec := 2;
+    end;
+
+    // remove sign for negative value
+    if ReqSec = 2 then
+      BCDNegate(BCD);
+
+    // parse Format into Section
+    ParseFormat;
+
+    if Section.FmtStart=Section.FmtEnd then // empty section
+      FF := ffGeneral
+    else if Section.HasTS then
+      FF := ffNumber
+    else
+      FF := ffFixed;
+
+    Scale := BCDScale(BCD);
+    if (FF <> ffGeneral) and (Scale > Section.DigDS) then // we need rounding
+      Scale := Section.DigDS;
+
+    BCDStr := BCDToStrF(BCD, FF, 64, Scale);
+    if (FF = ffGeneral) then
+    begin
+      Result:=BCDStr;
+      Exit;
+    end;
+
+    // write to output buffer
+    j1 := high(Buf);   // position of 1st number before decimal point in output buffer
+    je := length(Buf); // position after last digit in output buffer
+    // output decimal part of BCDStr
+    if Section.HasDS and (Section.FmtEnd-Section.FmtDS>1) then // is there something after decimal point?
+    begin
+      PFmt := Section.FmtDS; // start from decimal point until end
+      i := length(BCDStr) - Scale + ord(Scale=0);
+      dec(j1, Section.FmtEnd-Section.FmtDS);
+      j := j1 + 1;
+      while PFmt < Section.FmtEnd do
+        PutFmtDigit(PFmt, i, j, 1);
+      je := j; // store position after last decimal digit
+    end;
+
+    // output whole number part of BCDStr
+    PFmt := Section.FmtDS - 1;
+    i := length(BCDStr) - Scale - ord(Scale<>0);
+    j := j1;
+    while (i>0) and (j>0) do
+      PutFmtDigit(PFmt, i, j, -1);
+
+    // output leading '0' (f.e. '001.23')
+    while (PFmt >= Section.FmtStart) and (PFmt^ = '0') do
+      PutFmtDigit(PFmt, i, j, -1);
+
+    // output sign (-), if value is negative, and does not exists 2nd section
+    if (ReqSec = 2) and (Sec = 1) then
+      begin
+      Buf[j]:='-';
+      dec(j);
+      end;
+
+    // output remaining chars from begining of Format (f.e. 'abc' if given Format is 'abc0.00')
+    while PFmt >= Section.FmtStart do
+      PutFmtDigit(PFmt, i, j, -1);
+
+    inc(j);
+    if j > high(Buf) then
+      Result := ''
+    else
+      SetString(Result, @Buf[j], je-j);
+  end;
 
 {$ifdef additional_routines}
 
