@@ -30,22 +30,23 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
-    // Create fields the old fashioned way:
-    procedure CreateDatasetFromFielddefs;
+    // Create fields using indexdefs:
+    procedure TestCreateDatasetFromFielddefs;
     // Specifying fields from field objects
-    procedure CreateDatasetFromFields;
+    procedure TestCreateDatasetFromFields;
     // Tries to open a dbf that has not been activated, which should fail:
-    procedure OpenNonExistingDataset_Fails;
+    procedure TestOpenNonExistingDataset_Fails;
+    // Tests creating a new database with calculated/lookup fields
     procedure TestCreationDatasetWithCalcFields;
     procedure TestAutoIncField;
-    // Tests findfirst
-    procedure FindFirst;
-    // Tests findlast
-    procedure FindLast;
-    // Tests findnext
-    procedure FindNext;
+    // Tests findfirst moves to first record
+    procedure TestFindFirst;
+    // Tests findlast moves to last record
+    procedure TestFindLast;
+    // Tests findnext moves to next record
+    procedure TestFindNext;
     // Tests findprior
-    procedure FindPrior;
+    procedure TestFindPrior;
   end;
 
 
@@ -91,7 +92,7 @@ begin
   DBConnector.StopTest;
 end;
 
-procedure TTestSpecificTDBF.CreateDatasetFromFielddefs;
+procedure TTestSpecificTDBF.TestCreateDatasetFromFielddefs;
 var
   ds : TDBF;
 begin
@@ -105,7 +106,7 @@ begin
   ds.free;
 end;
 
-procedure TTestSpecificTDBF.CreateDatasetFromFields;
+procedure TTestSpecificTDBF.TestCreateDatasetFromFields;
 var
   ds : TDBF;
   f: TField;
@@ -123,7 +124,7 @@ begin
   ds.free;
 end;
 
-procedure TTestSpecificTDBF.OpenNonExistingDataset_Fails;
+procedure TTestSpecificTDBF.TestOpenNonExistingDataset_Fails;
 var
   ds : TDBF;
   f: TField;
@@ -202,6 +203,7 @@ begin
   begin
     Ignore('Autoinc fields are only supported in tablelevel 7 and higher');
   end;
+
   F := TAutoIncField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -219,7 +221,7 @@ begin
   ds.Free;
 end;
 
-procedure TTestSpecificTDBF.FindFirst;
+procedure TTestSpecificTDBF.TestFindFirst;
 const
   NumRecs=8;
 var
@@ -232,7 +234,7 @@ begin
   CheckEquals(1,DS.fieldbyname('ID').asinteger);
 end;
 
-procedure TTestSpecificTDBF.FindLast;
+procedure TTestSpecificTDBF.TestFindLast;
 const
   NumRecs=8;
 var
@@ -245,7 +247,7 @@ begin
   CheckEquals(NumRecs,DS.fieldbyname('ID').asinteger);
 end;
 
-procedure TTestSpecificTDBF.FindNext;
+procedure TTestSpecificTDBF.TestFindNext;
 const
   NumRecs=8;
 var
@@ -258,7 +260,7 @@ begin
   CheckEquals(2,DS.fieldbyname('ID').asinteger);
 end;
 
-procedure TTestSpecificTDBF.FindPrior;
+procedure TTestSpecificTDBF.TestFindPrior;
 const
   NumRecs=8;
 var
