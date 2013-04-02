@@ -2622,8 +2622,7 @@ begin
     else
       fmt := FEditFormat;
     if fmt<>'' then
-      TheText := BCDToStr(bcd)
-      //TheText := FormatBCD(fmt,bcd) //uncomment when formatBCD in fmtbcd.pp will be implemented
+      TheText := FormatBCD(fmt,bcd)
     else if fCurrency then begin
       if aDisplayText then
         TheText := BcdToStrF(bcd, ffCurrency, FPrecision, 2)
