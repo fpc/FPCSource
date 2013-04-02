@@ -10,7 +10,7 @@ Because of this, we use file-backed dbfs instead of memory backed dbfs
 {$ENDIF}
 
 // If defined, do not delete the dbf files when done but print out location to stdout:
-{.$DEFINE KEEPDBFFILES}
+{$DEFINE KEEPDBFFILES}
 
 interface
 
@@ -48,6 +48,7 @@ type
   // DBF descendant that saves to a temp file and removes file when closed
   TDBFAutoClean = class(TDBF)
   private
+    FBackingStream: TMemoryStream;
     FCreatedBy: string;
   public
     // Keeps track of which function created the dataset, useful for troubleshooting
@@ -84,15 +85,13 @@ begin
 end;
 
 constructor TDBFAutoClean.Create;
-var
-  DBFFileName: string;
-  TableLevelProvided: integer;
 begin
-  DBFFileName := GetTempFileName;
-  FilePathFull := ExtractFilePath(DBFFileName);
-  TableName := ExtractFileName(DBFFileName);
-  TableLevelProvided := UserRequestedTableLevel;
-  TableLevel := TableLevelProvided;
+  FBackingStream:=TMemoryStream.Create;
+  // Create a unique name:
+  TableName := FormatDateTime('hhnnssz',Now())+'/'+inttostr(random(32767));
+  TableLevel := UserRequestedTableLevel;
+  Storage:=stoMemory;
+  UserStream:=FBackingStream;
   CreateTable; //write out header to disk
 end;
 
@@ -106,13 +105,14 @@ destructor TDBFAutoClean.Destroy;
 var
   FileName: string;
 begin
-  FileName := AbsolutePath + TableName;
-  inherited Destroy;
   {$IFDEF KEEPDBFFILES}
+  Close;
+  FileName := GetTempFileName;
+  FBackingStream.SaveToFile(FileName);
   writeln('TDBFAutoClean: file created by ',CreatedBy,' left file: ',FileName);
-  {$ELSE}
-  deletefile(FileName);
   {$ENDIF}
+  inherited Destroy;
+  FBackingStream.Free;
 end;
 
 

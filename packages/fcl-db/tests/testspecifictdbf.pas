@@ -1,7 +1,7 @@
 unit testspecifictdbf;
 
 {
-  Unit tests which are specific to the tdbf dbase units.
+  Unit tests which are specific to the tdbf dbase/foxpro units.
 }
 
 {$IFDEF FPC}
@@ -32,6 +32,8 @@ type
   published
     // Verifies that requested tablelevel is delivered:
     procedure TestTableLevel;
+    // Verifies that writing to memory and writing to disk results in the same data
+    procedure TestMemoryDBFEqualsDiskDBF;
     // Create fields using indexdefs:
     procedure TestCreateDatasetFromFielddefs;
     // Specifying fields from field objects
@@ -107,6 +109,64 @@ begin
   CheckEquals((DS as TDBFAutoClean).UserRequestedTableLevel,DS.TableLevel,'User specified tablelevel should match dbf tablelevel.');
   DS.Close;
   ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestMemoryDBFEqualsDiskDBF;
+var
+  dsfile: TDBF;
+  dsmem: TDBF;
+  backingstream: TMemoryStream;
+  FileName: string;
+  i: integer;
+  thefile: TMemoryStream;
+begin
+  backingstream:=TMemoryStream.Create;
+  thefile:=TMemoryStream.Create;
+  dsmem:=TDBF.Create(nil);
+  dsfile:=TDBF.Create(nil);
+  FileName:=GetTempFileName;
+  dsfile.FilePathFull:=ExtractFilePath(FileName);
+  dsfile.TableName:=ExtractFileName(FileName);
+  dsmem.TableName:=ExtractFileName(FileName);
+  dsmem.Storage:=stoMemory;
+  dsmem.UserStream:=backingstream;
+
+  // A small number of fields but should be enough
+  dsfile.FieldDefs.Add('ID',ftInteger);
+  dsmem.FieldDefs.Add('ID',ftInteger);
+  dsfile.FieldDefs.Add('NAME',ftString,50);
+  dsmem.FieldDefs.Add('NAME',ftString,50);
+  dsfile.CreateTable;
+  dsmem.CreateTable;
+  dsfile.Open;
+  dsmem.Open;
+  // Some sample data
+  for i := 1 to 101 do
+  begin
+    dsfile.Append;
+    dsmem.Append;
+    dsfile.FieldByName('ID').AsInteger := i;
+    dsmem.FieldByName('ID').AsInteger := i;
+    dsfile.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    dsmem.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    dsfile.Post;
+    dsmem.Post;
+  end;
+
+  // By closing, we update the number of records in the header
+  dsfile.close;
+  dsmem.close;
+  dsfile.free;
+
+  // Keep dsmem; load file into stream:
+  thefile.LoadfromFile(FileName);
+  deletefile(FileName);
+
+  CheckEquals(backingstream.size,thefile.size,'Memory backed dbf should have same size as file-backed dbf');
+  // Now compare stream contents - thereby comparing the file with backingstream
+  CheckEquals(true,comparemem(thefile.Memory,backingstream.Memory,thefile.size),'Memory backed dbf data should be the same as file-backed dbf');
+  backingstream.free;
+  thefile.free;
 end;
 
 procedure TTestSpecificTDBF.TestCreateDatasetFromFielddefs;
