@@ -8,6 +8,9 @@ programs=pas2jni
 [clean]
 units=pas2jni def ppuparser writer
 
+[require]
+packages=rtl fcl-base
+
 [install]
 fpcpackage=y
 
