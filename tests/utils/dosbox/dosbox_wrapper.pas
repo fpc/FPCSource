@@ -55,13 +55,16 @@ begin
   end;
 end;
 
-procedure CopyFile(const ASrcFileName, ADestFileName: string);
+procedure CopyFile(ASrcFileName, ADestFileName: string);
 var
   SrcF, DestF: File;
   OldFileMode: Integer;
   Buf: array [0..4095] of Byte;
   BytesRead: Integer;
 begin
+  Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
+  if not AnsiEndsText('.exe', ASrcFileName) then
+    ASrcFileName := ASrcFileName + '.exe';
   OldFileMode := FileMode;
   try
     AssignFile(SrcF, ASrcFileName);
