@@ -23,6 +23,7 @@ initialization
                                          'Индекс: %s'+#13+#10+'Запись (строка)=%d  Ключ="%s".';
 
   STRING_INVALID_DBF_FILE             := 'Файл DBF поврежден или его структура не DBF.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Файл DBF поврежден или его структура не DBF.'; //todo: add field error info
   STRING_FIELD_TOO_LONG               := 'Длина значения - %d символов, это больше максимума - %d.';
   STRING_INVALID_FIELD_COUNT          := 'Количество полей в таблице (%d) невозможно. Допустимо от 1 до 4095.';
   STRING_INVALID_FIELD_TYPE           := 'Тип значения "%s", затребованный полем "%s" невозможен.';

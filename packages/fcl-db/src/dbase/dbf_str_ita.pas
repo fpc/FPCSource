@@ -16,6 +16,8 @@ initialization
   STRING_RECORD_LOCKED                := 'Record già in uso.';
 
   STRING_INVALID_DBF_FILE             := 'File DBF non valido.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'File DBF non valido. Definizione de campo non valido'; //todo: check field part
+
   STRING_FIELD_TOO_LONG               := 'Valore troppo elevato: %d caratteri (esso non può essere più di %d).';
   STRING_INVALID_FIELD_COUNT          := 'Campo non valido (count): %d (deve essere tra 1 e 4095).';
 

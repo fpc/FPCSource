@@ -21,10 +21,10 @@ const
 //*************************************************************************//
 
 // ...
-  FoxLangId_ENU_437       = $01;
-  FoxLangId_Intl_850      = $02;
-  FoxLangId_Windows_1252  = $03;
-  FoxLangId_Mac_10000     = $04;
+  FoxLangId_ENU_437       = $01; // DOS USA
+  FoxLangId_Intl_850      = $02; // DOS multilingual
+  FoxLangId_Windows_1252  = $03; // Windows ANSI
+  FoxLangId_Mac_10000     = $04; // Standard Macintosh
 // ...
   DbfLangId_DAN_865       = $08;
   DbfLangId_NLD_437       = $09;
@@ -70,58 +70,62 @@ const
   DbfLangId_WEurope_1252  = $58;
   DbfLangId_Spanish_1252  = $59;
 // ...
+// Additional FoxPro references:
+// http://msdn.microsoft.com/en-us/library/8t45x02s%28v=VS.80%29.aspx
+// http://www.clicketyclick.dk/databases/xbase/format/dbf.html#DBF_STRUCT
   FoxLangId_German_437    = $5E;
   FoxLangId_Nordic_437    = $5F;
   FoxLangId_Nordic_850    = $60;
   FoxLangId_German_1252   = $61;
   FoxLangId_Nordic_1252   = $62;
 // ...
-  FoxLangId_EEurope_852   = $64;
-  FoxLangId_Russia_866    = $65;
-  FoxLangId_Nordic_865    = $66;
-  FoxLangId_Iceland_861   = $67;
-  FoxLangId_Czech_895     = $68;
+  FoxLangId_EEurope_852   = $64; // DOS
+  FoxLangId_Russia_866    = $65; // DOS //todo: verify, MS docs say this is $66
+  FoxLangId_Nordic_865    = $66; // DOS //todo: verify, MS docs say this is $65
+  FoxLangId_Iceland_861   = $67; // DOS
+  FoxLangId_Czech_895     = $68; // DOS Kamenicky
 // ...
-  DbfLangId_POL_620       = $69;
+  DbfLangId_POL_620       = $69; // DOS Mazovia
 // ...
-  FoxLangId_Greek_737     = $6A;
-  FoxLangId_Turkish_857   = $6B;
+  FoxLangId_Greek_737     = $6A; // DOS (437G)
+  FoxLangId_Turkish_857   = $6B; // DOS
 // ...
-  FoxLangId_Taiwan_950    = $78;
-  FoxLangId_Korean_949    = $79;
-  FoxLangId_Chinese_936   = $7A;
-  FoxLangId_Japan_932     = $7B;
-  FoxLangId_Thai_874      = $7C;
-  FoxLangId_Hebrew_1255   = $7D;
-  FoxLangId_Arabic_1256   = $7E;
+  FoxLangId_Taiwan_950    = $78; // Windows
+  FoxLangId_Korean_949    = $79; // Windows
+  FoxLangId_Chinese_936   = $7A; // Windows Chinese simplified
+  FoxLangId_Japan_932     = $7B; // Windows
+  FoxLangId_Thai_874      = $7C; // Windows
+  FoxLangId_Hebrew_1255   = $7D; // Windows
+  FoxLangId_Arabic_1256   = $7E; // Windows
 // ...
   DbfLangId_Hebrew        = $85;
-  DbfLangId_ELL_437       = $86;    // greek, code page 737 (?)
+  DbfLangId_ELL_437       = $86; // greek, code page 737 (?)
   DbfLangId_SLO_852       = $87;
   DbfLangId_TRK_857       = $88;
 // ...
   DbfLangId_BUL_868       = $8E;
 // ...
-  FoxLangId_Russia_10007  = $96;
-  FoxLangId_EEurope_10029 = $97;
-  FoxLangId_Greek_10006   = $98;
+  FoxLangId_Russia_10007  = $96; // Macintosh
+  FoxLangId_EEurope_10029 = $97; // Macintosh
+  FoxLangId_Greek_10006   = $98; // Macintosh
 // ...
   FoxLangId_Czech_1250    = $9B;
-  FoxLangId_Czech_850     = $9C;    // DOS
+  FoxLangId_Czech_850     = $9C; // DOS
 // ...
-  FoxLangId_EEurope_1250  = $C8;
-  FoxLangId_Russia_1251   = $C9;
-  FoxLangId_Turkish_1254  = $CA;
-  FoxLangId_Greek_1253    = $CB;
+  FoxLangId_EEurope_1250  = $C8; // Windows
+  FoxLangId_Russia_1251   = $C9; // Windows
+  FoxLangId_Turkish_1254  = $CA; // Windows
+  FoxLangId_Greek_1253    = $CB; // Windows
 
 
 // special constants
-
   DbfLocale_NotFound   = $010000;
   DbfLocale_Bul868     = $020000;
 
 //*************************************************************************//
-// DB3/DB4/FoxPro Language ID to CodePage convert table
+// DB3/DB4/FoxPro/Visual Foxpro Language ID to CodePage convert table
+// Visual FoxPro docs call language ID "code page mark"
+// or "code page identifier"
 //*************************************************************************//
 
   LangId_To_CodePage: array[Byte] of Word =

@@ -328,89 +328,63 @@ var
   I: Integer;
   deleteLink: Boolean;
   lModified: boolean;
-  LangStr: PChar;
-  version: byte;
-begin
-  // check if not already opened
-  if not Active then
+
+  procedure GetVersion;
+  var
+    version: byte;
   begin
-    // open requested file
-    OpenFile;
+    // OH 2000-11-15 dBase7 support. I build dBase Tables with different
+    // BDE dBase Level (1. without Memo, 2. with Memo)
+    //                          Header Byte ($1d hex) (29 dec) -> Language driver ID.
+    //  $03,$83 xBaseIII        Header Byte $1d=$00, Float -> N($13.$04) DateTime C($1E)
+    //  $03,$8B xBaseIV/V       Header Byte $1d=$58, Float -> N($14.$04)
+    //  $04,$8C xBaseVII        Header Byte $1d=$00  Float -> O($08)     DateTime @($08)
+    //  $03,$F5 FoxPro Level 25 Header Byte $1d=$03, Float -> N($14.$04)
+    // Access 97
+    //  $03,$83 dBaseIII        Header Byte $1d=$00, Float -> N($13.$05) DateTime D($08)
+    //  $03,$8B dBaseIV/V       Header Byte $1d=$00, Float -> N($14.$05) DateTime D($08)
+    //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
 
-    // check if we opened an already existing file
-    lModified := false;
-    if not FileCreated then
-    begin
-      HeaderSize := sizeof(rDbfHdr); // temporary
-      // OH 2000-11-15 dBase7 support. I build dBase Tables with different
-      // BDE dBase Level (1. without Memo, 2. with Memo)
-      //                          Header Byte ($1d hex) (29 dec) -> Language driver ID.
-      //  $03,$83 xBaseIII        Header Byte $1d=$00, Float -> N($13.$04) DateTime C($1E)
-      //  $03,$8B xBaseIV/V       Header Byte $1d=$58, Float -> N($14.$04)
-      //  $04,$8C xBaseVII        Header Byte $1d=$00  Float -> O($08)     DateTime @($08)
-      //  $03,$F5 FoxPro Level 25 Header Byte $1d=$03, Float -> N($14.$04)
-      // Access 97
-      //  $03,$83 dBaseIII        Header Byte $1d=$00, Float -> N($13.$05) DateTime D($08)
-      //  $03,$8B dBaseIV/V       Header Byte $1d=$00, Float -> N($14.$05) DateTime D($08)
-      //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
-
-      version := PDbfHdr(Header)^.VerDBF;
-      FDbfVersion := xUnknown;
-      // Some hardcode versions for Visual FoxPro; see MS documentation
-      // (including the correction at the bottom):
-      // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
-      case version of
-        $30, $31, $32: FDbfVersion:=xVisualFoxPro;
-        $F5: FDbfVersion:=xFoxPro;
-      end;
-      if FDbfVersion = xUnknown then
-      begin
-        case (version and $07) of
-          $03:
-            if LanguageID = 0 then
-              FDbfVersion := xBaseIII
-            else
-              FDbfVersion := xBaseIV;
-          $04:
-            FDbfVersion := xBaseVII;
-          $02, $05:
-            FDbfVersion := xFoxPro;
-        else
-          // todo: check visual foxpro, modify
-          if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
-          begin
-            FDbfVersion := xFoxPro;
-          end else begin
-            // not a valid DBF file
-            raise EDbfError.Create(STRING_INVALID_DBF_FILE);
-          end;
+    version := PDbfHdr(Header)^.VerDBF;
+    FDbfVersion := xUnknown;
+    // Some hardcode versions for Visual FoxPro; see MS documentation
+    // (including the correction at the bottom):
+    // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
+    case version of
+      $30, $31, $32: FDbfVersion:=xVisualFoxPro;
+      $F5: FDbfVersion:=xFoxPro;
+    end;
+    if FDbfVersion = xUnknown then
+      case (version and $07) of
+        $03:
+          if LanguageID = 0 then
+            FDbfVersion := xBaseIII
+          else
+            FDbfVersion := xBaseIV;
+        $04:
+          FDbfVersion := xBaseVII;
+        $02, $05:
+          FDbfVersion := xFoxPro;
+      else
+        // todo: check visual foxpro, modify
+        if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
+        begin
+          FDbfVersion := xFoxPro;
+        end else begin
+          // not a valid DBF file
+          raise EDbfError.Create(STRING_INVALID_DBF_FILE);
         end;
       end;
-      FFieldDefs.DbfVersion := FDbfVersion;
-      RecordSize := PDbfHdr(Header)^.RecordSize;
-      HeaderSize := PDbfHdr(Header)^.FullHdrSize;
-      if (HeaderSize = 0) or (RecordSize = 0) then
-      begin
-        HeaderSize := 0;
-        RecordSize := 0;
-        RecordCount := 0;
-        FForceClose := true;
-        exit;
-      end;
-      // check if specified recordcount correct
-      if PDbfHdr(Header)^.RecordCount <> RecordCount then
-      begin
-        // This message was annoying
-        // and was not understood by most people
-        // ShowMessage('Invalid Record Count,'+^M+
-        //             'RecordCount in Hdr : '+IntToStr(PDbfHdr(Header).RecordCount)+^M+
-        //             'expected : '+IntToStr(RecordCount));
-        // instead, fix up record count without complaint:
-        PDbfHdr(Header)^.RecordCount := RecordCount;
-        lModified := true;
-      end;
-      // determine codepage
-      if FDbfVersion >= xBaseVII then
+    FFieldDefs.DbfVersion := FDbfVersion;
+  end;
+
+  procedure GetCodePage;
+  var
+    LangStr: PChar;
+  begin
+    // determine codepage
+    case FDbfVersion of
+      xBaseVII:
       begin
         // cache language str
         LangStr := @PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
@@ -444,15 +418,53 @@ begin
           FFileCodePage := 0;
         end;
         FFileLangId := GetLangId_From_LangName(LanguageStr);
-      end else begin
-        // FDbfVersion <= xBaseV
+      end;
+    else
+      begin
+        // DBase II..V, FoxPro, Visual FoxPro
         FFileLangId := PDbfHdr(Header)^.Language;
         FFileCodePage := LangId_To_CodePage[FFileLangId];
       end;
-      // determine used codepage, if no codepage, then use default codepage
-      FUseCodePage := FFileCodePage;
-      if FUseCodePage = 0 then
-        FUseCodePage := DbfGlobals.DefaultOpenCodePage;
+    end;
+    // determine used codepage, if no codepage, then use default codepage
+    FUseCodePage := FFileCodePage;
+    if FUseCodePage = 0 then
+      FUseCodePage := DbfGlobals.DefaultOpenCodePage;
+  end;
+
+begin
+  // check if not already opened
+  if not Active then
+  begin
+    // open requested file
+    OpenFile;
+
+    // check if we opened an already existing file
+    lModified := false;
+    if not FileCreated then
+    begin
+      HeaderSize := sizeof(rDbfHdr); // temporary, required for getting version
+      GetVersion;
+
+      RecordSize := PDbfHdr(Header)^.RecordSize;
+      HeaderSize := PDbfHdr(Header)^.FullHdrSize;
+      if (HeaderSize = 0) or (RecordSize = 0) then
+      begin
+        HeaderSize := 0;
+        RecordSize := 0;
+        RecordCount := 0;
+        FForceClose := true;
+        exit;
+      end;
+
+      // check if specified recordcount is right; correct if not
+      if PDbfHdr(Header)^.RecordCount <> RecordCount then
+      begin
+        PDbfHdr(Header)^.RecordCount := RecordCount;
+        lModified := true;
+      end;
+
+      GetCodePage;
       // get list of fields
       ConstructFieldDefs;
       // open blob file if present
@@ -604,7 +616,6 @@ begin
     if FDbfVersion = xBaseVII then
     begin
       // version xBaseVII without memo
-      // todo: add support for foxpro writing codepage to codepage slot; use FoxLangId_Intl_850 etc
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrVII);
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
@@ -616,7 +627,7 @@ begin
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
-      // version xBaseIII/IV/V without memo
+      // DBase III..V, (Visual) FoxPro without memo
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrIII);
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
@@ -627,7 +638,7 @@ begin
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/dBASE III PLUS, no memo!?}
       end;
-      // standard language WE, dBase III no language support
+      // standard language WE/Western Europe, dBase III no language support
       if FDbfVersion = xBaseIII then
         PDbfHdr(Header)^.Language := 0
       else
@@ -832,11 +843,12 @@ var
   lCurrentNullPosition: integer;
 begin
   FFieldDefs.Clear;
-  if DbfVersion >= xBaseVII then
+  if DbfVersion = xBaseVII then
   begin
     lHeaderSize := SizeOf(rAfterHdrVII) + SizeOf(rDbfHdr);
     lFieldSize := SizeOf(rFieldDescVII);
   end else begin
+    // DBase III..V, (Visual) FoxPro
     lHeaderSize := SizeOf(rAfterHdrIII) + SizeOf(rDbfHdr);
     lFieldSize := SizeOf(rFieldDescIII);
   end;
@@ -853,10 +865,10 @@ begin
   lCurrentNullPosition := 0;
   lCanHoldNull := false;
   try
-    // there has to be minimum of one field
+    // Specs say there has to be at least one field, so use repeat:
     repeat
       // version field info?
-      if FDbfVersion >= xBaseVII then
+      if FDbfVersion = xBaseVII then
       begin
         ReadRecord(I, @lFieldDescVII);
         lFieldName := AnsiUpperCase(PChar(@lFieldDescVII.FieldName[0]));
@@ -867,6 +879,7 @@ begin
         if lNativeFieldType = '+' then
           FAutoIncPresent := true;
       end else begin
+        // DBase III..V, FoxPro, Visual FoxPro
         ReadRecord(I, @lFieldDescIII);
         lFieldName := AnsiUpperCase(PChar(@lFieldDescIII.FieldName[0]));
         lSize := lFieldDescIII.FieldSize;
@@ -881,10 +894,12 @@ begin
       // apply field transformation tricks
       if (lNativeFieldType = 'C') 
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion in [xFoxPro,xVisualFoxPro])
+        and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
-                then
+        then
       begin
+        // (V)FP uses the byte where precision is normally stored
+        // for the high byte of the field size
         lSize := lSize + lPrec shl 8;
         lPrec := 0;
       end;
@@ -912,7 +927,7 @@ begin
       //  2) known field type
       //  {3) no changes have to be made to precision or size}
       if (Length(lFieldName) = 0) or (TempFieldDef.FieldType = ftUnknown) then
-        raise EDbfError.Create(STRING_INVALID_DBF_FILE);
+        raise EDbfError.Create(STRING_INVALID_DBF_FILE_FIELDERROR);
 
       // determine if lock field present, if present, then store additional info
       if lFieldName = '_DBASELOCK' then

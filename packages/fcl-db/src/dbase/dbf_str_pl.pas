@@ -18,6 +18,7 @@ initialization
                                          'Indeks: %s'+#13+#10+'Rekord=%d Klucz=''%s''';
 
   STRING_INVALID_DBF_FILE             := 'Uszkodzony plik bazy.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Uszkodzony plik bazy. Uszkodzony pol.'; //todo: definitely check field part
   STRING_FIELD_TOO_LONG               := 'Dana za d³uga : %d znaków (dopuszczalne do %d).';
   STRING_INVALID_FIELD_COUNT          := 'Z³a liczba pól: %d (dozwolone 1 do 4095).';
   STRING_INVALID_FIELD_TYPE           := 'B³êdny typ pola ''%c'' dla pola ''%s''.';

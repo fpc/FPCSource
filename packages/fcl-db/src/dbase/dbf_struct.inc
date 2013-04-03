@@ -46,17 +46,25 @@ type
     Dummy               : array[64..67] of Byte;
   end;
 //====================================================================
+// DBase III,IV,FoxPro,VisualFoxPro field description
   PFieldDescIII = ^rFieldDescIII;
   rFieldDescIII = packed record
     FieldName       : array[0..10] of Char;
-    FieldType       : Char;     // 11
-    FieldOffset     : Integer;  // 12..15
-    //FieldOffset only applicable to foxpro databases
-    //DBase III: address in memory
-    FieldSize       : Byte;     // 16
-    FieldPrecision  : Byte;     // 17
-    FoxProFlags	    : Byte;	// 18
-    Dummy2          : array[19..31] of Byte;
+    FieldType       : Char;    // 11
+    FieldOffset     : Integer; // 12..15
+    // FieldOffset only applicable to (visual) foxpro databases
+    // DBase III uses it for address in memory
+    FieldSize       : Byte;    // 16
+    FieldPrecision  : Byte;    // 17, also known as decimal count
+    FoxProFlags	    : Byte;	   // 18
+    Reserved1       : Byte;    // 19
+    WorkAreaID      : Byte;    // 20
+    // WorkAreaID only for DBase III, is always $01
+    Reserved2       : array[21..30] of Byte;
+    MDXIndexField   : Byte; //31
+    // DBase IV:
+    // $00: no key for this field;
+    // $01: key exists for this field in MDX index file
   end;
 //====================================================================
 // OH 2000-11-15 dBase7 support. Header Update (add fields like Next AutoInc Value)
