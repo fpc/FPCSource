@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for pas2jni
+#
+
+[target]
+programs=pas2jni
+
+[clean]
+units=pas2jni def ppuparser writer
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+pas2jni$(EXEEXT): pas2jni.pas
