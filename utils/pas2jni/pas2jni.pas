@@ -20,7 +20,6 @@
  ****************************************************************************}
 
 {$mode objfpc}{$H+}
-{$apptype console}
 program pas2jni;
 
 uses SysUtils, Classes, writer, ppuparser;
