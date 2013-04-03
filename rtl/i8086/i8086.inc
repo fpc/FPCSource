@@ -107,3 +107,56 @@ begin
   runerror(304);
 end;
 
+{****************************************************************************
+                                  FPU
+****************************************************************************}
+
+const
+  { Internal constants for use in system unit }
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+  FPU_ExceptionMask = $ff;
+
+  { use Default8087CW instead
+  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
+  }
+
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
+  begin
+    localfpucw:=Default8087CW;
+    asm
+      fninit
+      fldcw   localfpucw
+      fwait
+    end;
+    softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
+  begin
+    localfpucw:=Default8087CW;
+    asm
+      fninit
+      fwait
+      fldcw   localfpucw
+    end;
+    softfloat_exception_flags:=0;
+  end;
+

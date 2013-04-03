@@ -15,6 +15,34 @@
  **********************************************************************}
 
 {$asmmode intel}
+
+{****************************************************************************
+                            FPU Control word
+ ****************************************************************************}
+
+    procedure Set8087CW(cw:word);
+      begin
+        { pic-safe ; cw will not be a regvar because it's accessed from }
+        { assembler                                                     }
+        default8087cw:=cw;
+        asm
+          fnclex
+          fldcw cw
+        end;
+      end;
+
+
+    function Get8087CW:word;assembler;
+      asm
+        push bp
+        mov bp, sp
+        push ax
+        fnstcw [bp - 2]
+        pop ax
+        mov sp, bp
+        pop bp
+      end;
+
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
