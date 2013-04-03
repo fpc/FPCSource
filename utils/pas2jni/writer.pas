@@ -25,7 +25,7 @@ unit writer;
 
 interface
 
-{$define DEBUG}
+//{$define DEBUG}
 
 {$ifdef DEBUG}
 {$ASSERTIONS ON}
