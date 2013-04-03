@@ -302,6 +302,12 @@ begin
 {$include imlib/fpmake.pp}
 end;
 
+procedure add_jni;
+begin
+  with Installer do
+{$include jni/fpmake.pp}
+end;
+
 procedure add_ldap;
 begin
   with Installer do

@@ -52,6 +52,7 @@
   add_iconvenc;
   add_imagemagick;
   add_imlib;
+  add_jni;
   add_ldap;
   add_libc;
   add_libcurl;
