@@ -203,6 +203,7 @@ uses
 
 const
   sDBF_DEC_SEP = '.';
+  FIELD_DESCRIPTOR_ARRAY_TERMINATOR = $0D; // Marker at end of list of fields within header
 
 {$I dbf_struct.inc}
 
@@ -404,6 +405,7 @@ begin
         // ShowMessage('Invalid Record Count,'+^M+
         //             'RecordCount in Hdr : '+IntToStr(PDbfHdr(Header).RecordCount)+^M+
         //             'expected : '+IntToStr(RecordCount));
+        // instead, fix up record count without complaint:
         PDbfHdr(Header)^.RecordCount := RecordCount;
         lModified := true;
       end;
@@ -460,7 +462,7 @@ begin
         // open blob file
         if not FileExists(lMemoFileName) then
           MemoFileClass := TNullMemoFile
-        else if FDbfVersion in [xFoxPro,xVisualFoxPro]  then
+        else if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
@@ -602,6 +604,7 @@ begin
     if FDbfVersion = xBaseVII then
     begin
       // version xBaseVII without memo
+      // todo: add support for foxpro writing codepage to codepage slot; use FoxLangId_Intl_850 etc
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrVII);
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
@@ -617,9 +620,11 @@ begin
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrIII);
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
+      // Note: VerDBF may be changed later on depending on what features/fields are used
+      // (autoincrement etc)
       case FDbfVersion of
         xFoxPro: PDbfHdr(Header)^.VerDBF := $02; {FoxBASE}
-        xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar} //todo: check autoincrement, Varchar, Varbinary, or Blob-enabled
+        xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/dBASE III PLUS, no memo!?}
       end;
       // standard language WE, dBase III no language support
@@ -681,7 +686,7 @@ begin
         lFieldDescIII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescIII.FieldSize := lSize;
         lFieldDescIII.FieldPrecision := lPrec;
-        if FDbfVersion in [xFoxPro,xVisualFoxPro] then
+        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
         if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
           PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
@@ -701,8 +706,10 @@ begin
       WriteRecord(I, lFieldDescPtr);
       Inc(lFieldOffset, lFieldDef.Size);
     end;
-    // end of header
-    WriteChar($0D);
+    // end of field descriptor; ussually end of header -
+    // Visual Foxpro backlink info is part of the header but comes after the
+    // terminator
+    WriteChar(FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
     // write memo bit
     if lHasBlob then
@@ -725,7 +732,7 @@ begin
       an associated database (.dbc) file, information. If the first byte is 0x00, 
       the file is not associated with a database. Therefore, database files always 
       contain 0x00. }
-    if FDbfVersion = xVisualFoxPro then
+    if (FDbfVersion = xVisualFoxPro) then
       Inc(PDbfHdr(Header)^.FullHdrSize, 263);
 
     // write dbf header to disk
@@ -741,7 +748,7 @@ begin
   if HasBlob and (FMemoFile=nil) then
   begin
     lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
-    if FDbfVersion in [xFoxPro,xVisualFoxPro] then
+    if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
       FMemoFile := TFoxProMemoFile.Create(Self)
     else
       FMemoFile := TDbaseMemoFile.Create(Self);
@@ -802,6 +809,7 @@ begin
 //  lDataHdr.RecordCount := RecordCount;
   inherited WriteHeader;
 
+  // Write terminator at the end of the file, after the records:
   EofTerminator := $1A;
   WriteBlock(@EofTerminator, 1, CalcPageOffset(RecordCount+1));
 end;
@@ -923,7 +931,7 @@ begin
 
       // continue until header termination character found
       // or end of header reached
-    until (I > lColumnCount) or (ReadChar = $0D);
+    until (I > lColumnCount) or (ReadChar = FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
     // test if not too many fields
     if FFieldDefs.Count >= 4096 then
@@ -983,7 +991,7 @@ begin
         end;
       end;
       // read custom properties...not implemented
-      // read RI properties...not implemented
+      // read RI/referential integrity properties...not implemented
     end;
   finally
     HeaderSize := PDbfHdr(Header)^.FullHdrSize;
@@ -1571,7 +1579,7 @@ begin
       end;
     'B':    // Foxpro double
       begin
-        if FDbfVersion in [xFoxPro,xVisualFoxPro] then
+        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           Result := true;
           if Dst <> nil then

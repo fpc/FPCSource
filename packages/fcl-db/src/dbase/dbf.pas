@@ -1257,7 +1257,7 @@ begin
 
   BindFields(true);
 
-  // create array of blobstreams to store memo's in. each field is a possible blob
+  // create array of blobstreams to store memos in. each field is a possible blob
   FBlobStreams := AllocMem(FieldDefs.Count * SizeOf(TDbfBlobStream));
 
   // check codepage settings

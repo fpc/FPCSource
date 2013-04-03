@@ -50,7 +50,9 @@ type
   rFieldDescIII = packed record
     FieldName       : array[0..10] of Char;
     FieldType       : Char;     // 11
-    FieldOffset     : Integer;  // 12..15   only applicable to foxpro databases
+    FieldOffset     : Integer;  // 12..15
+    //FieldOffset only applicable to foxpro databases
+    //DBase III: address in memory
     FieldSize       : Byte;     // 16
     FieldPrecision  : Byte;     // 17
     FoxProFlags	    : Byte;	// 18
