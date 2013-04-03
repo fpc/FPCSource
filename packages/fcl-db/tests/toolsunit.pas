@@ -9,9 +9,12 @@ interface
 uses
   Classes, SysUtils, DB, testdecorator;
 
-// Number of "N" test datasets (as opposed to FieldDatasets) that will be created
-// The connectors should have these records prepared in their Create*Dataset procedures.
-Const MaxDataSet = 35;
+Const
+  // Number of "N" test datasets (as opposed to FieldDatasets) that will be created
+  // The connectors should have these records prepared in their Create*Dataset procedures.
+  MaxDataSet = 35;
+  // Number of records in a trace dataset:
+  NForTraceDataset = 15;
   
 type
 
@@ -19,11 +22,11 @@ type
   TDBConnectorClass = class of TDBConnector;
   TDBConnector = class(TPersistent)
      private
-       FChangedDatasets : array[0..MaxDataSet] of boolean;
        FFormatSettings: TFormatSettings;
-       FUsedDatasets : TFPList;
        FChangedFieldDataset : boolean;
      protected
+       FChangedDatasets : array[0..MaxDataSet] of boolean;
+       FUsedDatasets : TFPList;
        procedure SetTestUniDirectional(const AValue: boolean); virtual;
        function GetTestUniDirectional: boolean; virtual;
        // These methods should be implemented by all descendents
@@ -446,7 +449,7 @@ end;
 
 function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
 begin
-  result := GetNDataset(AChange,15);
+  result := GetNDataset(AChange,NForTraceDataset);
 end;
 
 procedure TDBConnector.StartTest;

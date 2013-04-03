@@ -32,9 +32,9 @@ BUGS & WARNINGS
 
 
 FreePascal trunk:
-- initial read support for (Visual) FoxPro files
-- annotated constants/file structure
-- factored out get version/get codepage subprocedure for readability
+- initial read support for (Visual) FoxPro files (r24139)
+- annotated constants/file structure (r24139)
+- factored out get version/get codepage subprocedure for readability (r24139)
 - split out existing support for Visual FoxPro and Foxpro (r24109) 
   so future Visual FoxPro only features can be implemented
 - implemented FindFirst,FindNext,FindPrior,FindLast (r24107)

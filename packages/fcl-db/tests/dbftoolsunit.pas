@@ -27,21 +27,14 @@ type
     procedure CreateFieldDataset; override;
     procedure DropNDatasets; override;
     procedure DropFieldDataset; override;
+    // InternalGetNDataset reroutes to ReallyInternalGetNDataset
     function InternalGetNDataset(n: integer): TDataset; override;
     function InternalGetFieldDataset: TDataSet; override;
+    // GetNDataset allowing trace dataset if required;
+    // if trace is on, use a TDbfTraceDataset instead of TDBFAutoClean
+    function ReallyInternalGetNDataset(n: integer; Trace: boolean): TDataset;
   public
     function GetTraceDataset(AChange: boolean): TDataset; override;
-  end;
-
-  { TDbfTraceDataset }
-
-  TDbfTraceDataset = class(Tdbf)
-  protected
-    procedure SetCurrentRecord(Index: longint); override;
-    procedure RefreshInternalCalcFields(Buffer: PChar); override;
-    procedure InternalInitFieldDefs; override;
-    procedure CalculateFields(Buffer: PChar); override;
-    procedure ClearCalcFields(Buffer: PChar); override;
   end;
 
   { TDBFAutoClean }
@@ -58,6 +51,17 @@ type
     destructor Destroy; override;
     function UserRequestedTableLevel: integer;
   end;
+
+  { TDbfTraceDataset }
+  TDbfTraceDataset = class(TdbfAutoClean)
+  protected
+    procedure SetCurrentRecord(Index: longint); override;
+    procedure RefreshInternalCalcFields(Buffer: PChar); override;
+    procedure InternalInitFieldDefs; override;
+    procedure CalculateFields(Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: PChar); override;
+  end;
+
 
 implementation
 
@@ -102,8 +106,10 @@ begin
 end;
 
 destructor TDBFAutoClean.Destroy;
+{$IFDEF KEEPDBFFILES}
 var
   FileName: string;
+{$ENDIF}
 begin
   {$IFDEF KEEPDBFFILES}
   Close;
@@ -137,32 +143,8 @@ begin
 end;
 
 function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
-var
-  countID: integer;
 begin
-  Result := (TDBFAutoClean.Create(nil) as TDataSet);
-  with (Result as TDBFAutoclean) do
-  begin
-    CreatedBy:='InternalGetNDataset('+inttostr(n)+')';
-    FieldDefs.Add('ID', ftInteger);
-    FieldDefs.Add('NAME', ftString, 50);
-    CreateTable;
-    Open;
-    if n > 0 then
-      for countId := 1 to n do
-      begin
-        Append;
-        FieldByName('ID').AsInteger := countID;
-        FieldByName('NAME').AsString := 'TestName' + IntToStr(countID);
-        // Explicitly call .post, since there could be a bug which disturbs
-        // the automatic call to post. (example: when TDataset.DataEvent doesn't
-        // work properly)
-        Post;
-      end;
-    if state = dsinsert then
-      Post;
-    Close;
-  end;
+  result:=ReallyInternalGetNDataset(n,false);
 end;
 
 function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
@@ -212,15 +194,46 @@ begin
   end;
 end;
 
+function TDBFDBConnector.ReallyInternalGetNDataset(n: integer; Trace: boolean): TDataset;
+var
+  countID: integer;
+begin
+  if Trace then
+    Result := (TDbfTraceDataset.Create(nil) as TDataSet)
+  else
+    Result := (TDBFAutoClean.Create(nil) as TDataSet);
+  with (Result as TDBFAutoclean) do
+  begin
+    CreatedBy:='InternalGetNDataset('+inttostr(n)+')';
+    FieldDefs.Add('ID', ftInteger);
+    FieldDefs.Add('NAME', ftString, 50);
+    CreateTable;
+    Open;
+    if n > 0 then
+      for countId := 1 to n do
+      begin
+        Append;
+        FieldByName('ID').AsInteger := countID;
+        FieldByName('NAME').AsString := 'TestName' + IntToStr(countID);
+        // Explicitly call .post, since there could be a bug which disturbs
+        // the automatic call to post. (example: when TDataset.DataEvent doesn't
+        // work properly)
+        Post;
+      end;
+    if state = dsinsert then
+      Post;
+    Close;
+  end;
+end;
+
 function TDBFDBConnector.GetTraceDataset(AChange: boolean): TDataset;
 var
-  ADS, AResDS: TDbf;
+  ADS: TDataSet;
 begin
-  ADS := GetNDataset(AChange, 15) as TDbf;
-  AResDS := TDbfTraceDataset.Create(nil);
-  AResDS.FilePath := ADS.FilePath;
-  AResDs.TableName := ADS.TableName;
-  Result := AResDS;
+  // Mimic TDBConnector.GetNDataset
+  if AChange then FChangedDatasets[NForTraceDataset] := True;
+  Result := ReallyInternalGetNDataset(NForTraceDataset,true);
+  FUsedDatasets.Add(Result);
 end;
 
 { TDbfTraceDataset }
