@@ -2671,8 +2671,8 @@ compiler_cycle:
 	$(MAKE) -C compiler cycle
 BUILDSTAMP=build-stamp.$(FULL_TARGET)
 .PHONY: all clean distclean build buildbase install installbase
-.PHONY installother zipinstallbase zipinstallotherzipinstall
-.PHONY singlezipinstall versioncheckstartingcompiler
+.PHONY: installother zipinstallbase zipinstallotherzipinstall
+.PHONY: singlezipinstall versioncheckstartingcompiler
 versioncheckstartingcompiler: 
 ifndef CROSSCOMPILE
 ifndef OVERRIDEVERSIONCHECK
