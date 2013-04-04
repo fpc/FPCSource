@@ -312,7 +312,14 @@ interface
            were reversed and GAS still keeps this "feature" for compatibility.
            for details: http://sourceware.org/binutils/docs/as/i386_002dBugs.html#i386_002dBugs
                         http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=372528
-                        http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax#Caveats }
+                        http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax#Caveats
+
+           Since FPC is "GAS centric" due to its history it generates instructions with the same operand order so
+           when generating output for other assemblers, the opcodes must be fixed before writing them.
+           This function returns the fixed opcodes. Changing the opcodes permanently is no good idea
+           because in case of smartlinking assembler is generated twice so at the second run wrong
+           assembler is generated.
+           }
          function FixNonCommutativeOpcodes: tasmop;
       private
          FOperandOrder : TOperandOrder;
