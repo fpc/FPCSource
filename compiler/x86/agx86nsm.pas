@@ -537,6 +537,7 @@ interface
 {$ifdef cpuextended}
       e        : extended;
 {$endif cpuextended}
+      fixed_opcode: TAsmOp;
     begin
       if not assigned(p) then
        exit;
@@ -884,12 +885,12 @@ interface
 
            ait_instruction :
              begin
-               taicpu(hp).CheckNonCommutativeOpcodes;
+               fixed_opcode:=taicpu(hp).FixNonCommutativeOpcodes;
                { We need intel order, no At&t }
                taicpu(hp).SetOperandOrder(op_intel);
                s:='';
-               if ((taicpu(hp).opcode=A_FADDP) or
-                   (taicpu(hp).opcode=A_FMULP))
+               if ((fixed_opcode=A_FADDP) or
+                   (fixed_opcode=A_FMULP))
                   and (taicpu(hp).ops=0) then
                  begin
                    taicpu(hp).allocate_oper(2);
@@ -898,7 +899,7 @@ interface
                    taicpu(hp).oper[1]^.typ:=top_reg;
                    taicpu(hp).oper[1]^.reg:=NR_ST;
                  end;
-               if taicpu(hp).opcode=A_FWAIT then
+               if fixed_opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
@@ -906,18 +907,18 @@ interface
                     word prefix to get selectors
                     to be pushed in 2 bytes  PM }
                   if (taicpu(hp).opsize=S_W) and
-                     ((taicpu(hp).opcode=A_PUSH) or
-                      (taicpu(hp).opcode=A_POP)) and
+                     ((fixed_opcode=A_PUSH) or
+                      (fixed_opcode=A_POP)) and
                       (taicpu(hp).oper[0]^.typ=top_reg) and
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
-                  AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
+                  AsmWrite(#9#9+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
-                     if is_calljmp(taicpu(hp).opcode) then
+                     if is_calljmp(fixed_opcode) then
                       begin
                         AsmWrite(#9);
-                        WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opcode);
+                        WriteOper_jmp(taicpu(hp).oper[0]^,fixed_opcode);
                       end
                      else
                       begin
@@ -927,7 +928,7 @@ interface
                             AsmWrite(#9)
                            else
                             AsmWrite(',');
-                           WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,taicpu(hp).ops,(i=2));
+                           WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,taicpu(hp).ops,(i=2));
                          end;
                       end;
                    end;

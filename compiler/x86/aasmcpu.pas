@@ -306,7 +306,14 @@ interface
          procedure changeopsize(siz:topsize);
 
          function  GetString:string;
-         procedure CheckNonCommutativeOpcodes;
+
+         { This is a workaround for the GAS non commutative fpu instruction braindamage.
+           Early versions of the UnixWare assembler had a bug where some fpu instructions
+           were reversed and GAS still keeps this "feature" for compatibility.
+           for details: http://sourceware.org/binutils/docs/as/i386_002dBugs.html#i386_002dBugs
+                        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=372528
+                        http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax#Caveats }
+         function FixNonCommutativeOpcodes: tasmop;
       private
          FOperandOrder : TOperandOrder;
          procedure init(_size : topsize); { this need to be called by all constructor }
@@ -961,8 +968,10 @@ implementation
       end;
 
 
-    procedure taicpu.CheckNonCommutativeOpcodes;
+    function taicpu.FixNonCommutativeOpcodes: tasmop;
       begin
+        result:=opcode;
+
         { we need ATT order }
         SetOperandOrder(op_att);
 
@@ -981,21 +990,21 @@ implementation
            (ops=0) then
           begin
             if opcode=A_FSUBR then
-              opcode:=A_FSUB
+              result:=A_FSUB
             else if opcode=A_FSUB then
-              opcode:=A_FSUBR
+              result:=A_FSUBR
             else if opcode=A_FDIVR then
-              opcode:=A_FDIV
+              result:=A_FDIV
             else if opcode=A_FDIV then
-              opcode:=A_FDIVR
+              result:=A_FDIVR
             else if opcode=A_FSUBRP then
-              opcode:=A_FSUBP
+              result:=A_FSUBP
             else if opcode=A_FSUBP then
-              opcode:=A_FSUBRP
+              result:=A_FSUBRP
             else if opcode=A_FDIVRP then
-              opcode:=A_FDIVP
+              result:=A_FDIVP
             else if opcode=A_FDIVP then
-              opcode:=A_FDIVRP;
+              result:=A_FDIVRP;
           end;
         if (
             (ops=1) and
@@ -1005,13 +1014,13 @@ implementation
            ) then
          begin
            if opcode=A_FSUBRP then
-             opcode:=A_FSUBP
+             result:=A_FSUBP
            else if opcode=A_FSUBP then
-             opcode:=A_FSUBRP
+             result:=A_FSUBRP
            else if opcode=A_FDIVRP then
-             opcode:=A_FDIVP
+             result:=A_FDIVP
            else if opcode=A_FDIVP then
-             opcode:=A_FDIVRP;
+             result:=A_FDIVRP;
          end;
       end;
 
