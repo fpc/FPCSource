@@ -646,7 +646,7 @@ begin
       // init field ptr
       lFieldDescPtr := @lFieldDescIII;
     end;
-    // begin writing fields
+    // begin writing field definitions
     FFieldDefs.Clear;
     // deleted mark 1 byte
     lFieldOffset := 1;
@@ -1083,7 +1083,7 @@ begin
         PChar(pNormal)^ := '*';
         WriteRecord(iNormal, pNormal);
       end else begin
-        // Cannot found a record after iDel so iDel must be deleted
+        // Cannot find a record after iDel so iDel must be deleted
         dec(iDel);
         break;
       end;
@@ -1286,7 +1286,7 @@ begin
   else
     GetMem(pDestBuff, DestDbfFile.RecordSize);
 
-  // let the games begin!
+  // Go through record data:
   try
 {$ifdef USE_CACHE}
     BufferAhead := true;
@@ -1297,7 +1297,7 @@ begin
     begin
       // read record from original dbf
       ReadRecord(lRecNo, pBuff);
-      // copy record?
+      // copy record unless (deleted or user wants packing)
       if (ansichar(pBuff^) <> '*') or not Pack then
       begin
         // if restructure, initialize dest
