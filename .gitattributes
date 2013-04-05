@@ -10475,6 +10475,7 @@ tests/test/cg/variants/tvarol9.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol91.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol94.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
+tests/test/cpu16/taddint1.pp svneol=native#text/pascal
 tests/test/dumpclass.pp svneol=native#text/plain
 tests/test/dumpmethods.pp svneol=native#text/plain
 tests/test/jvm/JavaClass.java svneol=native#text/plain
