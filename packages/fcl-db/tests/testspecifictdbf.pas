@@ -51,6 +51,10 @@ type
     procedure TestFindNext;
     // Tests findprior
     procedure TestFindPrior;
+    // Tests writing and reading a memo field
+    procedure TestMemo;
+    // Tests string field with 254 characters (max for DBase IV)
+    procedure TestLargeString;
   end;
 
 
@@ -348,6 +352,58 @@ begin
   DS.Last;
   CheckEquals(true,DS.FindPrior,'FindPrior should return true');
   CheckEquals(NumRecs-1,DS.fieldbyname('ID').asinteger);
+end;
+
+procedure TTestSpecificTDBF.TestMemo;
+var
+  ds : TDBF;
+begin
+  ds := TDBFAutoClean.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftMemo);
+  DS.CreateTable;
+  DS.Open;
+  WriteReadbackTest(ds);
+  DS.Close;
+  ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestLargeString;
+var
+  ds : TDBF;
+  MaxStringSize: integer;
+  TestValue: string;
+begin
+  ds := TDBFAutoClean.Create(nil);
+  if (ds.TableLevel>=25) then
+    // (Visual) FoxPro supports 32K
+    MaxStringSize:=32767
+  else
+    // Dbase III..V,7
+    MaxStringSize:=254;
+  TestValue:=StringOfChar('a',MaxStringSize);
+
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,254);
+  DS.CreateTable;
+  DS.Open;
+
+  // Write & readback test
+  DS.Append;
+  DS.FieldByName('ID').AsInteger := 1;
+  DS.FieldByName('NAME').AsString := TestValue;
+  DS.Post;
+
+  DS.first;
+  CheckEquals(1,DS.fieldbyname('ID').asinteger,'ID field must match record number');
+  // If test fails, let's count the number of "a"s instead so we can report that instead of printing out the entire string
+  CheckEquals(length(TestValue),length(DS.fieldbyname('NAME').AsString),'NAME field length must match test value length');
+  CheckEquals(TestValue,DS.fieldbyname('NAME').AsString,'NAME field must match test value');
+  DS.next;
+  CheckTrue(DS.EOF,'Dataset EOF must be true');
+
+  DS.Close;
+  ds.free;
 end;
 
 

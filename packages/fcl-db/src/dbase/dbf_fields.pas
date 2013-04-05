@@ -80,9 +80,9 @@ type
     // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
     property NullPosition: integer read FNullPosition write FNullPosition;
-    // Size in memory (not VCL/LCL)
+    // Size in memory
     property Size: Integer         read FSize      write SetSize;
-    // Precision in dbase file (not VCL/LCL)
+    // Precision in dbase file
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
   end;
@@ -259,7 +259,7 @@ begin
   FIsLockField := false;
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
-  // for integer / float fields try fill in size/precision
+  // for integer / float fields try to fill in size/precision
   if FSize = 0 then
     SetDefaultSize
   else
@@ -311,7 +311,7 @@ end;
 
 procedure TDbfFieldDef.SetNativeFieldType(lFieldType: tDbfFieldType);
 begin
-  // get uppercase field type
+  // convert lowercase to uppercase
   if (lFieldType >= 'a') and (lFieldType <= 'z') then
     lFieldType := Chr(Ord(lFieldType)-32);
   FNativeFieldType := lFieldType;
