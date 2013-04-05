@@ -95,7 +95,7 @@ type
     property LoginPrompt;
     property Params;
     property OnLogin;
-    Property VerboseErrors : Boolean Read FVerboseErrors Write FVerboseErrors;
+    Property VerboseErrors : Boolean Read FVerboseErrors Write FVerboseErrors default true;
   end;
 
   { TPQConnectionDef }
@@ -159,6 +159,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
   FieldNameQuoteChars:=DoubleQuotes;
+  VerboseErrors:=True;
 end;
 
 procedure TPQConnection.CreateDB;
