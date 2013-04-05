@@ -1524,23 +1524,23 @@ begin
       begin
         if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
-          Result := PDWord(Src)^ <> 0;
+          Result := Unaligned(PDWord(Src)^) <> 0;
           if Result and (Dst <> nil) then
           begin
-            PDWord(Dst)^ := SwapIntBE(PDWord(Src)^);
+            PDWord(Dst)^ := SwapIntBE(Unaligned(PDWord(Src)^));
             if Result then
               PInteger(Dst)^ := Integer(PDWord(Dst)^ xor $80000000);
           end;
         end else begin
           Result := true;
           if Dst <> nil then
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            PInteger(Dst)^ := SwapIntLE(Unaligned(PInteger(Src)^));
         end;
       end;
     'O':
       begin
 {$ifdef SUPPORT_INT64}
-        Result := PInt64(Src)^ <> 0;
+        Result := Unaligned(PInt64(Src)^) <> 0;
         if Result and (Dst <> nil) then
         begin
           SwapInt64BE(Src, Dst);
@@ -1553,7 +1553,7 @@ begin
       end;
     '@':
       begin
-        Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) and (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
         if Result and (Dst <> nil) then
         begin
           SwapInt64BE(Src, Dst);
@@ -1568,14 +1568,14 @@ begin
       begin
         // all binary zeroes -> empty datetime
 {$ifdef SUPPORT_INT64}        
-        Result := PInt64(Src)^ <> 0;
+        Result := Unaligned(PInt64(Src)^) <> 0;
 {$else}        
-        Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) or (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
 {$endif}        
         if Result and (Dst <> nil) then
         begin
-          timeStamp.Date := SwapIntLE(PInteger(Src)^) - JulianDateDelta;
-          timeStamp.Time := SwapIntLE(PInteger(PChar(Src)+4)^);
+          timeStamp.Date := SwapIntLE(Unaligned(PInteger(Src)^)) - JulianDateDelta;
+          timeStamp.Time := SwapIntLE(Unaligned(PInteger(PChar(Src)+4)^));
           date := TimeStampToDateTime(timeStamp);
           SaveDateToDst;
         end;
@@ -1586,7 +1586,7 @@ begin
         Result := true;
         if Dst <> nil then
         begin
-          PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
+          PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
           if DataType = ftCurrency then
             PDouble(Dst)^ := PInt64(Dst)^ / 10000.0;
         end;
@@ -1598,7 +1598,7 @@ begin
         begin
           Result := true;
           if Dst <> nil then
-            PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
+            PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
         end else
           asciiContents := true;
       end;
@@ -1606,9 +1606,9 @@ begin
       begin
         if FieldSize = 4 then
         begin
-          Result := PInteger(Src)^ <> 0;
+          Result := Unaligned(PInteger(Src)^) <> 0;
           if Dst <> nil then
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            PInteger(Dst)^ := SwapIntLE(Unaligned(PInteger(Src)^));
         end else
           asciiContents := true;
       end;
@@ -1781,12 +1781,12 @@ begin
             IntValue := 0
           else
             IntValue := PDWord(Src)^ xor $80000000;
-          PDWord(Dst)^ := SwapIntBE(IntValue);
+          Unaligned(PDWord(Dst)^) := SwapIntBE(IntValue);
         end else begin
           if Src = nil then
-            PDWord(Dst)^ := 0
+            Unaligned(PDWord(Dst)^) := 0
           else
-            PDWord(Dst)^ := SwapIntLE(PDWord(Src)^);
+            Unaligned(PDWord(Dst)^) := SwapIntLE(PDWord(Src)^);
         end;
       end;
     'O':
@@ -1794,12 +1794,12 @@ begin
 {$ifdef SUPPORT_INT64}
         if Src = nil then
         begin
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
         end else begin
           if PDouble(Src)^ < 0 then
-            PInt64(Dst)^ := not PInt64(Src)^
+            Unaligned(PInt64(Dst)^) := not PInt64(Src)^
           else
-            PDouble(Dst)^ := (PDouble(Src)^) * -1;
+            Unaligned(PDouble(Dst)^) := (PDouble(Src)^) * -1;
           SwapInt64BE(Dst, Dst);
         end;
 {$endif}
@@ -1809,10 +1809,10 @@ begin
         if Src = nil then
         begin
 {$ifdef SUPPORT_INT64}
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
 {$else}          
-          PInteger(Dst)^ := 0;
-          PInteger(PChar(Dst)+4)^ := 0;
+          Unaligned(PInteger(Dst)^) := 0;
+          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
 {$endif}
         end else begin
           LoadDateFromSrc;
@@ -1827,16 +1827,16 @@ begin
         if Src = nil then
         begin
 {$ifdef SUPPORT_INT64}
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
 {$else}          
-          PInteger(Dst)^ := 0;
-          PInteger(PChar(Dst)+4)^ := 0;
+          Unaligned(PInteger(Dst)^) := 0;
+          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
 {$endif}          
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
-          PInteger(Dst)^ := SwapIntLE(timeStamp.Date + JulianDateDelta);
-          PInteger(PChar(Dst)+4)^ := SwapIntLE(timeStamp.Time);
+          Unaligned(PInteger(Dst)^) := SwapIntLE(timeStamp.Date + JulianDateDelta);
+          Unaligned(PInteger(PChar(Dst)+4)^) := SwapIntLE(timeStamp.Time);
         end;
       end;
     'Y':
@@ -1844,13 +1844,13 @@ begin
 {$ifdef SUPPORT_INT64}
         if Src = nil then
         begin
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
         end else begin
           case DataType of
             ftCurrency:
-              PInt64(Dst)^ := Trunc(PDouble(Src)^ * 10000);
+              Unaligned(PInt64(Dst)^) := Trunc(PDouble(Src)^ * 10000);
             ftBCD:
-              PCurrency(Dst)^ := PCurrency(Src)^;
+              Unaligned(PCurrency(Dst)^) := PCurrency(Src)^;
           end;
           SwapInt64LE(Dst, Dst);
         end;
@@ -1861,7 +1861,7 @@ begin
         if DbfVersion in [xFoxPro,xVisualFoxPro] then
         begin
           if Src = nil then
-            PDouble(Dst)^ := 0
+            Unaligned(PDouble(Dst)^) := 0
           else
             SwapInt64LE(Src, Dst);
         end else
@@ -1872,9 +1872,9 @@ begin
         if FieldSize = 4 then
         begin
           if Src = nil then
-            PInteger(Dst)^ := 0
+            Unaligned(PInteger(Dst)^) := 0
           else
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            Unaligned(PInteger(Dst)^) := SwapIntLE(PInteger(Src)^);
         end else
           asciiContents := true;
       end;
