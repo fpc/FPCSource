@@ -51,9 +51,9 @@ type
   rFieldDescIII = packed record
     FieldName       : array[0..10] of Char;
     FieldType       : Char;    // 11
-    FieldOffset     : Integer; // 12..15
     // FieldOffset only applicable to (visual) foxpro databases
     // DBase III uses it for address in memory
+    FieldOffset     : Integer; // 12..15
     FieldSize       : Byte;    // 16
     FieldPrecision  : Byte;    // 17, also known as decimal count
     FoxProFlags	    : Byte;	   // 18

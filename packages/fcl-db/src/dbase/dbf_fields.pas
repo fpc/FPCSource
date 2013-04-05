@@ -80,7 +80,7 @@ type
     // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
     property NullPosition: integer read FNullPosition write FNullPosition;
-    // Size in dbase file (not VCL/LCL)
+    // Size in memory (not VCL/LCL)
     property Size: Integer         read FSize      write SetSize;
     // Precision in dbase file (not VCL/LCL)
     property Precision: Integer    read FPrecision write SetPrecision;
@@ -118,7 +118,7 @@ uses
 
 const
 (*
-The theory is:
+The theory for Delphi/FPC is:
     ftSmallint  16 bits = -32768 to 32767
                           123456 = 6 digit max theorically
                           DIGITS_SMALLINT = 6;
@@ -135,15 +135,15 @@ be able to handles fields with 999999 (6 digits).
 So I oversize the field type in order to accept anything coming from the
 database.
     ftSmallint  16 bits = -32768 to 32767
-                           -999  to  9999
-                           4 digits max theorically
-                          DIGITS_SMALLINT = 4;
+    ... dbf supports:       -999 to  9999
+                           4 digits max in practice
+        therefore         DIGITS_SMALLINT = 4;
     ftInteger  32 bits = -2147483648 to 2147483647
-                           -99999999 to  999999999                                        12345678901 = 11 digits max
-                         DIGITS_INTEGER = 9;
+    ... dbf supports:      -99999999 to  999999999                                        12345678901 = 11 digits max
+        therefore        DIGITS_INTEGER = 9;
     ftLargeInt 64 bits = -9223372036854775808 to 9223372036854775807
-                           -99999999999999999 to  999999999999999999
-                         DIGITS_LARGEINT = 18;
+    ... dbf supports:      -99999999999999999 to  999999999999999999
+        therefore        DIGITS_LARGEINT = 18;
  *)
   DIGITS_SMALLINT = 4;
   DIGITS_INTEGER = 9;

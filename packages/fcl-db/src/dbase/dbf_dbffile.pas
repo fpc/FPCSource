@@ -352,7 +352,7 @@ var
     // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
     case version of
       $30, $31, $32: FDbfVersion:=xVisualFoxPro;
-      $F5: FDbfVersion:=xFoxPro;
+      $F5, $FB: FDbfVersion:=xFoxPro;
     end;
     if FDbfVersion = xUnknown then
       case (version and $07) of
@@ -366,11 +366,7 @@ var
         $02, $05:
           FDbfVersion := xFoxPro;
       else
-        // todo: check visual foxpro, modify
-        if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
         begin
-          FDbfVersion := xFoxPro;
-        end else begin
           // not a valid DBF file
           raise EDbfError.Create(STRING_INVALID_DBF_FILE);
         end;
@@ -677,6 +673,8 @@ begin
 {$endif}
         then
       begin
+        // Up to 32kb strings
+        // Stores high byte of size in precision, low in size
         lPrec := lSize shr 8;
         lSize := lSize and $FF;
       end;
@@ -699,6 +697,7 @@ begin
         lFieldDescIII.FieldPrecision := lPrec;
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
+        // Adjust the version info if needed for supporting field types used:
         if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
           PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
         if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
