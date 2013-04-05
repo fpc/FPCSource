@@ -55,6 +55,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
+    FVerboseErrors: Boolean;
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
@@ -94,6 +95,7 @@ type
     property LoginPrompt;
     property Params;
     property OnLogin;
+    Property VerboseErrors : Boolean Read FVerboseErrors Write FVerboseErrors;
   end;
 
   { TPQConnectionDef }
@@ -398,6 +400,15 @@ end;
 
 procedure TPQConnection.CheckResultError(var res: PPGresult; conn: PPGconn;
   ErrMsg: string);
+
+  Procedure MaybeAdd(Var S : String; Prefix,Msg : String);
+
+  begin
+    if (Msg='') then
+      exit;
+    S:=S+LineEnding+Prefix+': '+Msg;
+  end;
+
 var
   E: EPQDatabaseError;
   sErr: string;
@@ -418,14 +429,17 @@ begin
     MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
     MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
     STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
-    sErr:=PQresultErrorMessage(res)+
-      'Severity: '+ SEVERITY +LineEnding+
-      'SQL State: '+ SQLSTATE +LineEnding+
-      'Primary Error: '+ MESSAGE_PRIMARY +LineEnding+
-      'Error Detail: '+ MESSAGE_DETAIL +LineEnding+
-      'Hint: '+ MESSAGE_HINT +LineEnding+
-      'Character: '+ STATEMENT_POSITION +LineEnding;
-    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
+    sErr:=PQresultErrorMessage(res);
+    if VerboseErrors then
+      begin
+      MaybeAdd(sErr,'Severity',SEVERITY);
+      MaybeAdd(sErr,'SQL State',SQLSTATE);
+      MaybeAdd(sErr,'Primary Error',MESSAGE_PRIMARY);
+      MaybeAdd(sErr,'Error Detail',MESSAGE_DETAIL);
+      MaybeAdd(sErr,'Hint',MESSAGE_HINT);
+      MaybeAdd(sErr,'Character',STATEMENT_POSITION);
+      end;
+    if (Self.Name='') then CompName := Self.ClassName else CompName := Self.Name;
     E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName, ErrMsg, sErr]);
     E.SEVERITY:=SEVERITY;
     E.SQLSTATE:=SQLSTATE;
