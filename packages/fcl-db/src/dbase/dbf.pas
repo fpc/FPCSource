@@ -1064,8 +1064,9 @@ begin
       Inc(N);
       TempFieldDef.FieldName:=BaseName+IntToStr(N);
     end;
-    // add field
-    if TempFieldDef.FieldType in [ftString, ftBCD, ftBytes] then
+    // add field, passing dbase native size if relevant
+    // todo: add ftWideString, perhaps more fields?
+    if TempFieldDef.FieldType in [ftString, ftBytes] then
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false)
     else
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);

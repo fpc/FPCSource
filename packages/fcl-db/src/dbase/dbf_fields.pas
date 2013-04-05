@@ -40,7 +40,9 @@ type
     procedure SetFieldType(lFieldType: TFieldType);
     procedure SetSize(lSize: Integer);
     procedure SetPrecision(lPrecision: Integer);
+    // Converts VCL/LCL field types to dbf native field type markers ('C' etc)
     procedure VCLToNative;
+    // Converts dbf native field type markers ('C' etc) to VCL/LCL field types
     procedure NativeToVCL;
     procedure FreeBuffers;
   protected
@@ -73,10 +75,14 @@ type
     property CopyFrom: Integer read FCopyFrom write FCopyFrom;
   published
     property FieldName: string     read FFieldName write FFieldName;
+    // VCL/LCL field type mapped to this field
     property FieldType: TFieldType read FFieldType write SetFieldType;
+    // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
     property NullPosition: integer read FNullPosition write FNullPosition;
+    // Size in dbase file (not VCL/LCL)
     property Size: Integer         read FSize      write SetSize;
+    // Precision in dbase file (not VCL/LCL)
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
   end;
@@ -110,12 +116,9 @@ uses
 
 {$I dbf_struct.inc}
 
-// I keep changing that fields...
-// Last time has been asked by Venelin Georgiev
-// Is he going to be the last ?
 const
 (*
-The theory until now was :
+The theory is:
     ftSmallint  16 bits = -32768 to 32767
                           123456 = 6 digit max theorically
                           DIGITS_SMALLINT = 6;
@@ -127,9 +130,9 @@ The theory until now was :
                          DIGITS_LARGEINT = 20;
 
 But in fact if I accept 6 digits into a ftSmallInt then tDbf will not
-being able to handles fields with 999999 (6 digits).
+be able to handles fields with 999999 (6 digits).
 
-So I now oversize the field type in order to accept anithing coming from the
+So I oversize the field type in order to accept anything coming from the
 database.
     ftSmallint  16 bits = -32768 to 32767
                            -999  to  9999
@@ -380,10 +383,10 @@ begin
     {
     To do: add support for Visual Foxpro types
     http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
-    P Picture (in at least Visual FoxPro)
-    V Varchar/varchar binary (in at least Visual FoxPro) 1 byte up to 255 bytes (or perhaps 254)
-    W Blob (in at least Visual FoxPro), 4 bytes in a table; stored in .fpt
-    Q Varbinary (in at least Visual Foxpro)
+    P Picture (perhaps also in FoxPro)
+    V Varchar/varchar binary (perhaps also in FoxPro) 1 byte up to 255 bytes (or perhaps 254)
+    W Blob (perhaps also in FoxPro), 4 bytes in a table; stored in .fpt
+    Q Varbinary (perhaps also in Foxpro)
     }
   else
     FNativeFieldType := #0;
