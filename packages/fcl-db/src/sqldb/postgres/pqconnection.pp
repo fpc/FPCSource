@@ -40,7 +40,7 @@ type
       STATEMENT_POSITION:string;
   end;
 
-  TTranConnection= class
+  TPQTranConnection = class
   protected
     FPGConn        : PPGConn;
     FTranActive    : boolean
@@ -50,12 +50,12 @@ type
 
   TPQConnection = class (TSQLConnection)
   private
-    FConnectionPool      : array of TTranConnection;
+    FConnectionPool      : array of TPQTranConnection;
     FCursorCount         : word;
     FConnectString       : string;
-    FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    FVerboseErrors: Boolean;
+    FVerboseErrors       : Boolean;
+    procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
@@ -178,7 +178,6 @@ procedure TPQConnection.ExecuteDirectPG(const query : string);
 
 var ASQLDatabaseHandle    : PPGConn;
     res                   : PPGresult;
-    msg                   : String;
 
 begin
   CheckDisConnected;
@@ -195,12 +194,7 @@ begin
 
   ASQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
 
-  if (PQstatus(ASQLDatabaseHandle) = CONNECTION_BAD) then
-    begin
-    msg := PQerrorMessage(ASQLDatabaseHandle);
-    PQFinish(ASQLDatabaseHandle);
-    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + Msg + ')',self);
-    end;
+  CheckConnectionStatus(ASQLDatabaseHandle);
 
   res := PQexec(ASQLDatabaseHandle,pchar(query));
 
@@ -287,28 +281,23 @@ begin
   if i=length(FConnectionPool) then //create a new connection
     begin
     tr.PGConn := PQconnectdb(pchar(FConnectString));
-    if (PQstatus(tr.PGConn) = CONNECTION_BAD) then
-      begin
-      result := false;
-      PQFinish(tr.PGConn);
-      DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-      end
-    else
-      begin
-      if CharSet <> '' then
-        PQsetClientEncoding(tr.PGConn, pchar(CharSet));
-      //store the new connection
-      SetLength(FConnectionPool,i+1);
-      FConnectionPool[i]:=TTranConnection.Create;
-      FConnectionPool[i].FPGConn:=tr.PGConn;
-      FConnectionPool[i].FTranActive:=true;
-      end;
+    CheckConnectionStatus(tr.PGConn);
+
+    if CharSet <> '' then
+      PQsetClientEncoding(tr.PGConn, pchar(CharSet));
+
+    //store the new connection
+    SetLength(FConnectionPool,i+1);
+    FConnectionPool[i]:=TPQTranConnection.Create;
+    FConnectionPool[i].FPGConn:=tr.PGConn;
+    FConnectionPool[i].FTranActive:=true;
     end
   else //re-use existing connection
     begin
     tr.PGConn:=FConnectionPool[i].FPGConn;
     FConnectionPool[i].FTranActive:=true;
     end;
+
   res := PQexec(tr.PGConn, 'BEGIN');
   CheckResultError(res,tr.PGConn,sErrTransactionFailed);
 
@@ -350,15 +339,13 @@ end;
 
 
 procedure TPQConnection.DoInternalConnect;
-
-var msg : string;
-
+var ASQLDatabaseHandle   : PPGConn;
 begin
 {$IfDef LinkDynamically}
   InitialisePostgres3;
 {$EndIf}
 
-  inherited dointernalconnect;
+  inherited DoInternalConnect;
 
   FConnectString := '';
   if (UserName <> '') then FConnectString := FConnectString + ' user=''' + UserName + '''';
@@ -367,20 +354,21 @@ begin
   if (DatabaseName <> '') then FConnectString := FConnectString + ' dbname=''' + DatabaseName + '''';
   if (Params.Text <> '') then FConnectString := FConnectString + ' '+Params.Text;
 
-  FSQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
+  ASQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
+  try
+    CheckConnectionStatus(ASQLDatabaseHandle);
+  except
+    DoInternalDisconnect;
+    raise;
+  end;
 
-  if (PQstatus(FSQLDatabaseHandle) = CONNECTION_BAD) then
-    begin
-    msg := PQerrorMessage(FSQLDatabaseHandle);
-    dointernaldisconnect;
-    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + msg + ')',self);
-    end;
-// This only works for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
+  // This only works for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
   if PQparameterStatus<>nil then
-    FIntegerDateTimes := PQparameterStatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
+    FIntegerDateTimes := PQparameterStatus(ASQLDatabaseHandle,'integer_datetimes') = 'on';
+
   SetLength(FConnectionPool,1);
-  FConnectionPool[0]:=TTranConnection.Create;
-  FConnectionPool[0].FPGConn:=FSQLDatabaseHandle;
+  FConnectionPool[0]:=TPQTranConnection.Create;
+  FConnectionPool[0].FPGConn:=ASQLDatabaseHandle;
   FConnectionPool[0].FTranActive:=false;
 end;
 
@@ -397,6 +385,26 @@ begin
 {$IfDef LinkDynamically}
   ReleasePostgres3;
 {$EndIf}
+end;
+
+procedure TPQConnection.CheckConnectionStatus(var conn: PPGconn);
+var sErr: string;
+    i: integer;
+begin
+  if (PQstatus(conn) = CONNECTION_BAD) then
+    begin
+    sErr := PQerrorMessage(conn);
+    //make connection available in pool
+    for i:=0 to length(FConnectionPool)-1 do
+      if FConnectionPool[i].FPGConn=conn then
+        begin
+        FConnectionPool[i].FPGConn:=nil;
+        FConnectionPool[i].FTranActive:=false;
+        break;
+        end;
+    PQfinish(conn);
+    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + sErr + ')', Self);
+    end;
 end;
 
 procedure TPQConnection.CheckResultError(var res: PPGresult; conn: PPGconn;
@@ -815,17 +823,9 @@ begin
     PQreset(FConnectionPool[0].FPGConn)
   else
     FConnectionPool[0].FPGConn := PQconnectdb(pchar(FConnectString));
-  if (PQstatus(FConnectionPool[0].FPGConn) = CONNECTION_BAD) then
-    begin
-    result := nil;
-    PQFinish(FConnectionPool[0].FPGConn);
-    FConnectionPool[0].FPGConn:=nil;
-    FConnectionPool[0].FTranActive:=false;
-    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(FConnectionPool[0].FPGConn) + ')',self);
-    end
-  else
-    if CharSet <> '' then
-      PQsetClientEncoding(FConnectionPool[0].FPGConn, pchar(CharSet));
+  CheckConnectionStatus(FConnectionPool[0].FPGConn);
+  if CharSet <> '' then
+    PQsetClientEncoding(FConnectionPool[0].FPGConn, pchar(CharSet));
   result:=FConnectionPool[0].FPGConn;
 end;
 
