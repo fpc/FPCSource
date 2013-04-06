@@ -261,6 +261,12 @@ interface
     { true, if def is an ordinal type, equal in size to the processor's native int size }
     function is_nativeord(def : tdef) : boolean;
 
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def : tdef) : boolean;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def : tdef) : boolean;
+
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
@@ -922,6 +928,17 @@ implementation
 {$endif}
       end;
 
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [u64bit,u32bit,u16bit,u8bit]);
+      end;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [s64bit,s32bit,s16bit,s8bit]);
+      end;
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
