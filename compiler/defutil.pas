@@ -862,28 +862,28 @@ implementation
     { true, if def is an int type, larger than the processor's native int size }
     function is_oversizedint(def : tdef) : boolean;
       begin
-{$if defined(cpu64bitaddr)}
-         result:=false;
-{$elseif defined(cpu32bitaddr)}
-         result:=is_64bitint(def);
+{$if defined(cpu8bitalu)}
+         result:=is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
 {$elseif defined(cpu16bitalu)}
          result:=is_64bitint(def) or is_32bitint(def);
-{$elseif defined(cpu8bitalu)}
-         result:=is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
 {$endif}
       end;
 
     { true, if def is an ordinal type, larger than the processor's native int size }
     function is_oversizedord(def : tdef) : boolean;
       begin
-{$if defined(cpu64bitaddr)}
-         result:=false;
-{$elseif defined(cpu32bitaddr)}
-         result:=is_64bit(def);
+{$if defined(cpu8bitalu)}
+         result:=is_64bit(def) or is_32bit(def) or is_16bit(def);
 {$elseif defined(cpu16bitalu)}
          result:=is_64bit(def) or is_32bit(def);
-{$elseif defined(cpu8bitalu)}
-         result:=is_64bit(def) or is_32bit(def) or is_16bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
 {$endif}
       end;
 
