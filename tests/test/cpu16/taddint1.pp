@@ -9,10 +9,13 @@
   test the size and signedness of the integer that's being used. }
 {$R-}
 
+var
+  ErrorCode: Integer;
+
 procedure Error;
 begin
   Writeln('Error!');
-  halt(1);
+  ErrorCode := 1;
 end;
 
 var
@@ -22,6 +25,8 @@ var
   u16, u16_2: word;
   s32, s32_2: longint;
 begin
+  ErrorCode := 0;
+
   Writeln(' signed8 + signed8 -> signed16 ');
   s8 := 127; s8_2 := 127;
   s32 := s8 + s8_2;
@@ -227,4 +232,6 @@ begin
   s32 := s32_2 + s32_2 + s32_2;
   if s32 <> -1294967296 then
     Error;
+
+  Halt(ErrorCode);
 end.
