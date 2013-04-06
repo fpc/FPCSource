@@ -255,6 +255,12 @@ interface
     { true, if def is an ordinal type, larger than the processor's native int size }
     function is_oversizedord(def : tdef) : boolean;
 
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def : tdef) : boolean;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def : tdef) : boolean;
+
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
@@ -884,6 +890,35 @@ implementation
          result:=is_64bit(def);
 {$elseif defined(cpu64bitaddr)}
          result:=false;
+{$endif}
+      end;
+
+
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bitint(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bitint(def);
+{$endif}
+      end;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bit(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bit(def);
 {$endif}
       end;
 
