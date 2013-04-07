@@ -541,15 +541,15 @@ unit rgcpu;
               A_LDRSH,
               A_LDRD,
               A_STRD:
-                { "hi" registers cannot be used as base or index }
-                if (taicpu(p).oper[1]^.typ=top_ref) then
-                  begin
-                    { add_edge handles precoloured registers already }
-                    for i:=RS_R8 to RS_R15 do
-                      add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),i);
-                    for i:=RS_R8 to RS_R15 do
-                      add_edge(getsupreg(taicpu(p).oper[1]^.ref^.index),i);
-                  end;
+                 begin
+                   { add_edge handles precoloured registers already }
+                   for i:=RS_R8 to RS_R15 do
+                     begin
+                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),i);
+                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.index),i);
+                       add_edge(getsupreg(taicpu(p).oper[0]^.reg),i);
+                     end;
+                 end;
             end;
           end;
       end;
