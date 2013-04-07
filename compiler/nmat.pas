@@ -817,25 +817,21 @@ implementation
                }
              end
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitaddr}
-         else if is_64bit(left.resultdef) then
+         else if is_oversizedord(left.resultdef) then
            begin
-             inserttypeconv(left,s64inttype);
-             resultdef:=left.resultdef
+             if is_64bit(left.resultdef) then
+               inserttypeconv(left,s64inttype)
+             else if is_32bit(left.resultdef) then
+               inserttypeconv(left,s32inttype)
+             else if is_16bit(left.resultdef) then
+               inserttypeconv(left,s16inttype)
+             else
+               internalerror(2013040701);
+             resultdef:=left.resultdef;
            end
-{$endif not cpu64bitaddr}
-{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
-         else if is_32bitint(left.resultdef) then
-           begin
-             inserttypeconv(left,s32inttype);
-             resultdef:=left.resultdef
-           end
-{$endif cpu16bitalu or cpu8bitalu}
          else if (left.resultdef.typ=orddef) then
            begin
-{$ifndef cpunodefaultint}
              inserttypeconv(left,sinttype);
-{$endif cpunodefaultint}
              resultdef:=left.resultdef
            end
          else
