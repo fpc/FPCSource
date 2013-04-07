@@ -505,6 +505,7 @@ unit rgcpu;
     procedure trgintcputhumb.add_cpu_interferences(p: tai);
       var
         r : tregister;
+        i,
         hr : longint;
       begin
         if p.typ=ait_instruction then
@@ -529,6 +530,27 @@ unit rgcpu;
                 add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(r));
                 add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(current_procinfo.framepointer));
               end;
+            case taicpu(p).opcode of
+              A_LDRB,
+              A_STRB,
+              A_STR,
+              A_LDR,
+              A_LDRH,
+              A_STRH,
+              A_LDRSB,
+              A_LDRSH,
+              A_LDRD,
+              A_STRD:
+                { "hi" registers cannot be used as base or index }
+                if (taicpu(p).oper[1]^.typ=top_ref) then
+                  begin
+                    { add_edge handles precoloured registers already }
+                    for i:=RS_R8 to RS_R15 do
+                      add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),i);
+                    for i:=RS_R8 to RS_R15 do
+                      add_edge(getsupreg(taicpu(p).oper[1]^.ref^.index),i);
+                  end;
+            end;
           end;
       end;
 
