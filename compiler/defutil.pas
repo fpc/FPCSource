@@ -392,8 +392,10 @@ implementation
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          range_to_basetype:=u32bit
+        else if (l>=low(int64)) and (h<=high(int64)) then
+         range_to_basetype:=s64bit
         else
-         range_to_basetype:=s64bit;
+         range_to_basetype:=u64bit;
       end;
 
 
