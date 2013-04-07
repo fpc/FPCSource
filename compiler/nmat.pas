@@ -958,22 +958,19 @@ implementation
             result:=left;
             left:=nil;
           end
-{$ifndef cpu64bitaddr}
-        else if is_64bit(left.resultdef) then
+        else if is_oversizedord(left.resultdef) then
           begin
-            inserttypeconv(left,s64inttype);
+            if is_64bit(left.resultdef) then
+              inserttypeconv(left,s64inttype)
+            else if is_32bit(left.resultdef) then
+              inserttypeconv(left,s32inttype)
+            else if is_16bit(left.resultdef) then
+              inserttypeconv(left,s16inttype)
+            else
+              internalerror(2013040702);
             result:=left;
             left:=nil;
           end
-{$endif not cpu64bitaddr}
-{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
-         else if is_32bitint(left.resultdef) then
-           begin
-             inserttypeconv(left,s32inttype);
-             result:=left;
-             left:=nil;
-           end
-{$endif cpu16bitalu or cpu8bitalu}
         else if (left.resultdef.typ=orddef) then
           begin
             inserttypeconv(left,sinttype);
