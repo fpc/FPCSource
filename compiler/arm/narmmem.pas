@@ -30,6 +30,11 @@ interface
       cgbase,cpubase,nmem,ncgmem;
 
     type
+      tarmloadparentfpnode = class(tcgloadparentfpnode)
+        procedure pass_generate_code; override;
+      end;
+
+
       tarmvecnode = class(tcgvecnode)
         procedure update_reference_reg_mul(maybe_const_reg: tregister; l: aint);override;
       end;
@@ -38,7 +43,28 @@ implementation
 
     uses
       cutils,verbose,globals,aasmdata,aasmcpu,cgobj,
-      cpuinfo;
+      cpuinfo,
+      cgutils,
+      procinfo;
+
+{*****************************************************************************
+                        TARMLOADPARENTFPNODE
+*****************************************************************************}
+
+    procedure tarmloadparentfpnode.pass_generate_code;
+      begin
+        { normally, we cannot use the stack pointer as normal register on arm thumb }
+        if (current_settings.cputype in cpu_thumb) and
+          (getsupreg(current_procinfo.framepointer) in [RS_R8..RS_R15]) and
+          (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
+          begin
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,current_procinfo.framepointer,location.register);
+          end
+        else
+          inherited pass_generate_code;
+      end;
 
 {*****************************************************************************
                              TARMVECNODE
@@ -84,4 +110,5 @@ implementation
 
 begin
   cvecnode:=tarmvecnode;
+  cloadparentfpnode:=tarmloadparentfpnode;
 end.
