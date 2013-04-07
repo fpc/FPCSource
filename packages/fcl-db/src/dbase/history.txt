@@ -31,8 +31,9 @@ BUGS & WARNINGS
     - storedefs is not updated automatically when fielddefs are changed
 
 
-FreePascal trunk:
-- initial read support for (Visual) FoxPro files (r24139)
+FreePascal trunk (future V7.0.0):
+- clarification on field types; remove some workarounds (r24169) todo: reinstate depending on test set
+- initial support for (Visual) FoxPro files (r24139)
 - annotated constants/file structure (r24139)
 - factored out get version/get codepage subprocedure for readability (r24139)
 - split out existing support for Visual FoxPro and Foxpro (r24109) 

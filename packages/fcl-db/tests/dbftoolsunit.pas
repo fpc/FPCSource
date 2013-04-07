@@ -186,7 +186,7 @@ begin
         FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
       // work around missing TBCDField.AsBCD:
       if (Result as TDBF).TableLevel >= 25 then
-        FieldByName('FBCD').AsFloat := StrToFLoat(testFmtBCDValues[i],Self.FormatSettings);
+        FieldByName('FBCD').AsBCD := StrToBCD(testFmtBCDValues[i],Self.FormatSettings);
       FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
