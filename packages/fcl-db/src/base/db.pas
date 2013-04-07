@@ -779,6 +779,7 @@ type
     FCurrency   : boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
+    function GetAsBCD: TBCD; override;
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
@@ -788,6 +789,7 @@ type
     function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
