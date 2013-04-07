@@ -43,7 +43,7 @@ uses
   
 
 type
-  { XML Test Listner }
+  { XML Test Listener }
 
   { TXMLResultsWriter }
 
@@ -58,6 +58,7 @@ type
     FErrors: TDOMNode;
     FLastTestSuite: TDOMNode;
     FStartCrono: TDateTime;
+    FskipTiming : Boolean;
     { Converts the actual test results into XML nodes. This gets called
       by the public method WriteResult. }
     procedure   TestResultAsXML(pTestResult: TTestResult);
@@ -78,6 +79,7 @@ type
 
     { A public property to the internal XML document }
     property    Document: TXMLDocument read FDoc;
+    Property    SkipTiming : Boolean Read FSkipTiming Write FSkipTiming;
   end;
 
 
@@ -107,6 +109,7 @@ begin
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);
 
+  { We don't have access to TCustomResultsWriter so we cannot honour SkipTiming}
   if not(SkipTiming) then
   begin
     n := FDoc.CreateElement('TotalElapsedTime');
