@@ -165,6 +165,7 @@ unit cgcpu;
 
         procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src,dst: TRegister);override;
         procedure a_op_const_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; dst: tregister);override;
+        procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister); override;
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
@@ -1122,23 +1123,41 @@ unit cgcpu;
            ) or
            ((current_settings.cputype in cpu_thumb) and
             (((oppostfix in [PF_SB,PF_SH]) and (ref.offset<>0)) or
-             ((oppostfix=PF_None) and ((ref.offset<0) or (ref.offset>124) or ((ref.offset mod 4)<>0))) or
+             ((oppostfix=PF_None) and ((ref.offset<0) or ((ref.base<>NR_STACK_POINTER_REG) and (ref.offset>124)) or
+               ((ref.base=NR_STACK_POINTER_REG) and (ref.offset>1020)) or ((ref.offset mod 4)<>0))) or
              ((oppostfix=PF_H) and ((ref.offset<0) or (ref.offset>62) or ((ref.offset mod 2)<>0))) or
-             ((oppostfix=PF_B) and ((ref.offset<0) or (ref.offset>31)))
+             ((oppostfix=PF_B) and ((ref.offset<0) or (ref.offset>31) or ((getsupreg(ref.base) in [RS_R8..RS_R15]) and (ref.offset<>0))))
             )
            ) then
           begin
             fixref(list,ref);
           end;
 
-        { certain thumb load require base and index }
-        if (current_settings.cputype in cpu_thumb) and
-          (oppostfix in [PF_SB,PF_SH]) and
-          (ref.base<>NR_NO) and (ref.index=NR_NO) then
+        if current_settings.cputype in cpu_thumb then
           begin
-            tmpreg:=getintregister(list,OS_ADDR);
-            a_load_const_reg(list,OS_INT,0,tmpreg);
-            ref.index:=tmpreg;
+            { certain thumb load require base and index }
+            if (oppostfix in [PF_SB,PF_SH]) and
+              (ref.base<>NR_NO) and (ref.index=NR_NO) then
+              begin
+                tmpreg:=getintregister(list,OS_ADDR);
+                a_load_const_reg(list,OS_ADDR,0,tmpreg);
+                ref.index:=tmpreg;
+              end;
+
+            { "hi" registers cannot be used as base or index }
+            if (getsupreg(ref.base) in [RS_R8..RS_R12,RS_R14]) or
+              ((ref.base=NR_R13) and (ref.index<>NR_NO)) then
+              begin
+                tmpreg:=getintregister(list,OS_ADDR);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,tmpreg);
+                ref.base:=tmpreg;
+              end;
+            if getsupreg(ref.index) in [RS_R8..RS_R14] then
+              begin
+                tmpreg:=getintregister(list,OS_ADDR);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.index,tmpreg);
+                ref.index:=tmpreg;
+              end;
           end;
 
         { fold if there is base, index and offset, however, don't fold
@@ -3846,6 +3865,15 @@ unit cgcpu;
               end;
           end;
         maybeadjustresult(list,op,size,dst);
+      end;
+
+
+    procedure tthumbcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
+      begin
+        if (op=OP_ADD) and (src=NR_R13) and (dst<>NR_R13) and ((a mod 4)=0) and (a>0) and (a<=1020) then
+          list.concat(taicpu.op_reg_reg_const(A_ADD,dst,src,a))
+        else
+          inherited a_op_const_reg_reg(list,op,size,a,src,dst);
       end;
 
 
