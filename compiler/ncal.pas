@@ -619,7 +619,6 @@ implementation
 
 
     function tcallparanode.dogetcopy : tnode;
-
       var
          n : tcallparanode;
          initcopy: tnode;
