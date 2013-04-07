@@ -316,6 +316,11 @@ implementation
              Message1(type_e_interface_type_expected,intfdef.typename);
              exit;
           end;
+        if ([oo_is_forward,oo_is_formal] * intfdef.objectoptions <> []) then
+          begin
+             Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
+             exit;
+          end;
         if current_objectdef.find_implemented_interface(intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
