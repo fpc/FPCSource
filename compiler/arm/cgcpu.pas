@@ -2942,15 +2942,40 @@ unit cgcpu;
 
       procedure loadvmttor12;
         var
+          tmpref,
           href : treference;
+          extrareg : boolean;
+          l : TAsmLabel;
         begin
           reference_reset_base(href,NR_R0,0,sizeof(pint));
           if current_settings.cputype in cpu_thumb then
             begin
-              list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
-              list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+              if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
+                begin
+                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+                  list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                end
+              else
+                begin
+                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
+                  { create consts entry }
+                  reference_reset(tmpref,4);
+                  current_asmdata.getjumplabel(l);
+                  current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                  cg.a_label(current_procinfo.aktlocaldata,l);
+                  tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
+                  tmpref.symbol:=l;
+                  tmpref.base:=NR_PC;
+                  list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
+                  href.offset:=0;
+                  href.index:=NR_R1;
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+                  list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
+                end;
             end
           else
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
@@ -2959,17 +2984,41 @@ unit cgcpu;
 
       procedure op_onr12methodaddr;
         var
+          tmpref,
           href : treference;
+          l : TAsmLabel;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           if current_settings.cputype in cpu_thumb then
             begin
               reference_reset_base(href,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-              list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
-              list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+              if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
+                begin
+                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+                  list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                end
+              else
+                begin
+                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
+                  { create consts entry }
+                  reference_reset(tmpref,4);
+                  current_asmdata.getjumplabel(l);
+                  current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                  cg.a_label(current_procinfo.aktlocaldata,l);
+                  tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(href.offset));
+                  tmpref.symbol:=l;
+                  tmpref.base:=NR_PC;
+                  list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
+                  href.offset:=0;
+                  href.index:=NR_R1;
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+                  list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
+                end;
               list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
             end
           else
