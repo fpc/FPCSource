@@ -44,6 +44,7 @@ unit cpupi;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
           procedure init_framepointer; override;
+          procedure generate_parameter_info;override;
        end;
 
 
@@ -137,50 +138,55 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-        floatsavesize:=0;
-        case current_settings.fputype of
-          fpu_fpa,
-          fpu_fpa10,
-          fpu_fpa11:
-            begin
-              { save floating point registers? }
-              firstfloatreg:=RS_NO;
-              regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
-              for r:=RS_F0 to RS_F7 do
-                if r in regs then
-                  begin
-                    if firstfloatreg=RS_NO then
-                      firstfloatreg:=r;
-                    lastfloatreg:=r;
-                  end;
-              if firstfloatreg<>RS_NO then
-                floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
+        if current_settings.cputype in cpu_thumb then
+          result:=stackframesize
+        else
+          begin
+            maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
+            floatsavesize:=0;
+            case current_settings.fputype of
+              fpu_fpa,
+              fpu_fpa10,
+              fpu_fpa11:
+                begin
+                  { save floating point registers? }
+                  firstfloatreg:=RS_NO;
+                  regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
+                  for r:=RS_F0 to RS_F7 do
+                    if r in regs then
+                      begin
+                        if firstfloatreg=RS_NO then
+                          firstfloatreg:=r;
+                        lastfloatreg:=r;
+                      end;
+                  if firstfloatreg<>RS_NO then
+                    floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
+                end;
+              fpu_vfpv2,
+              fpu_vfpv3,
+              fpu_vfpv3_d16:
+                begin
+                  floatsavesize:=0;
+                  regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  for r:=RS_D0 to RS_D31 do
+                    if r in regs then
+                      inc(floatsavesize,8);
+                end;
+              fpu_fpv4_s16:
+                begin
+                  floatsavesize:=0;
+                  regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  for r:=RS_D0 to RS_D15 do
+                    if r in regs then
+                      inc(floatsavesize,8);
+                end;
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv3_d16:
-            begin
-              floatsavesize:=0;
-              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
-              for r:=RS_D0 to RS_D31 do
-                if r in regs then
-                  inc(floatsavesize,8);
-            end;
-          fpu_fpv4_s16:
-            begin
-              floatsavesize:=0;
-              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
-              for r:=RS_D0 to RS_D15 do
-                if r in regs then
-                  inc(floatsavesize,8);
-            end;
-        end;
-        floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
-        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
-        floatregstart:=tg.direction*result+maxpushedparasize;
-        if tg.direction=1 then
-          dec(floatregstart,floatsavesize);
+            floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
+            result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
+            floatregstart:=tg.direction*result+maxpushedparasize;
+            if tg.direction=1 then
+              dec(floatregstart,floatsavesize);
+          end;
       end;
 
 
@@ -196,6 +202,13 @@ unit cpupi;
             RS_FRAME_POINTER_REG:=RS_R11;
             NR_FRAME_POINTER_REG:=NR_R11;
           end;
+      end;
+
+
+    procedure tarmprocinfo.generate_parameter_info;
+      begin
+       procdef.total_stackframe_size:=stackframesize;
+       inherited generate_parameter_info;
       end;
 
 

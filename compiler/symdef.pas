@@ -625,6 +625,12 @@ interface
 {$ifdef i386}
           fpu_used     : byte;
 {$endif i386}
+{$if defined(arm)}
+          { the arm paramanager might need to know the total size of the stackframe
+            to avoid cyclic unit dependencies or global variables, this infomatation is
+            stored in total_stackframe_size }
+          total_stackframe_size : aint;
+{$endif defined(arm)}
 {$ifdef mips}
           { needed for stabs debugging }
           total_local_size : longint;

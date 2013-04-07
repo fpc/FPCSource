@@ -3383,15 +3383,12 @@ unit cgcpu;
          r7offset,
          stackmisalignment : pint;
          postfix: toppostfix;
+         registerarea,
          imm1, imm2: DWord;
+         stack_parameters: Boolean;
       begin
+        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
         LocalSize:=align(LocalSize,4);
-        if localsize>tarmprocinfo(current_procinfo).stackframesize then
-          begin
-            writeln(localsize);
-            writeln(tarmprocinfo(current_procinfo).stackframesize);
-            internalerror(2013040101);
-          end;
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
         if not(nostackframe) then
@@ -3418,31 +3415,56 @@ unit cgcpu;
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_R7,RS_R14]
             else
-              if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
-                include(regs,RS_R14);
+              // if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+              include(regs,RS_R14);
 
             { safely estimate stack size }
-            if localsize+current_settings.alignment.localalignmax>508 then
-              include(regs,RS_R4);
+            if localsize+current_settings.alignment.localalignmax+4>508 then
+              begin
+                include(rg[R_INTREGISTER].used_in_proc,RS_R4);
+                include(regs,RS_R4);
+              end;
 
+            registerarea:=0;
             if regs<>[] then
                begin
                  for r:=RS_R0 to RS_R15 do
                    if r in regs then
-                     inc(stackmisalignment,4);
+                     inc(registerarea,4);
                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,regs));
                end;
 
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
-            if (LocalSize<>0) or
+            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+
+            if stack_parameters or (LocalSize<>0) or
                ((stackmisalignment<>0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                { do we access stack parameters?
+                  if yes, the previously estimated stacksize must be used }
+                if stack_parameters then
+                  begin
+                    if localsize>tarmprocinfo(current_procinfo).stackframesize then
+                      begin
+                        writeln(localsize);
+                        writeln(tarmprocinfo(current_procinfo).stackframesize);
+                        internalerror(2013040601);
+                      end
+                    else
+                      localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea;
+                  end
+                else
+                  localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+
                 if localsize<508 then
                   begin
                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                  end
+                else if localsize<=1016 then
+                  begin
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,508));
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize-508));
                   end
                 else
                   begin
@@ -3485,7 +3507,7 @@ unit cgcpu;
             include(regs,RS_R15);
 
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              regs:=regs+[getsupreg(current_procinfo.framepointer)];
+              include(regs,getsupreg(current_procinfo.framepointer));
 
             for r:=RS_R0 to RS_R15 do
               if r in regs then
@@ -3501,19 +3523,20 @@ unit cgcpu;
                     ((pi_do_call in current_procinfo.flags) or
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
-                    if is_shifter_const(LocalSize,shift) then
+                    if LocalSize=0 then
+                    else if LocalSize<=508 then
                       list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
-                    else if split_into_shifter_const(localsize, imm1, imm2) then
+                    else if LocalSize<=1016 then
                       begin
-                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
-                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,508));
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize-508));
                       end
                     else
                       begin
-                        a_reg_alloc(list,NR_R12);
-                        a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                        a_reg_dealloc(list,NR_R12);
+                        a_reg_alloc(list,NR_R3);
+                        a_load_const_reg(list,OS_ADDR,LocalSize,NR_R3);
+                        list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R3));
+                        a_reg_dealloc(list,NR_R3);
                       end;
                   end;
 
@@ -3525,28 +3548,7 @@ unit cgcpu;
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
                   end
                 else
-                  begin
-                    reference_reset(ref,4);
-                    ref.index:=NR_STACK_POINTER_REG;
-                    ref.addressmode:=AM_PREINDEXED;
-                    list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
-                  end;
-              end
-            else
-              begin
-                list.concat(taicpu.op_reg_reg(A_MOV,NR_STACK_POINTER_REG,current_procinfo.framepointer));
-                if localsize<=508 then
-                  begin
-                    list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-                  end
-                else
-                  begin
-                    a_load_const_reg(list,OS_ADDR,localsize,current_procinfo.framepointer);
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,current_procinfo.framepointer));
-                  end;
-
-                { restore int registers and return }
-                list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
+                  list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
               end;
           end
         else if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
