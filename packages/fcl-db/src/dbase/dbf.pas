@@ -17,9 +17,11 @@ uses
   dbf_fields,
   dbf_pgfile,
   dbf_idxfile;
+{$ifndef fpc}
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
 // dsgnintf.pas in 'C: \Program Files\Borland\Delphi5\Source\Toolsapi\dsgnintf.pas'
+{$endif}
 
 type
 
@@ -1072,7 +1074,6 @@ begin
       ftString, ftBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
       ftBCD:
         begin
-          // todo: we should calculate number of digits after decimal place in some way, but how?
           FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);;;
         end;
     else

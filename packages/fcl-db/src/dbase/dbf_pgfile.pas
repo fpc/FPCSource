@@ -80,10 +80,12 @@ type
     procedure UpdateBufferSize;
     procedure RecalcPagesPerRecord;
     procedure ReadHeader;
+    // Write header to stream
     procedure FlushHeader;
     procedure FlushBuffer;
     function  ReadChar: Byte;
     procedure WriteChar(c: Byte);
+    // Check if position in cache. If not, enlarge cache.
     procedure CheckCachedSize(const APosition: Integer);
     procedure SynchronizeBuffer(IntRecNum: Integer);
     function  Read(Buffer: Pointer; ASize: Integer): Integer;
@@ -316,6 +318,9 @@ end;
 
 function TPagedFile.CalcPageOffset(const PageNo: Integer): Integer;
 begin
+  //todo: verify: this looks suspicious: check if we should uniformly use
+  // either FPageSize*PageNo as in the case without header offset
+  // or (FPageSize*(PageNo-1))
   if not FPageOffsetByHeader then
     Result := FPageSize * PageNo
   else if PageNo = 0 then

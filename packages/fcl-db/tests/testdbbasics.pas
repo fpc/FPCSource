@@ -2434,6 +2434,8 @@ var i          : byte;
     Fld        : TField;
 
 begin
+  if (uppercase(dbconnectorname)='DBF') then
+    Ignore('This test does not apply to TDDBF as they store currency in BCD fields.');
   TestfieldDefinition(ftCurrency,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do

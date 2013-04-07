@@ -98,6 +98,7 @@ type
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
     function  Insert(Buffer: TRecordBuffer): integer;
+    // Write relevant dbf head as well as EOF marker at end of file if necessary
     procedure WriteHeader; override;
     procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);     // dBase7 support. Writeback last next-autoinc value
     procedure FastPackTable;
@@ -821,7 +822,8 @@ begin
 
   // Write terminator at the end of the file, after the records:
   EofTerminator := $1A;
-  WriteBlock(@EofTerminator, 1, CalcPageOffset(RecordCount+1));
+  // We're using lDataHdr to make sure we have the latest/correct version
+  WriteBlock(@EofTerminator, 1, CalcPageOffset(lDataHdr.RecordCount+1));
 end;
 
 procedure TDbfFile.ConstructFieldDefs;
@@ -884,8 +886,8 @@ begin
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
-        // todo: verify but AFAIU only Visual FoxPro supports null fields. Leave in FoxPro for now
-        lCanHoldNull := (FDbfVersion in [xFoxPro,xVisualFoxPro]) and
+        // todo: verify but AFAIU only Visual FoxPro supports null fields.
+        lCanHoldNull := (FDbfVersion in [xVisualFoxPro]) and
           ((lFieldDescIII.FoxProFlags and $2) <> 0) and
           (lFieldName <> '_NULLFLAGS');
       end;
@@ -1770,7 +1772,7 @@ begin
   // copy field data to record buffer
   Dst := PChar(Dst) + TempFieldDef.Offset;
   asciiContents := false;
-  // todo: check/add xvisualfoxpro autoincrement capability, null values, DateTime, Currency, and Double data types
+  // todo: check/add visualfoxpro autoincrement capability, null values, DateTime, Currency, and Double data types
   case TempFieldDef.NativeFieldType of
     '+', 'I' {autoincrement, integer}:
       begin
