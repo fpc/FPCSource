@@ -159,6 +159,7 @@ begin
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
     end;
+  {$ENDIF win64}
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
