@@ -168,6 +168,24 @@ connector=dbf
 ; 30=Visual FoxPro
 connectorparams=4
 
+; TDBf: DBase/FoxPro database:
+[dbase7]
+connector=dbf
+; 7=Visual DBase 7 for Windows
+connectorparams=7
+
+; TDBf: DBase/FoxPro database:
+[foxpro]
+connector=dbf
+; 25=FoxPro
+connectorparams=25
+
+; TDBf: DBase/FoxPro database:
+[visualfoxpro]
+connector=dbf
+; 30=Visual FoxPro
+connectorparams=25
+
 ; MemDS in memory dataset:
 [memds]
 connector=memds

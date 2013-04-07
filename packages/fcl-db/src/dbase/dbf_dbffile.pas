@@ -1224,7 +1224,7 @@ begin
       begin
         // get minimum field length
         lFieldSize := Min(TempSrcDef.Precision, TempDstDef.Precision) +
-          Min(TempSrcDef.Size - TempSrcDef.Precision, 
+          Min(TempSrcDef.Size - TempSrcDef.Precision,
             TempDstDef.Size - TempDstDef.Precision);
         // if one has dec separator, but other not, we lose one digit
         if (TempDstDef.Precision > 0) xor 
@@ -1233,7 +1233,7 @@ begin
         // should not happen, but check nevertheless (maybe corrupt data)
         if lFieldSize < 0 then
           lFieldSize := 0;
-        srcOffset := TempSrcDef.Size - TempSrcDef.Precision - 
+        srcOffset := TempSrcDef.Size - TempSrcDef.Precision -
           (TempDstDef.Size - TempDstDef.Precision);
         if srcOffset < 0 then
         begin
@@ -1461,7 +1461,7 @@ var
   var wD, wM, wY, CenturyBase: Word;
 
 {$ifndef DELPHI_5}
-  // Delphi 3 standard-behavior no change possible
+  // Delphi 3 standard behavior, no change possible
   const TwoDigitYearCenturyWindow= 0;
 {$endif}
 

@@ -162,12 +162,12 @@ begin
     FieldDefs.Add('FWORD', ftWord);
     FieldDefs.Add('FBOOLEAN', ftBoolean);
     FieldDefs.Add('FFLOAT', ftFloat);
+    // Field types only available in newer versions
     if (Result as TDBF).TableLevel >= 25 then
       FieldDefs.Add('FCURRENCY', ftCurrency);
     if (Result as TDBF).TableLevel >= 25 then
       FieldDefs.Add('FBCD', ftBCD);
     FieldDefs.Add('FDATE', ftDate);
-    //    FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME', ftDateTime);
     FieldDefs.Add('FLARGEINT', ftLargeint);
     FieldDefs.Add('FMEMO', ftMemo);
@@ -184,8 +184,9 @@ begin
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
       if (Result as TDBF).TableLevel >= 25 then
         FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
+      // work around missing TBCDField.AsBCD:
       if (Result as TDBF).TableLevel >= 25 then
-        FieldByName('FBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
+        FieldByName('FBCD').AsFloat := StrToFLoat(testFmtBCDValues[i],Self.FormatSettings);
       FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
@@ -227,8 +228,6 @@ begin
 end;
 
 function TDBFDBConnector.GetTraceDataset(AChange: boolean): TDataset;
-var
-  ADS: TDataSet;
 begin
   // Mimic TDBConnector.GetNDataset
   if AChange then FChangedDatasets[NForTraceDataset] := True;

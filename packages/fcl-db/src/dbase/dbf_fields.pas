@@ -79,10 +79,10 @@ type
     property FieldType: TFieldType read FFieldType write SetFieldType;
     // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
+    // Size in physical dbase file.
+    // Note: this often differs from the VCL field sizes
+    property Size: Integer         read FSize write SetSize;
     property NullPosition: integer read FNullPosition write FNullPosition;
-    // Size in memory
-    property Size: Integer         read FSize      write SetSize;
-    // Precision in dbase file
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
   end;
@@ -91,7 +91,6 @@ type
   private
     FOwner: TPersistent;
     FDbfVersion: TXBaseVersion;
-
     function GetItem(Idx: Integer): TDbfFieldDef;
   protected
     function GetOwner: TPersistent; override;
@@ -250,7 +249,9 @@ begin
   // copy from Db.TFieldDef
   FFieldName := DbSource.Name;
   FFieldType := DbSource.DataType;
-  FSize := DbSource.Size;
+  // We do NOT copy over size if TFieldDef size is different from our native size
+  if not(DBSource.DataType in [ftBCD,ftCurrency]) then
+    FSize := DbSource.Size;
   FPrecision := DbSource.Precision;
   FRequired := DbSource.Required;
 {$ifdef SUPPORT_FIELDDEF_INDEX}
@@ -259,7 +260,7 @@ begin
   FIsLockField := false;
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
-  // for integer / float fields try to fill in size/precision
+  // for integer / float fields try to fill in Size/precision
   if FSize = 0 then
     SetDefaultSize
   else
@@ -334,9 +335,7 @@ end;
 procedure TDbfFieldDef.NativeToVCL;
 begin
   case FNativeFieldType of
-// OH 2000-11-15 dBase7 support.
-// Add the new fieldtypes
-    '+' : 
+    '+' :
       if DbfVersion = xBaseVII then
         FFieldType := ftAutoInc;
     'I' : FFieldType := ftInteger;
@@ -437,7 +436,7 @@ end;
 
 procedure TDbfFieldDef.SetDefaultSize;
 begin
-  // choose default values for variable size fields
+  // choose default values for variable Size fields
   case FFieldType of
     ftFloat:
       begin
@@ -446,8 +445,9 @@ begin
       end;
     ftCurrency, ftBCD:
       begin
-        FSize := 8;
-        FPrecision := 4;
+        FSize := 8; // Stored in dbase as 8 bytes; up to 18 (or 20) characters including .-
+        // FPC ftBCD/ftCurrency TFieldDef.Size has max 4 which is 4 bytes after decimal
+        FPrecision := 4; //Total number of digits
       end;
     ftSmallInt, ftWord:
       begin
@@ -476,7 +476,7 @@ begin
       end;
   end; // case fieldtype
 
-  // set sizes for fields that are restricted to single size/precision
+  // set sizes for fields that are restricted to single Size/precision
   CheckSizePrecision;
 end;
 
@@ -485,14 +485,14 @@ begin
   case FNativeFieldType of
     'C': // Character
       begin
-        if FSize < 0 then 
+        if FSize < 0 then
           FSize := 0;
         if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
         begin
-          if FSize >= $FFFF then 
+          if FSize >= $FFFF then
             FSize := $FFFF;
         end else begin
-          if FSize >= $FF then 
+          if FSize >= $FF then
             FSize := $FF;
         end;
         FPrecision := 0;
@@ -504,9 +504,12 @@ begin
       end;
     'N','F': // Binary code decimal numeric, floating point binary numeric
       begin
+        // ftBCD: precision=total number of digits; Delphi supports max 32
+        // Note: this field can be stored as BCD or integer, depending on FPrecision;
+        // that's why we allow 0 precision
         if FSize < 1   then FSize := 1;
         if FSize >= 20 then FSize := 20;
-        if FPrecision > FSize-2 then FPrecision := FSize-2;
+        if FPrecision > FSize-2 then FPrecision := FSize-2; //Leave space for . and -
         if FPrecision < 0       then FPrecision := 0;
       end;
     'D': // Date
@@ -514,11 +517,16 @@ begin
         FSize := 8;
         FPrecision := 0;
       end;
-    'B': // Double
+    'B': // (Visual)Foxpro double, DBase binary
       begin
-        if (DbfVersion <> xFoxPro) and (DbfVersion <> xVisualFoxPro) then
+        if not(DbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           FSize := 10;
+          FPrecision := 0;
+        end
+        else
+        begin
+          FSize := 8; //Foxpro double
           FPrecision := 0;
         end;
       end;
@@ -574,7 +582,11 @@ end;
 
 function TDbfFieldDef.IsBlob: Boolean; {override;}
 begin
-  Result := FNativeFieldType in ['M','G','B'];
+  // 'B' is float in (V)FP
+  if (DbfVersion in [xFoxPro,xVisualFoxPro]) then
+    Result := FNativeFieldType in ['M','G']
+  else
+    Result := FNativeFieldType in ['M','G','B'];
 end;
 
 procedure TDbfFieldDef.FreeBuffers;
@@ -591,7 +603,7 @@ end;
 
 procedure TDbfFieldDef.AllocBuffers;
 begin
-  // size changed?
+  // Size changed?
   if FAllocSize <> FSize then
   begin
     // free old buffers
@@ -600,7 +612,7 @@ begin
     GetMem(FDefaultBuf, FSize*3);
     FMinBuf := FDefaultBuf + FSize;
     FMaxBuf := FMinBuf + FSize;
-    // store allocated size
+    // store allocated Size
     FAllocSize := FSize;
   end;
 end;

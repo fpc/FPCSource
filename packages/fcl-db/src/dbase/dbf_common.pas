@@ -16,9 +16,9 @@ uses
 
 
 const
-  TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 9;
-  TDBF_SUB_MINOR_VERSION  = 2;
+  TDBF_MAJOR_VERSION      = 7;
+  TDBF_MINOR_VERSION      = 0;
+  TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
   TDBF_TABLELEVEL_VISUALFOXPRO = 30; {Source: http://www.codebase.com/support/kb/?article=C01059}
@@ -87,15 +87,22 @@ procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Inte
 function GetFreeMemory: Integer;
 {$endif}
 
+// Convert word to big endian
 function SwapWordBE(const Value: word): word;
+// Convert word to little endian
 function SwapWordLE(const Value: word): word;
+// Convert integer to big endian
 function SwapIntBE(const Value: dword): dword;
+// Convert integer to little endian
 function SwapIntLE(const Value: dword): dword;
 {$ifdef SUPPORT_INT64}
+// Convert int64 to big endian
 procedure SwapInt64BE(Value, Result: Pointer); register;
+// Convert int64 to little endian
 procedure SwapInt64LE(Value, Result: Pointer); register;
 {$endif}
 
+// Translate string between codepages
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
 
 // Returns a pointer to the first occurence of Chr in Str within the first Length characters

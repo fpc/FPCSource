@@ -261,10 +261,6 @@ type
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
     { virtual methods (mostly optional) }
-    function  FindFirst: Boolean; override;
-    function  FindLast: Boolean; override;
-    function  FindNext: Boolean; override;
-    function  FindPrior: Boolean; override;
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
     function  GetRecordCount: Integer; override; {virtual}
     function  GetRecNo: Integer; override; {virtual}
@@ -294,7 +290,7 @@ type
     { abstract methods }
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean;
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
-    { virtual methods (mostly optionnal) }
+    { virtual methods (mostly optional) }
     procedure Resync(Mode: TResyncMode); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override; {virtual}
 {$ifdef SUPPORT_NEW_TRANSLATE}
@@ -312,6 +308,11 @@ type
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
     procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
+
+    function  FindFirst: Boolean; override;
+    function  FindLast: Boolean; override;
+    function  FindNext: Boolean; override;
+    function  FindPrior: Boolean; override;
 
 {$ifdef VER1_0}
     procedure DataEvent(Event: TDataEvent; Info: Longint); override;
@@ -1065,17 +1066,21 @@ begin
       TempFieldDef.FieldName:=BaseName+IntToStr(N);
     end;
     // add field, passing dbase native size if relevant
-    // todo: add ftWideString, perhaps more fields?
-    if TempFieldDef.FieldType in [ftString, ftBytes] then
-      FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false)
+    // TDbfFieldDef.Size indicates the number of bytes in the physical dbase file
+    // TFieldDef.Size is only meant to store size indicator for variable length fields
+    case TempFieldDef.FieldType of
+      ftString, ftBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
+      ftBCD:
+        begin
+          // todo: we should calculate number of digits after decimal place in some way, but how?
+          FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);;;
+        end;
     else
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);
+    end;
 
-    if TempFieldDef.FieldType = ftFloat then
-      begin
-      FieldDefs[I].Size := 0; // Size is not defined for float fields
-      FieldDefs[I].Precision := TempFieldDef.Size;
-      end;
+    FieldDefs[I].Precision := TempFieldDef.Precision;
+
 
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly
@@ -1632,6 +1637,8 @@ begin
           FieldName := lSrcField.FieldName;
         FieldType := lSrcField.DataType;
         Required := lSrcField.Required;
+
+        // Set up size/precision for all physical fields:
         if (1 <= lSrcField.FieldNo) 
             and (lSrcField.FieldNo <= lPhysFieldDefs.Count) then
         begin

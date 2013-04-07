@@ -102,10 +102,13 @@ uses
 //====================================================================
 type
   // DBase III+ dbt memo file
+  // (Visual) FoxPro note: integers are in Big Endian: high byte first
+  // http://msdn.microsoft.com/en-us/library/aa975374%28VS.71%29.aspx
   PDbtHdr = ^rDbtHdr;
   rDbtHdr = record
     NextBlock : dword;                  // 0..3
     // Dummy in DBaseIII; size of blocks in memo file; default 512 bytes
+    // (Visual) FoxPro: 4..5 unused; use only bytes 6..7
     BlockSize : dword;                  // 4..7
     // DBF file name without extension
     DbfFile   : array [0..7] of Byte;   // 8..15
@@ -126,11 +129,15 @@ type
   end;
 
   // Header of a memo data block:
+  // (Visual) FoxPro note: integers are in Big Endian: high byte first
   PBlockHdr = ^rBlockHdr;
   rBlockHdr = record
     // DBase IV(+) identifier: $FF $FF $08 $00
-    MemoType  : Cardinal; // 0..4
-    MemoSize  : Cardinal; // 5..7
+    // (Visual) FoxPro: $00 picture, $01 text/memo, $02 object
+    MemoType  : Cardinal; // 0..3
+    // Length of memo field
+    MemoSize  : Cardinal; // 4..7
+    // memo data             8..N
   end;
 
 
