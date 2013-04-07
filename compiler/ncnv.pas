@@ -2856,6 +2856,8 @@ implementation
 
       begin
          first_char_to_string:=nil;
+         if tstringdef(resultdef).stringtype=st_shortstring then
+           inc(current_procinfo.estimatedtempsize,256);
          expectloc:=LOC_REFERENCE;
       end;
 

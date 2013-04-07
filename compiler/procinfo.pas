@@ -125,6 +125,10 @@ unit procinfo;
           { max. of space need for parameters }
           maxpushedparasize : aint;
 
+          { some architectures need to know a stack size before the first compilation pass
+            estimatedtempsize contains an estimated value how big temps will get }
+          estimatedtempsize : aint;
+
           { is this a constructor that calls another constructor on itself
             (either inherited, or another constructor of the same class)?
             Requires different entry code for some targets. }

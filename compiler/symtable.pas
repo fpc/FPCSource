@@ -220,6 +220,7 @@ interface
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
+    function get_jumpbuf_size : longint;
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
@@ -2044,6 +2045,20 @@ implementation
             include(symoptions,sp_generic_dummy);
             result:=true;
           end;
+      end;
+
+
+    function get_jumpbuf_size : longint;
+      var
+        srsym : ttypesym;
+      begin
+        if jmp_buf_size=-1 then
+          begin
+            srsym:=search_system_type('JMP_BUF');
+            jmp_buf_size:=srsym.typedef.size;
+            jmp_buf_align:=srsym.typedef.alignment;
+          end;
+        result:=jmp_buf_size;
       end;
 
 {*****************************************************************************

@@ -392,15 +392,8 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
-      var
-        srsym : ttypesym;
-      begin
-        if jmp_buf_size=-1 then
-          begin
-            srsym:=search_system_type('JMP_BUF');
-            jmp_buf_size:=srsym.typedef.size;
-            jmp_buf_align:=srsym.typedef.alignment;
-          end;
+     begin
+        get_jumpbuf_size;
         tg.GetTemp(list,EXCEPT_BUF_SIZE,sizeof(pint),tt_persistent,t.envbuf);
         tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
         tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);

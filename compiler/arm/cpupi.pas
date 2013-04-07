@@ -33,6 +33,11 @@ unit cpupi;
 
     type
        tarmprocinfo = class(tcgprocinfo)
+          { for arm thumb, we need to know the stackframe size before
+            starting procedure compilation, so this contains the stack frame size, the compiler
+            should assume
+            if this size is too little the procedure must be compiled again with a larger value }
+          stackframesize,
           floatregstart : aint;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
@@ -48,11 +53,15 @@ unit cpupi;
        globals,systems,
        cpubase,
        tgobj,
-       symconst,paramgr,
+       symconst,symtype,symsym,paramgr,
        cgbase,cgutils,
-       cgobj;
+       cgobj,
+       defutil;
 
     procedure tarmprocinfo.set_first_temp_offset;
+      var
+        localsize : aint;
+        i : longint;
       begin
         { We allocate enough space to save all registers because we can't determine
           the necessary space because the used registers aren't known before
@@ -84,6 +93,40 @@ unit cpupi;
           end
         else
           tg.setfirsttemp(maxpushedparasize);
+
+        { estimate stack frame size }
+        if current_settings.cputype in cpu_thumb then
+          begin
+            stackframesize:=maxpushedparasize+32;
+            localsize:=0;
+            for i:=0 to procdef.localst.SymList.Count-1 do
+              if tsym(procdef.localst.SymList[i]).typ=localvarsym then
+                inc(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).getsize);
+            inc(stackframesize,localsize);
+
+            localsize:=0;
+            for i:=0 to procdef.parast.SymList.Count-1 do
+              if tsym(procdef.parast.SymList[i]).typ=paravarsym then
+                if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
+                  inc(localsize,256)
+                else
+                  inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+
+            inc(stackframesize,localsize);
+
+            if pi_needs_implicit_finally in flags then
+              inc(stackframesize,40);
+
+            if pi_uses_exceptions in flags then
+              inc(stackframesize,40);
+
+            if procdef.proctypeoption in [potype_constructor] then
+              inc(stackframesize,40*2);
+
+            inc(stackframesize,estimatedtempsize);
+
+            stackframesize:=Align(stackframesize,8);
+          end;
       end;
 
 

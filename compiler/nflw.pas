@@ -1995,6 +1995,7 @@ implementation
          { else block }
          if assigned(t1) then
            firstpass(t1);
+         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
       end;
 
 
@@ -2051,6 +2052,8 @@ implementation
 
          if assigned(t1) then
            firstpass(t1);
+
+         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
       end;
 
 
@@ -2066,7 +2069,6 @@ implementation
            right:=nil;
          end;
      end;
-
 
 {*****************************************************************************
                                 TONNODE

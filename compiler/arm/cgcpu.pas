@@ -3375,6 +3375,12 @@ unit cgcpu;
          imm1, imm2: DWord;
       begin
         LocalSize:=align(LocalSize,4);
+        if localsize>tarmprocinfo(current_procinfo).stackframesize then
+          begin
+            writeln(localsize);
+            writeln(tarmprocinfo(current_procinfo).stackframesize);
+            internalerror(2013040101);
+          end;
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
         if not(nostackframe) then
