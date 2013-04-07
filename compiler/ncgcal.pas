@@ -103,9 +103,6 @@ implementation
       cgbase,pass_2,
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
-{$ifdef x86}
-      cga,cgx86,aasmcpu,
-{$endif x86}
       ncgutil,
       cgobj,tgobj,hlcgobj,
       procinfo,
@@ -477,42 +474,21 @@ implementation
         else
           realresdef:=tstoreddef(typedef);
 
-{$ifdef x86}
-        if (retloc.location^.loc=LOC_FPUREGISTER) then
-          begin
-            tcgx86(cg).inc_fpu_stack;
-            location_reset(location,LOC_FPUREGISTER,retloc.location^.size);
-            location.register:=retloc.location^.register;
-          end
-        else
-{$endif x86}
-          begin
-            { get a tlocation that can hold the return value that's currently in
-            the the return value's tcgpara }
-            set_result_location(realresdef);
+          { get a tlocation that can hold the return value that's currently in
+            the return value's tcgpara }
+          set_result_location(realresdef);
 
-            { Do not move the physical register to a virtual one in case
-              the return value is not used, because if the virtual one is
-              then mapped to the same register as the physical one, we will
-              end up with two deallocs of this register (one inserted here,
-              one inserted by the register allocator), which unbalances the
-              register allocation information.  The return register(s) will
-              be freed by location_free() in release_unused_return_value
-              (mantis #13536).  }
-            if (cnf_return_value_used in callnodeflags) or
-               assigned(funcretnode) then
-              begin
-                hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
-{$ifdef arm}
-                if (resultdef.typ=floatdef) and
-                   (location.loc=LOC_REGISTER) and
-                   (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
-                  begin
-                    hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef);
-                  end;
-{$endif arm}
-              end;
-          end;
+          { Do not move the physical register to a virtual one in case
+            the return value is not used, because if the virtual one is
+            then mapped to the same register as the physical one, we will
+            end up with two deallocs of this register (one inserted here,
+            one inserted by the register allocator), which unbalances the
+            register allocation information.  The return register(s) will
+            be freed by location_free() in release_unused_return_value
+            (mantis #13536).  }
+          if (cnf_return_value_used in callnodeflags) or
+             assigned(funcretnode) then
+            hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
 
         { copy value to the final location if this was already provided to the
           callnode. This must be done after the call node, because the location can

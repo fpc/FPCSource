@@ -38,8 +38,8 @@ implementation
   uses
     verbose,globtype,globals,aasmdata,
     symconst,
-    cgbase,cpuinfo,
-    ncgutil,
+    cgbase,cgutils,cpuinfo,
+    ncgutil,tgobj,
     systems;
 
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
@@ -63,6 +63,13 @@ implementation
             else
               internalerror(2010053008);
           end
+        end
+      else if (resultdef.typ=floatdef) and
+         (location.loc=LOC_REGISTER) and
+         (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+        begin
+          location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment);
+          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
         end
       else
         inherited;
