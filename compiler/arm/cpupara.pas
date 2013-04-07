@@ -43,7 +43,9 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
-          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister);
+          procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg,
+           curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword;
+ var sparesinglereg: tregister);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
             var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister; isvariadic: boolean):longint;
        end;
@@ -284,12 +286,17 @@ unit cpupara;
       end;
 
 
-    procedure tarmparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister);
+    procedure tarmparamanager.init_values(p : tabstractprocdef; side: tcallercallee;
+      var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister);
       begin
         curintreg:=RS_R0;
         curfloatreg:=RS_F0;
         curmmreg:=RS_D0;
-        cur_stack_offset:=0;
+
+        if (current_settings.cputype in cpu_thumb) and (side=calleeside) then
+          cur_stack_offset:=(p as tprocdef).total_stackframe_size
+        else
+          cur_stack_offset:=0;
         sparesinglereg := NR_NO;
       end;
 
@@ -552,17 +559,24 @@ unit cpupara;
                    begin
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
-                         paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                         { on non-Darwin, the framepointer contains the value
-                           of the stack pointer on entry. On Darwin, the
-                           framepointer points to the previously saved
-                           framepointer (which is followed only by the saved
-                           return address -> framepointer + 4 = stack pointer
-                           on entry }
-                         if not(target_info.system in systems_darwin) then
-                           inc(paraloc^.reference.offset,4)
+                         if current_settings.cputype in cpu_thumb then
+                           begin
+                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                           end
                          else
-                           inc(paraloc^.reference.offset,8);
+                           begin
+                             paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                             { on non-Darwin, the framepointer contains the value
+                               of the stack pointer on entry. On Darwin, the
+                               framepointer points to the previously saved
+                               framepointer (which is followed only by the saved
+                               return address -> framepointer + 4 = stack pointer
+                               on entry }
+                             if not(target_info.system in systems_darwin) then
+                               inc(paraloc^.reference.offset,4)
+                             else
+                               inc(paraloc^.reference.offset,8);
+                           end;
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
@@ -686,7 +700,7 @@ unit cpupara;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         sparesinglereg:tregister;
       begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
+        init_values(p,side,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
 
         result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,false);
 
@@ -700,7 +714,7 @@ unit cpupara;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         sparesinglereg:tregister;
       begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
+        init_values(p,callerside,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
 
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
         if (p.proccalloption in cstylearrayofconst) then
