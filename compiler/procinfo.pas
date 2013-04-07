@@ -127,7 +127,7 @@ unit procinfo;
 
           { some architectures need to know a stack size before the first compilation pass
             estimatedtempsize contains an estimated value how big temps will get }
-          estimatedtempsize : aint;
+          estimatedtempsize : longint;
 
           { is this a constructor that calls another constructor on itself
             (either inherited, or another constructor of the same class)?
