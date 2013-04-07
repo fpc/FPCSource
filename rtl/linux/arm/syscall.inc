@@ -132,33 +132,36 @@ asm
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL4'];
 {
   Perform syscall and set errno variable if needed.
 }
 asm
-  push  {r6,r7}
+  push  {r7}
   push  {r0}
   mov   r0,r1
   mov   r1,r2
   mov   r2,r3
-  ldr   r3,param4
+  ldr   r3,[r13 ,#8]
   pop   {r7}
   // svc   #0x0
   // GNU 2.22 does not like svc #0x0
   .byte 0,0xdf
   mov   r1,#126
   cmn   r0,r1
-  pop   {r6,r7}
+  pop   {r7}
   bls   .LExit
+  push   {lr}
   neg   r0,r0
   bl    seterrno
   mov   r0,#0
   mvn   r0,r0
+  pop   {pc}
 .LExit:
+  mov   pc,lr
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL5'];
 {
   Perform syscall and set errno variable if needed.
 }
@@ -168,8 +171,8 @@ asm
   mov   r0,r1
   mov   r1,r2
   mov   r2,r3
-  ldr   r3,param4
-  ldr   r4,param5
+  ldr   r3,[r13 ,#12]
+  ldr   r4,[r13 ,#16]
   pop   {r7}
   // svc   #0x0
   // GNU 2.22 does not like svc #0x0
@@ -178,40 +181,46 @@ asm
   cmn   r0,r1
   pop   {r4,r7}
   bls   .LExit
+  push   {lr}
   neg   r0,r0
   bl    seterrno
   mov   r0,#0
   mvn   r0,r0
+  pop   {pc}
 .LExit:
+  mov   pc,lr
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL6'];
 {
   Perform syscall and set errno variable if needed.
 }
 asm
-  push  {r4,r5,r6,r7}
+  push  {r4,r5,r7}
   push  {r0}
   mov   r0,r1
   mov   r1,r2
   mov   r2,r3
-  ldr   r3,param4
-  ldr   r4,param5
-  ldr   r4,param6
+  ldr   r3,[r13 ,#16]
+  ldr   r4,[r13 ,#20]
+  ldr   r5,[r13 ,#24]
   pop   {r7}
   // svc   #0x0
   // GNU 2.22 does not like svc #0x0
   .byte 0,0xdf
   mov   r1,#126
   cmn   r0,r1
-  pop   {r4,r5,r6,r7}
+  pop   {r4,r5,r7}
   bls   .LExit
+  push   {lr}
   neg   r0,r0
   bl    seterrno
   mov   r0,#0
   mvn   r0,r0
+  pop   {pc}
 .LExit:
+  mov   pc,lr
 end;
 
 
