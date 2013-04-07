@@ -28,6 +28,8 @@ Appears in 2.0
 </seealso>
 </element>
 
+<element name="AStringConst" link="ABooleanConst"/>
+
 <!-- constant Visibility: default -->
 <element name="AStringConst">
 <short></short>

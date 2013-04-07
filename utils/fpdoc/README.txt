@@ -52,6 +52,13 @@ dw_man.pp
 fpdoc.pp
   * Main program
 
+fpdocstripper.lpr
+fpdocstripper.lpi
+  * Utility program that strips fpdoc xml files of all elements 
+    that have no documentation in them. Useful before submitting
+	a documentation patch as it keeps file sizes down and makes
+	it clearer what exactly is documented.
+  
 makeskel.pp
   * Skeleton XML description file generator
 
@@ -66,3 +73,4 @@ Contributors
 ------------
 Initial French output strings by Pierre Muller
 Initial Dutch output strings by Marco van de Voort
+fpdocstripper by Reinier OliSlagers
