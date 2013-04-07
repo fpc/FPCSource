@@ -3337,20 +3337,12 @@ unit cgcpu;
     procedure tthumbcgarm.init_register_allocators;
       begin
         inherited init_register_allocators;
-          rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7],first_int_imreg,[]);
-{          rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
-
-        if current_settings.fputype=fpu_fpv4_s16 then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
-              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
-               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[])
+        if assigned(current_procinfo) and (current_procinfo.framepointer=NR_R7) then
+          rg[R_INTREGISTER]:=trgintcputhumb.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6],first_int_imreg,[])
         else
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-              [RS_S0,RS_S1,RS_R2,RS_R3,RS_R4,RS_S31],first_mm_imreg,[]);
-}
+          rg[R_INTREGISTER]:=trgintcputhumb.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7],first_int_imreg,[]);
       end;
 
 
@@ -3394,7 +3386,6 @@ unit cgcpu;
             ref.addressmode:=AM_PREINDEXED;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
-            a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 //!!!! a_reg_alloc(list,NR_R12);

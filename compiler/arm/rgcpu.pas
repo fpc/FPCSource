@@ -63,6 +63,14 @@ unit rgcpu;
          procedure add_cpu_interferences(p : tai);override;
        end;
 
+       trgcputhumb = class(trgcpu)
+       end;
+
+       trgintcputhumb = class(trgcputhumb)
+         procedure add_cpu_interferences(p: tai);override;
+       end;
+
+
   implementation
 
     uses
@@ -493,5 +501,35 @@ unit rgcpu;
           end;
       end;
 
+
+    procedure trgintcputhumb.add_cpu_interferences(p: tai);
+      var
+        r : tregister;
+        hr : longint;
+      begin
+        if p.typ=ait_instruction then
+          begin
+            { prevent that the register allocator merges registers with frame/stack pointer
+              if an instruction writes to the register }
+            if (taicpu(p).ops>=1) and (taicpu(p).oper[0]^.typ=top_reg) and
+              (taicpu(p).spilling_get_operation_type(0) in [operand_write,operand_readwrite]) then
+              begin
+                { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+                {        while compiling the compiler. }
+                r:=NR_STACK_POINTER_REG;
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(r));
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(current_procinfo.framepointer));
+              end;
+            if (taicpu(p).ops>=2) and (taicpu(p).oper[1]^.typ=top_reg) and
+              (taicpu(p).spilling_get_operation_type(1) in [operand_write,operand_readwrite]) then
+              begin
+                { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+                {        while compiling the compiler. }
+                r:=NR_STACK_POINTER_REG;
+                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(r));
+                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(current_procinfo.framepointer));
+              end;
+          end;
+      end;
 
 end.
