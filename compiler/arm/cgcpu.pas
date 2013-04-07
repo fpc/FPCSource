@@ -1125,7 +1125,7 @@ unit cgcpu;
             (((oppostfix in [PF_SB,PF_SH]) and (ref.offset<>0)) or
              ((oppostfix=PF_None) and ((ref.offset<0) or ((ref.base<>NR_STACK_POINTER_REG) and (ref.offset>124)) or
                ((ref.base=NR_STACK_POINTER_REG) and (ref.offset>1020)) or ((ref.offset mod 4)<>0))) or
-             ((oppostfix=PF_H) and ((ref.offset<0) or (ref.offset>62) or ((ref.offset mod 2)<>0))) or
+             ((oppostfix=PF_H) and ((ref.offset<0) or (ref.offset>62) or ((ref.offset mod 2)<>0) or ((getsupreg(ref.base) in [RS_R8..RS_R15]) and (ref.offset<>0)))) or
              ((oppostfix=PF_B) and ((ref.offset<0) or (ref.offset>31) or ((getsupreg(ref.base) in [RS_R8..RS_R15]) and (ref.offset<>0))))
             )
            ) then
