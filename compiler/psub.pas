@@ -941,71 +941,79 @@ implementation
         tg:=tgobjclass.create;
 
 {$if defined(x86) or defined(arm)}
-        { try to strip the stack frame }
-        { set the framepointer to esp if:
-          - no assembler directive, those are handled in assembler_block
-            in pstatment.pas (for cases not caught by the Delphi
-            exception below)
-          - no exceptions are used
-          - no pushes are used/esp modifications, could be:
-            * outgoing parameters on the stack
-            * incoming parameters on the stack
-            * open arrays
-          - no inline assembler
-         or
-          - Delphi mode
-          - assembler directive
-          - no pushes are used/esp modifications, could be:
-            * outgoing parameters on the stack
-            * incoming parameters on the stack
-            * open arrays
-          - no local variables
-
-          - stack frame cannot be optimized if using Win64 SEH
-            (at least with the current state of our codegenerator).
-        }
-        if ((po_assembler in procdef.procoptions) and
-           (m_delphi in current_settings.modeswitches) and
-           { localst at main_program_level is a staticsymtable }
-            (procdef.localst.symtablelevel<>main_program_level) and
-            (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
-           ((cs_opt_stackframe in current_settings.optimizerswitches) and
-            not(cs_generate_stackframes in current_settings.localswitches) and
-            not(po_assembler in procdef.procoptions) and
-            ((flags*([pi_has_assembler_block,pi_is_assembler,
-                    pi_has_stackparameter,pi_needs_stackframe]+
-                    exception_flags[(target_info.cpu=cpu_i386)
-{$ifndef DISABLE_WIN64_SEH}
-                    or (target_info.system=system_x86_64_win64)
-{$endif DISABLE_WIN64_SEH}
-                    ]))=[])
-           )
-        then
+{$if defined(arm)}
+        { frame and stack pointer must be always the same on arm thumb so it makes no
+          sense to fiddle with a frame pointer }
+        if current_settings.cputype in cpu_thumb then
           begin
-            { we need the parameter info here to determine if the procedure gets
-              parameters on the stack
+            framepointer:=NR_STACK_POINTER_REG;
+            tg.direction:=1;
+          end
+        else
+{$endif defined(arm)}
+          begin
+            { try to strip the stack frame }
+            { set the framepointer to esp if:
+              - no assembler directive, those are handled in assembler_block
+                in pstatment.pas (for cases not caught by the Delphi
+                exception below)
+              - no exceptions are used
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no inline assembler
+             or
+              - Delphi mode
+              - assembler directive
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no local variables
 
-              calling generate_parameter_info doesn't hurt but it costs time
-              (necessary to init para_stack_size)
+              - stack frame cannot be optimized if using Win64 SEH
+                (at least with the current state of our codegenerator).
             }
-            generate_parameter_info;
-            if not(procdef.stack_tainting_parameter(calleeside)) and
-               not(has_assembler_child) and (para_stack_size=0) then
+            if ((po_assembler in procdef.procoptions) and
+               (m_delphi in current_settings.modeswitches) and
+               { localst at main_program_level is a staticsymtable }
+                (procdef.localst.symtablelevel<>main_program_level) and
+                (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
+               ((cs_opt_stackframe in current_settings.optimizerswitches) and
+                not(cs_generate_stackframes in current_settings.localswitches) and
+                not(po_assembler in procdef.procoptions) and
+                ((flags*([pi_has_assembler_block,pi_is_assembler,
+                        pi_has_stackparameter,pi_needs_stackframe]+
+                        exception_flags[(target_info.cpu=cpu_i386)
+{$ifndef DISABLE_WIN64_SEH}
+                        or (target_info.system=system_x86_64_win64)
+{$endif DISABLE_WIN64_SEH}
+                        ]))=[])
+               )
+            then
               begin
-                { Only need to set the framepointer }
-                framepointer:=NR_STACK_POINTER_REG;
-                tg.direction:=1;
+                { we need the parameter info here to determine if the procedure gets
+                  parameters on the stack
+
+                  calling generate_parameter_info doesn't hurt but it costs time
+                  (necessary to init para_stack_size)
+                }
+                generate_parameter_info;
+                if not(procdef.stack_tainting_parameter(calleeside)) and
+                   not(has_assembler_child) and (para_stack_size=0) then
+                  begin
+                    { Only need to set the framepointer }
+                    framepointer:=NR_STACK_POINTER_REG;
+                    tg.direction:=1;
+                  end;
               end;
           end;
-{$endif}
+{$endif defined(x86) or defined(arm)}
 {$ifdef MIPS}
         framepointer:=NR_STACK_POINTER_REG;
         tg.direction:=1;
 {$endif MIPS}
-{$ifdef ARM}
-        if current_settings.cputype in cpu_thumb then
-          tg.direction:=1;
-{$endif ARM}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;
