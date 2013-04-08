@@ -340,7 +340,7 @@ unit rgcpu;
         { don't load spilled register between
           mov lr,pc
           mov pc,r4
-          but befure the mov lr,pc
+          but before the mov lr,pc
         }
         if assigned(pos.previous) and
           (pos.typ=ait_instruction) and
