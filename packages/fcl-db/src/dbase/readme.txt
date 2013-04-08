@@ -27,5 +27,11 @@ http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
 note however that the file type/magic number at offset 0 is incorrect.
 A community member amended these. See bottom of page
 
-ftp://fship.com/pub/multisoft/flagship/docu/dbfspecs.txt
+Visual FoxPro 9 specific changes:
+http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
+
+FoxPro 2.x:
+http://support.microsoft.com/kb/98743/en-us
+
 Flagship/FoxPro/Clipper/DBase III..V .dbf file format description
+ftp://fship.com/pub/multisoft/flagship/docu/dbfspecs.txt

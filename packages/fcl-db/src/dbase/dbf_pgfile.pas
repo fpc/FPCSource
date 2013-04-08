@@ -560,7 +560,7 @@ begin
   begin
     // get size left in file for header
     size := FStream.Size - FHeaderOffset;
-    // header start before EOF?
+    // does header start before EOF?
     if size >= 0 then
     begin
       // go to header start
@@ -576,7 +576,7 @@ begin
         Read(FHeader, size);
       end;
     end else begin
-      // header start before EOF, clear header
+      // clear header
       size := 0;
     end;
     FillChar(FHeader[size], FHeaderSize-size, 0);

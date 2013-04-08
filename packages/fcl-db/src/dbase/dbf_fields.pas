@@ -568,9 +568,25 @@ begin
     No check, includes:
     http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
     P Picture (in at least Visual FoxPro)
-    V Varchar/varchar binary (in at least Visual FoxPro) 1 byte up to 255 bytes (or perhaps 254)
-    W Blob (in at least Visual FoxPro), 4 bytes in a table; stored in .fpt
-    Q Varbinary (in at least Visual Foxpro)
+    V Varchar/varchar binary (in Visual FoxPro 9) 1 byte up to 254 bytes.
+      Same storage as char (padded spaces) but padding is removed on display
+      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
+    W Blob (Visual FoxPro 9), 4 bytes in a table; stored in .fpt
+      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
+    Q Varchar (binary) (in Visual Foxpro 9):
+      accepts null, up to 254 characters (stored as padded with spaces), no code page translations
+      note varchar (binary)<>varbinary
+      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
+    Varchar/varbinary storage:
+      Uses _NullFlags:
+      bit n=1: nullable field number n is null (as in previous versions)
+      bit n=0: varchar/varbinary field is full/fills space
+      bit n=1: varchar/varbinary is not full; last byte of field data contains size
+      If varchar/varbinary field AND nullable field, 2 bits are used:
+      - lower bit=full status
+      - higher bit=null status
+
+
     }
   end; // case
 end;

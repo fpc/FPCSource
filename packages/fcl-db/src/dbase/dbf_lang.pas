@@ -85,7 +85,7 @@ const
   FoxLangId_Iceland_861   = $67; // DOS
   FoxLangId_Czech_895     = $68; // DOS Kamenicky
 // ...
-  DbfLangId_POL_620       = $69; // DOS Mazovia
+  DbfLangId_POL_620       = $69; // DOS Polish Mazovia
 // ...
   FoxLangId_Greek_737     = $6A; // DOS (437G)
   FoxLangId_Turkish_857   = $6B; // DOS
@@ -123,7 +123,7 @@ const
   DbfLocale_Bul868     = $020000;
 
 //*************************************************************************//
-// DB3/DB4/FoxPro/Visual Foxpro Language ID to CodePage convert table
+// DB3/DB4/FoxPro/Visual Foxpro Language ID to CodePage conversion table
 // Visual FoxPro docs call language ID "code page mark"
 // or "code page identifier"
 //*************************************************************************//

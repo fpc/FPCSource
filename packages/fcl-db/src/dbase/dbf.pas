@@ -567,7 +567,7 @@ var
 begin
   if FDirty then
   begin
-    Size := Position; // Strange but it leave tailing trash bytes if I do not write that.
+    Size := Position; // Strange but it leaves tailing trash bytes if I do not write that.
     Dbf := TDbf(FBlobField.DataSet);
     Translate(true);
     Dbf.FDbfFile.MemoFile.WriteMemo(FMemoRecNo, FReadSize, Self);
@@ -1361,7 +1361,7 @@ begin
   // store recno we are editing
   FEditingRecNo := FCursor.PhysicalRecNo;
   // reread blobs, execute cancel -> clears remembered memo pageno,
-  // causing it to reread the memo contents
+  // causing it to reread the x contents
   for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Cancel;

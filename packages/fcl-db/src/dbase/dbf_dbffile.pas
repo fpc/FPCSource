@@ -98,7 +98,7 @@ type
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
     function  Insert(Buffer: TRecordBuffer): integer;
-    // Write relevant dbf head as well as EOF marker at end of file if necessary
+    // Write relevant dbf header as well as EOF marker at end of file if necessary
     procedure WriteHeader; override;
     procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);     // dBase7 support. Writeback last next-autoinc value
     procedure FastPackTable;
@@ -352,19 +352,19 @@ var
     // (including the correction at the bottom):
     // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
     case version of
-      $30, $31, $32: FDbfVersion:=xVisualFoxPro;
+      $30, $31, $32 {VFP9 with new data types}: FDbfVersion:=xVisualFoxPro;
       $F5, $FB: FDbfVersion:=xFoxPro;
     end;
     if FDbfVersion = xUnknown then
       case (version and $07) of
-        $03:
+        $03: //dbf without memo. Could be foxpro, too
           if LanguageID = 0 then
             FDbfVersion := xBaseIII
           else
             FDbfVersion := xBaseIV;
         $04:
           FDbfVersion := xBaseVII;
-        $02, $05:
+        $02 {FoxBase, not readable by current Visual FoxPro driver}, $05:
           FDbfVersion := xFoxPro;
       else
         begin
@@ -631,9 +631,10 @@ begin
       // Note: VerDBF may be changed later on depending on what features/fields are used
       // (autoincrement etc)
       case FDbfVersion of
-        xFoxPro: PDbfHdr(Header)^.VerDBF := $02; {FoxBASE}
+        xFoxPro: PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo
+        alternative $02 FoxBASE is not readable by current Visual FoxPro drivers}
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
-        else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/dBASE III PLUS, no memo!?}
+        else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo}
       end;
       // standard language WE/Western Europe, dBase III no language support
       if FDbfVersion = xBaseIII then
@@ -699,7 +700,10 @@ begin
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
         // Adjust the version info if needed for supporting field types used:
-        if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
+        // VerDBF=$03 also includes dbase formats, so we perform an extra check
+        if (FDBFVersion in [xUnknown,xFoxPro,xVisualFoxPro]) and
+          (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
+          (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
           PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
         if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
           PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
@@ -727,7 +731,7 @@ begin
     begin
       case FDbfVersion of
         xBaseIII: PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
-        xFoxPro: if PDbfHdr(Header)^.VerDBF = $02 then {change from FoxBASE to...}
+        xFoxPro: if (PDbfHdr(Header)^.VerDBF in [$02,$03]) then {change from FoxBASE to...}
           PDbfHdr(Header)^.VerDBF := $F5; {...FoxPro 2.x (or earlier) with memo}
         xVisualFoxPro: //MSDN says field 28 or $02 to set memo flag
           PDbfHdr(Header)^.MDXFlag := PDbfHdr(Header)^.MDXFlag or $02;
@@ -1773,6 +1777,7 @@ begin
   Dst := PChar(Dst) + TempFieldDef.Offset;
   asciiContents := false;
   // todo: check/add visualfoxpro autoincrement capability, null values, DateTime, Currency, and Double data types
+  // see comments in dbf_fields for details
   case TempFieldDef.NativeFieldType of
     '+', 'I' {autoincrement, integer}:
       begin
