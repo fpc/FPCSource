@@ -234,6 +234,7 @@ implementation
         explicit_paraloc,
         need_array,
         is_univ: boolean;
+        stoptions : TSingleTypeOptions;
 
         procedure handle_default_para_value;
           var
@@ -410,7 +411,11 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,[]);
+                   if m_delphi in current_settings.modeswitches then
+                     stoptions:=[stoAllowSpecialization]
+                   else
+                     stoptions:=[];
+                   single_type(arrayelementdef,stoptions);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
