@@ -12,10 +12,16 @@ uses
 type
 
 //====================================================================
+
+  { TMemoFile }
+
   TMemoFile = class(TPagedFile)
+  private
+    procedure SetDBFVersion(AValue: TXBaseVersion);
   protected
     FDbfFile: pointer;
     FDbfVersion: TXBaseVersion;
+    FEmptySpaceFiller: Char; //filler for unused header and memo data
     FMemoRecordSize: Integer;
     FOpened: Boolean;
     FBuffer: PChar;
@@ -35,7 +41,7 @@ type
     procedure ReadMemo(BlockNo: Integer; DestStream: TStream);
     procedure WriteMemo(var BlockNo: Integer; ReadSize: Integer; Src: TStream);
 
-    property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
+    property DbfVersion: TXBaseVersion read FDbfVersion write SetDBFVersion;
     property MemoRecordSize: Integer read FMemoRecordSize write FMemoRecordSize;
   end;
 
@@ -140,6 +146,16 @@ type
     // memo data             8..N
   end;
 
+procedure TMemoFile.SetDBFVersion(AValue: TXBaseVersion);
+begin
+  if FDbfVersion=AValue then Exit;
+  FDbfVersion:=AValue;
+  if AValue in [xFoxPro, xVisualFoxPro] then
+    // Visual Foxpro writes 0s itself, so mimic it
+    FEmptySpaceFiller:=#0
+  else
+    FEmptySpaceFiller:=' ';
+end;
 
 //==========================================================
 //============ Dbtfile
@@ -149,6 +165,8 @@ begin
   // init vars
   FBuffer := nil;
   FOpened := false;
+
+  FEmptySpaceFiller:=' '; //default
 
   // call inherited
   inherited Create;
@@ -200,8 +218,9 @@ begin
     if (RecordSize = 0) and
       ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
     begin
-      SetBlockLen(512);
-      RecordSize := 512;
+      SetBlockLen(64); //(Visual) FoxPro docs suggest 512 is default; however it is 64: see
+      //http://technet.microsoft.com/en-us/subscriptions/d6e1ah7y%28v=vs.90%29.aspx
+      RecordSize := 64;
       WriteHeader;
     end;
 
@@ -381,7 +400,8 @@ begin
     end;
     tmpRecNo := BlockNo;
     Src.Position := 0;
-    FillChar(FBuffer[0], RecordSize, ' ');
+    FillChar(FBuffer[0], RecordSize, FEmptySpaceFiller);
+
     if bytesBefore=8 then
     begin
       totsize := Src.Size + bytesBefore + bytesAfter;
@@ -400,15 +420,16 @@ begin
       // end of input data reached? check if we need to write block terminators
       while (readBytes < RecordSize - bytesBefore) and (bytesAfter > 0) do
       begin
-        FBuffer[readBytes] := #$1A;
+        FBuffer[readBytes] := #$1A; //block terminator
         Inc(readBytes);
         Dec(bytesAfter);
       end;
-      // have we read anything that is to be written?
+      // have we read anything that needs to be written?
       if readBytes > 0 then
       begin
         // clear any unused space
-        FillChar(FBuffer[bytesBefore+readBytes], RecordSize-readBytes-bytesBefore, ' ');
+        FillChar(FBuffer[bytesBefore+readBytes], RecordSize-readBytes-bytesBefore, FEmptySpaceFiller);
+
         // write to disk
         WriteRecord(tmpRecNo, @FBuffer[0]);
         Inc(tmpRecNo);

@@ -106,6 +106,8 @@ procedure TTestSpecificTDBF.TestTableLevel;
 var
   ds : TDBF;
 begin
+  if ((DS as TDBFAutoClean).UserRequestedTableLevel=25) then
+    ignore('Foxpro (tablelevel 25) may write data out in dBase IV (tablelevel 4) format.');
   ds := TDBFAutoClean.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.CreateTable;

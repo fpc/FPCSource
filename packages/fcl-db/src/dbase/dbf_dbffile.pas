@@ -632,7 +632,8 @@ begin
       // (autoincrement etc)
       case FDbfVersion of
         xFoxPro: PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo
-        alternative $02 FoxBASE is not readable by current Visual FoxPro drivers}
+        alternative $02 FoxBASE is not readable by current Visual FoxPro drivers.
+        }
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo}
       end;
@@ -701,10 +702,16 @@ begin
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
         // Adjust the version info if needed for supporting field types used:
         // VerDBF=$03 also includes dbase formats, so we perform an extra check
+        // todo: reconsider this shifting foxpro=>vfoxpro: if the user requested
+        // a certain tablelevel, we're now silently changing that without notification.
+        // This may be an interoperability problem.
         if (FDBFVersion in [xUnknown,xFoxPro,xVisualFoxPro]) and
           (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
           (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
-          PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+          begin
+            PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+            FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
+          end;
         if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
           PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
       end;
