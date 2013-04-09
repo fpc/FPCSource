@@ -1614,7 +1614,7 @@ procedure InitWinCEWidestrings;
     widestringmanager.GetStandardCodePageProc:=@WinCEGetStandardCodePage;
 
     DefaultSystemCodePage:=GetACP;
-    DefaultFileSystemCodePage:=DefaultSystemCodePage;
+    DefaultFileSystemCodePage:=WinCEGetStandardCodePage(scpFileSystemSingleByte);
     DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;
