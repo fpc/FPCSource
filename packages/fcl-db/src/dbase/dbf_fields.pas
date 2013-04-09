@@ -335,18 +335,21 @@ end;
 procedure TDbfFieldDef.NativeToVCL;
 begin
   case FNativeFieldType of
-    '+' :
+    '+' : //dbase7+ autoinc
       if DbfVersion = xBaseVII then
         FFieldType := ftAutoInc;
-    'I' : FFieldType := ftInteger;
-    'O' : FFieldType := ftFloat;
-    '@', 'T':
-          FFieldType := ftDateTime;
-    'C',
-    #$91  {Russian 'C'}
-        : FFieldType := ftString;
-    'L' : FFieldType := ftBoolean;
-    'F', 'N':
+    'I' : //integer
+      FFieldType := ftInteger;
+    'O' : //double, 8 bytes?
+      FFieldType := ftFloat;
+    '@', 'T' {Foxpro? datetime}:
+      FFieldType := ftDateTime;
+    'C', //character
+    #$91  {Russian 'C'}:
+      FFieldType := ftString;
+    'L' : //logical
+      FFieldType := ftBoolean;
+    'F', 'N': //float/numeric
       begin
         if (FPrecision = 0) then
         begin
@@ -365,28 +368,37 @@ begin
           FFieldType := ftFloat;
         end;
       end;
-    'D' : FFieldType := ftDate;
-    'M' : FFieldType := ftMemo;
-    'B' : 
+    'D' : //date
+      FFieldType := ftDate;
+    'M' : //memo
+      FFieldType := ftMemo;
+    'B' : //binary or float
       if (DbfVersion = xFoxPro) or (DbfVersion=xVisualFoxPro) then
         FFieldType := ftFloat
       else
         FFieldType := ftBlob;
-    'G' : FFieldType := ftDBaseOle;
-    'Y' :
+    'G' : //general
+      FFieldType := ftDBaseOle;
+    'Y' : //currency
       if DbfGlobals.CurrencyAsBCD then
         FFieldType := ftBCD
       else
         FFieldType := ftCurrency;
-    '0' : FFieldType := ftBytes; { Visual FoxPro ``_NullFlags'' }
-    {
-    To do: add support for Visual Foxpro types
-    http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
-    P Picture (perhaps also in FoxPro)
-    V Varchar/varchar binary (perhaps also in FoxPro) 1 byte up to 255 bytes (or perhaps 254)
-    W Blob (perhaps also in FoxPro), 4 bytes in a table; stored in .fpt
-    Q Varbinary (perhaps also in Foxpro)
-    }
+    '0' : //zero, not the letter O
+      FFieldType := ftBytes;
+    'P' : //picture
+      if (DBFversion in [xFoxPro,xVisualFoxPro]) then
+        FFieldType := ftBlob; {Picture, but probably not compatible with ftGraphic storage}
+    'V' : //VFP 9 Varchar; character with length indication
+      if (DbfVersion = xVisualFoxPro) then
+        FFieldType := ftString;
+      //todo: verify if 'V' for other systems exists. DBF "Varifields"?
+    'W' : //BLOB
+      if (DBFVersion = xVisualFoxPro) then
+        FFieldType := ftBlob;
+    'Q' : //varbinary
+      if (DBFVersion = xVisualFoxPro) then
+        FFieldType := ftBytes;
   else
     FNativeFieldType := #0;
     FFieldType := ftUnknown;
@@ -397,7 +409,8 @@ procedure TDbfFieldDef.VCLToNative;
 begin
   FNativeFieldType := #0;
   case FFieldType of
-    ftAutoInc  : FNativeFieldType  := '+';
+    ftAutoInc  :
+      FNativeFieldType  := '+'; //todo: verify: xbasev/7 only? also (V)foxpro?
     ftDateTime :
       if DbfVersion = xBaseVII then
         FNativeFieldType := '@'
@@ -410,23 +423,46 @@ begin
     ftFixedChar,
     ftWideString,
 {$endif}
-    ftString   : FNativeFieldType  := 'C';
-    ftBoolean  : FNativeFieldType  := 'L';
+    ftString   :
+      FNativeFieldType := 'C'; // VFP9: could have used V but this works, too.
+    ftBoolean  :
+      FNativeFieldType := 'L'; //logical
     ftFloat, ftSmallInt, ftWord
 {$ifdef SUPPORT_INT64}
       , ftLargeInt
 {$endif}
                : FNativeFieldType := 'N';
-    ftDate     : FNativeFieldType := 'D';
-    ftMemo     : FNativeFieldType := 'M';
-    ftBlob     : FNativeFieldType := 'B';
-    ftDBaseOle : FNativeFieldType := 'G';
-    ftInteger  :
-      if DbfVersion = xBaseVII then
-        FNativeFieldType := 'I'
+    ftDate     :
+      FNativeFieldType := 'D'; //date
+    ftMemo     :
+      FNativeFieldType := 'M'; //memo
+    ftBlob     :
+      case DBFVersion of
+        xFoxPro:
+          FNativeFieldType := 'P'; //picture
+        xVisualFoxPro:
+          FNativeFieldType := 'W'; //blob
+        xBaseIII,xBaseIV:
+          FNativeFieldType := 'M'; //memo; best we can do
+        xBaseV,xBaseVII:
+          FNativeFieldType := 'B'; //binary
       else
-        FNativeFieldType := 'N';
-    ftBCD, ftCurrency: 
+        FNativeFieldType := 'M'; //fallback
+      end;
+    ftDBaseOle :
+      FNativeFieldType := 'G'; //general
+      //todo: verify if this is dbaseV/7 specific
+    ftGraphic  :
+      // Let's store this as a BLOB even though FoxPro has P(icture).
+      // P is apparently not recommended
+      FNativeFieldType := 'B'; //BLOB
+    ftInteger  :
+      //todo: verify FoxPro I=4 byte little endian integer
+      if DbfVersion = xBaseVII then
+        FNativeFieldType := 'I' //integer
+      else
+        FNativeFieldType := 'N'; //numeric
+    ftBCD, ftCurrency:
       if (DbfVersion = xFoxPro) or (DBFVersion = xVisualFoxPro) then
         FNativeFieldType := 'Y';
   end;
@@ -481,9 +517,10 @@ begin
 end;
 
 procedure TDbfFieldDef.CheckSizePrecision;
+// FSize means size in the database, not any VCL field size
 begin
   case FNativeFieldType of
-    'C': // Character
+    'C','V','Q': // Character, Visual FoxPro varchar,Visual FoxPro varbinary
       begin
         if FSize < 0 then
           FSize := 0;
@@ -530,14 +567,14 @@ begin
           FPrecision := 0;
         end;
       end;
-    'M','G': // Memo, general
+    'M','G','P','W': // Memo, general, FoxPro picture, Visual FoxPro blob
       begin
-        if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
+        if (DbfVersion = xVisualFoxPro) then
         begin
           if (FSize <> 4) and (FSize <> 10) then
             FSize := 4;
         end else
-          FSize := 10;
+          FSize := 10; //Dbase, includes FoxPro
         FPrecision := 0;
       end;
     '+','I': // Autoincrement, integer
