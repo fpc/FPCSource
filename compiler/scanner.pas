@@ -347,7 +347,10 @@ implementation
                 if changeinit then
                   include(init_settings.localswitches,cs_refcountedstrings);
                 if m_default_unicodestring in current_settings.modeswitches then
-                  def_system_macro('FPC_UNICODESTRINGS');
+                  begin
+                    def_system_macro('FPC_UNICODESTRINGS');
+                    def_system_macro('UNICODE');
+                  end;
               end
             else
               begin
@@ -355,6 +358,7 @@ implementation
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
                 undef_system_macro('FPC_UNICODESTRINGS');
+                undef_system_macro('UNICODE');
               end;
           end;
 
