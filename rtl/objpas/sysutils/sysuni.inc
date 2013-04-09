@@ -144,6 +144,13 @@ begin
 end;
 
 
+function StrMove(dest,source : PWideChar;l : SizeInt) : PWideChar; overload;
+ begin
+   move(source^,dest^,l*2);
+   Result:=dest;
+ end;
+
+
 function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
 var Len: SizeInt;
 begin
@@ -161,11 +168,56 @@ begin
   StrPCopy := StrPLCopy(Dest, Source, length(Source));
 end;
 
-{$IFNDEF VER2_4}
+
+function StrScan(P: PWideChar; C: WideChar): PWideChar;
+Var
+   count: SizeInt;
+Begin
+ count := 0;
+ { As in Borland Pascal, if looking for NULL return null }
+ if C = #0 then
+ begin
+   StrScan := @(P[StrLen(P)]);
+   exit;
+ end;
+ { Find first matching character of Ch in Str }
+ while P[count] <> #0 do
+ begin
+   if C = P[count] then
+    begin
+        StrScan := @(P[count]);
+        exit;
+    end;
+   Inc(count);
+ end;
+ { nothing found. }
+ StrScan := nil;
+end;
+
+
+function strnew(p : PWideChar) : PWideChar; overload;
+var
+  len : SizeInt;
+begin
+  Result:=nil;
+  if (p=nil) or (p^=#0) then
+   exit;
+  len:=strlen(p)+1;
+  Result:=PWideChar(StrAlloc(Len*2));
+  if Result<>nil then
+   strmove(Result,p,len);
+end;
+
+function StrPas(Str: PWideChar): UnicodeString;overload;
+begin
+  Result:=Str;
+end;
+
 function BytesOf(const Val: UnicodeString): TBytes;
 begin
   Result:=TEncoding.Default.GetBytes(Val);
 end;
+
 
 function BytesOf(const Val: WideChar): TBytes; overload;
 begin
@@ -176,7 +228,8 @@ function StringOf(const Bytes: TBytes): UnicodeString;
 begin
   Result:=TEncoding.Default.GetString(Bytes);
 end;
-{$ENDIF VER2_4}
+
+
 function WideBytesOf(const Value: UnicodeString): TBytes;
 var
   Len:Integer;
