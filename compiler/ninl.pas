@@ -160,16 +160,6 @@ implementation
 
 
     function get_str_int_func(def: tdef): string;
-    const
-{$if defined(cpu64bitaddr)}
-      highest_unsigned_type = u64bit;
-{$elseif defined(cpu32bitaddr)}
-      highest_unsigned_type = u32bit;
-{$elseif defined(cpu16bitalu)}
-      highest_unsigned_type = u16bit;
-{$elseif defined(cpu8bitalu)}
-      highest_unsigned_type = u8bit;
-{$endif}
     var
       ordtype: tordtype;
     begin
@@ -193,7 +183,7 @@ implementation
         end
       else
         begin
-          if ordtype = highest_unsigned_type then
+          if is_nativeuint(def) then
             exit('uint')
           else
             exit('sint');
