@@ -1518,7 +1518,11 @@ begin
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
-      FDbfFile.FinishCreate(ADbfFieldDefs, 512);
+      // Default memo blocklength for FoxPro/VisualFoxpro is 64 (not 512 as specs say)
+      if FDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro] then
+        FDbfFile.FinishCreate(ADbfFieldDefs, 64)
+      else
+        FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
       // if creating memory table, copy stream pointer
       if FStorage = stoMemory then
