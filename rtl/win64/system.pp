@@ -604,15 +604,13 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
   end;
 
 
-var
-  st : Pointer;
+function GetExceptionPointer : Pointer; assembler;nostackframe;
+asm
+  movq %gs:(8),%rax
+end;
 
 begin
-  asm
-    movq %gs:(8),%rax
-    movq %rax,st
-  end;
-  StackTop:=st;
+  StackTop:=GetExceptionPointer;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
@@ -628,7 +626,7 @@ begin
   begin
     InitHeap;
     InitSystemThreads;
-  end;  
+  end;
   SysInitExceptions;
   initwidestringmanager;
   initunicodestringmanager;
