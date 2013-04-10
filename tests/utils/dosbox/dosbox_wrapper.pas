@@ -1,7 +1,7 @@
 {$MODE objfpc}{$H+}
 
 uses
-  SysUtils, StrUtils;
+  SysUtils, StrUtils, Process;
 
 function GenerateTempDir: string;
 var
@@ -103,6 +103,32 @@ begin
   end;
 end;
 
+procedure ExecuteDosBox(const ADosBoxBinaryPath, ADosBoxDir: string);
+const
+  Timeout = 10*15;  { 15 seconds }
+var
+  Process: TProcess;
+  Time: Integer = 0;
+begin
+  Process := TProcess.Create(nil);
+  try
+    Process.Executable := ADosBoxBinaryPath;
+    Process.Parameters.Add('-conf');
+    Process.Parameters.Add(ADosBoxDir + 'dosbox.conf');
+    Process.Execute;
+    repeat
+      Inc(Time);
+      if Time > Timeout then
+        break;
+      Sleep(100);
+    until not Process.Running;
+    if Process.Running then
+      Process.Terminate(254);
+  finally
+    Process.Free;
+  end;
+end;
+
 procedure Cleanup(const ADosBoxDir: string);
 
   procedure DeleteIfExists(const AFileName: string);
@@ -141,7 +167,7 @@ begin
     GenerateDosBoxConf(DosBoxDir);
     CopyFile(ExtractFilePath(ParamStr(0)) + 'exitcode.exe', DosBoxDir + 'EXITCODE.EXE');
     CopyFile(ParamStr(1), DosBoxDir + 'TEST.EXE');
-    ExecuteProcess(DosBoxBinaryPath, '-conf ' + DosBoxDir + 'dosbox.conf');
+    ExecuteDosBox(DosBoxBinaryPath, DosBoxDir);
     ExitCode := ReadExitCode(DosBoxDir);
   finally
     Cleanup(DosBoxDir);
