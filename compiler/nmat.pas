@@ -279,18 +279,12 @@ implementation
           if (is_64bitint(left.resultdef) or
               is_64bitint(right.resultdef)) then
            begin
-             { nickysn note: In previous versions of FPC, uint64 div/mod uint64
-               produces int64 on 64-bit CPUs and uint64 on 32-bit. I'm not sure why,
-               but I'm putting these ifdefs for backwards compatibility. }
-{$ifndef cpu64bitaddr}
              if is_signed(rd) or is_signed(ld) then
                begin
-{$endif cpu64bitaddr}
                   if (ld.ordtype<>s64bit) then
                     inserttypeconv(left,s64inttype);
                   if (rd.ordtype<>s64bit) then
                     inserttypeconv(right,s64inttype);
-{$ifndef cpu64bitaddr}
                end
              else
                begin
@@ -299,7 +293,6 @@ implementation
                   if (rd.ordtype<>u64bit) then
                     inserttypeconv(right,u64inttype);
                end;
-{$endif cpu64bitaddr}
              resultdef:=left.resultdef;
            end
          else
