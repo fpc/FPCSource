@@ -121,13 +121,13 @@ begin
       Add('<H1>Uploaded files: ('+IntToStr(Files.Count)+') </H1>');
       Add('<TABLE BORDER="1">');
       Add('<TR><TD>Name</TD><TD>FileName</TD><TD>Size</TD>');
-      Add('<TD>Temp FileName</TD><TD>Disposition</TD><TD>Content-Type</TD></TR>');
+      Add('<TD>Temp FileName</TD><TD>Disposition</TD><TD>Content-Type</TD><TD>Description</TD></TR>');
       For I:=0 to Files.Count-1 do
         With Files[i] do
           begin
           Add('<TR><TD>'+FieldName+'</TD><TD>'+FileName+'</TD>');
           Add('<TD>'+IntToStr(Size)+'</TD><TD>'+LocalFileName+'</TD>');
-          Add('<TD>'+Disposition+'</TD><TD>'+ContentType+'</TD></TR>');
+          Add('<TD>'+Disposition+'</TD><TD>'+ContentType+'</TD><TD>'+Description+'</TD></TR>');
           end;
       Add('</TABLE><P>');
       end;
