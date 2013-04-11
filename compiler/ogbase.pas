@@ -572,6 +572,7 @@ interface
         procedure RemoveUnreferencedSections;
         procedure RemoveDisabledSections;
         procedure RemoveDebugInfo;
+        procedure MarkTargetSpecificSections(WorkList:TFPObjectList);virtual;
         procedure AfterUnusedSectionRemoval;virtual;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
@@ -2595,6 +2596,11 @@ implementation
       end;
 
 
+    procedure TExeOutput.MarkTargetSpecificSections(WorkList:TFPObjectList);
+      begin
+      end;
+
+
     procedure TExeOutput.AfterUnusedSectionRemoval;
       begin
       end;
@@ -3068,16 +3074,58 @@ implementation
             DoVTableRef(TExeVTable(vtable.ChildList[i]),VTableIdx);
         end;
 
+        procedure ProcessWorkList;
+        var
+          hs        : string;
+          i,k       : longint;
+          objsec    : TObjSection;
+          objsym    : TObjSymbol;
+          code      : integer;
+          vtableidx : longint;
+          vtableexesym : TExeSymbol;
+        begin
+          while ObjSectionWorkList.Count>0 do
+            begin
+              objsec:=TObjSection(ObjSectionWorkList.Last);
+              if assigned(exemap) then
+                exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjRelocations.Count)+' references');
+              ObjSectionWorkList.Delete(ObjSectionWorkList.Count-1);
+
+              { Process Relocations }
+              for i:=0 to objsec.ObjRelocations.count-1 do
+                DoReloc(TObjRelocation(objsec.ObjRelocations[i]));
+
+              { Process Virtual Entry calls }
+              if cs_link_opt_vtable in current_settings.globalswitches then
+                begin
+                  for i:=0 to objsec.VTRefList.count-1 do
+                    begin
+                      objsym:=TObjSymbol(objsec.VTRefList[i]);
+                      hs:=objsym.name;
+                      Delete(hs,1,Pos('_',hs));
+                      k:=Pos('$$',hs);
+                      if k=0 then
+                        internalerror(200603314);
+                      vtableexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,1,k-1)));
+                      val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
+                      if (code<>0) then
+                        internalerror(200603317);
+                      if not assigned(vtableexesym) then
+                        internalerror(200603315);
+                      if not assigned(vtableexesym.vtable) then
+                        internalerror(200603316);
+                      DoVTableRef(vtableexesym.vtable,vtableidx);
+                    end;
+                end;
+            end;
+
+        end;
+
       var
-        hs        : string;
-        i,j,k     : longint;
+        i,j       : longint;
         exesec    : TExeSection;
         objdata   : TObjData;
         objsec    : TObjSection;
-        objsym    : TObjSymbol;
-        code      : integer;
-        vtableidx : longint;
-        vtableexesym : TExeSymbol;
       begin
         ObjSectionWorkList:=TFPObjectList.Create(false);
 
@@ -3109,40 +3157,13 @@ implementation
 
         { Process all sections, add new sections to process based
           on the symbol references  }
-        while ObjSectionWorkList.Count>0 do
-          begin
-            objsec:=TObjSection(ObjSectionWorkList.Last);
-            if assigned(exemap) then
-              exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjRelocations.Count)+' references');
-            ObjSectionWorkList.Delete(ObjSectionWorkList.Count-1);
+        ProcessWorkList;
 
-            { Process Relocations }
-            for i:=0 to objsec.ObjRelocations.count-1 do
-              DoReloc(TObjRelocation(objsec.ObjRelocations[i]));
+        { Handle stuff like .pdata, i.e. sections that are not referenced
+          but must be included if sections they reference are included. }
+        MarkTargetSpecificSections(ObjSectionWorkList);
+        ProcessWorkList;
 
-            { Process Virtual Entry calls }
-            if cs_link_opt_vtable in current_settings.globalswitches then
-              begin
-                for i:=0 to objsec.VTRefList.count-1 do
-                  begin
-                    objsym:=TObjSymbol(objsec.VTRefList[i]);
-                    hs:=objsym.name;
-                    Delete(hs,1,Pos('_',hs));
-                    k:=Pos('$$',hs);
-                    if k=0 then
-                      internalerror(200603314);
-                    vtableexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,1,k-1)));
-                    val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
-                    if (code<>0) then
-                      internalerror(200603317);
-                    if not assigned(vtableexesym) then
-                      internalerror(200603315);
-                    if not assigned(vtableexesym.vtable) then
-                      internalerror(200603316);
-                    DoVTableRef(vtableexesym.vtable,vtableidx);
-                  end;
-              end;
-          end;
         ObjSectionWorkList.Free;
         ObjSectionWorkList:=nil;
 
