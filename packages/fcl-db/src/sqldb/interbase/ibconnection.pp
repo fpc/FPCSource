@@ -1300,7 +1300,7 @@ begin
       isc_encode_timestamp(@CTime, PISC_TIMESTAMP(CurrBuff));
       {$ELSE}
       PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
-      PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Trunc(abs(Frac(PTime)) * IBTimeFractionsPerDay);
+      PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Round(abs(Frac(PTime)) * IBTimeFractionsPerDay);
       {$ENDIF}
       end
   else
