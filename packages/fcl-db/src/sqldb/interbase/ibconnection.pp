@@ -1292,7 +1292,7 @@ begin
       {$IFNDEF SUPPORT_MSECS}
       isc_encode_sql_time(@CTime, PISC_TIME(CurrBuff));
       {$ELSE}
-      PISC_TIME(CurrBuff)^ := Trunc(abs(Frac(PTime)) * IBTimeFractionsPerDay);
+      PISC_TIME(CurrBuff)^ := Round(abs(Frac(PTime)) * IBTimeFractionsPerDay);
       {$ENDIF}
     SQL_TIMESTAMP :
       begin
