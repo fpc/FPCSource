@@ -421,13 +421,13 @@ implementation
 
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
       const
-{$ifdef cpu16bitalu}
+{$ifdef cpu16bitaddr}
         pushexceptaddr_frametype_cgsize = OS_S16;
         setjmp_result_cgsize = OS_S16;
-{$else cpu16bitalu}
+{$else cpu16bitaddr}
         pushexceptaddr_frametype_cgsize = OS_S32;
         setjmp_result_cgsize = OS_S32;
-{$endif cpu16bitalu}
+{$endif cpu16bitaddr}
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
         pd: tprocdef;
