@@ -45,11 +45,13 @@ uses
 *****************************************************************************}
 
     type
-{$ifdef x86_64}
+{$if defined(x86_64)}
       TAsmOp={$i x8664op.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       TAsmOp={$i i386op.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      TAsmOp={$i i8086op.inc}
+{$endif}
 
       { This should define the array of instructions as string }
         op2strtable=array[tasmop] of string[16];
@@ -160,46 +162,56 @@ uses
 {$endif}
 
       { Available Registers }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       {$i r8664con.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       {$i r386con.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      {$i r8086con.inc}
+{$endif}
 
     type
       { Number of registers used for indexing in tables }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       tregisterindex=0..{$i r8664nor.inc}-1;
-{$else x86_64}
+{$elseif defined(i386)}
       tregisterindex=0..{$i r386nor.inc}-1;
-{$endif x86_64}
+{$elseif defined(i8086)}
+      tregisterindex=0..{$i r8086nor.inc}-1;
+{$endif}
 
     const
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664num.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386num.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086num.inc}
+{$endif}
       );
 
       regstabs_table : array[tregisterindex] of shortint = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664stab.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386stab.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086stab.inc}
+{$endif}
       );
 
       regdwarf_table : array[tregisterindex] of shortint = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664dwrf.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386dwrf.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086dwrf.inc}
+{$endif}
       );
 
       RS_DEFAULTFLAGS = RS_FLAGS;
@@ -285,7 +297,7 @@ implementation
       rgbase,verbose;
 
     const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
       std_regname_table : TRegNameTable = (
         {$i r8664std.inc}
       );
@@ -296,7 +308,7 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r8664sri.inc}
       );
-    {$else x86_64}
+    {$elseif defined(i386)}
       std_regname_table : TRegNameTable = (
         {$i r386std.inc}
       );
@@ -308,7 +320,19 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r386sri.inc}
       );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+      std_regname_table : TRegNameTable = (
+        {$i r8086std.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i r8086rni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r8086sri.inc}
+      );
+    {$endif}
 
 
 {*****************************************************************************

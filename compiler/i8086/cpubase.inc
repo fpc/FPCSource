@@ -47,7 +47,7 @@
          opcode strings should conform to the names as defined by the
          processor manufacturer.
       }
-      std_op2str:op2strtable={$i i386int.inc}
+      std_op2str:op2strtable={$i i8086int.inc}
 
 {*****************************************************************************
                                GDB Information
@@ -61,7 +61,7 @@
 
       }
       reg_stab_table : array[tregisterindex] of shortint = (
-        {$i r386stab.inc}
+        {$i r8086stab.inc}
       );
 
 
