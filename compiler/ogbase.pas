@@ -3160,9 +3160,15 @@ implementation
         ProcessWorkList;
 
         { Handle stuff like .pdata, i.e. sections that are not referenced
-          but must be included if sections they reference are included. }
-        MarkTargetSpecificSections(ObjSectionWorkList);
-        ProcessWorkList;
+          but must be included if sections they reference are included.
+          Loop is necessary because .pdata can reference (via .xdata)
+          more text sections, VMTs of exception classes, etc. }
+        repeat
+          MarkTargetSpecificSections(ObjSectionWorkList);
+          if (ObjSectionWorkList.Count=0) then
+            break;
+          ProcessWorkList;
+        until False;
 
         ObjSectionWorkList.Free;
         ObjSectionWorkList:=nil;

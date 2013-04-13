@@ -232,6 +232,7 @@ interface
          procedure GenerateRelocs;
        public
          constructor create;override;
+         procedure MarkTargetSpecificSections(WorkList:TFPObjectList);override;
          procedure AfterUnusedSectionRemoval;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure MemPos_Start;override;
@@ -2469,6 +2470,50 @@ const pemagic : array[0..3] of byte = (
         inherited createcoff(true);
         CExeSection:=TExeSection;
         CObjData:=TPECoffObjData;
+      end;
+
+
+    procedure TPECoffexeoutput.MarkTargetSpecificSections(WorkList:TFPObjectList);
+      var
+        exesec:TExeSection;
+        objsec,textsec:TObjSection;
+        objsym:TObjSymbol;
+        objreloc:TObjRelocation;
+        i,j:longint;
+      begin
+        if target_info.system<>system_x86_64_win64 then
+          exit;
+        exesec:=FindExeSection('.pdata');
+        if exesec=nil then
+          exit;
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(exesec.ObjSectionList[i]);
+            if objsec.Used then
+              continue;
+            j:=0;
+            while j<objsec.ObjRelocations.Count do
+              begin
+                objreloc:=TObjRelocation(objsec.ObjRelocations[j]);
+                if objreloc.symbol=nil then
+                  InternalError(2013041201);
+                textsec:=objreloc.symbol.objsection;
+                if textsec.used then
+                  begin
+                    WorkList.Add(objsec);
+                    objsec.used:=true;
+                    { The exact algorithm for non-smartlinked .pdata sections
+                      is subject for refinement. Extreme cases are:
+                      - several disjoint .pdata entries for a function, if function
+                        is complex or if compiler splits it into chunks,
+                      - single .pdata section referencing several .text sections,
+                        may need to remove irrelevant parts like BFD does for
+                        .eh_frame sections. }
+                    break;
+                  end;
+                inc(j,3);
+              end;
+          end;
       end;
 
 
