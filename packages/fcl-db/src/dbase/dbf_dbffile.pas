@@ -34,11 +34,14 @@ type
 
 //====================================================================
   TDbfIndexMissingEvent = procedure(var DeleteLink: Boolean) of object;
-  TUpdateNullField = (unClear, unSet);
+  TUpdateNullField = (unfClear, unfSet);
+  TNullFieldFlag = (nfNullFlag, nfVarlengthFlag); //the field that the nullflags bit applies to
 
 //====================================================================
   TDbfGlobals = class;
 //====================================================================
+
+  { TDbfFile }
 
   TDbfFile = class(TPagedFile)
   protected
@@ -71,11 +74,15 @@ type
 
     function GetLanguageId: Integer;
     function GetLanguageStr: string;
-    
+
   protected
+    // Reads the field's properties from the field header(s)
     procedure ConstructFieldDefs;
     procedure InitDefaultBuffer;
-    procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
+    // Shows if the (null or varlength) flag for AFieldDef is set.
+    function IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
+    // Updates _NULLFLAGS field with null or varlength flag for field
+    procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField; WhichField: TNullFieldFlag);
     procedure WriteLockInfo(Buffer: TRecordBuffer);
 
   public
@@ -86,6 +93,7 @@ type
     procedure Close;
     procedure Zap;
 
+    // Write out field definitions to header etc.
     procedure FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
     function GetIndexByName(AIndexName: string): TIndexFile;
     procedure SetRecordSize(NewSize: Integer); override;
@@ -97,19 +105,27 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
+    // Inserts new record
     function  Insert(Buffer: TRecordBuffer): integer;
-    // Write relevant dbf header as well as EOF marker at end of file if necessary
+    // Write dbf header as well as EOF marker at end of file if necessary
     procedure WriteHeader; override;
-    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);     // dBase7 support. Writeback last next-autoinc value
+    // Writes autoinc value to record buffer and updates autoinc value in field header
+    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);
     procedure FastPackTable;
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
     function  GetFieldInfo(FieldName: string): TDbfFieldDef;
+    // Copies record buffer to field buffer
+    // Returns true if not null & data succesfully copied; false if field is null
     function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; 
       NativeFormat: boolean): Boolean;
+    // Copies record buffer to field buffer
+    // Returns true if not null & data succesfully copied; false if field is null
     function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
       Src, Dst: Pointer; NativeFormat: boolean): Boolean;
+    // Copies field buffer to record buffer for this field
     procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
+    // Fill DestBuf with default field data
     procedure InitRecord(DestBuf: TRecordBuffer);
     procedure PackIndex(lIndexFile: TIndexFile; AIndexName: string);
     procedure RegenerateIndexes;
@@ -128,6 +144,7 @@ type
     property FileCodePage: Cardinal read FFileCodePage;
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
     property FileLangId: Byte read FFileLangId write FFileLangId;
+    // Dbase (clone) version that this format emulates. Related to tablelevel.
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: TRecordBuffer read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
@@ -205,6 +222,7 @@ uses
 const
   sDBF_DEC_SEP = '.';
   FIELD_DESCRIPTOR_ARRAY_TERMINATOR = $0D; // Marker at end of list of fields within header
+  NULLFLAGSFIELD = '_NULLFLAGS'; //Visual Foxpro system field with flags for field=null and field has varlength byte
 
 {$I dbf_struct.inc}
 
@@ -597,12 +615,14 @@ var
   I, lFieldOffset, lSize, lPrec: Integer;
   lHasBlob: Boolean;
   lLocaleID: LCID;
+  lNullVarFlagCount:integer; //(VFP only) Keeps track of number null/varlength flags needed for _NULLFLAGS size calculation
 
 begin
   try
     // first reset file
     RecordCount := 0;
     lHasBlob := false;
+    lNullVarFlagCount := 0;
     // determine codepage & locale
     if FFileLangId = 0 then
       FFileLangId := DbfGlobals.DefaultCreateLangId;
@@ -666,6 +686,16 @@ begin
       lFieldDef.FieldName := AnsiUpperCase(lFieldDef.FieldName);
       lFieldDef.Offset := lFieldOffset;
       lHasBlob := lHasBlob or lFieldDef.IsBlob;
+      // Check for foxpro, too, as it can get auto-upgraded to vfp:
+      if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
+        begin
+        if (lFieldDef.NativeFieldType='Q') or (lFieldDef.NativeFieldType='V') then
+          begin
+          lNullVarFlagCount:=lNullVarFlagCount+1;
+          end;
+        if (lFieldDef.NullPosition>=0) then
+          lNullVarFlagCount:=lNullVarFlagCount+1;
+        end;
 
       // apply field transformation tricks
       lSize := lFieldDef.Size;
@@ -700,20 +730,38 @@ begin
         lFieldDescIII.FieldPrecision := lPrec;
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
-        // Adjust the version info if needed for supporting field types used:
-        // VerDBF=$03 also includes dbase formats, so we perform an extra check
-        // todo: reconsider this shifting foxpro=>vfoxpro: if the user requested
-        // a certain tablelevel, we're now silently changing that without notification.
-        // This may be an interoperability problem.
-        if (FDBFVersion in [xUnknown,xFoxPro,xVisualFoxPro]) and
-          (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
-          (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
+
+        // Upgrade the version info if needed for supporting field types used.
+        // This is also what Visual FoxPro does with FoxPro tables to which you
+        // add new VFP features.
+        if (FDBFVersion in [xUnknown,xFoxPro,xVisualFoxPro]) then
+        begin
+          // VerDBF=$03 also includes dbase formats, so we perform an extra check
+          if (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
+           ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or (lNullVarFlagCount>0))
+           then
+           begin
+             PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+             FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
+           end;
+          //AutoInc only support in Visual Foxpro; another upgrade
+          //Note: .AutoIncrementNext is really a cardinal (see the definition)
+          lFieldDescIII.AutoIncrementNext:=SwapIntLE(lFieldDef.AutoInc);
+          lFieldDescIII.AutoIncrementStep:=lFieldDef.AutoIncStep;
+          // Set autoincrement flag using AutoIncStep as a marker
+          if (lFieldDef.AutoIncStep<>0) then
+            lFieldDescIII.VisualFoxProFlags:=(lFieldDescIII.VisualFoxProFlags or $0C);
+          if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.AutoIncStep<>0) then
           begin
-            PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
-            FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
+            PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
+            FDBFVersion:=xVisualFoxPro;
           end;
-        if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
-          PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
+
+          // Only supported in Visual FoxPro but let's not upgrade format as
+          // IsSystemField is a minor property
+          if (lFieldDef.IsSystemField) then
+            lFieldDescIII.VisualFoxProFlags:=(lFieldDescIII.VisualFoxProFlags or $01);
+        end;
       end;
 
       // update our field list
@@ -728,6 +776,22 @@ begin
       WriteRecord(I, lFieldDescPtr);
       Inc(lFieldOffset, lFieldDef.Size);
     end;
+
+    // Visual Foxpro: write _NULLFLAGS field if required
+    if (FDBFVersion=xVisualFoxPro) and (lNullVarFlagCount>0) then
+    begin
+      FillChar(lFieldDescIII, SizeOf(lFieldDescIII), #0);
+      StrPLCopy(lFieldDescIII.FieldName, NULLFLAGSFIELD, 10);
+      lFieldDescIII.FieldType := '0'; //bytes
+      lFieldDescIII.FieldSize := 1+(lNullVarFlagCount-1) div 8; //Number of bytes needed for all bit flags
+      lFieldDescIII.FieldPrecision := 0;
+      lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
+      lFieldDescIII.VisualFoxProFlags:=$01+$04 ; //System column (hidden)+Column can store null values (which is a bit of a paradox)
+      // save field props
+      WriteRecord(AFieldDefs.Count+1, @lFieldDescIII);
+      Inc(lFieldOffset, lFieldDescIII.FieldSize);
+    end;
+
     // end of field descriptor; ussually end of header -
     // Visual Foxpro backlink info is part of the header but comes after the
     // terminator
@@ -748,7 +812,10 @@ begin
 
     // update header
     PDbfHdr(Header)^.RecordSize := lFieldOffset;
-    PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
+    if lNullVarFlagCount>0 then
+      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count+1) + 1
+    else
+      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
     { For Visual FoxPro only, add empty "back-link" info:
       A 263-byte range that contains the backlink, which is the relative path of
       an associated database (.dbc) file, information. If the first byte is 0x00, 
@@ -851,7 +918,10 @@ var
   dataPtr: PChar;
   lNativeFieldType: Char;
   lFieldName: string;
-  lCanHoldNull: boolean;
+  lCanHoldNull: boolean; //Can the field store nulls, i.e. is it nullable?
+  lIsVFPSystemField: boolean; //Is this a Visual FoxPro system/hidden field?
+  lIsVFPVarLength: boolean; //Is this a Visual FoxPro varbinary/varchar field,
+  // where varlength bit is maintained in _NULLFLAGS
   lCurrentNullPosition: integer;
 begin
   FFieldDefs.Clear;
@@ -874,8 +944,10 @@ begin
   lFieldOffset := 1;
   lAutoInc := 0;
   I := 1;
-  lCurrentNullPosition := 0;
+  lCurrentNullPosition := 0; // Contains the next value for the _NULLFLAGS bit position
   lCanHoldNull := false;
+  lIsVFPSystemField := false;
+  lIsVFPVarLength := false;
   try
     // Specs say there has to be at least one field, so use repeat:
     repeat
@@ -897,10 +969,25 @@ begin
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
-        // todo: verify but AFAIU only Visual FoxPro supports null fields.
+        if (FDBFVersion=xVisualFoxPro) and ((lFieldDescIII.VisualFoxProFlags and $0C)<>0) then
+        begin
+          // We do not test for an I field - we could implement our own N autoincrement this way...
+          lAutoInc:=lFieldDescIII.AutoIncrementNext;
+          FAutoIncPresent:=true;
+        end;
+
+        // Only Visual FoxPro supports null fields, if the nullable field flag is on
         lCanHoldNull := (FDbfVersion in [xVisualFoxPro]) and
-          ((lFieldDescIII.FoxProFlags and $2) <> 0) and
-          (lFieldName <> '_NULLFLAGS');
+          ((lFieldDescIII.VisualFoxProFlags and $2) <> 0) and
+          (lFieldName <> NULLFLAGSFIELD {the field where null status is stored can never be null itself});
+        // System/hidden flag (VFP only):
+        lIsVFPSystemField := (FDbfVersion in [xVisualFoxPro]) and
+          ((lFieldDescIII.VisualFoxProFlags and $01)=$01);
+        // Only Visual Foxpro supports varbinary/varchar fields where a flag indicates
+        // if the actual size is stored in the last data byte.
+        lIsVFPVarLength := (FDbfVersion in [xVisualFoxPro]) and
+          (lNativeFieldType in ['Q','V']) and
+          (lFieldName <> NULLFLAGSFIELD);
       end;
 
       // apply field transformation tricks
@@ -926,6 +1013,15 @@ begin
         Precision := lPrec;
         AutoInc := lAutoInc;
         NativeFieldType := lNativeFieldType;
+        IsSystemField := lIsVFPSystemField;
+        if lIsVFPVarLength then
+        begin
+          // The varlength flag uses the same _NULLFLAGS field as the null flags.
+          // It comes before the null bit for that field, if any.
+          VarLengthPosition := lCurrentNullPosition;
+          inc(lCurrentNullPosition);
+        end else
+          VarLengthPosition := -1;
         if lCanHoldNull then
         begin
           NullPosition := lCurrentNullPosition;
@@ -949,7 +1045,7 @@ begin
         if FLockUserLen > DbfGlobals.UserNameLen then
           FLockUserLen := DbfGlobals.UserNameLen;
       end else
-      if UpperCase(lFieldName) = '_NULLFLAGS' then
+      if (FDbfVersion=xVisualFoxPro) and (uppercase(lFieldName) = NULLFLAGSFIELD) then
         FNullField := TempFieldDef;
 
       // goto next field
@@ -1017,8 +1113,8 @@ begin
             ReadBlock(dataPtr, lStdProp.DataSize, lPropHdrOffset + lStdProp.DataOffset);
         end;
       end;
-      // read custom properties...not implemented
-      // read RI/referential integrity properties...not implemented
+      // todo: read custom properties...not implemented
+      // todo: read RI/referential integrity properties...not implemented
     end;
   finally
     HeaderSize := PDbfHdr(Header)^.FullHdrSize;
@@ -1031,10 +1127,44 @@ begin
   Result := PDbfHdr(Header)^.Language;
 end;
 
-function TDbfFile.GetLanguageStr: String;
+function TDbfFile.GetLanguageStr: string;
 begin
   if FDbfVersion >= xBaseVII then
     Result := PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+end;
+
+function TDbfFile.IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
+var
+  NullFlagByte: Pointer;
+begin
+  case WhichField of
+  nfNullFlag:
+    begin
+      if (AFieldDef.NullPosition<0) or (FNullField=nil) then
+        result:=false //field is not even nullable
+      else
+      begin
+        // go to _NULLFLAGS byte that has this field's null flag
+        // Find out the byte where the null bit for the field is stored by doing
+        // NullPosition shr3 (= NullPosition div 8)...
+        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
+        // ... get the correct bit in the byte by the equivalent of getting the bit number in that byte:
+        // NullPosition and $7 (=mod 8)... and going to the bit value in the byte (by shl)
+        // The result is true if the field is null.
+        Result := (PByte(NullFlagByte)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
+      end;
+    end;
+  nfVarlengthFlag:
+    begin
+      if (AFieldDef.VarLengthPosition<0) or (FNullField=nil) then
+        result:=false //field *never* has a varlength byte
+      else
+      begin
+        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3);
+        Result := (PByte(NullFlagByte)^ and (1 shl (AFieldDef.VarLengthPosition and $7))) <> 0
+      end;
+    end;
+  end;
 end;
 
 {
@@ -1451,6 +1581,7 @@ var
   date: TDateTime;
   timeStamp: TTimeStamp;
   asciiContents: boolean;
+  SrcRecord: Pointer;
 
 {$ifdef SUPPORT_INT64}
   function GetInt64FromStrLength(Src: Pointer; Size: Integer; Default: Int64): Int64;
@@ -1519,14 +1650,13 @@ begin
   // check Dst = nil, called with dst = nil to check empty field
   if (FNullField <> nil) and (Dst = nil) and (AFieldDef.NullPosition >= 0) then
   begin
-    // go to byte with null flag of this field
-    Src := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
-    Result := (PByte(Src)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
+    result:= not(IsNullFlagSet(Src, AFieldDef, nfNullFlag));
     exit;
   end;
-  
+
   FieldOffset := AFieldDef.Offset;
   FieldSize := AFieldDef.Size;
+  SrcRecord := Src;
   Src := PChar(Src) + FieldOffset;
   asciiContents := false;
   Result := true;
@@ -1604,7 +1734,7 @@ begin
         end;
 {$endif}
       end;
-    'B':    // Foxpro double
+    'B':  // Foxpro double
       begin
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
@@ -1623,6 +1753,44 @@ begin
             PInteger(Dst)^ := SwapIntLE(Unaligned(PInteger(Src)^));
         end else
           asciiContents := true;
+      end;
+    'Q', 'V':  // Visual Foxpro varbinary, varchar
+      //todo: check if codepage conversion/translation for varchar is needed
+      begin
+        if (FDbfVersion in [xVisualFoxPro]) then
+        begin
+          Result := true;
+          // The length byte is only stored if the field is not full
+          if (Dst <> nil) then
+          begin
+            //clear the destination, just in case
+            Fillchar(pbyte(Dst)^,Fieldsize,0);
+            if IsNullFlagSet(SrcRecord, AFieldDef, nfVarlengthFlag) then
+            // so we decrease the fieldsize and let the rest of the code handle it
+              FieldSize:=(PByte(Src)+FieldSize-1)^;
+            // If field is not null:
+            if not(IsNullFlagSet(SrcRecord, AFieldDef, nfNullFlag)) then
+              if Afielddef.FieldType=ftVarBytes then
+              begin
+                PWord(Dst)^:=Fieldsize; //Store size in destination
+                move(Src^, pbyte(Dst+sizeof(Word))^, FieldSize)
+              end
+              else
+                move(Src^, pbyte(Dst)^, FieldSize)
+            else
+              result:=false;
+          end;
+        end;
+      end;
+    '0':  // Zero not letter 0: bytes
+      begin
+        if (Dst <> nil) then
+        begin
+          //clear the destination, just in case
+          Fillchar(pbyte(Dst)^,Fieldsize,0);
+          move(Src^, pbyte(Dst)^, FieldSize);
+          Result := true;
+        end;
       end;
   else
     asciiContents := true;
@@ -1649,7 +1817,7 @@ begin
         begin
           // in DBase- FileDescription lowercase t is allowed too
           // with asking for Result= true s must be longer then 0
-          // else it happens an AV, maybe field is NULL
+          // else an AV occurs, maybe field is NULL
           if (PChar(Src)^ = 'T') or (PChar(Src)^ = 't') then
             PWord(Dst)^ := 1
           else
@@ -1713,20 +1881,38 @@ begin
 end;
 
 procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; 
-  Action: TUpdateNullField);
+  Action: TUpdateNullField; WhichField: TNullFieldFlag);
 var
   NullDst: pbyte;
   Mask: byte;
 begin
-  // this field has null setting capability
-  NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
-  Mask := 1 shl (AFieldDef.NullPosition and $7);
-  if Action = unSet then
+  // this field has null setting capability...
+  // ... but no Super Cow Powers.
+  case WhichField of
+  nfNullFlag:
+    begin
+      // Find out the byte where the length bit for the field is stored by doing
+      // NullPosition shr3 (= NullPosition div 8)...
+      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
+      // ... get the correct bit in the byte by the equivalent of
+      // getting the bit number in that byte:
+      // NullPosition and $7 (=mod 8)...
+      // and going to the bit value in the byte (shl)
+      Mask := 1 shl (AFieldDef.NullPosition and $7);
+    end;
+  nfVarlengthFlag:
+    begin
+      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3));
+      Mask := 1 shl (AFieldDef.VarLengthPosition and $7);
+    end;
+  end;
+
+  if Action = unfSet then
   begin
-    // clear the field, set null flag
+    // set flag
     NullDst^ := NullDst^ or Mask;
-  end else begin
-    // set field data, clear null flag
+  end else begin //unfClear
+    // clear flag
     NullDst^ := NullDst^ and not Mask;
   end;
 end;
@@ -1735,8 +1921,9 @@ procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType;
   Src, Dst: Pointer; NativeFormat: boolean);
 const
   IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
-  SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unClear, unSet);
+  SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unfClear, unfSet);
 var
+  DstRecord: Pointer;
   FieldSize,FieldPrec: Integer;
   TempFieldDef: TDbfFieldDef;
   Len: Integer;
@@ -1773,18 +1960,18 @@ begin
   FieldSize := TempFieldDef.Size;
   FieldPrec := TempFieldDef.Precision;
 
-  // if src = nil then write empty field
-  // symmetry with above
+  DstRecord:=Dst; //beginning of record
+  Dst := PChar(Dst) + TempFieldDef.Offset; //beginning of field
 
-  // foxpro has special _nullfield for flagging fields as `null'
+  // if src = nil then write empty field
+  // symmetry with above loading code
+
+  // Visual Foxpro has special _nullfield for flagging fields as `null'
   if (FNullField <> nil) and (TempFieldDef.NullPosition >= 0) then
-    UpdateNullField(Dst, TempFieldDef, SrcNilToUpdateNullField[Src = nil]);
+    UpdateNullField(DstRecord, TempFieldDef, SrcNilToUpdateNullField[Src = nil],nfNullFlag);
 
   // copy field data to record buffer
-  Dst := PChar(Dst) + TempFieldDef.Offset;
   asciiContents := false;
-  // todo: check/add visualfoxpro autoincrement capability, null values, DateTime, Currency, and Double data types
-  // see comments in dbf_fields for details
   case TempFieldDef.NativeFieldType of
     '+', 'I' {autoincrement, integer}:
       begin
@@ -1891,6 +2078,54 @@ begin
         end else
           asciiContents := true;
       end;
+    'Q': //Visual FoxPro varbinary
+      begin
+        // copy data, and update varlength flag/varlength byte in field data
+        Len := PWord(Src)^;
+        if Len > FieldSize then
+          Len := FieldSize;
+        if Len < FieldSize then
+        begin
+          // Clear flag and store actual size byte in last data byte
+          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
+        end
+        else
+        begin
+          UpdateNullField(DstRecord, TempFieldDef, unfClear, nfVarlengthFlag);
+        end;
+
+        Move((Src+sizeof(word))^, Dst^, Len);
+        // fill remaining data area with spaces, keeping room for size indicator if needed
+        if Len=FieldSize then
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+        else
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+      end;
+    'V': //Visual FoxPro varchar
+      begin
+        // copy data, and update varlength flag/varlength byte in field data
+        Len := StrLen(Src);
+        if Len > FieldSize then
+          Len := FieldSize;
+        if Len < FieldSize then
+        begin
+          // Clear flag and store actual size byte in last data byte
+          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
+        end
+        else
+        begin
+          UpdateNullField(DstRecord, TempFieldDef, unfClear, nfVarlengthFlag);
+        end;
+
+        Move(Src^, Dst^, Len);
+        // fill remaining data area with spaces, keeping room for size indicator if needed
+        if Len=FieldSize then
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+        else
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+      end
   else
     asciiContents := true;
   end;
@@ -1965,7 +2200,7 @@ begin
   GetMem(FDefaultBuffer, lRecordSize+1);
   FillChar(FDefaultBuffer^, lRecordSize, ' ');
   
-  // set nullflags field so that all fields are null
+  // set nullflags field so that all fields are null (and var* fields marked as full)
   if FNullField <> nil then
     FillChar(PChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
 
@@ -1973,9 +2208,9 @@ begin
   for I := 0 to FFieldDefs.Count-1 do
   begin
     TempFieldDef := FFieldDefs.Items[I];
-    // binary field? (foxpro memo fields are binary, but dbase not)
-    if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'Y'])
-        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4)) then
+    // binary (non-text) field? (foxpro memo fields are binary, but dbase not)
+    if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'W', 'Y'])
+        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4) {Visual FoxPro?}) then
       FillChar(PChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
     // copy default value?
     if TempFieldDef.HasDefault then
@@ -1983,7 +2218,18 @@ begin
       Move(TempFieldDef.DefaultBuf[0], FDefaultBuffer[TempFieldDef.Offset], TempFieldDef.Size);
       // clear the null flag, this field has a value
       if FNullField <> nil then
-        UpdateNullField(FDefaultBuffer, TempFieldDef, unClear);
+        UpdateNullField(FDefaultBuffer, TempFieldDef, unfClear, nfNullFlag);
+      // Check for varbinary/varchar and if default matches it, then mark field as full
+      if (TempFieldDef.VarLengthPosition>=0) then
+        if (strlen(FDefaultBuffer)>=TempFieldDef.Size) then
+          UpdateNullField(FDefaultBuffer, TempFieldDef, unfClear, nfVarlengthFlag)
+        else
+          begin
+            // Set flag and store actual size byte in last data byte
+            UpdateNullField(FDefaultBuffer, TempFieldDef, unfSet, nfVarlengthFlag);
+            //todo: verify pointer use
+            PByte(PChar(FDefaultBuffer)+TempFieldDef.Size)^:=strlen(FDefaultBuffer);
+          end;
     end;
   end;
 end;
@@ -2013,7 +2259,8 @@ begin
     for I := 0 to FFieldDefs.Count-1 do
     begin
       TempFieldDef := FFieldDefs.Items[I];
-      if (TempFieldDef.NativeFieldType = '+') then
+      if (DbfVersion=xBaseVII) and
+        (TempFieldDef.NativeFieldType = '+') then
       begin
         // read current auto inc, from header or field, depending on sharing
         lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
@@ -2031,6 +2278,18 @@ begin
         TempFieldDef.AutoInc := NextVal;
         // write new value to header buffer
         PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
+      end
+      else
+      if (DbfVersion=xVisualFoxPro) and
+        (TempFieldDef.AutoIncStep<>0) then
+      begin
+        // read current auto inc from field header
+        NextVal:=TempFieldDef.AutoInc; //todo: is this correc
+        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal); //todo: is swapintbe correct?
+        // Increase with step size
+        NextVal:=NextVal+TempFieldDef.AutoIncStep;
+        // write new value back
+        TempFieldDef.AutoInc:=NextVal;
       end;
     end;
 

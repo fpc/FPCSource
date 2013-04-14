@@ -14,10 +14,15 @@ uses
 type
   PDbfFieldDef = ^TDbfFieldDef;
 
+  { TDbfFieldDef }
+
   TDbfFieldDef = class(TCollectionItem)
   private
+    FAutoIncStep: Integer;
     FFieldName: string;
     FFieldType: TFieldType;
+    FIsSystemField: Boolean;
+    FVarLengthPosition: integer;
     FNativeFieldType: TDbfFieldType;
     FDefaultBuf: PChar;
     FMinBuf: PChar;
@@ -69,19 +74,39 @@ type
     property HasDefault: Boolean read FHasDefault write FHasDefault;
     property HasMin: Boolean read FHasMin write FHasMin;
     property HasMax: Boolean read FHasMax write FHasMax;
+    // Distance of field from beginning of record
     property Offset: Integer read FOffset write FOffset;
+    // Value for autoinc
     property AutoInc: Cardinal read FAutoInc write FAutoInc;
+    // Step size for autoinc (Visual FoxPro only)
+    property AutoIncStep: Integer read FAutoIncStep write FAutoIncStep;
+    // Field contains lock data (not a normal field)
     property IsLockField: Boolean read FIsLockField write FIsLockField;
+    // Field is a system, hidden field (Visual FoxPro supported only)
+    property IsSystemField: Boolean read FIsSystemField write FIsSystemField;
     property CopyFrom: Integer read FCopyFrom write FCopyFrom;
   published
     property FieldName: string     read FFieldName write FFieldName;
     // VCL/LCL field type mapped to this field
     property FieldType: TFieldType read FFieldType write SetFieldType;
+    // If using varchar/varbinary/var...:
+    // VFP uses a varlength bit in _NullFields in physical order (bit number corresponds to physical order)
+    // If flag=1, the actually used length/size is stored in the last data byte of the field
+    // If the var* field is nullable, 2 bits are used:
+    // lower bit number is varlength, next is null flag.
+    // Note: VarLengthPosition property is 0 based
+    // http://msdn.microsoft.com/en-us/library/st4a0s68%28v=VS.80%29.aspx
+    property VarLengthPosition: integer read FVarLengthPosition write FVarLengthPosition;
     // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
     // Size in physical dbase file.
     // Note: this often differs from the VCL field sizes
     property Size: Integer         read FSize write SetSize;
+    // Visual FoxPro: position of field null flag in _NullFields field
+    // Reflects the physical field order, except if varchar/varbinary/var* fields
+    // are used (see VarLengthPosition property for details)
+    // Note: NullPosition property is 0 based
+    // http://msdn.microsoft.com/en-us/library/st4a0s68%28v=VS.80%29.aspx
     property NullPosition: integer read FNullPosition write FNullPosition;
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
@@ -201,6 +226,7 @@ begin
   FHasMin := false;
   FHasMax := false;
   FNullPosition := -1;
+  FVarLengthPosition := -1;
 end;
 
 destructor TDbfFieldDef.Destroy; {override}
@@ -225,7 +251,9 @@ begin
     FRequired := DbfSource.Required;
     FCopyFrom := DbfSource.Index;
     FIsLockField := DbfSource.IsLockField;
+    FIsSystemField := DbfSource.IsSystemField;
     FNullPosition := DbfSource.NullPosition;
+    FVarLengthPosition:=DbfSource.VarLengthPosition;
     // copy default,min,max
     AllocBuffers;
     if DbfSource.DefaultBuf <> nil then
@@ -236,6 +264,7 @@ begin
     // do we need offsets?
     FOffset := DbfSource.Offset;
     FAutoInc := DbfSource.AutoInc;
+    FAutoIncStep := DbfSource.AutoIncStep;
 {$ifdef SUPPORT_FIELDDEF_TPERSISTENT}
   end else if Source is TFieldDef then begin
     AssignDb(TFieldDef(Source));
@@ -258,6 +287,7 @@ begin
   FCopyFrom := DbSource.Index;
 {$endif}
   FIsLockField := false;
+  FIsSystemField := false;
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
   // for integer / float fields try to fill in Size/precision
@@ -272,6 +302,7 @@ begin
   FHasMax := false;
   FOffset := 0;
   FAutoInc := 0;
+  FAutoIncStep := 0;
 end;
 
 procedure TDbfFieldDef.AssignTo(Dest: TPersistent);
@@ -303,14 +334,14 @@ begin
   Result := TDbfFieldDefs(Collection).DbfVersion;
 end;
 
-procedure TDbfFieldDef.SetFieldType(lFieldType: tFieldType);
+procedure TDbfFieldDef.SetFieldType(lFieldType: TFieldType);
 begin
   FFieldType := lFieldType;
   VCLToNative;
   SetDefaultSize;
 end;
 
-procedure TDbfFieldDef.SetNativeFieldType(lFieldType: tDbfFieldType);
+procedure TDbfFieldDef.SetNativeFieldType(lFieldType: TDbfFieldType);
 begin
   // convert lowercase to uppercase
   if (lFieldType >= 'a') and (lFieldType <= 'z') then
@@ -338,8 +369,12 @@ begin
     '+' : //dbase7+ autoinc
       if DbfVersion = xBaseVII then
         FFieldType := ftAutoInc;
-    'I' : //integer
-      FFieldType := ftInteger;
+    'I' : //visual foxpro integer
+      // todo: is this the right property to check for? Can't we check flags directly
+      if FAutoIncStep=0 then
+        FFieldType := ftInteger
+      else
+        FFieldType := ftAutoInc;
     'O' : //double, 8 bytes?
       FFieldType := ftFloat;
     '@', 'T' {Foxpro? datetime}:
@@ -398,7 +433,7 @@ begin
         FFieldType := ftBlob;
     'Q' : //varbinary
       if (DBFVersion = xVisualFoxPro) then
-        FFieldType := ftBytes;
+        FFieldType := ftVarBytes;
   else
     FNativeFieldType := #0;
     FFieldType := ftUnknown;
@@ -410,7 +445,11 @@ begin
   FNativeFieldType := #0;
   case FFieldType of
     ftAutoInc  :
-      FNativeFieldType  := '+'; //todo: verify: xbasev/7 only? also (V)foxpro?
+      if DbfVersion=xVisualFoxPro then
+        FNativeFieldType  := 'I'
+        //todo: set autoincrement fields: offset 18: add flag $0c; 19-22: value of next autoincrement; 23 value of autoincrement step value
+      else
+        FNativeFieldType  := '+'; //Apparently xbaseV/7+ only; not (Visual) Foxpro
     ftDateTime :
       if DbfVersion = xBaseVII then
         FNativeFieldType := '@'
@@ -439,7 +478,7 @@ begin
     ftBlob     :
       case DBFVersion of
         xFoxPro:
-          FNativeFieldType := 'P'; //picture
+          FNativeFieldType := 'P'; //picture; best we can do
         xVisualFoxPro:
           FNativeFieldType := 'W'; //blob
         xBaseIII,xBaseIV:
@@ -449,6 +488,12 @@ begin
       else
         FNativeFieldType := 'M'; //fallback
       end;
+    ftVarBytes :
+      //todo: figure out if we can use the same fallbacks as ftBlob
+      case DBFVersion of
+        xVisualFoxPro:
+          FNativeFieldType := 'Q'; //variant bytes
+      end;
     ftDBaseOle :
       FNativeFieldType := 'G'; //general
       //todo: verify if this is dbaseV/7 specific
@@ -457,8 +502,7 @@ begin
       // P is apparently not recommended
       FNativeFieldType := 'B'; //BLOB
     ftInteger  :
-      //todo: verify FoxPro I=4 byte little endian integer
-      if DbfVersion = xBaseVII then
+      if (DbfVersion in [xBaseVII,xVisualFoxPro]) then
         FNativeFieldType := 'I' //integer
       else
         FNativeFieldType := 'N'; //numeric
@@ -472,7 +516,7 @@ end;
 
 procedure TDbfFieldDef.SetDefaultSize;
 begin
-  // choose default values for variable Size fields
+  // choose default values for variable size fields
   case FFieldType of
     ftFloat:
       begin
@@ -492,8 +536,8 @@ begin
       end;
     ftInteger, ftAutoInc:
       begin
-        if DbfVersion = xBaseVII then
-          FSize := 4
+        if DbfVersion in [xBaseVII,xVisualFoxPro] then
+          FSize := 4 //I, @ field
         else
           FSize := DIGITS_INTEGER;
         FPrecision := 0;
@@ -601,31 +645,8 @@ begin
         FPrecision := 4;
       end;
   else
-    {
-    No check, includes:
-    http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
-    P Picture (in at least Visual FoxPro)
-    V Varchar/varchar binary (in Visual FoxPro 9) 1 byte up to 254 bytes.
-      Same storage as char (padded spaces) but padding is removed on display
-      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
-    W Blob (Visual FoxPro 9), 4 bytes in a table; stored in .fpt
-      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
-    Q Varchar (binary) (in Visual Foxpro 9):
-      accepts null, up to 254 characters (stored as padded with spaces), no code page translations
-      note varchar (binary)<>varbinary
-      http://foxcentral.net/microsoft/WhatsNewInVFP9_Chapter09.htm
-    Varchar/varbinary storage:
-      Uses _NullFlags:
-      bit n=1: nullable field number n is null (as in previous versions)
-      bit n=0: varchar/varbinary field is full/fills space
-      bit n=1: varchar/varbinary is not full; last byte of field data contains size
-      If varchar/varbinary field AND nullable field, 2 bits are used:
-      - lower bit=full status
-      - higher bit=null status
-
-
-    }
-  end; // case
+    // no idea/unimportant, let other code sort it out
+  end;
 end;
 
 function TDbfFieldDef.GetDisplayName: string; {override;}
@@ -635,9 +656,9 @@ end;
 
 function TDbfFieldDef.IsBlob: Boolean; {override;}
 begin
-  // 'B' is float in (V)FP
+  // 'B' is float in (V)FP; W is Blob (VFP9)
   if (DbfVersion in [xFoxPro,xVisualFoxPro]) then
-    Result := FNativeFieldType in ['M','G']
+    Result := FNativeFieldType in ['M','G','W']
   else
     Result := FNativeFieldType in ['M','G','B'];
 end;

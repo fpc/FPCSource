@@ -1071,7 +1071,7 @@ begin
     // TDbfFieldDef.Size indicates the number of bytes in the physical dbase file
     // TFieldDef.Size is only meant to store size indicator for variable length fields
     case TempFieldDef.FieldType of
-      ftString, ftBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
+      ftString, ftBytes, ftVarBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
       ftBCD:
         begin
           FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);;;
@@ -1082,7 +1082,6 @@ begin
 
     FieldDefs[I].Precision := TempFieldDef.Precision;
 
-
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly
     if TempFieldDef.FieldType = ftAutoInc then
@@ -1090,6 +1089,10 @@ begin
 
     // if table has dbase lock field, then hide it
     if TempFieldDef.IsLockField then
+      FieldDefs[I].Attributes := [Db.faHiddenCol];
+
+    // Hide system/hidden fields (e.g. VFP's _NULLFLAGS)
+    if TempFieldDef.IsSystemField then
       FieldDefs[I].Attributes := [Db.faHiddenCol];
 {$endif}
   end;
