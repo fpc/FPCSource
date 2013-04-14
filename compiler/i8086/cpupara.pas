@@ -98,57 +98,6 @@ unit cpupara;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
-        case target_info.system of
-          system_i386_win32 :
-            begin
-              case def.typ of
-                recorddef :
-                  begin
-                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG up to 8 bytes in registers.
-
-                      For stdcall and register we follow delphi instead of GCC which returns
-                      only records of a size of 1,2 or 4 bytes in FUNCTION_RETURN_REG }
-                    if ((pd.proccalloption in [pocall_stdcall,pocall_register]) and
-                        (def.size in [1,2,4])) or
-                       ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                        (def.size>0) and
-                        (def.size<=8)) then
-                     begin
-                       result:=false;
-                       exit;
-                     end;
-                  end;
-              end;
-            end;
-          system_i386_freebsd,
-          system_i386_openbsd,
-          system_i386_darwin,
-          system_i386_iphonesim :
-            begin
-              if pd.proccalloption in cdecl_pocalls then
-                begin
-                  case def.typ of
-                    recorddef :
-                      begin
-                        size:=def.size;
-                        if (size>0) and
-                           (size<=8) and
-                           { only if size is a power of 2 }
-                           ((size and (size-1)) = 0) then
-                          begin
-                            result:=false;
-                            exit;
-                          end;
-                      end;
-                    procvardef:
-                      begin
-                        result:=false;
-                        exit;
-                      end;
-                  end;
-              end;
-            end;
-        end;
 
         { 64-bit types are returned as a parameter pointer, since putting them
           in registers would require 4 registers on the i8086 }
