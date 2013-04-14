@@ -38,7 +38,7 @@ interface
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -61,7 +61,7 @@ implementation
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
+       ncon,nmat,nadd,ncal,nset,ncnv,ninl,nld,nflw,nmem,nutils,
        { codegen }
        ncgutil,ngenutil,
        { parser }
@@ -1558,7 +1558,7 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -1618,6 +1618,7 @@ implementation
                if token=_ID then
                  begin
                    vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
                      potentially mixed visibility, and then the individual
@@ -1821,6 +1822,15 @@ implementation
               maxsize:=0;
               maxalignment:=0;
               maxpadalign:=0;
+
+              { already inside a variant record? if not, setup a new variantdesc chain }
+              if not(assigned(variantdesc)) then
+                variantdesc:=@trecorddef(trecordsymtable(recst).defowner).variantrecdesc;
+
+              { else just concat the info to the given one }
+              new(variantdesc^);
+              fillchar(variantdesc^^,sizeof(tvariantrecdesc),0);
+
               { including a field declaration? }
               fieldvs:=nil;
               sorg:=orgpattern;
@@ -1831,6 +1841,7 @@ implementation
                   consume(_ID);
                   consume(_COLON);
                   fieldvs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;
               read_anon_type(casetype,true);
@@ -1851,6 +1862,7 @@ implementation
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
               UnionDef:=trecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
+
               startvarrecsize:=UnionSymtable.datasize;
               { align the bitpacking to the next byte }
               UnionSymtable.datasize:=startvarrecsize;
@@ -1858,12 +1870,24 @@ implementation
               startpadalign:=Unionsymtable.padalignment;
               symtablestack.push(UnionSymtable);
               repeat
+                SetLength(variantdesc^^.branches,length(variantdesc^^.branches)+1);
+                fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
+                  sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
                   pt:=comp_expr(true,false);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
-                  if try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true,false));
+                  { iso pascal does not support ranges in variant record definitions }
+                  if not(m_iso in current_settings.modeswitches) and try_to_consume(_POINTPOINT) then
+                    pt:=crangenode.create(pt,comp_expr(true,false))
+                  else
+                    begin
+                      with variantdesc^^.branches[high(variantdesc^^.branches)] do
+                        begin
+                          SetLength(values,length(values)+1);
+                          values[high(values)]:=tordconstnode(pt).value;
+                        end;
+                    end;
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)
@@ -1879,9 +1903,10 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_record_fields([vd_record],nil);
+                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
+
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,unionsymtable.datasize);
                 maxalignment:=max(maxalignment,unionsymtable.fieldalignment);

@@ -186,7 +186,6 @@ interface
        end;
 
        tprocdef = class;
-       { tabstractrecorddef }
 
        tabstractrecorddef= class(tstoreddef)
           objname,
@@ -220,8 +219,26 @@ interface
           function contains_float_field : boolean;
        end;
 
+       pvariantrecdesc = ^tvariantrecdesc;
+
+       tvariantrecbranch = record
+         { we store only single values here and no ranges because tvariantrecdesc is only needed in iso mode
+           which does not support range expressions in variant record definitions }
+         values : array of Tconstexprint;
+         nestedvariant : pvariantrecdesc;
+       end;
+
+       ppvariantrecdesc = ^pvariantrecdesc;
+
+       tvariantrecdesc = record
+         variantselector : tsym;
+         variantselectorderef : tderef;
+         branches : array of tvariantrecbranch;
+       end;
+
        trecorddef = class(tabstractrecorddef)
        public
+          variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -3445,6 +3462,28 @@ implementation
 
 
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
+
+      procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
+        var
+          i,j : asizeint;
+        begin
+         if ppufile.getbyte=1 then
+           begin
+             new(variantrecdesc);
+             ppufile.getderef(variantrecdesc^.variantselectorderef);
+             SetLength(variantrecdesc^.branches,ppufile.getasizeint);
+             for i:=0 to high(variantrecdesc^.branches) do
+               begin
+                 SetLength(variantrecdesc^.branches[i].values,ppufile.getasizeint);
+                 for j:=0 to high(variantrecdesc^.branches[i].values) do
+                   variantrecdesc^.branches[i].values[j]:=ppufile.getexprint;
+                 readvariantrecdesc(variantrecdesc^.branches[i].nestedvariant);
+               end;
+           end
+         else
+           variantrecdesc:=nil;
+        end;
+
       begin
          inherited ppuload(recorddef,ppufile);
          if df_copied_def in defoptions then
@@ -3459,6 +3498,11 @@ implementation
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
+             { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
+               but because iso mode supports no units, there is no need to store the variantrecdesc
+               in the ppu
+             }
+             // readvariantrecdesc(variantrecdesc);
              { requires usefieldalignment to be set }
              symtable.defowner:=self;
            end;
@@ -3560,6 +3604,28 @@ implementation
 
 
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
+
+      procedure writevariantrecdesc(variantrecdesc : pvariantrecdesc);
+        var
+          i,j : asizeint;
+        begin
+         if assigned(variantrecdesc) then
+           begin
+             ppufile.putbyte(1);
+             ppufile.putderef(variantrecdesc^.variantselectorderef);
+             ppufile.putasizeint(length(variantrecdesc^.branches));
+             for i:=0 to high(variantrecdesc^.branches) do
+               begin
+                 ppufile.putasizeint(length(variantrecdesc^.branches[i].values));
+                 for j:=0 to high(variantrecdesc^.branches[i].values) do
+                   ppufile.putexprint(variantrecdesc^.branches[i].values[j]);
+                 writevariantrecdesc(variantrecdesc^.branches[i].nestedvariant);
+               end;
+           end
+         else
+           ppufile.putbyte(0);
+        end;
+
       begin
          inherited ppuwrite(ppufile);
          if df_copied_def in defoptions then
@@ -3572,6 +3638,11 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
              ppufile.putasizeint(trecordsymtable(symtable).datasize);
              ppufile.putword(trecordsymtable(symtable).paddingsize);
+             { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
+               but because iso mode supports no units, there is no need to store the variantrecdesc
+               in the ppu
+             }
+             // writevariantrecdesc(variantrecdesc);
            end;
 
          ppufile.writeentry(ibrecorddef);
@@ -4058,8 +4129,6 @@ implementation
                 end;
             end;
       end;
-
-
 
 
 {***************************************************************************

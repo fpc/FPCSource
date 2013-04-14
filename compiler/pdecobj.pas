@@ -1234,7 +1234,7 @@ implementation
                               include(vdoptions,vd_canreorder);
                             if final_fields then
                               include(vdoptions,vd_final);
-                            read_record_fields(vdoptions,fieldlist);
+                            read_record_fields(vdoptions,fieldlist,nil);
                           end
                         else if object_member_blocktype=bt_type then
                           types_dec(true)

@@ -74,6 +74,10 @@ implementation
         callflag : tcallnodeflag;
         destructorpos,
         storepos : tfileposinfo;
+        variantdesc : pvariantrecdesc;
+        found : boolean;
+        j,i : ASizeInt;
+        variantselectsymbol : tfieldvarsym;
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
@@ -149,7 +153,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if not(m_mac in current_settings.modeswitches) and
+        else if (([m_mac,m_iso]*current_settings.modeswitches)=[]) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -343,6 +347,45 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
+                     if (m_iso in current_settings.modeswitches) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+                       begin
+                         variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
+                         while (token=_COMMA) and assigned(variantdesc) do
+                           begin
+                             consume(_COMMA);
+                             p2:=factor(false,false);
+                             do_typecheckpass(p2);
+                             if p2.nodetype=ordconstn then
+                               begin
+                                 found:=false;
+                                 for i:=0 to high(variantdesc^.branches) do
+                                   begin
+                                     for j:=0 to high(variantdesc^.branches[i].values) do
+                                       if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
+                                         begin
+                                           found:=true;
+                                           variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
+                                           variantdesc:=variantdesc^.branches[i].nestedvariant;
+                                           break;
+                                         end;
+                                     if found then
+                                       break;
+                                   end;
+                                 if found then
+                                   begin
+                                     { setup variant selector }
+                                     addstatement(newstatement,cassignmentnode.create(
+                                         csubscriptnode.create(variantselectsymbol,
+                                           cderefnode.create(ctemprefnode.create(temp))),
+                                         p2));
+                                   end
+                                 else
+                                   Message(parser_e_illegal_expression);
+                               end
+                             else
+                               Message(parser_e_illegal_expression);
+                           end;
+                       end;
                      { release temp }
                      addstatement(newstatement,ctempdeletenode.create(temp));
                    end

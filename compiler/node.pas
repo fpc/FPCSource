@@ -1315,8 +1315,8 @@ implementation
 
 begin
 {$push}{$warnings off}
-  { taitype should fit into a 4 byte set for speed reasons }
-  if ord(high(tnodeflags))>31 then
+  { tvaroption should fit into a 4 byte set for speed reasons }
+  if ord(high(tvaroption))>31 then
     internalerror(201110301);
 {$pop}
 end.
