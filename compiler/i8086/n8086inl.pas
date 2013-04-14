@@ -33,14 +33,9 @@ interface
        { ti8086inlinenode }
 
        ti8086inlinenode = class(tx86inlinenode)
-         procedure second_round_real; override;
-         procedure second_trunc_real; override;
-
          function typecheck_seg: tnode; override;
          function first_seg: tnode; override;
          procedure second_seg; override;
-       private
-         procedure load_fpu_location;
        end;
 
 implementation
@@ -61,37 +56,6 @@ implementation
     cga,cgutils,cgx86,cgobj,hlcgobj,
     htypechk;
 
-     procedure ti8086inlinenode.second_round_real;
-       begin
-         load_fpu_location;
-         location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
-         tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
-         emit_ref(A_FISTP,S_IQ,location.reference);
-         tcgx86(cg).dec_fpu_stack;
-         emit_none(A_FWAIT,S_NO);
-       end;
-
-     procedure ti8086inlinenode.second_trunc_real;
-       var
-         oldcw,newcw : treference;
-       begin
-         tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
-         tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
-         emit_ref(A_FNSTCW,S_NO,newcw);
-         emit_ref(A_FNSTCW,S_NO,oldcw);
-         emit_const_ref(A_OR,S_W,$0f00,newcw);
-         load_fpu_location;
-         emit_ref(A_FLDCW,S_NO,newcw);
-         location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
-         tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
-         emit_ref(A_FISTP,S_IQ,location.reference);
-         tcgx86(cg).dec_fpu_stack;
-         emit_ref(A_FLDCW,S_NO,oldcw);
-         emit_none(A_FWAIT,S_NO);
-         tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
-         tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
-       end;
-
      function ti8086inlinenode.typecheck_seg: tnode;
        begin
          result := nil;
@@ -109,40 +73,6 @@ implementation
          location_reset(location,LOC_REGISTER,OS_16);
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
          current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
-       end;
-
-     procedure ti8086inlinenode.load_fpu_location;
-       var
-         lnode: tnode;
-       begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-         location.register:=NR_FPU_RESULT_REG;
-         if left.nodetype <> callparan then
-           internalerror(2013031501);
-         lnode := tcallparanode(left).left;
-         secondpass(lnode);
-         case lnode.location.loc of
-           LOC_FPUREGISTER:
-             ;
-           LOC_CFPUREGISTER:
-             begin
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,lnode.location.size,
-                 lnode.location.size,lnode.location.register,location.register);
-             end;
-           LOC_REFERENCE,LOC_CREFERENCE:
-             begin
-               cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  lnode.location.size,lnode.location.size,
-                  lnode.location.reference,location.register);
-             end;
-           LOC_MMREGISTER,LOC_CMMREGISTER:
-             begin
-               location:=lnode.location;
-               location_force_fpureg(current_asmdata.CurrAsmList,location,false);
-             end;
-           else
-             internalerror(309991);
-         end;
        end;
 
 begin

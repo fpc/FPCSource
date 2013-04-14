@@ -199,27 +199,36 @@ implementation
 
      { load the FPU into the an fpu register }
      procedure tx86inlinenode.load_fpu_location;
+       var
+         lnode: tnode;
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
-         secondpass(left);
-         case left.location.loc of
+{$ifdef i8086}
+         if left.nodetype <> callparan then
+           internalerror(2013031501);
+         lnode := tcallparanode(left).left;
+{$else i8086}
+         lnode := left;
+{$endif i8086}
+         secondpass(lnode);
+         case lnode.location.loc of
            LOC_FPUREGISTER:
              ;
            LOC_CFPUREGISTER:
              begin
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,
-                 left.location.size,left.location.register,location.register);
+               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,lnode.location.size,
+                 lnode.location.size,lnode.location.register,location.register);
              end;
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  left.location.size,left.location.size,
-                  left.location.reference,location.register);
+                  lnode.location.size,lnode.location.size,
+                  lnode.location.reference,location.register);
              end;
            LOC_MMREGISTER,LOC_CMMREGISTER:
              begin
-               location:=left.location;
+               location:=lnode.location;
                location_force_fpureg(current_asmdata.CurrAsmList,location,false);
              end;
            else
