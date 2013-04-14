@@ -951,8 +951,9 @@ begin
     if FFileName > '' then
       begin
       D:=ExtractFilePath(FFileName);
-      if not ForceDirectories(D) then
-        Raise EInoutError.CreateFmt(SErrCouldNotCreatePath,[D]);
+      If D <> '' Then
+        if not ForceDirectories(D) then
+          Raise EInoutError.CreateFmt(SErrCouldNotCreatePath,[D]);
       slLines.SaveToFile(FFileName);
       end
     else if FStream <> nil then
