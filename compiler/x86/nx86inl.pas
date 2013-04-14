@@ -65,7 +65,7 @@ interface
 {$endif not i8086}
           procedure second_popcnt;override;
        private
-          procedure load_fpu_location;
+          procedure load_fpu_location(lnode: tnode);
        end;
 
 implementation
@@ -198,19 +198,10 @@ implementation
        end;
 
      { load the FPU into the an fpu register }
-     procedure tx86inlinenode.load_fpu_location;
-       var
-         lnode: tnode;
+     procedure tx86inlinenode.load_fpu_location(lnode: tnode);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
-{$ifdef i8086}
-         if left.nodetype <> callparan then
-           internalerror(2013031501);
-         lnode := tcallparanode(left).left;
-{$else i8086}
-         lnode := left;
-{$endif i8086}
          secondpass(lnode);
          case lnode.location.loc of
            LOC_FPUREGISTER:
@@ -239,7 +230,7 @@ implementation
 
      procedure tx86inlinenode.second_arctan_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLD1,S_NO);
          emit_none(A_FPATAN,S_NO);
        end;
@@ -267,7 +258,7 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FABS,S_NO);
            end;
        end;
@@ -294,7 +285,13 @@ implementation
          else
 {$endif x86_64}
           begin
-            load_fpu_location;
+{$ifdef i8086}
+            if left.nodetype <> callparan then
+              internalerror(2013031501);
+            load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+            load_fpu_location(left);
+{$endif i8086}
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
@@ -330,7 +327,13 @@ implementation
           begin
             if (current_settings.fputype>=fpu_sse3) then
               begin
-                load_fpu_location;
+{$ifdef i8086}
+                if left.nodetype <> callparan then
+                  internalerror(2013031501);
+                load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+                load_fpu_location(left);
+{$endif i8086}
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
@@ -343,7 +346,11 @@ implementation
                 emit_ref(A_FNSTCW,S_NO,newcw);
                 emit_ref(A_FNSTCW,S_NO,oldcw);
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
-                load_fpu_location;
+{$ifdef i8086}
+                load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+                load_fpu_location(left);
+{$endif i8086}
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
@@ -370,7 +377,7 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
            end;
        end;
@@ -394,14 +401,14 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FSQRT,S_NO);
            end;
        end;
 
      procedure tx86inlinenode.second_ln_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLDLN2,S_NO);
          emit_none(A_FXCH,S_NO);
          emit_none(A_FYL2X,S_NO);
@@ -409,13 +416,13 @@ implementation
 
      procedure tx86inlinenode.second_cos_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FCOS,S_NO);
        end;
 
      procedure tx86inlinenode.second_sin_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FSIN,S_NO)
        end;
 
