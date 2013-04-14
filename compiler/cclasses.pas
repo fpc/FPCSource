@@ -742,7 +742,7 @@ end;
 
 class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPList.Exchange(Index1, Index2: Integer);
@@ -1440,7 +1440,7 @@ end;
 
 class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 function TFPHashList.Expand: TFPHashList;
