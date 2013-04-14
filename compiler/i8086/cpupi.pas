@@ -36,7 +36,6 @@ unit cpupi;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
-         procedure allocate_got_register(list: tasmlist);override;
        end;
 
 
@@ -94,15 +93,6 @@ unit cpupi;
         { If the stack is fixed, nothing has to be removed by the callee     }
         if paramanager.use_fixed_stack then
           para_stack_size := 0;
-      end;
-
-    procedure ti8086procinfo.allocate_got_register(list: tasmlist);
-      begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
-          begin
-            got := cg.getaddressregister(list);
-          end;
       end;
 
 begin
