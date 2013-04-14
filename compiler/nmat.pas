@@ -245,7 +245,8 @@ implementation
          { (webtbs/tw8870)                                                                }
          if (rd.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
             ((is_constintnode(left) and
-              (tordconstnode(left).value >= 0)) or
+              (tordconstnode(left).value >= 0) and
+              (tordconstnode(left).value <= get_max_value(rd))) or
              (not is_signed(ld) and
               (rd.size >= ld.size))) then
            begin
@@ -254,7 +255,8 @@ implementation
            end;
          if (ld.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
             ((is_constintnode(right) and
-              (tordconstnode(right).value >= 0)) or
+              (tordconstnode(right).value >= 0) and
+              (tordconstnode(right).value <= get_max_value(ld))) or
              (not is_signed(rd) and
               (ld.size >= rd.size))) then
           begin
