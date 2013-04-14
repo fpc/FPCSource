@@ -181,11 +181,13 @@ interface
       OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       instabentries = {$i x8664nop.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       instabentries = {$i i386nop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      instabentries = {$i i8086nop.inc}
+{$endif}
       maxinfolen    = 8;
       MaxInsChanges = 3; { Max things a instruction can change }
 
@@ -244,11 +246,13 @@ interface
 
 
       InsProp : array[tasmop] of TInsProp =
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i x8664pro.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i i386prop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i i8086prop.inc}
+{$endif}
 
     type
       TOperandOrder = (op_intel,op_att);
@@ -452,16 +456,18 @@ implementation
        PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
 
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
-{$else x86_64}
+{$elseif defined(i386)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+       InsTab:array[0..instabentries-1] of TInsEntry={$i i8086tab.inc}
+{$endif}
      var
        InsTabCache : PInsTabCache;
        InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -499,7 +505,7 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r8664ot.inc}
       );
-{$else x86_64}
+{$elseif defined(i386)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -537,7 +543,45 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r386ot.inc}
       );
-{$endif x86_64}
+{$elseif defined(i8086)}
+       { Intel style operands ! }
+       opsize_2_type:array[0..2,topsize] of longint=(
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         )
+      );
+
+      reg_ot_table : array[tregisterindex] of longint = (
+        {$i r8086ot.inc}
+      );
+{$endif}
 
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
     begin
@@ -1508,15 +1552,19 @@ implementation
 
     function regval(r:Tregister):byte;
       const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r8664op.inc}
         );
-    {$else x86_64}
+    {$elseif defined(i386)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r386op.inc}
         );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+        opcode_table:array[tregisterindex] of tregisterindex = (
+          {$i r8086op.inc}
+        );
+    {$endif}
       var
         regidx : tregisterindex;
       begin

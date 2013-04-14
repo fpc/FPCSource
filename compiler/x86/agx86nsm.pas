@@ -64,7 +64,13 @@ interface
 
       nasm_regname_table : array[tregisterindex] of string[7] = (
         {r386nasm.inc contains the Nasm name of each register.}
+{$if defined(x86_64)}
+        {$fatal nasm support not yet implemented for x86_64 }
+{$elseif defined(i386)}
         {$i r386nasm.inc}
+{$elseif defined(i8086)}
+        {$i r8086nasm.inc}
+{$endif}
       );
 
     function nasm_regname(r:Tregister):string;
