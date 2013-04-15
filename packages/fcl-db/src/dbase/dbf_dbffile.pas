@@ -175,6 +175,9 @@ type
   end;
 
 //====================================================================
+
+  { TDbfGlobals }
+
   TDbfGlobals = class
   protected
     FCodePages: TList;
@@ -192,6 +195,7 @@ type
     destructor Destroy; override;
 
     function CodePageInstalled(ACodePage: Integer): Boolean;
+    function CreateFoxProLangID(NewCodePage: integer): Byte;
 
     property CurrencyAsBCD: Boolean read FCurrencyAsBCD write FCurrencyAsBCD;
     property DefaultOpenCodePage: Integer read FDefaultOpenCodePage write FDefaultOpenCodePage;
@@ -624,11 +628,24 @@ begin
     lHasBlob := false;
     lNullVarFlagCount := 0;
     // determine codepage & locale
-    if FFileLangId = 0 then
-      FFileLangId := DbfGlobals.DefaultCreateLangId;
-    FFileCodePage := LangId_To_CodePage[FFileLangId];
-    lLocaleID := LangId_To_Locale[FFileLangId];
-    FUseCodePage := FFileCodePage;
+    if FDbfVersion in [xFoxPro, xVisualFoxPro] then
+    begin
+      if FFileLangId = 0 then
+        FFileLangId := DbfGlobals.CreateFoxProLangID(DbfGlobals.DefaultCreateCodePage);
+      FFileCodePage := LangId_To_CodePage[FFileLangId];
+      lLocaleID := LangId_To_Locale[FFileLangId];
+      FUseCodePage := FFileCodePage;
+    end
+    else
+    begin
+      // DBase
+      if FFileLangId = 0 then
+        FFileLangId := DbfGlobals.DefaultCreateLangId;
+      FFileCodePage := LangId_To_CodePage[FFileLangId];
+      lLocaleID := LangId_To_Locale[FFileLangId];
+      FUseCodePage := FFileCodePage;
+    end;
+
     // prepare header size
     if FDbfVersion = xBaseVII then
     begin
@@ -657,11 +674,13 @@ begin
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo}
       end;
-      // standard language WE/Western Europe, dBase III no language support
-      if FDbfVersion = xBaseIII then
-        PDbfHdr(Header)^.Language := 0
+
+      // standard language WE/Western Europe
+      if FDbfVersion=xBaseIII then
+        PDbfHdr(Header)^.Language := 0 //no language support
       else
         PDbfHdr(Header)^.Language := FFileLangId;
+
       // init field ptr
       lFieldDescPtr := @lFieldDescIII;
     end;
@@ -3069,13 +3088,19 @@ begin
   Result := FCodePages.IndexOf(Pointer(ACodePage)) >= 0;
 end;
 
+function TDbfGlobals.CreateFoxProLangID(NewCodePage: integer): Byte;
+begin
+  ConstructLangId(NewCodePage, GetUserDefaultLCID, true);
+end;
+
 initialization
 finalization
   FreeAndNil(DbfGlobals);
 
 
 (*
-  Stuffs non implemented yet
+  Not implemented yet (encrypted cdx is undocumented;
+  unencrypted cdx could be implemented)
   TFoxCDXHeader         = Record
     PointerRootNode     : Integer;
     PointerFreeList     : Integer;
