@@ -1828,17 +1828,19 @@ IMPLEMENTATION
       unpack_BCD ( BCD, bh );
       res := 0;
       WITH bh do
-        begin
+        try
           for i := FDig TO 4 do
-            res := res * 10 + Singles[i];
+            res := res * 10 - Singles[i];
           if Plac > 4
             then
               if Singles[5] > 4
                 then Inc ( res );
-          if Neg
-            then Curr := -c
-            else Curr := +c;
-         end;
+          if not Neg then
+            res := -res;
+          Curr := c;
+        except
+          BCDToCurr := False;
+        end;
      end;
 
   procedure BCDAdd ( const BCDin1,
