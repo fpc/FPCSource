@@ -686,7 +686,7 @@ end;
 class operator TUInt24Rec.Implicit(a : TUInt24Rec) : Word;
 begin
 {$IFOPT R+}
-  if (a > $FFFF) then
+  if (a.byte2 > 0) then
     Error(reIntOverflow);
 {$ENDIF R+}
   TWordRec(Result).byte0 := a.byte0;
@@ -696,7 +696,7 @@ end;
 class operator TUInt24Rec.Implicit(a : TUInt24Rec) : Byte;
 begin
 {$IFOPT R+}
-  if (a > $FF) then
+  if (a.byte1 > 0) or (a.byte2 > 0) then
     Error(reIntOverflow);
 {$ENDIF R+}
   Result := a.byte0;
@@ -4151,7 +4151,7 @@ begin
   p_d := PByte(PtrUInt(p_d) + k);
   k := (s^.Data.WeightCount*SizeOf(TUCA_PropWeights));
   Move(p_s^,p_d^,k);
-    ReverseArray(p_d^,s^.Data.WeightCount,SizeOf(TUCA_PropWeights));
+    ReverseArray(p_d^,(s^.Data.WeightCount*Length(TUCA_PropWeights.Weights)),SizeOf(TUCA_PropWeights.Weights[0]));
   if (s^.Left > 0) then
     ReverseContextNodeFromNativeEndian(
       PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + s^.Left),
@@ -4297,7 +4297,7 @@ begin
   p_d := PByte(PtrUInt(p_d) + k);
   k := (d^.Data.WeightCount*SizeOf(TUCA_PropWeights));
   Move(p_s^,p_d^,k);
-    ReverseArray(p_d^,d^.Data.WeightCount,SizeOf(TUCA_PropWeights));
+    ReverseArray(p_d^,(d^.Data.WeightCount*Length(TUCA_PropWeights.Weights)),SizeOf(TUCA_PropWeights.Weights[0]));
   if (d^.Left > 0) then
     ReverseContextNodeToNativeEndian(
       PUCA_PropItemContextTreeNodeRec(PtrUInt(s) + d^.Left),
