@@ -521,8 +521,7 @@ begin
 end;
 
 const
-  // range of Dbase / FoxPro locale; these are INCLUSIVE
-
+  // range of Dbase / FoxPro locales; these are INCLUSIVE
   dBase_RegionCount = 4;
   dBase_Regions: array[0..dBase_RegionCount*2-1] of Byte =
    ($00, $00,
@@ -538,6 +537,7 @@ begin
   DbfRes := 0;
   FoxRes := 0;
   // scan
+  //todo: verify this for visual foxpro; it doesn't seem to work.
   for I := 0 to $FF do
   begin
     // check if need to advance to next region

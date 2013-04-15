@@ -195,7 +195,6 @@ type
     destructor Destroy; override;
 
     function CodePageInstalled(ACodePage: Integer): Boolean;
-    function CreateFoxProLangID(NewCodePage: integer): Byte;
 
     property CurrencyAsBCD: Boolean read FCurrencyAsBCD write FCurrencyAsBCD;
     property DefaultOpenCodePage: Integer read FDefaultOpenCodePage write FDefaultOpenCodePage;
@@ -630,21 +629,19 @@ begin
     // determine codepage & locale
     if FDbfVersion in [xFoxPro, xVisualFoxPro] then
     begin
-      if FFileLangId = 0 then
-        FFileLangId := DbfGlobals.CreateFoxProLangID(DbfGlobals.DefaultCreateCodePage);
-      FFileCodePage := LangId_To_CodePage[FFileLangId];
-      lLocaleID := LangId_To_Locale[FFileLangId];
-      FUseCodePage := FFileCodePage;
+      // Don't use DbfGlobals default language ID as it is dbase-based
+      FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
     end
     else
     begin
       // DBase
       if FFileLangId = 0 then
         FFileLangId := DbfGlobals.DefaultCreateLangId;
-      FFileCodePage := LangId_To_CodePage[FFileLangId];
-      lLocaleID := LangId_To_Locale[FFileLangId];
-      FUseCodePage := FFileCodePage;
     end;
+    FFileCodePage := LangId_To_CodePage[FFileLangId];
+    lLocaleID := LangId_To_Locale[FFileLangId];
+    FUseCodePage := FFileCodePage;
+
 
     // prepare header size
     if FDbfVersion = xBaseVII then
@@ -3086,11 +3083,6 @@ end;
 function TDbfGlobals.CodePageInstalled(ACodePage: Integer): Boolean;
 begin
   Result := FCodePages.IndexOf(Pointer(ACodePage)) >= 0;
-end;
-
-function TDbfGlobals.CreateFoxProLangID(NewCodePage: integer): Byte;
-begin
-  ConstructLangId(NewCodePage, GetUserDefaultLCID, true);
 end;
 
 initialization
