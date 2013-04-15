@@ -66,6 +66,24 @@ begin
   end;
 end;
 
+procedure testBCDToCurr(const s: string; c1: currency);
+var c2: currency;
+    b1, b2: boolean;
+begin
+  b1 := c1<>0;
+  b2 := BCDToCurr(StrToBCD(s), c2);
+  if b1 <> b2 then
+    begin
+    writeln('BCDToCurr for ', s, ' returned ', b2,' but expected ', b1);
+    inc(ErrorCount);
+    end
+  else if b2 and (c1 <> c2) then
+    begin
+    writeln('BCDToCurr for ', s, ' returned ', c2,' but expected ', c1);
+    inc(ErrorCount);
+    end;
+end;
+
 procedure testBCDCompare(bcd1,bcd2: TBCD; res: integer);
 begin
   if (BCDCompare(bcd1,bcd2) <> res) then
@@ -189,6 +207,13 @@ begin
   testBCDPrecScale('1.001', 4, 3);
   testBCDPrecScale('1001', 4, 0);
   testBCDPrecScale('1001.1001', 8, 4);
+
+  // test BCDToCurr:
+  testBCDToCurr( '922337203685477.5807', MaxCurrency); // test boundary values
+  testBCDToCurr('-922337203685477.5807', MinCurrency);
+  testBCDToCurr('-922337203685477.5808', StrToCurr('-922337203685477.5808'));
+  testBCDToCurr( '922337203685477.5808', 0); // out-of-range values
+  testBCDToCurr('-922337203685477.5809', 0);
 
   DefaultFormatSettings := DFS;
 
