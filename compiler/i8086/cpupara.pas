@@ -40,10 +40,16 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
-          { Returns the location for the nr-st 32 Bit int parameter
-            if every parameter before is an 32 Bit int parameter as well
+          { Returns the location for the nr-st 16 Bit int parameter
+            if every parameter before is an 16 Bit int parameter as well
             and if the calling conventions for the helper routines of the
             rtl are used.
+
+            TODO: This allocates 32-bit ints on other CPU architectures. Since
+            we're small/tiny model only, for now we can get away with allocating
+            always 16-bit int parameters, but in the future, when we implement
+            other memory models, this mechanism has to be extended somehow to
+            support 32-bit addresses on a 16-bit CPU.
           }
           procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
