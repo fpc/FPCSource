@@ -5,6 +5,8 @@ interface
 var
   test: char;
 
+procedure t;
+
 implementation
 
 uses
