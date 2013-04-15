@@ -1,14 +1,14 @@
 {%norun}
-program udots.prog;
+program tudots.prog;
 
 {$mode delphi}
 
 uses
-  udots;
+  tudots;
 
 begin
   // this should not fail although we have a namespace udots and a unit udots
-  udots.dot.test := 1;
+  tudots.dot.test := 1;
 end.
 
 

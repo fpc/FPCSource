@@ -1,4 +1,4 @@
-unit udots.dot;
+unit tudots.dot;
 
 interface
 
@@ -10,16 +10,16 @@ procedure t;
 implementation
 
 uses
-  udots, udots.dot.next;
+  tudots, tudots.dot.next;
 
 // test that type is resolved
 var
-  test1: udots.dot.next.ttest;
+  test1: tudots.dot.next.ttest;
 
 procedure t;
 begin
   // test that we resolved the next identifier to the local variable test
-  udots.dot.test := 'c';
+  tudots.dot.test := 'c';
 end;
 
 end.

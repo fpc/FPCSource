@@ -1,15 +1,15 @@
 {%fail}
 {%norun}
-program udots.dot.prog;
+program tudots.dot.prog;
 
 {$mode delphi}
 
 uses
-  udots;
+  tudots;
 
 begin
   // this must fail because we have a namespace udots.dot and it has no unit test
-  udots.dot.test := 1;
+  tudots.dot.test := 1;
 end.
 
 

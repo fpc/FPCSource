@@ -5,7 +5,7 @@ program tdotunits4;
 {$mode delphi}
 
 uses
-  udots.test;
+  tudots.test;
 
 begin
 end.
