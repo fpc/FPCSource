@@ -40,7 +40,7 @@ procedure fpc_zeromem(p:pointer;len:ptruint);compilerproc;
 procedure fpc_fillmem(out data;len:ptruint;b : byte);compilerproc;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer); compilerproc;
+procedure fpc_shortstr_assign(len:{$ifdef cpu16}smallint{$else}longint{$endif};sstr,dstr:pointer); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
