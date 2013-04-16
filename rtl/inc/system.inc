@@ -1050,7 +1050,7 @@ begin
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPU86} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
