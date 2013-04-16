@@ -45,6 +45,8 @@ type
     property MemoRecordSize: Integer read FMemoRecordSize write FMemoRecordSize;
   end;
 
+  { TFoxProMemoFile }
+  // (Visual) Foxpro memo file support
   TFoxProMemoFile = class(TMemoFile)
   protected
     function  GetBlockLen: Integer; override;
@@ -54,6 +56,7 @@ type
     procedure SetBlockLen(BlockLen: Integer); override;
   end;
 
+  // DBaseIII+ memo file support:
   TDbaseMemoFile = class(TMemoFile)
   protected
     function  GetBlockLen: Integer; override;
@@ -145,6 +148,7 @@ type
     MemoSize  : Cardinal; // 4..7
     // memo data             8..N
   end;
+
 
 procedure TMemoFile.SetDBFVersion(AValue: TXBaseVersion);
 begin
@@ -301,10 +305,10 @@ begin
       end;
     end;
   end else begin
-    // dbase III memo
+    // e.g. dbase III memo
     done := false;
     repeat
-      // scan for EOF marker
+      // scan for EOF marker/field terminator
       endMemo := MemScan(FBuffer, $1A, RecordSize);
       // EOF found?
       if endMemo <> nil then
@@ -313,10 +317,10 @@ begin
         if (endMemo-FBuffer < RecordSize - 1) and
           ((endMemo[1] = #$1A) or (endMemo[1] = #0)) then
         begin
-          done := true;
+          done := true; //found the end
           numBytes := endMemo - FBuffer;
         end else begin
-          // no, fake
+          // no, fake ending
           numBytes := RecordSize;
         end;
       end else begin
@@ -402,7 +406,7 @@ begin
     Src.Position := 0;
     FillChar(FBuffer[0], RecordSize, FEmptySpaceFiller);
 
-    if bytesBefore=8 then
+    if bytesBefore=8 then //Field header
     begin
       totsize := Src.Size + bytesBefore + bytesAfter;
       if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
@@ -454,7 +458,7 @@ end;
 function  TDbaseMemoFile.GetBlockLen: Integer;
 begin
   // Can you tell me why the header of dbase3 memo contains 1024 and is 512 ?
-  // answer: it is not a valid field in memo db3 header
+  // answer: BlockLen is not a valid field in memo db3 header
   if FDbfVersion = xBaseIII then
     Result := 512
   else
@@ -464,7 +468,7 @@ end;
 function  TDbaseMemoFile.GetMemoSize: Integer;
 begin
   // dBase4 memofiles contain a small 'header'
-  if PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF)) then
+  if (FDbfVersion<>xBaseIII) and (PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF))) then
     Result := SwapIntLE(PBlockHdr(FBuffer)^.MemoSize)-8
   else
     Result := -1;
@@ -482,7 +486,9 @@ end;
 
 procedure TDbaseMemoFile.SetBlockLen(BlockLen: Integer);
 begin
-  PDbtHdr(Header)^.BlockLen := SwapWordLE(BlockLen);
+  // DBase III does not support block sizes<>512 bytes
+  if (FDbfVersion<>xBaseIII) then
+    PDbtHdr(Header)^.BlockLen := SwapWordLE(BlockLen);
 end;
 
 // ------------------------------------------------------------------
