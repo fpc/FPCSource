@@ -1635,7 +1635,11 @@ implementation
           in options or init_parser }
         stacksize:=0;
         { not initialized yet }
+{$ifndef jvm}
         jmp_buf_size:=-1;
+{$else}
+        jmp_buf_size:=0;
+{$endif}
         apptype:=app_cui;
 
         { Init values }
