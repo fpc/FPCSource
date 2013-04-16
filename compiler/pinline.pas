@@ -76,7 +76,7 @@ implementation
         storepos : tfileposinfo;
         variantdesc : pvariantrecdesc;
         found : boolean;
-        j,i : ASizeInt;
+        j,i : longint;
         variantselectsymbol : tfieldvarsym;
       begin
         if target_info.system in systems_managed_vm then

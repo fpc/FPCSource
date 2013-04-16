@@ -3465,7 +3465,7 @@ implementation
 
       procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
         var
-          i,j : asizeint;
+          i,j : longint;
         begin
          if ppufile.getbyte=1 then
            begin
@@ -3607,7 +3607,7 @@ implementation
 
       procedure writevariantrecdesc(variantrecdesc : pvariantrecdesc);
         var
-          i,j : asizeint;
+          i,j : longint;
         begin
          if assigned(variantrecdesc) then
            begin
