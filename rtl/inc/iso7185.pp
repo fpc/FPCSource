@@ -132,8 +132,12 @@ unit iso7185;
 
 
     Procedure Put(var t : Text);
+      type
+        FileFunc = Procedure(var t : TextRec);
       begin
         inc(TextRec(t).BufPos);
+        If TextRec(t).BufPos>=TextRec(t).BufSize Then
+          FileFunc(TextRec(t).InOutFunc)(TextRec(t));
       end;
 
 
