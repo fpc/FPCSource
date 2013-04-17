@@ -734,24 +734,20 @@ const pemagic : array[0..3] of byte = (
 
     function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:shortint):longword;
       begin
-        result:=0;
-        if (oso_load in aoptions) then
-          begin
-            if oso_executable in aoptions then
-              result:=result or PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
-            else
-              begin
-                if (oso_data in aoptions) then
-                  result:=result or PE_SCN_CNT_INITIALIZED_DATA
-                else
-                  result:=result or PE_SCN_CNT_UNINITIALIZED_DATA;
-              end;
-            if oso_write in aoptions then
-              result:=result or PE_SCN_MEM_WRITE or PE_SCN_MEM_READ
-            else
-              result:=result or PE_SCN_MEM_READ;
-          end
+        if oso_executable in aoptions then
+          result:=PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
         else
+          begin
+            if (oso_data in aoptions) then
+              result:=PE_SCN_CNT_INITIALIZED_DATA
+            else
+              result:=PE_SCN_CNT_UNINITIALIZED_DATA;
+          end;
+        if oso_write in aoptions then
+          result:=result or PE_SCN_MEM_WRITE or PE_SCN_MEM_READ
+        else
+          result:=result or PE_SCN_MEM_READ;
+        if not (oso_load in aoptions) then
           result:=result or PE_SCN_MEM_DISCARDABLE;
         case aalign of
            1 : result:=result or PE_SCN_ALIGN_1BYTES;
@@ -2742,7 +2738,7 @@ const pemagic : array[0..3] of byte = (
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_load,oso_keep]);
+        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_keep]);
         exesec.AddObjSection(objsec);
         pgaddr:=longword(-1);
         hdrpos:=longword(-1);
