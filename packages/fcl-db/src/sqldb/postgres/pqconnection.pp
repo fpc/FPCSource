@@ -632,19 +632,24 @@ begin
       if Assigned(AParams) and (AParams.Count > 0) then
         begin
         s := s + '(';
-        for i := 0 to AParams.Count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
-          s := s + TypeStrings[AParams[i].DataType] + ','
-        else
-          begin
-          if AParams[i].DataType = ftUnknown then 
-            DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
-          else 
-            DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
-          end;
+        for i := 0 to AParams.Count-1 do
+          if AParams[i].IsNull then
+            s:=s+' unknown ,'
+          else if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+            s := s + TypeStrings[AParams[i].DataType] + ','
+          else
+            begin
+            if AParams[i].DataType = ftUnknown then
+              DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+            else
+              DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+            end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
+      if LogEvent(detPrepare) then
+        Log(detPrepare,S);
       res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
