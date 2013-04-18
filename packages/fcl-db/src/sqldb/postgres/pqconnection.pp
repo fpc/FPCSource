@@ -633,14 +633,17 @@ begin
         begin
         s := s + '(';
         for i := 0 to AParams.Count-1 do
-          if AParams[i].IsNull then
-            s:=s+' unknown ,'
-          else if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+          if TypeStrings[AParams[i].DataType] <> 'Unknown' then
             s := s + TypeStrings[AParams[i].DataType] + ','
           else
             begin
             if AParams[i].DataType = ftUnknown then
-              DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+              begin
+              if AParams[i].IsNull then
+                s:=s+' unknown ,'
+              else
+                DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+              end
             else
               DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
             end;
