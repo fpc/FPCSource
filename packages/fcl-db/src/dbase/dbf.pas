@@ -1108,7 +1108,7 @@ begin
       FieldDefs[lFieldDefCount].Attributes := [Db.faHiddenCol];
 {$else}
     // Poor man's way of hiding fields that shouldn't be shown/modified:
-    // Note: Visual Foxpro seems to allow adding another _NULLFLAGS field
+    // Note: Visual Foxpro seems to allow adding another _NULLFLAGS field.
     // todo: test this with lockfield, then add this (TempFieldDef.IsLockField)
     if (TempFieldDef.IsSystemField) then
     begin
