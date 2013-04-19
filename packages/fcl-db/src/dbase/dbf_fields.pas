@@ -53,7 +53,7 @@ type
   protected
     function  GetDisplayName: string; override;
     procedure AssignTo(Dest: TPersistent); override;
-
+    // File is compatible with this database product
     property DbfVersion: TXBaseVersion read GetDbfVersion;
   public
     constructor Create(ACollection: TCollection); override;
@@ -97,7 +97,7 @@ type
     // Note: VarLengthPosition property is 0 based
     // http://msdn.microsoft.com/en-us/library/st4a0s68%28v=VS.80%29.aspx
     property VarLengthPosition: integer read FVarLengthPosition write FVarLengthPosition;
-    // Native dbf field type
+    // Native dbf field type (C character etc)
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
     // Size in physical dbase file.
     // Note: this often differs from the VCL field sizes

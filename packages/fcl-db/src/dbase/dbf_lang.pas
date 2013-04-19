@@ -521,7 +521,7 @@ begin
 end;
 
 const
-  // range of Dbase / FoxPro locales; these are INCLUSIVE
+  // range of Dbase locales; these are INCLUSIVE (the rest are FoxPro?)
   dBase_RegionCount = 4;
   dBase_Regions: array[0..dBase_RegionCount*2-1] of Byte =
    ($00, $00,
@@ -530,31 +530,34 @@ const
     $80, $90);
 
 function FindLangId(CodePage, Info2: Cardinal; Info2Table: PCardinal; IsFoxPro: Boolean): Byte;
+// Info2: desired locale
+// Info2Table: pointer to lookup array: language ID=>locale cardinal
 var
-  I, Region, FoxRes, DbfRes: Integer;
+  LangID, Region, FoxRes, DbfRes: Integer;
 begin
   Region := 0;
   DbfRes := 0;
   FoxRes := 0;
-  // scan
-  //todo: verify this for visual foxpro; it doesn't seem to work.
-  for I := 0 to $FF do
+  // scan for a language ID matching the given codepage
+  for LangID := 0 to $FF do
   begin
     // check if need to advance to next region
     if Region + 2 < dBase_RegionCount then
-      if I >= dBase_Regions[Region + 2] then
+      if LangID >= dBase_Regions[Region + 2] then
         Inc(Region, 2);
     // it seems delphi does not properly understand pointers?
     // what a mess :-(
-    if ((LangId_To_CodePage[I] = CodePage) or (CodePage = 0)) and (PCardinal(PChar(Info2Table)+(I*4))^ = Info2) then
-      if I <= dBase_Regions[Region+1] then
-        DbfRes := Byte(I)
+    //todo: verify this for visual foxpro; we never seem to get a result
+    if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
+      (PCardinal(PChar(Info2Table)+(LangID*4))^ = Info2) then
+      if LangID <= dBase_Regions[Region+1] then
+        DbfRes := Byte(LangID)
       else
-        FoxRes := Byte(I);
+        FoxRes := Byte(LangID);
   end;
   // if we can find langid in other set, use it
   if (DbfRes <> 0) and (not IsFoxPro or (FoxRes = 0)) then
-    Result := DbfRes
+    Result := DbfRes //if not using foxpro
   else  {(DbfRes = 0) or (IsFoxPro and (FoxRes <> 0)}
   if (FoxRes <> 0) {and (IsFoxPro or (DbfRes = 0)} then
     Result := FoxRes
@@ -603,7 +606,7 @@ end;
 
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
 begin
-  // locale: lower 16bits only
+  // locale: lower 16bits only, with default sorting
   Locale := (Locale and $FFFF) or (SORT_DEFAULT shl 16);
   Result := FindLangId(CodePage, Locale, @LangId_To_Locale[0], IsFoxPro);
   // not found? try any codepage
