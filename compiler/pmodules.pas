@@ -46,7 +46,7 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,
        cpuinfo;
 
 
@@ -1160,10 +1160,6 @@ type
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
 
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
-
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable,true);
          write_persistent_type_info(current_module.localsymtable,false);
@@ -2210,9 +2206,6 @@ type
 
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
-
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then

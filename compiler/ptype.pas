@@ -49,8 +49,6 @@ interface
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
 
     { add a definition for a method to a record/objectdef that will contain
       all code for initialising typed constants (only for targets in
@@ -79,7 +77,7 @@ implementation
        { modules }
        fmodule,
        { pass 1 }
-       node,ncgrtti,nobj,
+       node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -1705,71 +1703,6 @@ implementation
       end;
 
 
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
-      var
-        i : longint;
-        def : tdef;
-        vmtwriter  : TVMTWriter;
-      begin
-{$ifdef jvm}
-        { no Delphi-style RTTI }
-        exit;
-{$endif jvm}
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            case def.typ of
-              recorddef :
-                write_persistent_type_info(trecorddef(def).symtable,is_global);
-              objectdef :
-                begin
-                  { Skip generics and forward defs }
-                  if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
-                     (oo_is_forward in tobjectdef(def).objectoptions) then
-                    continue;
-                  write_persistent_type_info(tobjectdef(def).symtable,is_global);
-                  { Write also VMT if not done yet }
-                  if not(ds_vmt_written in def.defstates) then
-                    begin
-                      vmtwriter:=TVMTWriter.create(tobjectdef(def));
-                      if is_interface(tobjectdef(def)) then
-                        vmtwriter.writeinterfaceids;
-                      if (oo_has_vmt in tobjectdef(def).objectoptions) then
-                        vmtwriter.writevmt;
-                      vmtwriter.free;
-                      include(def.defstates,ds_vmt_written);
-                    end;
-                end;
-              procdef :
-                begin
-                  if assigned(tprocdef(def).localst) and
-                     (tprocdef(def).localst.symtabletype=localsymtable) then
-                    write_persistent_type_info(tprocdef(def).localst,false);
-                  if assigned(tprocdef(def).parast) then
-                    write_persistent_type_info(tprocdef(def).parast,false);
-                end;
-            end;
-            { generate always persistent tables for types in the interface so it can
-              be reused in other units and give always the same pointer location. }
-            { Init }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               is_managed_type(def) or
-               (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
-            { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,fullrtti);
-          end;
-      end;
 
 
     procedure add_typedconst_init_routine(def: tabstractrecorddef);

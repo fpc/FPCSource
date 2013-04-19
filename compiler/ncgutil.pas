@@ -88,7 +88,6 @@ interface
     procedure gen_load_para_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
     procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
 
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
@@ -2027,63 +2026,6 @@ implementation
                   end;
               end;
           end;
-      end;
-
-
-    procedure gen_intf_wrapper(list:TAsmList;_class:tobjectdef);
-      var
-        i,j  : longint;
-        tmps : string;
-        pd   : TProcdef;
-        ImplIntf : TImplementedInterface;
-      begin
-        for i:=0 to _class.ImplementedInterfaces.count-1 do
-          begin
-            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            if (ImplIntf=ImplIntf.VtblImplIntf) and
-               assigned(ImplIntf.ProcDefs) then
-              begin
-                maybe_new_object_file(list);
-                for j:=0 to ImplIntf.ProcDefs.Count-1 do
-                  begin
-                    pd:=TProcdef(ImplIntf.ProcDefs[j]);
-                    { we don't track method calls via interfaces yet ->
-                      assume that every method called via an interface call
-                      is reachable for now }
-                    if (po_virtualmethod in pd.procoptions) and
-                       not is_objectpascal_helper(tprocdef(pd).struct) then
-                      tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
-                    tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
-                      ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
-                    { create wrapper code }
-                    new_section(list,sec_code,tmps,0);
-                    hlcg.init_register_allocators;
-                    cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
-                    hlcg.done_register_allocators;
-                  end;
-              end;
-          end;
-      end;
-
-
-    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
-      var
-        i   : longint;
-        def : tdef;
-      begin
-        if not nested then
-          create_hlcodegen;
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            { if def can contain nested types then handle it symtable }
-            if def.typ in [objectdef,recorddef] then
-              gen_intf_wrappers(list,tabstractrecorddef(def).symtable,true);
-            if is_class(def) then
-              gen_intf_wrapper(list,tobjectdef(def));
-          end;
-        if not nested then
-          destroy_hlcodegen;
       end;
 
 

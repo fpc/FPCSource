@@ -387,6 +387,7 @@ compiler/ncgopt.pas svneol=native#text/plain
 compiler/ncgrtti.pas svneol=native#text/plain
 compiler/ncgset.pas svneol=native#text/plain
 compiler/ncgutil.pas svneol=native#text/plain
+compiler/ncgvmt.pas svneol=native#text/plain
 compiler/ncnv.pas svneol=native#text/plain
 compiler/ncon.pas svneol=native#text/plain
 compiler/nflw.pas svneol=native#text/plain
