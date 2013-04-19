@@ -1171,7 +1171,7 @@ var
   Module: TPasElement;
 begin
   Result := FindInModule(CurModule, AName);
-  if not Assigned(Result) then
+  if not Assigned(Result) and assigned (CurModule.InterfaceSection) then
     for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
     begin
       Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
