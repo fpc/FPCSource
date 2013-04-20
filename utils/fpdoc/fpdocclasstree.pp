@@ -122,7 +122,8 @@ begin
 end;
 
 Function TClassTreeBuilder.AddToClassTree(AElement : TPasElement; ACount : Integer) : TDomElement;
-
+// there are several codepaths that use uninitialized variables. (N,PE)
+// I initialized them to nil to at least make failures deterministic.
 Var
   PC : TPasClassType;
   PE : TDomElement;
@@ -132,7 +133,7 @@ Var
 
 begin
   PF:=StringOfChar(' ',ACount);
-  Result:=Nil;
+  Result:=Nil; N:=Nil;PE:=NIL;
   If (AElement=Nil) then
     begin
     Result:=FTreeStart;
@@ -162,7 +163,7 @@ begin
   If (N<>Nil) then
     Result:=N as TDomElement
   else
-    begin
+    begin // N=NIL, PE might be nil.
     Inc(ACount);
     Result:=FClassTree.CreateElement(AElement.Name);
     If Not (AElement is TPasUnresolvedTypeRef) then
@@ -171,7 +172,9 @@ begin
       if Assigned(M) then
         Result['unit']:=M.Name;
       end;
-    PE.AppendChild(Result);
+      if assigned(PE) then  // if not assigned, probably needs to be
+			    // assigned to something else.
+        PE.AppendChild(Result);
     end;
 end;
 
