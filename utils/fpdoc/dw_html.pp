@@ -607,7 +607,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
               begin
               DidAutolink := False;
               if Assigned(ClassEl.AncestorType) and
-                (ClassEl.AncestorType.ClassType = TPasClassType) then
+                (ClassEl.AncestorType.ClassType.inheritsfrom(TPasClassType)) then
                 begin
                 for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
                   begin
@@ -2482,7 +2482,6 @@ begin
     Dec(i);
   CurDirectory := Copy(CurDirectory, 1, i);
   BaseDirectory := Allocator.GetRelativePathToTop(AElement);
-
   if AElement.ClassType = TPasPackage then
     begin
     Module:=Nil;
@@ -2496,11 +2495,11 @@ begin
   else
     begin
     Element := AElement;
-    while (Element<>Nil) and (Element.ClassType<>TPasModule) do
+    while (Element<>Nil) and (not (Element.ClassType.inheritsfrom(TPasModule))) do
       Element := Element.Parent;
     Module := TPasModule(Element);
 
-    if AElement.ClassType = TPasModule then
+    if AElement.ClassType.inheritsfrom(TPasModule) then
       CreateModulePageBody(TPasModule(AElement), ASubpageIndex)
     else if AElement.Parent.InheritsFrom(TPasClassType) then
       CreateClassMemberPageBody(AElement)
@@ -2516,6 +2515,8 @@ begin
       CreateProcPageBody(TPasProcedureBase(AElement))
     else if AElement.ClassType = TTopicELement then
       CreateTopicPageBody(TTopicElement(AElement))
+    else
+      writeln('Unknown classtype: ',AElement.classtype.classname);
   end;
 end;
 
@@ -3370,6 +3371,8 @@ var
           ThisClass := TPasClassType(ThisClass.AncestorType)
         else
         begin
+          if thisclass.ancestortype is TPasUnresolvedTypeRef then
+            thisnode:=TPasUnresolvedTypeRef(ThisClass.ancestortype);
           TDEl := CreateTD(CreateTR(TableEl));
           TDEl['align'] := 'center';
           AppendText(CreateCode(CreatePara(TDEl)), ThisClass.AncestorType.Name);
@@ -3449,7 +3452,7 @@ var
             '''; return false;';
       end;
       if (not Assigned(ThisClass.AncestorType)) or
-        (not (ThisClass.AncestorType.ClassType = TPasClassType)) then
+        (not (ThisClass.AncestorType.ClassType.inheritsfrom(TPasClassType))) then
         break;
       ThisClass := TPasClassType(ThisClass.AncestorType);
       AppendNbSp(CreatePara(CreateTD(CreateTR(TableEl))), 1);
@@ -3484,7 +3487,7 @@ var
           end;
         end;
         if (not Assigned(ThisClass.AncestorType)) or
-          (not (ThisClass.AncestorType.ClassType = TPasClassType)) then
+          (not (ThisClass.AncestorType.ClassType.inheritsfrom(TPasClassType))) then
           break;
         ThisClass := TPasClassType(ThisClass.AncestorType);
       end;
