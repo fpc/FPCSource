@@ -1066,6 +1066,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       Module := TPasModule(Package.Modules[i]);
+      if not assigned(Module.InterfaceSection) then
+        continue;
       for j := 0 to Module.InterfaceSection.Classes.Count - 1 do
       begin
         ClassDecl := TPasClassType(Module.InterfaceSection.Classes[j]);
@@ -1520,7 +1522,7 @@ begin
           break;
         CurPackage := CurPackage.NextSibling;
       end;
-      if not Assigned(Result) then
+      if not Assigned(Result) and assigned(CurModule.InterfaceSection) then
       begin
         { Okay, then we have to try all imported units of the current module }
         UnitList := CurModule.InterfaceSection.UsesList;

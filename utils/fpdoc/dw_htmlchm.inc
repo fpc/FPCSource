@@ -175,6 +175,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      If not assigned(AModule.InterfaceSection) Then
+         Continue;
       ObjUnitItem := ObjByUnitItem.Children.NewItem;
       ObjUnitItem.Text := AModule.Name;
       RoutinesUnitItem := RoutinesByUnitItem.Children.NewItem;
@@ -292,6 +294,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      if not assigned(AModule.InterfaceSection) then
+        continue;
       ParentItem := Index.Items.NewItem;
       ParentItem.Text := AModule.Name;
       ParentItem.Local := FixHTMLpath(Allocator.GetFilename(AModule, 0));
