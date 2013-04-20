@@ -1177,7 +1177,7 @@ begin
     for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
     begin
       Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
-      if Module.ClassType = TPasModule then
+      if Module.ClassType.InheritsFrom(TPasModule) then
       begin
         Result := FindInModule(TPasModule(Module), AName);
         if Assigned(Result) then
