@@ -186,8 +186,10 @@ type
     FDefaultCreateLangId: Byte;
     FUserName: string;
     FUserNameLen: DWORD;
-	
+
+    // Translates FDefaultCreateLangId back to codepage
     function  GetDefaultCreateCodePage: Integer;
+    // Takes codepage and sets FDefaultCreateLangId
     procedure SetDefaultCreateCodePage(NewCodePage: Integer);
     procedure InitUserName;
   public
