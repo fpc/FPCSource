@@ -439,10 +439,20 @@ implementation
         paramanager.getintparaloc(pd,1,paraloc1);
         paramanager.getintparaloc(pd,2,paraloc2);
         paramanager.getintparaloc(pd,3,paraloc3);
-        cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
-        cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-        { push type of exceptionframe }
-        cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+        if pd.is_pushleftright then
+          begin
+            { push type of exceptionframe }
+            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
+            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+          end
+        else
+          begin
+            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
+            { push type of exceptionframe }
+            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+          end;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);

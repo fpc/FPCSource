@@ -2829,9 +2829,18 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       paramanager.getintparaloc(pd,2,cgpara2);
       paramanager.getintparaloc(pd,3,cgpara3);
-      a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
-      a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
-      a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
+      if pd.is_pushleftright then
+        begin
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
+        end
+      else
+        begin
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
+        end;
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
@@ -2851,8 +2860,16 @@ implementation
       cgpara2.init;
       paramanager.getintparaloc(pd,1,cgpara1);
       paramanager.getintparaloc(pd,2,cgpara2);
-      a_loadaddr_ref_cgpara(list,vardef,dest,cgpara2);
-      a_loadaddr_ref_cgpara(list,vardef,source,cgpara1);
+      if pd.is_pushleftright then
+        begin
+          a_loadaddr_ref_cgpara(list,vardef,source,cgpara1);
+          a_loadaddr_ref_cgpara(list,vardef,dest,cgpara2);
+        end
+      else
+        begin
+          a_loadaddr_ref_cgpara(list,vardef,dest,cgpara2);
+          a_loadaddr_ref_cgpara(list,vardef,source,cgpara1);
+        end;
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
       g_call_system_proc(list,pd,nil);
@@ -2904,8 +2921,16 @@ implementation
           if is_open_array(t) then
             InternalError(201103054);
           reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
-          a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+          if pd.is_pushleftright then
+            begin
+              a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+            end
+          else
+            begin
+              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+            end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
           g_call_system_proc(list,pd,nil);
@@ -2944,8 +2969,16 @@ implementation
             paramanager.getintparaloc(pd,1,cgpara1);
             paramanager.getintparaloc(pd,2,cgpara2);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-            a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
-            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+            if pd.is_pushleftright then
+              begin
+                a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              end
+            else
+              begin
+                a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+                a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+              end;
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
             g_call_system_proc(list,pd,nil);
@@ -2986,8 +3019,16 @@ implementation
           paramanager.getintparaloc(pd,1,cgpara1);
           paramanager.getintparaloc(pd,2,cgpara2);
           reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
-          a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+          if pd.is_pushleftright then
+            begin
+              a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+            end
+          else
+            begin
+              a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+            end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
           g_call_system_proc(list,pd,nil);
@@ -3019,6 +3060,14 @@ implementation
       paramanager.getintparaloc(pd,2,cgpara2);
       paramanager.getintparaloc(pd,3,cgpara3);
 
+      { if calling convention is left to right, push parameters 1 and 2 }
+      if pd.is_pushleftright then
+        begin
+          a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+        end;
+
+      { push parameter 3 }
       reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
       if highloc.loc=LOC_CONSTANT then
         a_load_const_cgpara(list,ptrsinttype,highloc.value+1,cgpara3)
@@ -3037,8 +3086,12 @@ implementation
           a_load_reg_cgpara(list,ptrsinttype,lenreg,cgpara3);
         end;
 
-      a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
-      a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+      { if calling convention is right to left, push parameters 2 and 1 }
+      if not pd.is_pushleftright then
+        begin
+          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+        end;
       paramanager.freecgpara(list,cgpara1);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara3);
@@ -3308,12 +3361,24 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       paramanager.getintparaloc(pd,2,cgpara2);
       paramanager.getintparaloc(pd,3,cgpara3);
-      { load size }
-      a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
-      { load destination }
-      a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
-      { load source }
-      a_load_reg_cgpara(list,ptrarrdef,sourcereg,cgpara1);
+      if pd.is_pushleftright then
+        begin
+          { load source }
+          a_load_reg_cgpara(list,ptrarrdef,sourcereg,cgpara1);
+          { load destination }
+          a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
+          { load size }
+          a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
+        end
+      else
+        begin
+          { load size }
+          a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
+          { load destination }
+          a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
+          { load source }
+          a_load_reg_cgpara(list,ptrarrdef,sourcereg,cgpara1);
+        end;
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);

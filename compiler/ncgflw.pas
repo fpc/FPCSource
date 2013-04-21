@@ -986,31 +986,64 @@ implementation
                 exit;
 
               { Push parameters }
-              if assigned(right) then
+              { ugly code repetition follows for left to right and right to left calling conventions }
+              { TODO: refactor this somehow }
+              if pd.is_pushleftright then
                 begin
-                  { frame tree }
-                  if assigned(third) then
-                    cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
-                  else
-                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
-                  { push address }
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                   if assigned(right) then
+                     begin
+                       { push address }
+                       cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                       { frame tree }
+                       if assigned(third) then
+                         cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
+                       else
+                         cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
+                     end
+                   else
+                     begin
+                        { get current address }
+                        current_asmdata.getaddrlabel(a);
+                        cg.a_label(current_asmdata.CurrAsmList,a);
+                        reference_reset_symbol(href2,a,0,1);
+                        { push current address }
+                        if target_info.system <> system_powerpc_macos then
+                          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
+                        else
+                          cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
+                        { push current frame }
+                        cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
+                     end;
                 end
               else
                 begin
-                   { get current address }
-                   current_asmdata.getaddrlabel(a);
-                   cg.a_label(current_asmdata.CurrAsmList,a);
-                   reference_reset_symbol(href2,a,0,1);
-                   { push current frame }
-                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
-                   { push current address }
-                   if target_info.system <> system_powerpc_macos then
-                     cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
-                   else
-                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
+                  if assigned(right) then
+                    begin
+                      { frame tree }
+                      if assigned(third) then
+                        cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
+                      else
+                        cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
+                      { push address }
+                      cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                    end
+                  else
+                    begin
+                       { get current address }
+                       current_asmdata.getaddrlabel(a);
+                       cg.a_label(current_asmdata.CurrAsmList,a);
+                       reference_reset_symbol(href2,a,0,1);
+                       { push current frame }
+                       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
+                       { push current address }
+                       if target_info.system <> system_powerpc_macos then
+                         cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
+                       else
+                         cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
+                    end;
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                 end;
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
