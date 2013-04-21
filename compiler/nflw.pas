@@ -1937,26 +1937,55 @@ implementation
 
 
     function traisenode.pass_1 : tnode;
+      var
+        statements : tstatementnode;
+        current_addr : tlabelnode;
+        raisenode : tcallnode;
       begin
-         result:=nil;
-         include(current_procinfo.flags,pi_do_call);
-         expectloc:=LOC_VOID;
-         if assigned(left) then
-           begin
-              { first para must be a _class_ }
-              firstpass(left);
-              { insert needed typeconvs for addr,frame }
-              if assigned(right) then
-               begin
-                 { addr }
-                 firstpass(right);
-                 { frame }
-                 if assigned(third) then
-                  firstpass(third);
-               end;
-           end;
-      end;
+        result:=internalstatements(statements);
 
+        if assigned(left) then
+          begin
+            { first para must be a class }
+            firstpass(left);
+            { insert needed typeconvs for addr,frame }
+            if assigned(right) then
+              begin
+                { addr }
+                firstpass(right);
+                { frame }
+                if assigned(third) then
+                  firstpass(third)
+                else
+                  third:=cpointerconstnode.Create(0,voidpointertype);
+              end
+            else
+              begin
+                right:=cloadparentfpnode.create(current_procinfo.procdef);
+                current_addr:=clabelnode.create(cnothingnode.create,tlabelsym.create('$raiseaddr'));
+                addstatement(statements,current_addr);
+                third:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
+              end;
+
+            raisenode:=ccallnode.createintern('fpc_raiseexception',
+              ccallparanode.create(third,
+              ccallparanode.create(right,
+              ccallparanode.create(left,nil)))
+              );
+            include(raisenode.callnodeflags,cnf_call_never_returns);
+            addstatement(statements,raisenode);
+          end
+        else
+          begin
+            addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
+            raisenode:=ccallnode.createintern('fpc_reraise',nil);
+            include(raisenode.callnodeflags,cnf_call_never_returns);
+            addstatement(statements,raisenode);
+          end;
+        left:=nil;
+        right:=nil;
+        third:=nil;
+      end;
 
 {*****************************************************************************
                              TTRYEXCEPTNODE
