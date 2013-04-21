@@ -39,7 +39,7 @@ implementation
       cpubase;
 
     const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
       int_regname_table : array[tregisterindex] of string[7] = (
         {$i r8664int.inc}
       );
@@ -47,7 +47,7 @@ implementation
       int_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r8664iri.inc}
       );
-    {$else x86_64}
+    {$elseif defined(i386)}
       int_regname_table : array[tregisterindex] of string[7] = (
         {$i r386int.inc}
       );
@@ -55,7 +55,15 @@ implementation
       int_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r386iri.inc}
       );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+      int_regname_table : array[tregisterindex] of string[7] = (
+        {$i r8086int.inc}
+      );
+
+      int_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r8086iri.inc}
+      );
+    {$endif}
 
 
     function findreg_by_intname(const s:string):integer;
