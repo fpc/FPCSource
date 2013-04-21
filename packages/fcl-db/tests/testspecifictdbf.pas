@@ -55,6 +55,8 @@ type
     procedure TestMemo;
     // Tests string field with 254 characters (max for DBase IV)
     procedure TestLargeString;
+    // Tests codepage in created dbf
+    procedure TestCodePage;
   end;
 
 
@@ -404,6 +406,40 @@ begin
   DS.next;
   CheckTrue(DS.EOF,'Dataset EOF must be true');
 
+  DS.Close;
+  ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestCodePage;
+const
+  // Chose non-default (i.e. 437,850,1252) cps
+  DOSCodePage=865; //Nordic ms dos
+  DOSLanguageID=$66; //... corresponding language ID (according to VFP docs; other sources say $65)
+  WindowsCodePage=1251; //Russian windows
+  WindowsLanguageID=$C9; //.... corresponding language ID
+var
+  RequestLanguageID: integer; //dbf language ID marker (byte 29)
+  CorrespondingCodePage: integer;
+  ds : TDBF;
+begin
+  if ((DS as TDBFAutoClean).UserRequestedTableLevel=25) then
+    ignore('Foxpro (tablelevel 25) may write data out in dBase IV (tablelevel 4) format.');
+  ds := TDBFAutoClean.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  if ((DS as TDBFAutoClean).UserRequestedTableLevel in [7,30]) then
+  begin
+    RequestLanguageID:=WindowsLanguageID;
+    CorrespondingCodePage:=WindowsCodePage //Visual FoxPro, DBase7
+  end
+  else
+  begin
+    RequestLanguageID:=DOSLanguageID;
+    CorrespondingCodePage:=DOSCodePage;
+  end;
+  (DS as TDBFAutoClean).LanguageID:=RequestLanguageID;
+  DS.CreateTable;
+  DS.Open;
+  CheckEquals(CorrespondingCodePage,DS.CodePage,'DBF codepage should match requested codeapage.');
   DS.Close;
   ds.free;
 end;

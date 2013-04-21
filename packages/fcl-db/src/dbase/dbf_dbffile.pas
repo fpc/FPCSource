@@ -632,7 +632,8 @@ begin
     if FDbfVersion in [xFoxPro, xVisualFoxPro] then
     begin
       // Don't use DbfGlobals default language ID as it is dbase-based
-      FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
+      if FFileLangId = 0 then
+        FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
     end
     else
     begin
