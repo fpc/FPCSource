@@ -169,7 +169,8 @@ end;
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
 var
   s, Authority: String;
-  i: Integer;
+  i,j: Integer;
+  PortValid: Boolean;
 begin
   Result.Protocol := LowerCase(DefaultProtocol);
   Result.Port := DefaultPort;
@@ -267,8 +268,18 @@ begin
   i := LastDelimiter(':@', Authority);
   if (i > 0) and (Authority[i] = ':') then
   begin
-    Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
-    Authority := Copy(Authority, 1, i - 1);
+    PortValid := true;
+    for j:=i+1 to Length(Authority) do
+      if not (Authority[j] in ['0'..'9']) then
+      begin
+        PortValid := false;
+        break;
+      end;
+    if PortValid then
+    begin
+      Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
+      Authority := Copy(Authority, 1, i - 1);
+    end;
   end;
 
   // Extract the hostname
