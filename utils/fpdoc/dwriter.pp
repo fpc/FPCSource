@@ -616,6 +616,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 var
   El, DescrEl: TDOMElement;
   FPEl: TPasElement;
+  hlp : TPasElement;
 begin
   Result := True;
   if Node.NodeType = ELEMENT_NODE then
@@ -644,7 +645,12 @@ begin
     else if Node.NodeName = 'printshort' then
     begin
       El := TDOMElement(Node);
-      DescrEl := Engine.FindShortDescr(AContext.GetModule, El['id']);
+      hlp:=AContext;
+      while assigned(hlp) and not (hlp is TPasModule) do 
+        hlp:=hlp.parent;
+      if not (hlp is TPasModule) then
+        hlp:=nil;
+      DescrEl := Engine.FindShortDescr(TPasModule(hlp), El['id']);
       if Assigned(DescrEl) then
         ConvertShort(AContext, DescrEl)
       else
