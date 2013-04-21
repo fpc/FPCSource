@@ -263,6 +263,7 @@ type
     // For producing complete package documentation
     procedure WriteHTMLPages; virtual;
     procedure WriteXHTMLPages;
+    function  ModuleForElement(AnElement:TPasElement):TPasModule;
 
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Procedure WriteDoc; override;
@@ -827,6 +828,16 @@ begin
   finally
     TempStream.Free;
   end;
+end;
+
+function  THTMLWriter.ModuleForElement(AnElement:TPasElement):TPasModule;
+
+begin
+  result:=TPasModule(AnElement);
+  while assigned(result) and not (result is TPasModule) do 
+        result:=TPasModule(result.parent);
+  if not (result is TPasModule) then
+   result:=nil;
 end;
 
 procedure THTMLWriter.CreateCSSFile;
@@ -2170,7 +2181,7 @@ begin
         else
           AppendText(NewEl,El['id']);
        l:=El['id'];
-       DescrEl := Engine.FindShortDescr(AElement.GetModule,L);
+       DescrEl := Engine.FindShortDescr(ModuleForElement(AElement),L);
        if Assigned(DescrEl) then
          begin
          AppendNbSp(CreatePara(CreateTD(TREl)), 2);
@@ -2362,7 +2373,7 @@ procedure THTMLWriter.CreateClassHierarchyPage(AList : TStringList; AddUnit : Bo
       if (P<>Nil) then
         begin
         AppendHyperLink(CurOutputNode,P);
-        PM:=P.Getmodule;
+        PM:=ModuleForElement(P);
         if (PM<>Nil) then
           begin
           AppendText(CurOutputNode,' (');
