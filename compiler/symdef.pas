@@ -494,6 +494,7 @@ interface
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
+          function is_pushleftright: boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -4062,6 +4063,15 @@ implementation
                   ploc:=ploc^.next;
                 end;
             end;
+      end;
+
+    function tabstractprocdef.is_pushleftright: boolean;
+      begin
+{$if defined(i8086) or defined(i386)}
+        result:=proccalloption in pushleftright_pocalls;
+{$else}
+        result:=false;
+{$endif}
       end;
 
 
