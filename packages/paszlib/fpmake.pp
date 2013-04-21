@@ -25,6 +25,7 @@ begin
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    T:=P.Targets.AddUnit('libtar.pp');
     T:=P.Targets.AddUnit('paszlib.pas');
       T.Dependencies.AddUnit('adler');
       T.Dependencies.AddUnit('gzio');
