@@ -3060,6 +3060,7 @@ implementation
       paramanager.getintparaloc(pd,2,cgpara2);
       paramanager.getintparaloc(pd,3,cgpara3);
 
+      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
       { if calling convention is left to right, push parameters 1 and 2 }
       if pd.is_pushleftright then
         begin
@@ -3068,7 +3069,6 @@ implementation
         end;
 
       { push parameter 3 }
-      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
       if highloc.loc=LOC_CONSTANT then
         a_load_const_cgpara(list,ptrsinttype,highloc.value+1,cgpara3)
       else
