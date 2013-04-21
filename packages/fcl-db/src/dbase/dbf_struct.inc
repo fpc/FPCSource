@@ -31,10 +31,10 @@ type
     MultiUse    : Integer;  // 16-19
     LastUserID  : Integer;  // 20-23
     Dummy2      : array[24..27] of Byte;
-    MDXFlag     : Byte;     // 28 Flags:
     // $01: mdx (or cdx for VFP) index file present
     // $02: (Visual FoxPro): associated memo file?
     // $04: (Visual FoxPro): is this a dbc/database container
+    MDXFlag     : Byte;     // 28 Flags:
     Language    : Byte;     // 29 code page mark
     Dummy3      : Word;     // 30-31
   end;
@@ -59,25 +59,25 @@ type
     FieldOffset       : Integer; // 12..15
     FieldSize         : Byte;    // 16
     FieldPrecision    : Byte;    // 17, also known as decimal count
-    VisualFoxProFlags : Byte;    // 18 Field Flags; flags can be combined
     // $01: system solumn (not user-visible)
     // $02: column can store null values
     // $04: binary column, e.g. don't interpret codepage (char/memo fields)
     // $0C: column is autoincrementing (only integer fields)
-    AutoIncrementNext : Byte;    // 19 VFP only: autoincrement value
+    VisualFoxProFlags : Byte;    // 18 Field Flags; flags can be combined
     // (!!not the next value for a new record!!); the next is calculated by
     // adding AutoIncrementStep first.
     // Value covers bytes 19..22 (so no WorkAreaID,Reserved1 for VFP)
-    WorkAreaID        : Byte;    // 20
+    AutoIncrementNext : Byte;    // 19 VFP only: autoincrement value
     // WorkAreaID only for DBase III, is always $01
+    WorkAreaID        : Byte;    // 20
     Reserved1         : array[21..22] of Byte;
     AutoIncrementStep : Byte;    // 23 VFP only: step value for autoincrement
     Reserved2         : array[24..30] of Byte;
-    MDXIndexField     : Byte;    //31
     // DBase IV:
     // $00: no key for this field;
     // $01: key exists for this field in MDX index file
     // todo: implement this??
+    MDXIndexField     : Byte;    //31
   end;
 //====================================================================
 // OH 2000-11-15 dBase7 support. Header Update (add fields like Next AutoInc Value)
