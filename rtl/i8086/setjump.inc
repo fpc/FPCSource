@@ -15,36 +15,36 @@
 
 Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
 asm
-  xchg ax, bx
-  mov word [bx + Jmp_buf.bx], ax
-  mov word [bx + Jmp_buf.si], si
-  mov word [bx + Jmp_buf.di], di
-  mov word [bx + Jmp_buf.bp], bp
+  mov ax, bp
   mov di, sp
-  add di, 2
+  push bp
+  mov bp, sp
+
+  mov bx, ss:[bp + 4]
+  mov word [bx + Jmp_buf.bp], ax
   mov word [bx + Jmp_buf.sp], di
-  mov di, word [di - 2]
+  mov di, word ss:[di]
   mov word [bx + Jmp_buf.pc], di
-  mov di, word [bx + Jmp_buf.di]
-  mov bx, ax
+
   xor ax, ax
+  pop bp
 end;
 
 
 Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
-  mov bx, ax
-  mov ax, dx
+  push bp
+  mov bp, sp
+
+  mov bx, ss:[bp + 6]
+  mov ax, ss:[bp + 4]
   test ax, ax
   jnz @@L1
   inc ax
 @@L1:
-  mov si, word [bx + Jmp_buf.si]
-  mov di, word [bx + Jmp_buf.di]
   mov dx, word [bx + Jmp_buf.pc]
   mov bp, word [bx + Jmp_buf.bp]
   mov sp, word [bx + Jmp_buf.sp]
-  mov bx, word [bx + Jmp_buf.bx]
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also

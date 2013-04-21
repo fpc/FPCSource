@@ -45,47 +45,57 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;nostackframe;assembler;
 asm
+  push bp
+  mov bp, sp
+  mov ax, ss:[bp + 6]
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx
   mov bx, [bx+2]
   xchg ax, bx
 @@Lg_a_null:
+  pop bp
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;nostackframe;assembler;
 asm
+  push bp
+  mov bp, sp
+  mov ax, ss:[bp + 6]
   or ax, ax
   jz @@Lgnf_null
   xchg ax, bx
   mov bx, [bx]
   xchg ax, bx
 @@Lgnf_null:
+  pop bp
 end;
 
 {TODO: fix, use smallint?}
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-  push bx
-  mov bx, ax
+  push bp
+  mov bp, sp
+  mov bx, ss:[bp + 4]
   sub word [bx], 1
   sbb word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bx
+  pop bp
 end;
 
 {TODO: fix, use smallint?}
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
-  push bx
-  mov bx, ax
+  push bp
+  mov bp, sp
+  mov bx, ss:[bp + 4]
   add word [bx], 1
   adc word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bx
+  pop bp
 end;
 
 {TODO: fix, use smallint?}

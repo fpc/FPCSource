@@ -491,7 +491,7 @@ interface
 
        { Default calling convention }
 {$if defined(i8086)}
-       pocall_default = pocall_register;
+       pocall_default = pocall_pascal;
 {$elseif defined(i386) or defined(x86_64)}
        pocall_default = pocall_register;
 {$else}

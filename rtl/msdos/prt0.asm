@@ -89,20 +89,25 @@ FPC_MSDOS_CARRY:
         stc
         global FPC_MSDOS
 FPC_MSDOS:
-        mov dx, ax
-        mov al, 21h
+        mov ax, 21h
+        pop dx
+        pop cx
+        push ax
+        push cx
+        push dx
         global FPC_INTR
 FPC_INTR:
-        mov byte [cs:int_number], al
         push bp
+        mov bp, sp
+        mov al, byte [ss:bp + 6]
+        mov byte [cs:int_number], al
         push es
         push di
         push bx
         push cx
+        mov si, [ss:bp + 4]
         push si
-        push dx
         push ds
-        mov si, dx
         mov ax, word [si + 16]
         mov es, ax
         mov ax, word [si + 14]  ; ds
@@ -145,14 +150,13 @@ int_number:
         mov word [si + 18], ax
         
         pop ds
-        pop dx
         pop si
         pop cx
         pop bx
         pop di
         pop es
         pop bp
-        ret
+        ret 4
 
         segment data
 mem_realloc_err_msg:
