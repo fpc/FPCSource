@@ -1250,13 +1250,13 @@ const
   );
 var
   defstates  : tdefstates;
-  i, nb, msgvalue, mesgnb : longint;
+  i, nb{, msgvalue}, mesgnb : longint;
   first  : boolean;
   copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
-  idtoken,
+//  idtoken,
   token : ttoken;
-  state : tmsgstate;
+//  state : tmsgstate;
   new_settings : Tsettings;
   len : sizeint;
   wstring : widestring;
@@ -1399,7 +1399,7 @@ begin
                   write('Error in Token List');
                   break;
                 end;
-              idtoken:=readtoken;
+              {idtoken:=}readtoken;
             end;
           case token of
             _CWCHAR,
@@ -1467,9 +1467,9 @@ begin
                         inc(i);
                         for nb:=1 to mesgnb do
                           begin
-                            msgvalue:=gettokenbufsizeint;
+                            {msgvalue:=}gettokenbufsizeint;
                             inc(i,sizeof(sizeint));
-                            state:=tmsgstate(gettokenbufsizeint);
+                            //state:=tmsgstate(gettokenbufsizeint);
                           end;
                       end;
                     ST_LINE:
