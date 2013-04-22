@@ -64,7 +64,7 @@ unit i_bsd;
                             tf_section_threadvars,
 {$endif segment_threadvars}
                             tf_needs_symbol_type,tf_needs_symbol_size,tf_smartlink_library
-                            {,tf_smartlink_sections},tf_has_winlike_resources];
+                            ,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -129,8 +129,8 @@ unit i_bsd;
             shortname    : 'FreeBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -319,8 +319,8 @@ unit i_bsd;
             shortname    : 'OpenBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -509,8 +509,8 @@ unit i_bsd;
             shortname    : 'NetBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
