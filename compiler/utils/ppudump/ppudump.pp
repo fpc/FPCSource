@@ -35,7 +35,9 @@ uses
   globals,
   globtype,
   widestr,
-  tokens;
+  tokens,
+  ppuout,
+  ppujson;
 
 const
   Version   = 'Version 2.7.1';
@@ -185,6 +187,10 @@ var
   verbose     : longint;
   derefdata   : pbyte;
   derefdatalen : longint;
+  pout: TPpuOutput;
+  nostdout: boolean;
+  UnitList: TPpuContainerDef;
+  CurUnit: TPpuUnitDef;
 
 
 {****************************************************************************
@@ -277,6 +283,7 @@ const has_errors : boolean = false;
 
 procedure Write(const s: string);
 begin
+  if nostdout then exit;
   system.write(s);
 end;
 
@@ -284,6 +291,7 @@ procedure Write(const params: array of const);
 var
   i: integer;
 begin
+  if nostdout then exit;
   for i:=Low(params) to High(params) do
     with TVarRec(params[i]) do
       case VType of
@@ -305,11 +313,13 @@ end;
 
 procedure Writeln(const s: string = '');
 begin
+  if nostdout then exit;
   system.writeln(s);
 end;
 
 procedure Writeln(const params: array of const);
 begin
+  if nostdout then exit;
   Write(params);
   system.writeln;
 end;
@@ -674,14 +684,19 @@ end;
 procedure ReadLoadUnit;
 var
   ucrc,uintfcrc, indcrc : cardinal;
+  un: TPpuUnitDef;
 begin
   while not ppufile.EndOfEntry do
     begin
-      write(['Uses unit: ',ppufile.getstring]);
+      un:=TPpuUnitDef.Create(CurUnit.UsedUnits);
+      un.Name:=ppufile.getstring;
+      write(['Uses unit: ',un.Name]);
       ucrc:=cardinal(ppufile.getlongint);
       uintfcrc:=cardinal(ppufile.getlongint);
       indcrc:=cardinal(ppufile.getlongint);
       writeln([' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),', IndCrc: ',hexstr(indcrc,8),')']);
+      un.Crc:=ucrc;
+      un.IntfCrc:=uintfcrc;
     end;
 end;
 
@@ -692,8 +707,12 @@ var
 begin
   mapsize:=ppufile.getlongint;
   writeln(['DerefMapsize: ',mapsize]);
+  SetLength(CurUnit.RefUnits, mapsize);
   for i:=0 to mapsize-1 do
-    writeln(['DerefMap[',i,'] = ',ppufile.getstring]);
+    begin
+      CurUnit.RefUnits[i]:=ppufile.getstring;
+      writeln(['DerefMap[',i,'] = ',CurUnit.RefUnits[i]]);
+    end;
 end;
 
 
@@ -2797,7 +2816,7 @@ end;
 procedure readinterface;
 var
   b : byte;
-  sourcenumber : longint;
+  sourcenumber, i : longint;
 begin
   with ppufile do
    begin
@@ -2806,7 +2825,10 @@ begin
        case b of
 
          ibmodulename :
-           Writeln(['Module Name: ',getstring]);
+           begin
+             CurUnit.Name:=getstring;
+             Writeln(['Module Name: ',CurUnit.Name]);
+           end;
 
          ibmoduleoptions:
            readmoduleoptions('  ');
@@ -2816,7 +2838,14 @@ begin
              sourcenumber:=1;
              while not EndOfEntry do
               begin
-                Writeln(['Source file ',sourcenumber,' : ',getstring,' ',filetimestring(getlongint)]);
+                with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
+                  Name:=getstring;
+                  i:=getlongint;
+                  if i >= 0 then
+                    FileTime:=FileDateToDateTime(i);
+                  Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                end;
+
                 inc(sourcenumber);
               end;
            end;
@@ -2969,6 +2998,10 @@ begin
      SetHasErrors;
      exit;
    end;
+
+  CurUnit:=TPpuUnitDef.Create(UnitList);
+  CurUnit.Version:=ppuversion;
+
 { Write PPU Header Information }
   if (verbose and v_header)<>0 then
    begin
@@ -2991,6 +3024,15 @@ begin
         Writeln(['Symbols stored          : ',tostr(symlistsize)]);
       end;
    end;
+
+  with ppufile.header do
+    begin
+      CurUnit.Crc:=checksum;
+      CurUnit.IntfCrc:=interface_checksum;
+      CurUnit.TargetCPU:=Cpu2Str(cpu);
+      CurUnit.TargetOS:=Target2Str(target);
+    end;
+
 {read the general stuff}
   if (verbose and v_interface)<>0 then
    begin
@@ -3097,13 +3139,20 @@ begin
   Writeln;
 end;
 
-
+procedure WriteLogo;
+begin
+  writeln(Title+' '+Version);
+  writeln(Copyright);
+  writeln;
+end;
 
 procedure help;
 begin
+  WriteLogo;
   writeln('usage: ppudump [options] <filename1> <filename2>...');
   writeln;
   writeln('[options] can be:');
+  writeln('    -J output in JSON format');
   writeln('    -M Exit with ExitCode=2 if more information is available');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
   writeln('                   H - Show header info');
@@ -3124,11 +3173,9 @@ var
 const
   error_on_more : boolean = false;
 begin
-  writeln(Title+' '+Version);
-  writeln(Copyright);
-  writeln;
   if paramcount<1 then
    begin
+     WriteLogo;
      writeln('usage: dumpppu [options] <filename1> <filename2>...');
      halt(1);
    end;
@@ -3140,6 +3187,10 @@ begin
    begin
      para:=paramstr(startpara);
      case upcase(para[2]) of
+      'J' : begin
+              nostdout:=True;
+              pout:=TPpuJsonOutput.Create(Output);
+            end;
       'M' : error_on_more:=true;
       'V' : begin
               verbose:=0;
@@ -3158,9 +3209,21 @@ begin
      end;
      inc(startpara);
    end;
-{ process files }
-  for nrfile:=startpara to paramcount do
-    dofile (paramstr(nrfile));
+
+  if not nostdout then
+    WriteLogo;
+
+  UnitList:=TPpuContainerDef.Create(nil);
+  try
+    { process files }
+    for nrfile:=startpara to paramcount do
+      dofile (paramstr(nrfile));
+    if not has_errors and (pout <> nil) then
+      UnitList.Write(pout);
+  finally
+    UnitList.Free;
+    pout.Free;
+  end;
   if has_errors then
     Halt(1);
   if error_on_more and has_more_infos then
