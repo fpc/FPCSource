@@ -2602,7 +2602,7 @@ REG_EXES=$(subst .pp,$(EXEEXT),$(REG_SOURCES))
 ifndef NOCPUDEF
 ppu$(PPUEXT): ../ppu.pas
 	$(MAKE) ppu$(PPUEXT) NOCPUDEF=1
-ppudump$(EXEEXT): ppudump/ppudump.pp ppu$(PPUEXT)
+ppudump$(EXEEXT): ppuutils/ppudump.pp ppu$(PPUEXT)
 	$(MAKE) ppudump$(EXEEXT) NOCPUDEF=1
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 	$(MAKE) ppufiles$(EXEEXT) NOCPUDEF=1
@@ -2611,8 +2611,8 @@ ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 else
 ppu$(PPUEXT): ../ppu.pas
 	$(COMPILER) ../ppu.pas -Fu../generic -dGENERIC_CPU -Fi..
-ppudump$(EXEEXT): ppudump/ppudump.pp ppu$(PPUEXT)
-	$(COMPILER) ppudump/ppudump.pp -Fu../generic -dGENERIC_CPU -Fi..
+ppudump$(EXEEXT): ppuutils/ppudump.pp ppu$(PPUEXT)
+	$(COMPILER) ppuutils/ppudump.pp -Fu../generic -dGENERIC_CPU -Fi..
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 	$(COMPILER) ppufiles.pp -Fu../generic -dGENERIC_CPU -Fi..
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
