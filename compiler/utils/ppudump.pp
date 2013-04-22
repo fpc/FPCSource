@@ -275,6 +275,45 @@ const
 const has_errors : boolean = false;
       has_more_infos : boolean = false;
 
+procedure Write(const s: string);
+begin
+  system.write(s);
+end;
+
+procedure Write(const params: array of const);
+var
+  i: integer;
+begin
+  for i:=Low(params) to High(params) do
+    with TVarRec(params[i]) do
+      case VType of
+        vtInteger: system.write(VInteger);
+        vtInt64: system.write(VInt64^);
+        vtString: system.write(VString^);
+        vtAnsiString: system.write(ansistring(VAnsiString));
+        vtPChar: system.write(VPChar);
+        vtChar: system.write(VChar);
+        vtBoolean: system.write(VBoolean);
+        else
+          begin
+            system.writeln;
+            system.writeln('Unsupported var type: ', VType);
+            Halt(10);
+          end;
+      end;
+end;
+
+procedure Writeln(const s: string = '');
+begin
+  system.writeln(s);
+end;
+
+procedure Writeln(const params: array of const);
+begin
+  Write(params);
+  system.writeln;
+end;
+
 Procedure HasMoreInfos;
 begin
   Writeln('!! Entry has more information stored');
@@ -288,7 +327,7 @@ end;
 
 Procedure WriteError(const S : string);
 Begin
-   Writeln(S);
+   system.Writeln(S);
    SetHasErrors;
 End;
 
@@ -518,11 +557,11 @@ begin
       SetHasErrors;
       exit;
     end;
-  writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
+  writeln([space,' recordalignment: ',shortint(ppufile.getbyte)]);
   usefieldalignment:=shortint(ppufile.getbyte);
-  writeln(space,' usefieldalignment: ',usefieldalignment);
+  writeln([space,' usefieldalignment: ',usefieldalignment]);
   if (usefieldalignment=C_alignment) then
-    writeln(space,' fieldalignment: ',shortint(ppufile.getbyte));
+    writeln([space,' fieldalignment: ',shortint(ppufile.getbyte)]);
 end;
 
 procedure readsymtableoptions(const s: string);
@@ -550,8 +589,8 @@ begin
     end;
   ppufile.getsmallset(options);
   if space<>'' then
-   writeln(space,'------ ',s,' ------');
-  write(space,'Symtable options: ');
+   writeln([space,'------ ',s,' ------']);
+  write([space,'Symtable options: ']);
   if options<>[] then
    begin
      first:=true;
@@ -616,7 +655,7 @@ begin
    begin
      s:=ppufile.getstring;
      m:=ppufile.getlongint;
-     WriteLn(prefix,s,' (',maskstr(m),')');
+     WriteLn([prefix,s,' (',maskstr(m),')']);
    end;
 end;
 
@@ -628,7 +667,7 @@ Procedure ReadContainer(const prefix:string);
 }
 begin
   while not ppufile.endofentry do
-   WriteLn(prefix,ppufile.getstring);
+   WriteLn([prefix,ppufile.getstring]);
 end;
 
 
@@ -638,11 +677,11 @@ var
 begin
   while not ppufile.EndOfEntry do
     begin
-      write('Uses unit: ',ppufile.getstring);
+      write(['Uses unit: ',ppufile.getstring]);
       ucrc:=cardinal(ppufile.getlongint);
       uintfcrc:=cardinal(ppufile.getlongint);
       indcrc:=cardinal(ppufile.getlongint);
-      writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),', IndCrc: ',hexstr(indcrc,8),')');
+      writeln([' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),', IndCrc: ',hexstr(indcrc,8),')']);
     end;
 end;
 
@@ -652,9 +691,9 @@ var
   i,mapsize : longint;
 begin
   mapsize:=ppufile.getlongint;
-  writeln('DerefMapsize: ',mapsize);
+  writeln(['DerefMapsize: ',mapsize]);
   for i:=0 to mapsize-1 do
-    writeln('DerefMap[',i,'] = ',ppufile.getstring);
+    writeln(['DerefMap[',i,'] = ',ppufile.getstring]);
 end;
 
 
@@ -672,7 +711,7 @@ begin
     begin
       extlibname:=ppufile.getstring;
       extsymcnt:=ppufile.getlongint;
-      writeln('External Library: ',extlibname,' (',extsymcnt,' imports)');
+      writeln(['External Library: ',extlibname,' (',extsymcnt,' imports)']);
       for j:=0 to extsymcnt-1 do
         begin
           extsymname:=ppufile.getstring;
@@ -682,8 +721,8 @@ begin
             extsymmangledname:=extsymname;
           extsymordnr:=ppufile.getlongint;
           extsymisvar:=ppufile.getbyte<>0;
-          writeln(' ',extsymname,' as ',extsymmangledname,
-            '(OrdNr: ',extsymordnr,' IsVar: ',extsymisvar,')');
+          writeln([' ',extsymname,' as ',extsymmangledname,
+            '(OrdNr: ',extsymordnr,' IsVar: ',extsymisvar,')']);
         end;
     end;
 end;
@@ -697,7 +736,7 @@ begin
       WriteError('!! Error: derefdatalen=0');
       exit;
     end;
-  Writeln('Derefdata length: ',derefdatalen);
+  Writeln(['Derefdata length: ',derefdatalen]);
   derefdata:=allocmem(derefdatalen);
   ppufile.getdata(derefdata^,derefdatalen);
 end;
@@ -715,7 +754,7 @@ end;
 
 Procedure ReadWpoFileInfo;
 begin
-  Writeln('Compiled with input whole-program optimisation from ',ppufile.getstring,' ',filetimestring(ppufile.getlongint));
+  Writeln(['Compiled with input whole-program optimisation from ',ppufile.getstring,' ',filetimestring(ppufile.getlongint)]);
 end;
 
 
@@ -742,7 +781,7 @@ var
   typestr  : string;
   i : longint;
 begin
-  writeln(space,'Number of AsmSymbols: ',ppufile.getlongint);
+  writeln([space,'Number of AsmSymbols: ',ppufile.getlongint]);
   i:=0;
   while (not ppufile.endofentry) and (not ppufile.error) do
    begin
@@ -787,7 +826,7 @@ begin
            SetHasErrors;
          end;
      end;
-     Writeln(space,'  ',i,' : ',s,' [',bindstr,',',typestr,']');
+     Writeln([space,'  ',i,' : ',s,' [',bindstr,',',typestr,']']);
      inc(i);
    end;
 end;
@@ -832,7 +871,7 @@ begin
       2 : column:=(getbyte shl 16) or getword;
       3 : column:=getlongint;
      end;
-     Writeln(fileindex,' (',line,',',column,')');
+     Writeln([fileindex,' (',line,',',column,')']);
    end;
 end;
 
@@ -851,11 +890,11 @@ begin
   idx:=ppufile.getlongint;
   if (idx>derefdatalen) then
     begin
-      writeln('!! Error: Deref idx ',idx,' > ',derefdatalen);
+      writeln(['!! Error: Deref idx ',idx,' > ',derefdatalen]);
       SetHasErrors;
       exit;
     end;
-  write(derefspace,'(',idx,') ');
+  write([derefspace,'(',idx,') ']);
   pdata:=@derefdata[idx];
   i:=0;
   n:=pdata[i];
@@ -880,23 +919,23 @@ begin
          begin
            idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
            inc(i,4);
-           write('SymId ',idx);
+           write(['SymId ',idx]);
          end;
        deref_defid :
          begin
            idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
            inc(i,4);
-           write('DefId ',idx);
+           write(['DefId ',idx]);
          end;
        deref_unit :
          begin
            idx:=pdata[i] shl 8 or pdata[i+1];
            inc(i,2);
-           write('Unit ',idx);
+           write(['Unit ',idx]);
          end;
        else
          begin
-           writeln('!! unsupported dereftyp: ',ord(b));
+           writeln(['!! unsupported dereftyp: ',ord(b)]);
            SetHasErrors;
            break;
          end;
@@ -926,7 +965,7 @@ begin
     sl:=tsltype(ppufile.getbyte);
     if sl=sl_none then
      break;
-    write(s,'(',slstr[sl],') ');
+    write([s,'(',slstr[sl],') ']);
     case sl of
       sl_call,
       sl_load,
@@ -937,7 +976,7 @@ begin
         readderef('');
       sl_vec :
         begin
-          writeln(ppufile.getlongint);
+          writeln([ppufile.getlongint]);
           readderef('');
         end;
     end;
@@ -1158,18 +1197,18 @@ begin
    end;
   writeln;
   if sp_has_deprecated_msg in symoptions then
-    writeln(space,'Deprecated : ', ppufile.getstring);
+    writeln([space,'Deprecated : ', ppufile.getstring]);
 end;
 
 
 procedure readcommonsym(const s:string);
 begin
-  writeln(space,'** Symbol Id ',ppufile.getlongint,' **');
-  writeln(space,s,ppufile.getstring);
-  write  (space,'     File Pos : ');
+  writeln([space,'** Symbol Id ',ppufile.getlongint,' **']);
+  writeln([space,s,ppufile.getstring]);
+  write  ([space,'     File Pos : ']);
   readposinfo;
-  writeln(space,'   Visibility : ',Visibility2Str(ppufile.getbyte));
-  write  (space,'   SymOptions : ');
+  writeln([space,'   Visibility : ',Visibility2Str(ppufile.getbyte)]);
+  write  ([space,'   SymOptions : ']);
   readsymoptions(space+'   ');
 end;
 
@@ -1301,11 +1340,11 @@ var
   end;
 
 begin
-  writeln(space,'** Definition Id ',ppufile.getlongint,' **');
-  writeln(space,s);
-  write  (space,'      Type symbol : ');
+  writeln([space,'** Definition Id ',ppufile.getlongint,' **']);
+  writeln([space,s]);
+  write  ([space,'      Type symbol : ']);
   readderef('');
-  write  (space,'       DefOptions : ');
+  write  ([space,'       DefOptions : ']);
   ppufile.getsmallset(defoptions);
   if defoptions<>[] then
     begin
@@ -1322,7 +1361,7 @@ begin
     end;
   writeln;
 
-  write  (space,'        DefStates : ');
+  write  ([space,'        DefStates : ']);
   ppufile.getsmallset(defstates);
   if defstates<>[] then
     begin
@@ -1342,11 +1381,11 @@ begin
   if df_generic in defoptions then
     begin
       tokenbufsize:=ppufile.getlongint;
-      writeln(space,' Tokenbuffer size : ',tokenbufsize);
+      writeln([space,' Tokenbuffer size : ',tokenbufsize]);
       tokenbuf:=allocmem(tokenbufsize);
       ppufile.getdata(tokenbuf^,tokenbufsize);
       i:=0;
-      write(space,' Tokens: ');
+      write([space,' Tokens: ']);
       while i<tokenbufsize do
         begin
           token:=readtoken;
@@ -1369,7 +1408,7 @@ begin
                 len:=gettokenbufsizeint;
                 setlength(wstring,len);
                 move(tokenbuf[i],wstring[1],len*2);
-                write(' ',wstring);
+                write([' ',wstring]);
                 inc(i,len*2);
               end;
             _CSTRING:
@@ -1377,19 +1416,19 @@ begin
                 len:=gettokenbufsizeint;
                 setlength(astring,len);
                 move(tokenbuf[i],astring[1],len);
-                write(' ',astring);
+                write([' ',astring]);
                 inc(i,len);
               end;
             _CCHAR,
             _INTCONST,
             _REALNUMBER :
               begin
-                write(' ',pshortstring(@tokenbuf[i])^);
+                write([' ',pshortstring(@tokenbuf[i])^]);
                 inc(i,tokenbuf[i]+1);
               end;
             _ID :
               begin
-                write(' ',pshortstring(@tokenbuf[i])^);
+                write([' ',pshortstring(@tokenbuf[i])^]);
                 inc(i,tokenbuf[i]+1);
               end;
             _GENERICSPECIALTOKEN:
@@ -1398,7 +1437,7 @@ begin
                   byte or $80 used }
                 if (tokenbuf[i] and $80)<>0 then
                   begin
-                    write('Col: ',tokenbuf[i] and $7f);
+                    write(['Col: ',tokenbuf[i] and $7f]);
                     inc(i);
                   end
                 else
@@ -1436,17 +1475,17 @@ begin
                     ST_LINE:
                       begin
                         inc(i);
-                        write('Line: ',gettokenbufdword);
+                        write(['Line: ',gettokenbufdword]);
                       end;
                     ST_COLUMN:
                       begin
                         inc(i);
-                        write('Col: ',gettokenbufword);
+                        write(['Col: ',gettokenbufword]);
                       end;
                     ST_FILEINDEX:
                       begin
                         inc(i);
-                        write('File: ',gettokenbufword);
+                        write(['File: ',gettokenbufword]);
                       end;
                   end;
               end;
@@ -1460,7 +1499,7 @@ begin
     end;
   if df_specialization in defoptions then
     begin
-      write  (space,' Orig. GenericDef : ');
+      write  ([space,' Orig. GenericDef : ']);
       readderef('');
     end;
   current_defoptions:=defoptions;
@@ -1560,11 +1599,11 @@ var
   first : boolean;
   tempbuf : array[0..255] of byte;
 begin
-  write(space,'      Return type : ');
+  write([space,'      Return type : ']);
   readderef('');
-  writeln(space,'         Fpu used : ',ppufile.getbyte);
+  writeln([space,'         Fpu used : ',ppufile.getbyte]);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
-  write(space,'       TypeOption : ');
+  write([space,'       TypeOption : ']);
   first:=true;
   for i:=1 to high(proctypeopt) do
    if (proctypeopt[i].mask=proctypeoption) then
@@ -1577,11 +1616,11 @@ begin
     end;
   writeln;
   proccalloption:=tproccalloption(ppufile.getbyte);
-  writeln(space,'       CallOption : ',proccalloptionStr[proccalloption]);
+  writeln([space,'       CallOption : ',proccalloptionStr[proccalloption]]);
   ppufile.getnormalset(procoptions);
   if procoptions<>[] then
    begin
-     write(space,'          Options : ');
+     write([space,'          Options : ']);
      first:=true;
      for i:=1 to high(procopt) do
       if (procopt[i].mask in procoptions) then
@@ -1647,15 +1686,15 @@ var
   first : boolean;
 begin
   readcommonsym(s);
-  writeln(space,'         Spez : ',Varspez2Str(ppufile.getbyte));
-  writeln(space,'      Regable : ',Varregable2Str(ppufile.getbyte));
-  writeln(space,'   Addr Taken : ',(ppufile.getbyte<>0));
-  write  (space,'     Var Type : ');
+  writeln([space,'         Spez : ',Varspez2Str(ppufile.getbyte)]);
+  writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
+  writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
+  write  ([space,'     Var Type : ']);
   readderef('');
   ppufile.getsmallset(varoptions);
   if varoptions<>[] then
    begin
-     write(space,'      Options : ');
+     write([space,'      Options : ']);
      first:=true;
      for i:=1 to high(varopt) do
       if (varopt[i].mask in varoptions) then
@@ -1666,7 +1705,7 @@ begin
            write(', ');
          write(varopt[i].str);
          if varopt[i].mask = vo_has_section then
-           writeln('Section name:',ppufile.getansistring);
+           writeln(['Section name:',ppufile.getansistring]);
        end;
      writeln;
    end;
@@ -1829,11 +1868,11 @@ begin
   with ppufile do
    begin
      if space<>'' then
-      Writeln(space,'------ nodetree ------');
+      Writeln([space,'------ nodetree ------']);
      if readentry=ibnodetree then
       begin
         l:=entrysize;
-        Writeln(space,'Tree size : ',l);
+        Writeln([space,'Tree size : ',l]);
         { Read data to prevent error that entry is not completly read }
         getmem(p,l);
         getdata(p^,l);
@@ -1862,44 +1901,44 @@ begin
       exit
     end;
   writeln;
-  writeln(space,'WPO info');
-  writeln(space,'--------');
+  writeln([space,'WPO info']);
+  writeln([space,'--------']);
 
   len:=ppufile.getlongint;
-  writeln(space,'** Instantiated Object/Class types: ',len,' **');
+  writeln([space,'** Instantiated Object/Class types: ',len,' **']);
   space:=space+'  ';
   for i:=0 to len-1 do
     readderef(space);
   setlength(space,length(space)-2);
 
   len:=ppufile.getlongint;
-  writeln(space,'** Instantiated ClassRef types: ',len,' **');
+  writeln([space,'** Instantiated ClassRef types: ',len,' **']);
   space:=space+'  ';
   for i:=0 to len-1 do
     readderef(space);
   setlength(space,length(space)-2);
 
   len:=ppufile.getlongint;
-  writeln(space,'** Possibly instantiated ClassRef types : ',len,' **');
+  writeln([space,'** Possibly instantiated ClassRef types : ',len,' **']);
   space:=space+'  ';
   for i:=0 to len-1 do
     readderef(space);
   setlength(space,length(space)-2);
 
   len:=ppufile.getlongint;
-  writeln(space,'** Class types with called virtual methods info : ',len,' **');
+  writeln([space,'** Class types with called virtual methods info : ',len,' **']);
   space:=space+'  ';
   for i:=0 to len-1 do
     begin
-      write(space,'Class def : ');
+      write([space,'Class def : ']);
       readderef('');
-      write(space+'  ','Called vmtentries : ');
+      write([space+'  ','Called vmtentries : ']);
       bssize:=ppufile.getlongint;
       getmem(bs,bssize);
       ppufile.readdata(bs^,bssize);
       for j:=0 to bssize*8-1 do
         if (((bs+j shr 3)^ shr (j and 7)) and 1) <> 0 then
-          write(j,', ');
+          write([j,', ']);
       writeln;
       freemem(bs);
     end;
@@ -1940,11 +1979,11 @@ begin
   with ppufile do
    begin
      if space<>'' then
-      Writeln(space,'------ ',s,' ------');
+      Writeln([space,'------ ',s,' ------']);
      if readentry=ibstartsyms then
       begin
-        Writeln(space,'Symtable datasize : ',getlongint);
-        Writeln(space,'Symtable alignment: ',getlongint);
+        Writeln([space,'Symtable datasize : ',getlongint]);
+        Writeln([space,'Symtable alignment: ',getlongint]);
       end
      else
       Writeln('!! ibstartsym not found');
@@ -1958,7 +1997,7 @@ begin
          ibnamespacesym :
            begin
              readcommonsym('NameSpace symbol ');
-             write(space,'  Hidden Unit : ');
+             write([space,'  Hidden Unit : ']);
              readderef('');
            end;
 
@@ -1968,12 +2007,12 @@ begin
          ibtypesym :
            begin
              readcommonsym('Type symbol ');
-             write(space,'  Result Type : ');
+             write([space,'  Result Type : ']);
              readderef('');
              prettyname:=getansistring;
              if prettyname<>'' then
                begin
-                 write(space,' Pretty Name : ');
+                 write([space,' Pretty Name : ']);
                  Writeln(prettyname);
                end;
            end;
@@ -1984,7 +2023,7 @@ begin
              len:=ppufile.getword;
              for i:=1 to len do
               begin
-                write(space,'   Definition : ');
+                write([space,'   Definition : ']);
                 readderef('');
               end;
            end;
@@ -1996,15 +2035,15 @@ begin
              case tconsttyp(b) of
                constord :
                  begin
-                   write  (space,'  OrdinalType : ');
+                   write  ([space,'  OrdinalType : ']);
                    readderef('');
-                   writeln(space,'        Value : ',constexp.tostr(getexprint));
+                   writeln([space,'        Value : ',constexp.tostr(getexprint)]);
                  end;
                constpointer :
                  begin
-                   write  (space,'  PointerType : ');
+                   write  ([space,'  PointerType : ']);
                    readderef('');
-                   writeln(space,'        Value : ',getaint)
+                   writeln([space,'        Value : ',getaint])
                  end;
                conststring,
                constresourcestring :
@@ -2013,29 +2052,29 @@ begin
                    getmem(pc,len+1);
                    getdata(pc^,len);
                    (pc+len)^:= #0;
-                   writeln(space,'       Length : ',len);
-                   writeln(space,'        Value : "',pc,'"');
+                   writeln([space,'       Length : ',len]);
+                   writeln([space,'        Value : "',pc,'"']);
                    freemem(pc,len+1);
                  end;
                constreal :
                  begin
-                   write  (space,'     RealType : ');
+                   write  ([space,'     RealType : ']);
                    readderef('');
-                   write(space,'        Value : ');
+                   write([space,'        Value : ']);
                    if entryleft=sizeof(ppureal) then
                      begin
                        realvalue:=getrealsize(sizeof(ppureal));
-                       writeln(realvalue);
+                       writeln([realvalue]);
                      end
                    else if entryleft=sizeof(double) then
                      begin
                        doublevalue:=getrealsize(sizeof(double));
-                       writeln(doublevalue);
+                       writeln([doublevalue]);
                      end
                    else if entryleft=sizeof(single) then
                      begin
                        singlevalue:=getrealsize(sizeof(single));
-                       writeln(singlevalue);
+                       writeln([singlevalue]);
                      end
                    else if entryleft=10 then
                      begin
@@ -2045,17 +2084,17 @@ begin
                    else
                      begin
                        realvalue:=0.0;
-                       writeln(realvalue,' Error reading real value');
+                       writeln([realvalue,' Error reading real value']);
                        SetHasErrors;
                      end;
                  end;
                constset :
                  begin
-                   write (space,'      Set Type : ');
+                   write ([space,'      Set Type : ']);
                    readderef('');
                    for i:=1to 4 do
                     begin
-                      write (space,'        Value : ');
+                      write ([space,'        Value : ']);
                       for j:=1to 8 do
                        begin
                          if j>1 then
@@ -2066,7 +2105,7 @@ begin
                     end;
                  end;
                constnil:
-                 writeln(space,' NIL pointer.');
+                 writeln([space,' NIL pointer.']);
                constwstring :
                  begin
                    initwidestring(pw);
@@ -2088,7 +2127,7 @@ begin
                      begin
                        WriteError('Unsupported tcompilerwidechar size');
                      end;
-                   Writeln(space,'Wide string type');
+                   Writeln([space,'Wide string type']);
                    startnewline:=true;
                    for i:=0 to pw^.len-1 do
                      begin
@@ -2112,7 +2151,7 @@ begin
                constguid:
                  begin
                     getdata(guid,sizeof(guid));
-                    write (space,'     IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-');
+                    write ([space,'     IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-']);
                     for i:=0 to 7 do
                       begin
                          write(hexstr(guid.d4[i],2));
@@ -2121,66 +2160,66 @@ begin
                     writeln('}');
                  end
                else
-                 Writeln ('!! Invalid unit format : Invalid const type encountered: ',b);
+                 Writeln (['!! Invalid unit format : Invalid const type encountered: ',b]);
              end;
            end;
 
          ibabsolutevarsym :
            begin
              readabstractvarsym('Absolute variable symbol ',varoptions);
-             Write (space,' Relocated to ');
+             Write ([space,' Relocated to ']);
              b:=getbyte;
              case absolutetyp(b) of
                tovar :
                  readpropaccesslist(space+'          Sym : ');
                toasm :
-                 Writeln('Assembler name : ',getstring);
+                 Writeln(['Assembler name : ',getstring]);
                toaddr :
                  begin
-                   Write('Address : ',getlongint);
+                   Write(['Address : ',getlongint]);
                    if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
-                     WriteLn(' (Far: ',getbyte<>0,')');
+                     WriteLn([' (Far: ',getbyte<>0,')']);
                  end;
                else
-                 Writeln ('!! Invalid unit format : Invalid absolute type encountered: ',b);
+                 Writeln (['!! Invalid unit format : Invalid absolute type encountered: ',b]);
              end;
            end;
 
          ibfieldvarsym :
            begin
              readabstractvarsym('Field Variable symbol ',varoptions);
-             writeln(space,'      Address : ',getaint);
+             writeln([space,'      Address : ',getaint]);
            end;
 
          ibstaticvarsym :
            begin
              readabstractvarsym('Global Variable symbol ',varoptions);
-             write  (space,' DefaultConst : ');
+             write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
 {$ifdef symansistr}
-               writeln(space,' Mangledname : ',getansistring);
+               writeln([space,' Mangledname : ',getansistring]);
 {$else symansistr}
-               writeln(space,' Mangledname : ',getstring);
+               writeln([space,' Mangledname : ',getstring]);
 {$endif symansistr}
            end;
 
          iblocalvarsym :
            begin
              readabstractvarsym('Local Variable symbol ',varoptions);
-             write  (space,' DefaultConst : ');
+             write  ([space,' DefaultConst : ']);
              readderef('');
            end;
 
          ibparavarsym :
            begin
              readabstractvarsym('Parameter Variable symbol ',varoptions);
-             write  (space,' DefaultConst : ');
+             write  ([space,' DefaultConst : ']);
              readderef('');
-             writeln(space,'       ParaNr : ',getword);
-             writeln(space,'        Univ  : ',boolean(getbyte));
-             writeln(space,'     VarState : ',getbyte);
-             writeln(space,'         Refs : ',getbyte);
+             writeln([space,'       ParaNr : ',getword]);
+             writeln([space,'        Univ  : ',boolean(getbyte)]);
+             writeln([space,'     VarState : ',getbyte]);
+             writeln([space,'         Refs : ',getbyte]);
              if (vo_has_explicit_paraloc in varoptions) then
                begin
                  i:=getbyte;
@@ -2191,31 +2230,31 @@ begin
          ibenumsym :
            begin
              readcommonsym('Enumeration symbol ');
-             write  (space,'   Definition : ');
+             write  ([space,'   Definition : ']);
              readderef('');
-             writeln(space,'        Value : ',getlongint);
+             writeln([space,'        Value : ',getlongint]);
            end;
 
          ibsyssym :
            begin
              readcommonsym('Internal system symbol ');
-             writeln(space,'  Internal Nr : ',getlongint);
+             writeln([space,'  Internal Nr : ',getlongint]);
            end;
 
          ibmacrosym :
            begin
              readcommonsym('Macro symbol ');
-             writeln(space,'          Name: ',getstring);
-             writeln(space,'       Defined: ',getbyte);
-             writeln(space,'  Compiler var: ',getbyte);
+             writeln([space,'          Name: ',getstring]);
+             writeln([space,'       Defined: ',getbyte]);
+             writeln([space,'  Compiler var: ',getbyte]);
              len:=getlongint;
-             writeln(space,'  Value length: ',len);
+             writeln([space,'  Value length: ',len]);
              if len > 0 then
                begin
                  getmem(pc,len+1);
                  getdata(pc^,len);
                  (pc+len)^:= #0;
-                 writeln(space,'         Value: "',pc,'"');
+                 writeln([space,'         Value: "',pc,'"']);
                  freemem(pc,len+1);
                end;
            end;
@@ -2226,22 +2265,22 @@ begin
              propoptions:=readpropertyoptions;
              if ppo_overrides in propoptions then
                begin
-                 write  (space,' OverrideProp : ');
+                 write  ([space,' OverrideProp : ']);
                  readderef('');
                end;
-             write  (space,'    Prop Type : ');
+             write  ([space,'    Prop Type : ']);
              readderef('');
-             writeln(space,'        Index : ',getlongint);
-             writeln(space,'      Default : ',getlongint);
-             write  (space,'   Index Type : ');
+             writeln([space,'        Index : ',getlongint]);
+             writeln([space,'      Default : ',getlongint]);
+             write  ([space,'   Index Type : ']);
              readderef('');
              { palt_none }
              readpropaccesslist('');
-             write  (space,'   Readaccess : ');
+             write  ([space,'   Readaccess : ']);
              readpropaccesslist(space+'         Sym: ');
-             write  (space,'  Writeaccess : ');
+             write  ([space,'  Writeaccess : ']);
              readpropaccesslist(space+'         Sym: ');
-             write  (space,' Storedaccess : ');
+             write  ([space,' Storedaccess : ']);
              readpropaccesslist(space+'         Sym: ');
              if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
                begin
@@ -2262,7 +2301,7 @@ begin
 
          else
            begin
-             WriteLn('!! Skipping unsupported PPU Entry in Symbols: ',b);
+             WriteLn(['!! Skipping unsupported PPU Entry in Symbols: ',b]);
              SetHasErrors;
            end;
        end;
@@ -2299,7 +2338,7 @@ begin
   with ppufile do
    begin
      if space<>'' then
-      Writeln(space,'------ ',s,' ------');
+      Writeln([space,'------ ',s,' ------']);
      if readentry<>ibstartdefs then
       Writeln('!! ibstartdefs not found');
      repeat
@@ -2309,16 +2348,16 @@ begin
          ibpointerdef :
            begin
              readcommondef('Pointer definition',defoptions);
-             write  (space,'     Pointed Type : ');
+             write  ([space,'     Pointed Type : ']);
              readderef('');
-             writeln(space,'           Is Far : ',(getbyte<>0));
-             writeln(space,' Has Pointer Math : ',(getbyte<>0));
+             writeln([space,'           Is Far : ',(getbyte<>0)]);
+             writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 
          iborddef :
            begin
              readcommondef('Ordinal definition',defoptions);
-             write  (space,'        Base type : ');
+             write  ([space,'        Base type : ']);
              b:=getbyte;
              case tordtype(b) of
                uvoid     : writeln('uvoid');
@@ -2337,26 +2376,26 @@ begin
                uchar     : writeln('uchar');
                uwidechar : writeln('uwidechar');
                scurrency : writeln('ucurrency');
-               else        writeln('!! Warning: Invalid base type ',b);
+               else        writeln(['!! Warning: Invalid base type ',b]);
              end;
-             writeln(space,'            Range : ',constexp.tostr(getexprint),' to ',constexp.tostr(getexprint));
+             writeln([space,'            Range : ',constexp.tostr(getexprint),' to ',constexp.tostr(getexprint)]);
            end;
 
          ibfloatdef :
            begin
              readcommondef('Float definition',defoptions);
-             writeln(space,'       Float type : ',getbyte);
+             writeln([space,'       Float type : ',getbyte]);
            end;
 
          ibarraydef :
            begin
              readcommondef('Array definition',defoptions);
-             write  (space,'     Element type : ');
+             write  ([space,'     Element type : ']);
              readderef('');
-             write  (space,'       Range Type : ');
+             write  ([space,'       Range Type : ']);
              readderef('');
-             writeln(space,'            Range : ',getaint,' to ',getaint);
-             write  (space,'          Options : ');
+             writeln([space,'            Range : ',getaint,' to ',getaint]);
+             write  ([space,'          Options : ']);
              readarraydefoptions;
              readsymtable('symbols');
            end;
@@ -2367,49 +2406,49 @@ begin
              read_abstract_proc_def(calloption,procoptions);
              if (po_has_mangledname in procoptions) then
 {$ifdef symansistr}
-               writeln(space,'     Mangled name : ',getansistring);
+               writeln([space,'     Mangled name : ',getansistring]);
 {$else symansistr}
-               writeln(space,'     Mangled name : ',getstring);
+               writeln([space,'     Mangled name : ',getstring]);
 {$endif symansistr}
-             writeln(space,'           Number : ',getword);
-             writeln(space,'            Level : ',getbyte);
-             write  (space,'            Class : ');
+             writeln([space,'           Number : ',getword]);
+             writeln([space,'            Level : ',getbyte]);
+             write  ([space,'            Class : ']);
              readderef('');
-             write  (space,'          Procsym : ');
+             write  ([space,'          Procsym : ']);
              readderef('');
-             write  (space,'         File Pos : ');
+             write  ([space,'         File Pos : ']);
              readposinfo;
-             writeln(space,'       Visibility : ',Visibility2Str(ppufile.getbyte));
-             write  (space,'       SymOptions : ');
+             writeln([space,'       Visibility : ',Visibility2Str(ppufile.getbyte)]);
+             write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
-             write  (space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte));
+             write  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }
-                 write  (space,'   Library symbol : ');
+                 write  ([space,'   Library symbol : ']);
                  readderef('');
                end;
              if (po_has_importdll in procoptions) then
-               writeln(space,'      Import DLL : ',getstring);
+               writeln([space,'      Import DLL : ',getstring]);
              if (po_has_importname in procoptions) then
-               writeln(space,'      Import Name : ',getstring);
-             writeln(space,'        Import Nr : ',getword);
+               writeln([space,'      Import Name : ',getstring]);
+             writeln([space,'        Import Nr : ',getword]);
              if (po_msgint in procoptions) then
-               writeln(space,'           MsgInt : ',getlongint);
+               writeln([space,'           MsgInt : ',getlongint]);
              if (po_msgstr in procoptions) then
-               writeln(space,'           MsgStr : ',getstring);
+               writeln([space,'           MsgStr : ',getstring]);
              if (po_dispid in procoptions) then
-               writeln(space,'      DispID: ',ppufile.getlongint);
+               writeln([space,'      DispID: ',ppufile.getlongint]);
              if (po_has_inlininginfo in procoptions) then
               begin
-                write  (space,'       FuncretSym : ');
+                write  ([space,'       FuncretSym : ']);
                 readderef('');
                 readprocinfooptions(space);
               end;
              b:=ppufile.getbyte;
              if b<>0 then
                begin
-                 write  (space,'       Alias names : ');
+                 write  ([space,'       Alias names : ']);
                  for j:=1 to b do
                    begin
                      write(ppufile.getstring);
@@ -2418,7 +2457,7 @@ begin
                    end;
                  writeln;
                end;
-             writeln(space,'            Empty : ',getbyte<>0);
+             writeln([space,'            Empty : ',getbyte<>0]);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
@@ -2436,7 +2475,7 @@ begin
            begin
              readcommondef('Procedural type (ProcVar) definition',defoptions);
              read_abstract_proc_def(calloption,procoptions);
-             writeln(space,'   Symtable level :',ppufile.getbyte);
+             writeln([space,'   Symtable level :',ppufile.getbyte]);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
@@ -2448,53 +2487,53 @@ begin
          ibshortstringdef :
            begin
              readcommondef('ShortString definition',defoptions);
-             writeln(space,'           Length : ',getbyte);
+             writeln([space,'           Length : ',getbyte]);
            end;
 
          ibwidestringdef :
            begin
              readcommondef('WideString definition',defoptions);
-             writeln(space,'           Length : ',getaint);
+             writeln([space,'           Length : ',getaint]);
            end;
 
          ibunicodestringdef :
            begin
              readcommondef('UnicodeString definition',defoptions);
-             writeln(space,'           Length : ',getaint);
+             writeln([space,'           Length : ',getaint]);
            end;
 
          ibansistringdef :
            begin
              readcommondef('AnsiString definition',defoptions);
-             writeln(space,'           Length : ',getaint);
+             writeln([space,'           Length : ',getaint]);
            end;
 
          iblongstringdef :
            begin
              readcommondef('Longstring definition',defoptions);
-             writeln(space,'           Length : ',getaint);
+             writeln([space,'           Length : ',getaint]);
            end;
 
          ibrecorddef :
            begin
              readcommondef('Record definition',defoptions);
-             writeln(space,'   Name of Record : ',getstring);
-             writeln(space,'   Import lib/pkg : ',getstring);
-             write  (space,'          Options : ');
+             writeln([space,'   Name of Record : ',getstring]);
+             writeln([space,'   Import lib/pkg : ',getstring]);
+             write  ([space,'          Options : ']);
              readobjectdefoptions;
              if (df_copied_def in defoptions) then
                begin
-                 write(space,'      Copied from : ');
+                 write([space,'      Copied from : ']);
                  readderef('');
                end
              else
                begin
-                 writeln(space,'       FieldAlign : ',shortint(getbyte));
-                 writeln(space,'      RecordAlign : ',shortint(getbyte));
-                 writeln(space,'         PadAlign : ',shortint(getbyte));
-                 writeln(space,'UseFieldAlignment : ',shortint(getbyte));
-                 writeln(space,'         DataSize : ',getasizeint);
-                 writeln(space,'      PaddingSize : ',getword);
+                 writeln([space,'       FieldAlign : ',shortint(getbyte)]);
+                 writeln([space,'      RecordAlign : ',shortint(getbyte)]);
+                 writeln([space,'         PadAlign : ',shortint(getbyte)]);
+                 writeln([space,'UseFieldAlignment : ',shortint(getbyte)]);
+                 writeln([space,'         DataSize : ',getasizeint]);
+                 writeln([space,'      PaddingSize : ',getword]);
                end;
              if not EndOfEntry then
                HasMoreInfos;
@@ -2511,12 +2550,12 @@ begin
          ibobjectdef :
            begin
              readcommondef('Object/Class definition',defoptions);
-             writeln(space,'    Name of Class : ',getstring);
-             writeln(space,'   Import lib/pkg : ',getstring);
-             write  (space,'          Options : ');
+             writeln([space,'    Name of Class : ',getstring]);
+             writeln([space,'   Import lib/pkg : ',getstring]);
+             write  ([space,'          Options : ']);
              readobjectdefoptions;
              b:=getbyte;
-             write  (space,'             Type : ');
+             write  ([space,'             Type : ']);
              case tobjecttyp(b) of
                odt_class          : writeln('class');
                odt_object         : writeln('object');
@@ -2530,15 +2569,15 @@ begin
                odt_objccategory   : writeln('objccategory');
                odt_javaclass      : writeln('Java class');
                odt_interfacejava  : writeln('Java interface');
-               else                 writeln('!! Warning: Invalid object type ',b);
+               else                 writeln(['!! Warning: Invalid object type ',b]);
              end;
-             writeln(space,'    External name : ',getstring);
-             writeln(space,'         DataSize : ',getasizeint);
-             writeln(space,'      PaddingSize : ',getword);
-             writeln(space,'       FieldAlign : ',shortint(getbyte));
-             writeln(space,'      RecordAlign : ',shortint(getbyte));
-             writeln(space,'       Vmt offset : ',getlongint);
-             write  (space,  '   Ancestor Class : ');
+             writeln([space,'    External name : ',getstring]);
+             writeln([space,'         DataSize : ',getasizeint]);
+             writeln([space,'      PaddingSize : ',getword]);
+             writeln([space,'       FieldAlign : ',shortint(getbyte)]);
+             writeln([space,'      RecordAlign : ',shortint(getbyte)]);
+             writeln([space,'       Vmt offset : ',getlongint]);
+             write  ([space,  '   Ancestor Class : ']);
              readderef('');
 
              if tobjecttyp(b) in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
@@ -2546,39 +2585,39 @@ begin
                   { IIDGUID }
                   for j:=1to 16 do
                    getbyte;
-                  writeln(space,'       IID String : ',getstring);
+                  writeln([space,'       IID String : ',getstring]);
                end;
 
-             writeln(space,' Abstract methods : ',getlongint);
+             writeln([space,' Abstract methods : ',getlongint]);
 
              if (tobjecttyp(b)=odt_helper) or
                  (oo_is_classhelper in current_objectoptions) then
                begin
-                 write(space,'    Helper parent : ');
+                 write([space,'    Helper parent : ']);
                  readderef('');
                end;
 
              l:=getlongint;
-             writeln(space,'  VMT entries: ',l);
+             writeln([space,'  VMT entries: ',l]);
              for j:=1 to l do
                begin
-                 write(space,'    ');
+                 write([space,'    ']);
                  readderef('');
-                 writeln(space,'      Visibility: ',Visibility2Str(getbyte));
+                 writeln([space,'      Visibility: ',Visibility2Str(getbyte)]);
                end;
 
              if tobjecttyp(b) in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 l:=getlongint;
-                writeln(space,'  Impl Intf Count : ',l);
+                writeln([space,'  Impl Intf Count : ',l]);
                 for j:=1 to l do
                  begin
-                   write  (space,'  - Definition : ');
+                   write  ([space,'  - Definition : ']);
                    readderef('');
-                   write  (space,'  - Getter Def : ');
+                   write  ([space,'  - Getter Def : ']);
                    readderef('');
-                   writeln(space,'       IOffset : ',getlongint);
-                   writeln(space,'    Entry type : ',IntfEntryType2Str(getbyte));
+                   writeln([space,'       IOffset : ',getlongint]);
+                   writeln([space,'    Entry type : ',IntfEntryType2Str(getbyte)]);
                  end;
               end;
 
@@ -2603,12 +2642,12 @@ begin
          ibfiledef :
            begin
              ReadCommonDef('File definition',defoptions);
-             write  (space,'             Type : ');
+             write  ([space,'             Type : ']);
              case getbyte of
               0 : writeln('Text');
               1 : begin
                     writeln('Typed');
-                    write  (space,'      File of Type : ');
+                    write  ([space,'      File of Type : ']);
                     readderef('');
                   end;
               2 : writeln('Untyped');
@@ -2618,7 +2657,7 @@ begin
          ibformaldef :
            begin
              readcommondef('Generic definition (void-typ)',defoptions);
-             writeln(space,'         Is Typed : ',(getbyte<>0));
+             writeln([space,'         Is Typed : ',(getbyte<>0)]);
            end;
 
          ibundefineddef :
@@ -2627,16 +2666,16 @@ begin
          ibenumdef :
            begin
              readcommondef('Enumeration type definition',defoptions);
-             writeln(space,' Smallest element : ',getaint);
-             writeln(space,'  Largest element : ',getaint);
-             writeln(space,'             Size : ',getaint);
+             writeln([space,' Smallest element : ',getaint]);
+             writeln([space,'  Largest element : ',getaint]);
+             writeln([space,'             Size : ',getaint]);
 {$ifdef jvm}
-             write(space,'        Class def : ');
+             write([space,'        Class def : ']);
              readderef('');
 {$endif}
              if df_copied_def in defoptions then
                begin
-                 write(space,'Base enumeration type : ');
+                 write([space,'Base enumeration type : ']);
                  readderef('');
                end
              else
@@ -2650,24 +2689,24 @@ begin
          ibclassrefdef :
            begin
              readcommondef('Class reference definition',defoptions);
-             write  (space,'    Pointed Type : ');
+             write  ([space,'    Pointed Type : ']);
              readderef('');
            end;
 
          ibsetdef :
            begin
              readcommondef('Set definition',defoptions);
-             write  (space,'     Element type : ');
+             write  ([space,'     Element type : ']);
              readderef('');
-             writeln(space,'             Size : ',getaint);
-             writeln(space,'         Set Base : ',getaint);
-             writeln(space,'          Set Max : ',getaint);
+             writeln([space,'             Size : ',getaint]);
+             writeln([space,'         Set Base : ',getaint]);
+             writeln([space,'          Set Max : ',getaint]);
            end;
 
          ibvariantdef :
            begin
              readcommondef('Variant definition',defoptions);
-             write  (space,'      Varianttype : ');
+             write  ([space,'      Varianttype : ']);
              b:=getbyte;
              case tvarianttype(b) of
                vt_normalvariant :
@@ -2675,7 +2714,7 @@ begin
                vt_olevariant :
                  writeln('OLE');
                else
-                 writeln('!! Warning: Invalid varianttype ',b);
+                 writeln(['!! Warning: Invalid varianttype ',b]);
              end;
 
            end;
@@ -2691,7 +2730,7 @@ begin
 
          else
            begin
-             WriteLn('!! Skipping unsupported PPU Entry in definitions: ',b);
+             WriteLn(['!! Skipping unsupported PPU Entry in definitions: ',b]);
              SetHasErrors;
            end;
        end;
@@ -2748,7 +2787,7 @@ begin
    end;
   writeln;
   if mo_has_deprecated_msg in moduleoptions then
-    writeln(space,'Deprecated : ', ppufile.getstring);
+    writeln([space,'Deprecated : ', ppufile.getstring]);
 end;
 
 {****************************************************************************
@@ -2767,7 +2806,7 @@ begin
        case b of
 
          ibmodulename :
-           Writeln('Module Name: ',getstring);
+           Writeln(['Module Name: ',getstring]);
 
          ibmoduleoptions:
            readmoduleoptions('  ');
@@ -2777,7 +2816,7 @@ begin
              sourcenumber:=1;
              while not EndOfEntry do
               begin
-                Writeln('Source file ',sourcenumber,' : ',getstring,' ',filetimestring(getlongint));
+                Writeln(['Source file ',sourcenumber,' : ',getstring,' ',filetimestring(getlongint)]);
                 inc(sourcenumber);
               end;
            end;
@@ -2825,7 +2864,7 @@ begin
            ReadLinkContainer('Link framework: ');
 
          ibmainname:
-           Writeln('Specified main program symbol name: ',getstring);
+           Writeln(['Specified main program symbol name: ',getstring]);
 
          ibImportSymbols :
            ReadImportSymbols;
@@ -2853,7 +2892,7 @@ begin
 
          else
            begin
-             WriteLn('!! Skipping unsupported PPU Entry in General Part: ',b);
+             WriteLn(['!! Skipping unsupported PPU Entry in General Part: ',b]);
              SetHasErrors;
            end;
        end;
@@ -2891,7 +2930,7 @@ begin
            break;
          else
            begin
-             WriteLn('!! Skipping unsupported PPU Entry in Implementation: ',b);
+             WriteLn(['!! Skipping unsupported PPU Entry in Implementation: ',b]);
              SetHasErrors;
            end;
        end;
@@ -2916,17 +2955,17 @@ begin
 { PPU File is open, check for PPU Id }
   if not ppufile.CheckPPUID then
    begin
-     writeln(Filename,' : Not a valid PPU file, Skipping');
+     writeln([Filename,' : Not a valid PPU file, Skipping']);
      SetHasErrors;
      exit;
    end;
 { Check PPU Version }
   ppuversion:=ppufile.GetPPUVersion;
 
-  Writeln('Analyzing ',filename,' (v',PPUVersion,')');
+  Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
   if PPUVersion<16 then
    begin
-     writeln(Filename,' : Old PPU Formats (<v16) are not supported, Skipping');
+     writeln([Filename,' : Old PPU Formats (<v16) are not supported, Skipping']);
      SetHasErrors;
      exit;
    end;
@@ -2938,18 +2977,18 @@ begin
      Writeln('-------');
      with ppufile.header do
       begin
-        Writeln('Compiler version        : ',ppufile.header.compiler shr 14,'.',
+        Writeln(['Compiler version        : ',ppufile.header.compiler shr 14,'.',
                                              (ppufile.header.compiler shr 7) and $7f,'.',
-                                             ppufile.header.compiler and $7f);
-        WriteLn('Target processor        : ',Cpu2Str(cpu));
-        WriteLn('Target operating system : ',Target2Str(target));
-        Writeln('Unit flags              : ',PPUFlags2Str(flags));
-        Writeln('FileSize (w/o header)   : ',size);
-        Writeln('Checksum                : ',hexstr(checksum,8));
-        Writeln('Interface Checksum      : ',hexstr(interface_checksum,8));
-        Writeln('Indirect Checksum       : ',hexstr(indirect_checksum,8));
-        Writeln('Definitions stored      : ',tostr(deflistsize));
-        Writeln('Symbols stored          : ',tostr(symlistsize));
+                                             ppufile.header.compiler and $7f]);
+        WriteLn(['Target processor        : ',Cpu2Str(cpu)]);
+        WriteLn(['Target operating system : ',Target2Str(target)]);
+        Writeln(['Unit flags              : ',PPUFlags2Str(flags)]);
+        Writeln(['FileSize (w/o header)   : ',size]);
+        Writeln(['Checksum                : ',hexstr(checksum,8)]);
+        Writeln(['Interface Checksum      : ',hexstr(interface_checksum,8)]);
+        Writeln(['Indirect Checksum       : ',hexstr(indirect_checksum,8)]);
+        Writeln(['Definitions stored      : ',tostr(deflistsize)]);
+        Writeln(['Symbols stored          : ',tostr(symlistsize)]);
       end;
    end;
 {read the general stuff}
@@ -3121,9 +3160,10 @@ begin
    end;
 { process files }
   for nrfile:=startpara to paramcount do
-   dofile (paramstr(nrfile));
+    dofile (paramstr(nrfile));
   if has_errors then
     Halt(1);
   if error_on_more and has_more_infos then
     Halt(2);
 end.
+
