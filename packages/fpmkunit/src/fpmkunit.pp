@@ -3354,7 +3354,7 @@ Var
   F : TFileStream;
   L : TStringList;
 begin
-  F:=TFileStream.Create(AFileName,fmCreate);
+  F:=TFileStream.Create(AFileName,fmCreate or fmShareDenyNone);
   L:=TStringList.Create;
   try
     SaveUnitConfigToStringList(L,ACPU,AOS);
@@ -3744,7 +3744,7 @@ procedure TCustomDefaults.LoadFromFile(Const AFileName: String);
 Var
   F : TFileStream;
 begin
-  F:=TFileStream.Create(AFileName,fmOpenRead);
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyNone);
   Try
     LoadFromStream(F);
   Finally
@@ -3757,7 +3757,7 @@ procedure TCustomDefaults.SaveToFile(Const AFileName: String);
 Var
   F : TFileStream;
 begin
-  F:=TFileStream.Create(AFileName,fmCreate);
+  F:=TFileStream.Create(AFileName,fmCreate or fmShareDenyNone);
   Try
     SaveToStream(F);
   Finally
@@ -4493,14 +4493,14 @@ Var
 {$endif UNIX}
 begin
   Log(vlInfo,SInfoCopyingFile,[Src,Dest]);
-  FIn:=TFileStream.Create(Src,fmopenRead);
+  FIn:=TFileStream.Create(Src,fmopenRead or fmShareDenyNone);
   Try
     D:=IncludeTrailingPathDelimiter(Dest);
     If DirectoryExists(D) then
       S:=D+ExtractFileName(Src)
     else
       S:=Dest;
-    FOut:=TFileStream.Create(S,fmCreate);
+    FOut:=TFileStream.Create(S,fmCreate or fmShareDenyNone);
     Try
       Count:=Fout.CopyFrom(FIn,0);
       If (Count<>Fin.Size) then
