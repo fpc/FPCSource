@@ -102,11 +102,7 @@ FPC_INTR:
         mov al, byte [ss:bp + 6]
         mov byte [cs:int_number], al
         push es
-        push di
-        push bx
-        push cx
         mov si, [ss:bp + 4]
-        push si
         push ds
         mov ax, word [si + 16]
         mov es, ax
@@ -150,10 +146,6 @@ int_number:
         mov word [si + 18], ax
         
         pop ds
-        pop si
-        pop cx
-        pop bx
-        pop di
         pop es
         pop bp
         ret 4
