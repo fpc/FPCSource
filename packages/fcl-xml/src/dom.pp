@@ -451,6 +451,8 @@ type
     FMaxPoolSize: Integer;
     FPools: PNodePoolArray;
     FXmlStandalone: Boolean;
+    FStdUri_xml: PHashItem;
+    FStdUri_xmlns: PHashItem;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -465,6 +467,7 @@ type
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
     procedure SetXMLVersion(const aValue: DOMString); virtual;
     procedure SetXMLStandalone(aValue: Boolean); virtual;
+    function ValidateQName(const nsUri, qName: DOMString; out nsidx: PHashItem): Integer;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
@@ -2108,10 +2111,8 @@ end;
 //   DOMImplementation
 // -------------------------------------------------------
 
-{ if nsIdx = -1, checks only the name. Otherwise additionally checks if the prefix is
-  valid for standard namespace specified by nsIdx. 
-  Non-negative return value is Pos(':', QName), negative is DOM error code. }
-function CheckQName(const QName: DOMString; nsIdx: Integer): Integer;
+{  Non-negative return value is Pos(':', QName), negative is DOM error code. }
+function CheckQName(const QName: DOMString): Integer;
 var
   I, L: Integer;
 begin
@@ -2139,14 +2140,6 @@ begin
       Exit;
     end;
   end;
-  if nsIdx < 0 then Exit;
-  // QName contains prefix, but no namespace
-  if ((nsIdx = 0) and (Result > 0)) or
-  // Bad usage of 'http://www.w3.org/2000/xmlns/'
-  ((((L = 5) or (Result = 6)) and (Pos(DOMString('xmlns'), QName) = 1)) <> (nsIdx = 2)) or
-  // Bad usage of 'http://www.w3.org/XML/1998/namespace'
-  ((Result = 4) and (Pos(DOMString('xml'), QName) = 1) and (nsIdx <> 1)) then
-    Result := -NAMESPACE_ERR;
 end;
 
 function TDOMImplementation.HasFeature(const feature, version: DOMString):
@@ -2166,7 +2159,7 @@ var
   res: Integer;
   model: TDTDModel;
 begin
-  res := CheckQName(QualifiedName, -1);
+  res := CheckQName(QualifiedName);
   if res < 0 then
     raise EDOMError.Create(-res, 'Implementation.CreateDocumentType');
   model := TDTDModel.Create(nil); // !!nowhere to get nametable from at this time
@@ -2218,6 +2211,8 @@ begin
   FNamespaces[1] := stduri_xml;
   FNamespaces[2] := stduri_xmlns;
   FEmptyNode := TDOMElement.Create(Self);
+  FStdUri_xml := FNames.FindOrAdd(stduri_xml);
+  FStdUri_xmlns := FNames.FindOrAdd(stduri_xmlns);
 end;
 
 destructor TDOMDocument.Destroy;
@@ -2536,19 +2531,36 @@ begin
     FNodeLists.RemoveData(aList);
 end;
 
+function TDOMDocument.ValidateQName(const nsUri, qName: DOMString;
+  out nsidx: PHashItem): Integer;
+begin
+  nsidx := FNames.FindOrAdd(DOMPChar(nsUri), Length(nsUri));
+  Result := CheckQName(qName);
+  if Result >= 0 then
+  begin
+    // QName contains prefix, but no namespace
+    if ((nsUri = '') and (Result > 0)) or
+    // Bad usage of 'http://www.w3.org/2000/xmlns/'
+    ((((Length(QName) = 5) or (Result = 6)) and (Pos(DOMString('xmlns'), QName) = 1)) <> (nsIdx = FStdUri_xmlns)) or
+    // Bad usage of 'http://www.w3.org/XML/1998/namespace'
+    ((Result = 4) and (Pos(DOMString('xml'), QName) = 1) and (nsIdx <> FStdUri_xml)) then
+      Result := -NAMESPACE_ERR;
+  end;
+end;
+
 function TDOMDocument.CreateAttributeNS(const nsURI,
   QualifiedName: DOMString): TDOMAttr;
 var
-  idx, PrefIdx: Integer;
+  PrefIdx: Integer;
+  nsidx: PHashItem;
 begin
-  idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx);
+  PrefIdx := ValidateQName(nsURI, QualifiedName, nsidx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateAttributeNS');
   TDOMNode(Result) := Alloc(TDOMAttr);
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(QualifiedName), Length(QualifiedName));
-  Result.FNSI.NSIndex := Word(idx);
+  Result.FNSI.NSIndex := Word(IndexOfNS(nsURI, True));
   Result.FNSI.PrefixLen := Word(PrefIdx);
   Include(Result.FFlags, nfLevel2);
   Include(Result.FFlags, nfSpecified);
@@ -2557,16 +2569,16 @@ end;
 function TDOMDocument.CreateElementNS(const nsURI,
   QualifiedName: DOMString): TDOMElement;
 var
-  idx, PrefIdx: Integer;
+  PrefIdx: Integer;
+  nsidx: PHashItem;
 begin
-  idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx);
+  PrefIdx := ValidateQName(nsURI, QualifiedName, nsidx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
   TDOMNode(Result) := Alloc(TDOMElement);
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(QualifiedName), Length(QualifiedName));
-  Result.FNSI.NSIndex := Word(idx);
+  Result.FNSI.NSIndex := Word(IndexOfNS(nsURI, True));
   Result.FNSI.PrefixLen := Word(PrefIdx);
   Include(Result.FFlags, nfLevel2);
   Result.AttachDefaultAttrs;
@@ -2972,31 +2984,28 @@ end;
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TAttributeDef);
 var
   Attr: TDOMAttr;
-  ColonPos: Integer;
-  AttrName, nsuri: DOMString;
+  AttrData: TNodeData;
+  nsuri: DOMString;
 begin
   if nfDestroying in FOwnerDocument.FFlags then
     Exit;
-  Attr := LoadAttribute(FOwnerDocument, AttrDef.Data);
-
-  AttrName := Attr.Name;
-  ColonPos := Pos(WideChar(':'), AttrName);
-  if Pos(DOMString('xmlns'), AttrName) = 1 then
+  { Copy data and maybe fixup namespace fields }
+  AttrData := AttrDef.Data^;
+  if AttrDef.IsNamespaceDecl then
+    AttrData.FNsUri := FOwnerDocument.FStdUri_xmlns
+  else if AttrData.FColonPos > 0 then
   begin
-    if (Length(AttrName) = 5) or (ColonPos = 6) then
-      Attr.SetNSI(stduri_xmlns, ColonPos);
-  end
-  else if ColonPos > 0 then
-  begin
-    if (ColonPos = 4) and (Pos(DOMString('xml'), AttrName) = 1) then
-      Attr.SetNSI(stduri_xml, 4)
+    if (AttrData.FColonPos = 3) and (Pos(DOMString('xml'), AttrData.FQName^.Key) = 1) then
+      AttrData.FNsUri := FOwnerDocument.FStdUri_xml
     else
     begin
-      nsuri := LookupNamespaceURI(Copy(AttrName, 1, ColonPos-1));
+      nsuri := LookupNamespaceURI(Copy(AttrData.FQName^.Key, 1, AttrData.FColonPos));
       // TODO: what if prefix isn't defined?
-      Attr.SetNSI(nsuri, ColonPos);
-    end
+      AttrData.FNsUri := FOwnerDocument.FNames.FindOrAdd(nsuri);
+    end;
   end;
+  Attr := LoadAttribute(FOwnerDocument, @AttrData);
+
   // TODO: this is cheat, should look at config['namespaces'] instead.
   // revisit when it is implemented.
   if nfLevel2 in FFlags then
@@ -3087,10 +3096,11 @@ var
   I: Cardinal;
   Attr: TDOMAttr;
   idx, prefIdx: Integer;
+  nsidx: PHashItem;
 begin
   Changing;
   idx := FOwnerDocument.IndexOfNS(nsURI, True);
-  prefIdx := CheckQName(qualifiedName, idx);
+  prefIdx := FOwnerDocument.ValidateQName(nsURI, qualifiedName, nsidx);
   if prefIdx < 0 then
     raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
 
