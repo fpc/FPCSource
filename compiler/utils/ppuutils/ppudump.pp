@@ -36,11 +36,11 @@ uses
   globtype,
   widestr,
   tokens,
+  version,
   ppuout,
   ppujson;
 
 const
-  Version   = 'Version 2.7.1';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2013 by the Free Pascal Development Team';
 
@@ -3141,7 +3141,7 @@ end;
 
 procedure WriteLogo;
 begin
-  writeln(Title+' '+Version);
+  writeln(Title+' Version '+version_string);
   writeln(Copyright);
   writeln;
 end;
@@ -3152,7 +3152,9 @@ begin
   writeln('usage: ppudump [options] <filename1> <filename2>...');
   writeln;
   writeln('[options] can be:');
-  writeln('    -J output in JSON format');
+  writeln('    -F<format>  Set output format to <format>');
+  writeln('                  t - text format (default)');
+  writeln('                  j - JSON format');
   writeln('    -M Exit with ExitCode=2 if more information is available');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
   writeln('                   H - Show header info');
@@ -3187,9 +3189,23 @@ begin
    begin
      para:=paramstr(startpara);
      case upcase(para[2]) of
-      'J' : begin
-              nostdout:=True;
-              pout:=TPpuJsonOutput.Create(Output);
+      'F' : begin
+              FreeAndNil(pout);
+              if Length(para) > 2 then
+                case upcase(para[3]) of
+                  'T':
+                    nostdout:=False;
+                  'J':
+                    begin
+                      nostdout:=True;
+                      pout:=TPpuJsonOutput.Create(Output);
+                    end;
+                  else
+                    begin
+                      WriteError('Invalid output format: ' + para[3]);
+                      Halt(1);
+                    end;
+                end;
             end;
       'M' : error_on_more:=true;
       'V' : begin
@@ -3206,6 +3222,11 @@ begin
             end;
       'H' : help;
       '?' : help;
+      else
+        begin
+          WriteError('Invalid option: ' + para);
+          Halt(1);
+        end;
      end;
      inc(startpara);
    end;
