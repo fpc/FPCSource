@@ -20,6 +20,7 @@ begin
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('libtar');
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
 
     P.Author := ' Dean Zobec, Michael van Canneyt';
