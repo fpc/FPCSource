@@ -128,7 +128,7 @@ int_number:
         mov bp, sp
         mov si, word [ss:bp + 8]
         mov ds, si
-        mov si, word [ss:bp + 10]
+        mov si, word [ss:bp + 16]
         mov word [si], ax
         mov word [si + 2], bx
         mov word [si + 4], cx
