@@ -368,6 +368,12 @@ begin
 {$include libsee/fpmake.pp}
 end;
 
+procedure add_libtar;
+begin
+  with Installer do
+{$include libtar/fpmake.pp}
+end;
+
 procedure add_libvlc;
 begin
   with Installer do

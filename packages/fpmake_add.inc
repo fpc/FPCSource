@@ -63,6 +63,7 @@
   add_libpng;
   add_librsvg;
   add_libsee;
+  add_libtar;
   add_libvlc;
   add_libxml;
   add_lua;
