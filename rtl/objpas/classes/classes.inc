@@ -191,8 +191,11 @@ end;
 
 destructor TThread.Destroy;
 begin
-  if not FExternalThread then
+  if not FExternalThread then begin
     SysDestroy;
+    if FHandle <> TThreadID(0) then
+      CloseThread(FHandle);
+  end;
   RemoveQueuedEvents(Self);
   DoneSynchronizeEvent;
   { set CurrentThreadVar to Nil? }

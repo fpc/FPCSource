@@ -32,7 +32,6 @@ begin
             Start;
           WaitFor;
         end;
-      CloseHandle(FHandle);
     end;
 
   FFatalException.Free;
