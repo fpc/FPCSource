@@ -37,16 +37,15 @@ type
     procedure BeforeWriteElement;
     procedure WriteAttr(const AName, AValue: string);
   protected
-    procedure WriteDefStart(Def: TPpuDef); override;
-    procedure WriteDefEnd(Def: TPpuDef); override;
-    procedure WriteSubItemsStart(Def: TPpuContainerDef); override;
-    procedure WriteSubItemsEnd(Def: TPpuContainerDef); override;
+    procedure WriteObjectStart(const AName: string; Def: TPpuDef); override;
+    procedure WriteObjectEnd(Def: TPpuDef); override;
     procedure WriteArrayStart(const AName: string); override;
-    procedure WriteArrayEnd(const AName: string); override;
+    procedure WriteArrayEnd; override;
     procedure WriteStr(const AName, AValue: string); override;
     procedure WriteInt(const AName: string; AValue: Int64); override;
     procedure WriteFloat(const AName: string; AValue: extended); override;
     procedure WriteBool(const AName: string; AValue: boolean); override;
+    procedure WriteNull(const AName: string); override;
   public
     constructor Create(var OutFile: Text); override;
     procedure IncI; override;
@@ -155,53 +154,6 @@ begin
     Write(AValue);
 end;
 
-procedure TPpuJsonOutput.WriteDefStart(Def: TPpuDef);
-begin
-  if Def.Parent = nil then
-    // Top level container
-    exit;
-  WriteLn('{');
-  IncI;
-  if Def.DefType <> dtNone then
-    WriteStr('Type', Def.DefTypeName);
-  if Def.Name <> '' then
-    WriteStr('Name', Def.Name);
-end;
-
-procedure TPpuJsonOutput.WriteDefEnd(Def: TPpuDef);
-var
-  s: string;
-begin
-  if Def.Parent = nil then
-    // Top level container
-    exit;
-  DecI;
-  s:='}';
-  // Last def in list?
-  if (Def.Parent <> nil) and (Def.Parent[Def.Parent.Count - 1] <> Def) then
-    s:=s + ',';
-  WriteLn(s);
-end;
-
-procedure TPpuJsonOutput.WriteSubItemsStart(Def: TPpuContainerDef);
-begin
-  if Def.Parent = nil then begin
-    // Top level container
-    WriteLn('[');
-    exit;
-  end;
-  BeforeWriteElement;
-  WriteLn(Format('"%s": [', [Def.ItemsName]));
-end;
-
-procedure TPpuJsonOutput.WriteSubItemsEnd(Def: TPpuContainerDef);
-begin
-  Write(']');
-  if Def.Parent = nil then
-    // Top level container
-    WriteLn;
-end;
-
 procedure TPpuJsonOutput.WriteStr(const AName, AValue: string);
 begin
   WriteAttr(AName, JsonStr(AValue));
@@ -228,17 +180,35 @@ begin
     WriteAttr(AName, 'false');
 end;
 
-procedure TPpuJsonOutput.WriteArrayStart(const AName: string);
+procedure TPpuJsonOutput.WriteNull(const AName: string);
 begin
-  BeforeWriteElement;
-  WriteLn(Format('"%s": [', [AName]));
-  IncI;
+  WriteAttr(AName, 'null');
 end;
 
-procedure TPpuJsonOutput.WriteArrayEnd(const AName: string);
+procedure TPpuJsonOutput.WriteArrayStart(const AName: string);
 begin
-  DecI;
+  WriteAttr(AName, '[');
+  WriteLn;
+  inherited;
+end;
+
+procedure TPpuJsonOutput.WriteArrayEnd;
+begin
+  inherited;
   Write(']');
+end;
+
+procedure TPpuJsonOutput.WriteObjectStart(const AName: string; Def: TPpuDef);
+begin
+  WriteAttr(AName, '{');
+  WriteLn;
+  inherited;
+end;
+
+procedure TPpuJsonOutput.WriteObjectEnd(Def: TPpuDef);
+begin
+  inherited;
+  Write('}');
 end;
 
 constructor TPpuJsonOutput.Create(var OutFile: Text);

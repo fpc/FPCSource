@@ -21,20 +21,21 @@
 
 unit ppuout;
 {$mode objfpc}{$H+}
+{$I+}
 
 interface
 
-uses SysUtils, Classes;
+uses SysUtils, cclasses, Classes;
 
 type
-  TPpuDefType = (dtNone, dtUnit, dtClass, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
+  TPpuDefType = (dtNone, dtUnit, dtObject, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
                  dtType, dtConst, dtProcType, dtEnum, dtSet);
 
   TPpuDef = class;
   TPpuContainerDef = class;
+  TPpuUnitDef = class;
 
   { TPpuOutput }
-
   TPpuOutput = class
   private
     FOutFile: ^Text;
@@ -45,16 +46,15 @@ type
     procedure SetIndent(AValue: integer);
     procedure SetIndentSize(AValue: integer);
   protected
-    procedure WriteDefStart(Def: TPpuDef); virtual;
-    procedure WriteDefEnd(Def: TPpuDef); virtual;
-    procedure WriteSubItemsStart(Def: TPpuContainerDef); virtual;
-    procedure WriteSubItemsEnd(Def: TPpuContainerDef); virtual;
+    procedure WriteObjectStart(const AName: string; Def: TPpuDef = nil); virtual;
+    procedure WriteObjectEnd(Def: TPpuDef = nil); virtual;
+    procedure WriteArrayStart(const AName: string); virtual;
+    procedure WriteArrayEnd; virtual;
     procedure WriteStr(const AName, AValue: string); virtual;
     procedure WriteInt(const AName: string; AValue: Int64); virtual;
     procedure WriteFloat(const AName: string; AValue: extended); virtual;
     procedure WriteBool(const AName: string; AValue: boolean); virtual;
-    procedure WriteArrayStart(const AName: string); virtual;
-    procedure WriteArrayEnd(const AName: string); virtual;
+    procedure WriteNull(const AName: string); virtual;
   public
     constructor Create(var OutFile: Text); virtual;
     destructor Destroy; override;
@@ -66,13 +66,30 @@ type
     property IndentSize: integer read FIndentSize write SetIndentSize;
   end;
 
+  { TPpuRef }
+  TPpuRef = class
+  public
+    UnitIndex: word;
+    Id: integer;
+    constructor Create;
+    procedure Write(Output: TPpuOutput; const RefName: string);
+  end;
+
+  TPpuFilePos = record
+    FileIndex: dword;
+    Line, Col: integer;
+  end;
+
   { TPpuDef }
 
   TPpuDef = class
   private
+    FId: integer;
     FParent: TPpuContainerDef;
+    FParentUnit: TPpuUnitDef;
     function GetDefTypeName: string;
-    procedure SetProps(AValue: TStringList);
+    function GetParentUnit: TPpuUnitDef;
+    procedure SetId(AValue: integer);
 
   protected
     procedure WriteDef(Output: TPpuOutput); virtual;
@@ -80,17 +97,18 @@ type
   public
     DefType: TPpuDefType;
     Name: string;
-    DefId: integer;
+    FilePos: TPpuFilePos;
 
     constructor Create(AParent: TPpuContainerDef); virtual; reintroduce;
     destructor Destroy; override;
     procedure Write(Output: TPpuOutput);
     property Parent: TPpuContainerDef read FParent;
+    property ParentUnit: TPpuUnitDef read GetParentUnit;
+    property Id: integer read FId write SetId;
     property DefTypeName: string read GetDefTypeName;
   end;
 
   { TPpuContainerDef }
-
   TPpuContainerDef = class(TPpuDef)
   private
     FItems: TList;
@@ -112,8 +130,9 @@ type
   end;
 
   { TPpuUnitDef }
-
   TPpuUnitDef = class(TPpuContainerDef)
+  private
+    FIndexById: THashSet;
   protected
     procedure WriteDef(Output: TPpuOutput); override;
   public
@@ -123,12 +142,13 @@ type
     UsedUnits: TPpuContainerDef;
     RefUnits: array of string;
     SourceFiles: TPpuContainerDef;
+
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
+    function FindById(AId: integer): TPpuDef;
   end;
 
   { TPpuSrcFile }
-
   TPpuSrcFile = class(TPpuDef)
   protected
     procedure WriteDef(Output: TPpuOutput); override;
@@ -136,12 +156,79 @@ type
     FileTime: TDateTime;
   end;
 
+  { TPpuProcDef }
+  TPpuProcDef = class(TPpuContainerDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    ReturnType: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+  { TPpuProcTypeDef }
+  TPpuProcTypeDef = class(TPpuProcDef)
+  public
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
 implementation
 
 const
   DefTypeNames: array[TPpuDefType] of string =
-    ('', 'unit', 'class', 'record', 'procedure', 'field', 'property', 'parameter', 'variable',
+    ('', 'unit', 'object', 'record', 'procedure', 'field', 'property', 'parameter', 'variable',
      'type', 'constant', 'proctype', 'enum', 'set');
+
+{ TPpuRef }
+
+constructor TPpuRef.Create;
+begin
+  UnitIndex:=$FFFF;
+  Id:=-1;
+end;
+
+procedure TPpuRef.Write(Output: TPpuOutput; const RefName: string);
+begin
+  with Output do
+    if Id < 0 then
+      WriteNull(RefName)
+    else begin
+      WriteObjectStart(RefName);
+      if UnitIndex <> $FFFF then
+        WriteInt('RefUnit', UnitIndex);
+      WriteInt('Id', Id);
+      WriteObjectEnd;
+    end;
+end;
+
+{ TPpuProcTypeDef }
+
+constructor TPpuProcTypeDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtProcType;
+end;
+
+{ TPpuProcDef }
+
+procedure TPpuProcDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  ReturnType.Write(Output, 'ReturnType');
+end;
+
+constructor TPpuProcDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtProc;
+  ReturnType:=TPpuRef.Create;
+end;
+
+destructor TPpuProcDef.Destroy;
+begin
+  ReturnType.Free;
+  inherited Destroy;
+end;
 
 { TPpuSrcFile }
 
@@ -170,22 +257,6 @@ begin
   FIndentSize:=AValue;
 end;
 
-procedure TPpuOutput.WriteDefStart(Def: TPpuDef);
-begin
-end;
-
-procedure TPpuOutput.WriteDefEnd(Def: TPpuDef);
-begin
-end;
-
-procedure TPpuOutput.WriteSubItemsStart(Def: TPpuContainerDef);
-begin
-end;
-
-procedure TPpuOutput.WriteSubItemsEnd(Def: TPpuContainerDef);
-begin
-end;
-
 procedure TPpuOutput.WriteStr(const AName, AValue: string);
 begin
 end;
@@ -204,22 +275,42 @@ begin
 end;
 
 procedure TPpuOutput.WriteBool(const AName: string; AValue: boolean);
-var
-  s: string;
 begin
   if AValue then
-    s:='1'
+    WriteStr(AName, '1')
   else
-    s:='0';
-  WriteStr(AName, s);
+    WriteStr(AName, '0');
+end;
+
+procedure TPpuOutput.WriteNull(const AName: string);
+begin
+  WriteStr(AName, '');
 end;
 
 procedure TPpuOutput.WriteArrayStart(const AName: string);
 begin
+  IncI;
 end;
 
-procedure TPpuOutput.WriteArrayEnd(const AName: string);
+procedure TPpuOutput.WriteArrayEnd;
 begin
+  DecI;
+end;
+
+procedure TPpuOutput.WriteObjectStart(const AName: string; Def: TPpuDef);
+begin
+  IncI;
+  if Def = nil then
+    exit;
+  if Def.DefType <> dtNone then
+    WriteStr('Type', Def.DefTypeName);
+  if Def.Name <> '' then
+    WriteStr('Name', Def.Name);
+end;
+
+procedure TPpuOutput.WriteObjectEnd(Def: TPpuDef);
+begin
+  DecI;
 end;
 
 constructor TPpuOutput.Create(var OutFile: Text);
@@ -271,15 +362,15 @@ begin
     if TargetOS <> '' then
       WriteStr('TargetOS', TargetOS);
     if Crc <> 0 then
-      WriteStr('Crc', hexStr(Crc, 8));
+      WriteStr('CRC', hexStr(Crc, 8));
     if IntfCrc <> 0 then
-      WriteStr('InterfaceCrc', hexStr(IntfCrc, 8));
+      WriteStr('InterfaceCRC', hexStr(IntfCrc, 8));
     UsedUnits.WriteDef(Output);
     if Length(RefUnits) > 0 then begin
       WriteArrayStart('RefUnits');
       for i:=0 to High(RefUnits) do
         WriteStr('', RefUnits[i]);
-      WriteArrayEnd('RefUnits');
+      WriteArrayEnd;
     end;
     SourceFiles.WriteDef(Output);
   end;
@@ -290,20 +381,35 @@ constructor TPpuUnitDef.Create(AParent: TPpuContainerDef);
 begin
   inherited Create(AParent);
   DefType:=dtUnit;
+  ItemsName:='Interface';
   UsedUnits:=TPpuContainerDef.Create(nil);
   UsedUnits.FParent:=Self;
   UsedUnits.ItemsName:='UsedUnits';
   SourceFiles:=TPpuContainerDef.Create(nil);
   SourceFiles.FParent:=Self;
   SourceFiles.ItemsName:='SrcFiles';
+  FIndexById:=THashSet.Create(64, True, False);
 end;
 
 destructor TPpuUnitDef.Destroy;
 begin
   UsedUnits.Free;
   SourceFiles.Free;
+  FIndexById.Free;
   inherited Destroy;
 end;
+
+function TPpuUnitDef.FindById(AId: integer): TPpuDef;
+var
+  h: PHashSetItem;
+begin
+  h:=FIndexById.Find(@AId, SizeOf(AId));
+  if h <> nil then
+    Result:=TPpuDef(h^.Data)
+  else
+    Result:=nil;
+end;
+
 
 { TPpuContainerDef }
 
@@ -329,14 +435,10 @@ begin
   inherited WriteDef(Output);
   if Count = 0 then
     exit;
-  Output.WriteSubItemsStart(Self);
-  if Parent <> nil then
-    Output.IncI;
+  Output.WriteArrayStart(ItemsName);
   for i:=0 to Count - 1 do
     Items[i].Write(Output);
-  if Parent <> nil then
-    Output.DecI;
-  Output.WriteSubItemsEnd(Self);
+  Output.WriteArrayEnd;
 end;
 
 constructor TPpuContainerDef.Create(AParent: TPpuContainerDef);
@@ -369,22 +471,56 @@ begin
   Result:=DefTypeNames[DefType];
 end;
 
-procedure TPpuDef.SetProps(AValue: TStringList);
+function TPpuDef.GetParentUnit: TPpuUnitDef;
+var
+  d: TPpuContainerDef;
 begin
+  if FParentUnit = nil then begin
+    d:=Parent;
+    while (d <> nil) and (d.DefType <> dtUnit) do
+      d:=d.Parent;
+    FParentUnit:=TPpuUnitDef(d);
+  end;
+  Result:=FParentUnit;
+end;
 
+procedure TPpuDef.SetId(AValue: integer);
+var
+  h: PHashSetItem;
+  u: TPpuUnitDef;
+begin
+  if FId = AValue then Exit;
+  u:=ParentUnit;
+  if (FId <> -1) and (u <> nil) then begin
+    h:=u.FIndexById.Find(@FId, SizeOf(FId));
+    if h <> nil then
+      u.FIndexById.Remove(h);
+  end;
+  FId:=AValue;
+  if (FId <> -1) and (u <> nil) then begin;
+    h:=u.FIndexById.FindOrAdd(@FId, SizeOf(FId));
+    h^.Data:=Self;
+  end;
 end;
 
 procedure TPpuDef.WriteDef(Output: TPpuOutput);
 begin
   with Output do begin
-    if DefId >= 0 then
-      WriteInt('Id', DefId);
+    if Id >= 0 then
+      WriteInt('Id', Id);
+    if FilePos.Line > 0 then begin
+      WriteObjectStart('SrcPos');
+      WriteInt('SrcFile', FilePos.FileIndex);
+      WriteInt('Line', FilePos.Line);
+      WriteInt('Col', FilePos.Col);
+      WriteObjectEnd;
+    end;
   end;
 end;
 
 constructor TPpuDef.Create(AParent: TPpuContainerDef);
 begin
-  DefId:=-1;
+  FId:=-1;
   if AParent <> nil then
     AParent.Add(Self);
 end;
@@ -396,9 +532,11 @@ end;
 
 procedure TPpuDef.Write(Output: TPpuOutput);
 begin
-  Output.WriteDefStart(Self);
+  if Parent <> nil then
+    Output.WriteObjectStart('', Self);
   WriteDef(Output);
-  Output.WriteDefEnd(Self);
+  if Parent <> nil then
+    Output.WriteObjectEnd(Self);
 end;
 
 end.

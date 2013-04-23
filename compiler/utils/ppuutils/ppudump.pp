@@ -619,13 +619,13 @@ begin
   writeln;
 end;
 
-procedure readdefinitions(const s:string); forward;
+procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef); forward;
 procedure readsymbols(const s:string); forward;
 
-procedure readsymtable(const s: string);
+procedure readsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
 begin
   readsymtableoptions(s);
-  readdefinitions(s);
+  readdefinitions(s, ParentDef);
   readsymbols(s);
 end;
 
@@ -704,14 +704,16 @@ end;
 Procedure ReadDerefmap;
 var
   i,mapsize : longint;
+  s: string;
 begin
   mapsize:=ppufile.getlongint;
   writeln(['DerefMapsize: ',mapsize]);
   SetLength(CurUnit.RefUnits, mapsize);
   for i:=0 to mapsize-1 do
     begin
-      CurUnit.RefUnits[i]:=ppufile.getstring;
-      writeln(['DerefMap[',i,'] = ',CurUnit.RefUnits[i]]);
+      s:=ppufile.getstring;
+      writeln(['DerefMap[',i,'] = ',s]);
+      CurUnit.RefUnits[i]:=LowerCase(s);
     end;
 end;
 
@@ -858,7 +860,7 @@ begin
   getexprint.svalue:=ppufile.getint64;
 end;
 
-Procedure ReadPosInfo;
+Procedure ReadPosInfo(Def: TPpuDef = nil);
 var
   info : byte;
   fileindex,line,column : longint;
@@ -891,11 +893,17 @@ begin
       3 : column:=getlongint;
      end;
      Writeln([fileindex,' (',line,',',column,')']);
+     if Def <> nil then
+       begin
+         Def.FilePos.FileIndex:=fileindex - 1;
+         Def.FilePos.Line:=line;
+         Def.FilePos.Col:=column;
+       end;
    end;
 end;
 
 
-procedure readderef(const derefspace: string);
+procedure readderef(const derefspace: string; Ref: TPpuRef = nil);
 var
   b : tdereftype;
   first : boolean;
@@ -945,12 +953,16 @@ begin
            idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
            inc(i,4);
            write(['DefId ',idx]);
+           if Ref <> nil then
+             Ref.Id:=idx;
          end;
        deref_unit :
          begin
            idx:=pdata[i] shl 8 or pdata[i+1];
            inc(i,2);
            write(['Unit ',idx]);
+           if Ref <> nil then
+             Ref.UnitIndex:=idx;
          end;
        else
          begin
@@ -1220,7 +1232,7 @@ begin
 end;
 
 
-procedure readcommonsym(const s:string);
+procedure readcommonsym(const s:string; Def: TPpuDef = nil);
 begin
   writeln([space,'** Symbol Id ',ppufile.getlongint,' **']);
   writeln([space,s,ppufile.getstring]);
@@ -1238,7 +1250,7 @@ var
   current_defoptions : tdefoptions;
   current_objectoptions : tobjectoptions;
 
-procedure readcommondef(const s:string; out defoptions: tdefoptions);
+procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
 type
   tdefopt=record
     mask : tdefoption;
@@ -1359,7 +1371,10 @@ var
   end;
 
 begin
-  writeln([space,'** Definition Id ',ppufile.getlongint,' **']);
+  i:=ppufile.getlongint;
+  if Def <> nil then
+    Def.Id:=i;
+  writeln([space,'** Definition Id ',i,' **']);
   writeln([space,s]);
   write  ([space,'      Type symbol : ']);
   readderef('');
@@ -1530,7 +1545,7 @@ end;
 { type tproctypeoption is in globtype unit }
 { type tprocoption is in globtype unit }
 
-procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
+procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions; ProcDef: TPpuProcDef);
 type
   tproccallopt=record
     mask : tproccalloption;
@@ -1619,7 +1634,7 @@ var
   tempbuf : array[0..255] of byte;
 begin
   write([space,'      Return type : ']);
-  readderef('');
+  readderef('', ProcDef.ReturnType);
   writeln([space,'         Fpu used : ',ppufile.getbyte]);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
   write([space,'       TypeOption : ']);
@@ -2335,7 +2350,7 @@ end;
                          Read defintions Part
 ****************************************************************************}
 
-procedure readdefinitions(const s:string);
+procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 { type tordtype is in symconst unit }
 {
     uvoid,
@@ -2353,6 +2368,8 @@ var
   calloption : tproccalloption;
   procoptions : tprocoptions;
   defoptions: tdefoptions;
+  procdef: TPpuProcDef;
+  ptypedef: TPpuProcTypeDef;
 begin
   with ppufile do
    begin
@@ -2421,8 +2438,9 @@ begin
 
          ibprocdef :
            begin
-             readcommondef('Procedure definition',defoptions);
-             read_abstract_proc_def(calloption,procoptions);
+             procdef:=TPpuProcDef.Create(ParentDef);
+             readcommondef('Procedure definition',defoptions,procdef);
+             read_abstract_proc_def(calloption,procoptions,procdef);
              if (po_has_mangledname in procoptions) then
 {$ifdef symansistr}
                writeln([space,'     Mangled name : ',getansistring]);
@@ -2436,7 +2454,7 @@ begin
              write  ([space,'          Procsym : ']);
              readderef('');
              write  ([space,'         File Pos : ']);
-             readposinfo;
+             readposinfo(procdef);
              writeln([space,'       Visibility : ',Visibility2Str(ppufile.getbyte)]);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
@@ -2492,8 +2510,9 @@ begin
 
          ibprocvardef :
            begin
-             readcommondef('Procedural type (ProcVar) definition',defoptions);
-             read_abstract_proc_def(calloption,procoptions);
+             ptypedef:=TPpuProcTypeDef.Create(ParentDef);
+             readcommondef('Procedural type (ProcVar) definition',defoptions,ptypedef);
+             read_abstract_proc_def(calloption,procoptions, ptypedef);
              writeln([space,'   Symtable level :',ppufile.getbyte]);
              if not EndOfEntry then
                HasMoreInfos;
@@ -3053,7 +3072,7 @@ begin
      Writeln;
      Writeln('Interface definitions');
      Writeln('----------------------');
-     readdefinitions('interface');
+     readdefinitions('interface', CurUnit);
    end
   else
    ppufile.skipuntilentry(ibenddefs);
@@ -3116,7 +3135,7 @@ begin
         Writeln;
         Writeln('Static definitions');
         Writeln('----------------------');
-        readdefinitions('implementation');
+        readdefinitions('implementation', nil);
       end
      else
       ppufile.skipuntilentry(ibenddefs);
@@ -3236,6 +3255,7 @@ begin
 
   UnitList:=TPpuContainerDef.Create(nil);
   try
+    UnitList.ItemsName:='';
     { process files }
     for nrfile:=startpara to paramcount do
       dofile (paramstr(nrfile));
