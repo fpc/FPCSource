@@ -89,7 +89,7 @@ FPC_MSDOS_CARRY:
         stc
         global FPC_MSDOS
 FPC_MSDOS:
-        mov ax, 21h
+        mov al, 21h  ; not ax, because only the low byte is used
         pop dx
         pop cx
         push ax
