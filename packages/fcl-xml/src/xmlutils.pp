@@ -740,6 +740,8 @@ begin
 
   { provide implicit binding for the 'xml' prefix }
   DefineBinding('xml', stduri_xml, b);
+  { bind default namespace to empty string }
+  DefineBinding('', '', b);
 end;
 
 destructor TNSSupport.Destroy;

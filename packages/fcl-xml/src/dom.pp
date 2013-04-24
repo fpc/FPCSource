@@ -2731,7 +2731,7 @@ begin
   if not IsXmlName(Value) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'Node.SetPrefix');
 
-  if (Pos(WideChar(':'), Value) > 0) or not (nfLevel2 in FFlags) or
+  if (Pos(WideChar(':'), Value) > 0) or ((FNSI.NSIndex = 0) and (Value <> '')) or
     ((Value = 'xml') and (FNSI.NSIndex <> 1)) or
     ((ClassType = TDOMAttr) and  // BAD!
     ((Value = 'xmlns') and (FNSI.NSIndex <> 2)) or (FNSI.QName^.Key = 'xmlns')) then
