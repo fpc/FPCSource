@@ -273,9 +273,9 @@ interface
       tabsolutevarsym = class(tabstractvarsym)
       public
          abstyp  : absolutetyp;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
          absseg  : boolean;
-{$endif i386}
+{$endif defined(i386) or defined(i8086)}
          asmname : pshortstring;
          addroffset : aword;
          ref     : tpropaccesslist;

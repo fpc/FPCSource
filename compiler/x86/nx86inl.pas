@@ -60,10 +60,12 @@ interface
 
           procedure second_prefetch;override;
 
+{$ifndef i8086}
           procedure second_abs_long;override;
+{$endif not i8086}
           procedure second_popcnt;override;
        private
-          procedure load_fpu_location;
+          procedure load_fpu_location(lnode: tnode);
        end;
 
 implementation
@@ -196,28 +198,28 @@ implementation
        end;
 
      { load the FPU into the an fpu register }
-     procedure tx86inlinenode.load_fpu_location;
+     procedure tx86inlinenode.load_fpu_location(lnode: tnode);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
-         secondpass(left);
-         case left.location.loc of
+         secondpass(lnode);
+         case lnode.location.loc of
            LOC_FPUREGISTER:
              ;
            LOC_CFPUREGISTER:
              begin
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,
-                 left.location.size,left.location.register,location.register);
+               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,lnode.location.size,
+                 lnode.location.size,lnode.location.register,location.register);
              end;
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  left.location.size,left.location.size,
-                  left.location.reference,location.register);
+                  lnode.location.size,lnode.location.size,
+                  lnode.location.reference,location.register);
              end;
            LOC_MMREGISTER,LOC_CMMREGISTER:
              begin
-               location:=left.location;
+               location:=lnode.location;
                location_force_fpureg(current_asmdata.CurrAsmList,location,false);
              end;
            else
@@ -228,7 +230,7 @@ implementation
 
      procedure tx86inlinenode.second_arctan_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLD1,S_NO);
          emit_none(A_FPATAN,S_NO);
        end;
@@ -256,7 +258,7 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FABS,S_NO);
            end;
        end;
@@ -283,7 +285,13 @@ implementation
          else
 {$endif x86_64}
           begin
-            load_fpu_location;
+{$ifdef i8086}
+            if left.nodetype <> callparan then
+              internalerror(2013031501);
+            load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+            load_fpu_location(left);
+{$endif i8086}
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
@@ -319,7 +327,13 @@ implementation
           begin
             if (current_settings.fputype>=fpu_sse3) then
               begin
-                load_fpu_location;
+{$ifdef i8086}
+                if left.nodetype <> callparan then
+                  internalerror(2013031501);
+                load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+                load_fpu_location(left);
+{$endif i8086}
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
@@ -332,7 +346,11 @@ implementation
                 emit_ref(A_FNSTCW,S_NO,newcw);
                 emit_ref(A_FNSTCW,S_NO,oldcw);
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
-                load_fpu_location;
+{$ifdef i8086}
+                load_fpu_location(tcallparanode(left).left);
+{$else i8086}
+                load_fpu_location(left);
+{$endif i8086}
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
@@ -359,7 +377,7 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
            end;
        end;
@@ -383,14 +401,14 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FSQRT,S_NO);
            end;
        end;
 
      procedure tx86inlinenode.second_ln_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLDLN2,S_NO);
          emit_none(A_FXCH,S_NO);
          emit_none(A_FYL2X,S_NO);
@@ -398,13 +416,13 @@ implementation
 
      procedure tx86inlinenode.second_cos_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FCOS,S_NO);
        end;
 
      procedure tx86inlinenode.second_sin_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FSIN,S_NO)
        end;
 
@@ -413,9 +431,9 @@ implementation
          ref : treference;
          r : tregister;
        begin
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
          if current_settings.cputype>=cpu_Pentium3 then
-{$endif i386}
+{$endif i386 or i8086}
            begin
              secondpass(left);
              case left.location.loc of
@@ -434,6 +452,7 @@ implementation
        end;
 
 
+{$ifndef i8086}
     procedure tx86inlinenode.second_abs_long;
       var
         hregister : tregister;
@@ -470,6 +489,7 @@ implementation
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
+{$endif not i8086}
 
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING

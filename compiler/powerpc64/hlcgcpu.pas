@@ -36,7 +36,7 @@ uses
 type
   thlcgcpu = class(thlcgppcgen)
     procedure a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
-    procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: aint; const sreg: tsubsetregister); override;
+    procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); override;
    protected
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
   end;
@@ -86,7 +86,7 @@ implementation
     end;
 
 
-  procedure thlcgcpu.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: aint; const sreg: tsubsetregister);
+  procedure thlcgcpu.a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister);
     var
       tmpreg : TRegister;
     begin

@@ -95,6 +95,11 @@ endif
 endif
 endif
 
+# always enable smartlinking for msdos
+ifeq ($(TEST_OS_TARGET),msdos)
+override TEST_OPT+=-XX
+endif
+
 # Target dir where the ppu and binaries are created
 TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 C_SUBDIR=$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)

@@ -157,6 +157,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpui386}
 
+{$ifdef cpui8086}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i i8086.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpui8086}
+
 {$ifdef cpum68k}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -649,20 +657,26 @@ Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
 
+{$ifndef FPC_SYSTEM_HAS_CSEG}
 Function CSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Cseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_CSEG}
 
+{$ifndef FPC_SYSTEM_HAS_DSEG}
 Function DSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Dseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_DSEG}
 
+{$ifndef FPC_SYSTEM_HAS_SSEG}
 Function SSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Sseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_SSEG}
 
 
 
@@ -1040,7 +1054,7 @@ begin
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPU86} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);

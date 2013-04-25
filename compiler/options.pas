@@ -2960,6 +2960,17 @@ begin
   def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
+{$ifdef i8086}
+  def_system_macro('CPU86');  { Borland compatibility }
+  def_system_macro('CPU87');  { Borland compatibility }
+  def_system_macro('CPU8086');
+  def_system_macro('CPUI8086');
+  def_system_macro('CPU16');
+  def_system_macro('FPC_HAS_TYPE_EXTENDED');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+{$endif i8086}
+
   { Set up a default prefix for binutils when cross-compiling }
   if source_info.system<>target_info.system then
     case target_info.system of
@@ -3311,12 +3322,12 @@ if (target_info.abi = abi_eabihf) then
 
   if init_settings.fputype<>fpu_none then
     begin
-{$if defined(i386)}
+{$if defined(i386) or defined(i8086)}
       def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$if defined(m68k)}

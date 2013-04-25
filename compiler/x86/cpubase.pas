@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
-    Contains the base types for the i386 and x86-64 architecture
+    Contains the base types for the i8086, i386 and x86-64 architecture
 
     * This code was inspired by the NASM sources
       The Netwide Assembler is Copyright (c) 1996 Simon Tatham and
@@ -45,11 +45,13 @@ uses
 *****************************************************************************}
 
     type
-{$ifdef x86_64}
+{$if defined(x86_64)}
       TAsmOp={$i x8664op.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       TAsmOp={$i i386op.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      TAsmOp={$i i8086op.inc}
+{$endif}
 
       { This should define the array of instructions as string }
         op2strtable=array[tasmop] of string[16];
@@ -91,6 +93,15 @@ uses
       RS_EDI        = RS_RDI;
       RS_EBP        = RS_RBP;
       RS_ESP        = RS_RSP;
+      { create aliases to allow code sharing between i386 and i8086 }
+      RS_AX        = RS_RAX;
+      RS_BX        = RS_RBX;
+      RS_CX        = RS_RCX;
+      RS_DX        = RS_RDX;
+      RS_SI        = RS_RSI;
+      RS_DI        = RS_RDI;
+      RS_BP        = RS_RBP;
+      RS_SP        = RS_RSP;
 
       { Number of first imaginary register }
       first_int_imreg     = $10;
@@ -136,57 +147,71 @@ uses
 {$endif x86_64}
 
       { The subregister that specifies the entire register and an address }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       { Hammer }
       R_SUBWHOLE    = R_SUBQ;
       R_SUBADDR     = R_SUBQ;
-{$else x86_64}
+{$elseif defined(i386)}
       { i386 }
       R_SUBWHOLE    = R_SUBD;
       R_SUBADDR     = R_SUBD;
-{$endif x86_64}
+{$elseif defined(i8086)}
+      { i8086 }
+      R_SUBWHOLE    = R_SUBW;
+      R_SUBADDR     = R_SUBW;
+{$endif}
 
       { Available Registers }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       {$i r8664con.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       {$i r386con.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      {$i r8086con.inc}
+{$endif}
 
     type
       { Number of registers used for indexing in tables }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       tregisterindex=0..{$i r8664nor.inc}-1;
-{$else x86_64}
+{$elseif defined(i386)}
       tregisterindex=0..{$i r386nor.inc}-1;
-{$endif x86_64}
+{$elseif defined(i8086)}
+      tregisterindex=0..{$i r8086nor.inc}-1;
+{$endif}
 
     const
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664num.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386num.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086num.inc}
+{$endif}
       );
 
       regstabs_table : array[tregisterindex] of shortint = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664stab.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386stab.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086stab.inc}
+{$endif}
       );
 
       regdwarf_table : array[tregisterindex] of shortint = (
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i r8664dwrf.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i r386dwrf.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i r8086dwrf.inc}
+{$endif}
       );
 
       RS_DEFAULTFLAGS = RS_FLAGS;
@@ -261,13 +286,18 @@ uses
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+{$ifdef i8086}
+    { returns the next virtual register }
+    function GetNextReg(const r : TRegister) : TRegister;
+{$endif i8086}
+
 implementation
 
     uses
       rgbase,verbose;
 
     const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
       std_regname_table : TRegNameTable = (
         {$i r8664std.inc}
       );
@@ -278,7 +308,7 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r8664sri.inc}
       );
-    {$else x86_64}
+    {$elseif defined(i386)}
       std_regname_table : TRegNameTable = (
         {$i r386std.inc}
       );
@@ -290,7 +320,19 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r386sri.inc}
       );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+      std_regname_table : TRegNameTable = (
+        {$i r8086std.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i r8086rni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r8086sri.inc}
+      );
+    {$endif}
 
 
 {*****************************************************************************
@@ -509,6 +551,14 @@ implementation
         if result=-1 then
           internalerror(200603251);
       end;
+
+
+{$ifdef i8086}
+    function GetNextReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)+1);
+      end;
+{$endif i8086}
 
 
 end.

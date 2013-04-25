@@ -951,7 +951,7 @@ unit i_bsd;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef FreeBSD}
      set_source_info(system_i386_FreeBSD_info);
   {$endif}
@@ -964,7 +964,7 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_i386_Darwin_info);
   {$endif Darwin}
-{$endif cpu86}
+{$endif cpui386}
 {$ifdef cpux86_64}
    {$ifdef FreeBSD}
      set_source_info(system_x86_64_FreeBSD_info);

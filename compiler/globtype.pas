@@ -41,6 +41,8 @@ interface
 {$endif symansistr}
        PSymStr = ^TSymStr;
 
+       Int32 = Longint;
+
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}
        PUint = qword;
@@ -488,7 +490,9 @@ interface
          );
 
        { Default calling convention }
-{$ifdef x86}
+{$if defined(i8086)}
+       pocall_default = pocall_pascal;
+{$elseif defined(i386) or defined(x86_64)}
        pocall_default = pocall_register;
 {$else}
        pocall_default = pocall_stdcall;

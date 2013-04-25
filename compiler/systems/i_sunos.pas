@@ -230,11 +230,11 @@ unit i_sunos;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef solaris}
     set_source_info(system_i386_solaris_info);
   {$endif solaris}
-{$endif CPU86}
+{$endif CPUI386}
 {$ifdef CPUX86_64}
   {$ifdef solaris}
     set_source_info(system_x86_64_solaris_info);

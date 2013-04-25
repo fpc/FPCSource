@@ -511,6 +511,7 @@ interface
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
+          function is_pushleftright: boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -639,9 +640,9 @@ interface
           procendtai   : tai;
           import_nr    : word;
           extnumber    : word;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           fpu_used     : byte;
-{$endif i386}
+{$endif i386 or i8086}
 {$if defined(arm)}
           { the arm paramanager might need to know the total size of the stackframe
             to avoid cyclic unit dependencies or global variables, this infomatation is
@@ -911,6 +912,9 @@ interface
        java_procvarbase          : tobjectdef;
 
     const
+{$ifdef i8086}
+       pbestrealtype : ^tdef = @s80floattype;
+{$endif}
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
 {$endif}
@@ -2519,10 +2523,18 @@ implementation
 {$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            savesize:=96;
+            {$ifdef avr}
+              savesize:=96;
+            {$else avr}
+              savesize:=576;
+            {$endif avr}
           ft_typed,
           ft_untyped :
-            savesize:=76;
+            {$ifdef avr}
+              savesize:=76;
+            {$else avr}
+              savesize:=316;
+            {$endif avr}
         end;
 {$endif cpu16bitaddr}
       end;
@@ -4130,6 +4142,15 @@ implementation
             end;
       end;
 
+    function tabstractprocdef.is_pushleftright: boolean;
+      begin
+{$if defined(i8086) or defined(i386)}
+        result:=proccalloption in pushleftright_pocalls;
+{$else}
+        result:=false;
+{$endif}
+      end;
+
 
 {***************************************************************************
                                   TPROCDEF
@@ -4157,9 +4178,9 @@ implementation
          import_nr:=0;
          inlininginfo:=nil;
          deprecatedmsg:=nil;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           fpu_used:=maxfpuregs;
-{$endif i386}
+{$endif i386 or i8086}
       end;
 
 
@@ -4583,9 +4604,9 @@ implementation
           tprocdef(result).import_name:=stringdup(import_name^);
         tprocdef(result).import_nr:=import_nr;
         tprocdef(result).extnumber:=$ffff;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
         tprocdef(result).fpu_used:=fpu_used;
-{$endif i386}
+{$endif i386 or i8086}
         tprocdef(result).visibility:=visibility;
         tprocdef(result).synthetickind:=synthetickind;
         { we need a separate implementation for the copied def }

@@ -23,6 +23,10 @@ fpcdir=../..
 .PHONY: cleanfpcunit distcleanfpcunit
 .PHONY: cleanpackages distcleanpackages
 
+ifeq ($(OS_TARGET),msdos)
+override OPT=-CX
+endif
+
 ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
@@ -59,8 +63,10 @@ INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPIL
 FPCUNITDIR=../../packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
+ifneq ($(OS_TARGET),msdos)
  	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/testutils
         $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/fpcunit
+endif
         $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
 
 cleanfpcunit:
@@ -115,7 +121,9 @@ erroru$(PPUEXT) : erroru.pp
         $(TESTCOMPILER) erroru.pp
 
 ptest$(PPUEXT) : ../test/cg/ptest.pp
+ifneq ($(OS_TARGET),msdos)
         $(TESTCOMPILER) ../test/cg/ptest.pp
+endif
 
 popuperr$(PPUEXT) : popuperr.pp
         $(TESTCOMPILER) popuperr.pp

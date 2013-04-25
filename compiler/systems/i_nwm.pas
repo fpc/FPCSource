@@ -94,9 +94,9 @@ unit i_nwm;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef netware}
     set_source_info(system_i386_netware_info);
   {$endif netware}
-{$endif CPU86}
+{$endif CPUI386}
 end.

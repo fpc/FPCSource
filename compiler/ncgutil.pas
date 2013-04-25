@@ -408,6 +408,14 @@ implementation
 
 
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
+      const
+{$ifdef cpu16bitaddr}
+        pushexceptaddr_frametype_cgsize = OS_S16;
+        setjmp_result_cgsize = OS_S16;
+{$else cpu16bitaddr}
+        pushexceptaddr_frametype_cgsize = OS_S32;
+        setjmp_result_cgsize = OS_S32;
+{$endif cpu16bitaddr}
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
         pd: tprocdef;
@@ -419,10 +427,20 @@ implementation
         paramanager.getintparaloc(pd,1,paraloc1);
         paramanager.getintparaloc(pd,2,paraloc2);
         paramanager.getintparaloc(pd,3,paraloc3);
-        cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
-        cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-        { push type of exceptionframe }
-        cg.a_load_const_cgpara(list,OS_S32,1,paraloc1);
+        if pd.is_pushleftright then
+          begin
+            { push type of exceptionframe }
+            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
+            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+          end
+        else
+          begin
+            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
+            { push type of exceptionframe }
+            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+          end;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
@@ -440,7 +458,7 @@ implementation
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
         cg.g_exception_reason_save(list, t.reasonbuf);
-        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
+        cg.a_cmp_const_reg_label(list,setjmp_result_cgsize,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,setjmp_result_cgsize),exceptlabel);
         cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
         paraloc1.done;
         paraloc2.done;
@@ -1027,10 +1045,14 @@ implementation
                         begin
                           unget_para(paraloc^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register,sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.Next^,destloc.registerhi,sizeof(aint));
+                          {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
+                            cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          {$else}
+                            cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,destloc.registerhi,sizeof(aint));
+                          {$endif}
                         end
                       else
                         internalerror(200410105);

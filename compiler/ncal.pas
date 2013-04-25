@@ -51,7 +51,8 @@ interface
          cnf_create_failed,      { exception thrown in constructor -> don't call beforedestruction }
          cnf_objc_processed,     { the procedure name has been set to the appropriate objc_msgSend* variant -> don't process again }
          cnf_objc_id_call,       { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
-         cnf_unit_specified      { the unit in which the procedure has to be searched has been specified }
+         cnf_unit_specified,     { the unit in which the procedure has to be searched has been specified }
+         cnf_call_never_returns  { information for the dfa that a subroutine never returns }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -3329,8 +3330,8 @@ implementation
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-{$if defined(i386) or defined(m68k)}
-                            { the i386, m68k and jvm code generators expect all reference }
+{$if defined(i386) or defined(i8086) or defined(m68k)}
+                            { the i386, i8086, m68k and jvm code generators expect all reference }
                             { parameters to be in this order so they can use   }
                             { pushes in case of no fixed stack                 }
                             if (not paramanager.use_fixed_stack and

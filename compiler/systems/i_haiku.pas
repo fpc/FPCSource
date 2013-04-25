@@ -106,9 +106,9 @@ unit i_haiku;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef haiku}
     set_source_info(system_i386_haiku_info);
   {$endif haiku}
-{$endif cpu86}
+{$endif cpui386}
 end.

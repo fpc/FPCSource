@@ -105,11 +105,11 @@ unit i_beos;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef beos}
     {$ifndef haiku}
       set_source_info(system_i386_beos_info);
     {$endif haiku}
   {$endif beos}
-{$endif cpu86}
+{$endif cpui386}
 end.

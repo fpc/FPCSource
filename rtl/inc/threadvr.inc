@@ -29,7 +29,7 @@ type
 
   TltvInitTablesTable = packed record
     count  : dword;
-    tables : packed array [1..32767] of pltvInitEntry;
+    tables : packed array [1..{$ifdef cpu16}16{$else}32767{$endif}] of pltvInitEntry;
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;
 

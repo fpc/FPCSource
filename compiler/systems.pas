@@ -340,7 +340,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm');
+             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
@@ -735,10 +735,10 @@ begin
   when the define is the same as the source cpu then we use the source
   os, else we pick a default }
 {$ifdef i386}
-  {$ifdef cpu86}
+  {$ifdef cpui386}
     default_target(source_info.system);
     {$define default_target_set}
-  {$else cpu86}
+  {$else cpui386}
    {$ifdef linux}
     default_target(system_i386_linux);
     {$define default_target_set}
@@ -759,7 +759,7 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
-  {$endif cpu86}
+  {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
    default_target(system_i386_linux);
@@ -919,6 +919,10 @@ begin
 {$ifdef jvm}
   default_target(system_jvm_java32);
 {$endif jvm}
+
+{$ifdef i8086}
+  default_target(system_i8086_msdos);
+{$endif i8086}
 end;
 
 

@@ -181,11 +181,13 @@ interface
       OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       instabentries = {$i x8664nop.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       instabentries = {$i i386nop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      instabentries = {$i i8086nop.inc}
+{$endif}
       maxinfolen    = 8;
       MaxInsChanges = 3; { Max things a instruction can change }
 
@@ -244,11 +246,13 @@ interface
 
 
       InsProp : array[tasmop] of TInsProp =
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i x8664pro.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i i386prop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i i8086prop.inc}
+{$endif}
 
     type
       TOperandOrder = (op_intel,op_att);
@@ -306,7 +310,21 @@ interface
          procedure changeopsize(siz:topsize);
 
          function  GetString:string;
-         procedure CheckNonCommutativeOpcodes;
+
+         { This is a workaround for the GAS non commutative fpu instruction braindamage.
+           Early versions of the UnixWare assembler had a bug where some fpu instructions
+           were reversed and GAS still keeps this "feature" for compatibility.
+           for details: http://sourceware.org/binutils/docs/as/i386_002dBugs.html#i386_002dBugs
+                        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=372528
+                        http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax#Caveats
+
+           Since FPC is "GAS centric" due to its history it generates instructions with the same operand order so
+           when generating output for other assemblers, the opcodes must be fixed before writing them.
+           This function returns the fixed opcodes. Changing the opcodes permanently is no good idea
+           because in case of smartlinking assembler is generated twice so at the second run wrong
+           assembler is generated.
+           }
+         function FixNonCommutativeOpcodes: tasmop;
       private
          FOperandOrder : TOperandOrder;
          procedure init(_size : topsize); { this need to be called by all constructor }
@@ -438,16 +456,18 @@ implementation
        PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
 
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
-{$else x86_64}
+{$elseif defined(i386)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+       InsTab:array[0..instabentries-1] of TInsEntry={$i i8086tab.inc}
+{$endif}
      var
        InsTabCache : PInsTabCache;
        InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -485,7 +505,7 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r8664ot.inc}
       );
-{$else x86_64}
+{$elseif defined(i386)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -523,7 +543,45 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r386ot.inc}
       );
-{$endif x86_64}
+{$elseif defined(i8086)}
+       { Intel style operands ! }
+       opsize_2_type:array[0..2,topsize] of longint=(
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         )
+      );
+
+      reg_ot_table : array[tregisterindex] of longint = (
+        {$i r8086ot.inc}
+      );
+{$endif}
 
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
     begin
@@ -961,8 +1019,10 @@ implementation
       end;
 
 
-    procedure taicpu.CheckNonCommutativeOpcodes;
+    function taicpu.FixNonCommutativeOpcodes: tasmop;
       begin
+        result:=opcode;
+
         { we need ATT order }
         SetOperandOrder(op_att);
 
@@ -981,21 +1041,21 @@ implementation
            (ops=0) then
           begin
             if opcode=A_FSUBR then
-              opcode:=A_FSUB
+              result:=A_FSUB
             else if opcode=A_FSUB then
-              opcode:=A_FSUBR
+              result:=A_FSUBR
             else if opcode=A_FDIVR then
-              opcode:=A_FDIV
+              result:=A_FDIV
             else if opcode=A_FDIV then
-              opcode:=A_FDIVR
+              result:=A_FDIVR
             else if opcode=A_FSUBRP then
-              opcode:=A_FSUBP
+              result:=A_FSUBP
             else if opcode=A_FSUBP then
-              opcode:=A_FSUBRP
+              result:=A_FSUBRP
             else if opcode=A_FDIVRP then
-              opcode:=A_FDIVP
+              result:=A_FDIVP
             else if opcode=A_FDIVP then
-              opcode:=A_FDIVRP;
+              result:=A_FDIVRP;
           end;
         if (
             (ops=1) and
@@ -1005,13 +1065,13 @@ implementation
            ) then
          begin
            if opcode=A_FSUBRP then
-             opcode:=A_FSUBP
+             result:=A_FSUBP
            else if opcode=A_FSUBP then
-             opcode:=A_FSUBRP
+             result:=A_FSUBRP
            else if opcode=A_FDIVRP then
-             opcode:=A_FDIVP
+             result:=A_FDIVP
            else if opcode=A_FDIVP then
-             opcode:=A_FDIVRP;
+             result:=A_FDIVRP;
          end;
       end;
 
@@ -1492,15 +1552,19 @@ implementation
 
     function regval(r:Tregister):byte;
       const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r8664op.inc}
         );
-    {$else x86_64}
+    {$elseif defined(i386)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r386op.inc}
         );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+        opcode_table:array[tregisterindex] of tregisterindex = (
+          {$i r8086op.inc}
+        );
+    {$endif}
       var
         regidx : tregisterindex;
       begin
@@ -2039,7 +2103,7 @@ implementation
             else
               rex:=rex and $F7;
           end;
-        if not(exists_vex) then 
+        if not(exists_vex) then
         begin
           if rex<>0 then
             Inc(len);
@@ -2473,8 +2537,11 @@ implementation
             24,25,26 :     // 030..032
               begin
                 getvalsym(c-24);
+{$ifndef i8086}
+                { currval is an aint so this cannot happen on i8086 and causes only a warning }
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
+{$endif i8086}
                 if assigned(currsym) then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
                 else

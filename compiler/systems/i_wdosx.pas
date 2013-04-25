@@ -94,11 +94,11 @@ unit i_wdosx;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef WIN32}
     {$ifdef WDOSX}
       set_source_info(system_i386_wdosx_info);
     {$endif WDOSX}
   {$endif WIN32}
-{$endif CPU86}
+{$endif CPUI386}
 end.

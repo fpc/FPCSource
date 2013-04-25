@@ -106,7 +106,7 @@ unit i_emx;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef EMX}
     {$IFNDEF VER1_0}
       set_source_info(system_i386_emx_info);
@@ -115,5 +115,5 @@ initialization
         source_info.scriptext := '.bat';
     {$ENDIF VER1_0}
   {$endif EMX}
-{$endif CPU86}
+{$endif CPUI386}
 end.

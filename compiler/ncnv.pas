@@ -3086,7 +3086,7 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resultdef.size > sizeof(aint) then
            begin
-             result := ctypeconvnode.create_internal(left,s32inttype);
+             result := ctypeconvnode.create_internal(left,sinttype);
              result := ctypeconvnode.create(result,resultdef);
              left := nil;
              firstpass(result);

@@ -297,7 +297,7 @@ unit i_win;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef WIN32}
     {$ifndef WDOSX}
       set_source_info(system_i386_win32_info);
@@ -306,7 +306,7 @@ initialization
   {$ifdef WINCE}
     set_source_info(system_i386_wince_info);
   {$endif WINCE}
-{$endif CPU86}
+{$endif CPUI386}
 
 {$ifdef CPUX86_64}
   {$ifdef WIN64}

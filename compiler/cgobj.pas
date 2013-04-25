@@ -2100,8 +2100,16 @@ implementation
            paramanager.getintparaloc(pd,1,cgpara1);
            paramanager.getintparaloc(pd,2,cgpara2);
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
-           a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-           a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+           if pd.is_pushleftright then
+             begin
+               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
+             end
+           else
+             begin
+               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
+               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+             end;
            paramanager.freecgpara(list,cgpara1);
            paramanager.freecgpara(list,cgpara2);
            allocallcpuregisters(list);

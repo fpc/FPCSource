@@ -460,6 +460,11 @@ interface
         optimizecputype : cpu_armv8;
         fputype : fpu_vfp;
   {$endif aarch64}
+  {$ifdef i8086}
+        cputype : cpu_8086;
+        optimizecputype : cpu_8086;
+        fputype : fpu_x87;
+  {$endif i8086}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

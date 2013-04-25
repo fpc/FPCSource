@@ -1077,6 +1077,38 @@ end;
 {$endif CPU64}
 
 
+{$if defined(CPU16) or defined(CPU8)}
+Function fpc_Val_longword_AnsiStr (Const S : RawByteString; out Code : ValSInt): longword; [public, alias:'FPC_VAL_LONGWORD_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_longword_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := S;
+       Val(SS,fpc_Val_longword_AnsiStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_longint_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongInt; [public, alias:'FPC_VAL_LONGINT_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_longint_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := s;
+       Val(SS,fpc_Val_longint_AnsiStr,Code);
+    end;
+end;
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
@@ -1189,6 +1221,30 @@ begin
 end;
 
 {$endif CPU64}
+
+{$if defined(CPU16) or defined(CPU8)}
+Procedure fpc_AnsiStr_LongWord(v : LongWord;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Var
+  SS : ShortString;
+begin
+  str(v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+
+Procedure fpc_AnsiStr_LongInt(v : LongInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Var
+  SS : ShortString;
+begin
+  str (v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+{$endif CPU16 or CPU8}
 
 Procedure Delete(Var S : RawByteString; Index,Size: SizeInt);
 Var

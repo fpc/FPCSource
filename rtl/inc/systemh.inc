@@ -30,10 +30,10 @@
 {$inline on}
 {$define SYSTEMINLINE}
 
-{ don't use FPU registervariables on the i386 }
-{$ifdef CPUI386}
+{ don't use FPU registervariables on the i386 and i8086 }
+{$if defined(CPUI386) or defined(CPUI8086)}
   {$maxfpuregisters 0}
-{$endif CPUI386}
+{$endif CPUI386 or CPUI8086}
 
 { the assembler helpers need this}
 {$ifdef CPUPOWERPC}
@@ -113,6 +113,21 @@ Type
     ValReal = Extended;
   {$endif}
 {$endif CPUI386}
+
+{$ifdef CPUI8086}
+  {$define CPU16}
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
+{$endif CPUI8086}
 
 {$ifdef CPUX86_64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -490,6 +505,16 @@ const
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
+{$ifdef cpui8086}
+  { will be detected at startup }
+  { 0=8086, 1=80286, 2=80386 }
+  Test8086 : byte = 0;
+  { Always 387 or newer. Emulated if needed. }
+  Test8087 : byte = 3;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
+{$endif cpui8086}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;

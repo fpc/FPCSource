@@ -42,6 +42,23 @@
   {$packrecords c}
 {$endif cpuarm}
 
+{$ifdef i8086}
+  {$define cpu16bit}
+  {$define cpu16bitaddr}
+  {$define cpu16bitalu}
+  {$define x86}
+  {$define cpuflags}
+  {$define cpuextended}
+  {//$define SUPPORT_MMX}
+  {$define cpumm}
+  {$define fewintregisters}
+  {$define cpurox}
+  {$define SUPPORT_SAFECALL}
+  {$define cpuneedsmulhelper}
+  { TODO: add another define in order to disable the div helper for 16-bit divs? }
+  {$define cpuneedsdiv32helper}
+{$endif i8086}
+
 {$ifdef i386}
   {$define cpu32bit}
   {$define cpu32bitaddr}

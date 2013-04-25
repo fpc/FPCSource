@@ -225,14 +225,47 @@ interface
     {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
     function is_real(def : tdef) : boolean;
 
+    { true, if def is a 8 bit int type }
+    function is_8bitint(def : tdef) : boolean;
+
+    { true, if def is a 8 bit ordinal type }
+    function is_8bit(def : tdef) : boolean;
+
+    { true, if def is a 16 bit int type }
+    function is_16bitint(def : tdef) : boolean;
+
+    { true, if def is a 16 bit ordinal type }
+    function is_16bit(def : tdef) : boolean;
+
     {# Returns true, if def is a 32 bit integer type }
     function is_32bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 32 bit ordinal type }
+    function is_32bit(def : tdef) : boolean;
 
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
     {# Returns true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
+
+    { true, if def is an int type, larger than the processor's native int size }
+    function is_oversizedint(def : tdef) : boolean;
+
+    { true, if def is an ordinal type, larger than the processor's native int size }
+    function is_oversizedord(def : tdef) : boolean;
+
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def : tdef) : boolean;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def : tdef) : boolean;
+
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def : tdef) : boolean;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def : tdef) : boolean;
 
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
@@ -288,7 +321,7 @@ interface
 implementation
 
     uses
-       verbose;
+       verbose,cutils;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -359,8 +392,10 @@ implementation
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          range_to_basetype:=u32bit
+        else if (l>=low(int64)) and (h<=high(int64)) then
+         range_to_basetype:=s64bit
         else
-         range_to_basetype:=s64bit;
+         range_to_basetype:=u64bit;
       end;
 
 
@@ -788,12 +823,41 @@ implementation
       end;
 
 
+    { true, if def is a 8 bit int type }
+    function is_8bitint(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit])
+      end;
+
+    { true, if def is a 8 bit ordinal type }
+    function is_8bit(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool8,bool8bit,uchar])
+      end;
+
+    { true, if def is a 16 bit int type }
+    function is_16bitint(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u16bit,s16bit])
+      end;
+
+    { true, if def is a 16 bit ordinal type }
+    function is_16bit(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u16bit,s16bit,pasbool16,bool16bit,uwidechar])
+      end;
+
     { true, if def is a 32 bit int type }
     function is_32bitint(def : tdef) : boolean;
       begin
          result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit])
       end;
 
+    { true, if def is a 32 bit ordinal type }
+    function is_32bit(def: tdef): boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit,pasbool32,bool32bit])
+      end;
 
     { true, if def is a 64 bit int type }
     function is_64bitint(def : tdef) : boolean;
@@ -808,6 +872,75 @@ implementation
          is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
       end;
 
+
+    { true, if def is an int type, larger than the processor's native int size }
+    function is_oversizedint(def : tdef) : boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_64bitint(def) or is_32bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
+{$endif}
+      end;
+
+    { true, if def is an ordinal type, larger than the processor's native int size }
+    function is_oversizedord(def : tdef) : boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_64bit(def) or is_32bit(def) or is_16bit(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_64bit(def) or is_32bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
+{$endif}
+      end;
+
+
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bitint(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bitint(def);
+{$endif}
+      end;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bit(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bit(def);
+{$endif}
+      end;
+
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [u64bit,u32bit,u16bit,u8bit]);
+      end;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [s64bit,s32bit,s16bit,s8bit]);
+      end;
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
@@ -1042,13 +1175,15 @@ implementation
           procvardef:
             begin
               if not tprocvardef(def).is_addressonly then
-                {$if sizeof(pint) = 4}
+                {$if sizeof(pint) = 2}
+                  result:=OS_32
+                {$elseif sizeof(pint) = 4}
                   result:=OS_64
-                {$else} {$if sizeof(pint) = 8}
+                {$elseif sizeof(pint) = 8}
                   result:=OS_128
                 {$else}
                   internalerror(200707141)
-                {$endif} {$endif}
+                {$endif}
               else
                 result:=OS_ADDR;
             end;
@@ -1117,7 +1252,13 @@ implementation
     {# returns true, if the type passed is a varset }
     function is_smallset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$if defined(cpu8bitalu)}
+          result:=(p.typ=setdef) and (p.size = 1)
+        {$elseif defined(cpu16bitalu)}
+          result:=(p.typ=setdef) and (p.size in [1,2])
+        {$else}
+          result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$endif}
       end;
 
 
@@ -1133,12 +1274,8 @@ implementation
       var
         llow, lhigh: tconstexprint;
       begin
-        llow:=rd.low;
-        if llow<ld.low then
-          llow:=ld.low;
-        lhigh:=rd.high;
-        if lhigh<ld.high then
-          lhigh:=ld.high;
+        llow:=min(ld.low,rd.low);
+        lhigh:=max(ld.high,rd.high);
         case range_to_basetype(llow,lhigh) of
           s8bit:
             result:=torddef(s8inttype);

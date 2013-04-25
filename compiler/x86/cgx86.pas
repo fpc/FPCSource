@@ -132,19 +132,25 @@ unit cgx86;
       end;
 
    const
-{$ifdef x86_64}
+{$if defined(x86_64)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_Q,S_XMM,S_B,S_W,S_L,S_Q,S_XMM,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
          S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
-{$else x86_64}
+{$elseif defined(i386)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_T,S_B,S_W,S_L,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
          S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
-{$endif x86_64}
+{$elseif defined(i8086)}
+      TCGSize2OpSize: Array[tcgsize] of topsize =
+        (S_NO,S_B,S_W,S_W,S_W,S_T,S_B,S_W,S_W,S_W,S_W,
+         S_FS,S_FL,S_FX,S_IQ,S_FXX,
+         S_NO,S_NO,S_NO,S_MD,S_XMM,S_YMM,
+         S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM);
+{$endif}
 
 {$ifndef NOTARGETWIN}
       winstackpagesize = 4096;
@@ -369,7 +375,7 @@ unit cgx86;
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
-{$ifdef x86_64}
+{$if defined(x86_64)}
         { Only 32bit is allowed }
         { Note that this isn't entirely correct: for RIP-relative targets/memory models,
           it is actually (offset+@symbol-RIP) that should fit into 32 bits. Since two last
@@ -505,7 +511,7 @@ unit cgx86;
 
                 end;
           end;
-{$else x86_64}
+{$elseif defined(i386)}
         add_hreg:=false;
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
@@ -561,7 +567,17 @@ unit cgx86;
                 ref.base:=hreg;
               end;
           end;
-{$endif x86_64}
+{$elseif defined(i8086)}
+        { i8086 does not support stack relative addressing }
+        if ref.base = NR_STACK_POINTER_REG then
+          begin
+            href:=ref;
+            href.base:=getaddressregister(list);
+            { let the register allocator find a suitable register for the reference }
+            list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
+            ref:=href;
+          end
+{$endif}
       end;
 
 
@@ -1538,6 +1554,14 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+      const
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+        REGCX=NR_ECX;
+        REGCX_Size = OS_32;
+{$elseif defined(cpu16bitalu)}
+        REGCX=NR_CX;
+        REGCX_Size = OS_16;
+{$endif}
       var
         dstsize: topsize;
         instr:Taicpu;
@@ -1559,10 +1583,10 @@ unit cgx86;
           OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
             begin
               { Use ecx to load the value, that allows better coalescing }
-              getcpuregister(list,NR_ECX);
-              a_load_reg_reg(list,size,OS_32,src,NR_ECX);
+              getcpuregister(list,REGCX);
+              a_load_reg_reg(list,size,REGCX_Size,src,REGCX);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
-              ungetcpuregister(list,NR_ECX);
+              ungetcpuregister(list,REGCX);
             end;
           else
             begin
@@ -1805,15 +1829,22 @@ unit cgx86;
     procedure Tcgx86.g_concatcopy(list:TAsmList;const source,dest:Treference;len:tcgint);
 
     const
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
         REGCX=NR_RCX;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
-{$else cpu64bitalu}
+        copy_len_sizes = [1, 2, 4, 8];
+{$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
-{$endif cpu64bitalu}
+        copy_len_sizes = [1, 2, 4];
+{$elseif defined(cpu16bitalu)}
+        REGCX=NR_CX;
+        REGSI=NR_SI;
+        REGDI=NR_DI;
+        copy_len_sizes = [1, 2];
+{$endif}
 
     type  copymode=(copy_move,copy_mmx,copy_string);
 
@@ -1837,7 +1868,7 @@ unit cgx86;
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm=copy_mmx)) and
-         not(len in [1,2,4{$ifdef x86_64},8{$endif x86_64}]) then
+         not(len in copy_len_sizes) then
         cm:=copy_string;
       if (source.segment<>NR_NO) or
          (dest.segment<>NR_NO) then
@@ -1861,11 +1892,13 @@ unit cgx86;
                     copysize:=2;
                     cgsize:=OS_16;
                   end
+{$if defined(cpu32bitalu) or defined(cpu64bitalu)}
                 else if len<8 then
                   begin
                     copysize:=4;
                     cgsize:=OS_32;
                   end
+{$endif cpu32bitalu or cpu64bitalu}
 {$ifdef cpu64bitalu}
                 else if len<16 then
                   begin
@@ -1951,9 +1984,9 @@ unit cgx86;
               end;
 
             getcpuregister(list,REGCX);
-{$ifdef i386}
+{$if defined(i8086) or defined(i386)}
            list.concat(Taicpu.op_none(A_CLD,S_NO));
-{$endif i386}
+{$endif i8086 or i386}
             if (cs_opt_size in current_settings.optimizerswitches) and
                (len>sizeof(aint)+(sizeof(aint) div 2)) then
               begin
@@ -1972,11 +2005,13 @@ unit cgx86;
                   end;
                 if helpsize>0 then
                   begin
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
                     list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
-{$else}
+{$elseif defined(cpu32bitalu)}
                     list.concat(Taicpu.op_none(A_MOVSD,S_NO));
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                    list.concat(Taicpu.op_none(A_MOVSW,S_NO));
+{$endif}
                   end;
                 if len>=4 then
                   begin

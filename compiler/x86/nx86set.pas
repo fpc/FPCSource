@@ -118,7 +118,11 @@ implementation
         reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);
         href.index:=indexreg;
+{$ifdef i8086}
+        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_INT,1,indexreg);
+{$else i8086}
         href.scalefactor:=sizeof(aint);
+{$endif i8086}
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
@@ -225,7 +229,11 @@ implementation
                 cond_le:=F_BE;
              end;
            { do we need to generate cmps? }
+{$ifdef i8086}
+           if (with_sign and (min_label<0)) or (opcgsize in [OS_32, OS_S32]) then
+{$else i8086}
            if (with_sign and (min_label<0)) then
+{$endif i8086}
              genlinearcmplist(hp)
            else
              begin
@@ -344,8 +352,8 @@ implementation
            to 32 bits, the left side may also not contain higher values or be signed !! }
          use_small:=is_smallset(right.resultdef) and
                     not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<32) or
-                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<{$ifdef i8086}16{$else}32{$endif}) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<{$ifdef i8086}16{$else}32{$endif}));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -371,7 +379,11 @@ implementation
           swapleftright;
 
          orgopsize := def_cgsize(left.resultdef);
+{$ifdef i8086}
+         opsize := OS_16;
+{$else i8086}
          opsize := OS_32;
+{$endif i8086}
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
          opdef:=hlcg.tcgsize2orddef(opsize);
@@ -493,6 +505,37 @@ implementation
                 end
                else
                 begin
+{$ifdef i8086}
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                  if (tcgsize2size[right.location.size] < 2) or
+                     (right.location.loc = LOC_CONSTANT) then
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u16inttype,true);
+
+                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                  emit_const_reg(A_MOV,S_W,1,hreg);
+                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
+
+                  case right.location.loc of
+                    LOC_REGISTER,
+                    LOC_CREGISTER :
+                      begin
+                        emit_reg_reg(A_TEST,S_L,hreg,right.location.register);
+                      end;
+                     LOC_CREFERENCE,
+                     LOC_REFERENCE :
+                       begin
+                         emit_reg_ref(A_TEST,S_L,hreg,right.location.reference);
+                       end;
+                     else
+                       internalerror(2002032210);
+                  end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+{$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (tcgsize2size[right.location.size] < 4) or
@@ -514,6 +557,7 @@ implementation
                      else
                        internalerror(2002032210);
                   end;
+{$endif i8086}
                   location.resflags:=F_C;
                 end;
              end
@@ -521,6 +565,29 @@ implementation
              begin
                if right.location.loc=LOC_CONSTANT then
                 begin
+{$ifdef i8086}
+                  location.resflags:=F_C;
+                  current_asmdata.getjumplabel(l);
+                  current_asmdata.getjumplabel(l2);
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,NR_CX,l);
+                  { reset carry flag }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+
+                  hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                  cg.a_label(current_asmdata.CurrAsmList,l);
+                  emit_const_reg(A_MOV,S_W,1,hreg);
+                  emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  emit_const_reg(A_TEST,S_W,right.location.value,hreg);
+
+                  cg.a_label(current_asmdata.CurrAsmList,l2);
+{$else i8086}
                   location.resflags:=F_C;
                   current_asmdata.getjumplabel(l);
                   current_asmdata.getjumplabel(l2);
@@ -568,6 +635,7 @@ implementation
                        end;
                   end;
                   cg.a_label(current_asmdata.CurrAsmList,l2);
+{$endif i8086}
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains values > 32 or < 0 }
@@ -594,6 +662,72 @@ implementation
                 end
                else
                 begin
+{$ifdef i8086}
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  if TCGSize2Size[left.location.size] > 2 then
+                    left.location.size := OS_16;
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+
+                  pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+
+                  if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+
+                  if (opsize >= OS_S8) or { = if signed }
+                     ((left.resultdef.typ=orddef) and
+                      ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
+                       (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
+                     ((left.resultdef.typ=enumdef) and
+                      ((tenumdef(left.resultdef).min < aint(tsetdef(right.resultdef).setbase)) or
+                       (tenumdef(left.resultdef).max > aint(tsetdef(right.resultdef).setmax)))) then
+                   begin
+
+                    { we have to check if the value is < 0 or > setmax }
+
+                    current_asmdata.getjumplabel(l);
+                    current_asmdata.getjumplabel(l2);
+
+                    { BE will be false for negative values }
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
+                    { reset carry flag }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+
+                    cg.a_label(current_asmdata.CurrAsmList,l);
+
+                    emit_const_reg(A_MOV,S_W,1,pleftreg);
+                    emit_reg_reg(A_SHL,S_W,NR_CL,pleftreg);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                    case right.location.loc of
+                      LOC_REGISTER, LOC_CREGISTER :
+                        emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                      LOC_CREFERENCE, LOC_REFERENCE :
+                        emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                    else
+                      internalerror(2007020301);
+                    end;
+
+                    cg.a_label(current_asmdata.CurrAsmList,l2);
+
+                    location.resflags:=F_C;
+
+                   end
+                  else
+                   begin
+                      emit_const_reg(A_MOV,S_W,1,pleftreg);
+                      emit_reg_reg(A_SHL,S_W,NR_CL,pleftreg);
+                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                      case right.location.loc of
+                        LOC_REGISTER, LOC_CREGISTER :
+                          emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                        LOC_CREFERENCE, LOC_REFERENCE :
+                          emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                      else
+                        internalerror(2007020302);
+                      end;
+                      location.resflags:=F_C;
+                   end;
+{$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -649,6 +783,7 @@ implementation
                       end;
                       location.resflags:=F_C;
                    end;
+{$endif i8086}
                 end;
              end;
           end;

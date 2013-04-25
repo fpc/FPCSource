@@ -74,7 +74,8 @@ const
     { 11 } 'powerpc64',
     { 12 } 'avr',
     { 13 } 'mipsel',
-    { 14 } 'jvm'
+    { 14 } 'jvm',
+    { 15 } 'i8086'
     );
 
 { List of all supported system-cpu couples }
@@ -158,7 +159,8 @@ const
   { 75 }  'Java-JVM',
   { 76 }  'Android-JVM',
   { 77 }  'Android-arm',
-  { 78 }  'Android-i386'
+  { 78 }  'Android-i386',
+  { 79 }  'MSDOS-i8086'
   );
 
 const

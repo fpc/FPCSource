@@ -457,6 +457,7 @@ implementation
       consttype : taiconst_type;
       do_line,DoNotSplitLine,
       quoted   : boolean;
+      fixed_opcode: TAsmOp;
     begin
       if not assigned(p) then
        exit;
@@ -696,7 +697,7 @@ implementation
              end;
            ait_instruction :
              begin
-               taicpu(hp).CheckNonCommutativeOpcodes;
+               fixed_opcode:=taicpu(hp).FixNonCommutativeOpcodes;
                taicpu(hp).SetOperandOrder(op_intel);
                { Reset }
                suffix:='';
@@ -707,8 +708,8 @@ implementation
                if (taicpu(hp).opsize=S_W) and
                    (
                     (
-                     (taicpu(hp).opcode=A_PUSH) or
-                     (taicpu(hp).opcode=A_POP)
+                     (fixed_opcode=A_PUSH) or
+                     (fixed_opcode=A_POP)
                     ) and
                     (taicpu(hp).oper[0]^.typ=top_reg) and
                     is_segment_reg(taicpu(hp).oper[0]^.reg)
@@ -717,14 +718,14 @@ implementation
 
                { added prefix instructions, must be on same line as opcode }
                if (taicpu(hp).ops = 0) and
-                  ((taicpu(hp).opcode = A_REP) or
-                   (taicpu(hp).opcode = A_LOCK) or
-                   (taicpu(hp).opcode =  A_REPE) or
-                   (taicpu(hp).opcode =  A_REPNZ) or
-                   (taicpu(hp).opcode =  A_REPZ) or
-                   (taicpu(hp).opcode = A_REPNE)) then
+                  ((fixed_opcode = A_REP) or
+                   (fixed_opcode = A_LOCK) or
+                   (fixed_opcode =  A_REPE) or
+                   (fixed_opcode =  A_REPNZ) or
+                   (fixed_opcode =  A_REPZ) or
+                   (fixed_opcode = A_REPNE)) then
                 Begin
-                  prefix:=std_op2str[taicpu(hp).opcode]+#9;
+                  prefix:=std_op2str[fixed_opcode]+#9;
                   { there can be a stab inbetween when the opcode was on
                     a different line in the source code }
                   repeat
@@ -750,20 +751,20 @@ implementation
                 prefix:= '';
                if (target_asm.id = as_i386_wasm) and
                  (taicpu(hp).opsize=S_W) and
-                 (taicpu(hp).opcode=A_PUSH) and
+                 (fixed_opcode=A_PUSH) and
                  (taicpu(hp).oper[0]^.typ=top_const) then
                  begin
                    AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
                    AsmWrite(#9#9'DW');
                  end
                else if (target_asm.id=as_x86_64_masm) and
-                 (taicpu(hp).opcode=A_MOVQ) then
+                 (fixed_opcode=A_MOVQ) then
                  AsmWrite(#9#9'mov')
                else
-                 AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
+                 AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]+suffix);
                if taicpu(hp).ops<>0 then
                 begin
-                  if is_calljmp(taicpu(hp).opcode) then
+                  if is_calljmp(fixed_opcode) then
                    begin
                      AsmWrite(#9);
                      WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opsize);
@@ -776,7 +777,7 @@ implementation
                          AsmWrite(#9)
                         else
                          AsmWrite(',');
-                        WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
+                        WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,(i=2));
                       end;
                    end;
                 end;

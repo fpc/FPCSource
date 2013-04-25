@@ -940,7 +940,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(x86) or defined(arm)}
+{$if defined(i386) or defined(x86_64) or defined(arm)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
@@ -1218,11 +1218,11 @@ implementation
         flowcontrol:=[];
         do_firstpass(code);
 
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
         procdef.fpu_used:=node_resources_fpu(code);
         if procdef.fpu_used>0 then
           include(flags,pi_uses_fpu);
-{$endif i386}
+{$endif i386 or i8086}
 
         { Print the node to tree.log }
         if paraprintnodetree=1 then

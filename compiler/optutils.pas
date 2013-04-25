@@ -52,7 +52,7 @@ unit optutils;
     uses
       verbose,
       optbase,
-      nbas,nflw,nutils,nset;
+      ncal,nbas,nflw,nutils,nset;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -264,7 +264,8 @@ unit optutils;
               begin
                 { not sure if this is enough (FK) }
                 result:=p;
-                p.successor:=succ;
+                if not(cnf_call_never_returns in tcallnode(p).callnodeflags) then
+                  p.successor:=succ;
               end;
             inlinen:
               begin

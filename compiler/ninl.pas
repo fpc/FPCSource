@@ -79,6 +79,9 @@ interface
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
           function first_popcnt: tnode; virtual;
+          { override these for Seg() support }
+          function typecheck_seg: tnode; virtual;
+          function first_seg: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -154,6 +157,39 @@ implementation
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
+
+
+    function get_str_int_func(def: tdef): string;
+    var
+      ordtype: tordtype;
+    begin
+      ordtype := torddef(def).ordtype;
+      if not (ordtype in [scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032603);
+
+      if is_oversizedord(def) then
+        begin
+          case ordtype of
+            scurrency,
+            s64bit: exit('int64');
+            u64bit: exit('qword');
+            s32bit: exit('longint');
+            u32bit: exit('longword');
+            s16bit: exit('smallint');
+            u16bit: exit('word');
+            else
+              internalerror(2013032604);
+          end;
+        end
+      else
+        begin
+          if is_nativeuint(def) then
+            exit('uint')
+          else
+            exit('sint');
+        end;
+      internalerror(2013032605);
+    end;
 
 
     function tinlinenode.handle_str : tnode;
@@ -324,23 +360,11 @@ implementation
           procname:=procname+'enum'
         else
           case torddef(source.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-            u64bit:
-              procname := procname + 'uint';
-{$else}
-            u32bit:
-              procname := procname + 'uint';
-            u64bit:
-              procname := procname + 'qword';
-            scurrency,
-            s64bit:
-              procname := procname + 'int64';
-{$endif}
             pasbool8,pasbool16,pasbool32,pasbool64,
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
             else
-              procname := procname + 'sint';
+              procname := procname + get_str_int_func(source.resultdef);
           end;
 
         { for ansistrings insert the encoding argument }
@@ -530,6 +554,75 @@ implementation
       end;
 
 
+    procedure get_read_write_int_func(def: tdef; out func_suffix: string; out readfunctype: tdef);
+    var
+      ordtype: tordtype;
+    begin
+      ordtype := torddef(def).ordtype;
+      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032601);
+
+      if is_oversizedint(def) then
+        begin
+          case ordtype of
+            s64bit:
+              begin
+                func_suffix := 'int64';
+                readfunctype:=s64inttype;
+              end;
+            u64bit :
+              begin
+                func_suffix := 'qword';
+                readfunctype:=u64inttype;
+              end;
+            s32bit:
+              begin
+                func_suffix := 'longint';
+                readfunctype:=s32inttype;
+              end;
+            u32bit :
+              begin
+                func_suffix := 'longword';
+                readfunctype:=u32inttype;
+              end;
+            s16bit:
+              begin
+                func_suffix := 'smallint';
+                readfunctype:=s16inttype;
+              end;
+            u16bit :
+              begin
+                func_suffix := 'word';
+                readfunctype:=u16inttype;
+              end;
+            else
+              internalerror(2013032602);
+          end;
+        end
+      else
+        begin
+          case ordtype of
+            s64bit,
+            s32bit,
+            s16bit,
+            s8bit:
+              begin
+                func_suffix := 'sint';
+                readfunctype := sinttype;
+              end;
+            u64bit,
+            u32bit,
+            u16bit,
+            u8bit:
+              begin
+                func_suffix := 'uint';
+                readfunctype := uinttype;
+              end;
+          end;
+        end;
+    end;
+
+
     function Tinlinenode.handle_text_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
 
     {Read(ln)/write(ln) for text files.}
@@ -546,6 +639,7 @@ implementation
         temp:Ttempcreatenode;
         readfunctype:Tdef;
         name:string[63];
+        func_suffix:string[8];
 
     begin
       para:=Tcallparanode(params);
@@ -615,31 +709,19 @@ implementation
             orddef :
               begin
                 case Torddef(para.left.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-                  s64bit,
-{$endif cpu64bitaddr}
                   s8bit,
                   s16bit,
-                  s32bit :
-                    begin
-                      name := procprefixes[do_read]+'sint';
-                      { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                      readfunctype:=sinttype;
-                    end;
-{$ifdef cpu64bitaddr}
-                  u64bit,
-{$endif cpu64bitaddr}
+                  s32bit,
+                  s64bit,
                   u8bit,
                   u16bit,
-                  u32bit :
+                  u32bit,
+                  u64bit:
                     begin
-                      name := procprefixes[do_read]+'uint';
-                      { iso pascal needs a different handler }
+                      get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
+                      name := procprefixes[do_read]+func_suffix;
                       if (m_iso in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
-                      readfunctype:=uinttype;
                     end;
                   uchar :
                     begin
@@ -654,24 +736,6 @@ implementation
                       name := procprefixes[do_read]+'widechar';
                       readfunctype:=cwidechartype;
                     end;
-{$ifndef cpu64bitaddr}
-                  s64bit :
-                    begin
-                      name := procprefixes[do_read]+'int64';
-                      { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                      readfunctype:=s64inttype;
-                    end;
-                  u64bit :
-                    begin
-                      name := procprefixes[do_read]+'qword';
-                      { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                      readfunctype:=u64inttype;
-                    end;
-{$endif not cpu64bitaddr}
                   scurrency:
                     begin
                       name := procprefixes[do_read]+'currency';
@@ -1303,6 +1367,40 @@ implementation
       end;
 
 
+    function get_val_int_func(def: tdef): string;
+    var
+      ordtype: tordtype;
+    begin
+      ordtype := torddef(def).ordtype;
+      if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
+        internalerror(2013032603);
+
+      if is_oversizedint(def) then
+        begin
+          case ordtype of
+            s64bit: exit('int64');
+            u64bit: exit('qword');
+            s32bit: exit('longint');
+            u32bit: exit('longword');
+            s16bit: exit('smallint');
+            u16bit: exit('word');
+            else
+              internalerror(2013032604);
+          end;
+        end
+      else
+        begin
+          case ordtype of
+            s64bit,s32bit,s16bit,s8bit: exit('sint');
+            u64bit,u32bit,u16bit,u8bit: exit('uint');
+            else
+              internalerror(2013032604);
+          end;
+        end;
+      internalerror(2013032605);
+    end;
+
+
     function tinlinenode.handle_val: tnode;
       var
         procname,
@@ -1403,11 +1501,12 @@ implementation
             { we need its resultdef later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resultdef).ordtype = torddef(ptrsinttype).ordtype) then
+        else if (torddef(codepara.resultdef).ordtype <> torddef(ptrsinttype).ordtype) then
           { because code is a var parameter, it must match types exactly    }
-          { however, since it will return values in [0..255], both longints }
-          { and cardinals are fine. Since the formal code para type is      }
-          { longint, insert a typecoversion to longint for cardinal para's  }
+          { however, since it will return values >= 0, both signed and      }
+          { and unsigned ints of the same size are fine. Since the formal   }
+          { code para type is sinttype, insert a typecoversion to sint for  }
+          { unsigned para's  }
           begin
             codepara.left := ctypeconvnode.create_internal(codepara.left,ptrsinttype);
             { make it explicit, oterwise you may get a nonsense range }
@@ -1423,29 +1522,15 @@ implementation
           orddef:
             begin
               case torddef(destpara.resultdef).ordtype of
-{$ifdef cpu64bitaddr}
-                s64bit,
-{$endif cpu64bitaddr}
-                s8bit,
-                s16bit,
-                s32bit:
+                s8bit,s16bit,s32bit,s64bit,
+                u8bit,u16bit,u32bit,u64bit:
                   begin
-                    suffix := 'sint_';
-                    { we also need a destsize para in this case }
-                    sizepara := ccallparanode.create(cordconstnode.create
-                      (destpara.resultdef.size,s32inttype,true),nil);
+                    suffix := get_val_int_func(destpara.resultdef) + '_';
+                    { we also need a destsize para in the case of sint }
+                    if suffix = 'sint_' then
+                      sizepara := ccallparanode.create(cordconstnode.create
+                        (destpara.resultdef.size,s32inttype,true),nil);
                   end;
-{$ifdef cpu64bitaddr}
-                u64bit,
-{$endif cpu64bitaddr}
-                u8bit,
-                u16bit,
-                u32bit:
-                   suffix := 'uint_';
-{$ifndef cpu64bitaddr}
-                s64bit: suffix := 'int64_';
-                u64bit: suffix := 'qword_';
-{$endif not cpu64bitaddr}
                 scurrency: suffix := 'currency_';
                 else
                   internalerror(200304225);
@@ -2453,6 +2538,7 @@ implementation
       var
          hightree,
          hp        : tnode;
+         temp_pnode: pnode;
       begin
         result:=nil;
         { when handling writeln "left" contains no valid address }
@@ -2710,10 +2796,7 @@ implementation
 
               in_seg_x :
                 begin
-                  if target_info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
-                  set_varstate(left,vs_read,[]);
-                  result:=cordconstnode.create(0,s32inttype,false);
+                  result := typecheck_seg;
                 end;
 
               in_pred_x,
@@ -2986,14 +3069,21 @@ implementation
               in_trunc_real,
               in_round_real :
                 begin
-                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  { on i8086, the int64 result is returned in a var param, because
+                    it's too big to fit in a register or a pair of registers. In
+                    that case we have 2 parameters and left.nodetype is a callparan. }
+                  if left.nodetype = callparan then
+                    temp_pnode := @tcallparanode(left).left
+                  else
+                    temp_pnode := @left;
+                  set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
                   { for direct float rounding, no best real type cast should be necessary }
-                  if not((left.resultdef.typ=floatdef) and
-                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
+                  if not((temp_pnode^.resultdef.typ=floatdef) and
+                         (tfloatdef(temp_pnode^.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
                      { converting an int64 to double on platforms without }
                      { extended can cause precision loss                  }
-                     not(left.nodetype in [ordconstn,realconstn]) then
-                    inserttypeconv(left,pbestrealtype^);
+                     not(temp_pnode^.nodetype in [ordconstn,realconstn]) then
+                    inserttypeconv(temp_pnode^,pbestrealtype^);
                   resultdef:=s64inttype;
                 end;
 
@@ -3469,7 +3559,9 @@ implementation
             internalerror(2000101001);
 
           in_seg_x :
-            internalerror(200104046);
+            begin
+              result:=first_seg;
+            end;
 
           in_settextbuf_file_x,
           in_reset_typedfile,
@@ -3891,6 +3983,22 @@ implementation
          end;
          result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
          left:=nil;
+       end;
+
+
+     function tinlinenode.typecheck_seg: tnode;
+       begin
+         if target_info.system in systems_managed_vm then
+           message(parser_e_feature_unsupported_for_vm);
+         set_varstate(left,vs_read,[]);
+         result:=cordconstnode.create(0,s32inttype,false);
+       end;
+
+
+     function tinlinenode.first_seg: tnode;
+       begin
+         internalerror(200104046);
+         result:=nil;
        end;
 
 

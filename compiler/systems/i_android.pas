@@ -162,11 +162,11 @@ unit i_android;
 implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef android}
     set_source_info(system_i386_android_info);
   {$endif}
-{$endif CPU86}
+{$endif CPUI386}
 {$ifdef CPUARM}
   {$ifdef android}
     set_source_info(system_arm_android_info);

@@ -73,6 +73,9 @@ endif
 ifeq ($(CPU_TARGET),mipsel)
 PPSUF=mipsel
 endif
+ifeq ($(CPU_TARGET),i8086)
+PPSUF=8086
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)

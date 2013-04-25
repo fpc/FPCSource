@@ -721,8 +721,16 @@ implementation
                pd:=search_system_proc('fpc_dynarray_rangecheck');
                paramanager.getintparaloc(pd,1,paraloc1);
                paramanager.getintparaloc(pd,2,paraloc2);
-               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+               if pd.is_pushleftright then
+                 begin
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                 end
+               else
+                 begin
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                 end;
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -755,8 +763,16 @@ implementation
               pd:=search_system_proc(helpername);
               paramanager.getintparaloc(pd,1,paraloc1);
               paramanager.getintparaloc(pd,2,paraloc2);
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+              if pd.is_pushleftright then
+                begin
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                end
+              else
+                begin
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                end;
 
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);

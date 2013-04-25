@@ -14,14 +14,16 @@
 
    { i386 FPU Controlword }
 
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui8086) or defined(cpui386) or defined(cpux86_64)}
     const
       Default8087CW : word = $1332;
 
     procedure Set8087CW(cw:word);
     function Get8087CW:word;
+  {$ifndef cpui8086}
     procedure SetSSECSR(w : dword);
     function GetSSECSR : dword;
+  {$endif not cpui8086}
 {$endif}
 
 const
