@@ -50,7 +50,7 @@ type
   end;
 
 var
-  ppudumpprog: string = 'ppudump';
+  ppudumpprog: string;
 
 implementation
 
@@ -175,6 +175,12 @@ begin
   un:=FindUnit(AName);
   p:=TProcess.Create(nil);
   try
+    if ppudumpprog = '' then begin
+      // Check for ppudump in the same folder as pas2jni
+      ppudumpprog:=ExtractFilePath(ParamStr(0)) + 'ppudump' + ExtractFileExt(ParamStr(0));
+      if not FileExists(ppudumpprog) then
+        ppudumpprog:='ppudump';
+    end;
     p.Executable:=ppudumpprog;
     p.Parameters.Add(un);
     p.Options:=[poUsePipes, poNoConsole, poStderrToOutPut];
