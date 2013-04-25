@@ -1741,7 +1741,7 @@ begin
           SaveDateToDst;
         end;
       end;
-    'Y':
+    'Y': // currency
       begin
 {$ifdef SUPPORT_INT64}
         Result := true;
@@ -1757,10 +1757,14 @@ begin
       begin
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
-          Result := true;
-          if Dst <> nil then
-            PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
-        end else
+        {$ifdef SUPPORT_INT64}
+          Result := Unaligned(PInt64(Src)^) <> 0;
+          if Result and (Dst <> nil) then
+          begin
+            SwapInt64LE(Src, Dst);
+            PDouble(Dst)^ := PDouble(Dst)^;
+          end;
+        {$endif} end else
           asciiContents := true;
       end;
     'M':

@@ -569,11 +569,9 @@ const
 function FindLangId(CodePage, DesiredLocale: Cardinal; LanguageIDToLocaleTable: PCardinal; IsFoxPro: Boolean): Byte;
 // DesiredLocale: pointer to lookup array: language ID=>locale
 var
-  i, LangID, Region, FoxRes, DbfRes: Integer;
+  i, LangID, Region: Integer;
 begin
   Region := 0;
-  DbfRes := 0;
-  FoxRes := 0;
   if IsFoxPro then
   begin
     // scan for a language ID matching the given codepage;
