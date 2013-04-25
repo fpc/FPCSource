@@ -620,13 +620,13 @@ begin
 end;
 
 procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef); forward;
-procedure readsymbols(const s:string); forward;
+procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil); forward;
 
 procedure readsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
 begin
   readsymtableoptions(s);
   readdefinitions(s, ParentDef);
-  readsymbols(s);
+  readsymbols(s, ParentDef);
 end;
 
 Procedure ReadLinkContainer(const prefix:string);
@@ -947,6 +947,8 @@ begin
            idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
            inc(i,4);
            write(['SymId ',idx]);
+           if Ref <> nil then
+             Ref.Id:=idx;
          end;
        deref_defid :
          begin
@@ -1231,14 +1233,38 @@ begin
     writeln([space,'Deprecated : ', ppufile.getstring]);
 end;
 
+procedure readvisibility(Def: TPpuDef = nil);
+var
+  i: byte;
+begin
+  i:=ppufile.getbyte;
+  if Def <> nil then
+    case tvisibility(i) of
+      vis_public: Def.Visibility:=dvPublic;
+      vis_published: Def.Visibility:=dvPublished;
+      vis_protected, vis_strictprotected: Def.Visibility:=dvProtected;
+      else Def.Visibility:=dvPrivate;
+    end;
+  writeln(Visibility2Str(i));
+end;
 
 procedure readcommonsym(const s:string; Def: TPpuDef = nil);
+var
+  i: integer;
+  n: string;
 begin
-  writeln([space,'** Symbol Id ',ppufile.getlongint,' **']);
-  writeln([space,s,ppufile.getstring]);
+  i:=ppufile.getlongint;
+  if Def <> nil then
+    Def.SetSymId(i);
+  writeln([space,'** Symbol Id ',i,' **']);
+  n:=ppufile.getstring;
+  if Def <> nil then
+    Def.Name:=n;
+  writeln([space,s,n]);
   write  ([space,'     File Pos : ']);
-  readposinfo;
-  writeln([space,'   Visibility : ',Visibility2Str(ppufile.getbyte)]);
+  readposinfo(Def);
+  write  ([space,'   Visibility : ']);
+  readvisibility(Def);
   write  ([space,'   SymOptions : ']);
   readsymoptions(space+'   ');
 end;
@@ -1377,7 +1403,10 @@ begin
   writeln([space,'** Definition Id ',i,' **']);
   writeln([space,s]);
   write  ([space,'      Type symbol : ']);
-  readderef('');
+  if Def <> nil then
+    readderef('', Def.Ref)
+  else
+    readderef('');
   write  ([space,'       DefOptions : ']);
   ppufile.getsmallset(defoptions);
   if defoptions<>[] then
@@ -1637,6 +1666,13 @@ begin
   readderef('', ProcDef.ReturnType);
   writeln([space,'         Fpu used : ',ppufile.getbyte]);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
+  case proctypeoption of
+    potype_function: Include(ProcDef.Options, poFunction);
+    potype_procedure: Include(ProcDef.Options, poProcedure);
+    potype_constructor: Include(ProcDef.Options, poConstructor);
+    potype_destructor: Include(ProcDef.Options, poDestructor);
+    potype_operator: Include(ProcDef.Options, poOperator);
+  end;
   write([space,'       TypeOption : ']);
   first:=true;
   for i:=1 to high(proctypeopt) do
@@ -1654,6 +1690,13 @@ begin
   ppufile.getnormalset(procoptions);
   if procoptions<>[] then
    begin
+     if po_classmethod in procoptions then Include(ProcDef.Options, poClassMethod);
+     if po_virtualmethod in procoptions then Include(ProcDef.Options, poVirtual);
+     if po_abstractmethod in procoptions then Include(ProcDef.Options, poAbstract);
+     if po_overridingmethod in procoptions then Include(ProcDef.Options, poOverriding);
+     if po_overload in procoptions then Include(ProcDef.Options, poOverload);
+     if po_inline in procoptions then Include(ProcDef.Options, poInline);
+
      write([space,'          Options : ']);
      first:=true;
      for i:=1 to high(procopt) do
@@ -1678,7 +1721,7 @@ end;
 { type tvaroption is in unit symconst }
   { register variable }
 { type tvarregable is in unit symconst }
-procedure readabstractvarsym(const s:string;var varoptions:tvaroptions);
+procedure readabstractvarsym(const s:string;var varoptions:tvaroptions; VarDef: TPpuVarDef = nil);
 type
   tvaropt=record
     mask : tvaroption;
@@ -1719,12 +1762,15 @@ var
   i : longint;
   first : boolean;
 begin
-  readcommonsym(s);
+  readcommonsym(s, VarDef);
   writeln([space,'         Spez : ',Varspez2Str(ppufile.getbyte)]);
   writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
   writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
   write  ([space,'     Var Type : ']);
-  readderef('');
+  if VarDef <> nil then
+    readderef('',VarDef.VarType)
+  else
+    readderef('');
   ppufile.getsmallset(varoptions);
   if varoptions<>[] then
    begin
@@ -1983,7 +2029,7 @@ end;
                              Read Symbols Part
 ****************************************************************************}
 
-procedure readsymbols(const s:string);
+procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil);
 type
   pguid = ^tguid;
   tguid = packed record
@@ -2009,6 +2055,7 @@ var
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
   propoptions : tpropertyoptions;
+  def, def2: TPpuDef;
 begin
   with ppufile do
    begin
@@ -2053,13 +2100,24 @@ begin
 
          ibprocsym :
            begin
-             readcommonsym('Procedure symbol ');
+             def:=TPpuDef.Create(nil);
+             readcommonsym('Procedure symbol ', def);
              len:=ppufile.getword;
              for i:=1 to len do
               begin
                 write([space,'   Definition : ']);
-                readderef('');
+                readderef('', def.Ref);
+                if def.Ref.IsCurUnit then
+                 begin;
+                   def2:=CurUnit.FindById(def.Ref.Id);
+                   if (def2 <> nil) and (def2.Ref.Id = def.Id) then
+                    begin
+                      def2.Name:=def.Name;
+                      def2.FilePos:=def.FilePos;
+                    end;
+                 end;
               end;
+             def.Free;
            end;
 
          ibconstsym :
@@ -2247,7 +2305,8 @@ begin
 
          ibparavarsym :
            begin
-             readabstractvarsym('Parameter Variable symbol ',varoptions);
+             def:=TPpuParamDef.Create(ParentDef);
+             readabstractvarsym('Parameter Variable symbol ',varoptions,TPpuVarDef(def));
              write  ([space,' DefaultConst : ']);
              readderef('');
              writeln([space,'       ParaNr : ',getword]);
@@ -2452,10 +2511,11 @@ begin
              write  ([space,'            Class : ']);
              readderef('');
              write  ([space,'          Procsym : ']);
-             readderef('');
+             readderef('', procdef.Ref);
              write  ([space,'         File Pos : ']);
              readposinfo(procdef);
-             writeln([space,'       Visibility : ',Visibility2Str(ppufile.getbyte)]);
+             write  ([space,'       Visibility : ']);
+             readvisibility(procdef);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
              write  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
@@ -2499,7 +2559,7 @@ begin
                HasMoreInfos;
              space:='    '+space;
              { parast }
-             readsymtable('parast');
+             readsymtable('parast', procdef);
              { localst }
              if (po_has_inlininginfo in procoptions) then
                 readsymtable('localst');
@@ -2641,7 +2701,8 @@ begin
                begin
                  write([space,'    ']);
                  readderef('');
-                 writeln([space,'      Visibility: ',Visibility2Str(getbyte)]);
+                 write([space,'      Visibility: ']);
+                 readvisibility;
                end;
 
              if tobjecttyp(b) in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
