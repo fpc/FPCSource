@@ -1763,7 +1763,17 @@ var
   first : boolean;
 begin
   readcommonsym(s, VarDef);
-  writeln([space,'         Spez : ',Varspez2Str(ppufile.getbyte)]);
+  i:=ppufile.getbyte;
+  if (VarDef <> nil) and (VarDef.DefType = dtParam) then
+    with TPpuParamDef(VarDef) do
+      case tvarspez(i) of
+        vs_value: Spez:=psValue;
+        vs_var: Spez:=psVar;
+        vs_out: Spez:=psOut;
+        vs_const: Spez:=psConst;
+        vs_constref: Spez:=psConstRef;
+      end;
+  writeln([space,'         Spez : ',Varspez2Str(i)]);
   writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
   writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
   write  ([space,'     Var Type : ']);
@@ -1774,6 +1784,8 @@ begin
   ppufile.getsmallset(varoptions);
   if varoptions<>[] then
    begin
+     if (VarDef <> nil) and (VarDef.DefType = dtParam) and (vo_is_hidden_para in varoptions) then
+       TPpuParamDef(VarDef).Spez:=psHidden;
      write([space,'      Options : ']);
      first:=true;
      for i:=1 to high(varopt) do
@@ -1792,7 +1804,7 @@ begin
 end;
 
 
-procedure readobjectdefoptions;
+procedure readobjectdefoptions(ObjDef: TPpuObjectDef = nil);
 type
   tsymopt=record
     mask : tobjectoption;
@@ -1833,6 +1845,11 @@ begin
   ppufile.getsmallset(current_objectoptions);
   if current_objectoptions<>[] then
    begin
+     if ObjDef <> nil then
+      begin
+        if oo_is_abstract in current_objectoptions then
+          Include(ObjDef.Options, ooIsAbstract);
+      end;
      first:=true;
      for i:=1 to high(symopt) do
       if (symopt[i].mask in current_objectoptions) then
@@ -2030,6 +2047,24 @@ end;
 ****************************************************************************}
 
 procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil);
+
+  function _finddef(symdef: TPpuDef): TPpuDef;
+  begin
+    Result:=nil;
+    if symdef.Ref.IsCurUnit then
+     begin;
+       Result:=CurUnit.FindById(symdef.Ref.Id);
+       if (Result <> nil) and (Result.Ref.Id = symdef.Id) then
+        begin
+          Result.Name:=symdef.Name;
+          Result.FilePos:=symdef.FilePos;
+          Result.Visibility:=symdef.Visibility;
+        end
+       else
+         Result:=nil;
+     end;
+  end;
+
 type
   pguid = ^tguid;
   tguid = packed record
@@ -2055,7 +2090,7 @@ var
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
   propoptions : tpropertyoptions;
-  def, def2: TPpuDef;
+  def: TPpuDef;
 begin
   with ppufile do
    begin
@@ -2087,9 +2122,14 @@ begin
 
          ibtypesym :
            begin
-             readcommonsym('Type symbol ');
+             def:=TPpuTypeRef.Create(nil);
+             readcommonsym('Type symbol ',def);
              write([space,'  Result Type : ']);
-             readderef('');
+             readderef('', def.Ref);
+             if _finddef(def) = nil then
+               def.Parent:=ParentDef
+             else
+               def.Free;
              prettyname:=getansistring;
              if prettyname<>'' then
                begin
@@ -2107,15 +2147,7 @@ begin
               begin
                 write([space,'   Definition : ']);
                 readderef('', def.Ref);
-                if def.Ref.IsCurUnit then
-                 begin;
-                   def2:=CurUnit.FindById(def.Ref.Id);
-                   if (def2 <> nil) and (def2.Ref.Id = def.Id) then
-                    begin
-                      def2.Name:=def.Name;
-                      def2.FilePos:=def.FilePos;
-                    end;
-                 end;
+                _finddef(def);
               end;
              def.Free;
            end;
@@ -2279,7 +2311,8 @@ begin
 
          ibfieldvarsym :
            begin
-             readabstractvarsym('Field Variable symbol ',varoptions);
+             def:=TPpuFieldDef.Create(ParentDef);
+             readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
              writeln([space,'      Address : ',getaint]);
            end;
 
@@ -2429,6 +2462,7 @@ var
   defoptions: tdefoptions;
   procdef: TPpuProcDef;
   ptypedef: TPpuProcTypeDef;
+  objdef: TPpuObjectDef;
 begin
   with ppufile do
    begin
@@ -2647,11 +2681,13 @@ begin
 
          ibobjectdef :
            begin
-             readcommondef('Object/Class definition',defoptions);
-             writeln([space,'    Name of Class : ',getstring]);
+             objdef:=TPpuObjectDef.Create(ParentDef);
+             readcommondef('Object/Class definition',defoptions,objdef);
+             objdef.Name:=getstring;
+             writeln([space,'    Name of Class : ',objdef.Name]);
              writeln([space,'   Import lib/pkg : ',getstring]);
              write  ([space,'          Options : ']);
-             readobjectdefoptions;
+             readobjectdefoptions(objdef);
              b:=getbyte;
              write  ([space,'             Type : ']);
              case tobjecttyp(b) of
@@ -2669,6 +2705,16 @@ begin
                odt_interfacejava  : writeln('Java interface');
                else                 writeln(['!! Warning: Invalid object type ',b]);
              end;
+             case tobjecttyp(b) of
+               odt_class, odt_cppclass, odt_objcclass, odt_javaclass:
+                 objdef.ObjType:=otClass;
+               odt_object:
+                 objdef.ObjType:=otObject;
+               odt_interfacecom, odt_interfacecorba, odt_interfacejava, odt_dispinterface:
+                 objdef.ObjType:=otInterface;
+               odt_helper:
+                 objdef.ObjType:=otHelper;
+             end;
              writeln([space,'    External name : ',getstring]);
              writeln([space,'         DataSize : ',getasizeint]);
              writeln([space,'      PaddingSize : ',getword]);
@@ -2676,7 +2722,7 @@ begin
              writeln([space,'      RecordAlign : ',shortint(getbyte)]);
              writeln([space,'       Vmt offset : ',getlongint]);
              write  ([space,  '   Ancestor Class : ']);
-             readderef('');
+             readderef('',objdef.Ancestor);
 
              if tobjecttyp(b) in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
                begin
@@ -2733,7 +2779,7 @@ begin
                  {read the record definitions and symbols}
                  space:='    '+space;
                  readrecsymtableoptions;
-                 readsymtable('fields');
+                 readsymtable('fields',objdef);
                  Delete(space,1,4);
               end;
            end;
@@ -3143,7 +3189,7 @@ begin
      Writeln;
      Writeln('Interface Symbols');
      Writeln('------------------');
-     readsymbols('interface');
+     readsymbols('interface',CurUnit);
    end
   else
    ppufile.skipuntilentry(ibendsyms);
