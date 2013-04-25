@@ -302,6 +302,7 @@ begin
         vtPChar: system.write(VPChar);
         vtChar: system.write(VChar);
         vtBoolean: system.write(VBoolean);
+        vtExtended: system.write(VExtended^);
         else
           begin
             system.writeln;
