@@ -1813,9 +1813,11 @@ IMPLEMENTATION
   function BCDToCurr ( const BCD : tBCD;
                          var Curr : currency ) : Boolean;
 
+    const
+      MaxCurr: array[boolean] of QWord = (QWord($7FFFFFFFFFFFFFFF), QWord($8000000000000000));
     var
       bh : tBCD_helper;
-      res : int64;
+      res : QWord;
       c : currency absolute res;
       i : {$ifopt r+} low ( bh.FDig )..4 {$else} Integer {$endif};
 
@@ -1824,22 +1826,28 @@ IMPLEMENTATION
 }
 
     begin
-      BCDToCurr := True;
+      BCDToCurr := False;
+      if BCDPrecision(BCD) - BCDScale(BCD) > 15 then
+        Exit;
       unpack_BCD ( BCD, bh );
       res := 0;
       WITH bh do
-        try
+        begin
           for i := FDig TO 4 do
-            res := res * 10 - Singles[i];
+            res := res * 10 + Singles[i];
           if Plac > 4
             then
               if Singles[5] > 4
                 then Inc ( res );
-          if not Neg then
-            res := -res;
+          if res > MaxCurr[Neg] then
+            Exit;
+          if Neg then
+            begin
+            res := not res;
+            inc(res);
+            end;
           Curr := c;
-        except
-          BCDToCurr := False;
+          BCDToCurr := True;
         end;
      end;
 
