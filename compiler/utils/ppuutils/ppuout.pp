@@ -68,11 +68,18 @@ type
 
   { TPpuRef }
   TPpuRef = class
+  private
+    FId: cardinal;
+    function GetId: cardinal;
+    function GetIsSymId: boolean;
+    procedure SetId(AValue: cardinal);
+    procedure SetIsSymId(AValue: boolean);
   public
     UnitIndex: word;
-    Id: cardinal;
     constructor Create;
     procedure Write(Output: TPpuOutput; const RefName: string);
+    property Id: cardinal read GetId write SetId;
+    property IsSymId: boolean read GetIsSymId write SetIsSymId;
     function IsCurUnit: boolean; inline;
     function IsNull: boolean; inline;
   end;
@@ -242,6 +249,18 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
+  { TPpuPropDef }
+  TPpuPropDef = class(TPpuContainerDef)
+  protected
+    procedure BeforeWriteItems(Output: TPpuOutput); override;
+  public
+    PropType: TPpuRef;
+    Getter, Setter: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+
 implementation
 
 const
@@ -274,12 +293,40 @@ begin
   Result:=Id and SymIdBit <> 0;
 end;
 
+{ TPpuPropDef }
+
+procedure TPpuPropDef.BeforeWriteItems(Output: TPpuOutput);
+begin
+  inherited BeforeWriteItems(Output);
+  PropType.Write(Output, 'PropType');
+  Getter.Write(Output, 'Getter');
+  Setter.Write(Output, 'Setter');
+end;
+
+constructor TPpuPropDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtProp;
+  ItemsName:='Params';
+  PropType:=TPpuRef.Create;
+  Getter:=TPpuRef.Create;
+  Setter:=TPpuRef.Create;
+end;
+
+destructor TPpuPropDef.Destroy;
+begin
+  Getter.Free;
+  Setter.Free;
+  PropType.Free;
+  inherited Destroy;
+end;
+
 { TPpuTypeRef }
 
 procedure TPpuTypeRef.WriteDef(Output: TPpuOutput);
 begin
   inherited WriteDef(Output);
-  Ref.Write(Output, 'TypeRef');
+  Ref.Write(Output, 'Ref');
 end;
 
 constructor TPpuTypeRef.Create(AParent: TPpuContainerDef);
@@ -378,10 +425,39 @@ end;
 
 { TPpuRef }
 
+function TPpuRef.GetId: cardinal;
+begin
+  if FId = InvalidId then
+    Result:=InvalidId
+  else
+    Result:=FId and not SymIdBit;
+end;
+
+function TPpuRef.GetIsSymId: boolean;
+begin
+  Result:=FId and SymIdBit <> 0;
+end;
+
+procedure TPpuRef.SetId(AValue: cardinal);
+begin
+  if (FId = InvalidId) or (AValue = InvalidId) then
+    FId:=AValue
+  else
+    FId:=AValue or (FId and SymIdBit);
+end;
+
+procedure TPpuRef.SetIsSymId(AValue: boolean);
+begin
+  if AValue then
+    FId:=FId or SymIdBit
+  else
+    FId:=FId and not SymIdBit;
+end;
+
 constructor TPpuRef.Create;
 begin
   UnitIndex:=InvalidUnit;
-  Id:=InvalidId;
+  FId:=InvalidId;
 end;
 
 procedure TPpuRef.Write(Output: TPpuOutput; const RefName: string);
@@ -393,7 +469,10 @@ begin
       WriteObjectStart(RefName);
       if not IsCurUnit then
         WriteInt('Unit', UnitIndex);
-      WriteInt('Id', Id);
+      if IsSymId then
+        WriteInt('SymId', Id)
+      else
+        WriteInt('Id', Id);
       WriteObjectEnd;
     end;
 end;

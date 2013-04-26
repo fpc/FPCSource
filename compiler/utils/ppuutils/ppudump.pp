@@ -981,7 +981,7 @@ begin
 end;
 
 
-procedure readpropaccesslist(const s:string);
+procedure readpropaccesslist(const s:string; Ref: TPpuRef = nil);
 { type tsltype is in symconst unit }
 const
   slstr : array[tsltype] of string[12] = (
@@ -996,7 +996,7 @@ const
 var
   sl : tsltype;
 begin
-  readderef('');
+  readderef('',Ref);
   repeat
     sl:=tsltype(ppufile.getbyte);
     if sl=sl_none then
@@ -1006,7 +1006,13 @@ begin
       sl_call,
       sl_load,
       sl_subscript :
-        readderef('');
+        if (Ref <> nil) and (Ref.IsNull) then
+         begin
+           readderef('',Ref);
+           Ref.IsSymId:=True;
+         end
+        else
+          readderef('');
       sl_absolutetype,
       sl_typeconv :
         readderef('');
@@ -2321,7 +2327,8 @@ begin
 
          ibstaticvarsym :
            begin
-             readabstractvarsym('Global Variable symbol ',varoptions);
+             def:=TPpuVarDef.Create(ParentDef);
+             readabstractvarsym('Global Variable symbol ',varoptions,TPpuVarDef(def));
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
@@ -2390,7 +2397,8 @@ begin
 
          ibpropertysym :
            begin
-             readcommonsym('Property ');
+             def:=TPpuPropDef.Create(ParentDef);
+             readcommonsym('Property ',def);
              propoptions:=readpropertyoptions;
              if ppo_overrides in propoptions then
                begin
@@ -2398,7 +2406,7 @@ begin
                  readderef('');
                end;
              write  ([space,'    Prop Type : ']);
-             readderef('');
+             readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
              writeln([space,'      Default : ',getlongint]);
              write  ([space,'   Index Type : ']);
@@ -2406,15 +2414,15 @@ begin
              { palt_none }
              readpropaccesslist('');
              write  ([space,'   Readaccess : ']);
-             readpropaccesslist(space+'         Sym: ');
+             readpropaccesslist(space+'         Sym: ',TPpuPropDef(def).Getter);
              write  ([space,'  Writeaccess : ']);
-             readpropaccesslist(space+'         Sym: ');
+             readpropaccesslist(space+'         Sym: ',TPpuPropDef(def).Setter);
              write  ([space,' Storedaccess : ']);
              readpropaccesslist(space+'         Sym: ');
              if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
                begin
                  space:='    '+space;
-                 readsymtable('parast');
+                 readsymtable('parast',TPpuPropDef(def));
                  delete(space,1,4);
                end;
            end;
