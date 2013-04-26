@@ -108,7 +108,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
-  Result:=TFPUExceptionMask((GetSSECSR shr 7) and $3f);
+  Result:=TFPUExceptionMask(dword((GetSSECSR shr 7) and $3f));
 {$else win64}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
 {$endif win64}
