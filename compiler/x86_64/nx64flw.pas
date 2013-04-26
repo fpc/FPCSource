@@ -30,7 +30,7 @@ interface
 
   type
     tx64raisenode=class(tcgraisenode)
-      procedure pass_generate_code;override;
+      function pass_1 : tnode;override;
     end;
 
     tx64onnode=class(tcgonnode)
@@ -66,14 +66,22 @@ implementation
 
 { tx64raisenode }
 
-procedure tx64raisenode.pass_generate_code;
+function tx64raisenode.pass_1 : tnode;
+  var
+    statements : tstatementnode;
+    raisenode : tcallnode;
   begin
     { difference from generic code is that address stack is not popped on reraise }
     if (target_info.system<>system_x86_64_win64) or assigned(left) then
-      inherited pass_generate_code
+      result:=inherited pass_1
     else
-      cg.g_call(current_asmdata.CurrAsmList,'FPC_RERAISE');
-  end;
+      begin
+        result:=internalstatements(statements);
+        raisenode:=ccallnode.createintern('fpc_reraise',nil);
+        include(raisenode.callnodeflags,cnf_call_never_returns);
+        addstatement(statements,raisenode);
+      end;
+end;
 
 { tx64onnode }
 
