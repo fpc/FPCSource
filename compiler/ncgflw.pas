@@ -72,6 +72,10 @@ interface
           procedure pass_generate_code;override;
        end;
 
+       tcgraisenode = class(traisenode)
+          procedure pass_generate_code;override;
+       end;
+
        tcgtryexceptnode = class(ttryexceptnode)
           procedure pass_generate_code;override;
        end;
@@ -946,11 +950,95 @@ implementation
 
 
 {*****************************************************************************
+                             SecondRaise
+*****************************************************************************}
+
+    procedure tcgraisenode.pass_generate_code;
+
+      var
+         a : tasmlabel;
+         href2: treference;
+         paraloc1,paraloc2,paraloc3 : tcgpara;
+         pd : tprocdef;
+      begin
+         location_reset(location,LOC_VOID,OS_NO);
+
+         if assigned(left) then
+           begin
+              pd:=search_system_proc('fpc_raiseexception');
+              paraloc1.init;
+              paraloc2.init;
+              paraloc3.init;
+              paramanager.getintparaloc(pd,1,paraloc1);
+              paramanager.getintparaloc(pd,2,paraloc2);
+              paramanager.getintparaloc(pd,3,paraloc3);
+
+              { multiple parameters? }
+              if assigned(right) then
+                begin
+                  { frame tree }
+                  if assigned(third) then
+                    secondpass(third);
+                  secondpass(right);
+                end;
+              secondpass(left);
+              if codegenerror then
+                exit;
+
+              { Push parameters }
+              if assigned(right) then
+                begin
+                  { frame tree }
+                  if assigned(third) then
+                    cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
+                  else
+                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
+                  { push address }
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                end
+              else
+                begin
+                   { get current address }
+                   current_asmdata.getaddrlabel(a);
+                   cg.a_label(current_asmdata.CurrAsmList,a);
+                   reference_reset_symbol(href2,a,0,1);
+                   { push current frame }
+                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
+                   { push current address }
+                   if target_info.system <> system_powerpc_macos then
+                     cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
+                   else
+                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
+                end;
+              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
+              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
+              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RAISEEXCEPTION',false);
+              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+
+              paraloc1.done;
+              paraloc2.done;
+              paraloc3.done;
+           end
+         else
+           begin
+              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+           end;
+       end;
+
+
+{*****************************************************************************
                              SecondTryExcept
 *****************************************************************************}
 
     var
        endexceptlabel : tasmlabel;
+
 
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
@@ -1572,6 +1660,7 @@ begin
    ccontinuenode:=tcgcontinuenode;
    cgotonode:=tcggotonode;
    clabelnode:=tcglabelnode;
+   craisenode:=tcgraisenode;
    ctryexceptnode:=tcgtryexceptnode;
    ctryfinallynode:=tcgtryfinallynode;
    connode:=tcgonnode;
