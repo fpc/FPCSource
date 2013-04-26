@@ -684,8 +684,11 @@ procedure create_tokenidx;
   length, so a search only will be done in that small part }
 var
   t : ttoken;
-  i, j : longint;
+  i : longint;
   c : char;
+{$ifdef jvm}
+  j : longint;
+{$endif jvm}
 begin
   fillchar(tokenidx^,sizeof(tokenidx^),0);
   for t:=low(ttoken) to high(ttoken) do
