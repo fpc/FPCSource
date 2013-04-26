@@ -176,11 +176,16 @@ begin
   p:=TProcess.Create(nil);
   try
     if ppudumpprog = '' then begin
+      ppudumpprog:='ppudump';
       // Check for ppudump in the same folder as pas2jni
-      ppudumpprog:=ExtractFilePath(ParamStr(0)) + 'ppudump' + ExtractFileExt(ParamStr(0));
-      if not FileExists(ppudumpprog) then
-        ppudumpprog:='ppudump';
+      s:=ExtractFilePath(ParamStr(0));
+      if s <> '' then begin
+        s:=s + ppudumpprog + ExtractFileExt(ParamStr(0));
+        if FileExists(s) then
+          ppudumpprog:=s;
+      end;
     end;
+    writeln(ppudumpprog);
     p.Executable:=ppudumpprog;
     p.Parameters.Add(un);
     p.Options:=[poUsePipes, poNoConsole, poStderrToOutPut];
