@@ -31,6 +31,9 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
+
+      { T386NasmAssembler }
+
       T386NasmAssembler = class(texternalassembler)
       private
         procedure WriteReference(var ref : treference);
@@ -42,6 +45,7 @@ interface
         procedure WriteAsmList;override;
         procedure WriteExternals;
         procedure WriteSmartExternals;
+        procedure WriteHeader;
       end;
 
 
@@ -513,11 +517,6 @@ interface
             AsmWrite('.');
             AsmWrite(aname);
           end;
-{$ifdef i8086}
-        { WLINK requires this in order to leave the BSS section out of the executable }
-        if atype = sec_bss then
-           AsmWrite(' class=bss');
-{$endif i8086}
         AsmLn;
         LasTSecType:=atype;
       end;
@@ -963,6 +962,7 @@ interface
                     AsmClose;
                     DoAssemble;
                     AsmCreate(tai_cutobject(hp).place);
+                    WriteHeader;
                   end;
                { avoid empty files }
                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
@@ -1039,6 +1039,26 @@ interface
           end;
       end;
 
+    procedure T386NasmAssembler.WriteHeader;
+      begin
+{$ifdef i8086}
+      AsmWriteLn('BITS 16');
+      AsmWriteLn('CPU 286');
+
+      { NASM complains if you put a missing section in the GROUP directive, so }
+      { we add empty declarations to make sure they exist, even if empty }
+      AsmWriteLn('SECTION .rodata');
+      AsmWriteLn('SECTION .data');
+      { WLINK requires class=bss in order to leave the BSS section out of the executable }
+      AsmWriteLn('SECTION .bss class=bss');
+      { group these sections in the same segment }
+      AsmWriteLn('GROUP dgroup rodata data bss');
+      AsmWriteLn('SECTION .text');
+{$else i8086}
+      AsmWriteLn('BITS 32');
+{$endif i8086}
+      end;
+
 
     procedure T386NasmAssembler.WriteAsmList;
     var
@@ -1048,12 +1068,7 @@ interface
       if current_module.mainsource<>'' then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
-{$ifdef i8086}
-      AsmWriteLn('BITS 16');
-      AsmWriteLn('CPU 286');
-{$else i8086}
-      AsmWriteLn('BITS 32');
-{$endif i8086}
+      WriteHeader;
       AsmLn;
 
       WriteExternals;
@@ -1071,15 +1086,6 @@ interface
           WriteSmartExternals;
           FreeExternChainList;
         end;
-{$ifdef i8086}
-      { NASM complains if you put a missing section in the GROUP directive, so }
-      { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata');
-      AsmWriteLn('SECTION .data');
-      AsmWriteLn('SECTION .bss class=bss');
-      { group these sections in the same segment }
-      AsmWriteLn('GROUP dgroup rodata data bss');
-{$endif i8086}
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
