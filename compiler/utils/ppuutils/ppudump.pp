@@ -1194,7 +1194,7 @@ begin
   writeln;
 end;
 
-procedure readsymoptions(space : string);
+procedure readsymoptions(space : string; Def: TPpuDef = nil);
 type
   tsymopt=record
     mask : tsymoption;
@@ -1226,6 +1226,9 @@ begin
   ppufile.getsmallset(symoptions);
   if symoptions<>[] then
    begin
+     if Def <> nil then
+       if sp_internal in symoptions then
+         Def.Visibility:=dvHidden;
      first:=true;
      for i:=1to symopts do
       if (symopt[i].mask in symoptions) then
@@ -1275,7 +1278,7 @@ begin
   write  ([space,'   Visibility : ']);
   readvisibility(Def);
   write  ([space,'   SymOptions : ']);
-  readsymoptions(space+'   ');
+  readsymoptions(space+'   ',Def);
 end;
 
 
@@ -1874,7 +1877,7 @@ begin
 end;
 
 
-procedure readarraydefoptions;
+procedure readarraydefoptions(ArrayDef: TPpuArrayDef);
 { type tarraydefoption is in unit symconst }
 type
   tsymopt=record
@@ -1899,6 +1902,7 @@ begin
   ppufile.getsmallset(symoptions);
   if symoptions<>[] then
    begin
+     if ado_IsDynamicArray in symoptions then Include(ArrayDef.Options, aoDynamic);
      first:=true;
      for i:=1 to high(symopt) do
       if (symopt[i].mask in symoptions) then
@@ -2067,7 +2071,6 @@ procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil);
         begin
           Result.Name:=symdef.Name;
           Result.FilePos:=symdef.FilePos;
-          Result.Visibility:=symdef.Visibility;
         end
        else
          Result:=nil;
@@ -2089,7 +2092,7 @@ var
   ch : dword;
   startnewline : boolean;
   i,j,len : longint;
-  prettyname : ansistring;
+  prettyname, ss : ansistring;
   guid : tguid;
   realvalue : ppureal;
   doublevalue : double;
@@ -2099,7 +2102,9 @@ var
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
   propoptions : tpropertyoptions;
+  iexp: Tconstexprint;
   def: TPpuDef;
+  constdef: TPpuConstDef absolute def;
 begin
   with ppufile do
    begin
@@ -2163,14 +2168,18 @@ begin
 
          ibconstsym :
            begin
-             readcommonsym('Constant symbol ');
+             constdef:=TPpuConstDef.Create(ParentDef);
+             readcommonsym('Constant symbol ',constdef);
              b:=getbyte;
              case tconsttyp(b) of
                constord :
                  begin
                    write  ([space,'  OrdinalType : ']);
-                   readderef('');
-                   writeln([space,'        Value : ',constexp.tostr(getexprint)]);
+                   readderef('',constdef.TypeRef);
+                   iexp:=getexprint;
+                   constdef.ConstType:=ctInt;
+                   constdef.VInt:=iexp.svalue;
+                   writeln([space,'        Value : ',constexp.tostr(iexp)]);
                  end;
                constpointer :
                  begin
@@ -2187,32 +2196,40 @@ begin
                    (pc+len)^:= #0;
                    writeln([space,'       Length : ',len]);
                    writeln([space,'        Value : "',pc,'"']);
+                   constdef.ConstType:=ctStr;
+                   SetString(constdef.VStr, pc, len);
                    freemem(pc,len+1);
                  end;
                constreal :
                  begin
+                   constdef.ConstType:=ctFloat;
                    write  ([space,'     RealType : ']);
-                   readderef('');
+                   readderef('',constdef.TypeRef);
                    write([space,'        Value : ']);
                    if entryleft=sizeof(ppureal) then
                      begin
                        realvalue:=getrealsize(sizeof(ppureal));
+                       constdef.VFloat:=realvalue;
                        writeln([realvalue]);
                      end
                    else if entryleft=sizeof(double) then
                      begin
                        doublevalue:=getrealsize(sizeof(double));
+                       constdef.VFloat:=doublevalue;
                        writeln([doublevalue]);
                      end
                    else if entryleft=sizeof(single) then
                      begin
                        singlevalue:=getrealsize(sizeof(single));
+                       constdef.VFloat:=singlevalue;
                        writeln([singlevalue]);
                      end
                    else if entryleft=10 then
                      begin
                        getdata(extended,entryleft);
-                       writeln(Real80bitToStr(extended));
+                       ss:=Real80bitToStr(extended);
+                       constdef.VFloat:=StrToFloat(ss);
+                       writeln(ss);
                      end
                    else
                      begin
@@ -2299,7 +2316,8 @@ begin
 
          ibabsolutevarsym :
            begin
-             readabstractvarsym('Absolute variable symbol ',varoptions);
+             def:=TPpuVarDef.Create(ParentDef);
+             readabstractvarsym('Absolute variable symbol ',varoptions,TPpuVarDef(def));
              Write ([space,' Relocated to ']);
              b:=getbyte;
              case absolutetyp(b) of
@@ -2351,7 +2369,7 @@ begin
              def:=TPpuParamDef.Create(ParentDef);
              readabstractvarsym('Parameter Variable symbol ',varoptions,TPpuVarDef(def));
              write  ([space,' DefaultConst : ']);
-             readderef('');
+             readderef('',TPpuParamDef(def).DefaultValue);
              writeln([space,'       ParaNr : ',getword]);
              writeln([space,'        Univ  : ',boolean(getbyte)]);
              writeln([space,'     VarState : ',getbyte]);
@@ -2471,9 +2489,9 @@ var
   calloption : tproccalloption;
   procoptions : tprocoptions;
   defoptions: tdefoptions;
-  procdef: TPpuProcDef;
-  ptypedef: TPpuProcTypeDef;
-  objdef: TPpuObjectDef;
+  def: TPpuDef;
+  objdef: TPpuObjectDef absolute def;
+  arrdef: TPpuArrayDef absolute def;
 begin
   with ppufile do
    begin
@@ -2529,22 +2547,25 @@ begin
 
          ibarraydef :
            begin
-             readcommondef('Array definition',defoptions);
+             arrdef:=TPpuArrayDef.Create(ParentDef);
+             readcommondef('Array definition',defoptions,arrdef);
              write  ([space,'     Element type : ']);
-             readderef('');
+             readderef('',arrdef.ElType);
              write  ([space,'       Range Type : ']);
-             readderef('');
-             writeln([space,'            Range : ',getaint,' to ',getaint]);
+             readderef('',arrdef.RangeType);
+             arrdef.RangeLow:=getaint;
+             arrdef.RangeHigh:=getaint;
+             writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
-             readarraydefoptions;
+             readarraydefoptions(arrdef);
              readsymtable('symbols');
            end;
 
          ibprocdef :
            begin
-             procdef:=TPpuProcDef.Create(ParentDef);
-             readcommondef('Procedure definition',defoptions,procdef);
-             read_abstract_proc_def(calloption,procoptions,procdef);
+             def:=TPpuProcDef.Create(ParentDef);
+             readcommondef('Procedure definition',defoptions,def);
+             read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
 {$ifdef symansistr}
                writeln([space,'     Mangled name : ',getansistring]);
@@ -2556,11 +2577,11 @@ begin
              write  ([space,'            Class : ']);
              readderef('');
              write  ([space,'          Procsym : ']);
-             readderef('', procdef.Ref);
+             readderef('', def.Ref);
              write  ([space,'         File Pos : ']);
-             readposinfo(procdef);
+             readposinfo(def);
              write  ([space,'       Visibility : ']);
-             readvisibility(procdef);
+             readvisibility(def);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
              write  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
@@ -2604,7 +2625,7 @@ begin
                HasMoreInfos;
              space:='    '+space;
              { parast }
-             readsymtable('parast', procdef);
+             readsymtable('parast', TPpuProcDef(def));
              { localst }
              if (po_has_inlininginfo in procoptions) then
                 readsymtable('localst');
@@ -2615,15 +2636,15 @@ begin
 
          ibprocvardef :
            begin
-             ptypedef:=TPpuProcTypeDef.Create(ParentDef);
-             readcommondef('Procedural type (ProcVar) definition',defoptions,ptypedef);
-             read_abstract_proc_def(calloption,procoptions, ptypedef);
+             def:=TPpuProcTypeDef.Create(ParentDef);
+             readcommondef('Procedural type (ProcVar) definition',defoptions,def);
+             read_abstract_proc_def(calloption,procoptions, TPpuProcDef(def));
              writeln([space,'   Symtable level :',ppufile.getbyte]);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
              { parast }
-             readsymtable('parast');
+             readsymtable('parast',TPpuProcDef(def));
              delete(space,1,4);
            end;
 
@@ -2659,15 +2680,18 @@ begin
 
          ibrecorddef :
            begin
-             readcommondef('Record definition',defoptions);
-             writeln([space,'   Name of Record : ',getstring]);
+             def:=TPpuRecordDef.Create(ParentDef);
+             readcommondef('Record definition',defoptions, def);
+             def.Name:=getstring;
+             writeln([space,'   Name of Record : ',def.Name]);
              writeln([space,'   Import lib/pkg : ',getstring]);
              write  ([space,'          Options : ']);
-             readobjectdefoptions;
+             readobjectdefoptions(TPpuRecordDef(def));
              if (df_copied_def in defoptions) then
                begin
+                 Include(TPpuRecordDef(def).Options, ooCopied);
                  write([space,'      Copied from : ']);
-                 readderef('');
+                 readderef('',TPpuRecordDef(def).Ancestor);
                end
              else
                begin
@@ -2685,7 +2709,7 @@ begin
                begin
                  space:='    '+space;
                  readrecsymtableoptions;
-                 readsymtable('fields');
+                 readsymtable('fields',TPpuRecordDef(def));
                  Delete(space,1,4);
                end;
            end;
@@ -2779,8 +2803,9 @@ begin
 
              if df_copied_def in current_defoptions then
                begin
+                 Include(objdef.Options, ooCopied);
                  writeln('  Copy of def: ');
-                 readderef('');
+                 readderef('',objdef.Ancestor);
                end;
 
              if not EndOfEntry then
@@ -2844,9 +2869,10 @@ begin
 
          ibclassrefdef :
            begin
-             readcommondef('Class reference definition',defoptions);
+             def:=TPpuClassRefDef.Create(ParentDef);
+             readcommondef('Class reference definition',defoptions,def);
              write  ([space,'    Pointed Type : ']);
-             readderef('');
+             readderef('',TPpuClassRefDef(def).ClassRef);
            end;
 
          ibsetdef :

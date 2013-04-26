@@ -29,7 +29,7 @@ uses SysUtils, cclasses, Classes;
 
 type
   TPpuDefType = (dtNone, dtUnit, dtObject, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
-                 dtTypeRef, dtConst, dtProcType, dtEnum, dtSet);
+                 dtTypeRef, dtConst, dtProcType, dtEnum, dtSet, dtClassRef, dtArray);
 
   TPpuDef = class;
   TPpuContainerDef = class;
@@ -89,7 +89,7 @@ type
     Line, Col: integer;
   end;
 
-  TPpuDefVisibility = (dvPublic, dvPublished, dvProtected, dvPrivate);
+  TPpuDefVisibility = (dvPublic, dvPublished, dvProtected, dvPrivate, dvHidden);
 
   { TPpuDef }
 
@@ -117,7 +117,7 @@ type
 
     constructor Create(AParent: TPpuContainerDef); virtual; reintroduce;
     destructor Destroy; override;
-    procedure Write(Output: TPpuOutput);
+    procedure Write(Output: TPpuOutput; const AttrName: string = '');
     function CanWrite: boolean; virtual;
     procedure SetSymId(AId: integer);
     property Parent: TPpuContainerDef read FParent write SetParent;
@@ -204,6 +204,22 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
+  TPpuConstType = (ctInt, ctFloat, ctStr);
+
+  { TPpuConstDef }
+  TPpuConstDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    ConstType: TPpuConstType;
+    TypeRef: TPpuRef;
+    VInt: Int64;
+    VFloat: extended;
+    VStr: string;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
   { TPpuVarDef }
   TPpuVarDef = class(TPpuDef)
   protected
@@ -222,12 +238,14 @@ type
     procedure WriteDef(Output: TPpuOutput); override;
   public
     Spez: TPpuParamSpez;
+    DefaultValue: TPpuRef;
     constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
     function CanWrite: boolean; override;
   end;
 
   TPpuObjType = (otUnknown, otClass, otObject, otInterface, otHelper);
-  TPpuObjOption = (ooIsAbstract);
+  TPpuObjOption = (ooIsAbstract, ooCopied);
   TPpuObjOptions = set of TPpuObjOption;
 
   { TPpuObjectDef }
@@ -260,20 +278,55 @@ type
     destructor Destroy; override;
   end;
 
+  { TPpuRecordDef }
+  TPpuRecordDef = class(TPpuObjectDef)
+  protected
+    procedure BeforeWriteItems(Output: TPpuOutput); override;
+  public
+    constructor Create(AParent: TPpuContainerDef); override;
+    function CanWrite: boolean; override;
+  end;
+
+  { TPpuClassRefDef }
+  TPpuClassRefDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    ClassRef: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+  TPpuArrayOption = (aoDynamic);
+  TPpuArrayOptions = set of TPpuArrayOption;
+
+  { TPpuArrayDef }
+  TPpuArrayDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    ElType: TPpuRef;
+    RangeType: TPpuRef;
+    RangeLow, RangeHigh: Int64;
+    Options: TPpuArrayOptions;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+    function CanWrite: boolean; override;
+  end;
 
 implementation
 
 const
   DefTypeNames: array[TPpuDefType] of string =
     ('', 'unit', 'obj', 'rec', 'proc', 'field', 'prop', 'param', 'var',
-     'type', 'const', 'proctype', 'enum', 'set');
+     'type', 'const', 'proctype', 'enum', 'set', 'classref', 'array');
 
   ProcOptionNames: array[TPpuProcOption] of string =
     ('procedure', 'function', 'constructor', 'destructor', 'operator',
      'classmethod', 'virtual', 'abstract', 'overriding', 'overload', 'inline');
 
   DefVisibilityNames: array[TPpuDefVisibility] of string =
-    ('public', 'published', 'protected', 'private');
+    ('public', 'published', 'protected', 'private', '');
 
   ParamSpezNames: array[TPpuParamSpez] of string =
     ('value', 'var', 'out', 'const', 'constref', '');
@@ -282,7 +335,13 @@ const
     ('', 'class', 'object', 'interface', 'helper');
 
   ObjOptionNames: array[TPpuObjOption] of string =
-    ('abstract');
+    ('abstract','copied');
+
+  ArrayOptionNames: array[TPpuArrayOption] of string =
+    ('dynamic');
+
+  ConstTypeNames: array[TPpuConstType] of string =
+    ('int', 'float', 'string');
 
   SymIdBit = $80000000;
   InvalidId = cardinal(-1);
@@ -291,6 +350,123 @@ const
 function IsSymId(Id: cardinal): boolean; inline;
 begin
   Result:=Id and SymIdBit <> 0;
+end;
+
+{ TPpuConstDef }
+
+procedure TPpuConstDef.WriteDef(Output: TPpuOutput);
+var
+  s: string;
+begin
+  inherited WriteDef(Output);
+  with Output do begin
+    WriteStr('ValType', ConstTypeNames[ConstType]);
+    s:='Value';
+    case ConstType of
+      ctInt:
+        WriteInt(s, VInt);
+      ctFloat:
+        WriteFloat(s, VFloat);
+      ctStr:
+        WriteStr(s, VStr);
+    end;
+  end;
+  if not TypeRef.IsNull then
+    TypeRef.Write(Output, 'TypeRef');
+end;
+
+constructor TPpuConstDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtConst;
+  TypeRef:=TPpuRef.Create;
+end;
+
+destructor TPpuConstDef.Destroy;
+begin
+  TypeRef.Free;
+  inherited Destroy;
+end;
+
+{ TPpuArrayDef }
+
+procedure TPpuArrayDef.WriteDef(Output: TPpuOutput);
+var
+  opt: TPpuArrayOption;
+begin
+  inherited WriteDef(Output);
+  if Options <> [] then begin
+    Output.WriteArrayStart('Options');
+    for opt:=Low(opt) to High(opt) do
+      if opt in Options then
+        Output.WriteStr('', ArrayOptionNames[opt]);
+    Output.WriteArrayEnd;
+  end;
+  ElType.Write(Output, 'ElType');
+  RangeType.Write(Output, 'RangeType');;
+  Output.WriteInt('Low', RangeLow);
+  Output.WriteInt('High', RangeHigh);
+end;
+
+constructor TPpuArrayDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtArray;
+  ElType:=TPpuRef.Create;
+  RangeType:=TPpuRef.Create;
+end;
+
+destructor TPpuArrayDef.Destroy;
+begin
+  ElType.Free;
+  RangeType.Free;
+  inherited Destroy;
+end;
+
+function TPpuArrayDef.CanWrite: boolean;
+begin
+  Result:=inherited CanWrite and (Name <> '');
+end;
+
+{ TPpuClassRefDef }
+
+procedure TPpuClassRefDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  ClassRef.Write(Output, 'Ref');
+end;
+
+constructor TPpuClassRefDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtClassRef;
+  ClassRef:=TPpuRef.Create;
+end;
+
+destructor TPpuClassRefDef.Destroy;
+begin
+  ClassRef.Free;
+  inherited Destroy;
+end;
+
+{ TPpuRecordDef }
+
+procedure TPpuRecordDef.BeforeWriteItems(Output: TPpuOutput);
+begin
+  inherited BeforeWriteItems(Output);
+  if ooCopied in Options then
+    Ancestor.Write(Output, 'CopyFrom');
+end;
+
+constructor TPpuRecordDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtRecord;
+end;
+
+function TPpuRecordDef.CanWrite: boolean;
+begin
+  Result:=True;
 end;
 
 { TPpuPropDef }
@@ -346,10 +522,26 @@ end;
 { TPpuParamDef }
 
 procedure TPpuParamDef.WriteDef(Output: TPpuOutput);
+var
+  i, j: integer;
+  d: TPpuDef;
 begin
   inherited WriteDef(Output);
   if Spez <> psValue then
     Output.WriteStr('Spez', ParamSpezNames[Spez]);
+  if not DefaultValue.IsNull then begin
+    j:=DefaultValue.Id;
+    for i:=0 to Parent.Count - 1 do begin
+      d:=Parent[i];
+      if (d.DefType = dtConst) and (d.Id = j) then begin
+        d.Visibility:=dvPublic;
+        d.Name:='';
+        d.Write(Output, 'Default');
+        d.Visibility:=dvHidden;
+        break;
+      end;
+    end;
+  end;
 end;
 
 constructor TPpuParamDef.Create(AParent: TPpuContainerDef);
@@ -357,11 +549,18 @@ begin
   inherited Create(AParent);
   DefType:=dtParam;
   Spez:=psValue;
+  DefaultValue:=TPpuRef.Create;
+end;
+
+destructor TPpuParamDef.Destroy;
+begin
+  DefaultValue.Free;
+  inherited Destroy;
 end;
 
 function TPpuParamDef.CanWrite: boolean;
 begin
-  Result:=Spez <> psHidden;
+  Result:=inherited CanWrite and (Spez <> psHidden);
 end;
 
 { TPpuVarDef }
@@ -392,6 +591,10 @@ var
   opt: TPpuObjOption;
 begin
   inherited BeforeWriteItems(Output);
+  if ObjType <> otUnknown then begin
+    Output.WriteStr('ObjType', ObjTypeNames[ObjType]);
+    Ancestor.Write(Output, 'Ancestor');
+  end;
   if Options <> [] then begin
     Output.WriteArrayStart('Options');
     for opt:=Low(opt) to High(opt) do
@@ -399,8 +602,6 @@ begin
         Output.WriteStr('', ObjOptionNames[opt]);
     Output.WriteArrayEnd;
   end;
-  Output.WriteStr('ObjType', ObjTypeNames[ObjType]);
-  Ancestor.Write(Output, 'Ancestor');
 end;
 
 constructor TPpuObjectDef.Create(AParent: TPpuContainerDef);
@@ -420,7 +621,7 @@ end;
 
 function TPpuObjectDef.CanWrite: boolean;
 begin
-  Result:=ObjType <> otUnknown;
+  Result:=inherited CanWrite and (ObjType <> otUnknown);
 end;
 
 { TPpuRef }
@@ -879,12 +1080,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TPpuDef.Write(Output: TPpuOutput);
+procedure TPpuDef.Write(Output: TPpuOutput; const AttrName: string);
 begin
   if not CanWrite then
     exit;
   if Parent <> nil then
-    Output.WriteObjectStart('', Self);
+    Output.WriteObjectStart(AttrName, Self);
   WriteDef(Output);
   if Parent <> nil then
     Output.WriteObjectEnd(Self);
@@ -892,7 +1093,7 @@ end;
 
 function TPpuDef.CanWrite: boolean;
 begin
-  Result:=True;
+  Result:=Visibility <> dvHidden;
 end;
 
 end.
