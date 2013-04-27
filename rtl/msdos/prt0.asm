@@ -18,15 +18,25 @@
 
 ..start:
         ; init the stack
-        mov ax, dgroup
-        mov ss, ax
+        mov bx, dgroup
+        mov ss, bx
         mov sp, stacktop
+
+        ; zero fill the BSS section
+        mov es, bx
+        mov di, _edata wrt dgroup
+        mov cx, _end wrt dgroup
+        sub cx, di
+        jz no_bss
+        xor al, al
+        rep stosb
+no_bss:
 
         ; save the Program Segment Prefix
         push ds
 
         ; init DS
-        mov ds, ax
+        mov ds, bx
 
         ; pop the PSP from stack and store it in the pascal variable dos_psp
         pop ax
