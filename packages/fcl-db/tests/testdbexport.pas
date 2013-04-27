@@ -356,7 +356,6 @@ var
   ExportFormat: TDetailedExportFormats;
   ExportSettings:TXMLXSDFormatSettings;
 begin
-  ExportSettings.ExportFormat:=AccessCompatible;
   Exporter := TXMLXSDExporter.Create(nil);
   ExportSettings:=TXMLXSDFormatSettings.Create(true);
   try
