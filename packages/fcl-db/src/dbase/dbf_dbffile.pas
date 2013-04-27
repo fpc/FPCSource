@@ -494,13 +494,13 @@ begin
       begin
         // open blob file; if it doesn't exist yet create it
         // using AutoCreate as long as we're not running read-only
-        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
-          MemoFileClass := TFoxProMemoFile
-        else
-          MemoFileClass := TDbaseMemoFile;
         // If needed, fake a memo file:
         if (Mode=pfReadOnly) and (not FileExists(lMemoFileName)) then
-          MemoFileClass := TNullMemoFile;
+          MemoFileClass := TNullMemoFile
+        else if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
+          MemoFileClass := TFoxProMemoFile
+        else
+          MemoFileClass := TDbaseMemoFile; //fallback/default
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
         FMemoFile.Mode := Mode;
