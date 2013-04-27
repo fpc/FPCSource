@@ -498,10 +498,13 @@ begin
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
+        // If needed, fake a memo file:
+        if (Mode=pfReadOnly) and (not FileExists(lMemoFileName)) then
+          MemoFileClass := TNullMemoFile;
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
         FMemoFile.Mode := Mode;
-        FMemoFile.AutoCreate := not(Mode=pfReadOnly);
+        FMemoFile.AutoCreate := true;
         FMemoFile.MemoRecordSize := 0;
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
