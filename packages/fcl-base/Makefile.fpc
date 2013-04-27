@@ -7,7 +7,7 @@ name=fcl-base
 version=2.7.1
 
 [require]
-packages=rtl fpmkunit fcl-res
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
@@ -87,3 +87,5 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT)

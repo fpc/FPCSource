@@ -87,3 +87,5 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT)
