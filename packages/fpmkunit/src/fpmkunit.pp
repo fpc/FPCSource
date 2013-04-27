@@ -48,6 +48,10 @@ Interface
   {$define HAS_UNIT_ZIPPER}
 {$endif NO_UNIT_ZIPPER}
 
+{$ifndef NO_TAR_SUPPORT}
+  {$define HAS_TAR_SUPPORT}
+{$endif NO_TAR_SUPPORT}
+
 uses
 {$ifdef UNIX}
   BaseUnix,
@@ -61,8 +65,11 @@ uses
 {$ifdef HAS_UNIT_PROCESS}
   ,process
 {$endif HAS_UNIT_PROCESS}
+{$ifdef HAS_TAR_SUPPORT}
+  ,libtar
+{$endif HAS_TAR_SUPPORT}
 {$ifdef HAS_UNIT_ZIPPER}
-  ,zipper
+  ,zipper, zstream
 {$endif HAS_UNIT_ZIPPER}
   ;
 
@@ -997,7 +1004,12 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+{$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
+{$endif HAS_UNIT_ZIPPER}
+{$ifdef HAS_TAR_SUPPORT}
+    FTarWriter: TTarWriter;
+{$endif HAS_TAR_SUPPORT}
   Protected
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; const Args : Array of const);
@@ -1403,6 +1415,7 @@ ResourceString
   SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
   SHelpHelp           = 'This message.';
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
+  SHelpZipInstall     = 'Install all units in the package(s) into an archive.';
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
   SHelpOS             = 'Compile for indicated OS';
@@ -4253,6 +4266,7 @@ begin
   LogCmd('clean',SHelpClean);
   LogCmd('archive',SHelpArchive);
   LogCmd('manifest',SHelpManifest);
+  LogCmd('zipinstall',SHelpZipInstall);
   Log(vlInfo,SHelpCmdOptions);
   LogOption('h','help',SHelpHelp);
   LogOption('l','list-commands',SHelpList);
@@ -4685,6 +4699,23 @@ begin
           FZipper.Entries.AddFileEntry(List[i], DestDir+ExtractFileName(List[i]));
       Exit;
     end;
+  {$ifdef HAS_TAR_SUPPORT}
+  if assigned(FTarWriter) then
+    begin
+      For I:=0 to List.Count-1 do
+        if List.Names[i]<>'' then
+          begin
+            if IsRelativePath(list.ValueFromIndex[i]) then
+              DestFileName:=DestDir+list.ValueFromIndex[i]
+            else
+              DestFileName:=list.ValueFromIndex[i];
+            FTarWriter.AddFile(List.names[i], DestFileName);
+          end
+        else
+          FTarWriter.AddFile(List[i], DestDir+ExtractFileName(List[i]));
+      Exit;
+    end;
+  {$endif HAS_TAR_SUPPORT}
 
   // Copy the files to their new location on disk
   CmdCreateDir(DestDir);
@@ -6607,33 +6638,82 @@ begin
 end;
 
 procedure TBuildEngine.ZipInstall(Packages: TPackages);
-var
-  I : Integer;
-  P : TPackage;
-begin
-  If Assigned(BeforeInstall) then
-    BeforeInstall(Self);
 
-  FZipper := TZipper.Create;
-  try
-    Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
+  procedure CreateZipFile;
+  var
+    I : Integer;
+    P : TPackage;
+  begin
+    FZipper := TZipper.Create;
+    try
+      For I:=0 to Packages.Count-1 do
+        begin
+          P:=Packages.PackageItems[i];
+          If PackageOK(P) then
+            begin
+              FZipper.FileName := P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
+              Install(P);
+              FZipper.ZipAllFiles;
+              FZipper.Clear;
+              log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+            end
+          else
+            log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
+        end;
+    finally
+      FZipper.Free;
+    end;
+  end;
+
+  {$ifdef HAS_TAR_SUPPORT}
+  procedure CreateTarFile;
+  var
+    I : Integer;
+    P : TPackage;
+    S : TGZFileStream;
+  begin;
     For I:=0 to Packages.Count-1 do
       begin
         P:=Packages.PackageItems[i];
         If PackageOK(P) then
           begin
-            FZipper.FileName := P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
-            Install(P);
-            FZipper.ZipAllFiles;
-            FZipper.Clear;
-            log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+            S := TGZFileStream.create(P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+            try
+              FTarWriter := TTarWriter.Create(S);
+              FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+              FTarWriter.UserName := 'root';
+              FTarWriter.GroupName := 'root';
+              try
+                Install(P);
+                log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+              finally
+                FTarWriter.Free;
+              end;
+            finally
+              S.Free;
+            end;
           end
         else
           log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
       end;
-  finally
-    FZipper.Free;
   end;
+  {$endif HAS_TAR_SUPPORT}
+
+begin
+  If Assigned(BeforeInstall) then
+    BeforeInstall(Self);
+
+  Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
+
+  {$ifdef unix}
+  {$ifdef HAS_TAR_SUPPORT}
+  CreateTarFile;
+  {$else HAS_TAR_SUPPORT}
+  CreateZipFile;
+  {$endif HAS_TAR_SUPPORT}
+  {$else unix}
+  CreateZipFile;
+  {$endif unix}
 
   If Assigned(AfterInstall) then
     AfterInstall(Self);

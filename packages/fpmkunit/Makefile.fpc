@@ -7,7 +7,7 @@ name=fpmkunit
 version=2.7.1
 
 [require]
-packages=rtl paszlib fcl-process hash
+packages=rtl paszlib fcl-process hash libtar
 
 [install]
 fpcpackage=y
@@ -26,6 +26,7 @@ CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/inftrees.ppu units_bs/$(SOURCESUFFIX)/inft
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/pipes.ppu units_bs/$(SOURCESUFFIX)/pipes.o units_bs/$(SOURCESUFFIX)/process.o units_bs/$(SOURCESUFFIX)/process.ppu units_bs/$(SOURCESUFFIX)/process.rst
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/trees.ppu units_bs/$(SOURCESUFFIX)/trees.o units_bs/$(SOURCESUFFIX)/zbase.o units_bs/$(SOURCESUFFIX)/zbase.ppu units_bs/$(SOURCESUFFIX)/zbase.rst
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zdeflate.ppu units_bs/$(SOURCESUFFIX)/zdeflate.o units_bs/$(SOURCESUFFIX)/zinflate.o units_bs/$(SOURCESUFFIX)/zinflate.ppu
+CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/libtar.ppu units_bs/$(SOURCESUFFIX)/libtar.o
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zipper.ppu units_bs/$(SOURCESUFFIX)/zipper.o units_bs/$(SOURCESUFFIX)/zipper.rst units_bs/$(SOURCESUFFIX)/zstream.o units_bs/$(SOURCESUFFIX)/zstream.ppu units_bs/$(SOURCESUFFIX)/zstream.rst
 # Set NO_UNIT_PROCESS on hosts that do not support the process unit
 ifneq ($(findstring $(OS_SOURCE),os2 go32v2),)
@@ -51,6 +52,7 @@ UNIT_ZIPPER=-dNO_UNIT_ZIPPER
 else
 UNIT_ZIPPER=-Fu../paszlib/src -Fu../hash/src -Fi../paszlib/src
 endif
+UNIT_LIBTAR=-Fu../libtar/src
 # End of bootstrap-code
 FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
@@ -67,7 +69,7 @@ LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 $(TARGET_UNITDIRBS):
 	$(MKDIRTREE) $(TARGET_UNITDIRBS)
 bootstrap:	$(TARGET_UNITDIRBS)
-	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(OPT)
+	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(UNIT_LIBTAR) $(OPT)
 clean_bootstrap:
 	-$(DELTREE) units_bs
 fpmake: fpmake.pp

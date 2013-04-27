@@ -7,7 +7,7 @@ name=libtar
 version=2.7.1
 
 [require]
-packages=rtl fpmkunit
+packages=rtl
 
 [install]
 fpcpackage=y
@@ -24,6 +24,32 @@ ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+# Adding a dependency on fpmkunit is not possbile due to an infinite loop. So
+# the fpmkunit-searchpath is added here:
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FPMKUNIT),)
+ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE):
+        $(MAKE) -C $(PACKAGEDIR_FPMKUNIT) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FPMKUNIT=
+UNITDIR_FPMKUNIT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FPMKUNIT),)
+UNITDIR_FPMKUNIT:=$(firstword $(UNITDIR_FPMKUNIT))
+else
+UNITDIR_FPMKUNIT=
+endif
+endif
+ifdef UNITDIR_FPMAKE_FPMKUNIT
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FPMKUNIT)
+endif
 
 [rules]
 # Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.

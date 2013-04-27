@@ -35,6 +35,8 @@ begin
       D.Version:='2.7.1';
     D:=P.Dependencies.Add('fcl-process');
       D.Version:='2.7.1';
+    D:=P.Dependencies.Add('libtar');
+      D.Version:='2.7.1';
 
     with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;
