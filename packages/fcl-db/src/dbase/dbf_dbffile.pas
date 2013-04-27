@@ -70,6 +70,8 @@ type
     FOnIndexMissing: TDbfIndexMissingEvent;
     // Yes if table has blob/memo type field(s) (storage in external file)
     function  HasBlob: Boolean;
+    // File extension for memo field; uppercase if FFileName is uppercase
+    // (useful for *nix case-sensitive filesystems)
     function  GetMemoExt: string;
 
     function GetLanguageId: Integer;
@@ -525,6 +527,9 @@ begin
       begin
         // open mdx file if present
         lMdxFileName := ChangeFileExt(FileName, '.mdx');
+        // Deal with case-sensitive filesystems:
+        if (FileName<>'') and (UpperCase(FileName)=FileName) then
+          lMdxFileName := UpperCase(lMdxFileName);
         if FileExists(lMdxFileName) then
         begin
           // open file
@@ -891,6 +896,8 @@ begin
     xFoxPro, xVisualFoxPro: Result := '.fpt'
     else Result := '.dbt';
   end;
+  if (FFileName<>'') and (FFileName=UpperCase(FFileName)) then
+    Result := UpperCase(Result);
 end;
 
 procedure TDbfFile.Zap;
