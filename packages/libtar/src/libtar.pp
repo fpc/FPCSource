@@ -536,7 +536,7 @@ BEGIN
     ftVolumeHeader : TH.LinkFlag := 'V';
     END;
   StrLCopy (TH.LinkName, PAnsiChar (DirRec.LinkName), NAMSIZ);
-  StrLCopy (TH.Magic, PAnsiChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
+  StrLCopy (TH.Magic, PAnsiChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 7);
   StrLCopy (TH.UName, PAnsiChar (DirRec.UserName), TUNMLEN);
   StrLCopy (TH.GName, PAnsiChar (DirRec.GroupName), TGNMLEN);
   OctalN (DirRec.MajorDevNo, @TH.DevMajor, 8);
