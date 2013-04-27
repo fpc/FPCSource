@@ -105,6 +105,7 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
+
     // Inserts new record
     function  Insert(Buffer: TRecordBuffer): integer;
     // Write dbf header as well as EOF marker at end of file if necessary
@@ -491,17 +492,16 @@ begin
       lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
       if HasBlob then
       begin
-        // open blob file
-        if not FileExists(lMemoFileName) then
-          MemoFileClass := TNullMemoFile
-        else if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
+        // open blob file; if it doesn't exist yet create it
+        // using AutoCreate as long as we're not running read-only
+        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
         FMemoFile.Mode := Mode;
-        FMemoFile.AutoCreate := false;
+        FMemoFile.AutoCreate := not(Mode=pfReadOnly);
         FMemoFile.MemoRecordSize := 0;
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
@@ -1269,6 +1269,7 @@ var
   NewBaseName: string;
   I: integer;
 begin
+  // todo: verify if this works with memo files
   // get memory for index file list
   lIndexFileNames := TStringList.Create;
   try 

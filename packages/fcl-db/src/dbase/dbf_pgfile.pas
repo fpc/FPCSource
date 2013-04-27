@@ -125,8 +125,11 @@ type
     procedure Flush; virtual;
 
     property Active: Boolean read FActive;
-    property AutoCreate: Boolean read FAutoCreate write FAutoCreate;   // only write when closed!
-    property Mode: TPagedFileMode read FMode write FMode;              // only write when closed!
+    // If yes, create file if it doesn't exist.
+    // Only write this property when closed!
+    property AutoCreate: Boolean read FAutoCreate write FAutoCreate;
+    // only write this property when closed!
+    property Mode: TPagedFileMode read FMode write FMode;
     property TempMode: TPagedFileMode read FTempMode;
     property NeedLocks: Boolean read FNeedLocks;
     property HeaderOffset: Integer read FHeaderOffset write SetHeaderOffset;
