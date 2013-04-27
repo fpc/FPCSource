@@ -66,7 +66,7 @@ type
     procedure SetBlockLen(BlockLen: Integer); override;
   end;
 
-  { TNullMemoFile, a kind /dev/null memofile ;-) }
+  { TNullMemoFile, a kind of /dev/null memofile ;-) }
   { - inv: FHeaderModified == false!! (otherwise will try to write FStream) }
   { - inv: FHeaderSize == 0 }
   { - inv: FNeedLocks == false }
@@ -387,8 +387,9 @@ begin
     end;
 //    if ((bytesBefore + Src.Size + bytesAfter + PDbtHdr(Header).BlockLen-1) div PDbtHdr(Header).BlockLen)
 //        <= ((ReadSize + PDbtHdr(Header).BlockLen-1) div PDbtHdr(Header).BlockLen) then
-    if ((bytesBefore + Src.Size + bytesAfter + RecordSize-1) div RecordSize)
-        <= ((ReadSize + RecordSize-1) div RecordSize) then
+    // If null memo is used, recordsize may be 0. Test for that.
+    if (RecordSize=0) or (((bytesBefore + Src.Size + bytesAfter + RecordSize-1) div RecordSize)
+        <= ((ReadSize + RecordSize-1) div RecordSize)) then
     begin
       append := false;
     end else begin
