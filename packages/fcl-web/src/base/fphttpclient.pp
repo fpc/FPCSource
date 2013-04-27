@@ -818,6 +818,7 @@ end;
 
 destructor TFPCustomHTTPClient.Destroy;
 begin
+  FreeAndNil(FCookies);
   FreeAndNil(FRequestHeaders);
   FreeAndNil(FResponseHeaders);
   inherited Destroy;
