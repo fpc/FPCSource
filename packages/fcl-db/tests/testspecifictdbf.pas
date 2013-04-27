@@ -90,7 +90,7 @@ begin
     CheckEquals('TestName' + inttostr(i),ADBFDataset.fieldbyname('NAME').AsString);
     ADBFDataset.next;
     end;
-  CheckTrue(ADBFDataset.EOF);
+  CheckTrue(ADBFDataset.EOF,'After reading all records the dataset should show EOF');
 end;
 
 

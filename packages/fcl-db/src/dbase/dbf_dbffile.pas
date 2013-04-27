@@ -68,7 +68,7 @@ type
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
     FOnIndexMissing: TDbfIndexMissingEvent;
-
+    // Yes if table has blob/memo type field(s) (storage in external file)
     function  HasBlob: Boolean;
     function  GetMemoExt: string;
 
@@ -686,7 +686,7 @@ begin
     end;
     // begin writing field definitions
     FFieldDefs.Clear;
-    // deleted mark 1 byte
+    // deleted mark takes 1 byte, so skip over that
     lFieldOffset := 1;
     for I := 1 to AFieldDefs.Count do
     begin
@@ -875,8 +875,11 @@ var
 begin
   Result := false;
   for I := 0 to FFieldDefs.Count-1 do
-    if FFieldDefs.Items[I].IsBlob then 
+    if FFieldDefs.Items[I].IsBlob then
+    begin
       Result := true;
+      break;
+    end;
 end;
 
 function TDbfFile.GetMemoExt: string;
