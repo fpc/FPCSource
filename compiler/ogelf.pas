@@ -2491,22 +2491,22 @@ implementation
         { Re-enable sections which end up to contain some data
           (.got, .rel[a].dyn, .rel[a].plt (includes .rel[a].iplt) and .hash }
         if gotobjsec.size<>0 then
-          Exclude(gotobjsec.ExeSection.SecOptions,oso_disabled);
+          gotobjsec.ExeSection.Disabled:=false;
         if assigned(dynrelocsec) and
           ((dynrelocsec.size<>0) or (dyncopysyms.count<>0)) then
-          Exclude(dynrelocsec.ExeSection.SecOptions,oso_disabled);
+          dynrelocsec.ExeSection.Disabled:=false;
         if assigned(pltrelocsec) and (pltrelocsec.size>0) then
-          Exclude(pltrelocsec.ExeSection.SecOptions,oso_disabled);
+          pltrelocsec.ExeSection.Disabled:=false;
         if assigned(ipltrelocsec) and (ipltrelocsec.size>0) then
-          Exclude(ipltrelocsec.ExeSection.SecOptions,oso_disabled);
+          ipltrelocsec.ExeSection.Disabled:=false;
         if assigned(hashobjsec) then
-          Exclude(hashobjsec.ExeSection.SecOptions,oso_disabled);
+          hashobjsec.ExeSection.Disabled:=false;
         if assigned(symversec) and (symversec.size<>0) then
-          Exclude(symversec.ExeSection.SecOptions,oso_disabled);
+          symversec.ExeSection.Disabled:=false;
         if assigned(verneedsec) and (verneedsec.size<>0) then
-          Exclude(verneedsec.ExeSection.SecOptions,oso_disabled);
+          verneedsec.ExeSection.Disabled:=false;
         if assigned(verdefsec) and (verdefsec.size<>0) then
-          Exclude(verneedsec.ExeSection.SecOptions,oso_disabled);
+          verdefsec.ExeSection.Disabled:=false;
 
         RemoveDisabledSections;
         MapSectionsToSegments;

@@ -1227,7 +1227,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           InternalError(2012072602);
-        exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+        exesec.Disabled:=false;
         inherited;
       end;
 

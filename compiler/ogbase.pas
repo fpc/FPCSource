@@ -142,8 +142,6 @@ interface
        oso_debug,
        { Contains only strings }
        oso_strings,
-       { Ignore this section }
-       oso_disabled,
        { Must be cloned when writing separate debug file }
        oso_debug_copy
      );
@@ -418,6 +416,7 @@ interface
         DataPos,
         MemPos     : aword;
         SecAlign   : shortint;
+        Disabled   : boolean;
         SecOptions : TObjSectionOptions;
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
@@ -2963,7 +2962,7 @@ implementation
             if doremove then
               begin
                 Comment(V_Debug,'Disabling empty section '+exesec.name);
-                exesec.SecOptions:=exesec.SecOptions+[oso_disabled];
+                exesec.Disabled:=true;
               end;
           end;
       end;
@@ -2977,7 +2976,7 @@ implementation
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TExeSection(ExeSectionList[i]);
-            if (oso_disabled in exesec.SecOptions) then
+            if exesec.Disabled then
               ExeSectionList[i]:=nil;
           end;
         ExeSectionList.Pack;

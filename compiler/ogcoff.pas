@@ -2793,7 +2793,7 @@ const pemagic : array[0..3] of byte = (
             exesec:=FindExeSection('.reloc');
             if exesec=nil then
               InternalError(2012072401);
-            exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+            exesec.Disabled:=false;
           end;
         inherited;
       end;
