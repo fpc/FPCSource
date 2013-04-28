@@ -2800,7 +2800,6 @@ begin
   // error occurred while writing?
   if WriteError then
   begin
-    // -- Tobias --
     // The record couldn't be written, so
     // the written index records and the
     // change to the header have to be
@@ -2810,7 +2809,7 @@ begin
     Dec(PDbfHdr(Header)^.RecordCount);
     WriteHeader;
     UnlockPage(0);
-    // roll back indexes too
+    // roll back indexes, too
     RollbackIndexesAndRaise(FIndexFiles.Count, ecWriteDbf);
   end else
     Result := newRecord;

@@ -53,7 +53,9 @@ type
     procedure TestFindPrior;
     // Tests writing and reading a memo field
     procedure TestMemo;
-    // Tests string field with 254 characters (max for DBase IV)
+    // Tests string field with
+    // 254 characters (max for DBase IV)
+    // 32767 characters (FoxPro, Visual FoxPro)
     procedure TestLargeString;
     // Tests codepage in created dbf
     procedure TestCodePage;
@@ -388,7 +390,7 @@ begin
   TestValue:=StringOfChar('a',MaxStringSize);
 
   DS.FieldDefs.Add('ID',ftInteger);
-  DS.FieldDefs.Add('NAME',ftString,254);
+  DS.FieldDefs.Add('NAME',ftString,MaxStringSize);
   DS.CreateTable;
   DS.Open;
 
