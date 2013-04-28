@@ -20,7 +20,7 @@ Type
 
   { TDBFExportFormatSettings }
 
-  TTableFormat = (tfDBaseIII,tfDBaseIV,tfDBaseVII,tfFoxPro);
+  TTableFormat = (tfDBaseIII,tfDBaseIV,tfDBaseVII,tfFoxPro,tfVisualFoxPro);
   
   TDBFExportFormatSettings = class(TExportFormatSettings)
   private
@@ -128,7 +128,8 @@ end;
 function TFPCustomDBFExport.BindFields: Boolean;
 
 Const
-  Levels : Array[TTableFormat] of integer = (3,4,7,25);
+  // Translate tableformat to tablelevel
+  Levels : Array[TTableFormat] of integer = (3,4,7,25,30);
   
 Var
   EF : TDBFExportFieldItem;
@@ -136,7 +137,8 @@ Var
   
 begin
   // DBase III,IV, and FoxPro have a 10 character field length limit.
-  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat in [tfDbaseIII,tfDbaseIV,tfFoxPro]) then
+  // Visual Foxpro free tables (without .dbc file) also
+  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat in [tfDbaseIII,tfDbaseIV,tfFoxPro,tfVisualFoxPro]) then
     CheckExportFieldNames(10);
   // DBase VII has a 32 character field length limit.
   If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat=tfDbaseVII) then
