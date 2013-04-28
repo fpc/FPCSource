@@ -3339,11 +3339,7 @@ const
   error_on_more : boolean = false;
 begin
   if paramcount<1 then
-   begin
-     WriteLogo;
-     writeln('usage: dumpppu [options] <filename1> <filename2>...');
-     halt(1);
-   end;
+    help;
 { turn verbose on by default }
   verbose:=v_all;
 { read options }
