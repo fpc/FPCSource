@@ -589,11 +589,19 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
+              labeln,
               blockn,
               callparan:
                 p := tunarynode(p).left;
               notn,
               derefn :
+                begin
+                  inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
+              addrn:
                 begin
                   inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
