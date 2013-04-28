@@ -479,6 +479,70 @@ unit i_linux;
             abi : abi_default
           );
 
+       system_x32_linux_info : tsysteminfo =
+          (
+            system       : system_x32_linux;
+            name         : 'Linux for x32';
+            shortname    : 'Linux';
+            flags        : [tf_smartlink_sections,tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
+                            tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_has_winlike_resources,tf_safecall_exceptions,tf_safecall_clearstack];
+            cpu          : cpu_x32;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_x32_elf64;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 8;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 8*1024*1024;
+            stackalign   : 16;
+            abi : abi_default
+          );
+
        system_sparc_linux_info : tsysteminfo =
           (
             system       : system_SPARC_Linux;

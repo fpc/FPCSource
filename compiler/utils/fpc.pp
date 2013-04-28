@@ -155,6 +155,10 @@ program fpc;
      ppcbin:='ppcx64';
      processorname:='x86_64';
 {$endif x86_64}
+{$ifdef x32}
+     ppcbin:='ppcx64';
+     processorname:='x86_64';
+{$endif x32}
 {$ifdef mipsel}
      ppcbin:='ppcmipsel';
      processorname:='mipsel';

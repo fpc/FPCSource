@@ -106,7 +106,7 @@ Implementation
             begin
               { May be either real 'movq' or a generic 'mov' with 'q' suffix. Convert to mov
                 if source is a constant, or if neither operand is an mmx/xmm register }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               if (ops=2) and
                 (
                   (operands[1].opr.typ=OPR_CONSTANT) or not
@@ -238,7 +238,7 @@ Implementation
                  ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
                 message(asmr_e_cannot_index_relative_var);
               oper.opr.ref.base:=actasmregister;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               { non-GOT based RIP-relative accesses are also position-independent }
               if (oper.opr.ref.base=NR_RIP) and
                  (oper.opr.ref.refaddr<>addr_pic) then
@@ -345,7 +345,7 @@ Implementation
               consume(AS_AT);
               if actasmtoken=AS_ID then
                 begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                   if (actasmpattern='GOTPCREL') or
 		     (actasmpattern='PLT') then
 {$endif x86_64}

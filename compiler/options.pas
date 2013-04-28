@@ -393,7 +393,7 @@ begin
 {$ifdef i386}
       '3',
 {$endif}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       '4',
 {$endif}
 {$ifdef m68k}
@@ -2801,7 +2801,7 @@ begin
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
   def_system_macro('FPC_HAS_CPSTRING');
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
   def_system_macro('FPC_HAS_RIP_RELATIVE');
 {$endif x86_64}
   def_system_macro('FPC_HAS_CEXTENDED');
@@ -3329,13 +3329,13 @@ if (target_info.abi = abi_eabihf) then
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086) and not defined(x32)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$if defined(m68k)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE');
 {$endif}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
       { normally, win64 doesn't support the legacy fpu }
       if target_info.system=system_x86_64_win64 then
@@ -3364,7 +3364,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if defined(x86) or defined(x86_64)}
+{$if defined(x86) or defined(x86_64) or defined(x32)}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}

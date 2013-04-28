@@ -260,7 +260,7 @@ implementation
                        {$error fixme x86 fpuregvars}
 {                       regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i);}
 {$else i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
 {$endif x86_64}
                        begin
                          tvarsym(regvarinfo^.fpuregvars[i]).localloc.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);

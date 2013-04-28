@@ -940,7 +940,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(i386) or defined(x86_64) or defined(arm)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(x32)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }

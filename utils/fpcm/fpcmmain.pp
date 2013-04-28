@@ -67,7 +67,7 @@ interface
 
     type
       TCpu=(
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086
+        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_x32
       );
 
       TOS=(
@@ -82,15 +82,15 @@ interface
 
     const
       CpuStr : array[TCpu] of string=(
-        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086'
+        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086', 'x32'
       );
 
       CpuSuffix : array[TCpu] of string=(
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086'
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_x32'
       );
 
       ppcSuffix : array[TCpu] of string=(
-        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086'
+        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086', 'x32'
       );
 
       OSStr : array[TOS] of string=(

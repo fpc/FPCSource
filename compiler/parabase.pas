@@ -105,7 +105,7 @@ unit parabase;
 
        tvarargsparalist = class(tparalist)
           varargsinfo : set of tvarargsinfo;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
           { x86_64 requires %al to contain the no. SSE regs passed }
           mmregsused  : longint;
 {$endif x86_64}

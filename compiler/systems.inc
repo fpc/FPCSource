@@ -49,7 +49,8 @@
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
-             cpu_i8086                     { 15 }
+             cpu_i8086,                    { 15 }
+             cpu_x32                       { 16 }
        );
 
        tasmmode= (asmmode_none
@@ -159,7 +160,8 @@
              system_jvm_android32,      { 76 }
              system_arm_android,        { 77 }
              system_i386_android,       { 78 }
-             system_i8086_msdos         { 79 }
+             system_i8086_msdos,        { 79 }
+             system_x32_linux           { 80 }
        );
 
      type
@@ -195,6 +197,7 @@
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
              ,as_jvm_jasmin
+             ,as_x32_elf64
        );
 
        tar = (ar_none

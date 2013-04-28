@@ -592,7 +592,7 @@ Unit Rax86int;
              '.' :
                begin
                  c:=current_scanner.asmgetchar;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                  if c='.' then
                    begin
                      actasmpattern:='..';
@@ -1260,7 +1260,7 @@ Unit Rax86int;
                          oper.opr.localforceref:=true
                        else
                          begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                            if actasmtoken=AS_WRT then
                              begin
                                if (oper.opr.typ=OPR_REFERENCE) then
@@ -1454,7 +1454,7 @@ Unit Rax86int;
                       else
                         begin
                           oper.opr.ref.base:=hreg;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                           { non-GOT based RIP-relative accesses are also position-independent }
                           if (oper.opr.ref.base=NR_RIP) and
                              (oper.opr.ref.refaddr<>addr_pic) then
@@ -1685,7 +1685,7 @@ Unit Rax86int;
               begin
                 case oper.opr.typ of
                   OPR_REFERENCE :
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
                     { this is for the i386 scenario where you have
                         <load got into ebx>
                         mov eax, [ebx].offset globalvar

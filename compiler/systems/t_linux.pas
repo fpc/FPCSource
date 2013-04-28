@@ -124,15 +124,15 @@ implementation
 procedure SetupLibrarySearchPath;
 begin
   if not Dontlinkstdlibpath Then
-{$ifdef x86_64}
+{$if defined(x86_64)}
     LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+{$elseif defined(powerpc64)}
+    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+{$elseif defined(x32)}
+    LibrarySearchPath.AddPath(sysrootpath,'/libx32;/usr/libx32;/usr/X11R6/libx32',true);
 {$else}
-{$ifdef powerpc64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
-{$else powerpc64}
     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
-{$endif powerpc64}
-{$endif x86_64}
+{$endif}
 
 {$ifdef arm}
   { some newver Debian have the crt*.o files at uncommon locations,
@@ -187,6 +187,10 @@ end;
 {$ifdef mips}
   const defdynlinker='/lib/ld.so.1';
 {$endif mips}
+
+{$ifdef x32}
+  const defdynlinker='/lib64/ld-linux-x32.so.2';
+{$endif x32}
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
@@ -270,6 +274,7 @@ procedure TLinkerLinux.SetDefaultInfo;
 const
 {$ifdef i386}      platform_select='-b elf32-i386 -m elf_i386';{$endif}
 {$ifdef x86_64}    platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
+{$ifdef x32}       platform_select='-b elf32-x32 -m elf_x32';{$endif}
 {$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
 {$ifdef POWERPC64} platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
 {$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
@@ -1577,5 +1582,11 @@ initialization
   RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
 {$endif MIPS}
+{$ifdef x32}
+  RegisterExternalLinker(system_x32_linux_info,TLinkerLinux);
+  RegisterImport(system_x32_linux,timportliblinux);
+  RegisterExport(system_x32_linux,texportliblinux);
+  RegisterTarget(system_x32_linux_info);
+{$endif x32}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

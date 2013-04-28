@@ -121,7 +121,7 @@ interface
            if assigned(relsymbol) then
              owner.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
              begin
                { local symbols don't have to (and in case of Mac OS X: cannot)
                  be accessed via the GOT
@@ -233,7 +233,7 @@ interface
     procedure Tx86InstrWriter.WriteInstruction(hp: tai);
       var
        op       : tasmop;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
        val      : aint;
 {$endif}
        calljmp  : boolean;
@@ -273,7 +273,7 @@ interface
               taicpu(hp).oper[0]^.reg := gas_regnum_search('%x' + copy(sreg, 3, length(sreg) - 2));
           end;
         end;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         if (op=A_MOV) and (taicpu(hp).opsize=S_Q) and
            (taicpu(hp).oper[0]^.typ = top_const) then
            begin
@@ -391,7 +391,7 @@ interface
 *****************************************************************************}
 
     const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        as_x86_64_as_info : tasminfo =
           (
             id     : as_gas;
@@ -420,8 +420,6 @@ interface
             dollarsign: '$';
           );
 
-
-
        as_x86_64_gas_darwin_info : tasminfo =
           (
             id     : as_darwin;
@@ -434,8 +432,20 @@ interface
             comment : '# ';
             dollarsign: '$';
           );
-
-{$else x86_64}
+{$elseif defined(x32)}
+       as_x32_as_info : tasminfo =
+          (
+            id     : as_gas;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '--64 -o $OBJ $ASM';
+            supported_targets : [system_x32_linux];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+{$elseif defined(i386)}
        as_i386_as_info : tasminfo =
           (
             id     : as_gas;
@@ -495,14 +505,16 @@ interface
             comment : '# ';
             dollarsign: '$';
           );
-{$endif x86_64}
+{$endif}
 
 initialization
-{$ifdef x86_64}
+{$if defined(x86_64)}
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
-{$else x86_64}
+{$elseif defined(x32)}
+  RegisterAssembler(as_x32_as_info,Tx86ATTAssembler);
+{$else}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);

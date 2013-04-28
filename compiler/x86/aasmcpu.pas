@@ -96,7 +96,7 @@ interface
 
       OT_REG_TYPMASK = otf_reg_cdt or otf_reg_gpr or otf_reg_sreg or otf_reg_fpu or otf_reg_mmx or otf_reg_xmm or otf_reg_ymm;
       { register class 0: CRx, DRx and TRx }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS64;
 {$else x86_64}
       OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS32;
@@ -119,7 +119,7 @@ interface
       OT_REG_AL    = OT_REG_ACCUM or OT_BITS8;
       OT_REG_AX    = OT_REG_ACCUM or OT_BITS16;
       OT_REG_EAX   = OT_REG_ACCUM or OT_BITS32;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       OT_REG_RAX   = OT_REG_ACCUM or OT_BITS64;
 {$endif x86_64}
       { GPR subclass 1: counter: CL, CX, ECX or RCX }
@@ -127,7 +127,7 @@ interface
       OT_REG_CL    = OT_REG_COUNT or OT_BITS8;
       OT_REG_CX    = OT_REG_COUNT or OT_BITS16;
       OT_REG_ECX   = OT_REG_COUNT or OT_BITS32;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       OT_REG_RCX   = OT_REG_COUNT or OT_BITS64;
 {$endif x86_64}
       { GPR subclass 2: data register: DL, DX, EDX or RDX }
@@ -181,7 +181,7 @@ interface
       OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       instabentries = {$i x8664nop.inc}
 {$elseif defined(i386)}
       instabentries = {$i i386nop.inc}
@@ -246,7 +246,7 @@ interface
 
 
       InsProp : array[tasmop] of TInsProp =
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         {$i x8664pro.inc}
 {$elseif defined(i386)}
         {$i i386prop.inc}
@@ -345,7 +345,7 @@ interface
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          inssize   : shortint;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
          rex       : byte;
 {$endif x86_64}
          function  InsEnd:longint;
@@ -456,7 +456,7 @@ implementation
        PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
 
      const
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
 {$elseif defined(i386)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
@@ -467,7 +467,7 @@ implementation
        InsTabCache : PInsTabCache;
        InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
      const
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -615,7 +615,7 @@ implementation
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         alignarray:array[0..3] of string[4]=(
           #$66#$66#$66#$90,
           #$66#$66#$90,
@@ -1087,7 +1087,7 @@ implementation
         size  : byte;
         modrm : byte;
         sib   : byte;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         rex   : byte;
 {$endif x86_64}
       end;
@@ -1123,7 +1123,7 @@ implementation
                          (ref^.base<>NR_NO)) or (ref^.base=NR_EBX))
                         )
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                      or (
                          (ref^.refaddr in [addr_pic,addr_pic_no_got]) and
                          (ref^.base<>NR_NO)
@@ -1534,7 +1534,7 @@ implementation
       begin
         result:=(oper[opidx]^.typ=top_ref) and
                 (oper[opidx]^.ref^.refaddr=addr_no) and
-    {$ifdef x86_64}
+    {$if defined(x86_64) or defined(x32)}
                 (oper[opidx]^.ref^.base<>NR_RIP) and
     {$endif x86_64}
                 (
@@ -1552,7 +1552,7 @@ implementation
 
     function regval(r:Tregister):byte;
       const
-    {$if defined(x86_64)}
+    {$if defined(x86_64) or defined(x32)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r8664op.inc}
         );
@@ -1579,7 +1579,7 @@ implementation
       end;
 
 
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
     function rexbits(r: tregister): byte;
       begin
         result:=0;
@@ -1905,7 +1905,7 @@ implementation
         exists_prefix_66: boolean;
         exists_prefix_F2: boolean;
         exists_prefix_F3: boolean;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         omit_rexw : boolean;
 {$endif x86_64}
       begin
@@ -1916,7 +1916,7 @@ implementation
         exists_prefix_66 := false;
         exists_prefix_F2 := false;
         exists_prefix_F3 := false;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         rex:=0;
         omit_rexw:=false;
 {$endif x86_64}
@@ -1933,7 +1933,7 @@ implementation
               end;
             8,9,10 :
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 rex:=rex or (rexbits(oper[c-8]^.reg) and $F1);
 {$endif x86_64}
                 inc(codes);
@@ -1982,7 +1982,7 @@ implementation
                 case (oper[c-208]^.ot and OT_SIZE_MASK) of
                   OT_BITS16:
                     inc(len);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                   OT_BITS64:
                     begin
                       rex:=rex or $48;
@@ -1991,14 +1991,14 @@ implementation
                 end;
               end;
             200 :
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
               inc(len);
 {$else x86_64}
               { every insentry with code 0310 must be marked with NOX86_64 }
               InternalError(2011051301);
 {$endif x86_64}
             201 :
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               inc(len)
 {$endif x86_64}
               ;
@@ -2006,7 +2006,7 @@ implementation
               inc(len);
             214 :
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 rex:=rex or $48;
 {$endif x86_64}
               end;
@@ -2031,13 +2031,13 @@ implementation
                 exists_prefix_66 := true;
               end;
             221:
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               omit_rexw:=true
 {$endif x86_64}
               ;
             64..151 :
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                  if (c<127) then
                   begin
                     if (oper[c and 7]^.typ=top_reg) then
@@ -2051,7 +2051,7 @@ implementation
                   Message(asmw_e_invalid_effective_address)
                 else
                   inc(len,ea_data.size);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 rex:=rex or ea_data.rex;
 {$endif x86_64}
 
@@ -2092,7 +2092,7 @@ implementation
              InternalError(200603141);
           end;
         until false;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         if ((rex and $80)<>0) and ((rex and $4F)<>0) then
           Message(asmw_e_bad_reg_with_rex);
         rex:=rex and $4F;      { reset extra bits in upper nibble }
@@ -2115,7 +2115,7 @@ implementation
           if exists_prefix_F2 then dec(len);
           if exists_prefix_F3 then dec(len);
 
-  {$ifdef x86_64}
+  {$if defined(x86_64) or defined(x32)}
           if not(exists_vex_extention) then
             if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extention
   {$endif x86_64}
@@ -2198,7 +2198,7 @@ implementation
         currrelreloc,
         currabsreloc,
         currabsreloc32 : TObjRelocationType;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         rexwritten : boolean;
 {$endif x86_64}
 
@@ -2219,7 +2219,7 @@ implementation
                     end
                   else
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                   if oper[opidx]^.ref^.refaddr=addr_pic then
                     begin
                       currrelreloc:=RELOC_PLT32;
@@ -2252,7 +2252,7 @@ implementation
             end;
           end;
 
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
        procedure maybewriterex;
        begin
           if (rex<>0) and not(rexwritten) then
@@ -2311,7 +2311,7 @@ implementation
            internalerror(200130121);
         { load data to write }
         codes:=insentry^.code;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         rexwritten:=false;
 {$endif x86_64}
         { Force word push/pop for registers }
@@ -2378,7 +2378,7 @@ implementation
           begin
             VEXvvvv := VEXvvvv or ((not(regval(oper[opmode]^.reg)) and $07) shl 3);
 
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
               if rexbits(oper[opmode]^.reg) = 0 then VEXvvvv := VEXvvvv or (1 shl 6);
             {$else}
               VEXvvvv := VEXvvvv or (1 shl 6);
@@ -2388,7 +2388,7 @@ implementation
 
           if not(needed_VEX_Extention) then
           begin
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
               if rex and $0B <> 0 then needed_VEX_Extention := true;
             {$endif x86_64}
           end;
@@ -2399,7 +2399,7 @@ implementation
             bytes[0]:=$C4;
             objdata.writebytes(bytes,1);
 
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
               VEXmmmmm := VEXmmmmm or ((not(rex) and $07) shl 5);  // set REX.rxb
             {$else}
               VEXmmmmm := VEXmmmmm or (7 shl 5);  //
@@ -2408,7 +2408,7 @@ implementation
               bytes[0] := VEXmmmmm;
               objdata.writebytes(bytes,1);
 
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
               VEXvvvv  := VEXvvvv OR ((rex and $08) shl 7);   // set REX.w
             {$endif x86_64}
             bytes[0] := VEXvvvv;
@@ -2420,7 +2420,7 @@ implementation
             bytes[0]:=$C5;
             objdata.writebytes(bytes,1);
 
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
               if rex and $04 = 0 then
             {$endif x86_64}
             begin
@@ -2448,7 +2448,7 @@ implementation
               break;
             1,2,3 :
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 if not(needed_VEX) then  // TG
                   maybewriterex;
 {$endif x86_64}
@@ -2490,7 +2490,7 @@ implementation
               end;
             8,9,10 :
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 if not(needed_VEX) then  // TG
                   maybewriterex;
 {$endif x86_64}
@@ -2578,7 +2578,7 @@ implementation
             36,37,38 :   // 044..046 - select between word/dword/qword depending on
               begin      // address size (we support only default address sizes).
                 getvalsym(c-36);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
                 else
@@ -2632,7 +2632,7 @@ implementation
             172,173,174 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
               begin
                 getvalsym(c-172);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 { for i386 as aint type is longint the
                   following test is useless }
                 if (currval<low(longint)) or (currval>high(longint)) then
@@ -2645,7 +2645,7 @@ implementation
                   objdata.writebytes(currval,4);
               end;
             200 :   { fixed 16-bit addr }
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
               begin
                 bytes[0]:=$67;
                 objdata.writebytes(bytes,1);
@@ -2655,7 +2655,7 @@ implementation
               InternalError(2011051302);
 {$endif}
             201 :   { fixed 32-bit addr }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               begin
                 bytes[0]:=$67;
                 objdata.writebytes(bytes,1);
@@ -2670,7 +2670,7 @@ implementation
                       bytes[0]:=$66;
                       objdata.writebytes(bytes,1);
                     end;
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
                   OT_BITS64 :
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
@@ -2690,7 +2690,7 @@ implementation
               end;
             214 :
               begin
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
                 Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
               end;
@@ -2750,7 +2750,7 @@ implementation
             else
               begin
                 { rex should be written at this point }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 if not(needed_VEX) then  // TG
                   if (rex<>0) and not(rexwritten) then
                     internalerror(200603191);
@@ -2795,7 +2795,7 @@ implementation
                                currabsreloc:=RELOC_GOT32
                              else
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                              if oper[opidx]^.ref^.refaddr=addr_pic then
                                currabsreloc:=RELOC_GOTPCREL
                              else
@@ -2814,7 +2814,7 @@ implementation
                        begin
                          currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
                          currval:=oper[opidx]^.ref^.offset;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                          if oper[opidx]^.ref^.refaddr=addr_pic then
                            currabsreloc:=RELOC_GOTPCREL
                          else
@@ -2990,7 +2990,7 @@ implementation
               if getsubreg(r)=R_SUBH then
                 inc(tmpref.offset);
               size:=reg2opsize(r);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               { even if it's a 32 bit reg, we still have to spill 64 bits
                 because we often perform 64 bit operations on them }
               if (size=S_L) then
@@ -3352,3 +3352,4 @@ begin
   cai_align:=tai_align;
   cai_cpu:=taicpu;
 end.
+

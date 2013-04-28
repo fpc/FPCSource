@@ -33,7 +33,7 @@ interface
 
     const
       { include mnemonic strings }
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       gas_op2str:op2strtable={$i x8664att.inc}
       gas_needsuffix:array[tasmop] of TAttSuffix={$i x8664ats.inc}
 {$elseif defined(i386)}
@@ -44,7 +44,7 @@ interface
       gas_needsuffix:array[tasmop] of TAttSuffix={$i i8086atts.inc}
 {$endif}
 
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','q','bw','bl','wl','bq','wq','lq',
        's','l','q',
@@ -108,7 +108,7 @@ implementation
       cutils,verbose;
 
     const
-    {$if defined(x86_64)}
+    {$if defined(x86_64) or defined(x32)}
       att_regname_table : array[tregisterindex] of string[7] = (
         {r8664att.inc contains the AT&T name of each register.}
         {$i r8664att.inc}

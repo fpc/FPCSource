@@ -282,7 +282,7 @@ implementation
             symaddr:=p.address;
             { Local ObjSymbols can be resolved already or need a section reloc }
             if (p.bind=AB_LOCAL) and
-               (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
+               (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$if defined(x86_64) or defined(x32)},RELOC_ABSOLUTE32{$endif x86_64}]) then
               begin
                 { For a reltype relocation in the same section the value can be calculated }
                 if (p.objsection=CurrObjSec) and

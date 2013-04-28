@@ -39,7 +39,7 @@ implementation
       cpubase;
 
     const
-    {$if defined(x86_64)}
+    {$if defined(x86_64) or defined(x32)}
       int_regname_table : array[tregisterindex] of string[7] = (
         {$i r8664int.inc}
       );

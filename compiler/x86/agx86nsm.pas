@@ -68,7 +68,7 @@ interface
 
       nasm_regname_table : array[tregisterindex] of string[7] = (
         {r386nasm.inc contains the Nasm name of each register.}
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         {$fatal nasm support not yet implemented for x86_64 }
 {$elseif defined(i386)}
         {$i r386nasm.inc}
@@ -372,7 +372,7 @@ interface
 {$ifdef x86_64}
                   asmwrite('qword ');
 {$endif}
-{$ifdef i386}
+{$if defined(i386) or defined(x32)}
                   asmwrite('dword ');
 {$endif i386}
 {$ifdef i8086}
@@ -411,7 +411,7 @@ interface
 {$ifndef i8086}
                 if not(
                        (op=A_JCXZ) or (op=A_JECXZ) or
-    {$ifdef x86_64}
+    {$if defined(x86_64) or defined(x32)}
                        (op=A_JRCXZ) or
     {$endif x86_64}
                        (op=A_LOOP) or (op=A_LOOPE) or

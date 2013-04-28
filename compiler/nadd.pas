@@ -1073,7 +1073,7 @@ implementation
         else
           resultrealdef:=pbestrealtype^;
   {$endif i386 or i8086}
-  {$ifdef x86_64}
+  {$if defined(x86_64) or defined(x32)}
         { x86-64 has no x87 only mode, so use always double as default }
         resultrealdef:=s64floattype;
   {$endif x86_6}

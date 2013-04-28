@@ -132,7 +132,7 @@ unit cgx86;
       end;
 
    const
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_Q,S_XMM,S_B,S_W,S_L,S_Q,S_XMM,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
@@ -324,7 +324,7 @@ unit cgx86;
                else
                  internalerror(200109223);
              end;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
            OS_64,OS_S64:
              case s1 of
                OS_8:
@@ -353,7 +353,7 @@ unit cgx86;
          else if s1 in [OS_8,OS_16,OS_32,OS_64] then
            op := A_MOVZX
          else
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
            if s3 in [S_LQ] then
              op := A_MOVSXD
          else
@@ -366,7 +366,7 @@ unit cgx86;
       var
         hreg : tregister;
         href : treference;
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
         add_hreg: boolean;
 {$endif not  x86_64}
       begin
@@ -375,7 +375,7 @@ unit cgx86;
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         { Only 32bit is allowed }
         { Note that this isn't entirely correct: for RIP-relative targets/memory models,
           it is actually (offset+@symbol-RIP) that should fit into 32 bits. Since two last
@@ -809,7 +809,7 @@ unit cgx86;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { x86_64 only supports signed 32 bits constants directly }
         if (tosize in [OS_S64,OS_64]) and
            ((a<low(longint)) or (a>high(longint))) then
@@ -837,13 +837,13 @@ unit cgx86;
         check_register_size(fromsize,reg);
         sizes2load(fromsize,tosize,op,s);
         case s of
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
           S_BQ,S_WQ,S_LQ,
 {$endif x86_64}
           S_BW,S_BL,S_WL :
             begin
               tmpreg:=getintregister(list,tosize);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
                 which clears the upper 64 bit too, so it could be that s is S_L while the reg is
                 64 bit (FK) }
@@ -874,7 +874,7 @@ unit cgx86;
         make_simple_ref(list,tmpref);
         check_register_size(tosize,reg);
         sizes2load(fromsize,tosize,op,s);
- {$ifdef x86_64}
+ {$if defined(x86_64) or defined(x32)}
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK) }
@@ -901,7 +901,7 @@ unit cgx86;
           end
         else
           sizes2load(fromsize,tosize,op,s);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK)
@@ -918,7 +918,7 @@ unit cgx86;
               add_move_instruction(instr);
             list.concat(instr);
           end;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { avoid merging of registers and killing the zero extensions (FK) }
         if (tosize in [OS_64,OS_S64]) and (s=S_L) then
           list.concat(taicpu.op_const_reg(A_AND,S_L,$ffffffff,reg2));
@@ -959,12 +959,12 @@ unit cgx86;
                          end;
                       end
                     else if (cs_create_pic in current_settings.moduleswitches)
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                              and not(ref.symbol.bind=AB_LOCAL)
 {$endif x86_64}
                             then
                       begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                         reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=NR_RIP;
@@ -979,7 +979,7 @@ unit cgx86;
                         if offset<>0 then
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                     else if (target_info.system in (systems_all_windows+[system_x86_64_darwin]))
 			 or (cs_create_pic in current_settings.moduleswitches)
 			 then
@@ -1186,7 +1186,7 @@ unit cgx86;
              if fromsize=OS_M64 then
                list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
              else
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                { x86-64 has always properly aligned data }
                list.concat(taicpu.op_ref_reg(A_MOVDQA,S_NO,tmpref,reg));
 {$else x86_64}
@@ -1212,7 +1212,7 @@ unit cgx86;
              if fromsize=OS_M64 then
                list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
              else
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                { x86-64 has always properly aligned data }
                list.concat(taicpu.op_reg_ref(A_MOVDQA,S_NO,reg,tmpref))
 {$else x86_64}
@@ -1337,12 +1337,12 @@ unit cgx86;
       var
         opcode : tasmop;
         power  : longint;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         tmpreg : tregister;
 {$endif x86_64}
       begin
         optimize_op_const(op, a);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { x86_64 only supports signed 32 bits constants directly }
         if not(op in [OP_NONE,OP_MOVE]) and
            (size in [OS_S64,OS_64]) and
@@ -1426,7 +1426,7 @@ unit cgx86;
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
               if (a and 63) <> 0 Then
                 list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 63,reg));
               if (a shr 6) <> 0 Then
@@ -1463,7 +1463,7 @@ unit cgx86;
       var
         opcode: tasmop;
         power: longint;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         tmpreg : tregister;
 {$endif x86_64}
         tmpref  : treference;
@@ -1471,7 +1471,7 @@ unit cgx86;
         optimize_op_const(op, a);
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { x86_64 only supports signed 32 bits constants directly }
         if not(op in [OP_NONE,OP_MOVE]) and
            (size in [OS_S64,OS_64]) and
@@ -1691,12 +1691,12 @@ unit cgx86;
     procedure tcgx86.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
       l : tasmlabel);
 
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       var
         tmpreg : tregister;
 {$endif x86_64}
       begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { x86_64 only supports signed 32 bits constants directly }
         if (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
@@ -1719,14 +1719,14 @@ unit cgx86;
       l : tasmlabel);
 
       var
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         tmpreg : tregister;
 {$endif x86_64}
         tmpref  : treference;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         { x86_64 only supports signed 32 bits constants directly }
         if (size in [OS_S64,OS_64]) and
            ((a<low(longint)) or (a>high(longint))) then
@@ -2167,7 +2167,7 @@ unit cgx86;
            else
 {$endif NOTARGETWIN}
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
 {$ifndef NOTARGETWIN}
            { windows guards only a few pages for stack growing,
              so we have to access every page first              }

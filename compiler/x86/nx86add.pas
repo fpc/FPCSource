@@ -247,7 +247,7 @@ unit nx86add;
 
 
     procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TCgsize);
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       var
         tmpreg : tregister;
 {$endif x86_64}
@@ -267,7 +267,7 @@ unit nx86add;
             end;
           LOC_CONSTANT :
             begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               { x86_64 only supports signed 32 bits constants directly }
               if (opsize in [OS_S64,OS_64]) and
                  ((right.location.value<low(longint)) or (right.location.value>high(longint))) then
@@ -966,7 +966,7 @@ unit nx86add;
         pass_left_right;
         check_left_and_right_fpureg(true);
 
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
         if current_settings.cputype<cpu_Pentium2 then
           begin
             emit_none(A_FCOMPP,S_NO);

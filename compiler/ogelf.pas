@@ -711,7 +711,7 @@ implementation
         ObjRelocations.Add(reloc);
         if reltype=RELOC_RELATIVE then
 { ARM does not require this adjustment, other CPUs must be checked }
-{$if defined(i386) or defined(x86_64)}
+{$if defined(i386) or defined(x86_64) or defined(x32)}
           dec(offset,len)
 {$endif i386 or x86_64}
         else if reltype<>RELOC_ABSOLUTE then
@@ -847,7 +847,7 @@ implementation
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
            if (p.bind=AB_LOCAL) and
-              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$if defined(x86_64) or defined(x32)},RELOC_ABSOLUTE32{$endif x86_64}]) then
              begin
                { For a reltype relocation in the same section the
                  value can be calculated }
@@ -875,7 +875,7 @@ implementation
         if assigned(objreloc) then
           begin
             objreloc.size:=len;
-            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
+            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$if defined(x86_64) or defined(x32)},RELOC_GOTPCREL{$endif}] then
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin

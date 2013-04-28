@@ -233,6 +233,23 @@
   {$define cpurefshaveindexreg}
 {$endif aarch64}
 
+{$ifdef x32}
+  {$define x86}
+  {$define cpuflags}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuextended}
+  {$define cpufloat128}
+  {$define cputargethasfixedstack}
+  {$define cpumm}
+  {$define cpurox}
+  {$define cpurefshaveindexreg}
+  {$define SUPPORT_SAFECALL}
+  {$define NOTARGETFREEBSD}
+  {$define NOTARGETWIN}
+  {$define NOTARGETSUNOS}
+{$endif x32}
+
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}

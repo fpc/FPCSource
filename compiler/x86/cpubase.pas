@@ -45,7 +45,7 @@ uses
 *****************************************************************************}
 
     type
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       TAsmOp={$i x8664op.inc}
 {$elseif defined(i386)}
       TAsmOp={$i i386op.inc}
@@ -140,14 +140,14 @@ uses
       RS_FLAGS       = $07;
 
       { Number of first imaginary register }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
       first_mm_imreg     = $10;
 {$else x86_64}
       first_mm_imreg     = $08;
 {$endif x86_64}
 
       { The subregister that specifies the entire register and an address }
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       { Hammer }
       R_SUBWHOLE    = R_SUBQ;
       R_SUBADDR     = R_SUBQ;
@@ -162,7 +162,7 @@ uses
 {$endif}
 
       { Available Registers }
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       {$i r8664con.inc}
 {$elseif defined(i386)}
       {$i r386con.inc}
@@ -172,7 +172,7 @@ uses
 
     type
       { Number of registers used for indexing in tables }
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
       tregisterindex=0..{$i r8664nor.inc}-1;
 {$elseif defined(i386)}
       tregisterindex=0..{$i r386nor.inc}-1;
@@ -185,7 +185,7 @@ uses
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         {$i r8664num.inc}
 {$elseif defined(i386)}
         {$i r386num.inc}
@@ -195,7 +195,7 @@ uses
       );
 
       regstabs_table : array[tregisterindex] of shortint = (
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         {$i r8664stab.inc}
 {$elseif defined(i386)}
         {$i r386stab.inc}
@@ -205,7 +205,7 @@ uses
       );
 
       regdwarf_table : array[tregisterindex] of shortint = (
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(x32)}
         {$i r8664dwrf.inc}
 {$elseif defined(i386)}
         {$i r386dwrf.inc}
@@ -297,7 +297,7 @@ implementation
       rgbase,verbose;
 
     const
-    {$if defined(x86_64)}
+    {$if defined(x86_64) or defined(x32)}
       std_regname_table : TRegNameTable = (
         {$i r8664std.inc}
       );
@@ -395,7 +395,7 @@ implementation
             case reg of
               NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
                 reg_cgsize:=OS_16;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               NR_DR0..NR_TR7:
                 reg_cgsize:=OS_64;
 {$endif x86_64}
@@ -444,7 +444,7 @@ implementation
           A_JCXZ,
 {$endif i386}
           A_JECXZ,
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
           A_JRCXZ,
 {$endif x86_64}
           A_JMP,

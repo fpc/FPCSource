@@ -248,7 +248,7 @@ implementation
                           A_SHUFPS:
 
                             replaceoper:=-1;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                           A_MOV:
                              { 64 bit constants can only be moved into registers }
                              if (oper[0]^.typ=top_const) and
@@ -263,7 +263,7 @@ implementation
                 end;
              end;
 
-            {$ifdef x86_64}
+            {$if defined(x86_64) or defined(x32)}
             { 32 bit operations on 32 bit registers on x86_64 can result in
               zeroing the upper 32 bits of the register. This does not happen
               with memory operations, so we have to perform these calculations

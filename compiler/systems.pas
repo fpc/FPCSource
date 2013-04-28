@@ -228,7 +228,7 @@ interface
        systems_android = [system_arm_android, system_i386_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
+                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_x32_linux];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
@@ -348,7 +348,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
+             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086', 'x32');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -937,6 +937,18 @@ begin
 {$ifdef i8086}
   default_target(system_i8086_msdos);
 {$endif i8086}
+
+{$ifdef x32}
+  {$ifdef cpux32}
+    default_target(source_info.system);
+    {$define default_target_set}
+  {$endif cpux86_64}
+  { default is linux }
+  {$ifndef default_target_set}
+   default_target(system_x32_linux);
+  {$endif default_target_set}
+{$endif x86_64}
+
 end;
 
 

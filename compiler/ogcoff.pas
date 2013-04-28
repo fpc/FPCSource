@@ -265,7 +265,7 @@ interface
        COFF_OPT_MAGIC   = $10b;
        TLSDIR_SIZE      = $18;
 {$endif arm}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
        COFF_MAGIC       = $8664;
        COFF_OPT_MAGIC   = $20b;
        TLSDIR_SIZE      = $28;
@@ -381,7 +381,7 @@ implementation
        PE_DATADIR_IMPORTADDRESSTABLE = 12;
        PE_DATADIR_DELAYIMPORT = 13;
 
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
        IMAGE_REL_AMD64_ABSOLUTE    = $0000;  { Reference is absolute, no relocation is necessary }
        IMAGE_REL_AMD64_ADDR64      = $0001;  { 64-bit address (VA). }
        IMAGE_REL_AMD64_ADDR32      = $0002;  { 32-bit address (VA). }
@@ -912,7 +912,7 @@ const pemagic : array[0..3] of byte = (
                       internalerror(200606085);  { offset overflow }
                   end;
 {$endif arm}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                 { 64 bit coff only }
                 RELOC_RELATIVE_1:
                   begin
@@ -1288,7 +1288,7 @@ const pemagic : array[0..3] of byte = (
               RELOC_SECREL32 :
                 rel.reloctype:=IMAGE_REL_I386_SECREL32;
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               RELOC_NONE :
                 rel.reloctype:=IMAGE_REL_AMD64_ABSOLUTE;
               RELOC_RELATIVE :
@@ -1473,7 +1473,7 @@ const pemagic : array[0..3] of byte = (
            header.syms:=symidx;
            if win32 then
              begin
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
                header.flag:=PE_FILE_32BIT_MACHINE or
                             PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
 {$else x86_64}
@@ -1606,7 +1606,7 @@ const pemagic : array[0..3] of byte = (
              IMAGE_REL_I386_SECREL32 :
                rel_type:=RELOC_SECREL32;
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
              IMAGE_REL_AMD64_ABSOLUTE:
                rel_type:=RELOC_NONE;
              IMAGE_REL_AMD64_REL32:
@@ -1886,7 +1886,7 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Pos('.edata',secname)=1) or
                       (Pos('.rsrc',secname)=1) or
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
                       (Pos('.pdata',secname)=1) or
 {$endif}
                       (Pos('.fpc',secname)=1) then
@@ -2612,7 +2612,7 @@ const pemagic : array[0..3] of byte = (
               textobjsection.writezeros(align_aword(textobjsection.size,16)-textobjsection.size);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               textobjsection.write(jmpopcode,sizeof(jmpopcode));
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_RELATIVE);
 {$else}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
@@ -3012,7 +3012,7 @@ const pemagic : array[0..3] of byte = (
             dollarsign: '$';
           );
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
     const
        as_x86_64_pecoff_info : tasminfo =
           (
@@ -3069,7 +3069,7 @@ initialization
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwince_info,TPECoffAssembler);
 {$endif i386}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
   RegisterAssembler(as_x86_64_pecoff_info,TPECoffAssembler);
 {$endif x86_64}
 {$ifdef arm}

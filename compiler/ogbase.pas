@@ -47,7 +47,7 @@ interface
       TObjRelocationType = (
          { Relocation to absolute address }
          RELOC_ABSOLUTE,
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
          { 32bit Relocation to absolute address }
          RELOC_ABSOLUTE32,
          { 64 bit coff only }
@@ -88,7 +88,7 @@ interface
          RELOC_RAW
       );
 
-{$ifndef x86_64}
+{$if not(defined(x86_64) or defined(x32))}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
 {$endif x86_64}

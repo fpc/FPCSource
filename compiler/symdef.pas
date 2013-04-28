@@ -947,7 +947,7 @@ interface
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
 {$endif}
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
        pbestrealtype : ^tdef = @s80floattype;
 {$endif}
 {$ifdef m68k}

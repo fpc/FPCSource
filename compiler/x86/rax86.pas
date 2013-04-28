@@ -267,7 +267,7 @@ begin
             end
           else
             begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
               { should probably be extended to i386, but there the situation
                 is more complex and ELF-style PIC still need to be
                 tested/debugged }
@@ -306,7 +306,7 @@ begin
 end;
 
 const
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
   topsize2memsize: array[topsize] of integer =
     (0, 8,16,32,64,8,8,16,8,16,32,
      16,32,64,
@@ -664,7 +664,7 @@ begin
       operands[i].SetCorrectSize(opcode);
       if tx86operand(operands[i]).opsize=S_NO then
         begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
           if (opcode=A_MOVQ) and
              (ops=2) and
              (operands[1].opr.typ=OPR_CONSTANT) then
@@ -739,7 +739,7 @@ begin
                      operands[i].opr.ref.symbol:=s;
                      operands[i].opr.ref.offset:=so;
                    end;
-  {$ifdef x86_64}
+  {$if defined(x86_64) or defined(x32)}
                   tx86operand(operands[i]).opsize:=S_Q;
   {$else x86_64}
                   tx86operand(operands[i]).opsize:=S_L;
@@ -788,7 +788,7 @@ begin
                   case tx86operand(operands[2]).opsize of
                     S_L :
                       opsize:=S_WL;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                     S_Q :
                       opsize:=S_WQ;
 {$endif}
@@ -800,7 +800,7 @@ begin
                         opsize:=S_BW;
                       S_L :
                         opsize:=S_BL;
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
                       S_Q :
                         opsize:=S_BQ;
 {$endif}

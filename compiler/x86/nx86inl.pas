@@ -144,7 +144,7 @@ implementation
 
      function tx86inlinenode.first_round_real : tnode;
       begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
         if use_vectorfpu(left.resultdef) then
           expectloc:=LOC_REGISTER
         else
@@ -157,14 +157,14 @@ implementation
      function tx86inlinenode.first_trunc_real: tnode;
        begin
          if (cs_opt_size in current_settings.optimizerswitches)
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
            and not(use_vectorfpu(left.resultdef))
 {$endif x86_64}
            then
            result:=inherited
          else
            begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
              if use_vectorfpu(left.resultdef) then
                expectloc:=LOC_REGISTER
              else
@@ -266,7 +266,7 @@ implementation
 
      procedure tx86inlinenode.second_round_real;
        begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
          if use_vectorfpu(left.resultdef) then
            begin
              secondpass(left);
@@ -299,7 +299,7 @@ implementation
        var
          oldcw,newcw : treference;
        begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(x32)}
          if use_vectorfpu(left.resultdef) and
            not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
            begin

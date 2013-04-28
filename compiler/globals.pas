@@ -430,7 +430,7 @@ interface
         optimizecputype : cpu_armv3;
         fputype : fpu_fpa;
   {$endif arm}
-  {$ifdef x86_64}
+  {$if defined(x86_64) or defined(x32)}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;

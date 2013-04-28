@@ -955,8 +955,8 @@ implementation
                                   Initialize
 *****************************************************************************}
 
-    const
 {$ifdef i386}
+    const
        as_i386_tasm_info : tasminfo =
           (
             id           : as_i386_tasm;
@@ -997,6 +997,7 @@ implementation
           );
 {$endif i386}
 {$ifdef x86_64}
+    const
        as_x86_64_masm_info : tasminfo =
           (
             id     : as_x86_64_masm;
