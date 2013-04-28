@@ -1891,7 +1891,8 @@ implementation
           typ:=ait_string;
           len:=length(_str);
           getmem(str,len+1);
-          strpcopy(str,_str);
+          move(_str[1],str^,len);
+          str[len]:=#0;
        end;
 
 
