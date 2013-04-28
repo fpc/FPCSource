@@ -219,10 +219,10 @@ unit cg64f32;
       begin
         if target_info.endian = endian_big then
           swap64(value);
-        cg.a_load_const_ref(list,OS_32,tcgint(lo(value)),ref);
+        cg.a_load_const_ref(list,OS_32,longint(lo(value)),ref);
         tmpref := ref;
         inc(tmpref.offset,4);
-        cg.a_load_const_ref(list,OS_32,tcgint(hi(value)),tmpref);
+        cg.a_load_const_ref(list,OS_32,longint(hi(value)),tmpref);
       end;
 
 
@@ -271,8 +271,8 @@ unit cg64f32;
     procedure tcg64f32.a_load64_const_reg(list : TAsmList;value : int64;reg : tregister64);
 
       begin
-        cg.a_load_const_reg(list,OS_32,tcgint(lo(value)),reg.reglo);
-        cg.a_load_const_reg(list,OS_32,tcgint(hi(value)),reg.reghi);
+        cg.a_load_const_reg(list,OS_32,longint(lo(value)),reg.reglo);
+        cg.a_load_const_reg(list,OS_32,longint(hi(value)),reg.reghi);
       end;
 
 
@@ -359,9 +359,9 @@ unit cg64f32;
           swap64(a);
         tmpsref := sref;
         tmpsref.bitlen := 32;
-        hlcg.a_load_const_subsetref(list,u32inttype,tcgint(lo(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,longint(lo(a)),tmpsref);
         inc(tmpsref.ref.offset,4);
-        hlcg.a_load_const_subsetref(list,u32inttype,tcgint(hi(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,longint(hi(a)),tmpsref);
       end;
 
 
@@ -537,7 +537,7 @@ unit cg64f32;
           LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reglo,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,tcgint(lo(l.value64)),reg);
+            cg.a_load_const_reg(list,OS_32,longint(lo(l.value64)),reg);
           else
             internalerror(200203244);
         end;
@@ -554,7 +554,7 @@ unit cg64f32;
           LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reghi,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,tcgint(hi(l.value64)),reg);
+            cg.a_load_const_reg(list,OS_32,longint(hi(l.value64)),reg);
           else
             internalerror(200203244);
         end;
@@ -675,15 +675,15 @@ unit cg64f32;
           begin
             { Keep this order of first lo before hi to have
               the correct push order for m68k }
-            cg.a_load_const_cgpara(list,OS_32,tcgint(lo(value)),tmploclo);
-            cg.a_load_const_cgpara(list,OS_32,tcgint(hi(value)),tmplochi);
+            cg.a_load_const_cgpara(list,OS_32,longint(lo(value)),tmploclo);
+            cg.a_load_const_cgpara(list,OS_32,longint(hi(value)),tmplochi);
           end
         else
           begin
             { Keep this order of first hi before lo to have
               the correct push order for i386 }
-            cg.a_load_const_cgpara(list,OS_32,tcgint(hi(value)),tmplochi);
-            cg.a_load_const_cgpara(list,OS_32,tcgint(lo(value)),tmploclo);
+            cg.a_load_const_cgpara(list,OS_32,longint(hi(value)),tmplochi);
+            cg.a_load_const_cgpara(list,OS_32,longint(lo(value)),tmploclo);
           end;
         tmploclo.done;
         tmplochi.done;
