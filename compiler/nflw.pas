@@ -1961,10 +1961,10 @@ implementation
               end
             else
               begin
-                right:=cloadparentfpnode.create(current_procinfo.procdef);
+                third:=cinlinenode.create(in_get_frame,false,nil);
                 current_addr:=clabelnode.create(cnothingnode.create,tlabelsym.create('$raiseaddr'));
                 addstatement(statements,current_addr);
-                third:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
+                right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',
