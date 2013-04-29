@@ -2546,6 +2546,7 @@ packages/fcl-res/xml/versionconsts.xml svneol=native#text/plain
 packages/fcl-res/xml/versionresource.xml svneol=native#text/plain
 packages/fcl-res/xml/versiontypes.xml svneol=native#text/plain
 packages/fcl-res/xml/winpeimagereader.xml svneol=native#text/plain
+packages/fcl-sdo/Makefile svneol=native#text/plain
 packages/fcl-sdo/Makefile.fpc svneol=native#text/plain
 packages/fcl-sdo/README svneol=native#text/plain
 packages/fcl-sdo/examples/changes-summary/project.pas svneol=native#text/plain
