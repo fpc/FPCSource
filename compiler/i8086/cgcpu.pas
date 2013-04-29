@@ -889,10 +889,13 @@ unit cgcpu;
               end
             else
               begin
-                list.concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_BP, NR_SP));
-                list.concat(Taicpu.op_reg(A_POP, S_W, NR_BP));
-                {todo: use LEAVE for 286+}
-                {list.concat(Taicpu.op_none(A_LEAVE,S_NO));}
+                if current_settings.cputype < cpu_186 then
+                  begin
+                    list.concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_BP, NR_SP));
+                    list.concat(Taicpu.op_reg(A_POP, S_W, NR_BP));
+                  end
+                else
+                  list.concat(Taicpu.op_none(A_LEAVE,S_NO));
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
