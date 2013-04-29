@@ -512,37 +512,7 @@ unit cgcpu;
                   begin
                     if assigned(symbol) then
                       begin
-                        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
-                            (cs_create_pic in current_settings.moduleswitches)) then
-                          begin
-                            tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
-                            list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                          end
-                        else if cs_create_pic in current_settings.moduleswitches then
-                          begin
-                            if offset<>0 then
-                              begin
-                                tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
-                                list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                              end
-                            else
-                              begin
-                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
-                                tmpref.refaddr:=addr_pic;
-                                tmpref.base:=current_procinfo.got;
-{$ifdef EXTDEBUG}
-				if not (pi_needs_got in current_procinfo.flags) then
-				  Comment(V_warning,'pi_needs_got not included');
-{$endif EXTDEBUG}
-                                include(current_procinfo.flags,pi_needs_got);
-                                list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
-                              end
-                          end
-                        else
-                          list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                        list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
                       end
                     else
                       push_const(list,OS_ADDR,offset);
