@@ -46,7 +46,7 @@ unit cgcpu;
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
-        procedure push_const(list:TAsmList;size:topsize;a:tcgint);
+        procedure push_const(list:TAsmList;size:tcgsize;a:tcgint);
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
@@ -303,9 +303,20 @@ unit cgcpu;
       end;
 
 
-    procedure tcg8086.push_const(list: TAsmList; size: topsize; a: tcgint);
+    procedure tcg8086.push_const(list: TAsmList; size: tcgsize; a: tcgint);
+      var
+        tmpreg: TRegister;
       begin
-        list.concat(taicpu.op_const(A_PUSH,size,a));
+        if not (size in [OS_16,OS_S16]) then
+          internalerror(2013043001);
+        if current_settings.cputype < cpu_186 then
+          begin
+            tmpreg:=getintregister(list,size);
+            a_load_const_reg(list,size,a,tmpreg);
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+          end
+        else
+          list.concat(taicpu.op_const(A_PUSH,TCGSize2OpSize[size],a));
       end;
 
 
@@ -385,8 +396,8 @@ unit cgcpu;
                 if (cgpara.alignment <> 4) and (cgpara.alignment <> 2) then
                   internalerror(2013031101);
 
-                push_const(list,S_W,a shr 16);
-                push_const(list,S_W,a and $FFFF);
+                push_const(list,OS_16,a shr 16);
+                push_const(list,OS_16,a and $FFFF);
               end
             else
               begin
@@ -395,7 +406,7 @@ unit cgcpu;
                   pushsize:=cgpara.location^.size
                 else
                   pushsize:=int_cgsize(cgpara.alignment);
-                push_const(list,tcgsize2opsize[pushsize],a);
+                push_const(list,pushsize,a);
               end;
           end
         else
@@ -534,7 +545,7 @@ unit cgcpu;
                           list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
                       end
                     else
-                      push_const(list,opsize,offset);
+                      push_const(list,OS_ADDR,offset);
                   end
                 else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
                         (offset=0) and (scalefactor=0) and (symbol=nil) then
@@ -1089,7 +1100,7 @@ unit cgcpu;
     procedure tcg8086.g_exception_reason_save_const(list : TAsmList;const href : treference; a: tcgint);
       begin
         if not paramanager.use_fixed_stack then
-          push_const(list,tcgsize2opsize[OS_INT],a)
+          push_const(list,OS_INT,a)
         else
           inherited g_exception_reason_save_const(list,href,a);
       end;
