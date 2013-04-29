@@ -1334,7 +1334,7 @@ implementation
         while assigned(item) do
           begin
 {$ifdef arm}
-            if current_settings.cputype in cpu_thumb2 then
+            if current_settings.cputype in cpu_thumb2+cpu_thumb then
               list.concat(tai_thumb_func.create);
 {$endif arm}
             { "double link" all procedure entry symbols via .reference }
