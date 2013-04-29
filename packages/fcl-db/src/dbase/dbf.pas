@@ -2084,9 +2084,9 @@ begin
   end;
   { this is a hack, we actually need to know per user who's modifying, and who is not }
   { Mode is more like: the mode of the last "creation" }
-  { if create/free is nested, then everything will be alright, i think ;-) }
+  { if create/free is nested, then everything will be alright, I think ;-) }
   lBlob.Mode := Mode;
-  { this is a hack: we actually need to know per user what it's position is }
+  { this is a hack: we actually need to know per user what its position is }
   lBlob.Position := 0;
   Result := lBlob;
 end;

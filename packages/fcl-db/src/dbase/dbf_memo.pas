@@ -218,6 +218,7 @@ begin
 
     RecordSize := GetBlockLen;
     // checking for right blocksize not needed for foxpro?
+    // todo: why exactly are we testing for 0x7F?
     // mod 128 <> 0 <-> and 0x7F <> 0
     if (RecordSize = 0) and
       ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
@@ -225,6 +226,12 @@ begin
       SetBlockLen(64); //(Visual) FoxPro docs suggest 512 is default; however it is 64: see
       //http://technet.microsoft.com/en-us/subscriptions/d6e1ah7y%28v=vs.90%29.aspx
       RecordSize := 64;
+      WriteHeader;
+    end
+    else if (RecordSize = 0) then
+    begin
+      SetBlockLen(512); //dbase default
+      RecordSize := 512;
       WriteHeader;
     end;
 
@@ -470,6 +477,7 @@ function  TDbaseMemoFile.GetMemoSize: Integer;
 begin
   // dBase4 memofiles contain a small 'header'
   if (FDbfVersion<>xBaseIII) and (PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF))) then
+    // Subtract size of the block header itself:
     Result := SwapIntLE(PBlockHdr(FBuffer)^.MemoSize)-8
   else
     Result := -1;
