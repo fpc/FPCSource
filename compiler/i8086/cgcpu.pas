@@ -512,7 +512,14 @@ unit cgcpu;
                   begin
                     if assigned(symbol) then
                       begin
-                        list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                        if current_settings.cputype < cpu_186 then
+                          begin
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                          end
+                        else
+                          list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
                       end
                     else
                       push_const(list,OS_ADDR,offset);
