@@ -360,7 +360,7 @@ type
     procedure SetAsLargeint(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
-    procedure SetAsWideString(const aValue: WideString); virtual;
+    procedure SetAsWideString(const AValue: WideString); virtual;
     procedure SetDataset(AValue : TDataset); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
@@ -486,18 +486,18 @@ type
 
   TWideStringField = class(TStringField)
   protected
-    class procedure CheckTypeSize(aValue: Integer); override;
+    class procedure CheckTypeSize(AValue: Integer); override;
 
-    function GetValue(var aValue: WideString): Boolean;
+    function GetValue(var AValue: WideString): Boolean;
 
     function GetAsString: string; override;
-    procedure SetAsString(const aValue: string); override;
+    procedure SetAsString(const AValue: string); override;
 
     function GetAsVariant: Variant; override;
-    procedure SetVarValue(const aValue: Variant); override;
+    procedure SetVarValue(const AValue: Variant); override;
 
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
 
     function GetDataSize: Integer; override;
   public
@@ -568,7 +568,7 @@ type
     FMinValue,
     FMaxValue,
     FMinRange,
-    FMAxRange  : Largeint;
+    FMaxRange  : Largeint;
     Procedure SetMinValue (AValue : Largeint);
     Procedure SetMaxValue (AValue : Largeint);
   protected
@@ -873,7 +873,7 @@ type
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Clear; override;
@@ -897,7 +897,7 @@ type
   TMemoField = class(TBlobField)
   protected
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -912,7 +912,7 @@ type
     procedure SetVarValue(const AValue: Variant); override;
 
     function GetAsString: string; override;
-    procedure SetAsString(const aValue: string); override;
+    procedure SetAsString(const AValue: string); override;
   public
     constructor Create(aOwner: TComponent); override;
     property Value: WideString read GetAsWideString write SetAsWideString;
@@ -967,7 +967,7 @@ type
     function GetDefaultWidth: Longint; override;
 
     function GetAsGuid: TGUID;
-    procedure SetAsGuid(const aValue: TGUID);
+    procedure SetAsGuid(const AValue: TGUID);
   public
     constructor Create(AOwner: TComponent); override;
     property AsGuid: TGUID read GetAsGuid write SetAsGuid;
@@ -1166,7 +1166,7 @@ type
     Procedure SetDataType(AValue: TFieldType);
     Procedure SetText(const AValue: string);
     function GetAsWideString: WideString;
-    procedure SetAsWideString(const aValue: WideString);
+    procedure SetAsWideString(const AValue: WideString);
   public
     constructor Create(ACollection: TCollection); overload; override;
     constructor Create(AParams: TParams; AParamType: TParamType); reintroduce; overload;
