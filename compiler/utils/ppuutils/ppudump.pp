@@ -2118,6 +2118,7 @@ begin
      else
       Writeln('!! ibstartsym not found');
      repeat
+       def:=nil;
        b:=readentry;
        case b of
 
@@ -2141,9 +2142,7 @@ begin
              write([space,'  Result Type : ']);
              readderef('', def.Ref);
              if _finddef(def) = nil then
-               def.Parent:=ParentDef
-             else
-               def.Free;
+               def.Parent:=ParentDef;
              prettyname:=getansistring;
              if prettyname<>'' then
                begin
@@ -2163,7 +2162,6 @@ begin
                 readderef('', def.Ref);
                 _finddef(def);
               end;
-             def.Free;
            end;
 
          ibconstsym :
@@ -2383,10 +2381,15 @@ begin
 
          ibenumsym :
            begin
-             readcommonsym('Enumeration symbol ');
+             def:=TPpuConstDef.Create(nil);
+             readcommonsym('Enumeration symbol ',def);
              write  ([space,'   Definition : ']);
              readderef('');
-             writeln([space,'        Value : ',getlongint]);
+             TPpuConstDef(def).ConstType:=ctInt;
+             TPpuConstDef(def).VInt:=getlongint;
+             writeln([space,'        Value : ',TPpuConstDef(def).VInt]);
+             if (ParentDef <> nil) and (ParentDef.DefType = dtEnum) then
+               def.Parent:=ParentDef;
            end;
 
          ibsyssym :
@@ -2460,6 +2463,8 @@ begin
              SetHasErrors;
            end;
        end;
+       if (def <> nil) and (def.Parent = nil) then
+         def.Free;
        if not EndOfEntry then
          HasMoreInfos;
      until false;
@@ -2492,6 +2497,7 @@ var
   def: TPpuDef;
   objdef: TPpuObjectDef absolute def;
   arrdef: TPpuArrayDef absolute def;
+  enumdef: TPpuEnumDef absolute def;
 begin
   with ppufile do
    begin
@@ -2846,10 +2852,14 @@ begin
 
          ibenumdef :
            begin
-             readcommondef('Enumeration type definition',defoptions);
-             writeln([space,' Smallest element : ',getaint]);
-             writeln([space,'  Largest element : ',getaint]);
-             writeln([space,'             Size : ',getaint]);
+             enumdef:=TPpuEnumDef.Create(ParentDef);
+             readcommondef('Enumeration type definition',defoptions,enumdef);
+             enumdef.ElLow:=getaint;
+             writeln([space,' Smallest element : ',enumdef.ElLow]);
+             enumdef.ElHigh:=getaint;
+             writeln([space,'  Largest element : ',enumdef.ElHigh]);
+             enumdef.Size:=byte(getaint);
+             writeln([space,'             Size : ',enumdef.Size]);
 {$ifdef jvm}
              write([space,'        Class def : ']);
              readderef('');
@@ -2857,12 +2867,12 @@ begin
              if df_copied_def in defoptions then
                begin
                  write([space,'Base enumeration type : ']);
-                 readderef('');
+                 readderef('',enumdef.CopyFrom);
                end
              else
                begin
                  space:='    '+space;
-                 readsymtable('elements');
+                 readsymtable('elements',enumdef);
                  delete(space,1,4);
                end;
            end;

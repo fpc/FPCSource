@@ -314,6 +314,19 @@ type
     function CanWrite: boolean; override;
   end;
 
+  { TPpuEnumDef }
+  TPpuEnumDef = class(TPpuContainerDef)
+  protected
+    procedure BeforeWriteItems(Output: TPpuOutput); override;
+  public
+    ElLow, ElHigh: Int64;
+    Size: byte;
+    CopyFrom: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+
 implementation
 
 const
@@ -350,6 +363,34 @@ const
 function IsSymId(Id: cardinal): boolean; inline;
 begin
   Result:=Id and SymIdBit <> 0;
+end;
+
+{ TPpuEnumDef }
+
+procedure TPpuEnumDef.BeforeWriteItems(Output: TPpuOutput);
+begin
+  inherited BeforeWriteItems(Output);
+  with Output do begin
+    WriteInt('Low', ElLow);
+    WriteInt('High', ElHigh);
+    WriteInt('Size', Size);
+  end;
+  if not CopyFrom.IsNull then
+    CopyFrom.Write(Output, 'CopyFrom');
+end;
+
+constructor TPpuEnumDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtEnum;
+  ItemsName:='Elements';
+  CopyFrom:=TPpuRef.Create;
+end;
+
+destructor TPpuEnumDef.Destroy;
+begin
+  CopyFrom.Free;
+  inherited Destroy;
 end;
 
 { TPpuConstDef }
