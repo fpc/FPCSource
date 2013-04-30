@@ -2206,26 +2206,16 @@ begin
 end;
 
 function TBinaryField.GetAsBytes: TBytes;
-var B: TBytes;
 begin
-  SetLength(B, DataSize);
-  if not assigned(B) or not GetData(Pointer(B), True) then
-    SetLength(Result, 0)
-  else if DataType = ftVarBytes then
-  begin
-    SetLength(Result, PWord(B)^);
-    Move(B[sizeof(Word)], Result[0], Length(Result));
-  end
-  else // ftBytes
-    Result := B;
+  if not GetValue(Result) then
+    SetLength(Result, 0);
 end;
 
 
 function TBinaryField.GetAsString: string;
 var B: TBytes;
 begin
-  B := GetAsBytes;
-  if length(B) = 0 then
+  if not GetValue(B) then
     Result := ''
   else
     SetString(Result, @B[0], length(B) div SizeOf(Char));
@@ -2236,13 +2226,17 @@ function TBinaryField.GetAsVariant: Variant;
 var B: TBytes;
     P: Pointer;
 begin
-  B := GetAsBytes;
-  Result := VarArrayCreate([0, length(B)-1], varByte);
-  P := VarArrayLock(Result);
-  try
-    Move(B[0], P^, length(B));
-  finally
-    VarArrayUnlock(Result);
+  if not GetValue(B) then
+    Result := Null
+  else
+  begin
+    Result := VarArrayCreate([0, length(B)-1], varByte);
+    P := VarArrayLock(Result);
+    try
+      Move(B[0], P^, length(B));
+    finally
+      VarArrayUnlock(Result);
+    end;
   end;
 end;
 
@@ -2251,6 +2245,22 @@ procedure TBinaryField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
   TheText:=GetAsString;
+end;
+
+
+function TBinaryField.GetValue(var AValue: TBytes): Boolean;
+var B: TBytes;
+begin
+  SetLength(B, DataSize);
+  Result := assigned(B) and GetData(Pointer(B), True);
+  if Result then
+    if DataType = ftVarBytes then
+      begin
+      SetLength(AValue, PWord(B)^);
+      Move(B[sizeof(Word)], AValue[0], Length(AValue));
+      end
+    else // ftBytes
+      AValue := B;
 end;
 
 

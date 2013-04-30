@@ -741,6 +741,7 @@ type
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    function GetValue(var AValue: TBytes): Boolean;
     procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
