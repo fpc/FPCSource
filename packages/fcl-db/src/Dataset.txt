@@ -1,16 +1,14 @@
 Contents
 ========
-
 + General remarks
 + Fields system
 + The buffers
 + Dataset implementation
-+ Scalable Datasets.
++ Scalable Datasets
 
 ===============
 General remarks
 ===============
-
 - All fields and descendents implemented.
 - No calculated fields.
 - No persistent fields; this must be added later.
@@ -19,10 +17,9 @@ General remarks
 =============
 Fields system
 =============
-
 Buffers are completely handled by the Dataset. Fields don't handle
-their own buffers. Only during validation, the FValueBuffer of the 
-field is used. 
+their own buffers. The FValueBuffer of the field is only used during
+validation.
 
 This allows the dataset to allocate a number of buffers for the current
 record and the N next records. (getnextrecords/getpriorrecords method)
@@ -33,25 +30,24 @@ since FValueBuffer is only valid during validation.
 ===========
 The Buffers
 ===========
-
 A buffer contains all the data for 1 record of the dataset, and also
 the bookmark information. (bookmarkinformation is REQUIRED)
 
 The dataset allocates by default 'DefaultBufferCount+1' records(buffers)
-This constant can be changed, at the beginning of dataset.inc;
+This constant can be changed, at the beginning of dataset.inc, e.g.
 if you know you'll be working with big datasets, you can 
 increase this constant.
 
 The buffers are stored as pchars in the FBuffers array;
 The following constants are userd when handling this array:
 
-FBuffercount : The number of buffers allocated, minus one.
-FRecordCount : The number of buffers that is actually filled in.
-FActiveBuffer : The index of the active record in TDataset
+FBuffercount :   The number of buffers allocated, minus one.
+FRecordCount :   The number of buffers that is actually filled in.
+FActiveBuffer :  The index of the active record in TDataset.
 FCurrentRecord : The index of the supposedly active record in the underlaying
                  dataset (ie. the index in the last call to SetToInternalRecord)
                  call CursopPosChanged to reset FCurrentRecord if the active
-                 record in the underlaying dataset has changed
+                 record in the underlaying dataset has changed).
 
 So the following picture follows from this:
 
@@ -103,41 +99,35 @@ navigating/editing/adding/removing records of some source of data.
 There are, however, some methods that need to be filled in so that 
 a real TDataset can be implemented. 
 
-In order to have a working Dataset, the following Methods  need to be 
+In order to have a working Dataset, the following Methods need to be 
 overridden in order to make a dataset descendant:
 
 function AllocRecordBuffer: PChar; virtual; abstract;
 -----------------------------------------------------
-
 Must allocate enough memory to store a complete record in the dataset.
-Optionally, this buffer must contain enough memory to store bookmarkdata.
+Optionally, this buffer must contain enough memory to store bookmark data.
 The descendent must be able to construct a bookmark from this buffer.
 
 procedure FreeRecordBuffer(var Buffer: PChar); virtual; abstract;
 -----------------------------------------------------------------
-
 Must free the memory allocated in the AllocRecordBuffer call.
 
 procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
 ---------------------------------------------------------------------------
-
-Puts the bookmarkdata for Buffer into the area pointed to by Data.
+Puts the bookmark data for Buffer into the area pointed to by Data.
 
 function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
 --------------------------------------------------------------------------
-
 Returns the bookmarkflag associated with Buffer.
 
 function GetFieldData(Field: TField; Buffer: Pointer): Boolean; virtual; abstract;
 ----------------------------------------------------------------------------------
-
 Puts the data for field Field from the active buffer into Buffer. 
 This is called whenever a field value is demanded, so it must be
 efficient. 
 
 function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
 -----------------------------------------------------------------------------------
-
 This method must do 3 things:
 1) Get the record data for the next/current/previous record, depending
    on the GetMode value. It should return 
@@ -147,7 +137,7 @@ This method must do 3 things:
     grError if an error occurred.
    
 2) If DoCheck is True, and the result is grError, then an exception must be
-    raised.
+   raised.
 
 3) It should initialize bookmark data for this record with flag 'bfCurrent'
    This data can be stored in the bufer, if space was allocated for it with
@@ -155,51 +145,43 @@ This method must do 3 things:
  
 function GetRecordSize: Word; virtual; abstract;
 ------------------------------------------------
-
-Should return the record size; this includes ONLY the data portion
-of teh buffer; it excludes any bookmark or housekeeping info you may
+Should return the record size - this includes ONLY the data portion
+of the buffer. It excludes any bookmark or housekeeping info you may
 have put in the buffer.
 
 procedure InternalAddRecord(Buffer: Pointer; Append: Boolean); virtual; abstract;
 ---------------------------------------------------------------------------------
-
 Adds a record to the dataset. The record's data is in Buffer and Append
 indicates whether the record should be appended (True) or Inserted (False).
 Note that for SQL based datasets, this has no meaning.
 
 procedure InternalClose; virtual; abstract;
 -------------------------------------------
-
 Closes the dataset. Any resources allocated in InternalOpen should be freed
 here.
 
 procedure InternalDelete; virtual; abstract;
 --------------------------------------------
-
 Deletes the current Record.
 
 procedure InternalFirst; virtual; abstract;
 -------------------------------------------
-
-This is called when 'First' is called; After this method, getrecord
+This is called when 'First' is called. After this method, getrecord
 should return 'grBOF' if the previous record is requested, and it should
 return the next record if the next record is requested.
 
 procedure InternalGotoBookmark(ABookmark: Pointer); virtual; abstract;
 ----------------------------------------------------------------------
-
 Set the record position on the position that is associated with the
 ABookMark data. The ABookMark data is the data that is acquired through
 the GetBookMarkData call, and should be kept for each record.
 
 procedure InternalHandleException; virtual; abstract;
 -----------------------------------------------------
-
 Not needed yet. Just implement an empty call.
 
 procedure InternalInitFieldDefs; virtual; abstract;
 ---------------------------------------------------
-
 This method should be called from InternalOpen, and should
 initialize FieldDef definitions for all fields in a record.
 It should add these definitions to the FFielddefs object.
@@ -207,62 +189,52 @@ It should add these definitions to the FFielddefs object.
 
 procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
 ---------------------------------------------------------------
-
 This method is called to initialize a field buffer when the dataset
-is put into edit or append mode. Mostly,you'll want to zero out the 
+is put into edit or append mode. Mostly, you'll want to zero out the 
 buffer.
 
 procedure InternalLast; virtual; abstract;
 ------------------------------------------
-
-This is called when 'Last' is called; After this method, getrecord
+This is called when 'Last' is called. After this method, getrecord
 should return 'grEOF' if the next record is requested, and it should
 return the last record if the previous record is requested.
 
 procedure InternalOpen; virtual; abstract;
 ------------------------------------------
-
-Open the dataset. You must call internalinitfielddefs; 
-if DefaultFields is True, then you must call CreateFields,
+Open the dataset. You must call internalinitfielddefs.
+If DefaultFields is True, then you must call CreateFields,
 which will create the necessary TFields from the fielddefs.
 
 procedure InternalPost; virtual; abstract;
 ------------------------------------------
-
 Post the data in the active buffer to the underlying dataset.
 
 procedure InternalSetToRecord(Buffer: PChar); virtual; abstract;
 ----------------------------------------------------------------
-
 Set the current record to the record in Buffer; if bookmark data 
 is specified in this buffer, that data can be used to determine which 
 record this should be.
 
 function IsCursorOpen: Boolean; virtual; abstract;
 --------------------------------------------------
-
 This function should return True if data is available, even if the dataset
 is not active.
 
 procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
 ----------------------------------------------------------------------------------
-
 Set the bookmarkflag 'Value' on the data in Buffer.
 
 procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
 ---------------------------------------------------------------------------
-
-Move the bookmarkdata in 'Data' to the bookmarkdata associated with Buffer
+Move the bookmark data in 'Data' to the bookmark data associated with Buffer
 
 procedure SetFieldData(Field: TField; Buffer: Pointer); virtual; abstract;
 --------------------------------------------------------------------------
-
-Move the data in associated with Field from Buffer to the activebuffer.
+Move the data in associated with Field from Buffer to the active buffer.
 
 =================
 Scalable datasets
 =================
-
 In order to have Scalable database access, the concept of TDatabase and
 TDBDataset is introduced. The idea is that, in a visual IDE, the change
 from one database to another is achieved by simply removing one TDatabase
@@ -270,16 +242,15 @@ descendent (Say, TMySqlDatabase) with another (Say, TPostGreSQLDatabase)
 and that the Datasets remain untouched.
 
 In order to make this possible, the following scheme is used:
-
 when a TDBdataset descendant is put on Active, it requests a TRecordSet
 from the TDatabase. The TRecordSet is an abstract object that should be
 implemented together with each database. The TDBDataset then uses the
 TRecordSet to navigate through the records and edit/add/modify them.
 The TDBdataset implements the abstract methods of Tdataset in order to
-achive this.
+achieve this.
 
 There will be 2 descendants of TDBdataset: TTable and TQuery; both will
-implement the last abstract methods of TDataset in order to achieve a
+implement the final abstract methods of TDataset in order to achieve a
 complete TDataset implementation.
 
 TDBDataset implements most of the initialization of fields, so the
@@ -287,14 +258,13 @@ implementation of TRecordSet will be as bare bones as possible.
 
 What is needed:
 ---------------
-
 Some properties describing the data:
 
-FieldCount : Number of fields in a record;
+FieldCount        : Number of fields in a record.
 FieldTypes[Index] : Types of the fields (TFieldType), zero based.
 FieldNames[Index] : Names of the fields. Zero based.
-FieldSizes[index] : Size of the fields, zero based.
-BookmarkSize        : Size of a bookmark.
+FieldSizes[index] : Size of the fields. zero based.
+BookmarkSize      : Size of a bookmark.
 
 Some properties with the data content:
 
@@ -306,19 +276,17 @@ BookMarkBuffer      : Buffer with the current bookmark.
 
 Some methods
 ------------
-
-
-OpenRecordSet : Opens the recordset; it should initialize the FieldCount 
-                and FieldTypes, FieldNames, and FieldSizes array data.
+OpenRecordSet  : Opens the recordset. It should initialize the FieldCount 
+                 and FieldTypes, FieldNames, and FieldSizes array data.
 
 CloseRecordSet : Do whatever is needed to close the recordset.
 
-GotoBookMark : go to the record described by the bookmark. Returns True
-               if successfull, false if not.
+GotoBookMark   : go to the record described by the bookmark. Returns True
+                 if successful, false if not.
 
-Next  : Goto the next record. Returns true or false 
-Prior : Goto previous record. Returns true or false
-First : Goto the first record. Returns True or false
-Last  : Goto the last record. Returns True or False
+Next           : Go to the next record. Returns true or false 
+Prior          : Go to the previous record. Returns true or false
+First          : Go to the first record. Returns true or false
+Last           : Go to the last record. Returns true or False
 
-AppendBuffer : Append a buffer to the records.
+AppendBuffer   : Append a buffer to the records.
