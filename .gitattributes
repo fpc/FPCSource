@@ -10373,6 +10373,7 @@ tests/test/cg/ttryfin1.pp svneol=native#text/plain
 tests/test/cg/ttryfin2.pp svneol=native#text/plain
 tests/test/cg/ttryfin3.pp svneol=native#text/plain
 tests/test/cg/ttryfin4.pp svneol=native#text/plain
+tests/test/cg/ttryfin5.pp svneol=native#text/plain
 tests/test/cg/tumin.pp svneol=native#text/plain
 tests/test/cg/tvec.pp svneol=native#text/plain
 tests/test/cg/uprintf3.pp svneol=native#text/plain

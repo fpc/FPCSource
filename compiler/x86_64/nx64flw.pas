@@ -427,7 +427,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
     { this can be called recursivly }
     oldBreakLabel:=nil;
     oldContinueLabel:=nil;
