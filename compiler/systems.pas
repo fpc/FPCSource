@@ -153,7 +153,10 @@ interface
             tf_safecall_clearstack,             // With this flag set, after safecall calls the caller cleans up the stack
             tf_safecall_exceptions,             // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
                                                 // The original result (if it exists) is passed as an extra parameter
-            tf_no_backquote_support
+            tf_no_backquote_support,
+            { do not generate an object file when smartlinking is turned on,
+              this is usefull for architectures which require a small code footprint }
+            tf_no_objectfiles_when_smartlinking
        );
 
        psysteminfo = ^tsysteminfo;

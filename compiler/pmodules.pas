@@ -99,7 +99,8 @@ implementation
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
-        GenerateAsm(false);
+        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in target_info.flags) then
+          GenerateAsm(false);
 
         { Also create a smartlinked version ? }
         if create_smartlink_library then
