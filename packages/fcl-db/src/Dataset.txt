@@ -186,7 +186,6 @@ This method should be called from InternalOpen, and should
 initialize FieldDef definitions for all fields in a record.
 It should add these definitions to the FFielddefs object.
 
-
 procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
 ---------------------------------------------------------------
 This method is called to initialize a field buffer when the dataset

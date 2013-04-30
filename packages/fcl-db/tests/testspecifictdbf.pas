@@ -386,9 +386,15 @@ const
 var
   ds : TDBF;
   i: integer;
+  DBFStream: TMemoryStream;
+  MemoStream: TMemoryStream;
 begin
   ds := TDBF.Create(nil);
-  ds.Storage:=stoMemory;
+  DBFStream:=TMemoryStream.Create;
+  MemoStream:=TMemoryStream.Create;
+  DS.Storage:=stoMemory;
+  DS.UserStream:=DBFStream;
+  DS.UserMemoStream:=MemoStream;
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftMemo);
   DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
@@ -416,6 +422,8 @@ begin
   DS.Close;
   
   ds.free;
+  DBFStream.Free;
+  MemoStream.Free;
 end;
 
 procedure TTestSpecificTDBF.TestLargeString;

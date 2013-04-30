@@ -157,6 +157,7 @@ type
     FParser: TDbfParser;
     FBlobStreams: PDbfBlobList;
     FUserStream: TStream;  // user stream to open
+    FUserMemoStream: TStream; // user-provided/expected stream backing memo file storage
     FTableName: string;    // table path and file name
     FRelativePath: string;
     FAbsolutePath: string;
@@ -397,7 +398,10 @@ type
     property PhysicalRecordCount: Integer read GetPhysicalRecordCount;
     property KeySize: Integer read GetKeySize;
     property DbfFile: TDbfFile read FDbfFile;
+    // Storage for data file if using memory storage
     property UserStream: TStream read FUserStream write FUserStream;
+    // Storage for memo file - if any - when using memory storage
+    property UserMemoStream: TStream read FUserMemoStream write FUserMemoStream;
     property DisableResyncOnPost: Boolean read FDisableResyncOnPost write FDisableResyncOnPost;
   published
     property DateTimeHandling: TDateTimeHandling
@@ -1145,6 +1149,7 @@ begin
   if FStorage = stoMemory then
   begin
     FDbfFile.Stream := FUserStream;
+    FDbfFile.MemoStream := FUserMemoStream;
     FDbfFile.Mode := FileModeToMemMode[FileOpenMode];
   end else begin
     FDbfFile.FileName := FAbsolutePath + FTableName;
@@ -1548,9 +1553,12 @@ begin
       else
         FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
-      // if creating memory table, copy stream pointer
+      // if creating memory table, use user-designated stream
       if FStorage = stoMemory then
+      begin
         FUserStream := FDbfFile.Stream;
+        FUserMemoStream := FDbfFile.MemoStream;
+      end;
 
       // create all indexes
       for I := 0 to FIndexDefs.Count-1 do

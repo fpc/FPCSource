@@ -47,6 +47,7 @@ type
   protected
     FMdxFile: TIndexFile;
     FMemoFile: TMemoFile;
+    FMemoStream: TStream;
     FFieldDefs: TDbfFieldDefs;
     FIndexNames: TStringList;
     FIndexFiles: TList;
@@ -138,6 +139,8 @@ type
     procedure RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer);
 
     property MemoFile: TMemoFile read FMemoFile;
+    // Backing stream for stream/memory-based memo "files"
+    property MemoStream: TStream read FMemoStream write FMemoStream;
     property FieldDefs: TDbfFieldDefs read FFieldDefs;
     property IndexNames: TStringList read FIndexNames;
     property IndexFiles: TList read FIndexFiles;
@@ -505,6 +508,8 @@ begin
           MemoFileClass := TDbaseMemoFile; //fallback/default
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
+        if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          FMemoFile.Stream:=FMemoStream;
         FMemoFile.Mode := Mode;
         FMemoFile.AutoCreate := true;
         FMemoFile.MemoRecordSize := 0;
@@ -869,6 +874,8 @@ begin
     else
       FMemoFile := TDbaseMemoFile.Create(Self);
     FMemoFile.FileName := lMemoFileName;
+    if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      FMemoFile.Stream:=FMemoStream;
     FMemoFile.Mode := Mode;
     FMemoFile.AutoCreate := AutoCreate;
     FMemoFile.MemoRecordSize := MemoSize;
@@ -1386,7 +1393,10 @@ begin
   if FMemoFile <> nil then
     DestDbfFile.FinishCreate(DestFieldDefs, FMemoFile.RecordSize)
   else
-    DestDbfFile.FinishCreate(DestFieldDefs, 512);
+    if (DestDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro]) then
+      DestDbfFile.FinishCreate(DestFieldDefs, 64) {VFP default}
+    else
+      DestDbfFile.FinishCreate(DestFieldDefs, 512);
 
   // adjust size and offsets of fields
   GetMem(RestructFieldInfo, sizeof(TRestructFieldInfo)*DestFieldDefs.Count);
