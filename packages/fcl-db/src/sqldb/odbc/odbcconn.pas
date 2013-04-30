@@ -522,7 +522,7 @@ begin
         SQLGetStmtAttr(ODBCCursor.FSTMTHandle, SQL_ATTR_APP_PARAM_DESC, @APD, 0, nil),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get parameter descriptor.'
       );
-      SQLSetDescRec(APD, i+1, SQL_C_NUMERIC, 0, ColumnSize+2, ColumnSize, DecimalDigits, Buf, nil, nil);
+      SQLSetDescRec(APD, i+1, SQL_C_NUMERIC, 0, ColumnSize+2, ColumnSize, DecimalDigits, Buf, PStrLenOrInd, PStrLenOrInd);
     end;
   end;
 end;
