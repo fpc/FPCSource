@@ -204,7 +204,7 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
-  TPpuConstType = (ctInt, ctFloat, ctStr);
+  TPpuConstType = (ctInt, ctFloat, ctStr, ctSet, ctPtr);
 
   { TPpuConstDef }
   TPpuConstDef = class(TPpuDef)
@@ -216,6 +216,7 @@ type
     VInt: Int64;
     VFloat: extended;
     VStr: string;
+    VSet: array[0..31] of byte;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
   end;
@@ -319,13 +320,24 @@ type
   protected
     procedure BeforeWriteItems(Output: TPpuOutput); override;
   public
-    ElLow, ElHigh: Int64;
+    ElLow, ElHigh: integer;
     Size: byte;
     CopyFrom: TPpuRef;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
   end;
 
+  { TPpuSetDef }
+  TPpuSetDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    ElType: TPpuRef;
+    SetBase, SetMax: integer;
+    Size: byte;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
 
 implementation
 
@@ -354,7 +366,7 @@ const
     ('dynamic');
 
   ConstTypeNames: array[TPpuConstType] of string =
-    ('int', 'float', 'string');
+    ('int', 'float', 'string', 'set', 'pointer');
 
   SymIdBit = $80000000;
   InvalidId = cardinal(-1);
@@ -363,6 +375,32 @@ const
 function IsSymId(Id: cardinal): boolean; inline;
 begin
   Result:=Id and SymIdBit <> 0;
+end;
+
+{ TPpuSetDef }
+
+procedure TPpuSetDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  with Output do begin
+    WriteInt('Size', Size);
+    WriteInt('Base', SetBase);
+    WriteInt('Max', SetMax);
+  end;
+  ElType.Write(Output, 'ElType');
+end;
+
+constructor TPpuSetDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtSet;
+  ElType:=TPpuRef.Create;
+end;
+
+destructor TPpuSetDef.Destroy;
+begin
+  ElType.Free;
+  inherited Destroy;
 end;
 
 { TPpuEnumDef }
@@ -397,7 +435,8 @@ end;
 
 procedure TPpuConstDef.WriteDef(Output: TPpuOutput);
 var
-  s: string;
+  s, ss: string;
+  i: integer;
 begin
   inherited WriteDef(Output);
   with Output do begin
@@ -410,6 +449,18 @@ begin
         WriteFloat(s, VFloat);
       ctStr:
         WriteStr(s, VStr);
+      ctPtr:
+        if VInt = 0 then
+          WriteNull(s)
+        else
+          WriteStr(s, hexStr(QWord(VInt), SizeOf(pointer)*2));
+      ctSet:
+        begin
+          ss:='';
+          for i:=Low(VSet) to High(VSet) do
+            ss:=ss + hexStr(VSet[i], 2);
+          WriteStr(s, ss);
+        end;
     end;
   end;
   if not TypeRef.IsNull then

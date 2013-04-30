@@ -2182,8 +2182,10 @@ begin
                constpointer :
                  begin
                    write  ([space,'  PointerType : ']);
-                   readderef('');
-                   writeln([space,'        Value : ',getaint])
+                   readderef('',constdef.TypeRef);
+                   constdef.ConstType:=ctInt;
+                   constdef.VInt:=getaint;
+                   writeln([space,'        Value : ',constdef.VInt])
                  end;
                conststring,
                constresourcestring :
@@ -2238,8 +2240,9 @@ begin
                  end;
                constset :
                  begin
+                   constdef.ConstType:=ctSet;
                    write ([space,'      Set Type : ']);
-                   readderef('');
+                   readderef('',constdef.TypeRef);
                    for i:=1to 4 do
                     begin
                       write ([space,'        Value : ']);
@@ -2247,13 +2250,19 @@ begin
                        begin
                          if j>1 then
                           write(',');
-                         write(hexstr(getbyte,2));
+                         b:=getbyte;
+                         write(hexstr(b,2));
+                         constdef.VSet[i*j-1]:=b;
                        end;
                       writeln;
                     end;
                  end;
                constnil:
-                 writeln([space,' NIL pointer.']);
+                 begin
+                   writeln([space,' NIL pointer.']);
+                   constdef.ConstType:=ctPtr;
+                   constdef.VInt:=0;
+                 end;
                constwstring :
                  begin
                    initwidestring(pw);
@@ -2498,6 +2507,7 @@ var
   objdef: TPpuObjectDef absolute def;
   arrdef: TPpuArrayDef absolute def;
   enumdef: TPpuEnumDef absolute def;
+  setdef: TPpuSetDef absolute def;
 begin
   with ppufile do
    begin
@@ -2506,6 +2516,7 @@ begin
      if readentry<>ibstartdefs then
       Writeln('!! ibstartdefs not found');
      repeat
+       def:=nil;
        b:=readentry;
        case b of
 
@@ -2887,12 +2898,16 @@ begin
 
          ibsetdef :
            begin
-             readcommondef('Set definition',defoptions);
+             setdef:=TPpuSetDef.Create(ParentDef);
+             readcommondef('Set definition',defoptions,setdef);
              write  ([space,'     Element type : ']);
-             readderef('');
-             writeln([space,'             Size : ',getaint]);
-             writeln([space,'         Set Base : ',getaint]);
-             writeln([space,'          Set Max : ',getaint]);
+             readderef('',setdef.ElType);
+             setdef.Size:=getaint;
+             writeln([space,'             Size : ',setdef.Size]);
+             setdef.SetBase:=getaint;
+             writeln([space,'         Set Base : ',setdef.SetBase]);
+             setdef.SetMax:=getaint;
+             writeln([space,'          Set Max : ',setdef.SetMax]);
            end;
 
          ibvariantdef :
@@ -2926,6 +2941,8 @@ begin
              SetHasErrors;
            end;
        end;
+       if (def <> nil) and (def.Parent = nil) then
+         def.Free;
        if not EndOfEntry then
          HasMoreInfos;
      until false;
