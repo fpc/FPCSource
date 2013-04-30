@@ -1185,9 +1185,9 @@ begin
     end;
 
     if (FieldType in [ftString,ftFixedChar]) and // field types mapped to TStringField
-       (FieldSize >= dsMaxStringSize) then
+       (FieldSize > MaxSmallint) then
     begin
-      FieldSize:=dsMaxStringSize-1;
+      FieldSize := MaxSmallint;
     end
     else
     // any exact numeric type with scale 0 can have identity attr.
@@ -1536,8 +1536,6 @@ begin
 end;
 
 destructor TODBCCursor.Destroy;
-var
-  Res:SQLRETURN;
 begin
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   FBlobStreams.Free;
