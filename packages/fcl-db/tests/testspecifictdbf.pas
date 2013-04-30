@@ -53,6 +53,9 @@ type
     procedure TestFindPrior;
     // Tests writing and reading a memo field
     procedure TestMemo;
+    // Tests like TestMemo, but closes and reopens in memory file
+    // in between. Data should still be there.
+    procedure TestMemoClose;
     // Tests string field with
     // 254 characters (max for DBase IV)
     // 32767 characters (FoxPro, Visual FoxPro)
@@ -73,11 +76,13 @@ uses
 
 procedure TTestSpecificTDBF.WriteReadbackTest(ADBFDataset: TDbf;
   AutoInc: boolean);
+const
+  MaxRecs = 10;
 var
   i  : integer;
 begin
   // Add sample data
-  for i := 1 to 10 do
+  for i := 1 to MaxRecs do
     begin
     ADBFDataset.Append;
     if not AutoInc then
@@ -86,7 +91,7 @@ begin
     ADBFDataset.Post;
     end;
   ADBFDataset.first;
-  for i := 1 to 10 do
+  for i := 1 to MaxRecs do
     begin
     CheckEquals(i,ADBFDataset.fieldbyname('ID').asinteger);
     CheckEquals('TestName' + inttostr(i),ADBFDataset.fieldbyname('NAME').AsString);
@@ -367,10 +372,49 @@ begin
   ds := TDBFAutoClean.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftMemo);
+  DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
   DS.CreateTable;
   DS.Open;
   WriteReadbackTest(ds);
   DS.Close;
+  ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestMemoClose;
+const
+  MaxRecs = 10;
+var
+  ds : TDBF;
+  i: integer;
+begin
+  ds := TDBF.Create(nil);
+  ds.Storage:=stoMemory;
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftMemo);
+  DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
+  DS.CreateTable;
+  
+  DS.Open;  
+  for i := 1 to MaxRecs do
+    begin
+    DS.Append;
+    DS.FieldByName('ID').AsInteger := i;
+    DS.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    DS.Post;
+    end;  
+  DS.Close; //in old implementations, this erased memo memory
+  
+  DS.Open;
+  DS.First;
+  for i := 1 to MaxRecs do
+    begin
+    CheckEquals(i,DS.fieldbyname('ID').asinteger);
+    CheckEquals('TestName' + inttostr(i),DS.fieldbyname('NAME').AsString);
+    DS.next;
+    end;
+  CheckTrue(DS.EOF,'After reading all records the dataset should show EOF');  
+  DS.Close;
+  
   ds.free;
 end;
 
