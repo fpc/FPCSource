@@ -1043,7 +1043,19 @@ interface
       begin
 {$ifdef i8086}
       AsmWriteLn('BITS 16');
-      AsmWriteLn('CPU 286');
+      case current_settings.cputype of
+        cpu_8086: AsmWriteLn('CPU 8086');
+        cpu_186: AsmWriteLn('CPU 186');
+        cpu_286: AsmWriteLn('CPU 286');
+        cpu_386: AsmWriteLn('CPU 386');
+        cpu_Pentium: AsmWriteLn('CPU PENTIUM');
+        cpu_Pentium2: AsmWriteLn('CPU P2');
+        cpu_Pentium3: AsmWriteLn('CPU P3');
+        cpu_Pentium4: AsmWriteLn('CPU P4');
+        cpu_PentiumM: AsmWriteLn('CPU P4');
+        else
+          internalerror(2013050101);
+      end;
 
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
