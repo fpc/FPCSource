@@ -99,7 +99,7 @@ procedure tx64onnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
 
     { RTL will put exceptobject into RAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -476,7 +476,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
       begin
@@ -532,21 +532,30 @@ procedure tx64tryexceptnode.pass_generate_code;
         { do some magic for exit in the try block }
         cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
       end;
 
     if fc_break in exceptflowcontrol then
       begin
         cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
 
     if fc_continue in exceptflowcontrol then
       begin
         cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
     emit_nop;
