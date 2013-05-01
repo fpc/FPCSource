@@ -953,6 +953,9 @@ unit nx86add;
     procedure tx86addnode.second_cmpfloat;
       var
         resflags   : tresflags;
+{$ifdef i8086}
+        tmpref: treference;
+{$endif i8086}
       begin
         if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
@@ -971,10 +974,25 @@ unit nx86add;
             tcgx86(cg).dec_fpu_stack;
 
             { load fpu flags }
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
-            emit_reg(A_FNSTSW,S_NO,NR_AX);
-            emit_none(A_SAHF,S_NO);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+{$ifdef i8086}
+            if current_settings.cputype < cpu_286 then
+              begin
+                tg.gettemp(current_asmdata.CurrAsmList,2,2,tt_normal,tmpref);
+                emit_ref(A_FNSTSW,S_NO,tmpref);
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
+                emit_ref_reg(A_MOV,S_W,tmpref,NR_AX);
+                emit_none(A_SAHF,S_NO);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+                tg.ungettemp(current_asmdata.CurrAsmList,tmpref);
+              end
+            else
+{$endif i8086}
+              begin
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
+                emit_reg(A_FNSTSW,S_NO,NR_AX);
+                emit_none(A_SAHF,S_NO);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+              end;
             if nf_swapped in flags then
              begin
                case nodetype of
