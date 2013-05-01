@@ -160,6 +160,7 @@ unit cgcpu;
       var
         tmpreg: tregister;
         op1, op2: TAsmOp;
+        ax_subreg: tregister;
       begin
         optimize_op_const(op, a);
         check_register_size(size,reg);
@@ -212,7 +213,53 @@ unit cgcpu;
             end;
           end
         else
-          inherited a_op_const_reg(list, Op, size, a, reg);
+          begin
+            { size <= 16-bit }
+
+            { 8086 doesn't support 'imul reg,const', so we handle it here }
+            if (current_settings.cputype<cpu_186) and (op in [OP_MUL,OP_IMUL]) then
+              begin
+                { TODO: also enable the SHL optimization below }
+    {            if not(cs_check_overflow in current_settings.localswitches) and
+                   ispowerof2(int64(a),power) then
+                  begin
+                    list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
+                    exit;
+                  end;}
+                if op = OP_IMUL then
+                  begin
+                    if size in [OS_16,OS_S16] then
+                      ax_subreg := NR_AX
+                    else
+                      if size in [OS_8,OS_S8] then
+                        ax_subreg := NR_AL
+                      else
+                        internalerror(2013050102);
+
+                    getcpuregister(list,NR_AX);
+                    if size in [OS_16,OS_S16] then
+                      getcpuregister(list,NR_DX);
+
+                    a_load_const_reg(list,size,a,ax_subreg);
+                    list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
+                    a_load_reg_reg(list,size,size,ax_subreg,reg);
+
+                    ungetcpuregister(list,NR_AX);
+                    if size in [OS_16,OS_S16] then
+                      ungetcpuregister(list,NR_DX);
+
+                    { TODO: implement overflow checking? }
+
+                    exit;
+                  end
+                else
+                  { OP_MUL should be handled specifically in the code        }
+                  { generator because of the silly register usage restraints }
+                  internalerror(200109225);
+              end
+            else
+              inherited a_op_const_reg(list, Op, size, a, reg);
+          end;
       end;
 
 
