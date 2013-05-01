@@ -509,7 +509,7 @@ ifeq ($(PPC_TARGET),jvm)
 override LOCALOPT+=-Fujvm -dNOOPT
 endif
 ifeq ($(PPC_TARGET),i8086)
-override LOCALOPT+=-Fux86 -dNOOPT
+override LOCALOPT+=-Fux86
 endif
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo

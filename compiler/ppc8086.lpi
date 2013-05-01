@@ -143,7 +143,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-di8086 -dNOOPT -dEXTDEBUG -gl"/>
+      <CustomOptions Value="-di8086 -dEXTDEBUG -gl"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

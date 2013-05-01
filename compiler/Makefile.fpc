@@ -287,7 +287,7 @@ endif
 
 # i8086 specific
 ifeq ($(PPC_TARGET),i8086)
-override LOCALOPT+=-Fux86 -dNOOPT
+override LOCALOPT+=-Fux86
 endif
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
