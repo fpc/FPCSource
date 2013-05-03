@@ -184,6 +184,7 @@ type
     procedure WriteDef(Output: TPpuOutput); override;
   public
     FileTime: TDateTime;
+    constructor Create(AParent: TPpuContainerDef); override;
   end;
 
   TPpuProcOption = (poProcedure, poFunction, poConstructor, poDestructor, poOperator,
@@ -1076,6 +1077,12 @@ procedure TPpuSrcFile.WriteDef(Output: TPpuOutput);
 begin
   inherited WriteDef(Output);
   Output.WriteStr('Time', FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss', FileTime));
+end;
+
+constructor TPpuSrcFile.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtFile;
 end;
 
 { TPpuOutput }
