@@ -93,7 +93,6 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference; virtual;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
         procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
 
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
@@ -129,6 +128,8 @@ unit cgcpu;
 
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
+
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
       end;
 
       { normal arm cg }
@@ -171,6 +172,8 @@ unit cgcpu;
 
         procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const Ref: treference; reg: tregister);override;
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
+
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
       end;
 
       tthumbcg64farm = class(tbasecg64farm)
@@ -471,6 +474,55 @@ unit cgcpu;
          if (fromsize=OS_S8) and (tosize = OS_16) then
            a_load_reg_reg(list,OS_16,OS_32,reg,reg);
        end;
+
+
+    procedure tcgarm.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      var
+        hsym : tsym;
+        href : treference;
+        paraloc : Pcgparalocation;
+        shift : byte;
+      begin
+        { calculate the parameter info for the procdef }
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+          (hsym.typ=paravarsym)) then
+          internalerror(200305251);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
+            begin
+              case loc of
+                LOC_REGISTER:
+                  begin
+                    if is_shifter_const(ioffset,shift) then
+                      a_op_const_reg(list,OP_SUB,size,ioffset,register)
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
+                        a_op_reg_reg(list,OP_SUB,size,NR_R12,register);
+                      end;
+                  end;
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint));
+                    if is_shifter_const(ioffset,shift) then
+                      a_op_const_ref(list,OP_SUB,size,ioffset,href)
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
+                        a_op_reg_ref(list,OP_SUB,size,NR_R12,href);
+                      end;
+                  end
+                else
+                  internalerror(200309189);
+              end;
+              paraloc:=next;
+            end;
+      end;
 
 
     procedure tbasecgarm.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);
@@ -2636,54 +2688,6 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
-      var
-        hsym : tsym;
-        href : treference;
-        paraloc : Pcgparalocation;
-        shift : byte;
-      begin
-        { calculate the parameter info for the procdef }
-        procdef.init_paraloc_info(callerside);
-        hsym:=tsym(procdef.parast.Find('self'));
-        if not(assigned(hsym) and
-          (hsym.typ=paravarsym)) then
-          internalerror(200305251);
-        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
-        while paraloc<>nil do
-          with paraloc^ do
-            begin
-              case loc of
-                LOC_REGISTER:
-                  begin
-                    if is_shifter_const(ioffset,shift) then
-                      a_op_const_reg(list,OP_SUB,size,ioffset,register)
-                    else
-                      begin
-                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
-                        a_op_reg_reg(list,OP_SUB,size,NR_R12,register);
-                      end;
-                  end;
-                LOC_REFERENCE:
-                  begin
-                    { offset in the wrapper needs to be adjusted for the stored
-                      return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint));
-                    if is_shifter_const(ioffset,shift) then
-                      a_op_const_ref(list,OP_SUB,size,ioffset,href)
-                    else
-                      begin
-                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
-                        a_op_reg_ref(list,OP_SUB,size,NR_R12,href);
-                      end;
-                  end
-                else
-                  internalerror(200309189);
-              end;
-              paraloc:=next;
-            end;
-      end;
-
     procedure tbasecgarm.g_stackpointer_alloc(list: TAsmList; size: longint);
       begin
         internalerror(200807237);
@@ -3755,6 +3759,76 @@ unit cgcpu;
               list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
        end;
+
+
+    procedure tthumbcgarm.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      var
+        hsym : tsym;
+        href,
+        tmpref : treference;
+        paraloc : Pcgparalocation;
+        l : TAsmLabel;
+      begin
+        { calculate the parameter info for the procdef }
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+          (hsym.typ=paravarsym)) then
+          internalerror(200305251);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
+            begin
+              case loc of
+                LOC_REGISTER:
+                  begin
+                    if is_thumb_imm(ioffset) then
+                      a_op_const_reg(list,OP_SUB,size,ioffset,register)
+                    else
+                      begin
+                        list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
+                        reference_reset(tmpref,4);
+                        current_asmdata.getjumplabel(l);
+                        current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                        cg.a_label(current_procinfo.aktlocaldata,l);
+                        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+                        current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
+                        tmpref.symbol:=l;
+                        tmpref.base:=NR_PC;
+                        list.concat(taicpu.op_reg_ref(A_LDR,NR_R4,tmpref));
+                        a_op_reg_reg(list,OP_SUB,size,NR_R4,register);
+                        list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
+                      end;
+                  end;
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint));
+                    if is_thumb_imm(ioffset) then
+                      a_op_const_ref(list,OP_SUB,size,ioffset,href)
+                    else
+                      begin
+                        list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
+                        reference_reset(tmpref,4);
+                        current_asmdata.getjumplabel(l);
+                        current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+                        cg.a_label(current_procinfo.aktlocaldata,l);
+                        tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+                        current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
+                        tmpref.symbol:=l;
+                        tmpref.base:=NR_PC;
+                        list.concat(taicpu.op_reg_ref(A_LDR,NR_R4,tmpref));
+                        a_op_reg_ref(list,OP_SUB,size,NR_R4,href);
+                        list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R4]));
+                      end;
+                  end
+                else
+                  internalerror(200309189);
+              end;
+              paraloc:=next;
+            end;
+      end;
 
 
     procedure tthumbcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
@@ -4832,6 +4906,7 @@ unit cgcpu;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
         Result := ref;
       end;
+
 
      procedure tthumb2cgarm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
       var
