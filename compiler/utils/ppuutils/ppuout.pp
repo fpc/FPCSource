@@ -48,9 +48,9 @@ type
     procedure SetIndentSize(AValue: integer);
   protected
     procedure WriteObjectStart(const AName: string; Def: TPpuDef = nil); virtual;
-    procedure WriteObjectEnd(Def: TPpuDef = nil); virtual;
+    procedure WriteObjectEnd(const AName: string; Def: TPpuDef = nil); virtual;
     procedure WriteArrayStart(const AName: string); virtual;
-    procedure WriteArrayEnd; virtual;
+    procedure WriteArrayEnd(const AName: string); virtual;
     procedure WriteStr(const AName, AValue: string); virtual;
     procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean = True); virtual;
     procedure WriteFloat(const AName: string; AValue: extended); virtual;
@@ -63,6 +63,8 @@ type
     procedure WriteLn(const s: string = '');
     procedure IncI; virtual;
     procedure DecI; virtual;
+    procedure Init; virtual;
+    procedure Done; virtual;
     property Indent: integer read FIndent write SetIndent;
     property IndentSize: integer read FIndentSize write SetIndentSize;
   end;
@@ -734,7 +736,7 @@ begin
     for opt:=Low(opt) to High(opt) do
       if opt in Options then
         Output.WriteStr('', ArrayOptionNames[opt]);
-    Output.WriteArrayEnd;
+    Output.WriteArrayEnd('Options');
   end;
   ElType.Write(Output, 'ElType');
   RangeType.Write(Output, 'RangeType');;
@@ -934,7 +936,7 @@ begin
     for opt:=Low(opt) to High(opt) do
       if opt in Options then
         Output.WriteStr('', ObjOptionNames[opt]);
-    Output.WriteArrayEnd;
+    Output.WriteArrayEnd('Options');
   end;
   if IID <> '' then
     Output.WriteStr('IID', IID);
@@ -1014,7 +1016,7 @@ begin
         WriteInt('SymId', Id)
       else
         WriteInt('Id', Id);
-      WriteObjectEnd;
+      WriteObjectEnd(RefName);
     end;
 end;
 
@@ -1048,7 +1050,7 @@ begin
     for opt:=Low(opt) to High(opt) do
       if opt in Options then
         Output.WriteStr('', ProcOptionNames[opt]);
-    Output.WriteArrayEnd;
+    Output.WriteArrayEnd('Options');
   end;
   if Options*[poProcedure, poDestructor] = [] then
     ReturnType.Write(Output, 'RetType');
@@ -1133,7 +1135,7 @@ begin
   IncI;
 end;
 
-procedure TPpuOutput.WriteArrayEnd;
+procedure TPpuOutput.WriteArrayEnd(const AName: string);
 begin
   DecI;
 end;
@@ -1149,7 +1151,7 @@ begin
     WriteStr('Name', Def.Name);
 end;
 
-procedure TPpuOutput.WriteObjectEnd(Def: TPpuDef);
+procedure TPpuOutput.WriteObjectEnd(const AName: string; Def: TPpuDef);
 begin
   DecI;
 end;
@@ -1189,6 +1191,14 @@ begin
   Indent:=Indent - 1;
 end;
 
+procedure TPpuOutput.Init;
+begin
+end;
+
+procedure TPpuOutput.Done;
+begin
+end;
+
 { TPpuUnitDef }
 
 procedure TPpuUnitDef.WriteDef(Output: TPpuOutput);
@@ -1211,7 +1221,7 @@ begin
       WriteArrayStart('Units');
       for i:=0 to High(RefUnits) do
         WriteStr('', RefUnits[i]);
-      WriteArrayEnd;
+      WriteArrayEnd('Units');
     end;
     SourceFiles.WriteDef(Output);
   end;
@@ -1287,7 +1297,7 @@ begin
   Output.WriteArrayStart(ItemsName);
   for i:=0 to Count - 1 do
     Items[i].Write(Output);
-  Output.WriteArrayEnd;
+  Output.WriteArrayEnd(ItemsName);
 end;
 
 procedure TPpuContainerDef.BeforeWriteItems(Output: TPpuOutput);
@@ -1401,7 +1411,7 @@ begin
         WriteInt('File', FilePos.FileIndex);
       WriteInt('Line', FilePos.Line);
       WriteInt('Col', FilePos.Col);
-      WriteObjectEnd;
+      WriteObjectEnd('Pos');
     end;
     if Visibility <> dvPublic then
       WriteStr('Visibility', DefVisibilityNames[Visibility]);
@@ -1431,7 +1441,7 @@ begin
     Output.WriteObjectStart(AttrName, Self);
   WriteDef(Output);
   if Parent <> nil then
-    Output.WriteObjectEnd(Self);
+    Output.WriteObjectEnd(AttrName, Self);
 end;
 
 function TPpuDef.CanWrite: boolean;

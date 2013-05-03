@@ -38,9 +38,9 @@ type
     procedure WriteAttr(const AName, AValue: string);
   protected
     procedure WriteObjectStart(const AName: string; Def: TPpuDef); override;
-    procedure WriteObjectEnd(Def: TPpuDef); override;
+    procedure WriteObjectEnd(const AName: string; Def: TPpuDef); override;
     procedure WriteArrayStart(const AName: string); override;
-    procedure WriteArrayEnd; override;
+    procedure WriteArrayEnd(const AName: string); override;
     procedure WriteStr(const AName, AValue: string); override;
     procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean); override;
     procedure WriteFloat(const AName: string; AValue: extended); override;
@@ -195,7 +195,7 @@ begin
   inherited;
 end;
 
-procedure TPpuJsonOutput.WriteArrayEnd;
+procedure TPpuJsonOutput.WriteArrayEnd(const AName: string);
 begin
   inherited;
   Write(']');
@@ -208,7 +208,7 @@ begin
   inherited;
 end;
 
-procedure TPpuJsonOutput.WriteObjectEnd(Def: TPpuDef);
+procedure TPpuJsonOutput.WriteObjectEnd(const AName: string; Def: TPpuDef);
 begin
   inherited;
   Write('}');

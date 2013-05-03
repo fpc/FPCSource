@@ -739,6 +739,7 @@ compiler/utils/ppumove.pp svneol=native#text/plain
 compiler/utils/ppuutils/ppudump.pp svneol=native#text/plain
 compiler/utils/ppuutils/ppujson.pp svneol=native#text/plain
 compiler/utils/ppuutils/ppuout.pp svneol=native#text/plain
+compiler/utils/ppuutils/ppuxml.pp svneol=native#text/plain
 compiler/utils/samplecfg svneol=native#text/plain
 compiler/utils/usubst.pp svneol=native#text/plain
 compiler/verbose.pas svneol=native#text/plain

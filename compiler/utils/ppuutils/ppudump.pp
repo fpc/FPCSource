@@ -38,7 +38,8 @@ uses
   tokens,
   version,
   ppuout,
-  ppujson;
+  ppujson,
+  ppuxml;
 
 const
   Title     = 'PPU-Analyser';
@@ -3538,6 +3539,7 @@ begin
   writeln('    -F<format>  Set output format to <format>');
   writeln('                  t - text format (default)');
   writeln('                  j - JSON format');
+  writeln('                  j - XML format');
   writeln('    -M Exit with ExitCode=2 if more information is available');
   writeln('    -S Skip PPU version check. May lead to reading errors');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
@@ -3578,6 +3580,11 @@ begin
                     begin
                       nostdout:=True;
                       pout:=TPpuJsonOutput.Create(Output);
+                    end;
+                  'X':
+                    begin
+                      nostdout:=True;
+                      pout:=TPpuXmlOutput.Create(Output);
                     end;
                   else
                     begin
@@ -3621,7 +3628,11 @@ begin
     for nrfile:=startpara to paramcount do
       dofile (paramstr(nrfile));
     if not has_errors and (pout <> nil) then
-      UnitList.Write(pout);
+     begin
+       pout.Init;
+       UnitList.Write(pout);
+       pout.Done;
+     end;
   finally
     UnitList.Free;
     pout.Free;
