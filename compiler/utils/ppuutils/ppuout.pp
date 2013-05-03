@@ -29,7 +29,8 @@ uses SysUtils, cclasses, Classes;
 
 type
   TPpuDefType = (dtNone, dtUnit, dtObject, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
-                 dtTypeRef, dtConst, dtProcType, dtEnum, dtSet, dtClassRef, dtArray);
+                 dtTypeRef, dtConst, dtProcType, dtEnum, dtSet, dtClassRef, dtArray, dtPointer,
+                 dtOrd);
 
   TPpuDef = class;
   TPpuContainerDef = class;
@@ -51,7 +52,7 @@ type
     procedure WriteArrayStart(const AName: string); virtual;
     procedure WriteArrayEnd; virtual;
     procedure WriteStr(const AName, AValue: string); virtual;
-    procedure WriteInt(const AName: string; AValue: Int64); virtual;
+    procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean = True); virtual;
     procedure WriteFloat(const AName: string; AValue: extended); virtual;
     procedure WriteBool(const AName: string; AValue: boolean); virtual;
     procedure WriteNull(const AName: string); virtual;
@@ -204,7 +205,7 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
-  TPpuConstType = (ctInt, ctFloat, ctStr, ctSet, ctPtr);
+  TPpuConstType = (ctUnknown, ctInt, ctFloat, ctStr, ctSet, ctPtr);
 
   { TPpuConstDef }
   TPpuConstDef = class(TPpuDef)
@@ -219,6 +220,7 @@ type
     VSet: array[0..31] of byte;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
+    function CanWrite: boolean; override;
   end;
 
   { TPpuVarDef }
@@ -339,12 +341,36 @@ type
     destructor Destroy; override;
   end;
 
+  { TPpuPointerDef }
+  TPpuPointerDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    Ptr: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+  TPpuOrdType = (otVoid, otUInt, otSInt, otPasBool, otBool, otChar, otCurrency);
+
+  { TPpuOrdDef }
+  TPpuOrdDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    OrdType: TPpuOrdType;
+    Size: byte;
+    RangeLow, RangeHigh: Int64;
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
+
 implementation
 
 const
   DefTypeNames: array[TPpuDefType] of string =
     ('', 'unit', 'obj', 'rec', 'proc', 'field', 'prop', 'param', 'var',
-     'type', 'const', 'proctype', 'enum', 'set', 'classref', 'array');
+     'type', 'const', 'proctype', 'enum', 'set', 'classref', 'array', 'ptr', 'ord');
 
   ProcOptionNames: array[TPpuProcOption] of string =
     ('procedure', 'function', 'constructor', 'destructor', 'operator',
@@ -366,7 +392,10 @@ const
     ('dynamic');
 
   ConstTypeNames: array[TPpuConstType] of string =
-    ('int', 'float', 'string', 'set', 'pointer');
+    ('', 'int', 'float', 'string', 'set', 'pointer');
+
+  OrdTypeNames: array[TPpuOrdType] of string =
+    ('void', 'uint', 'sint', 'pasbool', 'bool', 'char', 'currency');
 
   SymIdBit = $80000000;
   InvalidId = cardinal(-1);
@@ -375,6 +404,49 @@ const
 function IsSymId(Id: cardinal): boolean; inline;
 begin
   Result:=Id and SymIdBit <> 0;
+end;
+
+{ TPpuOrdDef }
+
+procedure TPpuOrdDef.WriteDef(Output: TPpuOutput);
+var
+  Signed: boolean;
+begin
+  inherited WriteDef(Output);
+  with Output do begin
+    WriteStr('OrdType', OrdTypeNames[OrdType]);
+    WriteInt('Size', Size);
+    Signed:=OrdType in [otSInt, otCurrency, otBool];
+    WriteInt('Low', RangeLow, Signed);
+    WriteInt('High', RangeHigh, Signed);
+  end;
+end;
+
+constructor TPpuOrdDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtOrd;
+end;
+
+{ TPpuPointerDef }
+
+procedure TPpuPointerDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  Ptr.Write(Output, 'Ptr');
+end;
+
+constructor TPpuPointerDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtPointer;
+  Ptr:=TPpuRef.Create;
+end;
+
+destructor TPpuPointerDef.Destroy;
+begin
+  Ptr.Free;
+  inherited Destroy;
 end;
 
 { TPpuSetDef }
@@ -453,7 +525,10 @@ begin
         if VInt = 0 then
           WriteNull(s)
         else
-          WriteStr(s, hexStr(QWord(VInt), SizeOf(pointer)*2));
+          if QWord(VInt) > $FFFFFFFF then
+            WriteStr(s, hexStr(QWord(VInt), 8))
+          else
+            WriteStr(s, hexStr(QWord(VInt), 16));
       ctSet:
         begin
           ss:='';
@@ -472,12 +547,18 @@ begin
   inherited Create(AParent);
   DefType:=dtConst;
   TypeRef:=TPpuRef.Create;
+  ConstType:=ctUnknown;
 end;
 
 destructor TPpuConstDef.Destroy;
 begin
   TypeRef.Free;
   inherited Destroy;
+end;
+
+function TPpuConstDef.CanWrite: boolean;
+begin
+  Result:=inherited CanWrite and (ConstType <> ctUnknown);
 end;
 
 { TPpuArrayDef }
@@ -851,9 +932,12 @@ procedure TPpuOutput.WriteStr(const AName, AValue: string);
 begin
 end;
 
-procedure TPpuOutput.WriteInt(const AName: string; AValue: Int64);
+procedure TPpuOutput.WriteInt(const AName: string; AValue: Int64; Signed: boolean);
 begin
-  WriteStr(AName, IntToStr(AValue));
+  if Signed then
+    WriteStr(AName, IntToStr(AValue))
+  else
+    WriteStr(AName, IntToStr(QWord(AValue)));
 end;
 
 procedure TPpuOutput.WriteFloat(const AName: string; AValue: extended);

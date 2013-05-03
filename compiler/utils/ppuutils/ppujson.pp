@@ -42,7 +42,7 @@ type
     procedure WriteArrayStart(const AName: string); override;
     procedure WriteArrayEnd; override;
     procedure WriteStr(const AName, AValue: string); override;
-    procedure WriteInt(const AName: string; AValue: Int64); override;
+    procedure WriteInt(const AName: string; AValue: Int64; Signed: boolean); override;
     procedure WriteFloat(const AName: string; AValue: extended); override;
     procedure WriteBool(const AName: string; AValue: boolean); override;
     procedure WriteNull(const AName: string); override;
@@ -159,9 +159,12 @@ begin
   WriteAttr(AName, JsonStr(AValue));
 end;
 
-procedure TPpuJsonOutput.WriteInt(const AName: string; AValue: Int64);
+procedure TPpuJsonOutput.WriteInt(const AName: string; AValue: Int64; Signed: boolean);
 begin
-  WriteAttr(AName, IntToStr(AValue));
+  if Signed then
+    WriteAttr(AName, IntToStr(AValue))
+  else
+    WriteAttr(AName, IntToStr(QWord(AValue)));
 end;
 
 procedure TPpuJsonOutput.WriteFloat(const AName: string; AValue: extended);

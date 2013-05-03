@@ -299,6 +299,7 @@ begin
       case VType of
         vtInteger: system.write(VInteger);
         vtInt64: system.write(VInt64^);
+        vtQWord: system.write(VQWord^);
         vtString: system.write(VString^);
         vtAnsiString: system.write(ansistring(VAnsiString));
         vtPChar: system.write(VPChar);
@@ -2503,11 +2504,13 @@ var
   calloption : tproccalloption;
   procoptions : tprocoptions;
   defoptions: tdefoptions;
+  iexpr: Tconstexprint;
   def: TPpuDef;
   objdef: TPpuObjectDef absolute def;
   arrdef: TPpuArrayDef absolute def;
   enumdef: TPpuEnumDef absolute def;
   setdef: TPpuSetDef absolute def;
+  orddef: TPpuOrdDef absolute def;
 begin
   with ppufile do
    begin
@@ -2522,38 +2525,148 @@ begin
 
          ibpointerdef :
            begin
-             readcommondef('Pointer definition',defoptions);
+             def:=TPpuPointerDef.Create(ParentDef);
+             readcommondef('Pointer definition',defoptions,def);
              write  ([space,'     Pointed Type : ']);
-             readderef('');
+             readderef('',TPpuPointerDef(def).Ptr);
              writeln([space,'           Is Far : ',(getbyte<>0)]);
              writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 
          iborddef :
            begin
-             readcommondef('Ordinal definition',defoptions);
+             orddef:=TPpuOrdDef.Create(ParentDef);
+             readcommondef('Ordinal definition',defoptions,orddef);
              write  ([space,'        Base type : ']);
              b:=getbyte;
              case tordtype(b) of
-               uvoid     : writeln('uvoid');
-               u8bit     : writeln('u8bit');
-               u16bit    : writeln('u16bit');
-               u32bit    : writeln('s32bit');
-               u64bit    : writeln('u64bit');
-               s8bit     : writeln('s8bit');
-               s16bit    : writeln('s16bit');
-               s32bit    : writeln('s32bit');
-               s64bit    : writeln('s64bit');
-               bool8bit  : writeln('bool8bit');
-               bool16bit : writeln('bool16bit');
-               bool32bit : writeln('bool32bit');
-               bool64bit : writeln('bool64bit');
-               uchar     : writeln('uchar');
-               uwidechar : writeln('uwidechar');
-               scurrency : writeln('ucurrency');
+               uvoid:
+                 begin
+                   writeln('uvoid');
+                   orddef.OrdType:=otVoid;
+                 end;
+               u8bit:
+                 begin
+                   writeln('u8bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=1;
+                 end;
+               u16bit:
+                 begin
+                   writeln('u16bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=2;
+                 end;
+               u32bit:
+                 begin
+                   writeln('u32bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=4;
+                 end;
+               u64bit:
+                 begin
+                   writeln('u64bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=8;
+                 end;
+               s8bit:
+                 begin
+                   writeln('s8bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=1;
+                 end;
+               s16bit:
+                 begin
+                   writeln('s16bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=2;
+                 end;
+               s32bit:
+                 begin
+                   writeln('s32bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=4;
+                 end;
+               s64bit:
+                 begin
+                   writeln('s64bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=8;
+                 end;
+               pasbool8:
+                 begin
+                   writeln('pasbool8');
+                   orddef.OrdType:=otPasBool;
+                   orddef.Size:=1;
+                 end;
+               pasbool16:
+                 begin
+                   writeln('pasbool16');
+                   orddef.OrdType:=otPasBool;
+                   orddef.Size:=2;
+                 end;
+               pasbool32:
+                 begin
+                   writeln('pasbool32');
+                   orddef.OrdType:=otPasBool;
+                   orddef.Size:=4;
+                 end;
+               pasbool64:
+                 begin
+                   writeln('pasbool64');
+                   orddef.OrdType:=otPasBool;
+                   orddef.Size:=8;
+                 end;
+               bool8bit:
+                 begin
+                   writeln('bool8bit');
+                   orddef.OrdType:=otBool;
+                   orddef.Size:=1;
+                 end;
+               bool16bit:
+                 begin
+                   writeln('bool16bit');
+                   orddef.OrdType:=otBool;
+                   orddef.Size:=2;
+                 end;
+               bool32bit:
+                 begin
+                   writeln('bool32bit');
+                   orddef.OrdType:=otBool;
+                   orddef.Size:=4;
+                 end;
+               bool64bit:
+                 begin
+                   writeln('bool64bit');
+                   orddef.OrdType:=otBool;
+                   orddef.Size:=8;
+                 end;
+               uchar:
+                 begin
+                   writeln('uchar');
+                   orddef.OrdType:=otChar;
+                   orddef.Size:=1;
+                 end;
+               uwidechar:
+                 begin
+                   writeln('uwidechar');
+                   orddef.OrdType:=otChar;
+                   orddef.Size:=2;
+                 end;
+               scurrency:
+                 begin
+                   writeln('scurrency');
+                   orddef.OrdType:=otCurrency;
+                   orddef.Size:=8;
+                 end;
                else        writeln(['!! Warning: Invalid base type ',b]);
              end;
-             writeln([space,'            Range : ',constexp.tostr(getexprint),' to ',constexp.tostr(getexprint)]);
+             iexpr:=getexprint;
+             orddef.RangeLow:=iexpr.svalue;
+             write([space,'            Range : ',constexp.tostr(iexpr)]);
+             iexpr:=getexprint;
+             orddef.RangeHigh:=iexpr.svalue;
+             writeln([' to ',constexp.tostr(iexpr)]);
            end;
 
          ibfloatdef :
