@@ -873,6 +873,7 @@ implementation
         limit: longint;
         curop : longint;
         curtai : tai;
+        ai_label : tai_label;
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
         l : tasmlabel;
@@ -910,67 +911,88 @@ implementation
                         begin
                           { pc relative symbol? }
                           curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
-                          if assigned(curdatatai) and
-                            { move only if we're at the first reference of a label }
-                            not(tai_label(curdatatai).moved) then
+                          if assigned(curdatatai) then
                             begin
-                              tai_label(curdatatai).moved:=true;
-                              { check if symbol already used. }
-                              { if yes, reuse the symbol }
-                              hp:=tai(curdatatai.next);
-                              removeref:=false;
-                              if assigned(hp) then
+                              { create a new copy of a data entry on arm thumb if the entry has been inserted already
+                                before because arm thumb does not allow pc relative negative offsets }
+                              if (current_settings.cputype in cpu_thumb) and
+                                tai_label(curdatatai).inserted then
                                 begin
-                                  case hp.typ of
-                                    ait_const:
-                                      begin
-                                        if (tai_const(hp).consttype=aitconst_64bit) then
-                                          inc(extradataoffset,multiplier);
-                                      end;
-                                    ait_comp_64bit,
-                                    ait_real_64bit:
-                                      begin
-                                        inc(extradataoffset,multiplier);
-                                      end;
-                                    ait_real_80bit:
-                                      begin
-                                        inc(extradataoffset,2*multiplier);
-                                      end;
-                                  end;
-                                  if (hp.typ=ait_const) then
+                                  current_asmdata.getjumplabel(l);
+                                  hp:=tai_label.create(l);
+                                  listtoinsert.Concat(hp);
+                                  hp2:=tai(curdatatai.Next.GetCopy);
+                                  hp2.Next:=nil;
+                                  hp2.Previous:=nil;
+                                  listtoinsert.Concat(hp2);
+                                  taicpu(curtai).oper[curop]^.ref^.symboldata:=hp;
+                                  taicpu(curtai).oper[curop]^.ref^.symbol:=l;
+                                  curdatatai:=hp;
+                                end;
+
+                              { move only if we're at the first reference of a label }
+                              if not(tai_label(curdatatai).moved) then
+                                begin
+                                  tai_label(curdatatai).moved:=true;
+                                  { check if symbol already used. }
+
+                                  { if yes, reuse the symbol }
+                                  hp:=tai(curdatatai.next);
+                                  removeref:=false;
+                                  if assigned(hp) then
                                     begin
-                                      hp2:=tai(curdata.first);
-                                      while assigned(hp2) do
+                                      case hp.typ of
+                                        ait_const:
+                                          begin
+                                            if (tai_const(hp).consttype=aitconst_64bit) then
+                                              inc(extradataoffset,multiplier);
+                                          end;
+                                        ait_comp_64bit,
+                                        ait_real_64bit:
+                                          begin
+                                            inc(extradataoffset,multiplier);
+                                          end;
+                                        ait_real_80bit:
+                                          begin
+                                            inc(extradataoffset,2*multiplier);
+                                          end;
+                                      end;
+                                      { check if the same constant has been already inserted into the currently handled list,
+                                        if yes, reuse it }
+                                      if (hp.typ=ait_const) then
                                         begin
-    {                                      if armconstequal(hp2,hp) then }
-                                          if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
-                                            and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
-                                          then
+                                          hp2:=tai(curdata.first);
+                                          while assigned(hp2) do
                                             begin
-                                              with taicpu(curtai).oper[curop]^.ref^ do
+                                              if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
+                                                and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
+                                              then
                                                 begin
-                                                  symboldata:=hp2.previous;
-                                                  symbol:=tai_label(hp2.previous).labsym;
+                                                  with taicpu(curtai).oper[curop]^.ref^ do
+                                                    begin
+                                                      symboldata:=hp2.previous;
+                                                      symbol:=tai_label(hp2.previous).labsym;
+                                                    end;
+                                                  removeref:=true;
+                                                  break;
                                                 end;
-                                              removeref:=true;
-                                              break;
+                                              hp2:=tai(hp2.next);
                                             end;
-                                          hp2:=tai(hp2.next);
                                         end;
                                     end;
+                                  { move or remove symbol reference }
+                                  repeat
+                                    hp:=tai(curdatatai.next);
+                                    listtoinsert.remove(curdatatai);
+                                    if removeref then
+                                      curdatatai.free
+                                    else
+                                      curdata.concat(curdatatai);
+                                    curdatatai:=hp;
+                                  until (curdatatai=nil) or (curdatatai.typ=ait_label);
+                                  if lastinspos=-1 then
+                                    lastinspos:=curinspos;
                                 end;
-                              { move or remove symbol reference }
-                              repeat
-                                hp:=tai(curdatatai.next);
-                                listtoinsert.remove(curdatatai);
-                                if removeref then
-                                  curdatatai.free
-                                else
-                                  curdata.concat(curdatatai);
-                                curdatatai:=hp;
-                              until (curdatatai=nil) or (curdatatai.typ=ait_label);
-                              if lastinspos=-1 then
-                                lastinspos:=curinspos;
                             end;
                         end;
                     end;
@@ -1065,6 +1087,18 @@ implementation
                   curdata.Insert(tai_align.Create(4));
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
+
+                { mark all labels as inserted, arm thumb
+                  needs this, so data referencing an already inserted label can be
+                  duplicated because arm thumb does not allow negative pc relative offset }
+                hp2:=tai(curdata.first);
+                while assigned(hp2) do
+                  begin
+                    if hp2.typ=ait_label then
+                      tai_label(hp2).inserted:=true;
+                    hp2:=tai(hp2.next);
+                  end;
+
                 list.insertlistafter(curtai,curdata);
                 curtai:=hp;
               end

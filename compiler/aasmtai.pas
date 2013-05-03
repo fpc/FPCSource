@@ -488,6 +488,9 @@ interface
           { set to true when the label has been moved by insertpcrelativedata to the correct location
             so one label can be used multiple times }
           moved     : boolean;
+          { true, if a label has been already inserted, this is important for arm thumb where no negative
+            pc relative offsets are allowed }
+          inserted  : boolean;
 {$endif arm}
           constructor Create(_labsym : tasmlabel);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
@@ -1945,7 +1948,7 @@ implementation
                                TAI_LABEL
  ****************************************************************************}
 
-    constructor tai_label.create(_labsym : tasmlabel);
+        constructor tai_label.Create(_labsym : tasmlabel);
       begin
         inherited Create;
         typ:=ait_label;
@@ -1975,7 +1978,6 @@ implementation
       begin
         labsym.is_set:=true;
       end;
-
 
 {****************************************************************************
           tai_comment  comment to be inserted in the assembler file
