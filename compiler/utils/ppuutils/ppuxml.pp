@@ -51,7 +51,9 @@ implementation
 
 function TPpuXmlOutput.XmlStr(const s: string): string;
 var
-  ps, pd: PAnsiChar;
+  ws: widestring;
+  ps: PWideChar;
+  pd: PAnsiChar;
   slen, dlen, dpos: integer;
 
   procedure _AddChar(c: ansichar);
@@ -79,10 +81,11 @@ var
   end;
 
 var
-  c: ansichar;
+  c: widechar;
 begin
-  ps:=PAnsiChar(s);
-  slen:=Length(s);
+  ws:=UTF8Decode(s);
+  ps:=PWideChar(ws);
+  slen:=Length(ws);
   dlen:=slen + 2;
   SetLength(Result, dlen);
   pd:=PAnsiChar(Result);
@@ -97,10 +100,13 @@ begin
       '"': _AddStr('&quot;');
       '\': _AddStr('\\');
       else
-        if c < #32 then
-          _AddStr('\x' + hexStr(byte(c), 2))
+        if (c > #127) or (byte(c) in [9, 10, 13]) then
+          _AddStr('&#x' + hexStr(word(c), 4) + ';')
         else
-          _AddChar(c);
+          if c < #32 then
+            _AddStr('\x' + hexStr(byte(c), 2))
+          else
+            _AddChar(c);
     end;
     Inc(ps);
     Dec(slen);

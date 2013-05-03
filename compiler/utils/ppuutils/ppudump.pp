@@ -2104,6 +2104,7 @@ var
   startnewline : boolean;
   i,j,len : longint;
   prettyname, ss : ansistring;
+  ws: widestring;
   guid : tguid;
   realvalue : ppureal;
   doublevalue : double;
@@ -2209,6 +2210,7 @@ begin
                    writeln([space,'        Value : "',pc,'"']);
                    constdef.ConstType:=ctStr;
                    SetString(constdef.VStr, pc, len);
+                   constdef.VStr:=UTF8Encode(constdef.VStr);
                    freemem(pc,len+1);
                  end;
                constreal :
@@ -2284,6 +2286,9 @@ begin
                      begin
                        for i:=0 to pw^.len-1 do
                          pw^.data[i]:=ppufile.getword;
+                       SetString(ws, PWideChar(pw^.data), pw^.len);
+                       constdef.VStr:=UTF8Encode(ws);
+                       constdef.ConstType:=ctStr;
                      end
                    else if widecharsize=4 then
                      begin
@@ -2294,12 +2299,13 @@ begin
                      begin
                        WriteError('Unsupported tcompilerwidechar size');
                      end;
-                   Writeln([space,'Wide string type']);
+                   Write([space,'Wide string type']);
                    startnewline:=true;
                    for i:=0 to pw^.len-1 do
                      begin
                        if startnewline then
                          begin
+                           writeln;
                            write(space);
                            startnewline:=false;
                          end;
@@ -2308,12 +2314,14 @@ begin
                          write(hexstr(ch,4))
                        else
                          write(hexstr(ch,8));
-                       if (i mod 8)= 0 then
+                       if ((i + 1) mod 8)= 0 then
                          startnewline:=true
                        else
-                         write(', ');
+                         if i <> pw^.len-1 then
+                           write(', ');
                      end;
                    donewidestring(pw);
+                   Writeln;
                  end;
                constguid:
                  begin
