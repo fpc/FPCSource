@@ -193,6 +193,7 @@ var
   nostdout: boolean;
   UnitList: TPpuContainerDef;
   CurUnit: TPpuUnitDef;
+  SkipVersionCheck: boolean;
 
 
 {****************************************************************************
@@ -932,8 +933,7 @@ begin
   idx:=ppufile.getlongint;
   if (idx>derefdatalen) then
     begin
-      writeln(['!! Error: Deref idx ',idx,' > ',derefdatalen]);
-      SetHasErrors;
+      WriteError('!! Error: Deref idx '+IntToStr(idx)+' > '+IntToStr(derefdatalen));
       exit;
     end;
   write([derefspace,'(',idx,') ']);
@@ -983,8 +983,7 @@ begin
          end;
        else
          begin
-           writeln(['!! unsupported dereftyp: ',ord(b)]);
-           SetHasErrors;
+           WriteError('!! unsupported dereftyp: '+IntToStr(ord(b)));
            break;
          end;
      end;
@@ -2017,9 +2016,8 @@ var
 begin
   if ppufile.readentry<>ibcreatedobjtypes then
     begin
-      writeln('!! ibcreatedobjtypes entry not found');
+      WriteError('!! ibcreatedobjtypes entry not found');
       ppufile.skipdata(ppufile.entrysize);
-      SetHasErrors;
       exit
     end;
   writeln;
@@ -2246,8 +2244,7 @@ begin
                    else
                      begin
                        realvalue:=0.0;
-                       writeln([realvalue,' Error reading real value']);
-                       SetHasErrors;
+                       WriteError('Error reading real value');
                      end;
                  end;
                constset :
@@ -2480,8 +2477,7 @@ begin
 
          else
            begin
-             WriteLn(['!! Skipping unsupported PPU Entry in Symbols: ',b]);
-             SetHasErrors;
+             WriteError('!! Skipping unsupported PPU Entry in Symbols: '+IntToStr(b));
            end;
        end;
        if (def <> nil) and (def.Parent = nil) then
@@ -3133,8 +3129,7 @@ begin
 
          else
            begin
-             WriteLn(['!! Skipping unsupported PPU Entry in definitions: ',b]);
-             SetHasErrors;
+             WriteError('!! Skipping unsupported PPU Entry in definitions: '+IntToStr(b));
            end;
        end;
        if (def <> nil) and (def.Parent = nil) then
@@ -3307,8 +3302,7 @@ begin
 
          else
            begin
-             WriteLn(['!! Skipping unsupported PPU Entry in General Part: ',b]);
-             SetHasErrors;
+             WriteError('!! Skipping unsupported PPU Entry in General Part: '+IntToStr(b));
            end;
        end;
      until false;
@@ -3345,8 +3339,7 @@ begin
            break;
          else
            begin
-             WriteLn(['!! Skipping unsupported PPU Entry in Implementation: ',b]);
-             SetHasErrors;
+             WriteError('!! Skipping unsupported PPU Entry in Implementation: '+IntToStr(b));
            end;
        end;
      until false;
@@ -3370,8 +3363,7 @@ begin
 { PPU File is open, check for PPU Id }
   if not ppufile.CheckPPUID then
    begin
-     writeln([Filename,' : Not a valid PPU file, Skipping']);
-     SetHasErrors;
+     WriteError(Filename+' : Not a valid PPU file, Skipping');
      exit;
    end;
 { Check PPU Version }
@@ -3380,8 +3372,13 @@ begin
   Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
   if PPUVersion<16 then
    begin
-     writeln([Filename,' : Old PPU Formats (<v16) are not supported, Skipping']);
-     SetHasErrors;
+     WriteError(Filename+' : Old PPU Formats (<v16) are not supported, Skipping');
+     exit;
+   end;
+
+  if not SkipVersionCheck and (PPUVersion <> CurrentPPUVersion) then
+   begin
+     WriteError(Format('Unsupported PPU version %d. Expecting PPU version %d.', [PPUVersion, CurrentPPUVersion]));
      exit;
    end;
 
@@ -3542,13 +3539,13 @@ begin
   writeln('                  t - text format (default)');
   writeln('                  j - JSON format');
   writeln('    -M Exit with ExitCode=2 if more information is available');
+  writeln('    -S Skip PPU version check. May lead to reading errors');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
   writeln('                   H - Show header info');
   writeln('                   I - Show interface');
   writeln('                   M - Show implementation');
   writeln('                   S - Show interface symbols');
   writeln('                   D - Show interface definitions');
-//  writeln('                   B - Show browser info');
   writeln('                   A - Show all');
   writeln('    -h, -?       This helpscreen');
   halt;
@@ -3590,6 +3587,7 @@ begin
                 end;
             end;
       'M' : error_on_more:=true;
+      'S' : SkipVersionCheck:=True;
       'V' : begin
               verbose:=0;
               for i:=3 to length(para) do
