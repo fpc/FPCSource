@@ -3775,7 +3775,8 @@ unit cgcpu;
                 internalerror(2008072801);
               { simulate ROL by ror'ing 32-value }
               tmpreg:=getintregister(list,OS_32);
-              list.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSB,tmpreg,src,32),PF_S));
+              a_load_const_reg(list,OS_32,32,tmpreg);
+              list.concat(taicpu.op_reg_reg(A_SUB,tmpreg,src));
               list.concat(taicpu.op_reg_reg(A_ROR,dst,src));
             end;
           else
