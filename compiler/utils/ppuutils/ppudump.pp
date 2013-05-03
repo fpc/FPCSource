@@ -2522,6 +2522,9 @@ var
   enumdef: TPpuEnumDef absolute def;
   setdef: TPpuSetDef absolute def;
   orddef: TPpuOrdDef absolute def;
+  floatdef: TPpuFloatDef absolute def;
+  strdef: TPpuStringDef absolute def;
+  filedef: TPpuFileDef absolute def;
 begin
   with ppufile do
    begin
@@ -2670,7 +2673,8 @@ begin
                    orddef.OrdType:=otCurrency;
                    orddef.Size:=8;
                  end;
-               else        WriteWarning('Invalid base type: ' + IntToStr(b));
+               else
+                 WriteWarning('Invalid base type: ' + IntToStr(b));
              end;
              iexpr:=getexprint;
              orddef.RangeLow:=iexpr.svalue;
@@ -2682,8 +2686,44 @@ begin
 
          ibfloatdef :
            begin
-             readcommondef('Float definition',defoptions);
-             writeln([space,'       Float type : ',getbyte]);
+             floatdef:=TPpuFloatDef.Create(ParentDef);
+             readcommondef('Float definition',defoptions,floatdef);
+             write  ([space,'       Float type : ']);
+             b:=getbyte;
+             case b of
+               ftSingle:
+                 begin
+                   writeln('Single');
+                   floatdef.FloatType:=pftSingle;
+                 end;
+               ftDouble:
+                 begin
+                   writeln('Double');
+                   floatdef.FloatType:=pftDouble;
+                 end;
+               ftExtended:
+                 begin
+                   writeln('Extended');
+                   floatdef.FloatType:=pftExtended;
+                 end;
+               ftComp:
+                 begin
+                   writeln('Comp');
+                   floatdef.FloatType:=pftComp;
+                 end;
+               ftCurr:
+                 begin
+                   writeln('Currency');
+                   floatdef.FloatType:=pftCurrency;
+                 end;
+               ftFloat128:
+                 begin
+                   writeln('Float128');
+                   floatdef.FloatType:=pftFloat128;
+                 end;
+               else
+                 WriteWarning('Invalid float type: ' + IntToStr(b));
+             end;
            end;
 
          ibarraydef :
@@ -2791,32 +2831,47 @@ begin
 
          ibshortstringdef :
            begin
-             readcommondef('ShortString definition',defoptions);
-             writeln([space,'           Length : ',getbyte]);
+             strdef:=TPpuStringDef.Create(ParentDef);
+             strdef.StrType:=stShort;
+             readcommondef('ShortString definition',defoptions,strdef);
+             strdef.Len:=getbyte;
+             writeln([space,'           Length : ',strdef.Len]);
            end;
 
          ibwidestringdef :
            begin
-             readcommondef('WideString definition',defoptions);
-             writeln([space,'           Length : ',getaint]);
+             strdef:=TPpuStringDef.Create(ParentDef);
+             strdef.StrType:=stWide;
+             readcommondef('WideString definition',defoptions,strdef);
+             strdef.Len:=getaint;
+             writeln([space,'           Length : ',strdef.Len]);
            end;
 
          ibunicodestringdef :
            begin
-             readcommondef('UnicodeString definition',defoptions);
-             writeln([space,'           Length : ',getaint]);
+             strdef:=TPpuStringDef.Create(ParentDef);
+             strdef.StrType:=stUnicode;
+             readcommondef('UnicodeString definition',defoptions,strdef);
+             strdef.Len:=getaint;
+             writeln([space,'           Length : ',strdef.Len]);
            end;
 
          ibansistringdef :
            begin
-             readcommondef('AnsiString definition',defoptions);
-             writeln([space,'           Length : ',getaint]);
+             strdef:=TPpuStringDef.Create(ParentDef);
+             strdef.StrType:=stAnsi;
+             readcommondef('AnsiString definition',defoptions,strdef);
+             strdef.Len:=getaint;
+             writeln([space,'           Length : ',strdef.Len]);
            end;
 
          iblongstringdef :
            begin
-             readcommondef('Longstring definition',defoptions);
-             writeln([space,'           Length : ',getaint]);
+             strdef:=TPpuStringDef.Create(ParentDef);
+             strdef.StrType:=stLong;
+             readcommondef('Longstring definition',defoptions,strdef);
+             strdef.Len:=getaint;
+             writeln([space,'           Length : ',strdef.Len]);
            end;
 
          ibrecorddef :
@@ -2905,7 +2960,8 @@ begin
                   { IIDGUID }
                   for j:=1to 16 do
                    getbyte;
-                  writeln([space,'       IID String : ',getstring]);
+                  objdef.IID:=getstring;
+                  writeln([space,'       IID String : ',objdef.IID]);
                end;
 
              writeln([space,' Abstract methods : ',getlongint]);
@@ -2914,7 +2970,7 @@ begin
                  (oo_is_classhelper in current_objectoptions) then
                begin
                  write([space,'    Helper parent : ']);
-                 readderef('');
+                 readderef('',objdef.HelperParent);
                end;
 
              l:=getlongint;
@@ -2963,27 +3019,40 @@ begin
 
          ibfiledef :
            begin
-             ReadCommonDef('File definition',defoptions);
+             filedef:=TPpuFileDef.Create(ParentDef);
+             ReadCommonDef('File definition',defoptions,filedef);
              write  ([space,'             Type : ']);
              case getbyte of
-              0 : writeln('Text');
+              0 : begin
+                    writeln('Text');
+                    filedef.FileType:=ftText;
+                  end;
               1 : begin
                     writeln('Typed');
+                    filedef.FileType:=ftTyped;
                     write  ([space,'      File of Type : ']);
-                    readderef('');
+                    readderef('',filedef.TypeRef);
                   end;
-              2 : writeln('Untyped');
+              2 : begin
+                    writeln('Untyped');
+                    filedef.FileType:=ftUntyped;
+                  end;
              end;
            end;
 
          ibformaldef :
            begin
-             readcommondef('Generic definition (void-typ)',defoptions);
-             writeln([space,'         Is Typed : ',(getbyte<>0)]);
+             def:=TPpuFormalDef.Create(ParentDef);
+             readcommondef('Generic definition (void-typ)',defoptions,def);
+             TPpuFormalDef(def).IsTyped:=(getbyte<>0);
+             writeln([space,'         Is Typed : ',TPpuFormalDef(def).IsTyped]);
            end;
 
          ibundefineddef :
-           readcommondef('Undefined definition (generic parameter)',defoptions);
+           begin
+             def:=TPpuUndefinedDef.Create(ParentDef);
+             readcommondef('Undefined definition (generic parameter)',defoptions,def);
+           end;
 
          ibenumdef :
            begin
@@ -3036,18 +3105,21 @@ begin
 
          ibvariantdef :
            begin
-             readcommondef('Variant definition',defoptions);
+             def:=TPpuVariantDef.Create(ParentDef);
+             readcommondef('Variant definition',defoptions,def);
              write  ([space,'      Varianttype : ']);
              b:=getbyte;
              case tvarianttype(b) of
                vt_normalvariant :
                  writeln('Normal');
                vt_olevariant :
-                 writeln('OLE');
+                 begin
+                   TPpuVariantDef(def).IsOLE:=True;
+                   writeln('OLE');
+                 end
                else
                  WriteWarning('Invalid varianttype: ' + IntToStr(b));
              end;
-
            end;
 
          iberror :

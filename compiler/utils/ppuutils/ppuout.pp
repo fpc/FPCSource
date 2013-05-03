@@ -30,7 +30,7 @@ uses SysUtils, cclasses, Classes;
 type
   TPpuDefType = (dtNone, dtUnit, dtObject, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
                  dtTypeRef, dtConst, dtProcType, dtEnum, dtSet, dtClassRef, dtArray, dtPointer,
-                 dtOrd);
+                 dtOrd, dtFloat, dtString, dtFile, dtVariant, dtUndefined, dtFormal);
 
   TPpuDef = class;
   TPpuContainerDef = class;
@@ -259,6 +259,8 @@ type
     ObjType: TPpuObjType;
     Ancestor: TPpuRef;
     Options: TPpuObjOptions;
+    IID: string;
+    HelperParent: TPpuRef;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
     function CanWrite: boolean; override;
@@ -364,13 +366,73 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
+  TPpuFloatType = (pftSingle, pftDouble, pftExtended, pftComp, pftCurrency, pftFloat128);
+
+  { TPpuFloatDef }
+  TPpuFloatDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    FloatType: TPpuFloatType;
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
+  TPpuStrType = (stShort, stAnsi, stWide, stUnicode, stLong);
+
+  { TPpuStringDef }
+  TPpuStringDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    StrType: TPpuStrType;
+    Len: integer;
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
+  TPpuFileType = (ftText, ftTyped, ftUntyped);
+
+  { TPpuFileDef }
+  TPpuFileDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    FileType: TPpuFileType;
+    TypeRef: TPpuRef;
+    constructor Create(AParent: TPpuContainerDef); override;
+    destructor Destroy; override;
+  end;
+
+  { TPpuVariantDef }
+  TPpuVariantDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    IsOLE: boolean;
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
+  { TPpuUndefinedDef }
+  TPpuUndefinedDef = class(TPpuDef)
+  public
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
+
+  { TPpuFormalDef }
+  TPpuFormalDef = class(TPpuDef)
+  protected
+    procedure WriteDef(Output: TPpuOutput); override;
+  public
+    IsTyped: boolean;
+    constructor Create(AParent: TPpuContainerDef); override;
+  end;
 
 implementation
 
 const
   DefTypeNames: array[TPpuDefType] of string =
     ('', 'unit', 'obj', 'rec', 'proc', 'field', 'prop', 'param', 'var',
-     'type', 'const', 'proctype', 'enum', 'set', 'classref', 'array', 'ptr', 'ord');
+     'type', 'const', 'proctype', 'enum', 'set', 'classref', 'array', 'ptr',
+     'ord', 'float', 'string', 'file', 'variant', 'undefined', 'formal');
 
   ProcOptionNames: array[TPpuProcOption] of string =
     ('procedure', 'function', 'constructor', 'destructor', 'operator',
@@ -397,6 +459,15 @@ const
   OrdTypeNames: array[TPpuOrdType] of string =
     ('void', 'uint', 'sint', 'pasbool', 'bool', 'char', 'currency');
 
+  FloatTypeNames: array[TPpuFloatType] of string =
+    ('single', 'double', 'extended', 'comp', 'currency', 'float128');
+
+  StrTypeNames: array[TPpuStrType] of string =
+    ('short', 'ansi', 'wide', 'unicode', 'long');
+
+  FileTypeNames: array[TPpuFileType] of string =
+    ('text', 'typed', 'untyped');
+
   SymIdBit = $80000000;
   InvalidId = cardinal(-1);
   InvalidUnit = word(-1);
@@ -404,6 +475,96 @@ const
 function IsSymId(Id: cardinal): boolean; inline;
 begin
   Result:=Id and SymIdBit <> 0;
+end;
+
+{ TPpuUndefinedDef }
+
+constructor TPpuUndefinedDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtUndefined;
+end;
+
+{ TPpuFormalDef }
+
+procedure TPpuFormalDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  Output.WriteBool('IsTyped', IsTyped);
+end;
+
+constructor TPpuFormalDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtFormal;
+end;
+
+{ TPpuVariantDef }
+
+procedure TPpuVariantDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  if IsOLE then
+    Output.WriteBool('OleVariant', True);
+end;
+
+constructor TPpuVariantDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtVariant;
+end;
+
+{ TPpuFileDef }
+
+procedure TPpuFileDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  Output.WriteStr('FileType', FileTypeNames[FileType]);
+  if FileType = ftTyped then
+    TypeRef.Write(Output, 'TypeRef');
+end;
+
+constructor TPpuFileDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtFile;
+  TypeRef:=TPpuRef.Create;
+end;
+
+destructor TPpuFileDef.Destroy;
+begin
+  TypeRef.Free;
+  inherited Destroy;
+end;
+
+{ TPpuStringDef }
+
+procedure TPpuStringDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  Output.WriteStr('StrType', StrTypeNames[StrType]);
+  if Len >= 0 then
+    Output.WriteInt('Len', Len);
+end;
+
+constructor TPpuStringDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtString;
+end;
+
+{ TPpuFloatDef }
+
+procedure TPpuFloatDef.WriteDef(Output: TPpuOutput);
+begin
+  inherited WriteDef(Output);
+  Output.WriteStr('FloatType', FloatTypeNames[FloatType]);
+end;
+
+constructor TPpuFloatDef.Create(AParent: TPpuContainerDef);
+begin
+  inherited Create(AParent);
+  DefType:=dtFloat;
 end;
 
 { TPpuOrdDef }
@@ -775,6 +936,10 @@ begin
         Output.WriteStr('', ObjOptionNames[opt]);
     Output.WriteArrayEnd;
   end;
+  if IID <> '' then
+    Output.WriteStr('IID', IID);
+  if not HelperParent.IsNull then
+    HelperParent.Write(Output, 'HelperParent');
 end;
 
 constructor TPpuObjectDef.Create(AParent: TPpuContainerDef);
@@ -784,11 +949,13 @@ begin
   ItemsName:='Fields';
   ObjType:=otUnknown;
   Ancestor:=TPpuRef.Create;
+  HelperParent:=TPpuRef.Create;
 end;
 
 destructor TPpuObjectDef.Destroy;
 begin
   Ancestor.Free;
+  HelperParent.Free;
   inherited Destroy;
 end;
 
