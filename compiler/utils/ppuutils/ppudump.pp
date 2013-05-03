@@ -341,8 +341,19 @@ end;
 
 Procedure WriteError(const S : string);
 Begin
-   system.Writeln(S);
-   SetHasErrors;
+  system.Writeln(StdErr, S);
+  SetHasErrors;
+End;
+
+Procedure WriteWarning(const S : string);
+var
+  ss: string;
+Begin
+  ss:='!! Warning: ' + S;
+  if nostdout then
+    system.Writeln(StdErr, ss)
+  else
+    system.Writeln(ss);
 End;
 
 function Unknown(const st : string; val :longint) : string;
@@ -2659,7 +2670,7 @@ begin
                    orddef.OrdType:=otCurrency;
                    orddef.Size:=8;
                  end;
-               else        writeln(['!! Warning: Invalid base type ',b]);
+               else        WriteWarning('Invalid base type: ' + IntToStr(b));
              end;
              iexpr:=getexprint;
              orddef.RangeLow:=iexpr.svalue;
@@ -2868,7 +2879,7 @@ begin
                odt_objccategory   : writeln('objccategory');
                odt_javaclass      : writeln('Java class');
                odt_interfacejava  : writeln('Java interface');
-               else                 writeln(['!! Warning: Invalid object type ',b]);
+               else                 WriteWarning('Invalid object type: ' + IntToStr(b));
              end;
              case tobjecttyp(b) of
                odt_class, odt_cppclass, odt_objcclass, odt_javaclass:
@@ -3034,7 +3045,7 @@ begin
                vt_olevariant :
                  writeln('OLE');
                else
-                 writeln(['!! Warning: Invalid varianttype ',b]);
+                 WriteWarning('Invalid varianttype: ' + IntToStr(b));
              end;
 
            end;
