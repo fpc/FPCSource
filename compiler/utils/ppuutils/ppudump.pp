@@ -3547,7 +3547,7 @@ begin
   writeln('    -F<format>  Set output format to <format>');
   writeln('                  t - text format (default)');
   writeln('                  j - JSON format');
-  writeln('                  j - XML format');
+  writeln('                  x - XML format');
   writeln('    -M Exit with ExitCode=2 if more information is available');
   writeln('    -S Skip PPU version check. May lead to reading errors');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
