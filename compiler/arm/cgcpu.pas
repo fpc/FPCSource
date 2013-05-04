@@ -3909,38 +3909,25 @@ unit cgcpu;
               end
           end;
 
-        if is_thumb_imm(a) and not(op in [OP_IMUL,OP_MUL,OP_AND,OP_OR,OP_XOR]) then
-          case op of
-            OP_NEG:
-              list.concat(taicpu.op_reg_const(A_NEG,dst,a));
-            OP_NOT:
-              list.concat(taicpu.op_reg_const(A_MVN,dst,a));
-            OP_ROL:
-              begin
-                if not(size in [OS_32,OS_S32]) then
-                  internalerror(2008072801);
-                list.concat(taicpu.op_reg_const(A_ROR,dst,a));
-              end;
-            else
-              begin
-                // if cgsetflags or setflags then
-                  a_reg_alloc(list,NR_DEFAULTFLAGS);
-                list.concat(setoppostfix(
-                  taicpu.op_reg_const(op_reg_opcg2asmop[op],dst,a),op_reg_postfix[op]));
-              end;
+        if is_thumb_imm(a) and (op in [OP_ADD,OP_SUB]) then
+          begin
+             // if cgsetflags or setflags then
+             a_reg_alloc(list,NR_DEFAULTFLAGS);
+            list.concat(setoppostfix(
+              taicpu.op_reg_const(op_reg_opcg2asmop[op],dst,a),op_reg_postfix[op]));
 
-              if (cgsetflags {!!! or setflags }) and (size in [OS_8,OS_16,OS_32]) then
-                begin
-                  //!!! ovloc.loc:=LOC_FLAGS;
-                  case op of
-                    OP_ADD:
-                      //!!! ovloc.resflags:=F_CS;
-                      ;
-                    OP_SUB:
-                      //!!! ovloc.resflags:=F_CC;
-                      ;
-                  end;
+            if (cgsetflags {!!! or setflags }) and (size in [OS_8,OS_16,OS_32]) then
+              begin
+                //!!! ovloc.loc:=LOC_FLAGS;
+                case op of
+                  OP_ADD:
+                    //!!! ovloc.resflags:=F_CS;
+                    ;
+                  OP_SUB:
+                    //!!! ovloc.resflags:=F_CC;
+                    ;
                 end;
+              end;
           end
         else
           begin
