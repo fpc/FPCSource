@@ -63,6 +63,7 @@ type
     function FindGreater(key:TKey):TIterator;inline;
     function FindGreaterEqual(key:TKey):TIterator;inline;
     function GetValue(key:TKey):TValue;inline;
+    function TryGetValue(key:TKey; out Value: TValue): boolean;inline;
     procedure Insert(key:TKey; value:TValue);inline;
     function InsertAndGetIterator(key:TKey; value:TValue):TIterator;inline;
     function Min:TIterator;inline;
@@ -164,6 +165,17 @@ var Pair:TPair;
 begin
   Pair.Key:=key;
   GetValue:=FSet.NFind(Pair)^.Data.Value;
+end;
+
+function TMap.TryGetValue(key: TKey; out Value: TValue): boolean;
+var Pair:TPair;
+    Node: TMSet.PNode;
+begin
+  Pair.Key:=key;
+  Node := FSet.NFind(Pair);
+  Result := Node <> nil;
+  if Result then
+    Value := Node^.Data.Value;
 end;
 
 procedure TMap.Insert(key:TKey; value:TValue);inline;
