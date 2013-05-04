@@ -1068,15 +1068,28 @@ implementation
                     (taicpu(curtai).oper[1]^.typ=top_reg) and
                     (taicpu(curtai).oper[1]^.reg=NR_PC)
                    )
+              ) and
+              (
+                { do not insert data after a B instruction due to their limited range }
+                not((current_settings.cputype in cpu_thumb) and
+                    (taicpu(curtai).opcode=A_B)
+                   )
               ) then
               begin
                 lastinspos:=-1;
                 extradataoffset:=0;
 
                 if current_settings.cputype in cpu_thumb then
-                  limit:=508
+                  limit:=502
                 else
                   limit:=1016;
+
+                { on arm thumb, insert the date always after all labels etc. following an instruction so it
+                  is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
+                  bxx) and the distance of bxx gets too long }
+                if current_settings.cputype in cpu_thumb then
+                  while assigned(tai(curtai.Next)) and (tai(curtai.Next).typ in SkipInstr+[ait_label]) do
+                    curtai:=tai(curtai.next);
 
                 doinsert:=false;
                 hp:=tai(curtai.next);
