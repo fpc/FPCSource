@@ -20,7 +20,7 @@ type
   PRecordElement=^TRecordElement;
   TRecordElement=packed record
     TypeInfo: Pointer;
-    Offset: PtrInt;
+    Offset: Longint;
   end;
 
   PRecordInfo=^TRecordInfo;
