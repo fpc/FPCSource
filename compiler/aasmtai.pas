@@ -295,7 +295,7 @@ interface
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end
-				   ,ait_ent, ait_ent_end, ait_directive
+                   ,ait_ent, ait_ent_end, ait_directive
                    ,ait_varloc,
 {$ifdef JVM}
                    ait_jvar, ait_jcatch,
@@ -309,7 +309,7 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
-					 ait_ent, ait_ent_end,
+                     ait_ent, ait_ent_end,
 {$ifdef arm}
                      ait_thumb_func,
                      ait_thumb_set,
