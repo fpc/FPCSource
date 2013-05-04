@@ -44,8 +44,10 @@ type
     procedure second_cmpsmallset; override;
     procedure second_cmp64bit; override;
     procedure second_cmpordinal; override;
+    procedure second_addordinal; override;
   public
     function pass_1: tnode; override;
+    function use_generic_mul32to64: boolean; override;
   end;
 
 implementation
@@ -395,6 +397,37 @@ var
 begin
   unsigned := not (is_signed(left.resultdef)) or not (is_signed(right.resultdef));
   second_generic_cmp32(unsigned);
+end;
+
+
+const
+  multops: array[boolean] of TAsmOp = (A_MULT, A_MULTU);
+
+procedure tmipsaddnode.second_addordinal;
+var
+  unsigned: boolean;
+begin
+  unsigned:=not(is_signed(left.resultdef)) or
+            not(is_signed(right.resultdef));
+  if (nodetype=muln) and is_64bit(resultdef) then
+    begin
+      pass_left_right;
+      force_reg_left_right(true,false);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(multops[unsigned],left.location.register,right.location.register));
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_MFLO,location.register64.reglo));
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_MFHI,location.register64.reghi));
+    end
+  else
+    inherited second_addordinal;
+end;
+
+
+function tmipsaddnode.use_generic_mul32to64: boolean;
+begin
+  result:=false;
 end;
 
 begin
