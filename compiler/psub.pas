@@ -1554,7 +1554,7 @@ implementation
 
 {$ifdef AVR}
             { because of the limited branch distance of cond. branches, they must be replaced
-              somtimes by normal jmps and an inverse branch }
+              sometimes by normal jmps and an inverse branch }
             finalizeavrcode(aktproccode);
 {$endif AVR}
 
