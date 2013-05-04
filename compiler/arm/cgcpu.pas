@@ -3035,6 +3035,8 @@ unit cgcpu;
 
       var
         make_global : boolean;
+        tmpref : treference;
+        l : TAsmLabel;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
@@ -3071,6 +3073,27 @@ unit cgcpu;
             op_onr12methodaddr;
           end
         { case 0 }
+        else if current_settings.cputype in cpu_thumb then
+          begin
+            { bl cannot be used here because it destroys lr }
+
+            list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+
+            { create consts entry }
+            reference_reset(tmpref,4);
+            current_asmdata.getjumplabel(l);
+            current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+            current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname)));
+
+            tmpref.symbol:=l;
+            tmpref.base:=NR_PC;
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+            list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+          end
         else
           list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
         list.concatlist(current_procinfo.aktlocaldata);
