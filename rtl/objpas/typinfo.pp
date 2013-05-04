@@ -171,9 +171,9 @@ unit typinfo;
                   end;
               followed by
                   ResultType : ShortString     // for mkFunction, mkClassFunction only
-                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PTypeInfo;  // for mkFunction, mkClassFunction only
                   CC : TCallConv;
-                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
+                  ParamTypeRefs : array[1..ParamCount] of PTypeInfo;}
               );
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
