@@ -197,9 +197,9 @@ unit typinfo;
             tkDynArray:
               (
               elSize     : PtrUInt;
-              elType2    : PPTypeInfo;
+              elType2    : PTypeInfo;
               varType    : Longint;
-              elType     : PPTypeInfo;
+              elType     : PTypeInfo;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
