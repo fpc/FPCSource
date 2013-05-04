@@ -165,7 +165,16 @@ unit rgcpu;
 
       { Lets remove the bits we can fold in later and check if the result can be easily with an add or sub }
       a:=abs(spilltemp.offset);
-      if is_shifter_const(a and not($FFF), immshift) then
+      if current_settings.cputype in cpu_thumb then
+        begin
+          {$ifdef DEBUG_SPILLING}
+          helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
+          {$endif}
+          cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
+          cg.a_op_reg_reg(helplist,OP_ADD,OS_ADDR,current_procinfo.framepointer,hreg);
+          reference_reset_base(tmpref,hreg,0,sizeof(aint));
+        end
+      else if is_shifter_const(a and not($FFF), immshift) then
         if spilltemp.offset > 0 then
           begin
             {$ifdef DEBUG_SPILLING}
@@ -209,6 +218,14 @@ unit rgcpu;
       helplist.free;
     end;
 
+
+   function fix_spilling_offset(offset : ASizeInt) : boolean;
+     begin
+       result:=(abs(offset)>4095) or
+          ((current_settings.cputype in cpu_thumb) and ((offset<0) or (offset>1020)));
+     end;
+
+
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
         { don't load spilled register between
@@ -225,7 +242,7 @@ unit rgcpu;
           (taicpu(pos).oper[1]^.reg=NR_PC) then
           pos:=tai(pos.previous);
 
-        if abs(spilltemp.offset)>4095 then
+        if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, false)
         else
           inherited do_spill_read(list,pos,spilltemp,tempreg);
@@ -234,7 +251,7 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
-        if abs(spilltemp.offset)>4095 then
+        if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
