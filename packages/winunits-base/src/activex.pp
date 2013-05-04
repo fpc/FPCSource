@@ -2281,6 +2281,15 @@ TYPE
        Function GetSizeMax(Out cbSize:ULarge_Integer):HResult; StdCall;
        End;
 
+     IPersistStreamInit = interface(IPersist)
+       ['{7FD52380-4E07-101B-AE2D-08002B2EC713}']
+       Function IsDirty:HResult;StdCall;
+       Function Load(pstm:IStream):HResult;StdCall;
+       Function Save(pstm:IStream;fClearDirty:Integer):HResult;StdCall;
+       Function GetSizeMax(out pCbSize:_ULARGE_INTEGER):HResult;StdCall;
+       Function InitNew:HResult;StdCall;
+       End;
+
     PIMoniker = ^IMoniker;
     IMoniker = Interface (IPersistStream)
       ['{0000000f-0000-0000-C000-000000000046}']
