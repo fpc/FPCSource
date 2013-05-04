@@ -670,9 +670,9 @@ begin
   begin
     case tosize of
       OS_8:
-        a_op_const_reg_reg(list, OP_AND, tosize, $ff, reg1, reg2);
+        list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ff));
       OS_16:
-        a_op_const_reg_reg(list, OP_AND, tosize, $ffff, reg1, reg2);
+        list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ffff));
       OS_32,
       OS_S32:
       begin
@@ -913,8 +913,6 @@ end;
 
 
 procedure TCGMIPS.a_op_reg_reg(list: tasmlist; Op: TOpCG; size: TCGSize; src, dst: TRegister);
-var
-  a: aint;
 begin
   case Op of
     OP_NEG:
@@ -1132,7 +1130,7 @@ if a = 0 then
 else
 begin
   tmpreg := GetIntRegister(list, OS_INT);
-  list.concat(taicpu.op_reg_const(A_LI, tmpreg, a));
+  a_load_const_reg(list,OS_INT,a,tmpreg);
 end;
   ai := taicpu.op_reg_reg_sym(A_BC, reg, tmpreg, l);
   ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
@@ -1192,7 +1190,7 @@ var
   lastintoffset,lastfpuoffset,
   nextoffset : aint;
   i : longint;
-  ra_save,framesave,gp_save : taicpu;
+  ra_save,framesave : taicpu;
   fmask,mask : dword;
   saveregs : tcpuregisterset;
   href:  treference;
@@ -1835,7 +1833,6 @@ end;
 
 procedure TCg64MPSel.a_op64_reg_reg(list: tasmlist; op: TOpCG; size: tcgsize; regsrc, regdst: TRegister64);
 var
-  op1, op2, op_call64: TAsmOp;
   tmpreg1, tmpreg2: TRegister;
 begin
   tmpreg1 := cg.GetIntRegister(list, OS_INT);
@@ -1937,7 +1934,6 @@ end;
 
 procedure TCg64MPSel.a_op64_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; regsrc1, regsrc2, regdst: tregister64; setflags: boolean; var ovloc: tlocation);
 var
-  op1, op2: TAsmOp;
   tmpreg1, tmpreg2: TRegister;
 
 begin
