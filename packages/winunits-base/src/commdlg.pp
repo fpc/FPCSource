@@ -20,6 +20,10 @@ interface
 {$ifndef Win64}
   {$packrecords 1}
 {$endif}
+
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
 uses windows;
 
 Type

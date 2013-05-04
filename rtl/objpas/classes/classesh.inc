@@ -998,7 +998,7 @@ type
 
 { TResourceStream }
 
-{$ifdef UNICODE}
+{$ifdef FPC_OS_UNICODE}
   TResourceStream = class(TCustomMemoryStream)
   private
     Res: TFPResourceHandle;
@@ -1020,7 +1020,7 @@ type
     constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PChar);
     destructor Destroy; override;
   end;
-{$endif UNICODE}
+{$endif FPC_OS_UNICODE}
 
 { TStreamAdapter }
 

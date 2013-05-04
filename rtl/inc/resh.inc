@@ -8,7 +8,7 @@ type
   TFPResourceHandle = PtrUInt;
   TFPResourceHMODULE = PtrUInt;
   TFPResourceHGLOBAL = PtrUInt;
-{$ifdef UNICODE}
+{$ifdef FPC_OS_UNICODE}
   {roozbeh : maybe it shoud be moved after ifndef mswindows,as there is one declared in wince,base.inc}
   MAKEINTRESOURCE = pwidechar;
 {$else}

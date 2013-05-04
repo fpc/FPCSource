@@ -25,6 +25,10 @@ unit windows;
 {$inline on}
 {$calling stdcall}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 {$define read_interface}

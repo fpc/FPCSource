@@ -14,6 +14,10 @@ unit WinSock2;
 {$smartlink on}
 {$endif}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 Uses Windows;

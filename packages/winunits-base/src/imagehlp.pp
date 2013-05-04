@@ -29,6 +29,10 @@ Uses Windows;
  {$define imagehlp64}
 {$endif}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 Const 
      IMAGE_SEPARATION    = 64*1024;  	
      DBHHEADER_DEBUGDIRS = $1;     

@@ -120,15 +120,15 @@ type
    UINT  = cardinal;
    BOOL  = longbool;
 //   WCHAR = word;
-{$ifdef UNICODE}
+{$ifdef FPC_OS_UNICODE}
    LPTCH   = ^word;
    LPTSTR  = ^word;
    LPCTSTR = ^word;
-{$else UNICODE}
+{$else FPC_OS_UNICODE}
    LPTCH   = ^char;
    LPTSTR  = ^char;
    LPCTSTR = ^char;
-{$endif UNICODE}
+{$endif FPC_OS_UNICODE}
    LPWSTR  = ^wchar;
    PVOID   = pointer;
    LPVOID  = pointer;

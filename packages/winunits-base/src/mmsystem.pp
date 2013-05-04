@@ -11,6 +11,10 @@ Unit mmsystem;
   {$smartlink on}
 {$endif}
 {$MODE DELPHI}
+
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
 interface
 uses
  windows;

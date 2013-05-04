@@ -30,6 +30,10 @@ unit MultiMon;
 
 {$mode objfpc}{$H+}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 uses

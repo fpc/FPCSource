@@ -43,6 +43,10 @@ Unit CommCtrl;
 Interface
 
 {$Mode ObjFPC}
+
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
 Uses Windows,CTypes,ActiveX;
 
 // --------------------

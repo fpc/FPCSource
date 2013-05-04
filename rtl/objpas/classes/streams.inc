@@ -872,7 +872,7 @@ end;
 {*                             TResourceStream                              *}
 {****************************************************************************}
 
-{$ifdef UNICODE}
+{$ifdef FPC_OS_UNICODE}
 procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
@@ -900,7 +900,7 @@ constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: In
     inherited create;
     Initialize(Instance,PWideChar(ResID),ResType,True);
   end;
-{$else UNICODE}
+{$else FPC_OS_UNICODE}
 
 procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   begin
@@ -929,7 +929,7 @@ constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: In
     inherited create;
     Initialize(Instance,pchar(PtrInt(ResID)),ResType,True);
   end;
-{$endif UNICODE}
+{$endif FPC_OS_UNICODE}
 
 
 destructor TResourceStream.Destroy;

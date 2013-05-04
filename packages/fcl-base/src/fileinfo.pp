@@ -202,7 +202,7 @@ var
   Stream: TResourceStream;
 begin
   FreeResources;
-  Stream := TResourceStream.CreateFromID(Instance, 1, {$ifdef UNICODE}PWideChar{$else}PChar{$endif}(RT_VERSION));
+  Stream := TResourceStream.CreateFromID(Instance, 1, {$ifdef FPC_OS_UNICODE}PWideChar{$else}PChar{$endif}(RT_VERSION));
   try
     FVersionInfo:=TVersionResource.Create;
     FVersionInfo.SetCustomRawDataStream(Stream);
