@@ -28,7 +28,7 @@ unit ncpumat;
 interface
 
 uses
-  node, nmat, ncgmat;
+  node, nmat, ncgmat, cgbase;
 
 type
   tMIPSELmoddivnode = class(tmoddivnode)
@@ -45,6 +45,10 @@ type
     procedure second_boolean; override;
   end;
 
+  TMIPSunaryminusnode = class(tcgunaryminusnode)
+    procedure emit_float_sign_change(r: tregister; _size : tcgsize);override;
+  end;
+
 implementation
 
 uses
@@ -54,7 +58,7 @@ uses
   aasmbase, aasmcpu, aasmtai, aasmdata,
   defutil,
   procinfo,
-  cgbase, cgobj, hlcgobj, pass_2,
+  cgobj, hlcgobj, pass_2,
   ncon,
   cpubase,
   ncgutil, cgcpu, cgutils;
@@ -322,8 +326,26 @@ begin
 end;
 
 
+{*****************************************************************************
+                               TMIPSunaryminusnode
+*****************************************************************************}
+
+procedure TMIPSunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
+begin
+  case _size of
+    OS_F32:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_s,r,r));
+    OS_F64:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_d,r,r));
+  else
+    internalerror(2013030501);
+  end;
+end;
+
+
 begin
   cmoddivnode := tMIPSELmoddivnode;
   cshlshrnode := tMIPSELshlshrnode;
   cnotnode    := tMIPSELnotnode;
+  cunaryminusnode := TMIPSunaryminusnode;
 end.
