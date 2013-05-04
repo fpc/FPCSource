@@ -152,6 +152,12 @@ unit typinfo;
                UnitName : ShortString
                // here the properties follow as array of TPropInfo
               );
+            tkRecord:
+              (
+                RecSize: Integer;
+                ManagedFldCount: Integer;
+                {ManagedFields: array[1..ManagedFldCount] of TManagedField}
+              );
             tkHelper:
               (HelperParent : PTypeInfo;
                ExtendedInfo : PTypeInfo;
@@ -213,6 +219,14 @@ unit typinfo;
       end;
 
       // unsed, just for completeness
+      TManagedField =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        TypeRef: PTypeInfo;
+        FldOffset: PtrInt;
+      end;
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -249,6 +263,7 @@ unit typinfo;
       TPropList = array[0..65535] of PPropInfo;
 
    const
+      tkProcedure = tkProcVar; // for compatibility with Delphi
       tkAny = [Low(TTypeKind)..High(TTypeKind)];
       tkMethods = [tkMethod];
       tkProperties = tkAny-tkMethods-[tkUnknown];
