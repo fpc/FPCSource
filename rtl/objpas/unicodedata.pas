@@ -30,8 +30,6 @@ unit unicodedata;
 { $define uni_debug}
 
 interface
-uses
-  SysUtils;
 
 const
   MAX_WORD = High(Word);
@@ -142,9 +140,6 @@ const
   {$endif FPC_LITTLE_ENDIAN}
 
 type
-  EUnicodeException = class(Exception)
-  end;
-
   PUC_Prop = ^TUC_Prop;
 
   { TUC_Prop }
@@ -551,7 +546,7 @@ begin
   p := @AName[1];
   for i := 0 to Length(CollationTable) - 1 do begin
     if (Length(CollationTable[i]^.CollationName) = c) and
-       CompareMem(@(CollationTable[i]^.CollationName[1]),p,c)
+       (CompareByte((CollationTable[i]^.CollationName[1]),p^,c)=0)
     then
       exit(i);
   end;
@@ -627,7 +622,7 @@ begin
   p := ACollation;
   base := FindCollation(s);
   if (base = nil) then
-    raise EUnicodeException.CreateFmt(SCollationNotFound,[s]);
+    Error(reCodesetConversion);
   p^.Base := base;
   if not(TCollationField.BackWard in AChangedFields) then
     p^.Backwards := base^.Backwards;
@@ -688,9 +683,9 @@ begin
   Result:=
     @UC_PROP_ARRAY[
        UC_TABLE_3[
-         UC_TABLE_2[UC_TABLE_1[WordRec(ACodePoint).Hi]]
-           [WordRec(ACodePoint).Lo shr 4]
-       ][WordRec(ACodePoint).Lo and $F]
+         UC_TABLE_2[UC_TABLE_1[hi(ACodePoint)]]
+           [lo(ACodePoint) shr 4]
+       ][lo(ACodePoint) and $F]
      ];    {
     @UC_PROP_ARRAY[
        UC_TABLE_2[
@@ -1309,8 +1304,8 @@ begin
   if (ABook^.BMP_Table2 = nil) then
     exit(nil);
   i := ABook^.BMP_Table2[
-         (ABook^.BMP_Table1[WordRec(AChar).Hi] * 256) +
-         WordRec(AChar).Lo
+         (ABook^.BMP_Table1[Hi(Word(AChar))] * 256) +
+         Lo(Word(AChar))
        ];
   if (i > 0) then
     Result:= PUCA_PropItemRec(PtrUInt(ABook^.Props) + i - 1)
