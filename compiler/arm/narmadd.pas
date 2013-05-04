@@ -343,7 +343,8 @@ interface
 
         (* Try to keep right as a constant *)
         if (right.location.loc <> LOC_CONSTANT) or
-          not(is_shifter_const(right.location.value, b)) then
+          not(is_shifter_const(right.location.value, b)) or
+          ((current_settings.cputype in cpu_thumb) and not(is_thumb_imm(right.location.value))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
