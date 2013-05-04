@@ -108,7 +108,7 @@ implementation
           resbin : 'fpcres';
           rescmd : '-o $OBJ -a $ARCH -of coff $DBG';
           rcbin  : 'windres';
-          rccmd  : '--include $INC -O res -o $RES $RC';
+          rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
           resourcefileclass : nil;
           resflags : [];
         );
@@ -119,7 +119,7 @@ implementation
           resbin : 'fpcres';
           rescmd : '-o $OBJ -a $ARCH -of coff $DBG';
           rcbin  : 'gorc';
-          rccmd  : '/machine x64 /nw /ni /r /fo $RES $RC';
+          rccmd  : '/machine x64 /nw /ni /r /d FPC /fo $RES $RC';
           resourcefileclass : nil;
           resflags : [];
         );

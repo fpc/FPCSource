@@ -35,7 +35,7 @@ unit i_os2;
              resbin : '';
              rescmd : '';
              rcbin  : 'wrc';
-             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             rccmd  : '-r -zm -q -bt=os2 -dFPC -fo=$RES $RC';
              resourcefileclass : nil;
              resflags : [res_single_file];
           );

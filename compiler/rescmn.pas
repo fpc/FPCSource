@@ -37,7 +37,7 @@ uses
              rescmd : '-o $OBJ -a $ARCH -of elf $DBG';
              { cross compiled windres can be used to compile .rc files on linux }
              rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
              resourcefileclass : nil;
              resflags : [];
           );
@@ -49,7 +49,7 @@ uses
              rescmd : '-o $OBJ -a $ARCH -of xcoff $DBG';
              { cross compiled windres can be used to compile .rc files on other platforms }
              rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
              resourcefileclass : nil;
              resflags : [];
           );
@@ -60,7 +60,7 @@ uses
              resbin : 'fpcres';
              rescmd : '-o $OBJ -a $ENDIAN -of external $DBG';
              rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
              resourcefileclass : nil;
              resflags : [res_external_file];
           );
