@@ -18,33 +18,36 @@
 Const
    // please update tkManagedTypes below if you add new
    // values
-   tkUnknown       = 0;
-   tkInteger       = 1;
-   tkChar          = 2;
-   tkEnumeration   = 3;
-   tkFloat         = 4;
-   tkSet           = 5;
-   tkMethod        = 6;
-   tkSString       = 7;
-   tkString        = tkSString;
-   tkLString       = 8;
-   tkAString       = 9;
-   tkWString       = 10;
-   tkVariant       = 11;
-   tkArray         = 12;
-   tkRecord        = 13;
-   tkInterface     = 14;
-   tkClass         = 15;
-   tkObject        = 16;
-   tkWChar         = 17;
-   tkBool          = 18;
-   tkInt64         = 19;
-   tkQWord         = 20;
-   tkDynArray      = 21;
+   tkUnknown        = 0;
+   tkInteger        = 1;
+   tkChar           = 2;
+   tkEnumeration    = 3;
+   tkFloat          = 4;
+   tkSet            = 5;
+   tkMethod         = 6;
+   tkSString        = 7;
+   tkString         = tkSString;
+   tkLString        = 8;
+   tkAString        = 9;
+   tkWString        = 10;
+   tkVariant        = 11;
+   tkArray          = 12;
+   tkRecord         = 13;
+   tkInterface      = 14;
+   tkClass          = 15;
+   tkObject         = 16;
+   tkWChar          = 17;
+   tkBool           = 18;
+   tkInt64          = 19;
+   tkQWord          = 20;
+   tkDynArray       = 21;
    tkInterfaceCorba = 22;
-   tkProcVar       = 23;
-   tkUString       = 24;
-   tkHelper        = 26;
+   tkProcVar        = 23;
+   tkUString        = 24;
+   tkHelper         = 26;
+   tkFile           = 27;
+   tkClassRef       = 28;
+   tkPointer        = 29;
 
   // all potentially managed types
   tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,

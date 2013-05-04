@@ -616,6 +616,20 @@ implementation
              end;
         end;
 
+        procedure classrefdef_rtti(def:tclassrefdef);
+        begin
+          write_header(def,tkClassRef);
+          maybe_write_align;
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.pointeddef,rt)));
+        end;
+
+        procedure pointerdef_rtti(def:tpointerdef);
+        begin
+          write_header(def,tkPointer);
+          maybe_write_align;
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.pointeddef,rt)));
+        end;
+
         procedure recorddef_rtti(def:trecorddef);
         begin
            write_header(def,tkRecord);
@@ -938,6 +952,10 @@ implementation
             end;
           objectdef :
             objectdef_rtti(tobjectdef(def));
+          classrefdef :
+            classrefdef_rtti(tclassrefdef(def));
+          pointerdef :
+            pointerdef_rtti(tpointerdef(def));
           else
             unknown_rtti(tstoreddef(def));
         end;

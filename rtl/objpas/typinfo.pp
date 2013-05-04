@@ -43,7 +43,7 @@ unit typinfo;
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
                    tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
-                   tkHelper);
+                   tkHelper,tkFile,tkClassRef,tkPointer);
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -201,6 +201,14 @@ unit typinfo;
               varType    : Longint;
               elType     : PPTypeInfo;
               DynUnitName: ShortStringBase
+              );
+            tkClassRef:
+              (
+              InstanceType: PTypeInfo;
+              );
+            tkPointer:
+              (
+              RefType: PTypeInfo;
               );
       end;
 

@@ -66,6 +66,8 @@ const
   tkUChar    = 25;
   tkHelper   = 26;
   tkFile     = 27;
+  tkClassRef = 28;
+  tkPointer  = 29;
 
   otSByte     = 0;
   otUByte     = 1;
