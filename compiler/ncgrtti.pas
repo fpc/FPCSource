@@ -1223,6 +1223,9 @@ implementation
               else
                 published_write_rtti(tobjectdef(def).symtable,rt);
             end;
+          classrefdef,
+          pointerdef:
+            write_rtti(tabstractpointerdef(def).pointeddef,rt);
         end;
       end;
 
