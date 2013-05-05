@@ -1369,6 +1369,7 @@ begin
   FMap := TFPStrObjMap.Create;
   FMap.OnPtrCompare := @MapPtrCompare;
   FOnCompareText := @DefaultCompareText;
+  NameValueSeparator:='=';
   CheckSpecialChars;
 end;
 
