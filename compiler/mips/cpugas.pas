@@ -222,18 +222,21 @@ unit cpugas;
      end;
 }
 
-    function is_macro_instruction(op : TAsmOp) : boolean;
+    function is_macro_instruction(ai : taicpu) : boolean;
+      var
+        op: tasmop;
       begin
+        op:=ai.opcode;
         is_macro_instruction :=
         { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
           (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
           (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
           { JAL is not here! See comments in TCGMIPS.a_call_name. }
-          or (op=A_LA) or (op=A_BC) {or (op=A_JAL)}
+          or (op=A_LA) or ((op=A_BC) and not (ai.condition in [C_EQ,C_NE])) {or (op=A_JAL)}
           or (op=A_REM) or (op=A_REMU)
-          or (op=A_DIV) or (op=A_DIVU) 
+          or (op=A_DIV) or (op=A_DIVU)
           { A_LI is only a macro if the immediate is not in thez 16-bit range }
-          or (op=A_LI) or (op=A_AND) or (op=A_XOR);
+          or (op=A_LI);
       end;
 
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
@@ -346,7 +349,7 @@ unit cpugas;
             end;
           else
             begin
-              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
                 owner.AsmWriteln(#9'.set'#9'macro');
               s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
               if taicpu(hp).delayslot_annulled then
@@ -358,7 +361,7 @@ unit cpugas;
                   s := s + ',' + getopstr(taicpu(hp).oper[i]^);
               end;
               owner.AsmWriteLn(s);
-              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
                 owner.AsmWriteln(#9'.set'#9'nomacro');
             end;
         end;

@@ -44,6 +44,7 @@ type
     procedure make_simple_ref(list: tasmlist; var ref: treference);
     procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+    procedure overflowcheck_internal(list: TAsmList; arg1, arg2: TRegister);
 
     { parameter }
     procedure a_loadfpu_reg_cgpara(list: tasmlist; size: tcgsize; const r: tregister; const paraloc: TCGPara); override;
@@ -857,58 +858,44 @@ begin
     a_load_reg_reg(list,OS_32,size,dst,dst);
 end;
 
-procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
+procedure TCGMIPS.overflowcheck_internal(list: tasmlist; arg1, arg2: tregister);
 var
-  power: longint;
-  tmpreg1: tregister;
+  carry, hreg: tregister;
 begin
-  if ((op = OP_MUL) or (op = OP_IMUL)) then
-  begin
-    if ispowerof2(a, power) then
-    begin
-      { can be done with a shift }
-      if power < 32 then
-      begin
-        list.concat(taicpu.op_reg_reg_const(A_SLL, reg, reg, power));
-        exit;
-      end;
-    end;
-  end;
-  if ((op = OP_SUB) or (op = OP_ADD)) then
-  begin
-    if (a = 0) then
-      exit;
-  end;
+  carry:=GetIntRegister(list,OS_INT);
+  hreg:=GetIntRegister(list,OS_INT);
+  list.concat(taicpu.op_reg_reg_reg(A_SLTU,carry,arg1,arg2));
+  { if carry<>0, this will cause hardware overflow interrupt }
+  a_load_const_reg(list,OS_INT,$80000000,hreg);
+  list.concat(taicpu.op_reg_reg_reg(A_SUB,hreg,hreg,carry));
+end;
 
-  if Op in [OP_NEG, OP_NOT] then
-    internalerror(200306011);
-  if (a = 0) then
-  begin
-    if (Op = OP_IMUL) or (Op = OP_MUL) then
-      list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
-    else
-      list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), reg, reg, NR_R0))
-  end
+
+const
+  ops_mul_ovf: array[boolean] of TAsmOp = (A_MULOU, A_MULO);
+  ops_mul: array[boolean] of TAsmOp = (A_MULTU,A_MULT);
+  ops_add: array[boolean] of TAsmOp = (A_ADDU, A_ADD);
+  ops_sub: array[boolean] of TAsmOp = (A_SUBU, A_SUB);
+  ops_and: array[boolean] of TAsmOp = (A_AND, A_ANDI);
+  ops_or:  array[boolean] of TAsmOp = (A_OR, A_ORI);
+  ops_xor: array[boolean] of TasmOp = (A_XOR, A_XORI);
+
+
+procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
+begin
+  optimize_op_const(op,a);
+  case op of
+    OP_NONE:
+      exit;
+
+    OP_MOVE:
+      a_load_const_reg(list,size,a,reg);
+
+    OP_NEG,OP_NOT:
+      internalerror(200306011);
   else
-  begin
-    if op = OP_IMUL then
-    begin
-      tmpreg1 := GetIntRegister(list, OS_INT);
-      a_load_const_reg(list, OS_INT, a, tmpreg1);
-      list.concat(taicpu.op_reg_reg(A_MULT, reg, tmpreg1));
-      list.concat(taicpu.op_reg(A_MFLO, reg));
-    end
-    else if op = OP_MUL then
-    begin
-      tmpreg1 := GetIntRegister(list, OS_INT);
-      a_load_const_reg(list, OS_INT, a, tmpreg1);
-      list.concat(taicpu.op_reg_reg(A_MULTU, reg, tmpreg1));
-      list.concat(taicpu.op_reg(A_MFLO, reg));
-    end
-    else
-      handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), reg, a, reg);
+    a_op_const_reg_reg(list,op,size,a,reg,reg);
   end;
-  maybeadjustresult(list,op,size,reg);
 end;
 
 
@@ -916,29 +903,18 @@ procedure TCGMIPS.a_op_reg_reg(list: tasmlist; Op: TOpCG; size: TCGSize; src, ds
 begin
   case Op of
     OP_NEG:
-      { discard overflow checking }
-      list.concat(taicpu.op_reg_reg(A_NEGU{A_NEG}, dst, src));
+      list.concat(taicpu.op_reg_reg_reg(A_SUBU, dst, NR_R0, src));
+
     OP_NOT:
-    begin
-      list.concat(taicpu.op_reg_reg(A_NOT, dst, src));
-    end;
-    else
-    begin
-      if op = OP_IMUL then
+      list.concat(taicpu.op_reg_reg_reg(A_NOR, dst, NR_R0, src));
+
+    OP_IMUL,OP_MUL:
       begin
-        list.concat(taicpu.op_reg_reg(A_MULT, dst, src));
+        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], dst, src));
         list.concat(taicpu.op_reg(A_MFLO, dst));
-      end
-      else if op = OP_MUL then
-      begin
-        list.concat(taicpu.op_reg_reg(A_MULTU, dst, src));
-        list.concat(taicpu.op_reg(A_MFLO, dst));
-      end
-      else
-      begin
-        list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, dst, src));
       end;
-    end;
+  else
+    list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, dst, src));
   end;
   maybeadjustresult(list,op,size,dst);
 end;
@@ -946,50 +922,9 @@ end;
 
 procedure TCGMIPS.a_op_const_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
 var
-  power: longint;
-  tmpreg1: tregister;
+  l: TLocation;
 begin
-  case op of
-    OP_MUL,
-    OP_IMUL:
-    begin
-      if ispowerof2(a, power) then
-      begin
-        { can be done with a shift }
-        if power < 32 then
-          list.concat(taicpu.op_reg_reg_const(A_SLL, dst, src, power))
-        else
-          inherited a_op_const_reg_reg(list, op, size, a, src, dst);
-        exit;
-      end;
-    end;
-    OP_SUB,
-    OP_ADD:
-    begin
-      if (a = 0) then
-      begin
-        a_load_reg_reg(list, size, size, src, dst);
-        exit;
-      end;
-    end;
-  end;
-  if op = OP_IMUL then
-  begin
-    tmpreg1 := GetIntRegister(list, OS_INT);
-    a_load_const_reg(list, OS_INT, a, tmpreg1);
-    list.concat(taicpu.op_reg_reg(A_MULT, src, tmpreg1));
-    list.concat(taicpu.op_reg(A_MFLO, dst));
-  end
-  else if op = OP_MUL then
-  begin
-    tmpreg1 := GetIntRegister(list, OS_INT);
-    a_load_const_reg(list, OS_INT, a, tmpreg1);
-    list.concat(taicpu.op_reg_reg(A_MULTU, src, tmpreg1));
-    list.concat(taicpu.op_reg(A_MFLO, dst));
-  end
-  else
-    handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), src, a, dst);
-  maybeadjustresult(list,op,size,dst);
+  a_op_const_reg_reg_checkoverflow(list, op, size, a, src, dst, false, l);
 end;
 
 
@@ -1003,110 +938,105 @@ end;
 
 procedure TCGMIPS.a_op_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
 var
-  tmpreg1: tregister;
+  signed,immed: boolean;
+  hreg: TRegister;
+  asmop: TAsmOp;
 begin
   ovloc.loc := LOC_VOID;
+  optimize_op_const(op,a);
+  signed:=(size in [OS_S8,OS_S16,OS_S32]);
   case op of
-    OP_SUB,
-    OP_ADD:
-    begin
-      if (a = 0) then
-      begin
-        a_load_reg_reg(list, size, size, src, dst);
-        exit;
-      end;
-    end;
-  end;{case}
+    OP_NONE:
+      a_load_reg_reg(list,size,size,src,dst);
 
-  case op of
+    OP_MOVE:
+      a_load_const_reg(list,size,a,dst);
+
     OP_ADD:
       begin
-        if setflags then
-          handle_reg_const_reg(list, f_TOpCG2AsmOp_ovf(op, size), src, a, dst)
-        else
-          handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), src, a, dst);
+        handle_reg_const_reg(list,ops_add[setflags and signed],src,a,dst);
+        if setflags and (not signed) then
+          overflowcheck_internal(list,dst,src);
       end;
+
     OP_SUB:
       begin
-        if setflags then
-          handle_reg_const_reg(list, f_TOpCG2AsmOp_ovf(op, size), src, a, dst)
-        else
-          handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), src, a, dst);
+        handle_reg_const_reg(list,ops_sub[setflags and signed],src,a,dst);
+        if setflags and (not signed) then
+          overflowcheck_internal(list,src,dst);
       end;
-    OP_MUL:
+
+    OP_MUL,OP_IMUL:
       begin
-        if setflags then
-          handle_reg_const_reg(list, f_TOpCG2AsmOp_ovf(op, size), src, a, dst)
+        hreg:=GetIntRegister(list,OS_INT);
+        a_load_const_reg(list,OS_INT,a,hreg);
+        a_op_reg_reg_reg_checkoverflow(list,op,size,src,hreg,dst,setflags,ovloc);
+        exit;
+      end;
+
+    OP_AND,OP_OR,OP_XOR:
+      begin
+        { logical operations zero-extend, not sign-extend, the immediate }
+        immed:=(a>=0) and (a<=65535);
+        case op of
+          OP_AND:   asmop:=ops_and[immed];
+          OP_OR:    asmop:=ops_or[immed];
+          OP_XOR:   asmop:=ops_xor[immed];
         else
-        begin
-          tmpreg1 := GetIntRegister(list, OS_INT);
-          a_load_const_reg(list, OS_INT, a, tmpreg1);
-          list.concat(taicpu.op_reg_reg(f_TOpCG2AsmOp(op, size),src, tmpreg1));
-          list.concat(taicpu.op_reg(A_MFLO, dst));
+          InternalError(2013050401);
         end;
-      end;
-    OP_IMUL:
-      begin
-        if setflags then
-          handle_reg_const_reg(list, f_TOpCG2AsmOp_ovf(op, size), src, a, dst)
+
+        if immed then
+          list.concat(taicpu.op_reg_reg_const(asmop,dst,src,a))
         else
-        begin
-          tmpreg1 := GetIntRegister(list, OS_INT);
-          a_load_const_reg(list, OS_INT, a, tmpreg1);
-          list.concat(taicpu.op_reg_reg(f_TOpCG2AsmOp(op, size),src, tmpreg1));
-          list.concat(taicpu.op_reg(A_MFLO, dst));
-        end;
+          begin
+            hreg:=GetIntRegister(list,OS_INT);
+            a_load_const_reg(list,OS_INT,a,hreg);
+            list.concat(taicpu.op_reg_reg_reg(asmop,dst,src,hreg));
+          end;
       end;
-    OP_XOR, OP_OR, OP_AND:
-      begin
-        handle_reg_const_reg(list, f_TOpCG2AsmOp_ovf(op, size), src, a, dst);
-      end;
-    else
-      internalerror(2007012601);
+
+    OP_SHL,OP_SHR,OP_SAR:
+      list.concat(taicpu.op_reg_reg_const(f_TOpCG2AsmOp_ovf(op,size),dst,src,a));
+
+  else
+    internalerror(2007012601);
   end;
   maybeadjustresult(list,op,size,dst);
 end;
 
 
 procedure TCGMIPS.a_op_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+var
+  signed: boolean;
 begin
   ovloc.loc := LOC_VOID;
+  signed:=(size in [OS_S8,OS_S16,OS_S32]);
   case op of
     OP_ADD:
       begin
-        if setflags then
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1))
-        else
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(ops_add[setflags and signed], dst, src2, src1));
+        if setflags and (not signed) then
+          overflowcheck_internal(list, dst, src2);
       end;
     OP_SUB:
       begin
-        if setflags then
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1))
-        else
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(ops_sub[setflags and signed], dst, src2, src1));
+        if setflags and (not signed) then
+          overflowcheck_internal(list, src2, dst);
       end;
-    OP_MUL:
+    OP_MUL,OP_IMUL:
       begin
         if setflags then
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1))
+          { TODO: still uses a macro }
+          list.concat(taicpu.op_reg_reg_reg(ops_mul_ovf[op=OP_IMUL], dst, src2, src1))
         else
         begin
-          list.concat(taicpu.op_reg_reg(f_TOpCG2AsmOp(op, size), src2, src1));
+          list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], src2, src1));
           list.concat(taicpu.op_reg(A_MFLO, dst));
         end;
       end;
-    OP_IMUL:
-      begin
-        if setflags then
-          list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1))
-        else
-        begin
-          list.concat(taicpu.op_reg_reg(f_TOpCG2AsmOp(op, size), src2, src1));
-          list.concat(taicpu.op_reg(A_MFLO, dst));
-        end;
-      end;
-    OP_XOR, OP_OR, OP_AND:
+    OP_AND,OP_OR,OP_XOR:
       begin
         list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1));
       end;
