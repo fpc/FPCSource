@@ -398,7 +398,10 @@ Const
        bfOffBits : DWord;
      end;
      tagBITMAPFILEHEADER = BITMAPFILEHEADER;
-  
+
+     TBitmapFileHeader = BITMAPFILEHEADER;
+     PBitmapFileHeader = ^TBitmapFileHeader;
+
      BLOB = record
           cbSize : ULONG;
           pBlobData : ^BYTE;
@@ -2027,7 +2030,7 @@ Const
      PDEVBROADCASTVOLUME = ^DEV_BROADCAST_VOLUME;
 
      DEVMODEA = record
-          dmDeviceName : array[0..(CCHDEVICENAME)-1] of BCHAR;
+          dmDeviceName : array[0..(CCHDEVICENAME)-1] of AnsiChar;
           dmSpecVersion : WORD;
           dmDriverVersion : WORD;
           dmSize : WORD;
@@ -2047,7 +2050,7 @@ Const
                 dmYResolution : SmallInt;
                 dmTTOption : SmallInt;
                 dmCollate : SmallInt;
-                dmFormName : array[0..(CCHFORMNAME)-1] of BCHAR;
+                dmFormName : array[0..(CCHFORMNAME)-1] of AnsiCHAR;
                 dmLogPixels : WORD;
                 dmBitsPerPel : DWORD;
                 dmPelsWidth : DWORD;
@@ -2707,8 +2710,8 @@ Const
 
      EXTLOGFONTA = record
           elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of AnsiCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of AnsiCHAR;
           elfVersion : DWORD;
           elfStyleSize : DWORD;
           elfMatch : DWORD;
@@ -4827,10 +4830,10 @@ Const
           tmOverhang : LONG;
           tmDigitizedAspectX : LONG;
           tmDigitizedAspectY : LONG;
-          tmFirstChar : BCHAR;
-          tmLastChar : BCHAR;
-          tmDefaultChar : BCHAR;
-          tmBreakChar : BCHAR;
+          tmFirstChar : AnsiChar;
+          tmLastChar : AnsiChar;
+          tmDefaultChar : AnsiChar;
+          tmBreakChar : AnsiChar;
           tmItalic : BYTE;
           tmUnderlined : BYTE;
           tmStruckOut : BYTE;
@@ -5208,10 +5211,10 @@ Const
           tmOverhang : LONG;
           tmDigitizedAspectX : LONG;
           tmDigitizedAspectY : LONG;
-          tmFirstChar : BCHAR;
-          tmLastChar : BCHAR;
-          tmDefaultChar : BCHAR;
-          tmBreakChar : BCHAR;
+          tmFirstChar : AnsiChar;
+          tmLastChar : AnsiChar;
+          tmDefaultChar : AnsiChar;
+          tmBreakChar : AnsiChar;
           tmItalic : BYTE;
           tmUnderlined : BYTE;
           tmStruckOut : BYTE;
