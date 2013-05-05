@@ -2052,7 +2052,7 @@ implementation
                      {Don't construct pointers from negative values.}
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
                        cgmessage(parser_e_range_check_error);
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidfarpointertype);
+                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,{$ifdef i386}voidnearfspointertype{$else}voidpointertype{$endif});
                    end
                  else
                    internalerror(88);

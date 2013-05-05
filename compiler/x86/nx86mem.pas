@@ -30,8 +30,14 @@ interface
       node,nmem,ncgmem;
 
     type
+      tx86derefnode = class(tcgderefnode)
+        procedure pass_generate_code;override;
+      end;
+
       tx86vecnode = class(tcgvecnode)
+{$ifndef i8086}
         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
+{$endif not i8086}
       end;
 
 implementation
@@ -39,12 +45,37 @@ implementation
     uses
       cutils,verbose,
       aasmtai,aasmdata,
-      cgutils,cgobj;
+      cgutils,cgobj,
+      symdef;
+
+{*****************************************************************************
+                           TX86DEREFNODE
+*****************************************************************************}
+
+     procedure tx86derefnode.pass_generate_code;
+       begin
+         inherited pass_generate_code;
+         case tpointerdef(left.resultdef).x86pointertyp of
+           x86pt_near: ;
+           x86pt_near_cs: location.reference.segment:=NR_CS;
+           x86pt_near_ds: location.reference.segment:=NR_DS;
+           x86pt_near_ss: location.reference.segment:=NR_SS;
+           x86pt_near_es: location.reference.segment:=NR_ES;
+           x86pt_near_fs: location.reference.segment:=NR_FS;
+           x86pt_near_gs: location.reference.segment:=NR_GS;
+           x86pt_far: internalerror(2013050401);
+           x86pt_huge: internalerror(2013050402);
+           else
+             internalerror(2013050403);
+         end;
+       end;
+
 
 {*****************************************************************************
                              TX86VECNODE
 *****************************************************************************}
 
+{$ifndef i8086}
      { this routine must, like any other routine, not change the contents }
      { of base/index registers of references, as these may be regvars.    }
      { The register allocator can coalesce one LOC_REGISTER being moved   }
@@ -102,7 +133,9 @@ implementation
          end;
          location.reference.index:=hreg;
        end;
+{$endif not i8086}
 
 begin
+   cderefnode:=tx86derefnode;
    cvecnode:=tx86vecnode;
 end.

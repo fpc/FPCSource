@@ -271,7 +271,19 @@ implementation
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
-        voidfarpointertype:=tpointerdef.createfar(voidtype);
+{$ifdef x86}
+        voidnearpointertype:=tpointerdef.createx86(voidtype,x86pt_near);
+        voidnearcspointertype:=tpointerdef.createx86(voidtype,x86pt_near_cs);
+        voidneardspointertype:=tpointerdef.createx86(voidtype,x86pt_near_ds);
+        voidnearsspointertype:=tpointerdef.createx86(voidtype,x86pt_near_ss);
+        voidnearespointertype:=tpointerdef.createx86(voidtype,x86pt_near_es);
+        voidnearfspointertype:=tpointerdef.createx86(voidtype,x86pt_near_fs);
+        voidneargspointertype:=tpointerdef.createx86(voidtype,x86pt_near_gs);
+  {$ifdef i8086}
+        voidfarpointertype:=tpointerdef.createx86(voidtype,x86pt_far);
+        voidhugepointertype:=tpointerdef.createx86(voidtype,x86pt_huge);
+  {$endif i8086}
+{$endif x86}
         cfiletype:=tfiledef.createuntyped;
         cvarianttype:=tvariantdef.create(vt_normalvariant);
         colevarianttype:=tvariantdef.create(vt_olevariant);
@@ -318,7 +330,17 @@ implementation
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
 {$ifdef x86}
+        addtype('NearPointer',voidnearpointertype);
+        addtype('NearCsPointer',voidnearcspointertype);
+        addtype('NearDsPointer',voidneardspointertype);
+        addtype('NearSsPointer',voidnearsspointertype);
+        addtype('NearEsPointer',voidnearespointertype);
+        addtype('NearFsPointer',voidnearfspointertype);
+        addtype('NearGsPointer',voidneargspointertype);
+  {$ifdef i8086}
         addtype('FarPointer',voidfarpointertype);
+        addtype('HugePointer',voidhugepointertype);
+  {$endif i8086}
 {$endif x86}
         addtype('ShortString',cshortstringtype);
 {$ifdef support_longstring}
@@ -383,7 +405,19 @@ implementation
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
+{$ifdef x86}
+        addtype('$void_nearpointer',voidnearpointertype);
+        addtype('$void_nearcspointer',voidnearcspointertype);
+        addtype('$void_neardspointer',voidneardspointertype);
+        addtype('$void_nearsspointer',voidnearsspointertype);
+        addtype('$void_nearespointer',voidnearespointertype);
+        addtype('$void_nearfspointer',voidnearfspointertype);
+        addtype('$void_neargspointer',voidneargspointertype);
+  {$ifdef i8086}
         addtype('$void_farpointer',voidfarpointertype);
+        addtype('$void_hugepointer',voidhugepointertype);
+  {$endif i8086}
+{$endif x86}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
@@ -496,7 +530,19 @@ implementation
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
+{$ifdef x86}
+        loadtype('void_nearpointer',voidnearpointertype);
+        loadtype('void_nearcspointer',voidnearcspointertype);
+        loadtype('void_neardspointer',voidneardspointertype);
+        loadtype('void_nearsspointer',voidnearsspointertype);
+        loadtype('void_nearespointer',voidnearespointertype);
+        loadtype('void_nearfspointer',voidnearfspointertype);
+        loadtype('void_neargspointer',voidneargspointertype);
+  {$ifdef i8086}
         loadtype('void_farpointer',voidfarpointertype);
+        loadtype('void_hugepointer',voidhugepointertype);
+  {$endif i8086}
+{$endif x86}
         loadtype('file',cfiletype);
         if not(target_info.system in systems_managed_vm) then
           begin

@@ -1261,12 +1261,14 @@ implementation
                    end;
                  pointerdef :
                    begin
+{$ifdef x86}
                      { check for far pointers }
-                     if (tpointerdef(def_from).is_far<>tpointerdef(def_to).is_far) then
+                     if (tpointerdef(def_from).x86pointertyp<>tpointerdef(def_to).x86pointertyp) then
                        begin
                          eq:=te_incompatible;
                        end
                      else
+{$endif x86}
                       { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
                          ((tpointerdef(def_to).pointeddef.typ=forwarddef) or

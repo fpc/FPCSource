@@ -35,10 +35,6 @@ interface
           procedure pass_generate_code;override;
        end;
 
-       ti386derefnode = class(tcgderefnode)
-          procedure pass_generate_code;override;
-       end;
-
        ti386vecnode = class(tx86vecnode)
           procedure pass_generate_code;override;
        end;
@@ -68,18 +64,6 @@ implementation
 
 
 {*****************************************************************************
-                           TI386DEREFNODE
-*****************************************************************************}
-
-    procedure ti386derefnode.pass_generate_code;
-      begin
-         inherited pass_generate_code;
-         if tpointerdef(left.resultdef).is_far then
-           location.reference.segment:=NR_FS;
-      end;
-
-
-{*****************************************************************************
                              TI386VECNODE
 *****************************************************************************}
 
@@ -93,6 +77,5 @@ implementation
 
 begin
    caddrnode:=ti386addrnode;
-   cderefnode:=ti386derefnode;
    cvecnode:=ti386vecnode;
 end.

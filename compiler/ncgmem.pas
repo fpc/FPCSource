@@ -260,7 +260,9 @@ implementation
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
-            not(tpointerdef(left.resultdef).is_far) and
+{$ifdef x86}
+            (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+{$endif x86}
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then

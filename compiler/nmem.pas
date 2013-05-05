@@ -572,9 +572,9 @@ implementation
                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
               begin
                 if not(nf_typedaddr in flags) then
-                  resultdef:=voidfarpointertype
+                  resultdef:=voidnearfspointertype
                 else
-                  resultdef:=tpointerdef.createfar(left.resultdef);
+                  resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
               end
             else
 {$endif i386}

@@ -112,6 +112,10 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
+
+  {$ifndef VER2_6}
+  FarPointer = NearFsPointer;
+  {$endif}
 {$endif CPUI386}
 
 {$ifdef CPUI8086}
@@ -152,6 +156,9 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$ifndef VER2_6}
+  FarPointer = Pointer;
+  {$endif}
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}

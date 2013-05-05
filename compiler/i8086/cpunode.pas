@@ -48,6 +48,7 @@ unit cpunode;
        nx86set,
        nx86con,
        nx86cnv,
+       nx86mem,
 
        n8086add,
        n8086cal{,

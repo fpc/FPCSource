@@ -174,11 +174,28 @@ interface
           procedure deref;override;
        end;
 
+{$ifdef x86}
+       tx86pointertyp = (x86pt_near, x86pt_near_cs, x86pt_near_ds, x86pt_near_ss,
+         x86pt_near_es, x86pt_near_fs, x86pt_near_gs, x86pt_far, x86pt_huge);
+
+    const
+       { TODO: make this depend on the memory model, when other memory models are supported }
+       default_x86_data_pointer_type = x86pt_near;
+
+    type
+{$endif x86}
+
+       { tpointerdef }
+
        tpointerdef = class(tabstractpointerdef)
-          is_far : boolean;
+{$ifdef x86}
+          x86pointertyp : tx86pointertyp;
+{$endif x86}
           has_pointer_math : boolean;
           constructor create(def:tdef);
-          constructor createfar(def:tdef);
+{$ifdef x86}
+          constructor createx86(def:tdef;x86typ:tx86pointertyp);
+{$endif x86}
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -806,7 +823,19 @@ interface
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
+{$ifdef x86}
+       voidnearpointertype,
+       voidnearcspointertype,
+       voidneardspointertype,
+       voidnearsspointertype,
+       voidnearespointertype,
+       voidnearfspointertype,
+       voidneargspointertype,
+  {$ifdef i8086}
        voidfarpointertype,
+       voidhugepointertype,
+  {$endif i8086}
+{$endif x86}
        cundefinedtype,
        cformaltype,               { unique formal definition }
        ctypedformaltype,          { unique typed formal definition }
@@ -2697,23 +2726,37 @@ implementation
     constructor tpointerdef.create(def:tdef);
       begin
         inherited create(pointerdef,def);
-        is_far:=false;
+{$ifdef x86}
+        x86pointertyp := default_x86_data_pointer_type;
+{$endif x86}
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
 
 
-    constructor tpointerdef.createfar(def:tdef);
+{$ifdef x86}
+    constructor tpointerdef.createx86(def: tdef; x86typ: tx86pointertyp);
+      begin
+        inherited create(pointerdef,def);
+        x86pointertyp := x86typ;
+        has_pointer_math:=cs_pointermath in current_settings.localswitches;
+      end;
+{$endif x86}
+
+
+{    constructor tpointerdef.createfar(def:tdef);
       begin
         inherited create(pointerdef,def);
         is_far:=true;
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
-      end;
+      end;}
 
 
     constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(pointerdef,ppufile);
-         is_far:=(ppufile.getbyte<>0);
+{$ifdef x86}
+         x86pointertyp:=tx86pointertyp(ppufile.getbyte);
+{$endif x86}
          has_pointer_math:=(ppufile.getbyte<>0);
       end;
 
@@ -2727,7 +2770,9 @@ implementation
           result:=tpointerdef.create(tforwarddef(pointeddef).getcopy)
         else
           result:=tpointerdef.create(pointeddef);
-        tpointerdef(result).is_far:=is_far;
+{$ifdef x86}
+        tpointerdef(result).x86pointertyp:=x86pointertyp;
+{$endif x86}
         tpointerdef(result).has_pointer_math:=has_pointer_math;
         tpointerdef(result).savesize:=savesize;
       end;
@@ -2736,7 +2781,9 @@ implementation
     procedure tpointerdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(is_far));
+{$ifdef x86}
+         ppufile.putbyte(byte(x86pointertyp));
+{$endif x86}
          ppufile.putbyte(byte(has_pointer_math));
          ppufile.writeentry(ibpointerdef);
       end;
@@ -2744,10 +2791,26 @@ implementation
 
     function tpointerdef.GetTypeName : string;
       begin
-         if is_far then
-          GetTypeName:='^'+pointeddef.typename+';far'
+{$ifdef x86}
+         if x86pointertyp = default_x86_data_pointer_type then
+           GetTypeName:='^'+pointeddef.typename
          else
-          GetTypeName:='^'+pointeddef.typename;
+           case x86pointertyp of
+             x86pt_near: GetTypeName:='^'+pointeddef.typename+';near';
+             x86pt_near_cs: GetTypeName:='^'+pointeddef.typename+';near ''CS''';
+             x86pt_near_ds: GetTypeName:='^'+pointeddef.typename+';near ''DS''';
+             x86pt_near_ss: GetTypeName:='^'+pointeddef.typename+';near ''SS''';
+             x86pt_near_es: GetTypeName:='^'+pointeddef.typename+';near ''ES''';
+             x86pt_near_fs: GetTypeName:='^'+pointeddef.typename+';near ''FS''';
+             x86pt_near_gs: GetTypeName:='^'+pointeddef.typename+';near ''GS''';
+             x86pt_far: GetTypeName:='^'+pointeddef.typename+';far';
+             x86pt_huge: GetTypeName:='^'+pointeddef.typename+';huge';
+             else
+               internalerror(2013050301);
+           end;
+{$else x86}
+         GetTypeName:='^'+pointeddef.typename;
+{$endif x86}
       end;
 
 
