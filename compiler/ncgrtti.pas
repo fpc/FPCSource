@@ -1228,7 +1228,7 @@ implementation
             end;
           classrefdef,
           pointerdef:
-            if is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
+            if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
         end;
       end;
