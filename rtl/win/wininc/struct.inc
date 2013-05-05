@@ -435,11 +435,11 @@ Const
           lpfn : BFFCALLBACK;
           lParam : LPARAM;
           iImage : longint;
-       end;
-     LPBROWSEINFO = ^BROWSEINFO;
-     _browseinfo = BROWSEINFO;
-     Tbrowseinfo = BROWSEINFO;
-     PBROWSEINFO = ^BROWSEINFO;
+       end deprecated 'Use shlobj version. Will be removed in 2.8'; 
+     LPBROWSEINFO = ^BROWSEINFO deprecated;
+     _browseinfo = BROWSEINFO deprecated;
+     Tbrowseinfo = BROWSEINFO deprecated;
+     PBROWSEINFO = ^BROWSEINFO deprecated;
 
      FILETIME = record
           dwLowDateTime : DWORD;
@@ -747,11 +747,11 @@ Const
           nShow : longint;
           dwHotKey : DWORD;
           hIcon : HANDLE;
-       end;
-     LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO;
-     _CMInvokeCommandInfo = CMINVOKECOMMANDINFO;
-     TCMInvokeCommandInfo = CMINVOKECOMMANDINFO;
-     PCMInvokeCommandInfo = ^CMINVOKECOMMANDINFO;
+       end deprecated 'Use shlobj version. Will be removed in 2.8';
+     LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO deprecated;
+     _CMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
+     TCMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
+     PCMInvokeCommandInfo = ^CMINVOKECOMMANDINFO deprecated;
 
      COLORADJUSTMENT = record
           caSize : WORD;
