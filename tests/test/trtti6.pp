@@ -1,4 +1,4 @@
-program ptr_classref_test;
+program trtti6;
 
 {$mode objfpc}{$H+}
 

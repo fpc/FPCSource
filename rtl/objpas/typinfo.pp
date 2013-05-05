@@ -74,8 +74,6 @@ unit typinfo;
       ptVirtual = 2;
       ptConst = 3;
 
-      tkString = tkSString;
-
    type
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
@@ -122,8 +120,10 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
          case TTypeKind of
-            tkUnKnown,tkLString,tkWString,tkAString,tkVariant,tkUString:
+            tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
+            tkAString:
+              (CodePage: Word);
             tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
@@ -263,6 +263,7 @@ unit typinfo;
       TPropList = array[0..65535] of PPropInfo;
 
    const
+      tkString = tkSString;
       tkProcedure = tkProcVar; // for compatibility with Delphi
       tkAny = [Low(TTypeKind)..High(TTypeKind)];
       tkMethods = [tkMethod];

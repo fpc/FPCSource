@@ -416,7 +416,11 @@ implementation
         begin
           case def.stringtype of
             st_ansistring:
-              write_header(def,tkAString);
+              begin
+                write_header(def,tkAString);
+                maybe_write_align;
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.encoding));
+              end;
 
             st_widestring:
               write_header(def,tkWString);

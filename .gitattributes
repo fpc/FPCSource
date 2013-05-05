@@ -11690,6 +11690,7 @@ tests/test/trtti3.pp svneol=native#text/plain
 tests/test/trtti4.pp svneol=native#text/plain
 tests/test/trtti5.pp svneol=native#text/plain
 tests/test/trtti6.pp svneol=native#text/pascal
+tests/test/trtti7.pp svneol=native#text/pascal
 tests/test/tsafecall1.pp svneol=native#text/plain
 tests/test/tsafecall2.pp svneol=native#text/pascal
 tests/test/tsafecall3.pp svneol=native#text/pascal
