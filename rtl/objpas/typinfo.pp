@@ -737,12 +737,12 @@ var
   AMethod : TMethod;
 begin
   case (PropInfo^.PropProcs shr 4) and 3 of
-    ptfield:
+    ptField:
       Result:=PBoolean(Pointer(Instance)+PtrUInt(PropInfo^.StoredProc))^;
-    ptconst:
+    ptConst:
       Result:=LongBool(PropInfo^.StoredProc);
-    ptstatic,
-    ptvirtual:
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs shr 4) and 3=ptstatic then
           AMethod.Code:=PropInfo^.StoredProc
@@ -946,7 +946,7 @@ begin
   end;
 
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       if Signed then begin
         case DataSize of
           1: Result:=PShortInt(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
@@ -962,8 +962,8 @@ begin
           8: Result:=PInt64(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
         end;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
@@ -1034,15 +1034,15 @@ begin
        end;
     end;
   case (PropInfo^.PropProcs shr 2) and 3 of
-    ptfield:
+    ptField:
       case DataSize of
         1: PByte(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Byte(Value);
         2: PWord(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Word(Value);
         4: PLongint(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Longint(Value);
         8: PInt64(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
@@ -1258,10 +1258,10 @@ begin
 
   TypeInfo := PropInfo^.PropType;
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       Result:=IInterface(PPointer(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^);
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
@@ -1296,8 +1296,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PInterface(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1356,8 +1356,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PPointer(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1393,15 +1393,15 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
-    tkUString :
+    tkUString:
       Result := GetUnicodeStrProp(Instance,PropInfo);
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PShortString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
@@ -1420,8 +1420,8 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
@@ -1458,8 +1458,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PShortString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1478,8 +1478,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PAnsiString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1539,8 +1539,8 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PWideString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
@@ -1575,8 +1575,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PWideString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1623,8 +1623,8 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
@@ -1659,8 +1659,8 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
@@ -1844,14 +1844,14 @@ begin
   Result.Code:=nil;
   Result.Data:=nil;
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       begin
         Value:=PMethod(Pointer(Instance)+PtrUInt(PropInfo^.GetProc));
         if Value<>nil then
           Result:=Value^;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
@@ -1875,10 +1875,10 @@ var
   AMethod : TMethod;
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
-    ptfield:
+    ptField:
       PMethod(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^ := Value;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
