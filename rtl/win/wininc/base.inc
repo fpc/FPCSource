@@ -260,7 +260,7 @@
      BCHAR = word;
 {$else}
      TBYTE = byte;
-     TCHAR = char;
+     TCHAR = ansichar;
      BCHAR = BYTE;
 {$endif}
 
