@@ -624,7 +624,10 @@ implementation
         begin
           write_header(def,tkClassRef);
           maybe_write_align;
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.pointeddef,rt)));
+          if is_objc_class_or_protocol(def.pointeddef) then
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
+          else
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.pointeddef,rt)));
         end;
 
         procedure pointerdef_rtti(def:tpointerdef);
