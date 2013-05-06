@@ -136,6 +136,18 @@ const
   fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
   }
 
+{ returns true if FPU is present }
+function DetectFPU: boolean;
+  var
+    localfpucw: word;
+  begin
+    asm
+      fninit
+      mov byte [localfpucw + 1], 0
+      fnstcw localfpucw
+    end;
+    DetectFPU:=(localfpucw and $FF00)=$0300;
+  end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;

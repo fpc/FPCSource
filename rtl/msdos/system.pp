@@ -214,7 +214,8 @@ end;
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := __stkbottom;
-  SysInitFPU;
+  if DetectFPU then
+    SysInitFPU;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }
