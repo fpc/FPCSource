@@ -45,6 +45,7 @@ unit cgcpu;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
+        procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
 
         procedure push_const(list:TAsmList;size:tcgsize;a:tcgint);
 
@@ -347,6 +348,37 @@ unit cgcpu;
           end
         else
           inherited a_op_reg_reg(list, Op, size, src, dst);
+      end;
+
+
+    procedure tcg8086.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
+      var
+        tmpref  : treference;
+        op1, op2: TAsmOp;
+      begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+        check_register_size(size,reg);
+
+        if size in [OS_64, OS_S64] then
+          internalerror(2013030902);
+
+        if size in [OS_32, OS_S32] then
+          begin
+            case op of
+              OP_ADD,OP_SUB,OP_XOR,OP_OR,OP_AND:
+                begin
+                  get_32bit_ops(op, op1, op2);
+                  list.concat(taicpu.op_ref_reg(op1, S_W, tmpref, reg));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref_reg(op2, S_W, tmpref, GetNextReg(reg)));
+                end;
+              else
+                internalerror(2013050701);
+            end;
+          end
+        else
+          inherited a_op_ref_reg(list,Op,size,tmpref,reg);
       end;
 
 
