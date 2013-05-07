@@ -159,7 +159,7 @@ implementation
             ((rt=fullrtti) or (tobjectdef(def).childof.needs_inittable)) then
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tobjectdef(def).childof,rt)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(0));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
             inc(fieldcnt);
           end;
         st:=def.symtable;
@@ -175,7 +175,7 @@ implementation
                not is_objc_class_or_protocol(tfieldvarsym(sym).vardef) then
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tfieldvarsym(sym).vardef,rt)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
                 inc(fieldcnt);
               end;
           end;

@@ -20,7 +20,11 @@ type
   PRecordElement=^TRecordElement;
   TRecordElement=packed record
     TypeInfo: Pointer;
+    {$ifdef VER2_6}
     Offset: Longint;
+    {$else}
+    Offset: SizeInt;
+    {$endif}
   end;
 
   PRecordInfo=^TRecordInfo;

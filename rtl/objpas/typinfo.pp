@@ -131,7 +131,7 @@ unit typinfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         TypeRef: PTypeInfo;
-        FldOffset: Integer;
+        FldOffset: SizeInt;
       end;
 
 {$PACKRECORDS C}
