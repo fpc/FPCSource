@@ -579,6 +579,11 @@ implementation
 
 
         procedure arraydef_rtti(def:tarraydef);
+          var
+            lastai: TLinkedListItem;
+            dimcount: byte;
+            totalcount: asizeuint;
+            curdef:tarraydef;
         begin
            if ado_IsDynamicArray in def.arrayoptions then
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkdynarray))
@@ -586,14 +591,34 @@ implementation
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkarray));
            write_rtti_name(def);
            maybe_write_align;
-           { size of elements }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
 
            if not(ado_IsDynamicArray in def.arrayoptions) then
              begin
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(pint(def.elecount)));
-               { element type }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+               { remember tha last instruction. we will need to insert some
+                 calculated values after it }
+               lastai:=current_asmdata.asmlists[al_rtti].last;
+               curdef:=def;
+               totalcount:=1;
+               dimcount:=0;
+               while assigned(curdef) do
+               begin
+                 { Dims[i] PTypeInfo }
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(curdef.rangedef,rt)));
+                 inc(dimcount);
+                 totalcount:=totalcount*curdef.elecount;
+                 if assigned(curdef.elementdef)and(curdef.elementdef.typ=arraydef) then
+                   curdef:=tarraydef(curdef.elementdef)
+                 else
+                   break;
+               end;
+               { dimension count }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_8bit(dimcount),lastai);
+               { last dimension element type }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt)),lastai);
+               { total element count }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_pint(pint(totalcount)),lastai);
+               { total size = elecount * elesize of the first arraydef }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_pint(def.elecount*def.elesize),lastai);
              end
            else
              { write a delphi almost compatible dyn. array entry:
@@ -603,13 +628,12 @@ implementation
                the names are swapped in typinfo.pp
              }
              begin
+               { size of elements }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
                { element type }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
-             end;
-           { variant type }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
-           if ado_IsDynamicArray in def.arrayoptions then
-             begin
+               { variant type }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
                { element type }
                if def.elementdef.needs_inittable then
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
@@ -1221,7 +1245,10 @@ implementation
           setdef :
             write_rtti(tsetdef(def).elementdef,rt);
           arraydef :
-            write_rtti(tarraydef(def).elementdef,rt);
+            begin
+              write_rtti(tarraydef(def).rangedef,rt);
+              write_rtti(tarraydef(def).elementdef,rt);
+            end;
           recorddef :
             fields_write_rtti(trecorddef(def).symtable,rt);
           objectdef :

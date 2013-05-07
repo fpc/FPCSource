@@ -112,6 +112,28 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+      // members of TTypeData
+      TArrayTypeData =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Size: SizeInt;
+        ElCount: SizeInt;
+        ElType: PTypeInfo;
+        DimCount: Byte;
+        Dims: array[0..255] of PTypeInfo;
+      end;
+
+      TManagedField =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        TypeRef: PTypeInfo;
+        FldOffset: Integer;
+      end;
+
 {$PACKRECORDS C}
       PTypeData = ^TTypeData;
       TTypeData =
@@ -200,6 +222,10 @@ unit typinfo;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
               );
+            tkArray:
+              (
+              ArrayData: TArrayTypeData;
+              );
             tkDynArray:
               (
               elSize     : PtrUInt;
@@ -218,15 +244,6 @@ unit typinfo;
               );
       end;
 
-      // unsed, just for completeness
-      TManagedField =
-      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-      packed
-      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-      record
-        TypeRef: PTypeInfo;
-        FldOffset: Integer;
-      end;
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
