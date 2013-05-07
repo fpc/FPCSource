@@ -440,14 +440,14 @@ type
   );
   tobjectoptions=set of tobjectoption;
 
-  tarraydefoption=(ado_none,
-    ado_IsConvertedPointer,
-    ado_IsDynamicArray,
-    ado_IsVariant,
-    ado_IsConstructor,
-    ado_IsArrayOfConst,
-    ado_IsConstString,
-    ado_IsBitPacked
+  tarraydefoption=(    
+    ado_IsConvertedPointer, // array created from pointer (e.g. PInteger(Ptr)[1])
+    ado_IsDynamicArray,     // dynamic array
+    ado_IsVariant,          //
+    ado_IsConstructor,      // array constructor (e.g. something = [1,2,3])
+    ado_IsArrayOfConst,     // array of const
+    ado_IsConstString,      // string constant
+    ado_IsBitPacked         // bitpacked array
   );
   tarraydefoptions=set of tarraydefoption;
 

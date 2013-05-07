@@ -1891,39 +1891,34 @@ end;
 
 procedure readarraydefoptions(ArrayDef: TPpuArrayDef);
 { type tarraydefoption is in unit symconst }
-type
-  tsymopt=record
-    mask : tarraydefoption;
-    str  : string[30];
-  end;
 const
-  symopt : array[1..ord(high(tarraydefoption))] of tsymopt=(
-     (mask:ado_IsConvertedPointer;str:'ConvertedPointer'),
-     (mask:ado_IsDynamicArray;    str:'IsDynamicArray'),
-     (mask:ado_IsVariant;         str:'IsVariant'),
-     (mask:ado_IsConstructor;     str:'IsConstructor'),
-     (mask:ado_IsArrayOfConst;    str:'ArrayOfConst'),
-     (mask:ado_IsConstString;     str:'ConstString'),
-     (mask:ado_IsBitPacked;      str:'BitPacked')
+  symopt : array[tarraydefoption] of string = (
+   { ado_IsConvertedPointer } 'ConvertedPointer',
+   { ado_IsDynamicArray     } 'IsDynamicArray',
+   { ado_IsVariant          } 'IsVariant',
+   { ado_IsConstructor      } 'IsConstructor',
+   { ado_IsArrayOfConst     } 'ArrayOfConst',
+   { ado_IsConstString      } 'ConstString',
+   { ado_IsBitPacked        } 'BitPacked'
   );
 var
-  symoptions : tarraydefoptions;
-  i      : longint;
-  first  : boolean;
+  symoptions: tarraydefoptions;
+  i: tarraydefoption;
+  first: boolean;
 begin
   ppufile.getsmallset(symoptions);
   if symoptions<>[] then
    begin
      if ado_IsDynamicArray in symoptions then Include(ArrayDef.Options, aoDynamic);
      first:=true;
-     for i:=1 to high(symopt) do
-      if (symopt[i].mask in symoptions) then
+     for i:=Low(symopt) to high(symopt) do
+      if (i in symoptions) then
        begin
          if first then
            first:=false
          else
            write(', ');
-         write(symopt[i].str);
+         write(symopt[i]);
        end;
    end;
   writeln;
