@@ -601,16 +601,16 @@ implementation
                totalcount:=1;
                dimcount:=0;
                while assigned(curdef) do
-               begin
-                 { Dims[i] PTypeInfo }
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(curdef.rangedef,rt)));
-                 inc(dimcount);
-                 totalcount:=totalcount*curdef.elecount;
-                 if assigned(curdef.elementdef)and(curdef.elementdef.typ=arraydef) then
-                   curdef:=tarraydef(curdef.elementdef)
-                 else
-                   break;
-               end;
+                 begin
+                   { Dims[i] PTypeInfo }
+                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(curdef.rangedef,rt)));
+                   inc(dimcount);
+                   totalcount:=totalcount*curdef.elecount;
+                   if assigned(curdef.elementdef)and(curdef.elementdef.typ=arraydef) then
+                     curdef:=tarraydef(curdef.elementdef)
+                   else
+                     break;
+                 end;
                { dimension count }
                current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_8bit(dimcount),lastai);
                { last dimension element type }
