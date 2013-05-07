@@ -1976,13 +1976,21 @@ unit cgx86;
           begin
             getcpuregister(list,REGDI);
             if (dest.segment=NR_NO) then
-              a_loadaddr_ref_reg(list,dest,REGDI)
+              begin
+                a_loadaddr_ref_reg(list,dest,REGDI);
+{$ifdef volatile_es}
+                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
+                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+{$endif volatile_es}
+              end
             else
               begin
                 dstref:=dest;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
+{$ifndef volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_ES));
+{$endif not volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,S_L,dest.segment));
                 list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
               end;
@@ -2047,8 +2055,10 @@ unit cgx86;
             ungetcpuregister(list,REGDI);
             if (source.segment<>NR_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+{$ifndef volatile_es}
             if (dest.segment<>NR_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+{$endif not volatile_es}
           end;
         end;
     end;

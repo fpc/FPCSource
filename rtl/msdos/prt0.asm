@@ -54,10 +54,6 @@ no_bss:
         int 21h
         jc mem_realloc_err
 
-        ; init ES
-        mov ax, dgroup
-        mov es, ax
-
         ; bx = the new size in paragraphs
         add bx, word [dos_psp]
         sub bx, dgroup
@@ -111,7 +107,6 @@ FPC_INTR:
         mov bp, sp
         mov al, byte [ss:bp + 6]
         mov byte [cs:int_number], al
-        push es
         mov si, [ss:bp + 4]
         push ds
         mov ax, word [si + 16]
@@ -156,7 +151,6 @@ int_number:
         mov word [si + 18], ax
         
         pop ds
-        pop es
         pop bp
         ret 4
 

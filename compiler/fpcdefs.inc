@@ -57,6 +57,7 @@
   {$define cpuneedsmulhelper}
   { TODO: add another define in order to disable the div helper for 16-bit divs? }
   {$define cpuneedsdiv32helper}
+  {$define VOLATILE_ES}
 {$endif i8086}
 
 {$ifdef i386}
