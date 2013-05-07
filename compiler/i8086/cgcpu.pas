@@ -1057,18 +1057,18 @@ unit cgcpu;
 {$endif}
       begin
         { get stack space }
-        getcpuregister(list,NR_EDI);
-        a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
-        list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-        { Now EDI contains (high+1). Copy it to ECX for later use. }
-        getcpuregister(list,NR_ECX);
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+        getcpuregister(list,NR_DI);
+        a_load_loc_reg(list,OS_INT,lenloc,NR_DI);
+        list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
+        { Now DI contains (high+1). Copy it to CX for later use. }
+        getcpuregister(list,NR_CX);
+        list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
-             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_EDI))
+             list.concat(Taicpu.op_const_reg(A_SHL,S_W,power,NR_DI))
            else
-             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
+             list.concat(Taicpu.op_const_reg(A_IMUL,S_W,elesize,NR_DI));
          end;
 {$ifndef __NOWINPECOFF__}
         { windows guards only a few pages for stack growing, }
@@ -1091,26 +1091,31 @@ unit cgcpu;
         { If we were probing pages, EDI=(size mod pagesize) and ESP is decremented
           by (size div pagesize)*pagesize, otherwise EDI=size.
           Either way, subtracting EDI from ESP will set ESP to desired final value. }
-        list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
-        { align stack on 4 bytes }
-        list.concat(Taicpu.op_const_reg(A_AND,S_L,aint($fffffff4),NR_ESP));
+        list.concat(Taicpu.op_reg_reg(A_SUB,S_W,NR_DI,NR_SP));
+        { align stack on 2 bytes }
+        list.concat(Taicpu.op_const_reg(A_AND,S_W,aint($fffe),NR_SP));
         { load destination, don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
-        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,NR_EDI));
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
 
-        { Allocate ESI and load it with source }
-        getcpuregister(list,NR_ESI);
-        a_loadaddr_ref_reg(list,ref,NR_ESI);
+{$ifdef volatile_es}
+        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
+        list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
+{$endif volatile_es}
+
+        { Allocate SI and load it with source }
+        getcpuregister(list,NR_SI);
+        a_loadaddr_ref_reg(list,ref,NR_SI);
 
         { calculate size }
         len:=elesize;
         opsize:=S_B;
-        if (len and 3)=0 then
+{        if (len and 3)=0 then
          begin
            opsize:=S_L;
            len:=len shr 2;
          end
-        else
+        else}
          if (len and 1)=0 then
           begin
             opsize:=S_W;
@@ -1120,23 +1125,23 @@ unit cgcpu;
         if len>1 then
           begin
             if ispowerof2(len, power) then
-              list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
+              list.concat(Taicpu.op_const_reg(A_SHL,S_W,power,NR_CX))
             else
-              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
+              list.concat(Taicpu.op_const_reg(A_IMUL,S_W,len,NR_CX));
           end;
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+//          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
-        ungetcpuregister(list,NR_EDI);
-        ungetcpuregister(list,NR_ECX);
-        ungetcpuregister(list,NR_ESI);
+        ungetcpuregister(list,NR_DI);
+        ungetcpuregister(list,NR_CX);
+        ungetcpuregister(list,NR_SI);
 
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
-        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,destreg));
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,destreg));
       end;
 
 
