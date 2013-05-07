@@ -1062,7 +1062,8 @@ begin
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if create_smartlink_sections then
+  if (cs_link_smart in current_settings.globalswitches) and
+     create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
