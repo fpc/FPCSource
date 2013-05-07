@@ -335,6 +335,7 @@ Type
     FRunMode: TDaemonRunMode;
     FSysData: TObject;
     FControllerCount : Integer;
+    FAutoRegisterMessageFile : Boolean;
     procedure BindDaemonDefs(AMapper: TCustomDaemonMapper);
     function  InstallRun: Boolean;
     procedure SysInstallDaemon(Daemon: TCustomDaemon);
@@ -362,6 +363,7 @@ Type
     procedure DoLog(EventType: TEventType; const Msg: String); override;
     Property SysData : TObject Read FSysData Write FSysData;
   Public
+    Constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     Procedure ShowException(E : Exception); override;
     Function CreateDaemon(DaemonDef : TDaemonDef) : TCustomDaemon;
@@ -376,6 +378,7 @@ Type
     Property GUIMainLoop : TGuiLoopEvent Read FGUIMainLoop Write FGuiMainLoop;
     Property GuiHandle : THandle Read FGUIHandle Write FGUIHandle;
     Property RunMode : TDaemonRunMode Read FRunMode;
+    Property AutoRegisterMessageFile : Boolean Read FAutoRegisterMessageFile Write FAutoRegisterMessageFile default true;
   end;
   TCustomDaemonApplicationClass = Class of TCustomDaemonApplication;
   
@@ -692,7 +695,6 @@ end;
 
 { TCustomServiceApplication }
 
-
 procedure TCustomDaemonApplication.CreateServiceMapper(Var AMapper : TCustomDaemonMapper);
 
 begin
@@ -794,7 +796,6 @@ Var
 
 begin
   FrunMode:=drmInstall;
-  EventLog.RegisterMessageFile('');
   SysStartInstallDaemons;
   try
     FMapper.DoOnInstall;
@@ -826,7 +827,8 @@ Var
 
 begin
   FrunMode:=drmUnInstall;
-  EventLog.UnRegisterMessageFile;
+  if FAutoRegisterMessageFile then
+    EventLog.UnRegisterMessageFile;
   SysStartUnInstallDaemons;
   Try
     FMapper.DoOnUnInstall;
@@ -919,7 +921,8 @@ begin
     begin
     FEventLog:=TEventlog.Create(Self);
     FEventLog.RaiseExceptionOnError:=False;
-    FEventLog.RegisterMessageFile('');
+    if FAutoRegisterMessageFile then
+      FEventLog.RegisterMessageFile('');
     end;
   result := FEventLog;
 end;
@@ -930,6 +933,13 @@ begin
   if assigned(FEventLog) then
     FEventLog.Free;
   inherited Destroy;
+end;
+
+constructor TCustomDaemonApplication.Create(AOwner : TComponent);
+
+begin
+  inherited;
+  FAutoRegisterMessageFile:=True;
 end;
 
 procedure TCustomDaemonApplication.DoRun;
