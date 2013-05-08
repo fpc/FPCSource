@@ -723,6 +723,14 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
              end;
 
+           procedure write_def_reference(def:tdef);
+             begin
+               if is_void(def) or is_objc_class_or_protocol(def) then
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
+               else
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def,fullrtti)));
+             end;
+
            procedure write_para(parasym:tparavarsym);
              begin
                { only store user visible parameters }
@@ -745,7 +753,7 @@ implementation
                    { write flags for current parameter }
                    write_param_flag(parasym);
                    { write param type }
-                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(parasym.vardef,fullrtti)));
+                   write_def_reference(parasym.vardef);
                    { write name of current parameter }
                    write_string(parasym.realname);
                  end;
@@ -826,10 +834,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
               maybe_write_align;
               { write result typeinfo }
-              if is_void(def.returndef) then
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
-              else
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)));
+              write_def_reference(def.returndef);
               { write parameter count }
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
               maybe_write_align;
