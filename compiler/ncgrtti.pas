@@ -693,43 +693,63 @@ implementation
               { pocall_interrupt  } 12
              );
 
-           procedure write_para(parasym:tparavarsym);
-           var
-             paraspec : byte;
-           begin
-             { only store user visible parameters }
-             if not(vo_is_hidden_para in parasym.varoptions) then
-               begin
-                 case parasym.varspez of
-                   vs_value   : paraspec := 0;
-                   vs_const   : paraspec := pfConst;
-                   vs_var     : paraspec := pfVar;
-                   vs_out     : paraspec := pfOut;
-                   vs_constref: paraspec := pfConstRef;
-                 end;
-                 { Kylix also seems to always add both pfArray and pfReference
-                   in this case
-                 }
-                 if is_open_array(parasym.vardef) then
-                   paraspec:=paraspec or pfArray or pfReference;
-                 { and these for classes and interfaces (maybe because they
-                   are themselves addresses?)
-                 }
-                 if is_class_or_interface(parasym.vardef) then
-                   paraspec:=paraspec or pfAddress;
-                 { set bits run from the highest to the lowest bit on
-                   big endian systems
-                 }
-                 if (target_info.endian = endian_big) then
-                   paraspec:=reverse_byte(paraspec);
-                 { write flags for current parameter }
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
-                 { write name of current parameter }
-                 write_string(parasym.realname);
-                 { write name of type of current parameter }
-                 write_rtti_name(parasym.vardef);
+           procedure write_param_flag(parasym:tparavarsym);
+             var
+               paraspec : byte;
+             begin
+               case parasym.varspez of
+                 vs_value   : paraspec := 0;
+                 vs_const   : paraspec := pfConst;
+                 vs_var     : paraspec := pfVar;
+                 vs_out     : paraspec := pfOut;
+                 vs_constref: paraspec := pfConstRef;
                end;
-           end;
+               { Kylix also seems to always add both pfArray and pfReference
+                 in this case
+               }
+               if is_open_array(parasym.vardef) then
+                 paraspec:=paraspec or pfArray or pfReference;
+               { and these for classes and interfaces (maybe because they
+                 are themselves addresses?)
+               }
+               if is_class_or_interface(parasym.vardef) then
+                 paraspec:=paraspec or pfAddress;
+               { set bits run from the highest to the lowest bit on
+                 big endian systems
+               }
+               if (target_info.endian = endian_big) then
+                 paraspec:=reverse_byte(paraspec);
+               { write flags for current parameter }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
+             end;
+
+           procedure write_para(parasym:tparavarsym);
+             begin
+               { only store user visible parameters }
+               if not(vo_is_hidden_para in parasym.varoptions) then
+                 begin
+                   { write flags for current parameter }
+                   write_param_flag(parasym);
+                   { write name of current parameter }
+                   write_string(parasym.realname);
+                   { write name of type of current parameter }
+                   write_rtti_name(parasym.vardef);
+                 end;
+             end;
+
+           procedure write_procedure_param(parasym:tparavarsym);
+             begin
+               { only store user visible parameters }
+               if not(vo_is_hidden_para in parasym.varoptions) then
+                 begin
+                   { write flags for current parameter }
+                   write_param_flag(parasym);
+                   { write param type }
+                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(parasym.vardef,fullrtti)));
+                   { write name of current parameter }
+                   write_string(parasym.realname);
+                 end;
+             end;
 
         var
           methodkind : byte;
@@ -795,7 +815,27 @@ implementation
                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tparavarsym(def.paras[i]).vardef,fullrtti)));
             end
           else
-            write_header(def,tkProcvar);
+            begin
+              write_header(def,tkProcvar);
+              maybe_write_align;
+
+              { flags }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+              maybe_write_align;
+              { write calling convention }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+              maybe_write_align;
+              { write result typeinfo }
+              if is_void(def.returndef) then
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
+              else
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)));
+              { write parameter count }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
+              maybe_write_align;
+              for i:=0 to def.paras.count-1 do
+                write_procedure_param(tparavarsym(def.paras[i]));
+            end;
         end;
 
 

@@ -125,6 +125,7 @@ unit typinfo;
         Dims: array[0..255] of PTypeInfo;
       end;
 
+      PManagedField = ^TManagedField;
       TManagedField =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -132,6 +133,29 @@ unit typinfo;
       record
         TypeRef: PTypeInfo;
         FldOffset: SizeInt;
+      end;
+
+      PProcedureParam = ^TProcedureParam;
+      TProcedureParam =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Flags: Byte;
+        ParamType: PPTypeInfo;
+        Name: ShortString;
+      end;
+
+      TProcedureSignature =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Flags: Byte;
+        CC: TCallConv;
+        ResultType: PTypeInfo;
+        ParamCount: Byte;
+        {Params: array[1..ParamCount] of TProcedureParam;}
       end;
 
 {$PACKRECORDS C}
@@ -203,6 +227,8 @@ unit typinfo;
                   CC : TCallConv;
                   ParamTypeRefs : array[1..ParamCount] of PTypeInfo;}
               );
+            tkProcVar:
+              (ProcSig: TProcedureSignature);
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
             tkQWord:
@@ -223,9 +249,7 @@ unit typinfo;
                IIDStr: ShortString;
               );
             tkArray:
-              (
-              ArrayData: TArrayTypeData;
-              );
+              (ArrayData: TArrayTypeData);
             tkDynArray:
               (
               elSize     : PtrUInt;
@@ -235,13 +259,9 @@ unit typinfo;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
-              (
-              InstanceType: PTypeInfo;
-              );
+              (InstanceType: PTypeInfo);
             tkPointer:
-              (
-              RefType: PTypeInfo;
-              );
+              (RefType: PTypeInfo);
       end;
 
       TPropData =
