@@ -115,6 +115,9 @@ var
 begin
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
   Count:=PArrayInfo(typeInfo)^.ElCount;
+  { no elements to process => exit }
+  if Count = 0 then
+    Exit;
   ElSize:=PArrayInfo(typeInfo)^.Size div Count;
   Info:=PArrayInfo(typeInfo)^.ElInfo;
   { Process elements }
@@ -262,6 +265,9 @@ begin
       {$else}
         Result:=PArrayInfo(Temp)^.Size;
         Count:=PArrayInfo(Temp)^.ElCount;
+        { no elements to process => exit }
+        if Count = 0 then
+          Exit;
         Info:=PArrayInfo(Temp)^.ElInfo;
         copiedsize:=Result div Count;
         Offset:=0;
