@@ -47,6 +47,7 @@ unit cgcpu;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
+        procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
 
         procedure push_const(list:TAsmList;size:tcgsize;a:tcgint);
 
@@ -438,6 +439,65 @@ unit cgcpu;
           end
         else
           inherited a_op_ref_reg(list,Op,size,tmpref,reg);
+      end;
+
+
+    procedure tcg8086.a_op_reg_ref(list: TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference);
+      var
+        tmpref: treference;
+        op1,op2: TAsmOp;
+      begin
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+        check_register_size(size,reg);
+
+        if size in [OS_64, OS_S64] then
+          internalerror(2013050803);
+
+        if size in [OS_32, OS_S32] then
+          begin
+            case op of
+              OP_NEG:
+                begin
+                  if reg<>NR_NO then
+                    internalerror(200109237);
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
+                  dec(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref(A_NEG, S_W, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_const_ref(A_SBB, S_W,-1, tmpref));
+                end;
+              OP_NOT:
+                begin
+                  if reg<>NR_NO then
+                    internalerror(200109237);
+                  list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
+                end;
+              OP_IMUL:
+                begin
+                  { this one needs a load/imul/store, which is the default }
+                  inherited a_op_ref_reg(list,op,size,tmpref,reg);
+                end;
+              OP_MUL,OP_DIV,OP_IDIV:
+                { special stuff, needs separate handling inside code }
+                { generator                                          }
+                internalerror(200109238);
+              OP_ADD,OP_SUB,OP_XOR,OP_OR,OP_AND:
+                begin
+                  get_32bit_ops(op, op1, op2);
+                  list.concat(taicpu.op_reg_ref(op1, S_W, reg, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_reg_ref(op2, S_W, GetNextReg(reg), tmpref));
+                end;
+              else
+                internalerror(2013050804);
+            end;
+          end
+        else
+          inherited a_op_reg_ref(list,Op,size,reg,tmpref);
       end;
 
 
