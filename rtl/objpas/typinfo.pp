@@ -142,7 +142,7 @@ unit typinfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         Flags: Byte;
-        ParamType: PPTypeInfo;
+        ParamType: PTypeInfo;
         Name: ShortString;
       end;
 
