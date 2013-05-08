@@ -44,6 +44,7 @@ unit cgcpu;
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
 
@@ -261,6 +262,64 @@ unit cgcpu;
             else
               inherited a_op_const_reg(list, Op, size, a, reg);
           end;
+      end;
+
+
+    procedure tcg8086.a_op_const_ref(list: TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
+      var
+        tmpref: treference;
+        op1,op2: TAsmOp;
+      begin
+        optimize_op_const(op, a);
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+
+        if size in [OS_64, OS_S64] then
+          internalerror(2013050801);
+        if size in [OS_32, OS_S32] then
+          begin
+            case Op of
+              OP_NONE :
+                begin
+                  { Opcode is optimized away }
+                end;
+              OP_MOVE :
+                begin
+                  { Optimized, replaced with a simple load }
+                  a_load_const_ref(list,size,a,ref);
+                end;
+              OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+                begin
+                  if (longword(a) = high(longword)) and
+                     (op in [OP_AND,OP_OR,OP_XOR]) then
+                    begin
+                      case op of
+                        OP_AND:
+                          exit;
+                        OP_OR:
+                          a_load_const_ref(list,size,high(longword),tmpref);
+                        OP_XOR:
+                          begin
+                            list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
+                            inc(tmpref.offset, 2);
+                            list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
+                          end;
+                      end
+                    end
+                  else
+                  begin
+                    get_32bit_ops(op, op1, op2);
+                    list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
+                    inc(tmpref.offset, 2);
+                    list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
+                  end;
+                end;
+              else
+                internalerror(2013050802);
+            end;
+          end
+        else
+          inherited a_op_const_ref(list,Op,size,a,tmpref);
       end;
 
 
