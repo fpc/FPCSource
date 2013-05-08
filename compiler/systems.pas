@@ -215,6 +215,11 @@ interface
           abi          : tabi;
        end;
 
+    tabiinfo = record
+      name: string[10];
+      supported: boolean;
+    end;
+
     const
        { alias for supported_target field in tasminfo }
        system_any = system_none;
@@ -345,8 +350,14 @@ interface
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
 
-       abi2str : array[tabi] of string[10] =
-         ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
+       abiinfo : array[tabi] of tabiinfo = (
+         (name: 'DEFAULT'; supported: true),
+         (name: 'SYSV'   ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
+         (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
+         (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif})
+       );
 
     var
        targetinfos   : array[tsystem] of psysteminfo;

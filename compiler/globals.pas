@@ -1089,7 +1089,8 @@ implementation
         result:=false;
         hs:=Upper(s);
         for t:=low(t) to high(t) do
-          if abi2str[t]=hs then
+          if abiinfo[t].supported and
+             (abiinfo[t].name=hs) then
             begin
               a:=t;
               result:=true;

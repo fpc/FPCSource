@@ -265,8 +265,10 @@ begin
       begin
         for abi:=low(abi) to high(abi) do
           begin
+            if not abiinfo[abi].supported then
+              continue;
             hs:=s;
-            hs1:=abi2str[abi];
+            hs1:=abiinfo[abi].name;
             if hs1<>'' then
               begin
                 Replace(hs,'$ABITARGETS',hs1);
@@ -3047,8 +3049,8 @@ begin
 
   { define abi }
   for abi:=low(tabi) to high(tabi) do
-    undef_system_macro('FPC_ABI_'+abi2str[abi]);
-  def_system_macro('FPC_ABI_'+abi2str[target_info.abi]);
+    undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
+  def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
 
   { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
     systems since most code needs to behave the same on both}
