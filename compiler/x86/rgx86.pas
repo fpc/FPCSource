@@ -115,6 +115,7 @@ implementation
 
       var
         n,replaceoper : longint;
+        is_subh: Boolean;
       begin
         result:=false;
         with instr do
@@ -274,9 +275,12 @@ implementation
             { Replace register with spill reference }
             if replaceoper<>-1 then
               begin
+                is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
                 oper[replaceoper]^.typ:=top_ref;
                 new(oper[replaceoper]^.ref);
                 oper[replaceoper]^.ref^:=spilltemp;
+                if is_subh then
+                  inc(oper[replaceoper]^.ref^.offset);
                 { memory locations aren't guaranteed to be aligned }
                 case opcode of
                   A_MOVAPS:
