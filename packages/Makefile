@@ -1583,11 +1583,10 @@ sourceinstall:
 exampleinstall:
 zipsourceinstall:
 zipexampleinstall:
-zipdistinstall:
 cleanall:
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -1653,4 +1652,6 @@ else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
 endif
 zipinstall:	fpmake
-	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT)
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie
