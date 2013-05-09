@@ -874,6 +874,7 @@ Type
     FUnixPaths: Boolean;
     FNoFPCCfg: Boolean;
     FUseEnvironment: Boolean;
+    FZipPrefix: String;
     function GetBuildCPU: TCpu;
     function GetBuildOS: TOS;
     function GetBuildString: String;
@@ -897,6 +898,7 @@ Type
     procedure SetPrefix(const AValue: String);
     procedure SetTarget(const AValue: String);
     procedure SetUnitInstallDir(const AValue: String);
+    procedure SetZipPrefix(AValue: String);
   Protected
     procedure RecalcTarget;
     Function CmdLineOptions : String;
@@ -940,6 +942,7 @@ Type
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
     Property Prefix : String Read FPrefix Write SetPrefix;
+    Property ZipPrefix : String Read FZipPrefix Write SetZipPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
     Property UnitInstallDir : String Read GetUnitInstallDir Write SetUnitInstallDir;
     Property BinInstallDir : String Read GetBinInstallDir Write FBinInstallDir;
@@ -1438,6 +1441,7 @@ ResourceString
   sHelpThreads        = 'Enable the indicated amount of worker threads.';
   sHelpUseEnvironment = 'Use environment to pass options to compiler.';
   SHelpUseBuildUnit   = 'Compile package in Build-unit mode.';
+  sHelpZipPrefix      = 'Use indicated prefix for generated archives.';
 
 
 Const
@@ -3642,6 +3646,12 @@ begin
     FUnitInstallDir:='';
 end;
 
+procedure TCustomDefaults.SetZipPrefix(AValue: String);
+begin
+  if FZipPrefix=AValue then Exit;
+  FZipPrefix:=AValue;
+end;
+
 
 procedure TCustomDefaults.RecalcTarget;
 begin
@@ -4178,6 +4188,8 @@ begin
       Defaults.Prefix:=OptionArg(I)
     else if Checkoption(I,'n','nofpccfg') then
       Defaults.NoFPCCfg:=true
+    else if Checkoption(I,'zp','zipprefix') then
+      Defaults.ZipPrefix:=OptionArg(I)
 {$ifdef HAS_UNIT_PROCESS}
     else if Checkoption(I,'e','useenv') then
       Defaults.UseEnvironment:=true
@@ -4291,6 +4303,7 @@ begin
   LogArgOption('o','options',SHelpOptions);
   LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('d', 'doc-folder', sHelpFpdocOutputDir);
+  LogArgOption('zp', 'zipprefix', sHelpZipPrefix);
 {$ifndef NO_THREADING}
   LogArgOption('T', 'threads', sHelpThreads);
 {$endif NO_THREADING}
@@ -6651,7 +6664,7 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
           P:=Packages.PackageItems[i];
           If PackageOK(P) then
             begin
-              FZipper.FileName := P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
+              FZipper.FileName := Defaults.ZipPrefix + P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
               Install(P);
               FZipper.ZipAllFiles;
               FZipper.Clear;
@@ -6677,7 +6690,7 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
         P:=Packages.PackageItems[i];
         If PackageOK(P) then
           begin
-            S := TGZFileStream.create(P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
             try
               FTarWriter := TTarWriter.Create(S);
               FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
