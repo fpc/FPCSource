@@ -21,6 +21,7 @@ unit typinfo;
   interface
 
 {$MODE objfpc}
+{$MODESWITCH AdvancedRecords}
 {$inline on}
 {$h+}
 
@@ -155,7 +156,8 @@ unit typinfo;
         CC: TCallConv;
         ResultType: PTypeInfo;
         ParamCount: Byte;
-        {Params: array[1..ParamCount] of TProcedureParam;}
+        {Params: array[0..ParamCount - 1] of TProcedureParam;}
+        function GetParam(ParamIndex: Integer): PProcedureParam;
       end;
 
 {$PACKRECORDS C}
@@ -2043,6 +2045,20 @@ end;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 begin
   Result:=IsStoredProp(instance,FindPropInfo(Instance,PropName));
+end;
+
+{ TProcedureSignature }
+
+function TProcedureSignature.GetParam(ParamIndex: Integer): PProcedureParam;
+begin
+  if (ParamIndex<0)or(ParamIndex>=ParamCount) then
+    Exit(nil);
+  Result := PProcedureParam(PByte(@Flags) + SizeOf(Self));
+  while ParamIndex > 0 do
+    begin
+      Result := PProcedureParam(PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar));
+      dec(ParamIndex);
+    end;
 end;
 
 end.
