@@ -790,11 +790,12 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getint64
-{$else cpu64bitalu}
-  result:=getlongint;
-{$endif cpu64bitalu}
+  case sizeof(aint) of
+    8: result:=getint64;
+    4: result:=getlongint;
+    2: result:=smallint(getword);
+    1: result:=shortint(getbyte);
+  end;
 {$endif not generic_cpu}
 end;
 
