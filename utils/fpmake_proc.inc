@@ -6,6 +6,8 @@
 
 {$include fpcres/fpmake.pp}
 
+{$include fpcreslipo/fpmake.pp}
+
 {$include fpdoc/fpmake.pp}
 
 {$include fpmc/fpmake.pp}

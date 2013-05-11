@@ -34,7 +34,6 @@ begin
     T.ResourceStrings:=true;
 
     P.Targets.AddProgram('ppdep.pp');
-    P.Targets.AddProgram('ptop.pp');
     P.Targets.AddProgram('rstconv.pp').ResourceStrings:=true;
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');

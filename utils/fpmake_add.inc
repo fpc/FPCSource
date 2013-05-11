@@ -2,6 +2,7 @@
   add_fpcm;
   add_fpcmkcfg;
   add_fpcres;
+  add_fpcreslipo;
   add_fpdoc;
   add_fpmc;
   add_fppkg_util;
