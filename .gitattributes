@@ -14694,6 +14694,7 @@ utils/unicode/cldrparser.lpr svneol=native#text/pascal
 utils/unicode/cldrtest.pas svneol=native#text/pascal
 utils/unicode/cldrxml.pas svneol=native#text/pascal
 utils/unicode/data/readme.txt svneol=native#text/plain
+utils/unicode/fpmake.pp svneol=native#text/plain
 utils/unicode/grbtree.pas svneol=native#text/pascal
 utils/unicode/helper.pas svneol=native#text/pascal
 utils/unicode/parse-collations.bat svneol=native#text/plain
