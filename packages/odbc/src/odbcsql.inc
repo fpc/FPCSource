@@ -113,7 +113,6 @@ const
   SQL_WVARCHAR      =(-9);
   SQL_WLONGVARCHAR  =(-10);
 
-
   SQL_CHAR          = 1;
   SQL_NUMERIC       = 2;
   SQL_DECIMAL       = 3;
@@ -131,6 +130,9 @@ const
   SQL_TYPE_DATE     = 91;
   SQL_TYPE_TIME     = 92;
   SQL_TYPE_TIMESTAMP= 93;
+  // MS SQL Server types
+  SQL_SS_TIME2            = -154;
+  SQL_SS_TIMESTAMPOFFSET  = -155;
  {$endif}
 
   SQL_DATE       = 9;
