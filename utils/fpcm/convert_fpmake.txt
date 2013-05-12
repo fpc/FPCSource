@@ -1,0 +1,18 @@
+The convert_all_fpmake.sh script generates the Makefile.fpc's for calling
+fpmake.
+It does that for all packages in sub-directories of the current directory. The
+Makefile.fpc's are based on the Makefile.fpmake.template and the 
+Makefile.fpmake.bs.template, the latter for packages that are needed to bootstrap the fpmkunit. Note that the fpmkunint-package is skipped by this
+script, since it's Makefile.fpc is very different from the others.
+
+For generating the utils-makefiles do:
+
+cd utils
+fpcm/convert_all_fpmake.sh -d ../../packages -p fpcm
+
+
+For generating the packages-makefiles:
+
+cd packages
+../utils/fpcm/convert_all_fpmake.sh -p ../utils/fpcm
+
