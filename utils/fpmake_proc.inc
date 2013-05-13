@@ -22,7 +22,15 @@
 
 {$include instantfpc/fpmake.pp}
 
+{$include pas2fpm/fpmake.pp}
+
+{$include pas2jni/fpmake.pp}
+
+{$include pas2ut/fpmake.pp}
+
 {$include rmwait/fpmake.pp}
 
 {$include tply/fpmake.pp}
+
+{$include unicode/fpmake.pp}
 

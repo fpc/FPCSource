@@ -10,5 +10,9 @@
   add_h2pas;
   add_importtl;
   add_instantfpc;
+  add_pas2fpm;
+  add_pas2jni;
+  add_pas2ut;
   add_rmwait;
   add_tply;
+  add_unicode;
