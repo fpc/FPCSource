@@ -556,6 +556,8 @@ implementation
 {$ifdef i8086}
     function GetNextReg(const r: TRegister): TRegister;
       begin
+        if getsupreg(r)<first_int_imreg then
+          internalerror(2013051401);
         result:=TRegister(longint(r)+1);
       end;
 {$endif i8086}
