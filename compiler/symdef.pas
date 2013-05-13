@@ -3039,8 +3039,8 @@ implementation
          { the addresses are calculated later }
          ppufile.getderef(_elementdefderef);
          ppufile.getderef(rangedefderef);
-         lowrange:=ppufile.getaint;
-         highrange:=ppufile.getaint;
+         lowrange:=ppufile.getasizeint;
+         highrange:=ppufile.getasizeint;
          ppufile.getsmallset(arrayoptions);
          symtable:=tarraysymtable.create(self);
          tarraysymtable(symtable).ppuload(ppufile)
@@ -3079,8 +3079,8 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(_elementdefderef);
          ppufile.putderef(rangedefderef);
-         ppufile.putaint(lowrange);
-         ppufile.putaint(highrange);
+         ppufile.putasizeint(lowrange);
+         ppufile.putasizeint(highrange);
          ppufile.putsmallset(arrayoptions);
          ppufile.writeentry(ibarraydef);
          tarraysymtable(symtable).ppuwrite(ppufile);
