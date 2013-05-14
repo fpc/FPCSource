@@ -330,8 +330,24 @@ unit cpupara;
             paraloc:=result.add_location;
             paraloc^.loc:=LOC_REGISTER;
             if retcgsize in [OS_64,OS_S64] then
-              internalerror(2013031201);
-            if retcgsize in [OS_32,OS_S32] then
+             begin
+               { low 32bits }
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc^.size:=OS_32;
+
+               { high 32bits }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGHER_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGHER_REG;
+               paraloc^.size:=OS_32;
+             end
+            else if retcgsize in [OS_32,OS_S32] then
              begin
                { low 16bits }
                if side=callerside then
