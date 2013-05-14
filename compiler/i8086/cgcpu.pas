@@ -77,7 +77,6 @@ unit cgcpu;
 
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_maybe_got_init(list: TAsmList); override;
 
         procedure get_32bit_ops(op: TOpCG; out op1,op2: TAsmOp);
      end;
@@ -1297,48 +1296,6 @@ unit cgcpu;
           end
         else
           inherited g_exception_reason_load(list,href);
-      end;
-
-
-    procedure tcg8086.g_maybe_got_init(list: TAsmList);
-      var
-        notdarwin: boolean;
-      begin
-        { allocate PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
-          begin
-            notdarwin:=not(target_info.system in [system_i386_darwin,system_i386_iphonesim]);
-            { on darwin, the got register is virtual (and allocated earlier
-              already) }
-            if notdarwin then
-              { ecx could be used in leaf procedures that don't use ecx to pass
-                aparameter }
-              current_procinfo.got:=NR_EBX;
-            if notdarwin { needs testing before it can be enabled for non-darwin platforms
-                and
-               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
-              begin
-                current_module.requires_ebx_pic_helper:=true;
-                cg.a_call_name_static(list,'fpc_geteipasebx');
-              end
-            else
-              begin
-                { call/pop is faster than call/ret/mov on Core Solo and later
-                  according to Apple's benchmarking -- and all Intel Macs
-                  have at least a Core Solo (furthermore, the i386 - Pentium 1
-                  don't have a return stack buffer) }
-                a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
-                a_label(list,current_procinfo.CurrGotLabel);
-                list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
-              end;
-            if notdarwin then
-              begin
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-              end;
-          end;
       end;
 
 
