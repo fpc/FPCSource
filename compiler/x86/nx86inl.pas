@@ -327,13 +327,7 @@ implementation
           begin
             if (current_settings.fputype>=fpu_sse3) then
               begin
-{$ifdef i8086}
-                if left.nodetype <> callparan then
-                  internalerror(2013031501);
-                load_fpu_location(tcallparanode(left).left);
-{$else i8086}
                 load_fpu_location(left);
-{$endif i8086}
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
@@ -346,11 +340,7 @@ implementation
                 emit_ref(A_FNSTCW,S_NO,newcw);
                 emit_ref(A_FNSTCW,S_NO,oldcw);
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
-{$ifdef i8086}
-                load_fpu_location(tcallparanode(left).left);
-{$else i8086}
                 load_fpu_location(left);
-{$endif i8086}
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);

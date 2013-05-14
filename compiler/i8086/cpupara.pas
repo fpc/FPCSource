@@ -105,9 +105,7 @@ unit cpupara;
         if handle_common_ret_in_param(def,pd,result) then
           exit;
 
-        { 64-bit types are returned as a parameter pointer, since putting them
-          in registers would require 4 registers on the i8086 }
-        if (def.size > 4) and (def.typ <> floatdef) then
+        if (def.size > 8) and (def.typ <> floatdef) then
           begin
             result:=true;
             exit;
