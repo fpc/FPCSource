@@ -155,7 +155,7 @@
          This value can be deduced from the CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      saved_standard_registers : array[0..3] of tsuperregister = (RS_BX,RS_SI,RS_DI,RS_BP);
+      saved_standard_registers : array[0..2] of tsuperregister = (RS_SI,RS_DI,RS_BP);
 
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
       {# Required parameter alignment when calling a routine declared as
