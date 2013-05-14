@@ -92,11 +92,6 @@
       NR_FRAME_POINTER_REG = NR_BP;
       { Return address for DWARF }
       NR_RETURN_ADDRESS_REG = NR_EIP;
-      {# Register for addressing absolute data in a position independant way,
-         such as in PIC code. The exact meaning is ABI specific. For
-         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
-      }
-      NR_PIC_OFFSET_REG = NR_BX;
       { Results are returned in this register (16-bit values) }
       NR_FUNCTION_RETURN_REG = NR_AX;
       RS_FUNCTION_RETURN_REG = RS_AX;
