@@ -2734,8 +2734,8 @@ begin
              readderef('',arrdef.ElType);
              write  ([space,'       Range Type : ']);
              readderef('',arrdef.RangeType);
-             arrdef.RangeLow:=getaint;
-             arrdef.RangeHigh:=getaint;
+             arrdef.RangeLow:=getasizeint;
+             arrdef.RangeHigh:=getasizeint;
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
