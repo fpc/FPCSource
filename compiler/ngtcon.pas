@@ -602,7 +602,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            bool8bit :
              begin
                 if is_constboolnode(node) then
-                  list.concat(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)))
+                  begin
+                    testrange(def,tordconstnode(node).value,false,false);
+                    list.concat(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)))
+                  end
                 else
                   do_error;
              end;
@@ -610,7 +613,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            bool16bit :
              begin
                 if is_constboolnode(node) then
-                  list.concat(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)))
+                  begin
+                    testrange(def,tordconstnode(node).value,false,false);
+                    list.concat(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)))
+                  end
                 else
                   do_error;
              end;
@@ -618,7 +624,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            bool32bit :
              begin
                 if is_constboolnode(node) then
-                  list.concat(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)))
+                  begin
+                    testrange(def,tordconstnode(node).value,false,false);
+                    list.concat(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)))
+                  end
                 else
                   do_error;
              end;
@@ -626,7 +635,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            bool64bit :
              begin
                 if is_constboolnode(node) then
-                  list.concat(Tai_const.Create_64bit(int64(tordconstnode(node).value.svalue)))
+                  begin
+                    testrange(def,tordconstnode(node).value,false,false);
+                    list.concat(Tai_const.Create_64bit(int64(tordconstnode(node).value.svalue)))
+                  end
                 else
                   do_error;
              end;
@@ -1019,6 +1031,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if equal_defs(node.resultdef,def) or
                is_subequal(node.resultdef,def) then
               begin
+                testrange(def,tordconstnode(node).value,false,false);
                 case longint(node.resultdef.size) of
                   1 : list.concat(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)));
                   2 : list.concat(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)));
