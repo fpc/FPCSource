@@ -185,7 +185,6 @@ begin
           ppudumpprog:=s;
       end;
     end;
-    writeln(ppudumpprog);
     p.Executable:=ppudumpprog;
     p.Parameters.Add(un);
     p.Options:=[poUsePipes, poNoConsole, poStderrToOutPut];
