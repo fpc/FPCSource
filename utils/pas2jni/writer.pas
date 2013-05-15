@@ -618,11 +618,12 @@ begin
     pi.JniName:=s;
     pi.JniSignature:=GetProcSignature(d);
     if AParent = nil then begin
-      // Checking duplicate name
+      // Checking duplicate name and duplicate params
       ClassIdx:=FClasses.IndexOf(GetJavaClassName(d.Parent, ItemDef));
       if ClassIdx >= 0 then begin
         ci:=TClassInfo(FClasses.Objects[ClassIdx]);
         j:=1;
+        ss:=Copy(pi.JniSignature, 1, Pos(')', pi.JniSignature));
         repeat
           err:=False;
           for i:=0 to ci.Funcs.Count - 1 do
@@ -632,7 +633,11 @@ begin
                 pi.JniName:=Format('%s_%d', [s, j]);
                 err:=True;
                 break;
-              end;
+              end
+              else
+                if (CompareText(Name, pi.Name) = 0) and (ss = Copy(JniSignature, 1, Pos(')', JniSignature))) then
+                  // Duplicate params
+                  exit;
         until not err;
       end;
 
@@ -942,19 +947,31 @@ end;
 
 procedure TWriter.WriteConst(d: TConstDef);
 var
-  s: string;
+  s, v: string;
 begin
   if not d.IsUsed then
     exit;
+  v:=d.Value;
   if d.VarType = nil then begin
     if Copy(d.Value, 1, 1) = '"' then
       s:='String'
     else
       s:='double';
   end
-  else
+  else begin
     s:=DefToJavaType(d.VarType);
-  Fjs.WriteLn(Format('public static final %s %s = %s;', [s, d.Name, d.Value]));
+    if d.VarType.DefType = dtType then
+      case TTypeDef(d.VarType).BasicType of
+        btLongWord, btInt64:
+          v:=v + 'L';
+        btBoolean:
+          if v = '1' then
+            v:='true'
+          else
+            v:='false';
+      end;
+  end;
+  Fjs.WriteLn(Format('public static final %s %s = %s;', [s, d.Name, v]));
 end;
 
 procedure TWriter.WriteEnum(d: TDef);
@@ -1479,12 +1496,12 @@ begin
             Result:=Format('char(widechar(%s))', [Result]);
           btWideChar:
             Result:=Format('widechar(%s)', [Result]);
-          btEnum:
-            Result:=Format('%s(%s)', [d.Name, Result]);
           btPointer:
             Result:=Format('pointer(ptruint(%s))', [Result]);
           btGuid:
             Result:=Format('StringToGUID(ansistring(_StringFromJString(_env, %s)))', [Result]);
+          else
+            Result:=Format('%s(%s)', [d.Name, Result]);
         end;
     dtClass:
       begin

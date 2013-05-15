@@ -402,7 +402,8 @@ var
               BasicType:=btWideString
             else
               BasicType:=btString;
-          CurObjName:=s + 'string';
+          if not (IsSystemUnit and (CompareText(CurObjName, 'rawbytestring') = 0)) then
+            CurObjName:=s + 'string';
         end
         else
         if jt = 'enum' then begin
@@ -434,6 +435,8 @@ var
         d.SymId:=it.Get('SymId', -1);
         s:=it.Get('Visibility', '');
         d.IsPrivate:=(s <> '') and (s <> 'public') and (s <> 'published');
+        if Copy(d.Name, 1, 1) = '$' then
+          d.IsPrivate:=True;
 
         // Specific def attributes
         case d.DefType of
@@ -490,6 +493,9 @@ var
                   ProcType:=ptFunction;
                 if it.Get('MethodPtr', False) then
                   ProcOpt:=ProcOpt + [poMethodPtr];
+
+                if IsSystemUnit and (ProcType = ptFunction) and (Name = 'int') then
+                  Name:='Int';
 
               _ReadDefs(d, it, 'Params');
             end;
