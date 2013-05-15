@@ -862,6 +862,8 @@ procedure TCGMIPS.overflowcheck_internal(list: tasmlist; arg1, arg2: tregister);
 var
   carry, hreg: tregister;
 begin
+  if (arg1=arg2) then
+    InternalError(2013050501);
   carry:=GetIntRegister(list,OS_INT);
   hreg:=GetIntRegister(list,OS_INT);
   list.concat(taicpu.op_reg_reg_reg(A_SLTU,carry,arg1,arg2));
@@ -945,6 +947,10 @@ begin
   ovloc.loc := LOC_VOID;
   optimize_op_const(op,a);
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
+  if (setflags and (not signed) and (src=dst) and (op in [OP_ADD,OP_SUB])) then
+    hreg:=GetIntRegister(list,OS_INT)
+  else
+    hreg:=dst;
   case op of
     OP_NONE:
       a_load_reg_reg(list,size,size,src,dst);
@@ -954,16 +960,19 @@ begin
 
     OP_ADD:
       begin
-        handle_reg_const_reg(list,ops_add[setflags and signed],src,a,dst);
+        handle_reg_const_reg(list,ops_add[setflags and signed],src,a,hreg);
         if setflags and (not signed) then
-          overflowcheck_internal(list,dst,src);
+          overflowcheck_internal(list,hreg,src);
+        { does nothing if hreg=dst }
+        a_load_reg_reg(list,OS_INT,OS_INT,hreg,dst);
       end;
 
     OP_SUB:
       begin
-        handle_reg_const_reg(list,ops_sub[setflags and signed],src,a,dst);
+        handle_reg_const_reg(list,ops_sub[setflags and signed],src,a,hreg);
         if setflags and (not signed) then
-          overflowcheck_internal(list,src,dst);
+          overflowcheck_internal(list,src,hreg);
+        a_load_reg_reg(list,OS_INT,OS_INT,hreg,dst);
       end;
 
     OP_MUL,OP_IMUL:
@@ -1009,21 +1018,28 @@ end;
 procedure TCGMIPS.a_op_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
 var
   signed: boolean;
+  hreg: TRegister;
 begin
   ovloc.loc := LOC_VOID;
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
+  if (setflags and (not signed) and (src2=dst) and (op in [OP_ADD,OP_SUB])) then
+    hreg:=GetIntRegister(list,OS_INT)
+  else
+    hreg:=dst;
   case op of
     OP_ADD:
       begin
-        list.concat(taicpu.op_reg_reg_reg(ops_add[setflags and signed], dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(ops_add[setflags and signed], hreg, src2, src1));
         if setflags and (not signed) then
-          overflowcheck_internal(list, dst, src2);
+          overflowcheck_internal(list, hreg, src2);
+        a_load_reg_reg(list, OS_INT, OS_INT, hreg, dst);
       end;
     OP_SUB:
       begin
-        list.concat(taicpu.op_reg_reg_reg(ops_sub[setflags and signed], dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(ops_sub[setflags and signed], hreg, src2, src1));
         if setflags and (not signed) then
-          overflowcheck_internal(list, src2, dst);
+          overflowcheck_internal(list, src2, hreg);
+        a_load_reg_reg(list, OS_INT, OS_INT, hreg, dst);
       end;
     OP_MUL,OP_IMUL:
       begin
