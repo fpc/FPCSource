@@ -267,6 +267,7 @@ type
     Options: TPpuObjOptions;
     IID: string;
     HelperParent: TPpuRef;
+    Size: integer;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
     function CanWrite: boolean; override;
@@ -942,6 +943,7 @@ begin
         Output.WriteStr('', ObjOptionNames[opt]);
     Output.WriteArrayEnd('Options');
   end;
+  Output.WriteInt('Size', Size);
   if IID <> '' then
     Output.WriteStr('IID', IID);
   if not HelperParent.IsNull then

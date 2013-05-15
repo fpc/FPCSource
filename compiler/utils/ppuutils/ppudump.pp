@@ -2878,18 +2878,18 @@ begin
 
          ibrecorddef :
            begin
-             def:=TPpuRecordDef.Create(ParentDef);
-             readcommondef('Record definition',defoptions, def);
+             objdef:=TPpuRecordDef.Create(ParentDef);
+             readcommondef('Record definition',defoptions, objdef);
              def.Name:=getstring;
-             writeln([space,'   Name of Record : ',def.Name]);
+             writeln([space,'   Name of Record : ',objdef.Name]);
              writeln([space,'   Import lib/pkg : ',getstring]);
              write  ([space,'          Options : ']);
-             readobjectdefoptions(TPpuRecordDef(def));
+             readobjectdefoptions(objdef);
              if (df_copied_def in defoptions) then
                begin
                  Include(TPpuRecordDef(def).Options, ooCopied);
                  write([space,'      Copied from : ']);
-                 readderef('',TPpuRecordDef(def).Ancestor);
+                 readderef('',objdef.Ancestor);
                end
              else
                begin
@@ -2897,7 +2897,8 @@ begin
                  writeln([space,'      RecordAlign : ',shortint(getbyte)]);
                  writeln([space,'         PadAlign : ',shortint(getbyte)]);
                  writeln([space,'UseFieldAlignment : ',shortint(getbyte)]);
-                 writeln([space,'         DataSize : ',getasizeint]);
+                 objdef.Size:=getasizeint;
+                 writeln([space,'         DataSize : ',objdef.Size]);
                  writeln([space,'      PaddingSize : ',getword]);
                end;
              if not EndOfEntry then
@@ -2949,7 +2950,8 @@ begin
                  objdef.ObjType:=otHelper;
              end;
              writeln([space,'    External name : ',getstring]);
-             writeln([space,'         DataSize : ',getasizeint]);
+             objdef.Size:=getasizeint;
+             writeln([space,'         DataSize : ',objdef.Size]);
              writeln([space,'      PaddingSize : ',getword]);
              writeln([space,'       FieldAlign : ',shortint(getbyte)]);
              writeln([space,'      RecordAlign : ',shortint(getbyte)]);
