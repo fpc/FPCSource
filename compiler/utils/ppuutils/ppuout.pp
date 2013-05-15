@@ -1065,8 +1065,7 @@ begin
         Output.WriteStr('', ProcOptionNames[opt]);
     Output.WriteArrayEnd('Options');
   end;
-  if Options*[poProcedure, poDestructor] = [] then
-    ReturnType.Write(Output, 'RetType');
+  ReturnType.Write(Output, 'RetType');
 end;
 
 constructor TPpuProcDef.Create(AParent: TPpuContainerDef);
