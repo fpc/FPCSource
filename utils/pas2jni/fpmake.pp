@@ -28,6 +28,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-json');
 
     T:=P.Targets.AddImplicitUnit('def.pas');
     T.Install := false;
