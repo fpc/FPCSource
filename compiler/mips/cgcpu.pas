@@ -1779,66 +1779,26 @@ end;
 
 procedure TCg64MPSel.a_op64_reg_reg(list: tasmlist; op: TOpCG; size: tcgsize; regsrc, regdst: TRegister64);
 var
-  tmpreg1, tmpreg2: TRegister;
+  tmpreg1: TRegister;
 begin
-  tmpreg1 := cg.GetIntRegister(list, OS_INT);
-  tmpreg2 := cg.GetIntRegister(list, OS_INT);
-
   case op of
-    OP_ADD:
-      begin
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, regdst.reglo, regsrc.reglo, regdst.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg1, regdst.reglo, regsrc.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg2, regsrc.reghi, regdst.reghi));
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, regdst.reghi, tmpreg1, tmpreg2));
-        exit;
-      end;
-    OP_AND:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_AND, regdst.reglo, regsrc.reglo, regdst.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_AND, regdst.reghi, regsrc.reghi, regdst.reghi));
-        exit;
-    end;
-
     OP_NEG:
       begin
+        tmpreg1 := cg.GetIntRegister(list, OS_INT);
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reglo, NR_R0, regsrc.reglo));
         list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg1, NR_R0, regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, NR_R0, regsrc.reghi));
         list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, tmpreg1));
-        exit;
       end;
-    OP_NOT:
-    begin
-      list.concat(taicpu.op_reg_reg_reg(A_NOR, regdst.reglo, NR_R0, regsrc.reglo));
-      list.concat(taicpu.op_reg_reg_reg(A_NOR, regdst.reghi, NR_R0, regsrc.reghi));
-      exit;
-    end;
-    OP_OR:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reglo, regsrc.reglo, regdst.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reghi, regsrc.reghi, regdst.reghi));
-        exit;
-    end;
-    OP_SUB:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, tmpreg1, regdst.reglo, regsrc.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, regdst.reglo, tmpreg1));
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, regsrc.reghi));
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, tmpreg2));
-        list.concat(Taicpu.Op_reg_reg(A_MOVE, regdst.reglo, tmpreg1));
-        exit;
-    end;
-    OP_XOR:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_XOR, regdst.reglo, regdst.reglo, regsrc.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_XOR, regdst.reghi, regsrc.reghi, regdst.reghi));
-        exit;
-    end;
-    else
-      internalerror(200306017);
 
-  end; {case}
+    OP_NOT:
+      begin
+        list.concat(taicpu.op_reg_reg_reg(A_NOR, regdst.reglo, NR_R0, regsrc.reglo));
+        list.concat(taicpu.op_reg_reg_reg(A_NOR, regdst.reghi, NR_R0, regsrc.reghi));
+      end;
+  else
+    a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+  end;
 end;
 
 
@@ -1865,73 +1825,139 @@ end;
 
 procedure TCg64MPSel.a_op64_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; Value: int64; regsrc, regdst: tregister64; setflags: boolean; var ovloc: tlocation);
 var
-  tmpreg64: TRegister64;
+  tmplo,carry: TRegister;
+  hisize: tcgsize;
 begin
-  tmpreg64.reglo := cg.GetIntRegister(list, OS_S32);
-  tmpreg64.reghi := cg.GetIntRegister(list, OS_S32);
+  carry:=NR_NO;
+  if (size in [OS_S64]) then
+    hisize:=OS_S32
+  else
+    hisize:=OS_32;
 
-  list.concat(taicpu.op_reg_const(A_LI, tmpreg64.reglo, aint(lo(Value))));
-  list.concat(taicpu.op_reg_const(A_LI, tmpreg64.reghi, aint(hi(Value))));
+  case op of
+    OP_AND,OP_OR,OP_XOR:
+      begin
+        cg.a_op_const_reg_reg(list,op,OS_32,aint(lo(value)),regsrc.reglo,regdst.reglo);
+        cg.a_op_const_reg_reg(list,op,OS_32,aint(hi(value)),regsrc.reghi,regdst.reghi);
+      end;
 
-  a_op64_reg_reg_reg_checkoverflow(list, op, size, tmpreg64, regsrc, regdst, False, ovloc);
+    OP_ADD:
+      begin
+        if lo(value)<>0 then
+          begin
+            tmplo:=cg.GetIntRegister(list,OS_32);
+            carry:=cg.GetIntRegister(list,OS_32);
+            tcgmips(cg).handle_reg_const_reg(list,A_ADDU,regsrc.reglo,aint(lo(value)),tmplo);
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU,carry,tmplo,regsrc.reglo));
+            cg.a_load_reg_reg(list,OS_32,OS_32,tmplo,regdst.reglo);
+          end
+        else
+          cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
 
+        { With overflow checking and unsigned args, this generates slighly suboptimal code
+         ($80000000 constant loaded twice). Other cases are fine. Getting it perfect does not
+         look worth the effort. }
+        cg.a_op_const_reg_reg_checkoverflow(list,OP_ADD,hisize,aint(hi(value)),regsrc.reghi,regdst.reghi,setflags,ovloc);
+        if carry<>NR_NO then
+          cg.a_op_reg_reg_reg_checkoverflow(list,OP_ADD,hisize,carry,regdst.reghi,regdst.reghi,setflags,ovloc);
+      end;
+
+    OP_SUB:
+      begin
+        carry:=NR_NO;
+        if lo(value)<>0 then
+          begin
+            tmplo:=cg.GetIntRegister(list,OS_32);
+            carry:=cg.GetIntRegister(list,OS_32);
+            tcgmips(cg).handle_reg_const_reg(list,A_SUBU,regsrc.reglo,aint(lo(value)),tmplo);
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU,carry,regsrc.reglo,tmplo));
+            cg.a_load_reg_reg(list,OS_32,OS_32,tmplo,regdst.reglo);
+          end
+        else
+          cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
+
+        cg.a_op_const_reg_reg_checkoverflow(list,OP_SUB,hisize,aint(hi(value)),regsrc.reghi,regdst.reghi,setflags,ovloc);
+        if carry<>NR_NO then
+          cg.a_op_reg_reg_reg_checkoverflow(list,OP_SUB,hisize,carry,regdst.reghi,regdst.reghi,setflags,ovloc);
+      end;
+  else
+    InternalError(2013050301);
+  end;
 end;
 
 
 procedure TCg64MPSel.a_op64_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; regsrc1, regsrc2, regdst: tregister64; setflags: boolean; var ovloc: tlocation);
 var
-  tmpreg1, tmpreg2: TRegister;
-
+  tmplo,tmphi,carry,hreg: TRegister;
+  signed: boolean;
 begin
-
   case op of
     OP_ADD:
       begin
-        tmpreg1 := cg.GetIntRegister(list,OS_S32);
-        tmpreg2 := cg.GetIntRegister(list,OS_S32);
+        signed:=(size in [OS_S64]);
+        tmplo := cg.GetIntRegister(list,OS_S32);
+        carry := cg.GetIntRegister(list,OS_S32);
         // destreg.reglo could be regsrc1.reglo or regsrc2.reglo
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmpreg1, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, tmpreg1, regsrc2.reglo));
-        list.concat(taicpu.op_reg_reg(A_MOVE, regdst.reglo, tmpreg1));
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-        list.concat(taicpu.op_reg_reg_reg(A_ADDU, regdst.reghi, regdst.reghi, tmpreg2));
-        exit;
+        list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmplo, regsrc2.reglo, regsrc1.reglo));
+        list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, tmplo, regsrc2.reglo));
+        cg.a_load_reg_reg(list,OS_INT,OS_INT,tmplo,regdst.reglo);
+        if signed or (not setflags) then
+          begin
+            list.concat(taicpu.op_reg_reg_reg(ops_add[setflags and signed], regdst.reghi, regsrc2.reghi, regsrc1.reghi));
+            list.concat(taicpu.op_reg_reg_reg(ops_add[setflags and signed], regdst.reghi, regdst.reghi, carry));
+          end
+        else
+          begin
+            tmphi:=cg.GetIntRegister(list,OS_INT);
+            hreg:=cg.GetIntRegister(list,OS_INT);
+            cg.a_load_const_reg(list,OS_INT,$80000000,hreg);
+            // first add carry to one of the addends
+            list.concat(taicpu.op_reg_reg_reg(A_ADDU, tmphi, regsrc2.reghi, carry));
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, tmphi, regsrc2.reghi));
+            list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+            // then add another addend
+            list.concat(taicpu.op_reg_reg_reg(A_ADDU, regdst.reghi, tmphi, regsrc1.reghi));
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, regdst.reghi, tmphi));
+            list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+          end;
       end;
-    OP_AND:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_AND, regdst.reglo, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_AND, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-        exit;
-    end;
-    OP_OR:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reglo, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-        exit;
-    end;
     OP_SUB:
-    begin
-        tmpreg1 := cg.GetIntRegister(list,OS_S32);
-        tmpreg2 := cg.GetIntRegister(list,OS_S32);
+      begin
+        signed:=(size in [OS_S64]);
+        tmplo := cg.GetIntRegister(list,OS_S32);
+        carry := cg.GetIntRegister(list,OS_S32);
         // destreg.reglo could be regsrc1.reglo or regsrc2.reglo
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU,tmpreg1, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, regsrc2.reglo,tmpreg1));
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-        list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, regdst.reghi, tmpreg2));
-        list.concat(taicpu.op_reg_reg(A_MOVE, regdst.reglo, tmpreg1));
-        exit;
-    end;
-    OP_XOR:
-    begin
-        list.concat(taicpu.op_reg_reg_reg(A_XOR, regdst.reglo, regsrc2.reglo, regsrc1.reglo));
-        list.concat(taicpu.op_reg_reg_reg(A_XOR, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
-        exit;
-    end;
-    else
-      internalerror(200306017);
-
-  end; {case}
-
+        list.concat(taicpu.op_reg_reg_reg(A_SUBU, tmplo, regsrc2.reglo, regsrc1.reglo));
+        list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, regsrc2.reglo,tmplo));
+        cg.a_load_reg_reg(list,OS_INT,OS_INT,tmplo,regdst.reglo);
+        if signed or (not setflags) then
+          begin
+            list.concat(taicpu.op_reg_reg_reg(ops_sub[setflags and signed], regdst.reghi, regsrc2.reghi, regsrc1.reghi));
+            list.concat(taicpu.op_reg_reg_reg(ops_sub[setflags and signed], regdst.reghi, regdst.reghi, carry));
+          end
+        else
+          begin
+            tmphi:=cg.GetIntRegister(list,OS_INT);
+            hreg:=cg.GetIntRegister(list,OS_INT);
+            cg.a_load_const_reg(list,OS_INT,$80000000,hreg);
+            // first subtract the carry...
+            list.concat(taicpu.op_reg_reg_reg(A_SUBU, tmphi, regsrc2.reghi, carry));
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, regsrc2.reghi, tmphi));
+            list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+            // ...then the subtrahend
+            list.concat(taicpu.op_reg_reg_reg(A_SUBU, regdst.reghi, tmphi, regsrc1.reghi));
+            list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, tmphi, regdst.reghi));
+            list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+          end;
+      end;
+    OP_AND,OP_OR,OP_XOR:
+      begin
+        cg.a_op_reg_reg_reg(list,op,size,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
+        cg.a_op_reg_reg_reg(list,op,size,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
+      end;
+  else
+    internalerror(200306017);
+  end;
 end;
 
 
