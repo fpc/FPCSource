@@ -312,7 +312,7 @@ var
         end
         else
         if jt = 'rec' then begin
-          if IsSystemUnit and (CompareText(it.Strings['Name'], 'tguid') = 0) then begin
+          if IsSystemUnit and (CompareText(CurObjName, 'tguid') = 0) then begin
             d:=TTypeDef.Create(CurDef, dtType);
             TTypeDef(d).BasicType:=btGuid;
           end
