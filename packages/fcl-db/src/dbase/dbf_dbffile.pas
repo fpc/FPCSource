@@ -51,6 +51,7 @@ type
     FFieldDefs: TDbfFieldDefs;
     FIndexNames: TStringList;
     FIndexFiles: TList;
+    FIndexStream: TStream;
     FDbfVersion: TXBaseVersion;
     FPrevBuffer: TRecordBuffer;
     FDefaultBuffer: TRecordBuffer;
@@ -144,6 +145,8 @@ type
     property FieldDefs: TDbfFieldDefs read FFieldDefs;
     property IndexNames: TStringList read FIndexNames;
     property IndexFiles: TList read FIndexFiles;
+    // Backing stream for stream/memory-based index "files"
+    property IndexStream: TStream read FIndexStream write FIndexStream;
     property MdxFile: TIndexFile read FMdxFile;
     property LanguageId: Integer read GetLanguageId;
     property LanguageStr: string read GetLanguageStr;
@@ -535,13 +538,21 @@ begin
         // Deal with case-sensitive filesystems:
         if (FileName<>'') and (UpperCase(FileName)=FileName) then
           lMdxFileName := UpperCase(lMdxFileName);
-        if FileExists(lMdxFileName) then
+        if FileExists(lMdxFileName) or ((Mode in [pfMemoryOpen,pfMemoryCreate])) then
         begin
           // open file
           FMdxFile := TIndexFile.Create(Self);
           FMdxFile.FileName := lMdxFileName;
           FMdxFile.Mode := Mode;
-          FMdxFile.AutoCreate := false;
+          if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          begin
+            FMdxFile.Stream := FIndexStream;
+            FMdxFile.AutoCreate := true;
+          end
+          else
+          begin
+            FMdxFile.AutoCreate := false;
+          end;
           FMdxFile.OnLocaleError := FOnLocaleError;
           FMdxFile.CodePage := UseCodePage;
           FMdxFile.Open;
@@ -2439,6 +2450,12 @@ begin
       lIndexFile.FileName := lIndexFileName;
       lIndexFile.Mode := IndexOpenMode[CreateIndex, Mode];
       lIndexFile.AutoCreate := CreateIndex or (Length(IndexField) > 0);
+      if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      begin
+        if FIndexStream = nil then
+          FIndexStream := TMemoryStream.Create;
+        lIndexFile.Stream := FIndexStream;
+      end;
       lIndexFile.CodePage := UseCodePage;
       lIndexFile.OnLocaleError := FOnLocaleError;
       lIndexFile.Open;

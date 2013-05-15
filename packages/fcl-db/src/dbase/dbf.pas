@@ -156,6 +156,7 @@ type
     FMasterLink: TDbfMasterLink;
     FParser: TDbfParser;
     FBlobStreams: PDbfBlobList;
+    FUserIndexStream: TStream;
     FUserStream: TStream;  // user stream to open
     FUserMemoStream: TStream; // user-provided/expected stream backing memo file storage
     FTableName: string;    // table path and file name
@@ -400,6 +401,8 @@ type
     property DbfFile: TDbfFile read FDbfFile;
     // Storage for data file if using memory storage
     property UserStream: TStream read FUserStream write FUserStream;
+    // Storage for index file - if any - when using memory storage
+    property UserIndexStream: TStream read FUserIndexStream write FUserIndexStream;
     // Storage for memo file - if any - when using memory storage
     property UserMemoStream: TStream read FUserMemoStream write FUserMemoStream;
     property DisableResyncOnPost: Boolean read FDisableResyncOnPost write FDisableResyncOnPost;
@@ -1150,6 +1153,7 @@ begin
   begin
     FDbfFile.Stream := FUserStream;
     FDbfFile.MemoStream := FUserMemoStream;
+    FDbfFile.IndexStream := FUserIndexStream;
     FDbfFile.Mode := FileModeToMemMode[FileOpenMode];
   end else begin
     FDbfFile.FileName := FAbsolutePath + FTableName;
@@ -1557,6 +1561,7 @@ begin
       if FStorage = stoMemory then
       begin
         FUserStream := FDbfFile.Stream;
+        FUserIndexStream := FDBfFile.IndexStream;
         FUserMemoStream := FDbfFile.MemoStream;
       end;
 
