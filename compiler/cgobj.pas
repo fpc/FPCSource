@@ -697,14 +697,14 @@ implementation
     procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$if not(defined(i386)) and not(defined(avr))}
+{$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         if uses_registers(R_MMREGISTER) then
           alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif not(defined(i386)) and not(defined(avr))}
+{$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
 
@@ -720,14 +720,14 @@ implementation
     procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$if not(defined(i386)) and not(defined(avr))}
+{$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         if uses_registers(R_MMREGISTER) then
           dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif not(defined(i386)) and not(defined(avr))}
+{$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
 
