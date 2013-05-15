@@ -204,7 +204,10 @@ type
 
   { TPpuProcTypeDef }
   TPpuProcTypeDef = class(TPpuProcDef)
+  protected
+    procedure BeforeWriteItems(Output: TPpuOutput); override;
   public
+    MethodPtr: boolean;
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
@@ -1032,6 +1035,13 @@ begin
 end;
 
 { TPpuProcTypeDef }
+
+procedure TPpuProcTypeDef.BeforeWriteItems(Output: TPpuOutput);
+begin
+  inherited BeforeWriteItems(Output);
+  if MethodPtr then
+    Output.WriteBool('MethodPtr', MethodPtr);
+end;
 
 constructor TPpuProcTypeDef.Create(AParent: TPpuContainerDef);
 begin

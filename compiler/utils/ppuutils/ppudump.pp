@@ -1720,6 +1720,8 @@ begin
      if po_overridingmethod in procoptions then Include(ProcDef.Options, poOverriding);
      if po_overload in procoptions then Include(ProcDef.Options, poOverload);
      if po_inline in procoptions then Include(ProcDef.Options, poInline);
+     if (po_methodpointer in procoptions) and (ProcDef.DefType = dtProcType) then
+       TPpuProcTypeDef(ProcDef).MethodPtr:=True;
 
      write([space,'          Options : ']);
      first:=true;
