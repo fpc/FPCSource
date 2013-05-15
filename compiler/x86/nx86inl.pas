@@ -285,13 +285,7 @@ implementation
          else
 {$endif x86_64}
           begin
-{$ifdef i8086}
-            if left.nodetype <> callparan then
-              internalerror(2013031501);
-            load_fpu_location(tcallparanode(left).left);
-{$else i8086}
             load_fpu_location(left);
-{$endif i8086}
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
