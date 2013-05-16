@@ -14,7 +14,7 @@
  **********************************************************************}
 
     const
-      TinyHeapMinBlock = 16;
+      TinyHeapMinBlock = 4*sizeof(pointer);
 
     type
       PTinyHeapBlock = ^TTinyHeapBlock;
