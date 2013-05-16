@@ -7,6 +7,12 @@ interface
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+{$DEFINE FPC_USE_SMALL_DEFAULTSTACKSIZE}
+{ To avoid warnings in thread.inc code,
+  but value must be really given after
+  systemh.inc is included otherwise the
+  $mode switch is not effective }
+
 {$I systemh.inc}
 
 const
@@ -24,7 +30,7 @@ const
 
 const
 { Default filehandles }
-  UnusedHandle    = -1;
+  UnusedHandle    = $ffff;{ instead of -1, as it is a word value}
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
