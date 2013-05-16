@@ -71,7 +71,8 @@
 
             pptruint(p)^ := size;
 
-            InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
+            if RestSize > 0 then
+              InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
           end
         else
           Result := nil;
