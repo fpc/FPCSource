@@ -230,11 +230,13 @@
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock(', ptruint(AAddress), ',', ASize, ')');
 {$endif DEBUG_TINY_HEAP}
-        if (ptruint(AAddress) and 1) = 0 then
+        if (ptruint(AAddress) and 1) <> 0 then
           begin
             Inc(AAddress);
             Dec(ASize);
           end;
+        if (ASize and 1) <> 0 then
+          Dec(ASize);
         pptruint(AAddress)^ := ASize - SizeOf(ptruint);
         FreeMem(pptruint(AAddress) + 1, ASize - SizeOf(ptruint));
       end;
