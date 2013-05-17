@@ -604,7 +604,10 @@ implementation
                    write_rtti_reference(curdef.rangedef,rt);
                    inc(dimcount);
                    totalcount:=totalcount*curdef.elecount;
-                   if assigned(curdef.elementdef)and(curdef.elementdef.typ=arraydef) then
+                   { get the next static array }
+                   if assigned(curdef.elementdef) and
+                      (curdef.elementdef.typ=arraydef) and
+                      not(ado_IsDynamicArray in tarraydef(curdef.elementdef).arrayoptions) then
                      curdef:=tarraydef(curdef.elementdef)
                    else
                      break;
