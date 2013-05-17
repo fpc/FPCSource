@@ -602,7 +602,8 @@ const
   symtblopt : array[1..symtblopts] of tsymtblopt=(
      (mask:sto_has_helper;   str:'Has helper'),
      (mask:sto_has_generic;  str:'Has generic'),
-     (mask:sto_has_operator; str:'Has operator')
+     (mask:sto_has_operator; str:'Has operator'),
+     (mask:sto_needs_init_final;str:'Needs init final table')
   );
 var
   options : tsymtableoptions;

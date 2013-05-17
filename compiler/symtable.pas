@@ -40,7 +40,7 @@ interface
     type
        tstoredsymtable = class(TSymtable)
        private
-          b_needs_init_final : boolean;
+          init_final_check_done : boolean;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
@@ -387,11 +387,17 @@ implementation
 
         { load symbols }
         loadsyms(ppufile);
+
+        init_final_check_done:=true;
       end;
 
 
     procedure tstoredsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
+         { ensure that we have the sto_needs_init_final flag set if needed }
+         if not init_final_check_done then
+           needs_init_final;
+
          { write the table's flags }
          ppufile.putsmallset(tableoptions);
          ppufile.writeentry(ibsymtableoptions);
@@ -803,7 +809,7 @@ implementation
 
     procedure TStoredSymtable._needs_init_final(sym:TObject;arg:pointer);
       begin
-         if b_needs_init_final then
+         if sto_needs_init_final in tableoptions then
            exit;
          { don't check static symbols - they can be present in structures only and
            always have a reference to a symbol defined on unit level }
@@ -817,7 +823,7 @@ implementation
              begin
                if assigned(tabstractvarsym(sym).vardef) and
                   is_managed_type(tabstractvarsym(sym).vardef) then
-                 b_needs_init_final:=true;
+                 include(tableoptions,sto_needs_init_final);
              end;
          end;
       end;
@@ -826,9 +832,13 @@ implementation
     { returns true, if p contains data which needs init/final code }
     function tstoredsymtable.needs_init_final : boolean;
       begin
-         b_needs_init_final:=false;
-         SymList.ForEachCall(@_needs_init_final,nil);
-         needs_init_final:=b_needs_init_final;
+         if not init_final_check_done then
+           begin
+             exclude(tableoptions,sto_needs_init_final);
+             SymList.ForEachCall(@_needs_init_final,nil);
+             init_final_check_done:=true;
+           end;
+         result:=sto_needs_init_final in tableoptions;
       end;
 
 

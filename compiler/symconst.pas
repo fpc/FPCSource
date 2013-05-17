@@ -535,7 +535,9 @@ type
   tsymtableoption = (
     sto_has_helper,       { contains at least one helper symbol }
     sto_has_generic,      { contains at least one generic symbol }
-    sto_has_operator      { contains at least one operator overload }
+    sto_has_operator,     { contains at least one operator overload }
+    sto_needs_init_final  { the symtable needs initialization and/or
+                            finalization of variables/constants }
   );
   tsymtableoptions = set of tsymtableoption;
 
