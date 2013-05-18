@@ -28,6 +28,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-json');
 
     T:=P.Targets.AddImplicitUnit('def.pas');
@@ -37,7 +38,6 @@ begin
     T:=P.Targets.AddImplicitUnit('writer.pas');
     T.Install := false;
     T:=P.Targets.AddProgram('pas2jni.pas');
-    T.Install := false;
     end;
 end;
 

@@ -15,7 +15,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('tply');
+    P:=AddPackage('lexyacc');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

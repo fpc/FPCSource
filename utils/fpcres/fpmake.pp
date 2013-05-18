@@ -33,17 +33,28 @@ begin
     P.Dependencies.Add('fcl-res');
 
     T:=P.Targets.AddProgram('fpcres.pas');
+
     T.Dependencies.AddUnit('closablefilestream');
     T.Dependencies.AddUnit('msghandler');
     T.Dependencies.AddUnit('paramparser');
     T.Dependencies.AddUnit('sourcehandler');
     T.Dependencies.AddUnit('target');
 
+    T:=P.Targets.AddProgram('fpcjres');
+
+    T.Dependencies.AddUnit('closablefilestream');
+    T.Dependencies.AddUnit('msghandler');
+    T.Dependencies.AddUnit('paramparser');
+    T.Dependencies.AddUnit('sourcehandler');
+    T.Dependencies.AddUnit('target');
+    T.Dependencies.AddUnit('jarsourcehandler');
+
     P.Targets.AddUnit('closablefilestream.pas').install:=false;
     P.Targets.AddUnit('msghandler.pas').install:=false;
     P.Targets.AddUnit('paramparser.pas').install:=false;
     P.Targets.AddUnit('sourcehandler.pas').install:=false;
     P.Targets.AddUnit('target.pas').install:=false;
+    P.Targets.AddUnit('jarsourcehandler.pas').install:=false;
     end;
 end;
 

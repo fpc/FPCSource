@@ -22,7 +22,7 @@ begin
     P.Email := '';
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='fpcreslipo';
+    P.Directory:='unicode';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('rtl');
