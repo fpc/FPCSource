@@ -2316,6 +2316,8 @@ var i          : byte;
     Fld        : TField;
 
 begin
+  if (uppercase(dbconnectorname)='DBF') then
+    Ignore('TDBF Smallint support only from -999 to 9999');
   TestfieldDefinition(ftSmallint,2,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
@@ -2338,7 +2340,10 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(testStringValues[i],Fld.AsString);
+    if (uppercase(dbconnectorname)<>'DBF') then
+      CheckEquals(testStringValues[i],Fld.AsString)
+    else {DBF right-trims spaces in string fields }
+      CheckEquals(TrimRight(testStringValues[i]),Fld.AsString);
     ds.Next;
     end;
   ds.close;

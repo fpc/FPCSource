@@ -4,7 +4,7 @@ Contents
 + Fields system
 + The buffers
 + Dataset implementation
-+ Scalable Datasets
++ Switchable datasets
 
 ===============
 General remarks
@@ -231,10 +231,10 @@ procedure SetFieldData(Field: TField; Buffer: Pointer); virtual; abstract;
 --------------------------------------------------------------------------
 Move the data in associated with Field from Buffer to the active buffer.
 
-=================
-Scalable datasets
-=================
-In order to have Scalable database access, the concept of TDatabase and
+===================
+Switchable datasets
+===================
+In order to have flexible database access, the concept of TDatabase and
 TDBDataset is introduced. The idea is that, in a visual IDE, the change
 from one database to another is achieved by simply removing one TDatabase
 descendent (Say, TMySqlDatabase) with another (Say, TPostGreSQLDatabase)

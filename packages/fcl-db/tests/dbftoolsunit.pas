@@ -2,14 +2,13 @@ unit DBFToolsUnit;
 
 { Sets up dbf datasets for testing
 Tests expect Get*Dataset to return a dataset with structure and test data, but closed.
-Because of this, we use file-backed dbfs instead of memory backed dbfs
 }
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
 {$ENDIF}
 
-// If defined, do not delete the dbf files when done but print out location to stdout:
+// If defined, save the dbf files when done and print out location to stdout:
 {.$DEFINE KEEPDBFFILES}
 
 interface
@@ -42,6 +41,8 @@ type
   TDBFAutoClean = class(TDBF)
   private
     FBackingStream: TMemoryStream;
+    FIndexBackingStream: TMemoryStream;
+    FMemoBackingStream: TMemoryStream;
     FCreatedBy: string;
   public
     // Keeps track of which function created the dataset, useful for troubleshooting
@@ -68,6 +69,41 @@ implementation
 uses
   FmtBCD;
 
+function GetNewTempDBFName: string;
+// Scans temp directory for dbf names and adds
+var
+  Res: TSearchRec;
+  Path, Name: string;
+  FileAttr: LongInt;
+  Attr,NextFileNo: Integer;
+begin
+  NextFileNo:=0;
+  Attr := faAnyFile;
+  if FindFirst(IncludeTrailingPathDelimiter(GetTempDir)+'*.dbf', Attr, Res) = 0 then
+  begin
+    Path := GetTempDir;
+    repeat
+       Name := ConcatPaths([Path, Res.Name]);
+       FileAttr := FileGetAttr(Name);
+       if FileAttr and faDirectory = 0 then
+       begin
+         // Capture alphabetically latest name
+         try
+           //... only if it is numeric
+           if strtoint(ChangeFileExt(Res.Name,''))>NextFileNo then
+             NextFileNo:=strtoint(ChangeFileExt(Res.Name,''));
+         except
+           // apparently not numeric
+         end;
+       end
+    until FindNext(Res) <> 0;
+  end;
+  FindClose(Res);
+  // now we now the latest file, add 1, and paste the temp directory in front of it
+  NextFileNo:=NextFileNo+1;
+  Result:=IncludeTrailingPathDelimiter(GetTempDir)+IntToStr(NextFileNo)+'.DBF';
+end;
+
 { TDBFAutoClean }
 
 function TDBFAutoClean.UserRequestedTableLevel: integer;
@@ -90,13 +126,18 @@ end;
 
 constructor TDBFAutoClean.Create;
 begin
+  // Create storage for data:
   FBackingStream:=TMemoryStream.Create;
-  // Create a unique name:
-  TableName := FormatDateTime('hhnnssz',Now())+'/'+inttostr(random(32767));
+  FIndexBackingStream:=TMemoryStream.Create;
+  FMemoBackingStream:=TMemoryStream.Create;
+  // Create a unique name (within the 10 character DBIII limit):
+  TableName := FormatDateTime('hhnnssz',Now())+'_'+inttostr(random(99));
   TableLevel := UserRequestedTableLevel;
   Storage:=stoMemory;
   UserStream:=FBackingStream;
-  CreateTable; //write out header to disk
+  UserIndexStream:=FIndexBackingStream;
+  UserMemoStream:=FMemoBackingStream;
+  CreateTable; //this will also write out the dbf header to disk/stream
 end;
 
 constructor TDBFAutoClean.Create(AOwner: TComponent);
@@ -113,12 +154,18 @@ var
 begin
   {$IFDEF KEEPDBFFILES}
   Close;
-  FileName := GetTempFileName;
+  FileName := GetNewTempDBFName;
   FBackingStream.SaveToFile(FileName);
+  FIndexBackingStream.SaveToFile(ChangeFileExt(FileName, '.mdx'));
+  if Self.TableLevel in [TDBF_TABLELEVEL_FOXPRO, TDBF_TABLELEVEL_VISUALFOXPRO] then
+    FMemoBackingStream.SaveToFile(ChangeFileExt(FileName, '.fpt'))
+  else
+    FMemoBackingStream.SaveToFile(ChangeFileExt(FileName, '.dbt'));
   writeln('TDBFAutoClean: file created by ',CreatedBy,' left file: ',FileName);
   {$ENDIF}
   inherited Destroy;
   FBackingStream.Free;
+  FIndexBackingStream.Free;
 end;
 
 
@@ -162,10 +209,10 @@ begin
     FieldDefs.Add('FWORD', ftWord);
     FieldDefs.Add('FBOOLEAN', ftBoolean);
     FieldDefs.Add('FFLOAT', ftFloat);
-    // Field types only available in newer versions
-    if (Result as TDBF).TableLevel >= 25 then
+    // Field types only available in (Visual) FoxPro
+    if (Result as TDBF).TableLevel >= TDBF_TABLELEVEL_FOXPRO then
       FieldDefs.Add('FCURRENCY', ftCurrency);
-    if (Result as TDBF).TableLevel >= 25 then
+    if (Result as TDBF).TableLevel >= TDBF_TABLELEVEL_FOXPRO then
       FieldDefs.Add('FBCD', ftBCD);
     FieldDefs.Add('FDATE', ftDate);
     FieldDefs.Add('FDATETIME', ftDateTime);
@@ -182,13 +229,15 @@ begin
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
-      if (Result as TDBF).TableLevel >= 25 then
+      if (Result as TDBF).TableLevel >= TDBF_TABLELEVEL_FOXPRO then
         FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
       // work around missing TBCDField.AsBCD:
-      if (Result as TDBF).TableLevel >= 25 then
+      if (Result as TDBF).TableLevel >= TDBF_TABLELEVEL_FOXPRO then
         FieldByName('FBCD').AsBCD := StrToBCD(testFmtBCDValues[i],Self.FormatSettings);
       FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
+      FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FMEMO').AsString := testStringValues[i];
       Post;
     end;
     Close;
