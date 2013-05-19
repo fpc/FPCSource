@@ -329,21 +329,39 @@ unit cpupara;
             paraloc^.loc:=LOC_REGISTER;
             if retcgsize in [OS_64,OS_S64] then
              begin
-               { low 32bits }
+               { bits 0..15 }
                if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc^.size:=OS_32;
+               paraloc^.size:=OS_16;
 
-               { high 32bits }
+               { bits 16..31 }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc^.size:=OS_16;
+
+               { bits 32..47 }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGHER_REG
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGHER_REG;
-               paraloc^.size:=OS_32;
+               paraloc^.size:=OS_16;
+
+               { bits 48..63 }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGHEST_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGHEST_REG;
+               paraloc^.size:=OS_16;
              end
             else if retcgsize in [OS_32,OS_S32] then
              begin

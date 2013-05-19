@@ -556,16 +556,6 @@ implementation
 {$ifdef i8086}
     function GetNextReg(const r: TRegister): TRegister;
       begin
-        { HACK for returning 64-bit values in registers ax:bx:cx:dx }
-        case r of
-          NR_FUNCTION_RESULT64_LOW_REG: exit(NR_FUNCTION_RESULT64_HIGH_REG);
-          NR_FUNCTION_RESULT64_HIGHER_REG: exit(NR_FUNCTION_RESULT64_HIGHEST_REG);
-        end;
-        case r of
-          NR_FUNCTION_RETURN64_LOW_REG: exit(NR_FUNCTION_RETURN64_HIGH_REG);
-          NR_FUNCTION_RETURN64_HIGHER_REG: exit(NR_FUNCTION_RETURN64_HIGHEST_REG);
-        end;
-
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
         result:=TRegister(longint(r)+1);
