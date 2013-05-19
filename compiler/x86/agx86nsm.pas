@@ -857,7 +857,7 @@ interface
              begin
                if tai_label(hp).labsym.is_used then
                  begin
-                   if SmartAsm then
+                   if SmartAsm and (tai_label(hp).labsym.bind=AB_GLOBAL) then
                      begin
                        AsmWrite(#9'GLOBAL ');
                        AsmWriteLn(tai_label(hp).labsym.name);
