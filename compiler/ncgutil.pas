@@ -1000,63 +1000,66 @@ implementation
                   case paraloc^.loc of
                     LOC_REGISTER:
                       begin
-                        if not assigned(paraloc^.next) then
-                          internalerror(200410104);
+                        case para.locations_count of
 {$ifdef cpu16bitalu}
-                        { 4 paralocs? }
-                        if assigned(paraloc^.next) and assigned(paraloc^.next^.next) and assigned(paraloc^.next^.next^.next) then
-                          if (target_info.endian=ENDIAN_BIG) then
-                            begin
-                              { paraloc^ -> high
-                                paraloc^.next^.next -> low }
-                              unget_para(paraloc^);
-                              gen_alloc_regloc(list,destloc);
-                              { reg->reg, alignment is irrelevant }
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,GetNextReg(destloc.register64.reghi),2);
-                              unget_para(paraloc^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,destloc.register64.reghi,2);
-                              unget_para(paraloc^.next^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^,GetNextReg(destloc.register64.reglo),2);
-                              unget_para(paraloc^.next^.next^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,destloc.register64.reglo,2);
-                            end
-                          else
-                            begin
-                              { paraloc^ -> low
-                                paraloc^.next^.next -> high }
-                              unget_para(paraloc^);
-                              gen_alloc_regloc(list,destloc);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,destloc.register64.reglo,2);
-                              unget_para(paraloc^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,GetNextReg(destloc.register64.reglo),2);
-                              unget_para(paraloc^.next^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^,destloc.register64.reghi,2);
-                              unget_para(paraloc^.next^.next^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,GetNextReg(destloc.register64.reghi),2);
-                            end
-                        else
+                          { 4 paralocs? }
+                          4:
+                            if (target_info.endian=ENDIAN_BIG) then
+                              begin
+                                { paraloc^ -> high
+                                  paraloc^.next^.next -> low }
+                                unget_para(paraloc^);
+                                gen_alloc_regloc(list,destloc);
+                                { reg->reg, alignment is irrelevant }
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,GetNextReg(destloc.register64.reghi),2);
+                                unget_para(paraloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,destloc.register64.reghi,2);
+                                unget_para(paraloc^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^,GetNextReg(destloc.register64.reglo),2);
+                                unget_para(paraloc^.next^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,destloc.register64.reglo,2);
+                              end
+                            else
+                              begin
+                                { paraloc^ -> low
+                                  paraloc^.next^.next -> high }
+                                unget_para(paraloc^);
+                                gen_alloc_regloc(list,destloc);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,destloc.register64.reglo,2);
+                                unget_para(paraloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,GetNextReg(destloc.register64.reglo),2);
+                                unget_para(paraloc^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^,destloc.register64.reghi,2);
+                                unget_para(paraloc^.next^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,GetNextReg(destloc.register64.reghi),2);
+                              end;
 {$endif cpu16bitalu}
-                          if (target_info.endian=ENDIAN_BIG) then
-                            begin
-                              { paraloc^ -> high
-                                paraloc^.next -> low }
-                              unget_para(paraloc^);
-                              gen_alloc_regloc(list,destloc);
-                              { reg->reg, alignment is irrelevant }
-                              cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reghi,4);
-                              unget_para(paraloc^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,destloc.register64.reglo,4);
-                            end
+                          2:
+                            if (target_info.endian=ENDIAN_BIG) then
+                              begin
+                                { paraloc^ -> high
+                                  paraloc^.next -> low }
+                                unget_para(paraloc^);
+                                gen_alloc_regloc(list,destloc);
+                                { reg->reg, alignment is irrelevant }
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reghi,4);
+                                unget_para(paraloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,destloc.register64.reglo,4);
+                              end
+                            else
+                              begin
+                                { paraloc^ -> low
+                                  paraloc^.next -> high }
+                                unget_para(paraloc^);
+                                gen_alloc_regloc(list,destloc);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reglo,4);
+                                unget_para(paraloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,destloc.register64.reghi,4);
+                              end;
                           else
-                            begin
-                              { paraloc^ -> low
-                                paraloc^.next -> high }
-                              unget_para(paraloc^);
-                              gen_alloc_regloc(list,destloc);
-                              cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reglo,4);
-                              unget_para(paraloc^.next^);
-                              cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,destloc.register64.reghi,4);
-                            end;
+                            { unexpected number of paralocs }
+                            internalerror(200410104);
+                        end;
                       end;
                     LOC_REFERENCE:
                       begin
