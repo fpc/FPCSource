@@ -143,107 +143,110 @@ unit cg64f32;
         cgparalo.intsize:=4;
         cgparalo.alignment:=cgpara.alignment;
         paraloclo:=cgparalo.add_location;
-        { 4 parameter fields? }
-        if assigned(cgpara.location^.next) and assigned(cgpara.location^.next^.next) and assigned(cgpara.location^.next^.next^.next) then
-          begin
-            { Order for multiple locations is always
-                paraloc^ -> high
-                paraloc^.next -> low }
-            if (target_info.endian=ENDIAN_BIG) then
-              begin
-                { paraloc^ -> high }
-                move(cgpara.location^,paralochi^,sizeof(paralochi^));
-                paralochi^.next:=nil;
-                paralochi2:=cgparahi.add_location;
-                move(cgpara.location^.next,paralochi2^,sizeof(paralochi2^));
-
-                { paraloc^.next^.next^ -> low }
-                move(cgpara.location^.next^.next^,paraloclo^,sizeof(paraloclo^));
-                paraloclo^.next:=nil;
-                paraloclo2:=cgparalo.add_location;
-                move(cgpara.location^.next^.next^.next^,paraloclo2^,sizeof(paraloclo2^));
-              end
-            else
-              begin
-                { paraloc^ -> low }
-                move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
-                paraloclo^.next:=nil;
-                paraloclo2:=cgparalo.add_location;
-                move(cgpara.location^.next^,paraloclo2^,sizeof(paraloclo2^));
-
-                { paraloc^.next^.next -> high }
-                move(cgpara.location^.next^.next^,paralochi^,sizeof(paralochi^));
-                paralochi^.next:=nil;
-                paralochi2:=cgparahi.add_location;
-                move(cgpara.location^.next^.next^.next^,paralochi2^,sizeof(paralochi2^));
-              end;
-
-            { fix size }
-            paraloclo^.size:=OS_16;
-            paraloclo2^.size:=OS_16;
-            paraloclo2^.next:=nil;
-            paralochi^.size:=OS_16;
-            paralochi2^.size:=OS_16;
-            paralochi2^.next:=nil;
-            if cgpara.size=OS_S64 then
-              if target_info.endian=ENDIAN_BIG then
-                paralochi^.size:=OS_S16
-              else
-                paraloclo2^.size:=OS_S16;
-          end
-        else
-        { 2 parameter fields? }
-        if assigned(cgpara.location^.next) then
-          begin
-            { Order for multiple locations is always
-                paraloc^ -> high
-                paraloc^.next -> low }
-            if (target_info.endian=ENDIAN_BIG) then
-              begin
-                { paraloc^ -> high
+        case cgpara.locations_count of
+          4:
+            begin
+              { 4 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
                   paraloc^.next -> low }
-                move(cgpara.location^,paralochi^,sizeof(paralochi^));
-                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
-              end
-            else
-              begin
-                { paraloc^ -> low
-                  paraloc^.next -> high }
-                move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
-                move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
-              end;
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { paraloc^ -> high }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next,paralochi2^,sizeof(paralochi2^));
 
-            { fix size }
-            paraloclo^.size:=cgparalo.size;
-            paraloclo^.next:=nil;
-            paralochi^.size:=cgparahi.size;
-            paralochi^.next:=nil;
-          end
-        else
-          begin
-            { single parameter, this can only be in memory }
-            if cgpara.location^.loc<>LOC_REFERENCE then
-              internalerror(200408282);
-            move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
-            move(cgpara.location^,paralochi^,sizeof(paralochi^));
-            { for big endian low is at +4, for little endian high }
-            if target_info.endian = endian_big then
-              begin
-                inc(cgparalo.location^.reference.offset,4);
-                cgparalo.alignment:=newalignment(cgparalo.alignment,4);
-              end
-            else
-              begin
-                inc(cgparahi.location^.reference.offset,4);
-                cgparahi.alignment:=newalignment(cgparahi.alignment,4);
-              end;
+                  { paraloc^.next^.next^ -> low }
+                  move(cgpara.location^.next^.next^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo2^,sizeof(paraloclo2^));
+                end
+              else
+                begin
+                  { paraloc^ -> low }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^,paraloclo2^,sizeof(paraloclo2^));
 
-            { fix size }
-            paraloclo^.size:=cgparalo.size;
-            paraloclo^.next:=nil;
-            paralochi^.size:=cgparahi.size;
-            paralochi^.next:=nil;
-          end;
+                  { paraloc^.next^.next -> high }
+                  move(cgpara.location^.next^.next^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next^.next^.next^,paralochi2^,sizeof(paralochi2^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=OS_16;
+              paraloclo2^.size:=OS_16;
+              paraloclo2^.next:=nil;
+              paralochi^.size:=OS_16;
+              paralochi2^.size:=OS_16;
+              paralochi2^.next:=nil;
+              if cgpara.size=OS_S64 then
+                if target_info.endian=ENDIAN_BIG then
+                  paralochi^.size:=OS_S16
+                else
+                  paraloclo2^.size:=OS_S16;
+            end;
+          2:
+            begin
+              { 2 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
+                  paraloc^.next -> low }
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { paraloc^ -> high
+                    paraloc^.next -> low }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
+                end
+              else
+                begin
+                  { paraloc^ -> low
+                    paraloc^.next -> high }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=cgparalo.size;
+              paraloclo^.next:=nil;
+              paralochi^.size:=cgparahi.size;
+              paralochi^.next:=nil;
+            end;
+          1:
+            begin
+              { single parameter, this can only be in memory }
+              if cgpara.location^.loc<>LOC_REFERENCE then
+                internalerror(200408282);
+              move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+              move(cgpara.location^,paralochi^,sizeof(paralochi^));
+              { for big endian low is at +4, for little endian high }
+              if target_info.endian = endian_big then
+                begin
+                  inc(cgparalo.location^.reference.offset,4);
+                  cgparalo.alignment:=newalignment(cgparalo.alignment,4);
+                end
+              else
+                begin
+                  inc(cgparahi.location^.reference.offset,4);
+                  cgparahi.alignment:=newalignment(cgparahi.alignment,4);
+                end;
+
+              { fix size }
+              paraloclo^.size:=cgparalo.size;
+              paraloclo^.next:=nil;
+              paralochi^.size:=cgparahi.size;
+              paralochi^.next:=nil;
+            end;
+          else
+            internalerror(2013051901);
+        end;
       end;
 
 
