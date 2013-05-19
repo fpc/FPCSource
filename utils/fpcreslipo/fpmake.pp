@@ -29,10 +29,9 @@ begin
 
     P.OSes:=[darwin, iphonesim];
 
-    P.Targets.AddImplicitUnit('msghandler.pp');
-    P.Targets.AddImplicitUnit('paramparser.pp');
-    P.Targets.AddImplicitUnit('sourcehandler.pp');
-    P.Targets.AddImplicitUnit('fpcreslipo.pp');
+    P.Targets.AddImplicitUnit('msghandler.pp').install := false;
+    P.Targets.AddImplicitUnit('paramparser.pp').install := false;
+    P.Targets.AddImplicitUnit('sourcehandler.pp').install := false;
 
     T:=P.Targets.AddProgram('fpcreslipo.pp');
 

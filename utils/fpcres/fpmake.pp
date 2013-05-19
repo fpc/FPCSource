@@ -40,7 +40,7 @@ begin
     T.Dependencies.AddUnit('sourcehandler');
     T.Dependencies.AddUnit('target');
 
-    T:=P.Targets.AddProgram('fpcjres');
+    T:=P.Targets.AddProgram('fpcjres.pas');
 
     T.Dependencies.AddUnit('closablefilestream');
     T.Dependencies.AddUnit('msghandler');
