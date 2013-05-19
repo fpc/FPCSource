@@ -5,11 +5,11 @@
 main=rtl
 [target]
 loaders=prt0 # exceptn fpu
-units=system uuchar objpas strings dos \
+units=system uuchar objpas strings dos heaptrc \
 #      macpas iso7185 crt objects printer cmem
 #      initc ports profile dxetype dxeload emu387 \
 #      sysutils classes math typinfo matrix \
-#      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
+#      cpu mmx ucomplex getopts lineinfo lnfodwrf ctypes fgl \
 #      msmouse charset varutils \
 #      video mouse keyboard variants vesamode types fmtbcd \
 #      sysconst rtlconst dateutil convutil strutils stdconvs
