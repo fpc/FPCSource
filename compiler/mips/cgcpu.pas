@@ -1436,15 +1436,9 @@ begin
     { generate a loop }
     if Count > 4 then
     begin
-      { the offsets are zero after the a_loadaddress_ref_reg and just }
-      { have to be set to 8. I put an Inc there so debugging may be   }
-      { easier (should offset be different from zero here, it will be }
-      { easy to notice in the generated assembler                     }
       countreg := GetIntRegister(list, OS_INT);
       tmpreg1  := GetIntRegister(list, OS_INT);
       a_load_const_reg(list, OS_INT, Count, countreg);
-      { explicitely allocate R_O0 since it can be used safely here }
-      { (for holding date that's being copied)                    }
       current_asmdata.getjumplabel(lab);
       a_label(list, lab);
       list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
@@ -1526,15 +1520,9 @@ begin
     { generate a loop }
     if len > 4 then
     begin
-      { the offsets are zero after the a_loadaddress_ref_reg and just }
-      { have to be set to 8. I put an Inc there so debugging may be   }
-      { easier (should offset be different from zero here, it will be }
-      { easy to notice in the generated assembler                     }
       countreg := cg.GetIntRegister(list, OS_INT);
       tmpreg1  := cg.GetIntRegister(list, OS_INT);
       a_load_const_reg(list, OS_INT, len, countreg);
-      { explicitely allocate R_O0 since it can be used safely here }
-      { (for holding date that's being copied)                    }
       current_asmdata.getjumplabel(lab);
       a_label(list, lab);
       list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));

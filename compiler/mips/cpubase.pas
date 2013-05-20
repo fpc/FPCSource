@@ -139,17 +139,6 @@ unit cpubase;
       maxaddrregs = 0;
 
 {*****************************************************************************
-                                Operand Sizes
-*****************************************************************************}
-
-    type
-      topsize = (S_NO,
-        S_B,S_W,S_L,S_BW,S_BL,S_WL,
-        S_IS,S_IL,S_IQ,
-        S_FS,S_FL,S_FX,S_D,S_Q,S_FV,S_FXX
-      );
-
-{*****************************************************************************
                                  Constants
 *****************************************************************************}
 
@@ -337,8 +326,6 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
-          To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
         is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC, A_BC1T, A_BC1F];
       end;
 
