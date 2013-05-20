@@ -19,6 +19,7 @@ constructor TFPCustomCanvas.Create;
 begin
   inherited create;
   FClipping := false;
+  FreeAndNil(FClipRegion);
   FRemovingHelpers := false;
   FHelpers := TList.Create;
   FDefaultFont := CreateDefaultFont;
