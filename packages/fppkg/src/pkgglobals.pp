@@ -36,7 +36,7 @@ Const
   CurrentDirPackageName='<currentdir>';
 
   // Dependencies for compiling the fpmkunit unit
-  FPMKUnitDepDefaultCount=4;
+  FPMKUnitDepDefaultCount=5;
   FPMKUnitDepsDefaults : array[0..FPMKUnitDepDefaultCount-1] of TFPMKUnitDep = (
     (package: 'hash';
      reqver : '2.2.2';
@@ -47,6 +47,9 @@ Const
     (package: 'fcl-process';
      reqver : '2.2.2';
      undef  : 'NO_UNIT_PROCESS'),
+   (package: 'libtar';
+    reqver : '2.7.1';
+    undef  : ''),
     (package: 'fpmkunit';
      reqver : '2.2.2-1';
      undef  : '')
