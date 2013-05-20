@@ -2,7 +2,24 @@
 {$define allpackages}
 program fpmake;
 
-uses fpmkunit, sysutils;
+{$IFDEF OS2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF OS2}
+
+{$IFDEF GO32V2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF GO32V2}
+
+{$ifndef NO_UNIT_PROCESS}
+  {$define HAS_UNIT_PROCESS}
+{$endif NO_UNIT_PROCESS}
+
+uses
+  fpmkunit,
+{$IFDEF HAS_UNIT_PROCESS}
+  process,
+{$ENDIF HAS_UNIT_PROCESS}
+  sysutils;
 
 procedure add_utils;
 
