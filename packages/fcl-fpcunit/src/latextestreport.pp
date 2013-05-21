@@ -154,10 +154,16 @@ begin
 end;
 
 procedure TLatexResultsWriter.WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime);
+
+Var
+  S : String;
 begin
   inherited;
-  FDoc.Add(StringOfChar(' ',ALevel*2)+ '  '+ '\item[-] ' + FormatDateTime('ss.zzz', ATiming)  
-    + '  ' + EscapeText(ATest.TestName));
+  S:=StringOfChar(' ',ALevel*2)+ '  '+ '\item[-] ';
+  if Not SkipTiming then
+    S:=S+FormatDateTime('ss.zzz', ATiming);
+  S:=S+ '  ' + EscapeText(ATest.TestName);
+  FDoc.Add(S);
   if Assigned(FTempFailure) then
   begin
     //check if it's an error 
@@ -200,13 +206,18 @@ procedure TLatexResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: i
   ANumIgnores: integer);
 var
   idx: integer;
+  S : String;
+
 begin
   inherited;
   FDoc.Add(StringOfChar(' ',ALevel*2)+ ' \end{itemize}');
   idx := Integer(FSuiteHeaderIdx[FSuiteHeaderIdx.Count -1]);
-  FDoc[idx] := FDoc[idx] + ' {\color{Blue}'+ '  Time:'+ FormatDateTime('ss.zzz', ATiming)+
-    ' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+ 
-    ' I:'+ IntToStr(ANumIgnores)+'}';
+  S:= ' {\color{Blue}';
+  if Not SkipTiming then
+    S:=S+ ' Time: '+FormatDateTime('ss.zzz', ATiming);
+  S:=S+' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+
+  ' I:'+ IntToStr(ANumIgnores)+'}';
+  FDoc[idx] := FDoc[idx] +S;
   FSuiteHeaderIdx.Delete(FSuiteHeaderIdx.Count -1);
 end;
 

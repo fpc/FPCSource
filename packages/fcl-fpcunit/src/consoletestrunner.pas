@@ -29,10 +29,10 @@ uses
   dom;
 
 const
-  Version = '0.2';
+  Version = '0.3';
 
 type
-  TFormat = (fPlain, fLatex, fXML);
+  TFormat = (fPlain, fLatex, fXML, fPlainNoTiming);
 
 var
   DefaultFormat : TFormat = fXML;
@@ -73,8 +73,8 @@ uses testdecorator;
 
 const
   ShortOpts = 'alhp';
-  DefaultLongOpts: array[1..8] of string =
-     ('all', 'list', 'progress', 'help',
+  DefaultLongOpts: array[1..9] of string =
+     ('all', 'list', 'progress', 'help', 'skiptiming',
       'suite:', 'format:', 'file:', 'stylesheet:');
 
   { TProgressWriter }
@@ -145,14 +145,15 @@ end;
 function TTestRunner.GetResultsWriter: TCustomResultsWriter;
 begin
   case FormatParam of
-    fLatex: Result := TLatexResultsWriter.Create(nil);
-    fPlain: Result := TPlainResultsWriter.Create(nil);
+    fLatex:         Result := TLatexResultsWriter.Create(nil);
+    fPlain:         Result := TPlainResultsWriter.Create(nil);
   else
     begin
       Result := TXmlResultsWriter.Create(nil);
       ExtendXmlDocument(TXMLResultsWriter(Result).Document);
     end;
   end;
+  Result.SkipTiming:=HasOption('skiptiming');
 end;
 
 procedure TTestRunner.DoTestRun(ATest: TTest);
@@ -211,6 +212,7 @@ begin
     writeln('  --format=latex            output as latex source (only list implemented)');
     writeln('  --format=plain            output as plain ASCII source');
     writeln('  --format=xml              output as XML source (default)');
+    writeln('  --skiptiming              Do not output timings (useful for diffs of testruns)');
     writeln('  --stylesheet=<reference>   add stylesheet reference');
     writeln('  --file=<filename>         output results to file');
     writeln;
@@ -232,6 +234,8 @@ begin
       FormatParam := fLatex
     else if CompareText(GetOptionValue('format'),'plain')=0 then
       FormatParam := fPlain
+    else if CompareText(GetOptionValue('format'),'plainnotiming')=0 then
+      FormatParam := fPlainNoTiming
     else if CompareText(GetOptionValue('format'),'xml')=0 then
       FormatParam := fXML;
   end;
@@ -369,8 +373,9 @@ begin
   //get a list of all registed tests
   if HasOption('l', 'list') then
     case FormatParam of
-      fLatex: Write(GetSuiteAsLatex(GetTestRegistry));
-      fPlain: Write(GetSuiteAsPlain(GetTestRegistry));
+      fLatex:         Write(GetSuiteAsLatex(GetTestRegistry));
+      fPlain:         Write(GetSuiteAsPlain(GetTestRegistry));
+      fPlainNoTiming: Write(GetSuiteAsPlain(GetTestRegistry));
     else
       Write(GetSuiteAsLatex(GetTestRegistry));;
     end;
