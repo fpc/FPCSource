@@ -14314,7 +14314,6 @@ utils/fpcres/closablefilestream.pas svneol=native#text/plain
 utils/fpcres/fpcjres.pas svneol=native#text/plain
 utils/fpcres/fpcres.pas svneol=native#text/plain
 utils/fpcres/fpmake.pp svneol=native#text/plain
-utils/fpcres/jarparamparser.pas svneol=native#text/plain
 utils/fpcres/jarsourcehandler.pas svneol=native#text/plain
 utils/fpcres/msghandler.pas svneol=native#text/plain
 utils/fpcres/paramparser.pas svneol=native#text/plain
