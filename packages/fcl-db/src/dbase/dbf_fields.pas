@@ -163,14 +163,18 @@ database.
     ... dbf supports:       -999 to  9999
                            4 digits max in practice
         therefore         DIGITS_SMALLINT = 4;
-    ftInteger  32 bits = -2147483648 to 2147483647
-    ... dbf supports:      -99999999 to  999999999                                        12345678901 = 11 digits max
-        therefore        DIGITS_INTEGER = 9;
-    ftLargeInt 64 bits = -9223372036854775808 to 9223372036854775807
-    ... dbf supports:      -99999999999999999 to  999999999999999999
-        therefore        DIGITS_LARGEINT = 18;
+    ftWord 16 bits sign = 0 to     65535
+    ... dbf supports:     0 to 999999999 (in an N field)
+        therefore         DIGITS_WORD = 5;
+    ftInteger  32 bits  = -2147483648 to 2147483647
+    ... dbf supports:       -99999999 to  999999999                                        12345678901 = 11 digits max
+        therefore         DIGITS_INTEGER = 9;
+    ftLargeInt 64 bits  = -9223372036854775808 to 9223372036854775807
+    ... dbf supports:       -99999999999999999 to  999999999999999999
+        therefore         DIGITS_LARGEINT = 18;
  *)
   DIGITS_SMALLINT = 4;
+  DIGITS_WORD = 5;
   DIGITS_INTEGER = 9;
   DIGITS_LARGEINT = 18;
 
@@ -448,7 +452,6 @@ begin
     ftAutoInc  :
       if DbfVersion=xVisualFoxPro then
         FNativeFieldType  := 'I'
-        //todo: set autoincrement fields: offset 18: add flag $0c; 19-22: value of next autoincrement; 23 value of autoincrement step value
       else
         FNativeFieldType  := '+'; //Apparently xbaseV/7+ only; not (Visual) Foxpro
     ftDateTime :
@@ -530,9 +533,14 @@ begin
         // FPC ftBCD/ftCurrency TFieldDef.Size has max 4 which is 4 bytes after decimal
         FPrecision := 4; //Total number of digits
       end;
-    ftSmallInt, ftWord:
+    ftSmallInt:
       begin
         FSize := DIGITS_SMALLINT;
+        FPrecision := 0;
+      end;
+    ftWord:
+      begin
+        FSize := DIGITS_WORD;
         FPrecision := 0;
       end;
     ftInteger, ftAutoInc:
