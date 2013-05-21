@@ -2546,7 +2546,24 @@ begin
              readcommondef('Pointer definition',defoptions,def);
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
-             writeln([space,'           Is Far : ',(getbyte<>0)]);
+             if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
+               begin
+                 write([space,' X86 Pointer Type : ']);
+                 b:=getbyte;
+                 case tx86pointertyp(b) of
+                   x86pt_near: writeln('Near');
+                   x86pt_near_cs: writeln('Near ''CS''');
+                   x86pt_near_ds: writeln('Near ''DS''');
+                   x86pt_near_ss: writeln('Near ''SS''');
+                   x86pt_near_es: writeln('Near ''ES''');
+                   x86pt_near_fs: writeln('Near ''FS''');
+                   x86pt_near_gs: writeln('Near ''GS''');
+                   x86pt_far: writeln('Far');
+                   x86pt_huge: writeln('Huge');
+                   else
+                     WriteWarning('Invalid x86 pointer type: ' + IntToStr(b));
+                 end;
+               end;
              writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 
