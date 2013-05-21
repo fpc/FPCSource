@@ -2555,11 +2555,11 @@ end;
 function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
 Begin
  try
-   if InitSSLEAInterface(AVerboseLoading) then
-	if InitLIBEAInterface(AVerboseLoading) then
-	  result:=true
-	else
-	  result:=false
+   if InitLIBEAInterface(AVerboseLoading) then
+     if InitSSLEAInterface(AVerboseLoading) then
+       result:=true
+     else
+       result:=false
    else
     result:=false;
  except
