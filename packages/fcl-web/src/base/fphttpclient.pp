@@ -17,7 +17,7 @@ unit fphttpclient;
 { ---------------------------------------------------------------------
   Todo:
   * Proxy support ?
-  * Easy calls for POST/DELETE/etc.
+  * Https support.
   ---------------------------------------------------------------------}
 
 {$mode objfpc}{$H+}
@@ -59,7 +59,7 @@ Type
     // Check if response code is in AllowedResponseCodes. if not, an exception is raised.
     function CheckResponseCode(ACode: Integer;  const AllowedResponseCodes: array of Integer): Boolean; virtual;
     // Read response from server, and write any document to Stream.
-    procedure ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer); virtual;
+    procedure ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer; HeadersOnly: Boolean = False); virtual;
     // Read server response line and headers. Returns status code.
     Function ReadResponseHeaders : integer; virtual;
     // Allow header in request ? (currently checks only if non-empty and contains : token)
@@ -106,6 +106,41 @@ Type
     Class procedure SimplePost(const URL: string; Response : TStrings);
     Class procedure SimplePost(const URL: string; const LocalFileName: String);
     Class function SimplePost(const URL: string) : String;
+    // Simple Put
+    // Put URL, and Requestbody. Return response in Stream, File, TstringList or String;
+    procedure Put(const URL: string; const Response: TStream);
+    procedure Put(const URL: string; Response : TStrings);
+    procedure Put(const URL: string; const LocalFileName: String);
+    function Put(const URL: string) : String;
+    // Simple class methods.
+    Class procedure SimplePut(const URL: string; const Response: TStream);
+    Class procedure SimplePut(const URL: string; Response : TStrings);
+    Class procedure SimplePut(const URL: string; const LocalFileName: String);
+    Class function SimplePut(const URL: string) : String;
+    // Simple Delete
+    // Delete URL, and Requestbody. Return response in Stream, File, TstringList or String;
+    procedure Delete(const URL: string; const Response: TStream);
+    procedure Delete(const URL: string; Response : TStrings);
+    procedure Delete(const URL: string; const LocalFileName: String);
+    function Delete(const URL: string) : String;
+    // Simple class methods.
+    Class procedure SimpleDelete(const URL: string; const Response: TStream);
+    Class procedure SimpleDelete(const URL: string; Response : TStrings);
+    Class procedure SimpleDelete(const URL: string; const LocalFileName: String);
+    Class function SimpleDelete(const URL: string) : String;
+    // Simple Options
+    // Options from URL, and Requestbody. Return response in Stream, File, TstringList or String;
+    procedure Options(const URL: string; const Response: TStream);
+    procedure Options(const URL: string; Response : TStrings);
+    procedure Options(const URL: string; const LocalFileName: String);
+    function Options(const URL: string) : String;
+    // Simple class methods.
+    Class procedure SimpleOptions(const URL: string; const Response: TStream);
+    Class procedure SimpleOptions(const URL: string; Response : TStrings);
+    Class procedure SimpleOptions(const URL: string; const LocalFileName: String);
+    Class function SimpleOptions(const URL: string) : String;
+    // Get HEAD
+    Class Procedure Head(AURL : String; Headers: TStrings);
     // Post Form data (www-urlencoded).
     // Formdata in string (urlencoded) or TStrings (plain text) format.
     // Form data will be inserted in the requestbody.
@@ -298,7 +333,7 @@ begin
   I:=Pos(':',Result);
   if (I=0) then
     I:=Length(Result);
-  Delete(Result,1,I);
+  System.Delete(Result,1,I);
 end;
 
 Function TFPCustomHTTPClient.GetServerURL(URI : TURI) : String;
@@ -353,8 +388,8 @@ begin
   If (URI.Port<>0) then
     S:=S+':'+IntToStr(URI.Port);
   S:=S+CRLF;
-  If Assigned(RequestBody) and (IndexOfHeader('Content-length')=-1) then
-    AddHeader('Content-length',IntToStr(RequestBody.Size));
+  If Assigned(RequestBody) and (IndexOfHeader('Content-Length')=-1) then
+    AddHeader('Content-Length',IntToStr(RequestBody.Size));
   For I:=0 to FRequestHeaders.Count-1 do
     begin
     l:=FRequestHeaders[i];
@@ -414,7 +449,7 @@ begin
         Result:=Result+#13
       else
         begin
-        Delete(FBuffer,1,1);
+        System.Delete(FBuffer,1,1);
         Done:=True;
         end;
       end;
@@ -434,7 +469,7 @@ begin
       else
         begin
         Result:=Result+Copy(FBuffer,1,P-1);
-        Delete(FBuffer,1,P+1);
+        System.Delete(FBuffer,1,P+1);
         Done:=True;
         end;
       end;
@@ -469,7 +504,7 @@ begin
   S:=Uppercase(GetNextWord(AStatusLine));
   If (Copy(S,1,5)<>'HTTP/') then
     Raise EHTTPClient.CreateFmt(SErrInvalidProtocolVersion,[S]);
-  Delete(S,1,5);
+  System.Delete(S,1,5);
   FServerHTTPVersion:=S;
   S:=GetNextWord(AStatusLine);
   Result:=StrToIntDef(S,-1);
@@ -490,14 +525,14 @@ Function TFPCustomHTTPClient.ReadResponseHeaders : Integer;
     If Assigned(FCookies) then
       FCookies.Clear;
     P:=Pos(':',S);
-    Delete(S,1,P);
+    System.Delete(S,1,P);
     Repeat
       P:=Pos(';',S);
       If (P=0) then
         P:=Length(S)+1;
       C:=Trim(Copy(S,1,P-1));
       Cookies.Add(C);
-      Delete(S,1,P);
+      System.Delete(S,1,P);
     Until (S='');
   end;
 
@@ -555,7 +590,7 @@ begin
     S:=Trim(LowerCase(FResponseHeaders[i]));
     If (Copy(S,1,Length(Cl))=Cl) then
       begin
-      Delete(S,1,Length(CL));
+      System.Delete(S,1,Length(CL));
       Result:=StrToIntDef(Trim(S),-1);
       end;
     Inc(I);
@@ -578,7 +613,7 @@ begin
     S:=Trim(LowerCase(FResponseHeaders[i]));
     If (Copy(S,1,Length(Cl))=Cl) then
       begin
-      Delete(S,1,Length(CL));
+      System.Delete(S,1,Length(CL));
       Result:=Trim(S);
       exit;
       end;
@@ -599,7 +634,7 @@ begin
   GetCookies.Assign(AValue);
 end;
 
-procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer);
+procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer; HeadersOnly: Boolean = False);
 
   Function Transfer(LB : Integer) : Integer;
 
@@ -719,6 +754,8 @@ begin
   FResponseStatusCode:=ReadResponseHeaders;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
     Raise EHTTPClient.CreateFmt(SErrUnexpectedResponse,[ResponseStatusCode]);
+  if HeadersOnly then
+    exit;
   if CompareText(CheckTransferEncoding,'chunked')=0 then
     ReadChunkedResponse
   else
@@ -765,7 +802,7 @@ begin
   ConnectToServer(URI.Host,URI.Port);
   try
     SendRequest(AMethod,URI);
-    ReadResponse(Stream,AllowedResponseCodes);
+    ReadResponse(Stream,AllowedResponseCodes,CompareText(AMethod,'HEAD')=0);
   finally
     DisconnectFromServer;
   end;
@@ -781,6 +818,7 @@ end;
 
 destructor TFPCustomHTTPClient.Destroy;
 begin
+  FreeAndNil(FCookies);
   FreeAndNil(FRequestHeaders);
   FreeAndNil(FResponseHeaders);
   inherited Destroy;
@@ -837,6 +875,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Stream : TStr
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,Stream);
     finally
       Free;
@@ -849,6 +888,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; const LocalFi
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,LocalFileName);
     finally
       Free;
@@ -861,6 +901,7 @@ Class Procedure TFPCustomHTTPClient.SimpleGet(Const AURL : String; Response : TS
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Get(AURL,Response);
     finally
       Free;
@@ -927,6 +968,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const Response
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,Response);
     finally
       Free;
@@ -939,6 +981,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; Response : TSt
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,Response);
     finally
       Free;
@@ -951,6 +994,7 @@ Class procedure TFPCustomHTTPClient.SimplePost(const URL: string; const LocalFil
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Post(URL,LocalFileName);
     finally
       Free;
@@ -963,13 +1007,291 @@ Class function TFPCustomHTTPClient.SimplePost(const URL: string) : String;
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=Post(URL);
     finally
       Free;
     end;
 end;
 
+procedure TFPCustomHTTPClient.Put(const URL: string; const Response: TStream);
+begin
+  DoMethod('PUT',URL,Response,[]);
+end;
 
+procedure TFPCustomHTTPClient.Put(const URL: string; Response: TStrings);
+begin
+  Response.Text:=Put(URL);
+end;
+
+procedure TFPCustomHTTPClient.Put(const URL: string;
+  const LocalFileName: String);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(LocalFileName,fmCreate);
+  try
+    Put(URL,F);
+  finally
+    F.Free;
+  end;
+end;
+
+function TFPCustomHTTPClient.Put(const URL: string): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    Put(URL,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimplePut(const URL: string;
+  const Response: TStream);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Put(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimplePut(const URL: string;
+  Response: TStrings);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Put(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimplePut(const URL: string;
+  const LocalFileName: String);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Put(URL,LocalFileName);
+    finally
+      Free;
+    end;
+end;
+
+Class function TFPCustomHTTPClient.SimplePut(const URL: string): String;
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Result:=Put(URL);
+    finally
+      Free;
+    end;
+end;
+
+procedure TFPCustomHTTPClient.Delete(const URL: string; const Response: TStream);
+begin
+  DoMethod('DELETE',URL,Response,[]);
+end;
+
+procedure TFPCustomHTTPClient.Delete(const URL: string; Response: TStrings);
+begin
+  Response.Text:=Delete(URL);
+end;
+
+procedure TFPCustomHTTPClient.Delete(const URL: string;
+  const LocalFileName: String);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(LocalFileName,fmCreate);
+  try
+    Delete(URL,F);
+  finally
+    F.Free;
+  end;
+end;
+
+function TFPCustomHTTPClient.Delete(const URL: string): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    Delete(URL,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleDelete(const URL: string;
+  const Response: TStream);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Delete(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleDelete(const URL: string;
+  Response: TStrings);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Delete(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleDelete(const URL: string;
+  const LocalFileName: String);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Delete(URL,LocalFileName);
+    finally
+      Free;
+    end;
+end;
+
+Class function TFPCustomHTTPClient.SimpleDelete(const URL: string): String;
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Result:=Delete(URL);
+    finally
+      Free;
+    end;
+end;
+
+procedure TFPCustomHTTPClient.Options(const URL: string; const Response: TStream);
+begin
+  DoMethod('OPTIONS',URL,Response,[]);
+end;
+
+procedure TFPCustomHTTPClient.Options(const URL: string; Response: TStrings);
+begin
+  Response.Text:=Options(URL);
+end;
+
+procedure TFPCustomHTTPClient.Options(const URL: string;
+  const LocalFileName: String);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(LocalFileName,fmCreate);
+  try
+    Options(URL,F);
+  finally
+    F.Free;
+  end;
+end;
+
+function TFPCustomHTTPClient.Options(const URL: string): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    Options(URL,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleOptions(const URL: string;
+  const Response: TStream);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Options(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleOptions(const URL: string;
+  Response: TStrings);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Options(URL,Response);
+    finally
+      Free;
+    end;
+end;
+
+Class procedure TFPCustomHTTPClient.SimpleOptions(const URL: string;
+  const LocalFileName: String);
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Options(URL,LocalFileName);
+    finally
+      Free;
+    end;
+end;
+
+Class function TFPCustomHTTPClient.SimpleOptions(const URL: string): String;
+
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      Result:=Options(URL);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TFPCustomHTTPClient.Head(AURL : String; Headers: TStrings);
+begin
+  With Self.Create(nil) do
+    try
+      RequestHeaders.Add('Connection: Close');
+      HTTPMethod('HEAD', AURL, Nil, [200]);
+      Headers.Assign(ResponseHeaders);
+    Finally
+      Free;
+    end;
+end;
 
 procedure TFPCustomHTTPClient.FormPost(const URL, FormData: string;
   const Response: TStream);
@@ -1043,12 +1365,12 @@ begin
   end;
 end;
 
-
 Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; const Response: TStream);
 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1061,6 +1383,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1073,6 +1396,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string; 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1084,6 +1408,7 @@ Class Procedure TFPCustomHTTPClient.SimpleFormPost(const URL : string; FormData:
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FormPost(URL,FormData,Response);
     Finally
       Free;
@@ -1095,6 +1420,7 @@ Class function TFPCustomHTTPClient.SimpleFormPost(const URL, FormData: string): 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=FormPost(URL,FormData);
     Finally
       Free;
@@ -1106,6 +1432,7 @@ Class function TFPCustomHTTPClient.SimpleFormPost(const URL: string; FormData : 
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       Result:=FormPost(URL,FormData);
     Finally
       Free;
@@ -1121,10 +1448,10 @@ Var
   F : TFileStream;
 begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
-  AddHeader('Content-type','multipart/form-data; boundary='+Sep);
+  AddHeader('Content-Type','multipart/form-data; boundary='+Sep);
   S:='--'+Sep+CRLF;
-  s:=s+Format('content-disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,AFileName]);
-  s:=s+'Content-Type: Application/octet-string'+CRLF+CRLF;
+  s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
+  s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
   SS:=TStringStream.Create(s);
   try
     SS.Seek(0,soFromEnd);
@@ -1151,12 +1478,12 @@ Class Procedure TFPCustomHTTPClient.SimpleFileFormPost(const AURL, AFieldName, A
 begin
   With Self.Create(nil) do
     try
+      RequestHeaders.Add('Connection: Close');
       FileFormPost(AURL,AFieldName,AFileName,Response);
     Finally
       Free;
     end;
 end;
-
 
 end.
 

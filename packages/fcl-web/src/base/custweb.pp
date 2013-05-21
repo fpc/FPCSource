@@ -24,7 +24,7 @@ uses
   CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
 
 Const
-  CGIVarCount = 36;
+  CGIVarCount = 37;
 
 Type
   TCGIVarArray = Array[1..CGIVarCount] of String;
@@ -55,6 +55,7 @@ Const
     { 22 } 'HTTP_REFERER',
     { 23 } 'HTTP_USER_AGENT',
     { 24 } 'HTTP_COOKIE',
+
      // Additional Apache vars
     { 25 } 'HTTP_CONNECTION',
     { 26 } 'HTTP_ACCEPT_LANGUAGE',
@@ -67,7 +68,8 @@ Const
     { 33 } 'REMOTE_PORT',
     { 34 } 'REQUEST_URI',
     { 35 } 'CONTENT',
-    { 36 } 'HTTP_X_REQUESTED_WITH'
+    { 36 } 'HTTP_X_REQUESTED_WITH',
+    { 37 } 'HTTP_AUTHORIZATION'
     );
 
 Type
@@ -216,6 +218,7 @@ uses
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
+  SErrSendingContent = 'An error (%s) happened while sending response content: %s';
   SModuleError = 'Module Error';
   SAppEncounteredError = 'The application encountered the following error:';
   SError = 'Error: ';
@@ -467,10 +470,18 @@ end;
 
 procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
-  HandleRequest(ARequest,AResponse);
-  If Not AResponse.ContentSent then
-    AResponse.SendContent;
-  EndRequest(ARequest,AResponse);
+  Try
+    HandleRequest(ARequest,AResponse);
+    If Not AResponse.ContentSent then
+      try
+        AResponse.SendContent;
+      except
+        On E : Exception do
+          Log(etError,Format(SErrSendingContent,[E.ClassName,E.Message]));
+      end;
+  Finally
+    EndRequest(ARequest,AResponse);
+  end;
 end;
 
 constructor TWebHandler.Create(AOwner:TComponent);

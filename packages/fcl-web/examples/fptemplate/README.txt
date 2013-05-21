@@ -1,13 +1,14 @@
 FPTemplate examples
 ===================
-These examples are demonstrating some uses of templates (with FPTemplate) when 
+These examples demonstrate some uses of templates (with FPTemplate) when 
 generating HTML pages by CGI/FCGI programs or Apache modules.
 
-The main idea is to leave the web page designing and look&feel to the web page 
+The main idea is to leave the web page design and look&feel to the web page 
 designers. Separating the web page design from the back-end CGI/FCGI/Apache 
 application makes it possible to design, change or redesign a whole website 
 without modifying a single line of code in the CGI/FCGI/Apache application. 
-Back-end programmers and web page designers can work parallel easily, and 
+
+Back-end programmers and web page designers can easily work parallel, and 
 neither side needs extensive knowledge of the other (does not hurt, just not 
 necessary most of the time). 
 
@@ -24,7 +25,7 @@ CGI/FCGI/Apache application when generating the response page -> {TagName1}
 See README.txt
 
 2. /tagparam/*.*
-Demonstrating the set up and use of template tag parameter(s) 
+Demonstrates the set up and use of template tag parameter(s) 
 -> {+DATETIME [-FORMAT=MM/DD hh:mm:ss-]+}
 
 3. /listrecords/*.*
@@ -34,7 +35,7 @@ See README.txt
 
 4. /fileupload/*.*
 Demonstrates uploading file(s) to a web server with the help of a CGI/FCGI 
-program or Apache module by using so called "multipart" html forms.
+program or Apache module by using so called "multipart" HTML forms.
 See README.txt
                                 
 5. /sessions/*.*

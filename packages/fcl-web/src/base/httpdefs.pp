@@ -136,11 +136,13 @@ type
     Function IndexOfCookie(AName : String) : Integer;
     property Items[Index: Integer]: TCookie read GetCookie write SetCookie; default;
   end;
+
   { TUploadedFile }
 
   TUploadedFile = Class(TCollectionItem)
   Private
     FContentType: String;
+    FDescription: String;
     FDisposition: String;
     FFieldName: String;
     FFileName: String;
@@ -148,6 +150,7 @@ type
     FSize: Int64;
     FStream : TStream;
   Protected
+    Procedure DeleteTempUploadedFile; virtual;
     function GetStream: TStream; virtual;
   Public
     Destructor Destroy; override;
@@ -158,20 +161,66 @@ type
     Property ContentType : String Read FContentType Write FContentType;
     Property Disposition : String Read FDisposition Write FDisposition;
     Property LocalFileName : String Read FLocalFileName Write FLocalFileName;
+    Property Description : String Read FDescription Write FDescription;
   end;
-  
+  TUploadedFileClass = Class of TUploadedFile;
+
   { TUploadedFiles }
 
   TUploadedFiles = Class(TCollection)
   private
+    FRequest : TRequest; // May be nil
     function GetFile(Index : Integer): TUploadedFile;
     procedure SetFile(Index : Integer; const AValue: TUploadedFile);
+  Protected
+    Function GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
+    Procedure DeleteTempUploadedFiles; virtual;
   public
     Function IndexOfFile(AName : String) : Integer;
     Function FileByName(AName : String) : TUploadedFile;
     Function FindFile(AName : String) : TUploadedFile;
     Property Files[Index : Integer] : TUploadedFile read GetFile Write SetFile; default;
   end;
+  TUploadedFilesClass = Class of TUploadedFiles;
+
+  { TMimeItem }
+  // Used to decode multipart encoded content
+
+  TMimeItem = Class(TCollectionItem)
+  private
+  protected
+    Function CreateUploadedFile(Files : TUploadedFiles) : TUploadedFile; virtual;
+    Function ProcessHeader(Const AHeader,AValue : String) : Boolean; virtual;
+    procedure SaveToFile(const AFileName: String); virtual;
+    function GetIsFile: Boolean; virtual;
+    // These must be implemented in descendents;
+    function GetDataSize: Int64; virtual; abstract;
+    function GetHeader(AIndex: Integer): String; virtual; abstract;
+    Procedure SetHeader(AIndex: Integer; Const AValue: String); virtual; abstract;
+  Public
+    Procedure Process(Stream : TStream); virtual; abstract;
+    Property Data : String index 0 Read GetHeader Write SetHeader;
+    Property Name : String index 1 Read GetHeader Write SetHeader;
+    Property Disposition : String index 2 Read GetHeader Write SetHeader;
+    Property FileName : String index 3 Read GetHeader Write SetHeader;
+    Property ContentType : String index 4 Read GetHeader Write SetHeader;
+    Property Description : String index 5 Read GetHeader Write SetHeader;
+    Property IsFile : Boolean  Read GetIsFile;
+    Property DataSize : Int64 Read GetDataSize;
+  end;
+  TMimeItemClass = Class of TMimeItem;
+  { TMimeItems }
+
+  TMimeItems = Class(TCollection)
+  private
+    function GetP(AIndex : Integer): TMimeItem;
+  Protected
+    Procedure CreateUploadFiles(Files : TUploadedFiles; Vars : TStrings); virtual;
+    procedure FormSplit(var Cnt: String; boundary: String); virtual;
+  Public
+    Property Parts[AIndex : Integer] : TMimeItem Read GetP; default;
+  end;
+  TMimeItemsClass = Class of TMimeItems;
 
   { THTTPHeader }
 
@@ -286,6 +335,8 @@ type
   Protected
     FContentRead : Boolean;
     FContent : String;
+    Function CreateUploadedFiles : TUploadedFiles; virtual;
+    Function CreateMimeItems : TMimeItems; virtual;
     procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
     procedure ParseFirstHeaderLine(const line: String);override;
     procedure ReadContent; virtual;
@@ -295,7 +346,7 @@ type
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
     Function RequestUploadDir : String; virtual;
-    Function  GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
+    Function GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
     Procedure DeleteTempUploadedFiles; virtual;
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
@@ -416,6 +467,13 @@ type
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
+
+Var
+  // Default classes used when instantiating the collections.
+  UploadedFilesClass : TUploadedFilesClass = TUploadedFiles;
+  UploadedFileClass : TUploadedFileClass = TUploadedFile;
+  MimeItemsClass : TMimeItemsClass = TMimeItems;
+  MimeItemClass : TMimeItemClass = nil;
 
 implementation
 
@@ -556,6 +614,127 @@ begin
     Result:=Result+'/';
 end;
 
+{ -------------------------------------------------------------------
+  THTTPMimeItem, default used by TRequest to process Multipart-encoded data.
+  -------------------------------------------------------------------}
+
+Type
+  { THTTPMimeItem }
+
+  THTTPMimeItem = Class(TMimeItem)
+  private
+    FData : Array[0..5] of string;
+  protected
+    Procedure SetHeader(AIndex: Integer; Const AValue: String); override;
+    function GetDataSize: Int64; override;
+    function GetHeader(AIndex: Integer): String; override;
+    function GetIsFile: Boolean; override;
+  public
+    Procedure Process(Stream : TStream); override;
+  end;
+
+
+procedure THTTPMimeItem.SetHeader(AIndex: Integer; const AValue: String);
+begin
+  FData[AIndex]:=Avalue;
+end;
+
+function THTTPMimeItem.GetDataSize: int64;
+begin
+  Result:=Length(Data);
+end;
+
+function THTTPMimeItem.GetHeader(AIndex: Integer): String;
+begin
+  Result:=FData[AIndex];
+end;
+
+function THTTPMimeItem.GetIsFile: Boolean;
+begin
+  Result:=inherited GetIsFile;
+end;
+
+procedure THTTPMimeItem.Process(Stream: TStream);
+
+  Function GetLine(Var S : String) : String;
+
+  Var
+    P : Integer;
+
+  begin
+    P:=Pos(#13#10,S);
+    If (P<>0) then
+      begin
+      Result:=Copy(S,1,P-1);
+      Delete(S,1,P+1);
+      end;
+  end;
+
+  Function GetWord(Var S : String) : String;
+
+  Var
+    I,len : Integer;
+    Quoted : Boolean;
+    C : Char;
+
+  begin
+    len:=length(S);
+    quoted:=false;
+    Result:='';
+    for i:=1 to len do
+      Begin
+      c:=S[i];
+      if (c='"') then
+        Quoted:=Not Quoted
+      else
+        begin
+        if not (c in [' ','=',';',':']) or Quoted then
+          Result:=Result+C;
+        if (c in [';',':','=']) and (not quoted) then
+          begin
+          Delete(S,1,I);
+          Exit;
+          end;
+        end;
+      end;
+     S:='';
+  end;
+
+Var
+  Line : String;
+  len : integer;
+  S : string;
+  D : String;
+
+begin
+  {$ifdef CGIDEBUG}SendMethodEnter('THTTPMimeItem.Process');{$ENDIF}
+  If Stream is TStringStream then
+    D:=TStringStream(Stream).Datastring
+  else
+    begin
+    SetLength(D,Stream.Size);
+    Stream.ReadBuffer(D[1],Stream.Size);
+    end;
+  Line:=GetLine(D);
+  While (Line<>'') do
+    begin
+    {$ifdef CGIDEBUG}SendDebug('Process data line: '+line);{$ENDIF}
+    S:=GetWord(Line);
+    While (S<>'') do
+      begin
+      ProcessHeader(lowercase(S),GetWord(Line));
+      S:=GetWord(Line);
+      end;
+    Line:=GetLine(D);
+    end;
+  // Now Data contains the rest of the data, plus a CR/LF. Strip the CR/LF
+  Len:=Length(D);
+  If (len>2) then
+    Data:=Copy(D,1,Len-2)
+  else
+    Data:='';
+  {$ifdef CGIDEBUG}SendMethodExit('THTTPMimeItem.Process');{$ENDIF}
+end;
 
 { ---------------------------------------------------------------------
   THTTPHeader
@@ -660,7 +839,7 @@ end;
 Function THttpHeader.GetFieldValue(Index : Integer) : String;
 
 begin
-  if (Index>1) and (Index<NoHTTPFields) then
+  if (Index>=1) and (Index<=NoHTTPFields) then
     Result:=FFields[Index]
   else
     case Index of
@@ -812,100 +991,126 @@ begin
     SetFieldValue(i,AValue);
 end;
 
-{ -------------------------------------------------------------------
-  TFormItem, used by TRequest to process Multipart-encoded data.
-  -------------------------------------------------------------------}
+{ ---------------------------------------------------------------------
+  TMimeItems
+  ---------------------------------------------------------------------}
 
-Type
-  TFormItem = Class(TObject)
-    Disposition : String;
-    Name : String;
-    IsFile : Boolean;
-    FileName : String;
-    ContentType : String;
-    DLen : Integer;
-    Data : String;
-    Procedure Process;
-  end;
+function TMimeItems.GetP(AIndex : Integer): TMimeItem;
+begin
+  Result:=TMimeItem(Items[Aindex]);
+end;
 
-Procedure TFormItem.Process;
-
-  Function GetLine(Var S : String) : String;
-
-  Var
-    P : Integer;
-
-  begin
-    P:=Pos(#13#10,S);
-    If (P<>0) then
-      begin
-      Result:=Copy(S,1,P-1);
-      Delete(S,1,P+1);
-      end;
-  end;
-
-  Function GetWord(Var S : String) : String;
-
-  Var
-    I,len : Integer;
-    Quoted : Boolean;
-    C : Char;
-
-  begin
-    len:=length(S);
-    quoted:=false;
-    Result:='';
-    for i:=1 to len do
-      Begin
-      c:=S[i];
-      if (c='"') then
-        Quoted:=Not Quoted
-      else
-        begin
-        if not (c in [' ','=',';',':']) or Quoted then
-          Result:=Result+C;
-        if (c in [';',':','=']) and (not quoted) then
-          begin
-          Delete(S,1,I);
-          Exit;
-          end;
-        end;
-      end;
-     S:='';
-  end;
+procedure TMimeItems.CreateUploadFiles(Files: TUploadedFiles; Vars : TStrings);
 
 Var
-  Line : String;
-  len : integer;
-  S : string;
+  I,j : Integer;
+  P : TMimeItem;
+  LFN,Name,Value : String;
+  U : TUploadedFile;
 
 begin
-  Line:=GetLine(Data);
-  While (Line<>'') do
+  For I:=Count-1 downto 0 do
     begin
-    S:=GetWord(Line);
-    While (S<>'') do
+    P:=GetP(i);
+    If (P.Name='') then
+      P.Name:='DummyFileItem'+IntToStr(i);
+      //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
+{$ifdef CGIDEBUG}
+    With P Do
       begin
-      If CompareText(S,'Content-Disposition')=0 then
-        Disposition:=GetWord(Line)
-      else if CompareText(S,'name')=0 Then
-        Name:=GetWord(Line)
-      else if CompareText(S,'filename')=0 then
-        begin
-        FileName:=GetWord(Line);
-        isFile:=True;
-        end
-      else if CompareText(S,'Content-Type')=0 then
-        ContentType:=GetWord(Line);
-      S:=GetWord(Line);
+      SendSeparator;
+      SendDebug  ('PMP item Name        : '+Name);
+      SendDebug  ('PMP item Disposition : '+Disposition);
+      SendDebug  ('PMP item FileName    : '+FileName);
+      SendBoolean('PMP item IsFile      : ',IsFile);
+      SendDebug  ('PMP item ContentType : '+ContentType);
+      SendDebug  ('PMP item Description : '+Description);
+      SendInteger('PMP item DLen        : ',Datasize);
+      SendDebug  ('PMP item Data        : '+Data);
       end;
-    Line:=GetLine(Data);
+{$endif CGIDEBUG}
+    Name:=P.Name;
+    If Not P.IsFile Then
+      Value:=P.Data
+    else
+      begin
+      Value:=P.FileName;
+      P.CreateUploadedFile(Files);
+      end;
+    Vars.Add(Name+'='+Value)
     end;
-  // Now Data contains the rest of the data, plus a CR/LF. Strip the CR/LF
-  Len:=Length(Data);
-  If (len>2) then
-    Data:=Copy(Data,1,Len-2);
 end;
+
+function TMimeItem.GetIsFile: Boolean;
+begin
+  Result:=(FileName<>'');
+end;
+
+function TMimeItem.ProcessHeader(const AHeader, AValue: String): Boolean;
+
+begin
+  Result:=True;
+  Case AHeader of
+   'content-disposition' : Disposition:=Avalue;
+   'name': Name:=Avalue;
+   'filename' : FileName:=AValue;
+   'content-description' :  description:=AValue;
+   'content-type' : ContentType:=AValue;
+  else
+    Result:=False;
+  end;
+end;
+
+Procedure TMimeItem.SaveToFile(Const AFileName: String);
+
+Var
+  D : String;
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(AFileName,fmCreate);
+  Try
+    D:=Data;
+    F.Write(D[1],DataSize);
+  finally
+    F.Free;
+  end;
+end;
+
+function TMimeItem.CreateUploadedFile(Files: TUploadedFiles): TUploadedFile;
+
+Var
+  J : Int64;
+  D,LFN : String;
+
+begin
+  Result:=Nil;
+  D:=Data;
+  J:=DataSize;
+  if (J=0){zero lenght file} or
+     ((J=2)and (D=#13#10)){empty files come as a simple empty line} then
+    LFN:='' //No tmp file will be created for empty files
+  else
+    begin
+    LFN:=Files.GetTempUploadFileName(Name,FileName,J);
+    SaveToFile(LFN);
+    end;
+  if (LFN<>'') then
+   begin
+   Result:=Files.Add as TUploadedFile;
+   with Result do
+     begin
+     FieldName:=Self.Name;
+     FileName:=Self.FileName;
+     ContentType:=Self.ContentType;
+     Disposition:=Self.Disposition;
+     Size:=Self.Datasize;
+     LocalFileName:=LFN;
+     Description:=Self.Description;
+     end;
+   end;
+end;
+
 
 {
   This needs MASSIVE improvements for large files.
@@ -914,34 +1119,41 @@ end;
   certain size is reached.)
 }
 
-procedure FormSplit(var Cnt : String; boundary: String; List : TList);
+procedure TMimeItems.FormSplit(var Cnt : String; boundary: String);
 
 // Splits the form into items
 var
   Sep : string;
   Clen,slen, p:longint;
-  FI : TFormItem;
+  FI : TMimeItem;
+  S : TStringStream;
 
 begin
+  {$ifdef CGIDEBUG}SendMethodEnter('TMimeItems.FormSplit');{$ENDIF}
   Sep:='--'+boundary+#13+#10;
   Slen:=length(Sep);
   CLen:=Pos('--'+Boundary+'--',Cnt);
   // Cut last marker
   Cnt:=Copy(Cnt,1,Clen-1);
   // Cut first marker
-  Delete(Cnt,1,Slen);
+  system.Delete(Cnt,1,Slen);
   Clen:=Length(Cnt);
   While Clen>0 do
     begin
-    Fi:=TFormItem.Create;
-    List.Add(Fi);
     P:=pos(Sep,Cnt);
     If (P=0) then
       P:=CLen+1;
-    FI.Data:=Copy(Cnt,1,P-1);
-    delete(Cnt,1,P+SLen-1);
+    S:=TStringStream.Create(Copy(Cnt,1,P-1));
+    try
+      FI:=Add as TMimeItem;
+      FI.Process(S)
+    finally
+      S.Free;
+    end;
+    system.delete(Cnt,1,P+SLen-1);
     CLen:=Length(Cnt);
     end;
+  {$ifdef CGIDEBUG}SendMethodExit('TMimeItems.FormSplit');{$ENDIF}
 end;
 
 { -------------------------------------------------------------------
@@ -952,13 +1164,45 @@ constructor TRequest.create;
 begin
   inherited create;
   FHandleGetOnPost:=True;
-  FFiles:=TUploadedFiles.Create(TUPloadedFile);
+  FFiles:=CreateUploadedFiles;
+  FFiles.FRequest:=Self;
   FLocalPathPrefix:='-';
+end;
+
+Function  TRequest.CreateUploadedFiles : TUploadedFiles;
+
+Var
+  CC : TUploadedFilesClass;
+  CI : TUploadedFileClass;
+
+begin
+  CC:=UploadedFilesClass;
+  CI:=UploadedFileClass;
+  if (CC=Nil) then
+    CC:=TUploadedFiles;
+  if (CI=Nil) then
+    CI:=TUploadedFile;
+  Result:=CC.Create(CI);
+end;
+
+function TRequest.CreateMimeItems: TMimeItems;
+
+Var
+  CC : TMimeItemsClass;
+  CI : TMimeItemClass;
+
+begin
+  CC:=MimeItemsClass;
+  CI:=MimeItemClass;
+  if (CC=Nil) then
+    CC:=TMimeItems;
+  if (CI=Nil) then
+    CI:=TMimeItem;
+  Result:=CC.Create(CI);
 end;
 
 destructor TRequest.destroy;
 begin
-  DeleteTempUploadedFiles;
   FreeAndNil(FFiles);
   inherited destroy;
 end;
@@ -1206,17 +1450,8 @@ begin
 end;
 
 Procedure TRequest.DeleteTempUploadedFiles;
-var
-  i: Integer;
-  s: String;
 begin
-  //delete all temporary uploaded files created for this request if there is any
-  i := FFiles.Count;
-  if i > 0 then for i := i - 1 downto 0 do
-    begin
-    s := FFiles[i].LocalFileName;
-    if FileExists(s) then DeleteFile(s);
-    end;
+  FFiles.DeleteTempUploadedFiles;
 end;
 
 procedure TRequest.InitRequestVars;
@@ -1231,16 +1466,12 @@ begin
   R:=Method;
   if (R='') then
     Raise Exception.Create(SErrNoRequestMethod);
-  if CompareText(R,'POST')=0 then
-    begin
+  // Always process QUERYSTRING.
+  InitGetVars;
+  // POST and PUT, force post var treatment.
+  // To catch other methods we do not treat specially, we'll do the same if contentlength>0
+  if (CompareText(R,'POST')=0) or (CompareText(R,'PUT')=0) or (ContentLength>0) then
     InitPostVars;
-    if FHandleGetOnPost then
-      InitGetVars;
-    end
-  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) or (CompareText(R,'OPTIONS')=0) then
-    InitGetVars
-  else
-    Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
 {$ifdef CGIDEBUG}
   SendMethodExit('TRequest.InitRequestVars');
 {$endif}
@@ -1310,11 +1541,11 @@ end;
 Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String; SL:TStrings);
 
 Var
-  L : TList;
+  L : TMimeItems;
   B : String;
   I,J : Integer;
   S,FF,key, Value : String;
-  FI : TFormItem;
+  FI : TMimeItem;
   F : TStream;
 
 begin
@@ -1324,78 +1555,26 @@ begin
   I:=Length(B);
   If (I>0) and (B[1]='"') then
     B:=Copy(B,2,I-2);
-  L:=TList.Create;
+  L:=CreateMimeItems;
   Try
-    SetLength(S,Stream.Size);
-    If Length(S)>0 then
-      if Stream is TCustomMemoryStream then
-        // Faster.
-        Move(TCustomMemoryStream(Stream).Memory^,S[1],Length(S))
-      else
-        begin
-        Stream.Read(S[1],Length(S));
-        Stream.Position:=0;
-        end;
-    FormSplit(S,B,L);
-    For I:=L.Count-1 downto 0 do
+    if Stream is TStringStream then
+      S:=TStringStream(Stream).DataString
+    else
       begin
-      FI:=TFormItem(L[i]);
-      FI.Process;
-      If (FI.Name='') then
-        Fi.Name:='DummyFileItem'+IntToStr(i);
-        //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
-{$ifdef CGIDEBUG}
-      With FI Do
-        begin
-        SendSeparator;
-        SendDebug  ('PMP item Name        : '+Name);
-        SendDebug  ('PMP item Disposition : '+Disposition);
-        SendDebug  ('PMP item FileName    : '+FileName);
-        SendBoolean('PMP item IsFile      : ',IsFile);
-        SendDebug  ('PMP item ContentType : '+ContentType);
-        SendInteger('PMP item DLen        : ',DLen);
-        SendDebug  ('PMP item Data        : '+Data);
-        end;
-{$endif CGIDEBUG}
-      Key:=FI.Name;
-      If Not FI.IsFile Then
-        Value:=FI.Data
-      else
-        begin
-        Value:=FI.FileName;
-        J := Length(FI.Data);
-        if (J=0){zero lenght file} or
-           ((J=2)and(FI.Data=#13#10)){empty files come as a simple empty line} then
-          FF:='' //No tmp file will be created for empty files
+      SetLength(S,Stream.Size);
+      If Length(S)>0 then
+        if Stream is TCustomMemoryStream then
+          // Faster.
+          Move(TCustomMemoryStream(Stream).Memory^,S[1],Length(S))
         else
           begin
-          FI.DLen:=J;
-          FF:=GetTempUploadFileName(FI.name,FI.FileName,J);
-          F:=TFileStream.Create(FF,fmCreate);
-          Try
-            F.Write(FI.Data[1],J);
-          finally
-            F.Free;
+          Stream.Read(S[1],Length(S));
+          Stream.Position:=0;
           end;
-          end;
-        if (Value <> '') or (FI.DLen > 0)then{only non zero length files or files with non empty names will be considered}
-         With Files.Add as TUploadedFile do
-          begin
-          FieldName:=FI.Name;
-          FileName:=FI.FileName;
-          ContentType:=FI.ContentType;
-          Disposition:=FI.Disposition;
-          Size:=FI.DLen;
-          LocalFileName:=FF;
-          end;
-        end;
-      FI.Free;
-      L[i]:=Nil;
-      SL.Add(Key+'='+Value)
       end;
+    L.FormSplit(S,B);
+    L.CreateUploadFiles(Files,SL);
   Finally
-    For I:=0 to L.Count-1 do
-      TObject(L[i]).Free;
     L.Free;
   end;
 {$ifdef CGIDEBUG}  SendMethodExit('ProcessMultiPart');{$endif CGIDEBUG}
@@ -1429,6 +1608,15 @@ begin
   Items[Index]:=AValue;
 end;
 
+function TUploadedFiles.GetTempUploadFileName(const AName, AFileName: String;
+  ASize: Int64): String;
+begin
+  If Assigned(FRequest) then
+    Result:=FRequest.GetTempUploadFileName(AName,AFileName,ASize)
+  else
+    Result:=GetTempFileName;
+end;
+
 function TUploadedFiles.IndexOfFile(AName: String): Integer;
 
 begin
@@ -1459,9 +1647,31 @@ begin
     Result:=Files[I];
 end;
 
+Procedure TUPloadedFiles.DeleteTempUploadedFiles;
+
+var
+  i: Integer;
+
+begin
+  //delete all temporary uploaded files created for this request if there are any
+  for i := Count-1 downto 0 do
+    Files[i].DeleteTempUploadedFile;
+end;
+
+
 { ---------------------------------------------------------------------
   TUploadedFile
   ---------------------------------------------------------------------}
+
+procedure TUploadedFile.DeleteTempUploadedFile;
+
+Var
+  s: String;
+
+begin
+  if (LocalFileName<>'') and FileExists(LocalFileName) then
+    DeleteFile(LocalFileName);
+end;
 
 function TUploadedFile.GetStream: TStream;
 begin
@@ -1664,8 +1874,9 @@ begin
 end;
 
 
-{ TCookie }
-
+{ ---------------------------------------------------------------------
+  TCookie
+  ---------------------------------------------------------------------}
 
 function TCookie.GetAsString: string;
 
@@ -1733,7 +1944,9 @@ begin
   FExpires := EncodeDate(1970, 1, 1);
 end;
 
-{ TCookieCollection }
+{ ---------------------------------------------------------------------
+  TCookies
+  ---------------------------------------------------------------------}
 
 function TCookies.GetCookie(Index: Integer): TCookie;
 begin
@@ -1779,8 +1992,9 @@ begin
     Dec(Result);
 end;
 
-{ TCustomSession }
-
+{ ---------------------------------------------------------------------
+  TCustomSession
+  ---------------------------------------------------------------------}
 
 procedure TCustomSession.SetSessionCookie(const AValue: String);
 begin
@@ -1820,5 +2034,6 @@ begin
   // Do nothing
 end;
 
-
+initialization
+  MimeItemClass:=THTTPMimeItem;
 end.
