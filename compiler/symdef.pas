@@ -2743,14 +2743,6 @@ implementation
 {$endif x86}
 
 
-{    constructor tpointerdef.createfar(def:tdef);
-      begin
-        inherited create(pointerdef,def);
-        is_far:=true;
-        has_pointer_math:=cs_pointermath in current_settings.localswitches;
-      end;}
-
-
     constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(pointerdef,ppufile);
