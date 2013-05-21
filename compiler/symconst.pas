@@ -641,6 +641,9 @@ type
     dbg_state_queued
   );
 
+  tx86pointertyp = (x86pt_near, x86pt_near_cs, x86pt_near_ds, x86pt_near_ss,
+    x86pt_near_es, x86pt_near_fs, x86pt_near_gs, x86pt_far, x86pt_huge);
+
 var
   clearstack_pocalls : tproccalloptions;
   cdecl_pocalls      : tproccalloptions;

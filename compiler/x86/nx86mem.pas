@@ -46,7 +46,7 @@ implementation
       cutils,verbose,
       aasmtai,aasmdata,
       cgutils,cgobj,
-      symdef;
+      symconst,symdef;
 
 {*****************************************************************************
                            TX86DEREFNODE

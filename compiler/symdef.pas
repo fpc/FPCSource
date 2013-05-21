@@ -175,9 +175,6 @@ interface
        end;
 
 {$ifdef x86}
-       tx86pointertyp = (x86pt_near, x86pt_near_cs, x86pt_near_ds, x86pt_near_ss,
-         x86pt_near_es, x86pt_near_fs, x86pt_near_gs, x86pt_far, x86pt_huge);
-
     const
        { TODO: make this depend on the memory model, when other memory models are supported }
        default_x86_data_pointer_type = x86pt_near;
