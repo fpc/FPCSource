@@ -2839,4 +2839,4 @@ include fpcmake.loc
 endif
 .NOTPARALLEL:
 fpcres$(EXEEXT): target.pas msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcres.pas
-fpcjres$(EXEEXT): msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcjres.pas jarsourcehandler.pas jarparamparser.pas
+fpcjres$(EXEEXT): msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcjres.pas jarsourcehandler.pas
