@@ -192,6 +192,7 @@ interface
           constructor create(def:tdef);
 {$ifdef x86}
           constructor createx86(def:tdef;x86typ:tx86pointertyp);
+          procedure update_savesize;
 {$endif x86}
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -2725,6 +2726,7 @@ implementation
         inherited create(pointerdef,def);
 {$ifdef x86}
         x86pointertyp := default_x86_data_pointer_type;
+        update_savesize;
 {$endif x86}
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
@@ -2735,8 +2737,18 @@ implementation
       begin
         inherited create(pointerdef,def);
         x86pointertyp := x86typ;
+        update_savesize;
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
+
+    procedure tpointerdef.update_savesize;
+      begin
+        if x86pointertyp in [x86pt_far,x86pt_huge] then
+          savesize:=sizeof(pint)+2
+        else
+          savesize:=sizeof(pint);
+      end;
+
 {$endif x86}
 
 
@@ -2745,6 +2757,7 @@ implementation
          inherited ppuload(pointerdef,ppufile);
 {$ifdef x86}
          x86pointertyp:=tx86pointertyp(ppufile.getbyte);
+         update_savesize;
 {$endif x86}
          has_pointer_math:=(ppufile.getbyte<>0);
       end;
