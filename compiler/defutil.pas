@@ -1171,7 +1171,23 @@ implementation
             end;
           classrefdef,
           pointerdef:
-            result := OS_ADDR;
+            begin
+{$ifdef x86}
+              if (def.typ=pointerdef) and
+                 (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+                begin
+                  {$if defined(i8086)}
+                    result := OS_32;
+                  {$elseif defined(i386)}
+                    internalerror(2013052201);  { there's no OS_48 }
+                  {$elseif defined(x86_64)}
+                    internalerror(2013052202);  { there's no OS_80 }
+                  {$endif}
+                end
+              else
+{$endif x86}
+                result := OS_ADDR;
+            end;
           procvardef:
             begin
               if not tprocvardef(def).is_addressonly then
