@@ -1978,12 +1978,12 @@ begin
     Result:=Length(FDisplays[false,True]);
 end;
 
-function TBooleanField.GetAsInteger: integer;
+function TBooleanField.GetAsLongint: Longint;
 begin
   Result := ord(GetAsBoolean);
 end;
 
-procedure TBooleanField.SetAsInteger(AValue: Integer);
+procedure TBooleanField.SetAsLongint(AValue: Longint);
 begin
   SetAsBoolean(AValue<>0);
 end;
@@ -3102,7 +3102,7 @@ begin
   Result := GetAsVariant;
 end;
 
-function TVariantField.GetAsInteger: Longint;
+function TVariantField.GetAsLongint: Longint;
 begin
   Result := GetAsVariant;
 end;
@@ -3138,7 +3138,7 @@ begin
   SetVarValue(aValue);
 end;
 
-procedure TVariantField.SetAsInteger(aValue: Longint);
+procedure TVariantField.SetAsLongint(aValue: Longint);
 begin
   SetVarValue(aValue);
 end;

@@ -330,7 +330,7 @@ type
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
-    function GetAsInteger: Longint; virtual;
+    function GetAsInteger: Integer; virtual;
     function GetAsVariant: variant; virtual;
     function GetOldValue: variant; virtual;
     function GetAsString: string; virtual;
@@ -677,12 +677,12 @@ type
     function GetAsBoolean: Boolean; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetAsInteger: Longint; override;
+    function GetAsLongint: Longint; override;
     function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsString(const AValue: string); override;
-    procedure SetAsInteger(AValue: Integer); override;
+    procedure SetAsLongint(AValue: Longint); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -942,8 +942,8 @@ type
     function GetAsFloat: Double; override;
     procedure SetAsFloat(aValue: Double); override;
 
-    function GetAsInteger: Longint; override;
-    procedure SetAsInteger(aValue: Longint); override;
+    function GetAsLongint: Longint; override;
+    procedure SetAsLongint(aValue: Longint); override;
 
     function GetAsString: string; override;
     procedure SetAsString(const aValue: string); override;
