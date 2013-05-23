@@ -1664,6 +1664,7 @@ packages/fcl-base/examples/crittest.pp svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
 packages/fcl-base/examples/decodeascii85.pp svneol=native#text/plain
+packages/fcl-base/examples/dobserver.pp svneol=native#text/plain
 packages/fcl-base/examples/doecho.pp svneol=native#text/plain
 packages/fcl-base/examples/dparser.pp svneol=native#text/plain
 packages/fcl-base/examples/dsockcli.pp svneol=native#text/plain
