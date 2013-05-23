@@ -113,6 +113,7 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+{$PACKRECORDS C}
       // members of TTypeData
       TArrayTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -160,7 +161,6 @@ unit typinfo;
         function GetParam(ParamIndex: Integer): PProcedureParam;
       end;
 
-{$PACKRECORDS C}
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -2056,7 +2056,7 @@ begin
   Result := PProcedureParam(PByte(@Flags) + SizeOf(Self));
   while ParamIndex > 0 do
     begin
-      Result := PProcedureParam(PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar));
+      Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
       dec(ParamIndex);
     end;
 end;

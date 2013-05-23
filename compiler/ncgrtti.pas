@@ -612,6 +612,8 @@ implementation
                    else
                      break;
                  end;
+               if (tf_requires_proper_alignment in target_info.flags) then
+                 current_asmdata.asmlists[al_rtti].InsertAfter(cai_align.Create(sizeof(TConstPtrUInt)),lastai);
                { dimension count }
                current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_8bit(dimcount),lastai);
                { last dimension element type }
@@ -738,6 +740,7 @@ implementation
                  begin
                    { write flags for current parameter }
                    write_param_flag(parasym);
+                   maybe_write_align;
                    { write param type }
                    write_rtti_reference(parasym.vardef,fullrtti);
                    { write name of current parameter }
@@ -814,7 +817,7 @@ implementation
 
               { flags }
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
-              maybe_write_align;
+              //maybe_write_align;     // aligning between bytes is not necessary
               { write calling convention }
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
               maybe_write_align;
@@ -822,9 +825,11 @@ implementation
               write_rtti_reference(def.returndef,fullrtti);
               { write parameter count }
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
-              maybe_write_align;
               for i:=0 to def.paras.count-1 do
-                write_procedure_param(tparavarsym(def.paras[i]));
+                begin
+                  maybe_write_align;
+                  write_procedure_param(tparavarsym(def.paras[i]));
+                end;
             end;
         end;
 
