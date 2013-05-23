@@ -24,7 +24,7 @@ dirs_haiku=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc pos
 dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg  httpd22 httpd24  pxlib numlib \
-               users iconvenc gmp fcl-extra libxml dblib fpindexer
+               users iconvenc gmp fcl-extra libxml dblib fpindexer libvlc
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint dblib fpindexer
 dirs_iphonesim=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
@@ -48,13 +48,13 @@ dirs_linux=fv fcl-web fastcgi fcl-async ibase mysql ncurses unzip zlib oracle db
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl opencl cairo gtk1 gtk2 librsvg \
                a52 bfd aspell svgalib newt cdrom users  iconvenc libxml proj4 fcl-extra zorba \
                imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1  httpd22 httpd24  \
-               pxlib numlib gmp libsee ptc dblib fpindexer
+               pxlib numlib gmp libsee ptc dblib fpindexer libvlc
 dirs_win32=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra zorba \
                oggvorbis sdl openssl graph pcap  httpd22 httpd24  pxlib numlib winceunits cairo libxml \
-               gmp opencl libsee nvapi ptc aspell dblib fpindexer
+               gmp opencl libsee nvapi ptc aspell dblib fpindexer libvlc
 dirs_win64=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint \
-                tcl opengl gtk1 fpgtk fftw sdl openssl cdrom  httpd22 httpd24  numlib fcl-extra opencl nvapi ptc graph dblib fpindexer
+                tcl opengl gtk1 fpgtk fftw sdl openssl cdrom  httpd22 httpd24  numlib fcl-extra opencl nvapi ptc graph dblib fpindexer libvlc
 dirs_wince=winceunits httpd22 httpd24  fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib dblib fpindexer
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -177,6 +177,12 @@ fcl-registry_debug: fcl-xml_debug
 fcl-registry_smart: fcl-xml_smart
 fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
+
+libvlc_all: fcl-base_all
+libvlc_debug: fcl-base_debug
+libvlc_smart: fcl-base_smart
+libvlc_release: fcl-base_release
+libvlc_shared: fcl-base_shared
 
 ifeq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
 fcl-net_all: fcl-passrc_all fcl-xml_all

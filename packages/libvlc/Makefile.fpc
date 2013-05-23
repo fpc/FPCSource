@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for chm library
+#
+
+[package]
+name=libvlc
+version=2.6.3
+
+[target]
+units=libvlc vlc
+programs=
+examples=
+
+[require]
+packages=fcl-base
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src example
+
+[rules]
+.NOTPARALLEL:
+
+
