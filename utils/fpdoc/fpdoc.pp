@@ -3,6 +3,8 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
     See the file COPYING, included in this distribution,
     for details about the copyright.
@@ -20,7 +22,8 @@ uses
   cwstring,
 {$endif}
   SysUtils, Classes, Gettext, custapp,
-  dGlobals,  // GLobal definitions, constants.
+  dGlobals,  // Global definitions, constants.
+  fpdocclasstree, // Class tree builder
   dwriter,   // TFPDocWriter definition.
   dwlinear,  // Linear (abstract) writer
   dw_LaTeX,  // TLaTex writer
@@ -30,14 +33,15 @@ uses
   dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
   dw_linrtf, // linear RTF writer
-  dw_txt, fpdocproj, mkfpdoc;    // TXT writer
+  dw_txt,    // TXT writer
+  fpdocproj, mkfpdoc;
 
 
 Type
 
-  { TFPDocAplication }
+  { TFPDocApplication }
 
-  TFPDocAplication = Class(TCustomApplication)
+  TFPDocApplication = Class(TCustomApplication)
   private
     FCreator : TFPDocCreator;
     FPackage : TFPDocPackage;
@@ -47,7 +51,7 @@ Type
   Protected
     procedure OutputLog(Sender: TObject; const Msg: String);
     procedure ParseCommandLine;
-    procedure Parseoption(const S: String);
+    procedure ParseOption(const S: String);
     Procedure Usage(AnExitCode : Byte);
     Procedure DoRun; override;
   Public
@@ -57,7 +61,7 @@ Type
   end;
 
 
-Procedure TFPDocAplication.Usage(AnExitCode : Byte);
+Procedure TFPDocApplication.Usage(AnExitCode : Byte);
 
 Var
   I,P : Integer;
@@ -71,6 +75,7 @@ begin
   Writeln(SUsageOption010);
   Writeln(SUsageOption020);
   Writeln(SUsageOption030);
+  Writeln(SUsageOption035);
   Writeln(SUsageOption040);
   Writeln(SUsageOption050);
   Writeln(SUsageOption060);
@@ -83,7 +88,6 @@ begin
   Writeln(SUsageOption130);
   Writeln(SUsageOption140);
   Writeln(SUsageOption150);
-  Writeln(SUsageOption155);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
@@ -95,6 +99,12 @@ begin
   Writeln(SUsageOption240);
   Writeln(SUsageOption250);
   Writeln(SUsageOption260);
+  Writeln(SUsageOption270);
+  Writeln(SUsageOption280);
+  Writeln(SUsageOption290);
+  Writeln(SUsageOption300);
+  Writeln(SUsageOption310);
+  Writeln(SUsageOption320);
   L:=TStringList.Create;
   Try
     Backend:=FCreator.OPtions.Backend;
@@ -130,29 +140,40 @@ begin
   Halt(AnExitCode);
 end;
 
-destructor TFPDocAplication.Destroy;
+destructor TFPDocApplication.Destroy;
 
 begin
   FreeAndNil(FCreator);
   Inherited;
 end;
 
-function TFPDocAplication.SelectedPackage: TFPDocPackage;
+function TFPDocApplication.SelectedPackage: TFPDocPackage;
+var
+  i:integer;
 begin
   Result:=FPackage;
   if (FPackage=Nil) or (FPackage.Name='') then
     begin
     Writeln(SNeedPackageName);
+    if FCreator.Packages.Count>0 then
+      begin
+      if (FCreator.Packages[0].Name<>'') then
+        Writeln(SAvailablePackages);
+      for i:=0 to FCreator.Packages.Count-1 do
+        begin
+        Writeln(FCreator.Packages[i].Name);
+        end;
+      end;
     Usage(1);
     end;
 end;
 
-procedure TFPDocAplication.OutputLog(Sender: TObject; const Msg: String);
+procedure TFPDocApplication.OutputLog(Sender: TObject; const Msg: String);
 begin
   Writeln(StdErr,Msg);
 end;
 
-procedure TFPDocAplication.ParseCommandLine;
+procedure TFPDocApplication.ParseCommandLine;
 
   Function ProjectOpt(Const s : string) : boolean;
 
@@ -183,8 +204,8 @@ begin
       Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
     end;
   If FCreator.Project.Packages.Count=0 then
-    begin
-    FPackage:=FCreator.Packages.Add as  TFPDocPackage;
+    begin // Add default package if none defined
+    FPackage:=FCreator.Packages.Add as TFPDocPackage;
     end;
   // Check package
   for i := 1 to ParamCount do
@@ -202,7 +223,7 @@ begin
   SelectedPackage; // Will print error if none available.
 end;
 
-procedure TFPDocAplication.Parseoption(Const S : String);
+procedure TFPDocApplication.ParseOption(Const S : String);
 
   procedure AddDirToFileList(List: TStrings; const ADirName, AMask: String);
 
@@ -266,7 +287,7 @@ begin
   else if s = '--stop-on-parser-error' then
     FCreator.Options.StopOnParseError := True
   else if s = '--dont-trim' then
-    FCreator.Options.donttrim := True
+    FCreator.Options.DontTrim := True
   else
     begin
     i := Pos('=', s);
@@ -343,7 +364,7 @@ begin
     end;
 end;
 
-Procedure TFPDocAplication.DoRun;
+Procedure TFPDocApplication.DoRun;
 
 begin
 {$IFDEF Unix}
@@ -353,7 +374,8 @@ begin
 {$ENDIF}
   WriteLn(STitle);
   WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
-  WriteLn(SCopyright);
+  WriteLn(SCopyright1);
+  WriteLn(SCopyright2);
   WriteLn;
   ParseCommandLine;
   if (FWriteProjectFile<>'') then
@@ -364,7 +386,7 @@ begin
   Terminate;
 end;
 
-constructor TFPDocAplication.Create(AOwner: TComponent);
+constructor TFPDocApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   StopOnException:=true;
@@ -373,7 +395,7 @@ begin
 end;
 
 begin
-  With TFPDocAplication.Create(Nil) do
+  With TFPDocApplication.Create(Nil) do
     try
       Run;
     finally

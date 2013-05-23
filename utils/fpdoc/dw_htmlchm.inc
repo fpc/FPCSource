@@ -32,7 +32,7 @@ type
 
     class procedure Usage(List: TStrings); override;
     Class Function FileNameExtension : String; override;
-    
+    Class procedure SplitImport(var AFilename, ALinkPrefix: String); override;
   end;
 {$ELSE} // implementation
 
@@ -175,6 +175,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      If not assigned(AModule.InterfaceSection) Then
+         Continue;
       ObjUnitItem := ObjByUnitItem.Children.NewItem;
       ObjUnitItem.Text := AModule.Name;
       RoutinesUnitItem := RoutinesByUnitItem.Children.NewItem;
@@ -292,6 +294,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      if not assigned(AModule.InterfaceSection) then
+        continue;
       ParentItem := Index.Items.NewItem;
       ParentItem.Text := AModule.Name;
       ParentItem.Local := FixHTMLpath(Allocator.GetFilename(AModule, 0));
@@ -341,7 +345,7 @@ begin
       begin
         ParentElement := TPasProcedureType(AModule.InterfaceSection.Functions[j]);
         TmpItem := Index.Items.NewItem;
-        TmpItem.Text := ParentElement.Name + ' ' + TPasFunction(ParentElement).ElementTypeName;
+        TmpItem.Text := ParentElement.Name + ' ' + ParentElement.ElementTypeName;
         TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // consts
@@ -563,6 +567,23 @@ Class Function TCHMHTMLWriter.FileNameExtension : String;
 
 begin
   result:='.chm';
+end;
+
+class procedure TCHMHTMLWriter.SplitImport(var AFilename, ALinkPrefix: String);
+var
+  i: integer;
+begin
+  i := Pos(',', AFilename);
+  if i > 0 then
+    begin  //split into filename and prefix
+    ALinkPrefix := Copy(AFilename,i+1,Length(AFilename));
+    SetLength(AFilename, i-1);
+    end
+  else if ALinkPrefix = '' then
+    begin  //synthesize outdir\pgk.xct, ms-its:pkg.chm::/
+    ALinkPrefix := 'ms-its:' + ChangeFileExt(ExtractFileName(AFilename), '.chm') + '::/';
+    AFilename := ChangeFileExt(AFilename, '.xct');
+    end;
 end;
 
 {$ENDIF}

@@ -7,8 +7,8 @@ name=fcl-passrc
 version=2.6.3
 
 [target]
-units=pastree pscanner pparser paswrite
-rsts=pscanner pparser pastree
+units=pastree pscanner pparser paswrite pastounittest passrcutil
+rsts=pscanner pparser pastree pastounittest
 
 [compiler]
 options=-S2h

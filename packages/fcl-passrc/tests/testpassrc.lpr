@@ -3,7 +3,9 @@ program testpassrc;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcscanner;
+  Classes, consoletestrunner, tcscanner, tctypeparser, tcstatements,
+  tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
+  tcexprparser, tcprocfunc, tcpassrcutil;
 
 type
 
@@ -19,6 +21,8 @@ var
 
 begin
   Application := TMyTestRunner.Create(nil);
+  DefaultFormat:=fplain;
+  DefaultRunAllTests:=True;
   Application.Initialize;
   Application.Run;
   Application.Free;

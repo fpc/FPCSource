@@ -38,8 +38,8 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-    Procedure CreateDocumentation(APackage : TFPDocPackage; ParseOnly : Boolean); virtual;
-    Procedure CreateProjectFile(Const AFileName : string);
+    Procedure CreateDocumentation(APackage : TFPDocPackage; ParseOnly : Boolean); virtual; //Writes out documentation in selected format
+    Procedure CreateProjectFile(Const AFileName : string); //Writes out project file with the chosen options
     Procedure LoadProjectFile(Const AFileName: string);
     Property Project : TFPDocProject Read FProject;
     Property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
@@ -186,16 +186,19 @@ var
   i,j: Integer;
   Engine : TFPDocEngine;
   Cmd,Arg : String;
+  WriterClass: TFPDocWriterClass;
 
 begin
+  Cmd:='';
   FCurPackage:=APackage;
   Engine:=TFPDocEngine.Create;
   try
+    WriterClass:=GetWriterClass(Options.Backend);
     For J:=0 to Apackage.Imports.Count-1 do
       begin
       Arg:=Apackage.Imports[j];
-      i := Pos(',', Arg);
-      Engine.ReadContentFile(Copy(Arg,1,i-1),Copy(Arg,i+1,Length(Arg)));
+      WriterClass.SplitImport(Arg,Cmd);
+      Engine.ReadContentFile(Arg, Cmd);
       end;
     for i := 0 to APackage.Descriptions.Count - 1 do
       Engine.AddDocFile(APackage.Descriptions[i],Options.donttrim);

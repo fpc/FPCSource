@@ -3,8 +3,13 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
-    * Skeleton XML description file generator
+    * Skeleton XML description file generator.
+    This generator scans Pascal source code for identifiers and emits XML files
+    suitable for further processing with the fpdoc documentation system:
+    users can edit the XML file and add (help) description.
 
     See the file COPYING, included in this distribution,
     for details about the copyright.
@@ -28,7 +33,6 @@ uses
 resourcestring
   STitle = 'MakeSkel - FPDoc skeleton XML description file generator';
   SVersion = 'Version %s [%s]';
-  SCopyright = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
   SCmdLineHelp = 'See documentation for usage.';
   SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
   SNoPackageNameProvided = 'Please specify a package name with --package=<name>';
@@ -188,6 +192,14 @@ Var
 begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility:=AVisibility;
+  // Let function/procedure arguments and function results
+  // inherit visibility from their parents if visDefault visibility is
+  // specified.
+  // This allows easier text searches on visibility in the resulting XML
+  if (AVisibility=visDefault) and
+    ((Result is TPasArgument) or (Result is TPasResultElement)) then
+    Result.Visibility:=AParent.Visibility;
+
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
   // Track this element
@@ -344,6 +356,8 @@ Var
   N : TDocNode;
      
 begin
+  if not(FileExists(AFileName)) then
+    raise Exception.CreateFmt('Cannot find source file %s to document.',[AFileName]);
   FNodeList:=TStringList.Create;
   Try
     FEmittedList:=TStringList.Create;
@@ -614,7 +628,8 @@ var
 begin
   WriteLn(STitle);
   WriteLn(Format(SVersion, [FPCVersion, FPCDate]));
-  WriteLn(SCopyright);
+  WriteLn(SCopyright1);
+  WriteLn(SCopyright2);
   InitOptions;
   Try
     E:=ParseCommandLine;

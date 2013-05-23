@@ -289,199 +289,199 @@ endif
 override PACKAGE_NAME=utils
 override PACKAGE_VERSION=2.6.3
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  rmwait
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  rmwait
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc importtl
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres rmwait instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc importtl
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpmc fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres rmwait instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
@@ -2851,6 +2851,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2863,6 +2865,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
@@ -2874,6 +2878,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
@@ -2889,6 +2895,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
@@ -2902,6 +2910,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2914,6 +2924,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 TARGET_DIRS_FPPKG=1
@@ -2924,6 +2936,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2936,6 +2950,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2948,6 +2964,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2960,6 +2978,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_FPPKG=1
@@ -2970,6 +2990,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_FPPKG=1
@@ -2980,6 +3002,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -2992,6 +3016,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_FPPKG=1
@@ -3002,6 +3028,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3015,6 +3043,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
@@ -3028,6 +3058,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_FPPKG=1
@@ -3038,6 +3070,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_FPPKG=1
@@ -3048,6 +3082,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3061,6 +3097,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_FPPKG=1
@@ -3071,6 +3109,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 TARGET_DIRS_FPPKG=1
@@ -3081,6 +3121,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 TARGET_DIRS_FPPKG=1
@@ -3091,6 +3133,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3104,6 +3148,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3116,6 +3162,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3128,6 +3176,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3140,6 +3190,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_FPPKG=1
@@ -3150,6 +3202,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_FPPKG=1
@@ -3160,6 +3214,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3172,6 +3228,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3182,6 +3240,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_FPPKG=1
@@ -3192,6 +3252,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3204,6 +3266,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3216,6 +3280,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_FPPKG=1
@@ -3226,6 +3292,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_FPPKG=1
@@ -3236,6 +3304,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3249,6 +3319,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3259,6 +3331,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 TARGET_DIRS_FPPKG=1
@@ -3269,6 +3343,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_FPPKG=1
@@ -3279,6 +3355,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3291,6 +3369,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3303,6 +3383,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3315,6 +3397,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_FPPKG=1
@@ -3325,6 +3409,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3337,6 +3423,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3349,6 +3437,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3361,6 +3451,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3373,6 +3465,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3385,6 +3479,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3398,6 +3494,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
@@ -3413,6 +3511,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_FPPKG=1
@@ -3423,6 +3523,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3435,6 +3537,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 TARGET_DIRS_FPPKG=1
@@ -3445,6 +3549,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3458,6 +3564,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3471,6 +3579,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_FPPKG=1
@@ -3481,6 +3591,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3491,6 +3603,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_FPPKG=1
@@ -3501,6 +3615,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_FPPKG=1
@@ -3511,6 +3627,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3523,6 +3641,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_FPCRESLIPO=1
 TARGET_DIRS_INSTANTFPC=1
@@ -3536,6 +3656,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3546,6 +3668,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 TARGET_DIRS_FPPKG=1
@@ -3556,6 +3680,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3568,6 +3694,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 TARGET_DIRS_FPPKG=1
@@ -3578,6 +3706,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_PAS2UT=1
+TARGET_DIRS_PAS2FPM=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_INSTANTFPC=1
 endif
@@ -3940,6 +4070,96 @@ fpcmkcfg_makefiles:
 fpcmkcfg:
 	$(MAKE) -C fpcmkcfg all
 .PHONY: fpcmkcfg_all fpcmkcfg_debug fpcmkcfg_smart fpcmkcfg_release fpcmkcfg_units fpcmkcfg_examples fpcmkcfg_shared fpcmkcfg_install fpcmkcfg_sourceinstall fpcmkcfg_exampleinstall fpcmkcfg_distinstall fpcmkcfg_zipinstall fpcmkcfg_zipsourceinstall fpcmkcfg_zipexampleinstall fpcmkcfg_zipdistinstall fpcmkcfg_clean fpcmkcfg_distclean fpcmkcfg_cleanall fpcmkcfg_info fpcmkcfg_makefiles fpcmkcfg
+endif
+ifdef TARGET_DIRS_PAS2UT
+pas2ut_all:
+	$(MAKE) -C pas2ut all
+pas2ut_debug:
+	$(MAKE) -C pas2ut debug
+pas2ut_smart:
+	$(MAKE) -C pas2ut smart
+pas2ut_release:
+	$(MAKE) -C pas2ut release
+pas2ut_units:
+	$(MAKE) -C pas2ut units
+pas2ut_examples:
+	$(MAKE) -C pas2ut examples
+pas2ut_shared:
+	$(MAKE) -C pas2ut shared
+pas2ut_install:
+	$(MAKE) -C pas2ut install
+pas2ut_sourceinstall:
+	$(MAKE) -C pas2ut sourceinstall
+pas2ut_exampleinstall:
+	$(MAKE) -C pas2ut exampleinstall
+pas2ut_distinstall:
+	$(MAKE) -C pas2ut distinstall
+pas2ut_zipinstall:
+	$(MAKE) -C pas2ut zipinstall
+pas2ut_zipsourceinstall:
+	$(MAKE) -C pas2ut zipsourceinstall
+pas2ut_zipexampleinstall:
+	$(MAKE) -C pas2ut zipexampleinstall
+pas2ut_zipdistinstall:
+	$(MAKE) -C pas2ut zipdistinstall
+pas2ut_clean:
+	$(MAKE) -C pas2ut clean
+pas2ut_distclean:
+	$(MAKE) -C pas2ut distclean
+pas2ut_cleanall:
+	$(MAKE) -C pas2ut cleanall
+pas2ut_info:
+	$(MAKE) -C pas2ut info
+pas2ut_makefiles:
+	$(MAKE) -C pas2ut makefiles
+pas2ut:
+	$(MAKE) -C pas2ut all
+.PHONY: pas2ut_all pas2ut_debug pas2ut_smart pas2ut_release pas2ut_units pas2ut_examples pas2ut_shared pas2ut_install pas2ut_sourceinstall pas2ut_exampleinstall pas2ut_distinstall pas2ut_zipinstall pas2ut_zipsourceinstall pas2ut_zipexampleinstall pas2ut_zipdistinstall pas2ut_clean pas2ut_distclean pas2ut_cleanall pas2ut_info pas2ut_makefiles pas2ut
+endif
+ifdef TARGET_DIRS_PAS2FPM
+pas2fpm_all:
+	$(MAKE) -C pas2fpm all
+pas2fpm_debug:
+	$(MAKE) -C pas2fpm debug
+pas2fpm_smart:
+	$(MAKE) -C pas2fpm smart
+pas2fpm_release:
+	$(MAKE) -C pas2fpm release
+pas2fpm_units:
+	$(MAKE) -C pas2fpm units
+pas2fpm_examples:
+	$(MAKE) -C pas2fpm examples
+pas2fpm_shared:
+	$(MAKE) -C pas2fpm shared
+pas2fpm_install:
+	$(MAKE) -C pas2fpm install
+pas2fpm_sourceinstall:
+	$(MAKE) -C pas2fpm sourceinstall
+pas2fpm_exampleinstall:
+	$(MAKE) -C pas2fpm exampleinstall
+pas2fpm_distinstall:
+	$(MAKE) -C pas2fpm distinstall
+pas2fpm_zipinstall:
+	$(MAKE) -C pas2fpm zipinstall
+pas2fpm_zipsourceinstall:
+	$(MAKE) -C pas2fpm zipsourceinstall
+pas2fpm_zipexampleinstall:
+	$(MAKE) -C pas2fpm zipexampleinstall
+pas2fpm_zipdistinstall:
+	$(MAKE) -C pas2fpm zipdistinstall
+pas2fpm_clean:
+	$(MAKE) -C pas2fpm clean
+pas2fpm_distclean:
+	$(MAKE) -C pas2fpm distclean
+pas2fpm_cleanall:
+	$(MAKE) -C pas2fpm cleanall
+pas2fpm_info:
+	$(MAKE) -C pas2fpm info
+pas2fpm_makefiles:
+	$(MAKE) -C pas2fpm makefiles
+pas2fpm:
+	$(MAKE) -C pas2fpm all
+.PHONY: pas2fpm_all pas2fpm_debug pas2fpm_smart pas2fpm_release pas2fpm_units pas2fpm_examples pas2fpm_shared pas2fpm_install pas2fpm_sourceinstall pas2fpm_exampleinstall pas2fpm_distinstall pas2fpm_zipinstall pas2fpm_zipsourceinstall pas2fpm_zipexampleinstall pas2fpm_zipdistinstall pas2fpm_clean pas2fpm_distclean pas2fpm_cleanall pas2fpm_info pas2fpm_makefiles pas2fpm
 endif
 ifdef TARGET_DIRS_FPCRES
 fpcres_all:

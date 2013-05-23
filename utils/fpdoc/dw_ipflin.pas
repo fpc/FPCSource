@@ -141,6 +141,7 @@ type
   public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     class function FileNameExtension: string; override;
+    procedure WriteClassInheritanceOverview(ClassDecl: TPasClassType); override;
   end;
 
 
@@ -148,7 +149,7 @@ type
 implementation
 
 uses
-  SysUtils, dwriter;
+  SysUtils, dwriter, dbugintf;
 
 
 { TFPDocWriter overrides }
@@ -195,7 +196,6 @@ const
   cMax = 100;
 var
   sl: TStringlist;
-  ns: string;
   i: integer;
   lText: string;
 begin
@@ -500,6 +500,117 @@ begin
   InTypesDeclaration := False;
 end;
 
+procedure TIPFNewWriter.WriteClassInheritanceOverview(ClassDecl: TPasClassType);
+var
+  DocNode: TDocNode;
+  ancestor: TPasClassType;
+  ancestor2: TPasType;
+  List: TStringList;
+  i: integer;
+  indent: integer;
+
+  procedure WriteDescription(const Idx: integer);
+  var
+    s: string;
+    o: TPasClassType;
+    t: string;
+  begin
+    if List.Objects[i] <> nil then
+    begin
+      o := List.Objects[i] as TPasClassType;
+      if ClassDecl.Name <> o.Name then
+      begin
+        s := ChangeFileExt(ExtractFileName(o.SourceFilename), '');
+        s := '#' + PackageName + '.' + s + '.' + o.Name;
+        DescrBeginLink(s);
+        Write(o.Name);
+        DescrEndLink;
+        writeln('');
+      end
+      else
+      begin
+        { The topic being viewed doesn't need a link to itself }
+        writeln(List[i]);
+      end;
+    end
+    else
+    begin
+      { we only have text for it. }
+      Writeln(List[i]);
+    end;
+  end;
+
+begin
+  List := TStringList.Create;
+  List.Sorted := False;
+  { add the initial class }
+  List.AddObject(ClassDecl.Name, ClassDecl);
+
+  ancestor := nil;
+
+  if Assigned(ClassDecl.AncestorType) and ClassDecl.AncestorType.InheritsFrom(TPasClassType) then
+    { all is well, we have our first ancestor to get us started with the hierarchy traversal }
+    ancestor := TPasClassType(ClassDecl.AncestorType)
+  else
+  begin
+    { here we only have one history item to output - and not part of fpdoc hierarchy data }
+    if Assigned(ClassDecl.AncestorType) then
+    begin
+      ancestor2 := ClassDecl.AncestorType;
+      if Assigned(ancestor2) then
+      begin
+        List.AddObject(ancestor2.Name, nil);
+        ancestor2 := nil; { prevent any further attempts at traversal }
+      end;
+    end;
+  end;
+
+  while Assigned(ancestor) do
+  begin
+    List.AddObject(ancestor.Name, ancestor);
+    if Assigned(ancestor.AncestorType) and ancestor.AncestorType.InheritsFrom(TPasClassType) then
+      ancestor := TPasClassType(ancestor.AncestorType)
+    else
+    begin
+      { we hit the end of the road }
+      ancestor2 := ancestor.AncestorType;
+      if Assigned(ancestor2) then
+        List.AddObject(ancestor2.Name, nil);
+      ancestor := nil;  { prevent any further attempts at traversal }
+    end;
+  end;
+
+  if List.Count > 1 then
+  begin
+    { output a title }
+    Writeln(':p.');
+    writeln(':lm margin=1.');
+    DescrBeginBold;
+    WriteLn(SDocInheritanceHierarchy);
+    DescrEndBold;
+    { now output the hierarchy }
+    indent := 3;
+    { we go from least significant to most, hence the reversed loop }
+    for i := List.Count-1 downto 0 do
+    begin
+      Write(Format(':lm margin=%d.', [indent]));
+      { each level is indented 2 character positions more than the previous one }
+      if (indent > 3) then
+      begin
+        writeln('|');
+        write('+--');
+      end
+      else
+        write(':xmp.');
+      WriteDescription(i);
+      inc(indent, 2);
+    end;
+    WriteLn(':lm margin=1.:exmp.');
+  end;
+
+  List.Free;
+end;
+
 { TLinearWriter overrides}
 
 class function TIPFNewWriter.FileNameExtension: String;
@@ -509,17 +620,15 @@ end;
 
 procedure TIPFNewWriter.DescrBeginURL(const AURL: DOMString);
 begin
-  //Write(EscapeText(AURL));
+  Write(':link reftype=launch object=''netscape'' data=''' + AURL + '''.');
 end;
 
 procedure TIPFNewWriter.DescrEndURL;
 begin
-  // do nothing
+  Write(':elink.');
 end;
 
 function TIPFNewWriter.GetLabel(AElement: TPasElement): String;
-var
-  i: Integer;
 begin
   if AElement.ClassType = TPasUnresolvedTypeRef then
     Result := Engine.ResolveLink(Module, AElement.Name)
@@ -590,7 +699,7 @@ end;
 
 Function TIPFNewWriter.StripText(S : String) : String;
 var
-  I,L: Integer;
+  I: Integer;
 begin
   //Result := S;
   SetLength(Result, 0);
@@ -611,7 +720,7 @@ begin
   fColCount := 0;
   Writeln(':userdoc.');
   WriteComment('This file has been created automatically by FPDoc');
-  WriteComment('IPF output (c) 2010 by Graeme Geldenhuys (graemeg@gmail.com)');
+  WriteComment('IPF output (c) 2010-2012 by Graeme Geldenhuys (graemeg@gmail.com)');
   writeln('');
   Writeln(':docprof toc=12345.');
   WriteLn(':title.' + PackageName);
@@ -735,9 +844,9 @@ begin
     DescrEndBold;
 //    writeln(':lm margin=3.');
     writeln('.br');
-  end;
+  end
 
-  if InPackageOverview then
+  else if InPackageOverview then
   begin
     FInHeadingText := ':h2%s. ' + SectionName;
 //    Writeln(':h2.' + SectionName);

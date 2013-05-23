@@ -26,7 +26,8 @@ resourcestring
   ARecordConst: TMethod=(Code:nil;Data:nil);
   ASetConst=[true,false];
   ADeprecatedConst=1 deprecated;
-   
+  ADeprecatedConst2 = 2 deprecated 'use another const';
+     
  Type
   TLineEndStr = string [3];
 
@@ -41,6 +42,7 @@ resourcestring
     x,Y : Integer deprecated
   end;
   TAnEnumType=(one,two,three);
+  arangetypealias = type 0..$FF;
   TASetType=set of TAnEnumType;
   TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
   TAnArrayType=Array[1..10] of Integer;
@@ -52,7 +54,6 @@ resourcestring
   TDays = set of TDay;
   TMyInteger = Integer;
   ADouble = type double;
-  arangetypealias = type 0..$FF;
   TARecordType=record
                    X,Y: Integer;
                    Z: String;
@@ -101,6 +102,9 @@ TYPE
                
 
   TNotifyEvent = Procedure (Sender : TObject) of object;
+
+  TNestedProcedure = Procedure (Sender : TObject) is nested;
+
   TNotifyEvent2 = Function (Sender : TObject) : Integer of object;
  
                           
@@ -236,6 +240,11 @@ var
  Procedure externallibnameProc; external 'alibrary' name 'aname';
  Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 
+{$define extdecl:=cdecl}
+Type
+  FontEnumProc = function (var ELogFont:TEnumLogFont; var Metric:TNewTextMetric;
+      FontType:longint; Data:LParam):longint; extdecl;
+      
  
 Type
  generic TFPGListEnumerator<T> = class(TObject)

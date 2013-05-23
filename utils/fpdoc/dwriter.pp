@@ -3,6 +3,8 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
     * Output string definitions
     * Basic writer (output generator) class
@@ -45,7 +47,7 @@ resourcestring
 
   SErrDescrTagUnknown = 'Warning: Unknown tag "%s" in description';
   SErrUnknownEntityReference = 'Warning: Unknown entity reference "&%s;" found';
-  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s" is unknown: "%s"';
+  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s", element "%s", is unknown: "%s"';
   SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
   SErrUnknownLink = 'Could not resolve link to "%s"';
   SErralreadyRegistered = 'Class for output format "%s" already registered';
@@ -73,6 +75,7 @@ type
     FEmitNotes: Boolean;
     FEngine  : TFPDocEngine;
     FPackage : TPasPackage;
+    FContext : TPasElement;
     FTopics  : TList;
     FImgExt : String;
     FBeforeEmitNote : TWriterNoteEvent;
@@ -157,6 +160,7 @@ type
     procedure DescrEndTableRow; virtual; abstract;
     procedure DescrBeginTableCell; virtual; abstract;
     procedure DescrEndTableCell; virtual; abstract;
+    Property CurrentContext : TPasElement Read FContext ;
   public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); virtual;
     destructor Destroy;  override;
@@ -168,6 +172,7 @@ type
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Function FileNameExtension : String; virtual;
     Class Procedure Usage(List : TStrings); virtual;
+    Class procedure SplitImport(var AFilename, ALinkPrefix: String); virtual;
     procedure WriteDoc; virtual; Abstract;
     Function WriteDescr(Element: TPasElement) : TDocNode;
     procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
@@ -370,6 +375,19 @@ begin
   // Do nothing.
 end;
 
+class procedure TFPDocWriter.SplitImport(var AFilename, ALinkPrefix: String);
+var
+  i: integer;
+begin
+//override in HTML and CHM writer
+  i := Pos(',', AFilename);
+  if i > 0 then
+    begin  //split CSV into filename and prefix
+    ALinkPrefix := Copy(AFilename,i+1,Length(AFilename));
+    SetLength(AFilename, i-1);
+    end;
+end;
+
 Function TFPDocWriter.FindTopicElement(Node : TDocNode): TTopicElement;
 
 Var
@@ -475,20 +493,24 @@ begin
   Result := False;
   if not Assigned(El) then
     exit;
-
-  Node := El.FirstChild;
-  while Assigned(Node) do
-  begin
-    if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
-      ConvertLink(AContext, TDOMElement(Node))
-    else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
-      ConvertURL(AContext, TDOMElement(Node))
-    else
-      if not ConvertBaseShort(AContext, Node) then
-        exit;
-    Node := Node.NextSibling;
+  FContext:=AContext;
+  try
+    Node := El.FirstChild;
+    while Assigned(Node) do
+    begin
+      if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
+        ConvertLink(AContext, TDOMElement(Node))
+      else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
+        ConvertURL(AContext, TDOMElement(Node))
+      else
+        if not ConvertBaseShort(AContext, Node) then
+          exit;
+      Node := Node.NextSibling;
+    end;
+    Result := True;
+  finally
+    FContext:=Nil;
   end;
-  Result := True;
 end;
 
 function TFPDocWriter.ConvertNotes(AContext: TPasElement; El: TDOMElement
@@ -594,6 +616,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 var
   El, DescrEl: TDOMElement;
   FPEl: TPasElement;
+  hlp : TPasElement;
 begin
   Result := True;
   if Node.NodeType = ELEMENT_NODE then
@@ -622,7 +645,12 @@ begin
     else if Node.NodeName = 'printshort' then
     begin
       El := TDOMElement(Node);
-      DescrEl := Engine.FindShortDescr(AContext.GetModule, El['id']);
+      hlp:=AContext;
+      while assigned(hlp) and not (hlp is TPasModule) do 
+        hlp:=hlp.parent;
+      if not (hlp is TPasModule) then
+        hlp:=nil;
+      DescrEl := Engine.FindShortDescr(TPasModule(hlp), El['id']);
       if Assigned(DescrEl) then
         ConvertShort(AContext, DescrEl)
       else
@@ -716,53 +744,58 @@ var
   Node, Child: TDOMNode;
   ParaCreated: Boolean;
 begin
-  if AutoInsertBlock then
-    if IsExtShort(El.FirstChild) then
-      DescrBeginParagraph
-    else
-      AutoInsertBlock := False;
-
-  Node := El.FirstChild;
-  if not ConvertExtShort(AContext, Node) then
-  begin
-    while Assigned(Node) do
-    begin
-      if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'section') then
-      begin
-        DescrBeginSectionTitle;
-        Child := Node.FirstChild;
-        while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
-        begin
-          if not IsDescrNodeEmpty(Child) then
-            Warning(AContext, SErrInvalidContentBeforeSectionTitle);
-          Child := Child.NextSibling;
-        end;
-        if not Assigned(Child) or (Child.NodeName <> 'title') then
-          Warning(AContext, SErrSectionTitleExpected)
-        else
-          ConvertShort(AContext, TDOMElement(Child));
-
-        DescrBeginSectionBody;
-
-        if IsExtShort(Child) then
-        begin
-          DescrBeginParagraph;
-          ParaCreated := True;
-        end else
-          ParaCreated := False;
-
-        ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
-
-        if ParaCreated then
-          DescrEndParagraph;
-        DescrEndSection;
-      end else if not ConvertNonSectionBlock(AContext, Node) then
-        Warning(AContext, SErrInvalidDescr, [Node.NodeName]);
-      Node := Node.NextSibling;
-    end;
-  end else
+  FContext:=AContext;
+  try
     if AutoInsertBlock then
-      DescrEndParagraph;
+      if IsExtShort(El.FirstChild) then
+        DescrBeginParagraph
+      else
+        AutoInsertBlock := False;
+
+    Node := El.FirstChild;
+    if not ConvertExtShort(AContext, Node) then
+    begin
+      while Assigned(Node) do
+      begin
+        if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'section') then
+        begin
+          DescrBeginSectionTitle;
+          Child := Node.FirstChild;
+          while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
+          begin
+            if not IsDescrNodeEmpty(Child) then
+              Warning(AContext, SErrInvalidContentBeforeSectionTitle);
+            Child := Child.NextSibling;
+          end;
+          if not Assigned(Child) or (Child.NodeName <> 'title') then
+            Warning(AContext, SErrSectionTitleExpected)
+          else
+            ConvertShort(AContext, TDOMElement(Child));
+
+          DescrBeginSectionBody;
+
+          if IsExtShort(Child) then
+          begin
+            DescrBeginParagraph;
+            ParaCreated := True;
+          end else
+            ParaCreated := False;
+
+          ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
+
+          if ParaCreated then
+            DescrEndParagraph;
+          DescrEndSection;
+        end else if not ConvertNonSectionBlock(AContext, Node) then
+          Warning(AContext, SErrInvalidDescr, [Node.NodeName]);
+        Node := Node.NextSibling;
+      end;
+    end else
+      if AutoInsertBlock then
+        DescrEndParagraph;
+  finally
+    FContext:=Nil;
+  end;
 end;
 
 procedure TFPDocWriter.ConvertExtShortOrNonSectionBlocks(AContext: TPasElement;
