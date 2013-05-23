@@ -1,0 +1,28 @@
+#
+#  Makefile.fpc for httpd 2.2 unit
+#
+
+[package]
+name=httpd24 
+version=2.6.3
+
+[target]
+units=apr24 httpd24 
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src src/apr src/aprutil
+sourcedir=src tests src/apr src/aprutil
+
+[rules]
+.NOTPARALLEL:
+httpd24($PPUEXT):	src/apr/apr24.pas

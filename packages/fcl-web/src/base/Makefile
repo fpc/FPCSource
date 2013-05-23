@@ -290,199 +290,199 @@ override PACKAGE_NAME=fcl-web
 override PACKAGE_VERSION=2.6.3
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-web/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp fphttpserver fphttpclient
@@ -1499,7 +1499,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net
+override REQUIRE_PACKAGES=rtl fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net httpd24
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
@@ -1516,6 +1516,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1540,6 +1541,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1556,6 +1558,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1580,6 +1583,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1597,6 +1601,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1622,6 +1627,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1647,6 +1653,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1671,6 +1678,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1695,6 +1703,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1717,6 +1726,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
@@ -1733,6 +1743,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1749,6 +1760,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1773,6 +1785,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1791,6 +1804,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1813,6 +1827,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
@@ -1829,6 +1844,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
@@ -1845,6 +1861,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -1861,6 +1878,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1883,6 +1901,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -1899,6 +1918,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
@@ -1915,6 +1935,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
@@ -1933,6 +1954,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1956,6 +1978,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1981,6 +2004,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2005,6 +2029,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2029,6 +2054,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
@@ -2045,6 +2071,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2061,6 +2088,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2085,6 +2113,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2101,6 +2130,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2118,6 +2148,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2142,6 +2173,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2166,6 +2198,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
@@ -2182,6 +2215,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2200,6 +2234,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2222,6 +2257,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2238,6 +2274,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
@@ -2254,6 +2291,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2271,6 +2309,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2295,6 +2334,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2319,6 +2359,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2341,6 +2382,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2358,6 +2400,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2383,6 +2426,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2407,6 +2451,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2431,6 +2476,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2453,6 +2499,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2479,6 +2526,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2501,6 +2549,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2523,6 +2572,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2540,6 +2590,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2564,6 +2615,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2582,6 +2634,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2604,6 +2657,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2626,6 +2680,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
@@ -2642,6 +2697,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2658,6 +2714,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -2674,6 +2731,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2691,6 +2749,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2717,6 +2776,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2739,6 +2799,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2755,6 +2816,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2772,6 +2834,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -2796,6 +2859,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2813,6 +2877,7 @@ REQUIRE_PACKAGES_FASTCGI=1
 REQUIRE_PACKAGES_FCL-PASSRC=1
 REQUIRE_PACKAGES_FCL-ASYNC=1
 REQUIRE_PACKAGES_FCL-NET=1
+REQUIRE_PACKAGES_HTTPD24=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -3390,6 +3455,44 @@ override COMPILER_UNITDIR+=$(UNITDIR_FCL-NET)
 endif
 ifdef UNITDIR_FPMAKE_FCL-NET
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-NET)
+endif
+endif
+ifdef REQUIRE_PACKAGES_HTTPD24
+PACKAGEDIR_HTTPD24:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /httpd24/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HTTPD24),)
+ifneq ($(wildcard $(PACKAGEDIR_HTTPD24)/units/$(TARGETSUFFIX)),)
+UNITDIR_HTTPD24=$(PACKAGEDIR_HTTPD24)/units/$(TARGETSUFFIX)
+else
+UNITDIR_HTTPD24=$(PACKAGEDIR_HTTPD24)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_HTTPD24)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_HTTPD24=$(PACKAGEDIR_HTTPD24)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_HTTPD24)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_HTTPD24=$(PACKAGEDIR_HTTPD24)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_HTTPD24=$(PACKAGEDIR_HTTPD24)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_HTTPD24)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_HTTPD24) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_HTTPD24)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_HTTPD24=
+UNITDIR_HTTPD24:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /httpd24/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_HTTPD24),)
+UNITDIR_HTTPD24:=$(firstword $(UNITDIR_HTTPD24))
+else
+UNITDIR_HTTPD24=
+endif
+endif
+ifdef UNITDIR_HTTPD24
+override COMPILER_UNITDIR+=$(UNITDIR_HTTPD24)
+endif
+ifdef UNITDIR_FPMAKE_HTTPD24
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_HTTPD24)
 endif
 endif
 ifdef REQUIRE_PACKAGES_IBASE
