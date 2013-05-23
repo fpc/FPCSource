@@ -327,6 +327,7 @@ begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i],FormatSettings);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
+    testValues[ftWord,i] := IntToStr(testWordValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
