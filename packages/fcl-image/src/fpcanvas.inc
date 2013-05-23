@@ -19,7 +19,6 @@ constructor TFPCustomCanvas.Create;
 begin
   inherited create;
   FClipping := false;
-  FreeAndNil(FClipRegion);
   FRemovingHelpers := false;
   FHelpers := TList.Create;
   FDefaultFont := CreateDefaultFont;
@@ -29,6 +28,7 @@ end;
 
 destructor TFPCustomCanvas.Destroy;
 begin
+  FreeAndNil(FClipRegion);
   FRemovingHelpers := True;
   // first remove all helper references
   RemoveHelpers;
