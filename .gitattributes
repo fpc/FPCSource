@@ -248,6 +248,7 @@ compiler/i8086/i8086prop.inc svneol=native#text/plain
 compiler/i8086/i8086tab.inc svneol=native#text/plain
 compiler/i8086/n8086add.pas svneol=native#text/plain
 compiler/i8086/n8086cal.pas svneol=native#text/plain
+compiler/i8086/n8086con.pas svneol=native#text/plain
 compiler/i8086/n8086inl.pas svneol=native#text/plain
 compiler/i8086/n8086mat.pas svneol=native#text/plain
 compiler/i8086/n8086mem.pas svneol=native#text/plain
