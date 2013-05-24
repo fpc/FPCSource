@@ -134,6 +134,11 @@ var
   ofs: Word;
   Ch, Ch2: Char;
 begin
+  if dos_version < $300 then
+    begin
+      GetProgramName := '';
+      exit;
+    end;
   dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
   ofs := 1;
   repeat
