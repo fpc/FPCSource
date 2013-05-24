@@ -24,6 +24,16 @@ asm
   mov ax, sp
 end;
 
+{$define FPC_SYSTEM_HAS_PTR}
+function Ptr(sel,off: LongInt):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+asm
+  push bp
+  mov bp, sp
+  mov ax, ss:[bp + 4]
+  mov dx, ss:[bp + 8]
+  pop bp
+end;
+
 {$define FPC_SYSTEM_HAS_CSEG}
 function CSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
 asm

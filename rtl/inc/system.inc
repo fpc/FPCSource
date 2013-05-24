@@ -655,10 +655,12 @@ end;
                             Memory Management
 ****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_PTR}
 Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
+{$endif not FPC_SYSTEM_HAS_PTR}
 
 {$ifndef FPC_SYSTEM_HAS_CSEG}
 Function CSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
