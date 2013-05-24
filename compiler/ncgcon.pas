@@ -245,9 +245,20 @@ implementation
 
     procedure tcgpointerconstnode.pass_generate_code;
       begin
-         { an integer const. behaves as a memory reference }
-         location_reset(location,LOC_CONSTANT,OS_ADDR);
-         location.value:=aint(value);
+{$ifdef i8086}
+         { far pointer? }
+         if (typedef.typ=pointerdef) and (tpointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+           begin
+             location_reset(location,LOC_CONSTANT,OS_32);
+             location.value:=longint(value);
+           end
+         else
+{$endif i8086}
+           begin
+             { an integer const. behaves as a memory reference }
+             location_reset(location,LOC_CONSTANT,OS_ADDR);
+             location.value:=aint(value);
+           end;
       end;
 
 
