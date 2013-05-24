@@ -650,11 +650,10 @@ implementation
 *****************************************************************************}
 
     constructor tderefnode.create(l : tnode);
-
       begin
          inherited create(derefn,l);
-
       end;
+
 
     function tderefnode.pass_typecheck:tnode;
       begin
