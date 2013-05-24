@@ -360,16 +360,33 @@ end;
 procedure TCGMIPS.handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
 var
   tmpreg: tregister;
+  op2: Tasmop;
+  negate: boolean;
 begin
-  if (a < simm16lo) or
-    (a > simm16hi) then
+  case op of
+    A_ADD,A_SUB:
+      op2:=A_ADDI;
+    A_ADDU,A_SUBU:
+      op2:=A_ADDIU;
+  else
+    InternalError(2013052001);
+  end;
+  negate:=op in [A_SUB,A_SUBU];
+  { subtraction is actually addition of negated value, so possible range is
+    off by one (-32767..32768) }
+  if (a < simm16lo+ord(negate)) or
+    (a > simm16hi+ord(negate)) then
   begin
     tmpreg := GetIntRegister(list, OS_INT);
     a_load_const_reg(list, OS_INT, a, tmpreg);
     list.concat(taicpu.op_reg_reg_reg(op, dst, src, tmpreg));
   end
   else
-    list.concat(taicpu.op_reg_reg_const(op, dst, src, a));
+  begin
+    if negate then
+      a:=-a;
+    list.concat(taicpu.op_reg_reg_const(op2, dst, src, a));
+  end;
 end;
 
 
