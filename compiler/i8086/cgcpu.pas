@@ -997,13 +997,13 @@ unit cgcpu;
                   OS_S8:
                     begin
                       getcpuregister(list, NR_AX);
-                      getcpuregister(list, NR_DX);
                       add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, NR_AL));
+                      getcpuregister(list, NR_DX);
                       list.concat(taicpu.op_none(A_CBW));
                       list.concat(taicpu.op_none(A_CWD));
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_AX);
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_DX);
                     end;
                   OS_16:
@@ -1014,12 +1014,12 @@ unit cgcpu;
                   OS_S16:
                     begin
                       getcpuregister(list, NR_AX);
-                      getcpuregister(list, NR_DX);
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, NR_AX));
+                      getcpuregister(list, NR_DX);
                       list.concat(taicpu.op_none(A_CWD));
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_AX);
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_DX);
                     end;
                   OS_32,OS_S32:
