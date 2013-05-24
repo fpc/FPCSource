@@ -1832,6 +1832,18 @@ unit rgobj;
 {$endif}
                                         setsupreg(index,reginfo[u].colour);
                                       end;
+{$if defined(x86) or defined(m68k)}
+                                    if (segment<>NR_NO) and
+                                       (getregtype(segment)=regtype) then
+                                      begin
+                                        u:=getsupreg(segment);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2013052401);
+{$endif}
+                                        setsupreg(segment,reginfo[u].colour);
+                                      end;
+{$endif defined(x86) or defined(m68k)}
                                   end;
                             end;
 {$ifdef arm}
