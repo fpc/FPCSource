@@ -173,9 +173,55 @@ begin
 end;
 
 
-function paramcount : longint;
+function GetCommandLine: string;
+var
+  len, I: Integer;
 begin
-  paramcount := 0;
+  len := PFarByte(Ptr(dos_psp, $80))^;
+{$ifdef CG_BUG}
+  { doesn't work due to a code generator bug }
+  SetLength(GetCommandLine, len);
+  for I := 1 to len do
+    GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
+{$else CG_BUG}
+  GetCommandLine := '';
+  for I := 1 to len do
+    GetCommandLine := GetCommandLine + PFarChar(Ptr(dos_psp, $80 + I))^;
+{$endif CG_BUG}
+end;
+
+
+function GetArg(ArgNo: Integer; out ArgResult: string): Integer;
+var
+  cmdln: string;
+  I: Integer;
+  InArg: Boolean;
+begin
+  cmdln := GetCommandLine;
+  ArgResult := '';
+  I := 1;
+  InArg := False;
+  GetArg := 0;
+  for I := 1 to Length(cmdln) do
+    begin
+      if not InArg and (cmdln[I] <> ' ') then
+        begin
+          InArg := True;
+          Inc(GetArg);
+        end;
+      if InArg and (cmdln[I] = ' ') then
+        InArg := False;
+      if InArg and (GetArg = ArgNo) then
+        ArgResult := ArgResult + cmdln[I];
+    end;
+end;
+
+
+function paramcount : longint;
+var
+  tmpstr: string;
+begin
+  paramcount := GetArg(-1, tmpstr);
 end;
 
 
@@ -184,7 +230,7 @@ begin
   if l = 0 then
     paramstr := GetProgramName
   else
-    paramstr := '';
+    GetArg(l, paramstr);
 end;
 
 procedure randomize;
