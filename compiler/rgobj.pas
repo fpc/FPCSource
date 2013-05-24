@@ -2112,6 +2112,11 @@ unit rgobj;
                         if (index <> NR_NO) and
                             (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
+{$if defined(x86) or defined(m68k)}
+                        if (segment <> NR_NO) and
+                            (getregtype(segment)=regtype) then
+                          addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
+{$endif defined(x86) or defined(m68k)}
                       end;
                 end;
 {$ifdef ARM}
@@ -2277,6 +2282,11 @@ unit rgobj;
                       if (ref^.index <> NR_NO) and
                           (getregtype(ref^.index)=regtype) then
                         tryreplacereg(ref^.index);
+{$if defined(x86) or defined(m68k)}
+                      if (ref^.segment <> NR_NO) and
+                          (getregtype(ref^.segment)=regtype) then
+                        tryreplacereg(ref^.segment);
+{$endif defined(x86) or defined(m68k)}
                     end;
                 end;
 {$ifdef ARM}
