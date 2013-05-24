@@ -103,7 +103,11 @@ interface
          pointer(-1) will result in a pointer with the value
          $fffffffffffffff on a 32bit machine if the compiler uses
          int64 constants internally (JM) }
+{$ifdef i8086}
+       TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
+{$else i8086}
        TConstPtrUInt = AWord;
+{$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
        tdoublerec=record
