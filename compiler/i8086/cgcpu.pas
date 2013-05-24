@@ -760,6 +760,13 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
+
         if tosize in [OS_S32,OS_32] then
           begin
             a_load_const_ref(list,OS_16,longint(a and $ffff),tmpref);
