@@ -789,6 +789,13 @@ unit cgcpu;
         make_simple_ref(list,tmpref);
         check_register_size(fromsize,reg);
 
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
+
         case tosize of
           OS_8,OS_S8:
             if fromsize in [OS_8,OS_S8] then
@@ -837,6 +844,13 @@ unit cgcpu;
           internalerror(2011021307);
 {        if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
           fromsize:=tosize;}
+
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
 
         case tosize of
           OS_8,OS_S8:
