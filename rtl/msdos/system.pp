@@ -122,6 +122,46 @@ end;
                               ParamStr/Randomize
 *****************************************************************************}
 
+function GetProgramName: string;
+type
+  PFarByte = ^Byte;far;
+  PFarWord = ^Word;far;
+var
+  dos_env_seg: Word;
+  ofs: Word;
+  Ch, Ch2: Char;
+begin
+  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  ofs := 1;
+  repeat
+    Ch := Chr(PFarByte(Ptr(dos_env_seg,ofs - 1))^);
+    Ch2 := Chr(PFarByte(Ptr(dos_env_seg,ofs))^);
+    if (Ch = #0) and (Ch2 = #0) then
+      begin
+        Inc(ofs, 3);
+        GetProgramName := '';
+        repeat
+          Ch := Chr(PFarByte(Ptr(dos_env_seg,ofs))^);
+          if Ch <> #0 then
+            GetProgramName := GetProgramName + Ch;
+          Inc(ofs);
+          if ofs = 0 then
+            begin
+              GetProgramName := '';
+              exit;
+            end;
+        until Ch = #0;
+        exit;
+      end;
+    Inc(ofs);
+    if ofs = 0 then
+      begin
+        GetProgramName := '';
+        exit;
+      end;
+  until false;
+end;
+
 function paramcount : longint;
 begin
   paramcount := 0;
@@ -130,7 +170,10 @@ end;
 
 function paramstr(l : longint) : string;
 begin
-  paramstr := '';
+  if l = 0 then
+    paramstr := GetProgramName
+  else
+    paramstr := '';
 end;
 
 procedure randomize;
