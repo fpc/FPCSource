@@ -74,6 +74,11 @@ implementation
 uses
   strings;
 
+type
+  PFarByte = ^Byte;far;
+  PFarChar = ^Char;far;
+  PFarWord = ^Word;far;
+
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}
 {$DEFINE HAS_SETCBREAK}
@@ -571,48 +576,66 @@ end;
                              --- Environment ---
 ******************************************************************************}
 
+function GetEnvStr(EnvNo: Integer; var OutEnvStr: string): integer;
+var
+  dos_env_seg: Word;
+  ofs: Word;
+  Ch, Ch2: Char;
+begin
+  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  GetEnvStr := 1;
+  OutEnvStr := '';
+  ofs := 0;
+  repeat
+    Ch := PFarChar(Ptr(dos_env_seg,ofs))^;
+    Ch2 := PFarChar(Ptr(dos_env_seg,ofs + 1))^;
+    if (Ch = #0) and (Ch2 = #0) then
+      exit;
+
+    if Ch = #0 then
+      Inc(GetEnvStr);
+
+    if (Ch <> #0) and (GetEnvStr = EnvNo) then
+      OutEnvStr := OutEnvStr + Ch;
+
+    Inc(ofs);
+    if ofs = 0 then
+      exit;
+  until false;
+end;
+
+
 function envcount : longint;
 var
-  hp : ppchar;
+  tmpstr: string;
 begin
-  hp:=envp;
-  envcount:=0;
-  while assigned(hp^) do
-   begin
-     inc(envcount);
-     inc(hp);
-   end;
+  envcount := GetEnvStr(-1, tmpstr);
 end;
 
 
 function envstr (Index: longint): string;
 begin
-  if (index<=0) or (index>envcount) then
-    envstr:=''
-  else
-    envstr:=strpas(ppchar(pointer(envp)+SizeOf(PChar)*(index-1))^);
+  GetEnvStr(Index, envstr);
 end;
 
 
 Function  GetEnv(envvar: string): string;
 var
-  hp    : ppchar;
   hs    : string;
   eqpos : longint;
+  I     : integer;
 begin
   envvar:=upcase(envvar);
-  hp:=envp;
   getenv:='';
-  while assigned(hp^) do
+  for I := 1 to envcount do
    begin
-     hs:=strpas(hp^);
+     hs:=envstr(I);
      eqpos:=pos('=',hs);
      if upcase(copy(hs,1,eqpos-1))=envvar then
       begin
         getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
         break;
       end;
-     inc(hp);
    end;
 end;
 
