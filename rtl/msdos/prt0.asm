@@ -6,6 +6,7 @@
 
         extern PASCALMAIN
         extern dos_psp
+        extern dos_version
 
         extern _edata  ; defined by WLINK, indicates start of BSS
         extern _end    ; defined by WLINK, indicates end of BSS
@@ -41,6 +42,12 @@ no_bss:
         ; pop the PSP from stack and store it in the pascal variable dos_psp
         pop ax
         mov word [dos_psp], ax
+
+        ; get DOS version and save it in the pascal variable dos_version
+        mov ax, 3000h
+        int 21h
+        xchg al, ah
+        mov word [dos_version], ax
 
         ; allocate max heap
         ; TODO: also support user specified heap size

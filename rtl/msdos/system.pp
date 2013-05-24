@@ -81,6 +81,9 @@ implementation
 const
   fCarry = 1;
 
+var
+  dos_version:Word;public name 'dos_version';
+
 {$I registers.inc}
 
 procedure Intr(IntNo: Byte; var Regs: Registers); external name 'FPC_INTR';
@@ -287,4 +290,5 @@ begin
 { Reset IO Error }
   InOutRes:=0;
   initvariantmanager;
+  Writeln(dos_version);
 end.
