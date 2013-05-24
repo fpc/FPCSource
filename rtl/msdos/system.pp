@@ -290,5 +290,4 @@ begin
 { Reset IO Error }
   InOutRes:=0;
   initvariantmanager;
-  Writeln(dos_version);
 end.
