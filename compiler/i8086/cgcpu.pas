@@ -274,6 +274,13 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
+
         if size in [OS_64, OS_S64] then
           internalerror(2013050801);
         if size in [OS_32, OS_S32] then
@@ -419,6 +426,13 @@ unit cgcpu;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
 
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
+
         if size in [OS_64, OS_S64] then
           internalerror(2013030902);
 
@@ -449,6 +463,13 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+
+        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            tmpref.segment:=NR_ES;
+          end;
 
         if size in [OS_64, OS_S64] then
           internalerror(2013050803);
