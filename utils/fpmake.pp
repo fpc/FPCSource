@@ -57,7 +57,7 @@ begin
     P.Targets.AddProgram('bin2obj.pp');
     P.Targets.AddProgram('postw32.pp');
     P.Targets.AddProgram('rmcvsdir.pp');
-    P.Targets.AddProgram('grab_vcsa.pp');
+    P.Targets.AddProgram('grab_vcsa.pp',[linux]);
 
     P.Targets.AddUnit('ptopu.pp').install:=false;
     end;
