@@ -524,17 +524,18 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
-                        emit_reg_reg(A_TEST,S_L,hreg,right.location.register);
+                        emit_reg_reg(A_TEST,S_W,hreg,right.location.register);
                       end;
                      LOC_CREFERENCE,
                      LOC_REFERENCE :
                        begin
-                         emit_reg_ref(A_TEST,S_L,hreg,right.location.reference);
+                         emit_reg_ref(A_TEST,S_W,hreg,right.location.reference);
                        end;
                      else
                        internalerror(2002032210);
                   end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  location.resflags:=F_NE;
 {$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
@@ -557,8 +558,8 @@ implementation
                      else
                        internalerror(2002032210);
                   end;
-{$endif i8086}
                   location.resflags:=F_C;
+{$endif i8086}
                 end;
              end
             else
@@ -566,7 +567,7 @@ implementation
                if right.location.loc=LOC_CONSTANT then
                 begin
 {$ifdef i8086}
-                  location.resflags:=F_C;
+                  location.resflags:=F_NE;
                   current_asmdata.getjumplabel(l);
                   current_asmdata.getjumplabel(l2);
 
@@ -575,8 +576,8 @@ implementation
                     left.location.size := OS_16;
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,NR_CX,l);
-                  { reset carry flag }
-                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                  { set the zero flag }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_TEST,S_B,0,NR_AL));
                   cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
 
                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
@@ -709,7 +710,7 @@ implementation
 
                     cg.a_label(current_asmdata.CurrAsmList,l2);
 
-                    location.resflags:=F_C;
+                    location.resflags:=F_NE;
 
                    end
                   else
@@ -725,7 +726,7 @@ implementation
                       else
                         internalerror(2007020302);
                       end;
-                      location.resflags:=F_C;
+                      location.resflags:=F_NE;
                    end;
 {$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
