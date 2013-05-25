@@ -1037,6 +1037,7 @@ Type
     Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
+    procedure AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
     //package commands
     function  GetUnitDir(APackage:TPackage):String;
     procedure AddDependencyPaths(L: TStrings; DependencyType: TDependencyType; ATarget: TTarget);
@@ -5003,6 +5004,11 @@ begin
     ADirectoryList.Add(ExtractFileDir(AFileList.Strings[i]));
 end;
 
+procedure TBuildEngine.AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
+begin
+  APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
+  APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+end;
 
 Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
 
@@ -5993,8 +5999,7 @@ begin
   GPathPrefix:=APackage.Directory;
   Try
     CreateOutputDir(APackage);
-    APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
-    APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     DoBeforeCompile(APackage);
     RegenerateUnitconfigFile:=False;
     if APackage.BuildMode=bmBuildUnit then
