@@ -22,6 +22,9 @@ begin
     P.Email := '';
     P.Description := 'Reads type information from "file" and converts it into a freepascal binding.';
     P.NeedLibC:= false;
+    P.Dependencies.Add('winunits-base');
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-registry');
 
 {$ifdef ALLPACKAGES}
     P.Directory:='importtl';

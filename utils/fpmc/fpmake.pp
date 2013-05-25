@@ -46,19 +46,19 @@ begin
 
     T:=P.Targets.AddProgram('fpmcgtk.pp',gtkOSes);
     T.Dependencies.AddUnit('msgcomp');
-    T.Dependencies.AddUnit('frmmain');
-    T.Dependencies.AddUnit('frmabout');
-    T.Dependencies.AddUnit('frmoptions');
+    T.Dependencies.AddUnit('frmmain', gtkOSes);
+    T.Dependencies.AddUnit('frmabout', gtkOSes);
+    T.Dependencies.AddUnit('frmoptions', gtkOSes);
 
-    T:=P.Targets.AddUnit('frmmain.pp');
+    T:=P.Targets.AddUnit('frmmain.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('frmabout.pp');
+    T:=P.Targets.AddUnit('frmabout.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('frmoptions.pp');
+    T:=P.Targets.AddUnit('frmoptions.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 
