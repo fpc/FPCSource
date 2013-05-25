@@ -63,7 +63,7 @@ implementation
       symconst,symdef,
       cgbase,cga,procinfo,pass_1,pass_2,
       ncon,ncal,ncnv,
-      cpubase,
+      cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
 
@@ -241,7 +241,13 @@ implementation
          op: tasmop;
          opsize: topsize;
          signtested : boolean;
+         use_bt: boolean;  { true = use BT (386+), false = use TEST (286-) }
       begin
+{$ifdef i8086}
+        use_bt:=current_settings.cputype>=cpu_386;
+{$else i8086}
+        use_bt:=true;
+{$endif i8086}
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         if use_vectorfpu(resultdef) and
@@ -290,11 +296,24 @@ implementation
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
               begin
-    {$ifdef cpu64bitalu}
-                emit_const_reg(A_BT,S_Q,63,left.location.register);
-    {$else cpu64bitalu}
-                emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
-    {$endif cpu64bitalu}
+                if use_bt then
+                  begin
+    {$if defined(cpu64bitalu)}
+                    emit_const_reg(A_BT,S_Q,63,left.location.register);
+    {$elseif defined(cpu32bitalu)}
+                    emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
+    {$elseif defined(cpu16bitalu)}
+                    emit_const_reg(A_BT,S_W,15,GetNextReg(left.location.register64.reghi));
+    {$endif}
+                  end
+                else
+                  begin
+    {$ifdef i8086}
+                    emit_const_reg(A_TEST,S_W,aint($8000),GetNextReg(left.location.register64.reghi));
+    {$else i8086}
+                    internalerror(2013052510);
+    {$endif i8086}
+                  end;
                 signtested:=true;
               end
             else
@@ -341,13 +360,37 @@ implementation
     
                    if not(signtested) then
                      begin
-                       inc(leftref.offset,4);
-                       emit_const_ref(A_BT,S_L,31,leftref);
-                       dec(leftref.offset,4);
+                       if use_bt then
+                         begin
+           {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+                           inc(leftref.offset,4);
+                           emit_const_ref(A_BT,S_L,31,leftref);
+                           dec(leftref.offset,4);
+           {$elseif defined(cpu16bitalu)}
+                           inc(leftref.offset,6);
+                           emit_const_ref(A_BT,S_W,15,leftref);
+                           dec(leftref.offset,6);
+           {$endif}
+                         end
+                       else
+                         begin
+           {$ifdef i8086}
+                           { reading a byte, instead of word is faster on a true }
+                           { 8088, because of the 8-bit data bus }
+                           inc(leftref.offset,7);
+                           emit_const_ref(A_TEST,S_B,aint($80),leftref);
+                           dec(leftref.offset,7);
+           {$else i8086}
+                           internalerror(2013052511);
+           {$endif i8086}
+                         end;
                      end;
     
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,leftref));
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   if use_bt then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2)
+                   else
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
