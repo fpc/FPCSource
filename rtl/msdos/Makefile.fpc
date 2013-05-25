@@ -6,8 +6,8 @@ main=rtl
 [target]
 loaders=prt0 # exceptn fpu
 units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
-      math \
-#      macpas iso7185 crt objects printer cmem
+      math macpas \
+#      iso7185 crt objects printer cmem
 #      initc ports profile dxetype dxeload emu387 \
 #      classes typinfo matrix \
 #      cpu mmx ucomplex getopts lnfodwrf ctypes fgl \
