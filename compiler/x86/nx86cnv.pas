@@ -89,6 +89,7 @@ implementation
         hreg2,
         hregister : tregister;
         href      : treference;
+        i         : integer;
 {$endif not cpu64bitalu}
         resflags  : tresflags;
         hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
@@ -130,13 +131,16 @@ implementation
             LOC_REFERENCE :
               begin
 {$ifndef cpu64bitalu}
-                if left.location.size in [OS_64,OS_S64] then
+                if left.location.size in [OS_64,OS_S64{$ifdef cpu16bitalu},OS_32,OS_S32{$endif}] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
+                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hregister);
                    href:=left.location.reference;
-                   inc(href.offset,4);
-                   cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
+                   for i:=2 to tcgsize2size[left.location.size] div tcgsize2size[OS_INT] do
+                     begin
+                       inc(href.offset,tcgsize2size[OS_INT]);
+                       cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,href,hregister);
+                     end;
                  end
                 else
 {$endif not cpu64bitalu}
@@ -151,7 +155,7 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-{$ifndef cpu64bitalu}
+{$if defined(cpu32bitalu)}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -159,7 +163,20 @@ implementation
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                  end
                 else
-{$endif not cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                if left.location.size in [OS_64,OS_S64] then
+                 begin
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.register64.reglo,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reglo),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register64.reghi,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reghi),hregister);
+                 end
+                else
+                  if left.location.size in [OS_32,OS_S32] then
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,GetNextReg(left.location.register))
+                else
+{$endif}
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
