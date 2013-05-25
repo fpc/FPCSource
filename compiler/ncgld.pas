@@ -1286,7 +1286,7 @@ implementation
                   end
                  else
                   { todo: proper type information for hlcg }
-                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,voidpointertype,hp.left.location,href);
+                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,{$ifdef cpu16bitaddr}u32inttype{$else}voidpointertype{$endif},hp.left.location,href);
                  { update href to the vtype field and write it }
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
