@@ -824,19 +824,54 @@ unit cgcpu;
             else
               internalerror(2013030310);
           OS_16,OS_S16:
-            if fromsize in [OS_16,OS_S16] then
-              list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref))
-            else
-              internalerror(2013030312);
+            case fromsize of
+              OS_8:
+                begin
+                  reg := makeregsize(list, reg, OS_16);
+                  setsubreg(reg, R_SUBH);
+                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                  setsubreg(reg, R_SUBW);
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
+                end;
+              OS_S8: internalerror(2013052503);  { TODO }
+              OS_16,OS_S16:
+                begin
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
+                end;
+              else
+                internalerror(2013030312);
+            end;
           OS_32,OS_S32:
-            if fromsize in [OS_32,OS_S32] then
-              begin
-                list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
-                inc(tmpref.offset, 2);
-                list.concat(taicpu.op_reg_ref(A_MOV, S_W, GetNextReg(reg), tmpref));
-              end
-            else
-              internalerror(2013030313);
+            case fromsize of
+              OS_8:
+                begin
+                  reg := makeregsize(list, reg, OS_16);
+                  setsubreg(reg, R_SUBH);
+                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                  setsubreg(reg, R_SUBW);
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_const_ref(A_MOV, S_W, 0, tmpref));
+                end;
+              OS_S8:
+                internalerror(2013052501);  { TODO }
+              OS_16:
+                begin
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_const_ref(A_MOV, S_W, 0, tmpref));
+                end;
+              OS_S16:
+                internalerror(2013052502);  { TODO }
+              OS_32,OS_S32:
+                begin
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_reg_ref(A_MOV, S_W, GetNextReg(reg), tmpref));
+                end;
+              else
+                internalerror(2013030313);
+            end;
           else
             internalerror(2013030311);
         end;
