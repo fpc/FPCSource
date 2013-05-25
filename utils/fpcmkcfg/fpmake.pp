@@ -10,6 +10,7 @@ procedure add_fpcmkcfg;
 Var
   P : TPackage;
   T : TTarget;
+  Data2IncBin : string;
 
 begin
   With Installer do
@@ -31,11 +32,12 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
 
-    p.Commands.AddCommand(caBeforeCompile,'data2inc','-b -s fpc.cft fpccfg.inc DefaultConfig','fpccfg.inc','fpc.cft');
-    p.Commands.AddCommand(caBeforeCompile,'data2inc','-b -s fpinc.cfg fpcfg.inc fpcfg','fpcfg.inc','fpinc.cfg');
-    p.Commands.AddCommand(caBeforeCompile,'data2inc','-b -s fpinc.ini fpini.inc fpini','fpini.inc','fpinc.ini');
-    p.Commands.AddCommand(caBeforeCompile,'data2inc','-b -s fppkg.cfg fppkg.inc fppkg','fppkg.inc','fppkg.cfg');
-    p.Commands.AddCommand(caBeforeCompile,'data2inc','-b -s default.cft default.inc fppkg_default','default.inc','default.cft');
+    Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpc.cft fpccfg.inc DefaultConfig','fpccfg.inc','fpc.cft');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpinc.cfg fpcfg.inc fpcfg','fpcfg.inc','fpinc.cfg');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpinc.ini fpini.inc fpini','fpini.inc','fpinc.ini');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fppkg.cfg fppkg.inc fppkg','fppkg.inc','fppkg.cfg');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s default.cft default.inc fppkg_default','default.inc','default.cft');
 
     T:=P.Targets.AddProgram('fpcmkcfg.pp');
     T.ResourceStrings:=true;

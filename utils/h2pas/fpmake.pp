@@ -30,8 +30,8 @@ begin
 
     P.Options.Add('-Sg');
 
-    p.Commands.AddCommand(caBeforeCompile,'pyacc','$(SOURCE) $(DEST)','h2pas.pas','h2pas.y');
-    p.Commands.AddCommand(caBeforeCompile,'plex','$(SOURCE) $(DEST)','scan.pas','scan.l');
+    p.Commands.AddCommand(caBeforeCompile, AddProgramExtension('pyacc', Defaults.BuildOS), '$(SOURCE) $(DEST)','h2pas.pas','h2pas.y');
+    p.Commands.AddCommand(caBeforeCompile, AddProgramExtension('plex', Defaults.BuildOS), '$(SOURCE) $(DEST)','scan.pas','scan.l');
 
     T:=P.Targets.AddProgram('h2pas.pas');
     T.Dependencies.AddUnit('h2poptions');
