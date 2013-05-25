@@ -664,7 +664,7 @@ unit cgcpu;
           { for go32v2 we obtain OS_F32,
             but pushs is not valid, we need pushl }
           if opsize=S_FS then
-            opsize:=S_L;
+            opsize:=S_W;
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
             begin
               tmpreg:=getintregister(list,pushsize);
