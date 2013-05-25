@@ -1256,11 +1256,13 @@ end;
 
 Procedure SetObjectProp(Instance: TObject; PropInfo : PPropInfo;  Value: TObject);
 begin
-{$ifdef cpu64}
+{$if defined(cpu64)}
   SetInt64Prop(Instance,PropInfo,Int64(Value));
-{$else cpu64}
+{$elseif defined(cpu32)}
   SetOrdProp(Instance,PropInfo,Integer(Value));
-{$endif cpu64}
+{$elseif defined(cpu16)}
+  SetOrdProp(Instance,PropInfo,SmallInt(Value));
+{$endif}
 end;
 
 
