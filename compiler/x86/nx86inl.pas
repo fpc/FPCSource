@@ -491,6 +491,14 @@ implementation
          opsize,
          orgsize: tcgsize;
         begin
+{$ifdef i8086}
+          { BTS and BTR are 386+ }
+          if current_settings.cputype < cpu_386 then
+            begin
+              inherited;
+              exit;
+            end;
+{$endif i8086}
           if is_smallset(tcallparanode(left).resultdef) then
             begin
               opdef:=tcallparanode(left).resultdef;
