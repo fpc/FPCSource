@@ -131,12 +131,28 @@ implementation
 
      function tx86inlinenode.first_cos_real : tnode;
       begin
+{$ifdef i8086}
+        { FCOS is 387+ }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         expectloc:=LOC_FPUREGISTER;
         first_cos_real := nil;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
       begin
+{$ifdef i8086}
+        { FSIN is 387+ }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         expectloc:=LOC_FPUREGISTER;
         first_sin_real := nil;
       end;
@@ -400,12 +416,28 @@ implementation
 
      procedure tx86inlinenode.second_cos_real;
        begin
+{$ifdef i8086}
+       { FCOS is 387+ }
+       if current_settings.cputype < cpu_386 then
+         begin
+           inherited;
+           exit;
+         end;
+{$endif i8086}
          load_fpu_location(left);
          emit_none(A_FCOS,S_NO);
        end;
 
      procedure tx86inlinenode.second_sin_real;
        begin
+{$ifdef i8086}
+       { FSIN is 387+ }
+       if current_settings.cputype < cpu_386 then
+         begin
+           inherited;
+           exit;
+         end;
+{$endif i8086}
          load_fpu_location(left);
          emit_none(A_FSIN,S_NO)
        end;
