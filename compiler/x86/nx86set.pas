@@ -659,7 +659,7 @@ implementation
                     LOC_REFERENCE,LOC_CREFERENCE:
                       begin
                         inc(right.location.reference.offset,(left.location.value-setbase) shr 3);
-                        emit_const_ref(A_TEST,S_B,1 shl (left.location.value and 7),right.location.reference);
+                        emit_const_ref(A_TEST,S_B,1 shl ((left.location.value-setbase) and 7),right.location.reference);
                       end;
                     LOC_REGISTER,LOC_CREGISTER:
                       begin
