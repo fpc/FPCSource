@@ -571,6 +571,14 @@ implementation
                   current_asmdata.getjumplabel(l);
                   current_asmdata.getjumplabel(l2);
 
+                  { load constants to a register }
+                  if (left.location.loc=LOC_CONSTANT) or
+                     (setbase<>0) then
+                    begin
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                    end;
+
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
@@ -664,6 +672,9 @@ implementation
                else
                 begin
 {$ifdef i8086}
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
@@ -690,8 +701,8 @@ implementation
 
                     { BE will be false for negative values }
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
-                    { reset carry flag }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                    { set the zero flag }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_TEST,S_B,0,NR_AL));
                     cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
 
                     cg.a_label(current_asmdata.CurrAsmList,l);
