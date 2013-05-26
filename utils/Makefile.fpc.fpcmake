@@ -1,0 +1,84 @@
+#
+#   Makefile.fpc for Free Pascal Utils
+#
+
+[package]
+name=utils
+version=2.7.1
+
+[target]
+dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
+programs=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
+programs_linux=grab_vcsa
+dirs_win32=fpmc fpcres rmwait instantfpc importtl unicode
+dirs_win64=fpmc fpcres rmwait instantfpc importtl unicode
+dirs_wince=fpcres rmwait instantfpc
+dirs_haiku=fpcres instantfpc
+dirs_linux=fpcres instantfpc unicode
+dirs_freebsd=fpcres instantfpc
+dirs_openbsd=fpcres instantfpc
+dirs_netbsd=fpcres instantfpc
+dirs_darwin=fpcres fpcreslipo instantfpc unicode
+dirs_iphonesim=fpcres fpcreslipo instantfpc
+dirs_solaris=fpcres instantfpc
+dirs_os2=fpmc fpcres rmwait
+dirs_emx=fpmc fpcres rmwait
+dirs_go32v2=rmwait
+dirs_aix=fpcres instantfpc
+rsts=rstconv
+
+[require]
+packages=fcl-base paszlib hash
+packages_darwin=univint
+packages_iphonesim=univint
+
+[clean]
+units=ptopu
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=..
+
+
+[rules]
+#
+# Pascal beautifier
+#
+ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
+
+ptopu$(PPUEXT): ptopu.pp
+
+#
+# Other
+#
+
+ppdep$(EXEEXT): ppdep.pp
+
+#
+# Don't export some tools, which are found in the current dir if it's in
+# the path, so are not valid for the subdirs
+#
+
+unexport DATA2INC
+
+# order dependencies to avoid link.res clashes
+# -- only supported as of Make 3.80, which is not available for go32v2 ->
+#    no parallel making here...
+#
+#grab_vcsa$(EXEEXT): | ppdep$(EXEEXT)
+#
+#ppdep$(EXEEXT): | ptop$(EXEEXT)
+#
+#ptop$(EXEEXT): | postw32$(EXEEXT)
+#
+#postw32$(EXEEXT): | rstconv$(EXEEXT)
+#
+#rstconv$(EXEEXT): | data2inc$(EXEEXT)
+#
+#data2inc$(EXEEXT): | delp$(EXEEXT)
+#
+#delp$(EXEEXT): | bin2obj$(EXEEXT)
+
+.NOTPARALLEL:

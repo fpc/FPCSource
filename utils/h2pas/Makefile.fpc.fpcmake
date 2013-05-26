@@ -1,0 +1,61 @@
+#
+#   Makefile.fpc for h2pas
+#
+
+[target]
+programs=h2pas h2paspp
+
+[clean]
+units=h2poptions h2plexlib scan h2pyacclib converu
+
+[compiler]
+options=-Sg
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+# do we have pyacc?
+ifndef PYACC
+PYACC=$(strip $(wildcard $(addsuffix /pyacc$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PYACC),)
+PYACC=
+else
+export PYACC:=$(firstword $(PYACC))
+endif
+endif
+
+# do we have plex?
+ifndef PLEX
+PLEX=$(strip $(wildcard $(addsuffix /plex$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PLEX),)
+PLEX=
+else
+export PLEX:=$(firstword $(PLEX))
+endif
+endif
+
+h2pas$(EXEEXT): h2pas.pas scan.pas h2poptions.pas
+
+#
+# Lex and Yacc (only if pyacc is found)
+#
+ifdef  PYACC
+h2pas.pas: h2pas.y
+        $(PYACC) h2pas.y
+
+yacclex: yacc lex
+
+scan.pas: scan.l
+        $(PLEX) scan.l
+
+yacc:
+        $(PYACC) h2pas.y
+
+lex :
+        $(PLEX) scan.l
+endif

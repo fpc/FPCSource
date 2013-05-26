@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for fpcres
+#
+
+[target]
+programs=fpcres fpcjres
+
+[clean]
+units=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
+
+[require]
+packages=rtl fcl-res paszlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+fpcres$(EXEEXT): target.pas msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcres.pas
+fpcjres$(EXEEXT): msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcjres.pas jarsourcehandler.pas

@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for Unicode Utils
+#
+
+[target]
+programs=cldrparser unihelper
+
+[clean]
+units=cldrhelper cldrtest cldrxml grbtree helper trie uca_test unicodeset
+
+[require]
+packages=rtl fcl-base fcl-xml
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+cldrparser$(EXEEXT): cldrparser.lpr cldrhelper.pas helper.pas cldrtest.pas cldrxml.pas unicodeset.pas
+unihelper$(EXEEXT): unihelper.lpr helper.pas uca_test.pas

@@ -319,885 +319,19 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-override PACKAGE_NAME=utils
-override PACKAGE_VERSION=2.7.1
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
+ifdef INSTALL_UNITDIR
+FPMAKE_INSTALL_OPT+=--unitinstalldir=$(INSTALL_UNITDIR)
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  rmwait
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpmc fpcres rmwait instantfpc importtl unicode
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpmc fpcres rmwait
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpmc fpcres rmwait
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres rmwait instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpmc fpcres rmwait instantfpc importtl unicode
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres rmwait instantfpc
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres fpcreslipo instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni  fpcres instantfpc unicode
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir  grab_vcsa
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_RSTS+=rstconv
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override CLEAN_UNITS+=ptopu
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override CLEAN_UNITS+=ptopu
-endif
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 override INSTALL_FPCPACKAGE=y
+override INSTALL_FPCSUBDIR=utils
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1827,7 +961,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base paszlib hash
+override REQUIRE_PACKAGES=rtl fpmkunit
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
@@ -1835,7 +969,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
@@ -1844,7 +977,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1853,7 +985,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
@@ -1862,7 +993,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1871,7 +1001,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
@@ -1880,7 +1009,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
@@ -1889,7 +1017,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1898,7 +1025,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -1907,7 +1033,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
@@ -1916,7 +1041,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
@@ -1925,7 +1049,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1934,7 +1057,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
@@ -1943,7 +1065,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1952,8 +1073,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
@@ -1962,7 +1081,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
@@ -1971,7 +1089,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
@@ -1980,7 +1097,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -1989,7 +1105,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1998,7 +1113,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -2007,7 +1121,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
@@ -2016,7 +1129,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
@@ -2025,8 +1137,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-android)
 REQUIRE_PACKAGES_RTL=1
@@ -2035,7 +1145,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2044,7 +1153,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2053,7 +1161,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2062,7 +1169,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -2071,7 +1177,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
@@ -2080,7 +1185,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2089,7 +1193,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -2098,7 +1201,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2107,7 +1209,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2116,7 +1217,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2125,7 +1225,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -2134,7 +1233,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
@@ -2143,7 +1241,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2152,8 +1249,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
@@ -2162,7 +1257,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2171,7 +1265,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
@@ -2180,7 +1273,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
 REQUIRE_PACKAGES_RTL=1
@@ -2189,7 +1281,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2198,7 +1289,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2207,7 +1297,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -2216,7 +1305,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2225,7 +1313,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2234,7 +1321,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2243,7 +1329,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2252,7 +1337,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -2261,7 +1345,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2270,7 +1353,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2279,8 +1361,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
@@ -2289,7 +1369,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2298,7 +1377,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2307,7 +1385,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -2316,7 +1393,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2325,8 +1401,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -2335,7 +1409,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
@@ -2344,7 +1417,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
@@ -2353,7 +1425,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2362,7 +1433,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -2371,7 +1441,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-android)
 REQUIRE_PACKAGES_RTL=1
@@ -2380,7 +1449,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2389,7 +1457,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2398,8 +1465,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2408,7 +1473,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
 REQUIRE_PACKAGES_RTL=1
@@ -2417,7 +1481,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2426,7 +1489,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2435,7 +1497,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2444,7 +1505,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),mips-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2453,7 +1513,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2462,7 +1521,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
@@ -2471,7 +1529,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),jvm-android)
 REQUIRE_PACKAGES_RTL=1
@@ -2480,7 +1537,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
 REQUIRE_PACKAGES_RTL=1
@@ -2489,7 +1545,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2719,82 +1774,6 @@ ifdef UNITDIR_FPMAKE_FPMKUNIT
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FPMKUNIT)
 endif
 endif
-ifdef REQUIRE_PACKAGES_FCL-BASE
-PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-BASE),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_FCL-BASE=$(PACKAGEDIR_FCL-BASE)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-BASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-BASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-BASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-BASE=
-UNITDIR_FCL-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-BASE),)
-UNITDIR_FCL-BASE:=$(firstword $(UNITDIR_FCL-BASE))
-else
-UNITDIR_FCL-BASE=
-endif
-endif
-ifdef UNITDIR_FCL-BASE
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-BASE)
-endif
-ifdef UNITDIR_FPMAKE_FCL-BASE
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_UNIVINT
-PACKAGEDIR_UNIVINT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /univint/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_UNIVINT),)
-ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)),)
-UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)
-else
-UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_UNIVINT=$(PACKAGEDIR_UNIVINT)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_UNIVINT=$(PACKAGEDIR_UNIVINT)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_UNIVINT=$(PACKAGEDIR_UNIVINT)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_UNIVINT)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_UNIVINT) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_UNIVINT)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_UNIVINT=
-UNITDIR_UNIVINT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /univint/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_UNIVINT),)
-UNITDIR_UNIVINT:=$(firstword $(UNITDIR_UNIVINT))
-else
-UNITDIR_UNIVINT=
-endif
-endif
-ifdef UNITDIR_UNIVINT
-override COMPILER_UNITDIR+=$(UNITDIR_UNIVINT)
-endif
-ifdef UNITDIR_FPMAKE_UNIVINT
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_UNIVINT)
-endif
-endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(ARCH)
 endif
@@ -2949,256 +1928,10 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 endif
-.PHONY: fpc_exes
-ifndef CROSSINSTALL
-ifneq ($(TARGET_PROGRAMS),)
-override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
-override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
-override EXEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_PROGRAMS))
-override ALLTARGET+=fpc_exes
-override INSTALLEXEFILES+=$(EXEFILES)
-override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
-override CLEANEXEDBGFILES+=$(EXEDBGFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-ifeq ($(OS_TARGET),emx)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-endif
-endif
-fpc_exes: $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(EXEFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
-.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
-	@$(ECHOREDIR) Compiled > $(FPCMADE)
-fpc_all: $(FPCMADE)
-fpc_smart:
-	$(MAKE) all LINKSMART=1 CREATESMART=1
-fpc_debug:
-	$(MAKE) all DEBUG=1
-fpc_release:
-	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
-$(COMPILER_UNITTARGETDIR):
-	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-$(COMPILER_TARGETDIR):
-	$(MKDIRTREE) $(COMPILER_TARGETDIR)
-%$(PPUEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(PPUEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.lpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.dpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%.res: %.rc
-	windres -i $< -o $@
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.inc $(COMPILER_INCLUDEDIR)
-vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
-.PHONY: fpc_shared
-override INSTALLTARGET+=fpc_shared_install
-ifndef SHARED_LIBVERSION
-SHARED_LIBVERSION=$(FPC_VERSION)
-endif
-ifndef SHARED_LIBNAME
-SHARED_LIBNAME=$(PACKAGE_NAME)
-endif
-ifndef SHARED_FULLNAME
-SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
-endif
-ifndef SHARED_LIBUNITS
-SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
-override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
-endif
-fpc_shared:
-ifdef HASSHAREDLIB
-	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
-ifneq ($(SHARED_BUILD),n)
-	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR)
-endif
-else
-	@$(ECHO) Shared Libraries not supported
-endif
-fpc_shared_install:
-ifneq ($(SHARED_BUILD),n)
-ifneq ($(SHARED_LIBUNITS),)
-ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
-	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
-endif
-endif
-endif
-.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
-ifdef INSTALL_UNITS
-override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
-endif
-ifdef INSTALL_BUILDUNIT
-override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
-endif
-ifdef INSTALLPPUFILES
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
-ifneq ($(UNITTARGETDIRPREFIX),)
-override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPUFILES)))
-override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPULINKFILES))))
-endif
-override INSTALL_CREATEPACKAGEFPC=1
-endif
-ifdef INSTALLEXEFILES
-ifneq ($(TARGETDIRPREFIX),)
-override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(notdir $(INSTALLEXEFILES)))
-endif
-endif
-fpc_install: all $(INSTALLTARGET)
-ifdef INSTALLEXEFILES
-	$(MKDIR) $(INSTALL_BINDIR)
-	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
-endif
-ifdef INSTALL_CREATEPACKAGEFPC
-ifdef FPCMAKE
-ifdef PACKAGE_VERSION
-ifneq ($(wildcard Makefile.fpc),)
-	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
-	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
-endif
-endif
-endif
-endif
-ifdef INSTALLPPUFILES
-	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
-ifneq ($(INSTALLPPULINKFILES),)
-	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
-endif
-ifneq ($(wildcard $(LIB_FULLNAME)),)
-	$(MKDIR) $(INSTALL_LIBDIR)
-	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
-ifdef inUnix
-	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
-endif
-endif
-endif
-ifdef INSTALL_FILES
-	$(MKDIR) $(INSTALL_DATADIR)
-	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
-endif
-fpc_sourceinstall: distclean
-	$(MKDIR) $(INSTALL_SOURCEDIR)
-	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
-fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
-ifdef HASEXAMPLES
-	$(MKDIR) $(INSTALL_EXAMPLEDIR)
-endif
-ifdef EXAMPLESOURCEFILES
-	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
-endif
-ifdef TARGET_EXAMPLEDIRS
-	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
-endif
-.PHONY: fpc_distinstall
-fpc_distinstall: install exampleinstall
-.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
-ifndef PACKDIR
-ifndef inUnix
-PACKDIR=$(BASEDIR)/../fpc-pack
-else
-PACKDIR=/tmp/fpc-pack
-endif
-endif
-ifndef ZIPNAME
-ifdef DIST_ZIPNAME
-ZIPNAME=$(DIST_ZIPNAME)
-else
-ZIPNAME=$(PACKAGE_NAME)
-endif
-endif
-ifndef FULLZIPNAME
-FULLZIPNAME=$(ZIPCROSSPREFIX)$(ZIPPREFIX)$(ZIPNAME)$(ZIPSUFFIX)
-endif
-ifndef ZIPTARGET
-ifdef DIST_ZIPTARGET
-ZIPTARGET=DIST_ZIPTARGET
-else
-ZIPTARGET=install
-endif
-endif
-ifndef USEZIP
-ifdef inUnix
-USETAR=1
-endif
-endif
-ifndef inUnix
-USEZIPWRAPPER=1
-endif
-ifdef USEZIPWRAPPER
-ZIPPATHSEP=$(PATHSEP)
-ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(SRCBATCHEXT))
-else
-ZIPPATHSEP=/
-endif
-ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
-ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
-ifdef USETAR
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(TAREXT)
-ZIPCMD_ZIP:=$(TARPROG) c$(TAROPT)f $(ZIPDESTFILE) *
-else
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(ZIPEXT)
-ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
-endif
-fpc_zipinstall:
-	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-	$(MKDIR) $(DIST_DESTDIR)
-	$(DEL) $(ZIPDESTFILE)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHOREDIR),echo)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
-else
-	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
-endif
-ifdef inUnix
-	/bin/sh $(ZIPWRAPPER)
-else
-ifdef RUNBATCH
-	$(RUNBATCH) $(ZIPWRAPPER)
-else
-	$(ZIPWRAPPER)
-endif
-endif
-	$(DEL) $(ZIPWRAPPER)
-else
-	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
-endif
-	$(DELTREE) $(PACKDIR)
-fpc_zipsourceinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=$(ZIPSOURCESUFFIX)
-fpc_zipexampleinstall:
-ifdef HASEXAMPLES
-	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=$(ZIPEXAMPLESUFFIX)
-endif
-fpc_zipdistinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -3383,1903 +2116,80 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_RMWAIT=1
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPMC=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_IMPORTTL=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPMC=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPMC=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),i386-android)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPMC=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_IMPORTTL=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_RMWAIT=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),arm-android)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_FPCRESLIPO=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-TARGET_DIRS_FPCRES=1
-TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_UNICODE=1
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-TARGET_DIRS_FPPKG=1
-TARGET_DIRS_FPCM=1
-TARGET_DIRS_TPLY=1
-TARGET_DIRS_H2PAS=1
-TARGET_DIRS_FPRCP=1
-TARGET_DIRS_DXEGEN=1
-TARGET_DIRS_FPDOC=1
-TARGET_DIRS_FPCMKCFG=1
-TARGET_DIRS_PAS2UT=1
-TARGET_DIRS_PAS2FPM=1
-TARGET_DIRS_PAS2JNI=1
-endif
-ifdef TARGET_DIRS_FPPKG
-fppkg_all:
-	$(MAKE) -C fppkg all
-fppkg_debug:
-	$(MAKE) -C fppkg debug
-fppkg_smart:
-	$(MAKE) -C fppkg smart
-fppkg_release:
-	$(MAKE) -C fppkg release
-fppkg_units:
-	$(MAKE) -C fppkg units
-fppkg_examples:
-	$(MAKE) -C fppkg examples
-fppkg_shared:
-	$(MAKE) -C fppkg shared
-fppkg_install:
-	$(MAKE) -C fppkg install
-fppkg_sourceinstall:
-	$(MAKE) -C fppkg sourceinstall
-fppkg_exampleinstall:
-	$(MAKE) -C fppkg exampleinstall
-fppkg_distinstall:
-	$(MAKE) -C fppkg distinstall
-fppkg_zipinstall:
-	$(MAKE) -C fppkg zipinstall
-fppkg_zipsourceinstall:
-	$(MAKE) -C fppkg zipsourceinstall
-fppkg_zipexampleinstall:
-	$(MAKE) -C fppkg zipexampleinstall
-fppkg_zipdistinstall:
-	$(MAKE) -C fppkg zipdistinstall
-fppkg_clean:
-	$(MAKE) -C fppkg clean
-fppkg_distclean:
-	$(MAKE) -C fppkg distclean
-fppkg_cleanall:
-	$(MAKE) -C fppkg cleanall
-fppkg_info:
-	$(MAKE) -C fppkg info
-fppkg_makefiles:
-	$(MAKE) -C fppkg makefiles
-fppkg:
-	$(MAKE) -C fppkg all
-.PHONY: fppkg_all fppkg_debug fppkg_smart fppkg_release fppkg_units fppkg_examples fppkg_shared fppkg_install fppkg_sourceinstall fppkg_exampleinstall fppkg_distinstall fppkg_zipinstall fppkg_zipsourceinstall fppkg_zipexampleinstall fppkg_zipdistinstall fppkg_clean fppkg_distclean fppkg_cleanall fppkg_info fppkg_makefiles fppkg
-endif
-ifdef TARGET_DIRS_FPCM
-fpcm_all:
-	$(MAKE) -C fpcm all
-fpcm_debug:
-	$(MAKE) -C fpcm debug
-fpcm_smart:
-	$(MAKE) -C fpcm smart
-fpcm_release:
-	$(MAKE) -C fpcm release
-fpcm_units:
-	$(MAKE) -C fpcm units
-fpcm_examples:
-	$(MAKE) -C fpcm examples
-fpcm_shared:
-	$(MAKE) -C fpcm shared
-fpcm_install:
-	$(MAKE) -C fpcm install
-fpcm_sourceinstall:
-	$(MAKE) -C fpcm sourceinstall
-fpcm_exampleinstall:
-	$(MAKE) -C fpcm exampleinstall
-fpcm_distinstall:
-	$(MAKE) -C fpcm distinstall
-fpcm_zipinstall:
-	$(MAKE) -C fpcm zipinstall
-fpcm_zipsourceinstall:
-	$(MAKE) -C fpcm zipsourceinstall
-fpcm_zipexampleinstall:
-	$(MAKE) -C fpcm zipexampleinstall
-fpcm_zipdistinstall:
-	$(MAKE) -C fpcm zipdistinstall
-fpcm_clean:
-	$(MAKE) -C fpcm clean
-fpcm_distclean:
-	$(MAKE) -C fpcm distclean
-fpcm_cleanall:
-	$(MAKE) -C fpcm cleanall
-fpcm_info:
-	$(MAKE) -C fpcm info
-fpcm_makefiles:
-	$(MAKE) -C fpcm makefiles
-fpcm:
-	$(MAKE) -C fpcm all
-.PHONY: fpcm_all fpcm_debug fpcm_smart fpcm_release fpcm_units fpcm_examples fpcm_shared fpcm_install fpcm_sourceinstall fpcm_exampleinstall fpcm_distinstall fpcm_zipinstall fpcm_zipsourceinstall fpcm_zipexampleinstall fpcm_zipdistinstall fpcm_clean fpcm_distclean fpcm_cleanall fpcm_info fpcm_makefiles fpcm
-endif
-ifdef TARGET_DIRS_TPLY
-tply_all:
-	$(MAKE) -C tply all
-tply_debug:
-	$(MAKE) -C tply debug
-tply_smart:
-	$(MAKE) -C tply smart
-tply_release:
-	$(MAKE) -C tply release
-tply_units:
-	$(MAKE) -C tply units
-tply_examples:
-	$(MAKE) -C tply examples
-tply_shared:
-	$(MAKE) -C tply shared
-tply_install:
-	$(MAKE) -C tply install
-tply_sourceinstall:
-	$(MAKE) -C tply sourceinstall
-tply_exampleinstall:
-	$(MAKE) -C tply exampleinstall
-tply_distinstall:
-	$(MAKE) -C tply distinstall
-tply_zipinstall:
-	$(MAKE) -C tply zipinstall
-tply_zipsourceinstall:
-	$(MAKE) -C tply zipsourceinstall
-tply_zipexampleinstall:
-	$(MAKE) -C tply zipexampleinstall
-tply_zipdistinstall:
-	$(MAKE) -C tply zipdistinstall
-tply_clean:
-	$(MAKE) -C tply clean
-tply_distclean:
-	$(MAKE) -C tply distclean
-tply_cleanall:
-	$(MAKE) -C tply cleanall
-tply_info:
-	$(MAKE) -C tply info
-tply_makefiles:
-	$(MAKE) -C tply makefiles
-tply:
-	$(MAKE) -C tply all
-.PHONY: tply_all tply_debug tply_smart tply_release tply_units tply_examples tply_shared tply_install tply_sourceinstall tply_exampleinstall tply_distinstall tply_zipinstall tply_zipsourceinstall tply_zipexampleinstall tply_zipdistinstall tply_clean tply_distclean tply_cleanall tply_info tply_makefiles tply
-endif
-ifdef TARGET_DIRS_H2PAS
-h2pas_all:
-	$(MAKE) -C h2pas all
-h2pas_debug:
-	$(MAKE) -C h2pas debug
-h2pas_smart:
-	$(MAKE) -C h2pas smart
-h2pas_release:
-	$(MAKE) -C h2pas release
-h2pas_units:
-	$(MAKE) -C h2pas units
-h2pas_examples:
-	$(MAKE) -C h2pas examples
-h2pas_shared:
-	$(MAKE) -C h2pas shared
-h2pas_install:
-	$(MAKE) -C h2pas install
-h2pas_sourceinstall:
-	$(MAKE) -C h2pas sourceinstall
-h2pas_exampleinstall:
-	$(MAKE) -C h2pas exampleinstall
-h2pas_distinstall:
-	$(MAKE) -C h2pas distinstall
-h2pas_zipinstall:
-	$(MAKE) -C h2pas zipinstall
-h2pas_zipsourceinstall:
-	$(MAKE) -C h2pas zipsourceinstall
-h2pas_zipexampleinstall:
-	$(MAKE) -C h2pas zipexampleinstall
-h2pas_zipdistinstall:
-	$(MAKE) -C h2pas zipdistinstall
-h2pas_clean:
-	$(MAKE) -C h2pas clean
-h2pas_distclean:
-	$(MAKE) -C h2pas distclean
-h2pas_cleanall:
-	$(MAKE) -C h2pas cleanall
-h2pas_info:
-	$(MAKE) -C h2pas info
-h2pas_makefiles:
-	$(MAKE) -C h2pas makefiles
-h2pas:
-	$(MAKE) -C h2pas all
-.PHONY: h2pas_all h2pas_debug h2pas_smart h2pas_release h2pas_units h2pas_examples h2pas_shared h2pas_install h2pas_sourceinstall h2pas_exampleinstall h2pas_distinstall h2pas_zipinstall h2pas_zipsourceinstall h2pas_zipexampleinstall h2pas_zipdistinstall h2pas_clean h2pas_distclean h2pas_cleanall h2pas_info h2pas_makefiles h2pas
-endif
-ifdef TARGET_DIRS_FPRCP
-fprcp_all:
-	$(MAKE) -C fprcp all
-fprcp_debug:
-	$(MAKE) -C fprcp debug
-fprcp_smart:
-	$(MAKE) -C fprcp smart
-fprcp_release:
-	$(MAKE) -C fprcp release
-fprcp_units:
-	$(MAKE) -C fprcp units
-fprcp_examples:
-	$(MAKE) -C fprcp examples
-fprcp_shared:
-	$(MAKE) -C fprcp shared
-fprcp_install:
-	$(MAKE) -C fprcp install
-fprcp_sourceinstall:
-	$(MAKE) -C fprcp sourceinstall
-fprcp_exampleinstall:
-	$(MAKE) -C fprcp exampleinstall
-fprcp_distinstall:
-	$(MAKE) -C fprcp distinstall
-fprcp_zipinstall:
-	$(MAKE) -C fprcp zipinstall
-fprcp_zipsourceinstall:
-	$(MAKE) -C fprcp zipsourceinstall
-fprcp_zipexampleinstall:
-	$(MAKE) -C fprcp zipexampleinstall
-fprcp_zipdistinstall:
-	$(MAKE) -C fprcp zipdistinstall
-fprcp_clean:
-	$(MAKE) -C fprcp clean
-fprcp_distclean:
-	$(MAKE) -C fprcp distclean
-fprcp_cleanall:
-	$(MAKE) -C fprcp cleanall
-fprcp_info:
-	$(MAKE) -C fprcp info
-fprcp_makefiles:
-	$(MAKE) -C fprcp makefiles
-fprcp:
-	$(MAKE) -C fprcp all
-.PHONY: fprcp_all fprcp_debug fprcp_smart fprcp_release fprcp_units fprcp_examples fprcp_shared fprcp_install fprcp_sourceinstall fprcp_exampleinstall fprcp_distinstall fprcp_zipinstall fprcp_zipsourceinstall fprcp_zipexampleinstall fprcp_zipdistinstall fprcp_clean fprcp_distclean fprcp_cleanall fprcp_info fprcp_makefiles fprcp
-endif
-ifdef TARGET_DIRS_DXEGEN
-dxegen_all:
-	$(MAKE) -C dxegen all
-dxegen_debug:
-	$(MAKE) -C dxegen debug
-dxegen_smart:
-	$(MAKE) -C dxegen smart
-dxegen_release:
-	$(MAKE) -C dxegen release
-dxegen_units:
-	$(MAKE) -C dxegen units
-dxegen_examples:
-	$(MAKE) -C dxegen examples
-dxegen_shared:
-	$(MAKE) -C dxegen shared
-dxegen_install:
-	$(MAKE) -C dxegen install
-dxegen_sourceinstall:
-	$(MAKE) -C dxegen sourceinstall
-dxegen_exampleinstall:
-	$(MAKE) -C dxegen exampleinstall
-dxegen_distinstall:
-	$(MAKE) -C dxegen distinstall
-dxegen_zipinstall:
-	$(MAKE) -C dxegen zipinstall
-dxegen_zipsourceinstall:
-	$(MAKE) -C dxegen zipsourceinstall
-dxegen_zipexampleinstall:
-	$(MAKE) -C dxegen zipexampleinstall
-dxegen_zipdistinstall:
-	$(MAKE) -C dxegen zipdistinstall
-dxegen_clean:
-	$(MAKE) -C dxegen clean
-dxegen_distclean:
-	$(MAKE) -C dxegen distclean
-dxegen_cleanall:
-	$(MAKE) -C dxegen cleanall
-dxegen_info:
-	$(MAKE) -C dxegen info
-dxegen_makefiles:
-	$(MAKE) -C dxegen makefiles
-dxegen:
-	$(MAKE) -C dxegen all
-.PHONY: dxegen_all dxegen_debug dxegen_smart dxegen_release dxegen_units dxegen_examples dxegen_shared dxegen_install dxegen_sourceinstall dxegen_exampleinstall dxegen_distinstall dxegen_zipinstall dxegen_zipsourceinstall dxegen_zipexampleinstall dxegen_zipdistinstall dxegen_clean dxegen_distclean dxegen_cleanall dxegen_info dxegen_makefiles dxegen
-endif
-ifdef TARGET_DIRS_FPDOC
-fpdoc_all:
-	$(MAKE) -C fpdoc all
-fpdoc_debug:
-	$(MAKE) -C fpdoc debug
-fpdoc_smart:
-	$(MAKE) -C fpdoc smart
-fpdoc_release:
-	$(MAKE) -C fpdoc release
-fpdoc_units:
-	$(MAKE) -C fpdoc units
-fpdoc_examples:
-	$(MAKE) -C fpdoc examples
-fpdoc_shared:
-	$(MAKE) -C fpdoc shared
-fpdoc_install:
-	$(MAKE) -C fpdoc install
-fpdoc_sourceinstall:
-	$(MAKE) -C fpdoc sourceinstall
-fpdoc_exampleinstall:
-	$(MAKE) -C fpdoc exampleinstall
-fpdoc_distinstall:
-	$(MAKE) -C fpdoc distinstall
-fpdoc_zipinstall:
-	$(MAKE) -C fpdoc zipinstall
-fpdoc_zipsourceinstall:
-	$(MAKE) -C fpdoc zipsourceinstall
-fpdoc_zipexampleinstall:
-	$(MAKE) -C fpdoc zipexampleinstall
-fpdoc_zipdistinstall:
-	$(MAKE) -C fpdoc zipdistinstall
-fpdoc_clean:
-	$(MAKE) -C fpdoc clean
-fpdoc_distclean:
-	$(MAKE) -C fpdoc distclean
-fpdoc_cleanall:
-	$(MAKE) -C fpdoc cleanall
-fpdoc_info:
-	$(MAKE) -C fpdoc info
-fpdoc_makefiles:
-	$(MAKE) -C fpdoc makefiles
-fpdoc:
-	$(MAKE) -C fpdoc all
-.PHONY: fpdoc_all fpdoc_debug fpdoc_smart fpdoc_release fpdoc_units fpdoc_examples fpdoc_shared fpdoc_install fpdoc_sourceinstall fpdoc_exampleinstall fpdoc_distinstall fpdoc_zipinstall fpdoc_zipsourceinstall fpdoc_zipexampleinstall fpdoc_zipdistinstall fpdoc_clean fpdoc_distclean fpdoc_cleanall fpdoc_info fpdoc_makefiles fpdoc
-endif
-ifdef TARGET_DIRS_FPCMKCFG
-fpcmkcfg_all:
-	$(MAKE) -C fpcmkcfg all
-fpcmkcfg_debug:
-	$(MAKE) -C fpcmkcfg debug
-fpcmkcfg_smart:
-	$(MAKE) -C fpcmkcfg smart
-fpcmkcfg_release:
-	$(MAKE) -C fpcmkcfg release
-fpcmkcfg_units:
-	$(MAKE) -C fpcmkcfg units
-fpcmkcfg_examples:
-	$(MAKE) -C fpcmkcfg examples
-fpcmkcfg_shared:
-	$(MAKE) -C fpcmkcfg shared
-fpcmkcfg_install:
-	$(MAKE) -C fpcmkcfg install
-fpcmkcfg_sourceinstall:
-	$(MAKE) -C fpcmkcfg sourceinstall
-fpcmkcfg_exampleinstall:
-	$(MAKE) -C fpcmkcfg exampleinstall
-fpcmkcfg_distinstall:
-	$(MAKE) -C fpcmkcfg distinstall
-fpcmkcfg_zipinstall:
-	$(MAKE) -C fpcmkcfg zipinstall
-fpcmkcfg_zipsourceinstall:
-	$(MAKE) -C fpcmkcfg zipsourceinstall
-fpcmkcfg_zipexampleinstall:
-	$(MAKE) -C fpcmkcfg zipexampleinstall
-fpcmkcfg_zipdistinstall:
-	$(MAKE) -C fpcmkcfg zipdistinstall
-fpcmkcfg_clean:
-	$(MAKE) -C fpcmkcfg clean
-fpcmkcfg_distclean:
-	$(MAKE) -C fpcmkcfg distclean
-fpcmkcfg_cleanall:
-	$(MAKE) -C fpcmkcfg cleanall
-fpcmkcfg_info:
-	$(MAKE) -C fpcmkcfg info
-fpcmkcfg_makefiles:
-	$(MAKE) -C fpcmkcfg makefiles
-fpcmkcfg:
-	$(MAKE) -C fpcmkcfg all
-.PHONY: fpcmkcfg_all fpcmkcfg_debug fpcmkcfg_smart fpcmkcfg_release fpcmkcfg_units fpcmkcfg_examples fpcmkcfg_shared fpcmkcfg_install fpcmkcfg_sourceinstall fpcmkcfg_exampleinstall fpcmkcfg_distinstall fpcmkcfg_zipinstall fpcmkcfg_zipsourceinstall fpcmkcfg_zipexampleinstall fpcmkcfg_zipdistinstall fpcmkcfg_clean fpcmkcfg_distclean fpcmkcfg_cleanall fpcmkcfg_info fpcmkcfg_makefiles fpcmkcfg
-endif
-ifdef TARGET_DIRS_PAS2UT
-pas2ut_all:
-	$(MAKE) -C pas2ut all
-pas2ut_debug:
-	$(MAKE) -C pas2ut debug
-pas2ut_smart:
-	$(MAKE) -C pas2ut smart
-pas2ut_release:
-	$(MAKE) -C pas2ut release
-pas2ut_units:
-	$(MAKE) -C pas2ut units
-pas2ut_examples:
-	$(MAKE) -C pas2ut examples
-pas2ut_shared:
-	$(MAKE) -C pas2ut shared
-pas2ut_install:
-	$(MAKE) -C pas2ut install
-pas2ut_sourceinstall:
-	$(MAKE) -C pas2ut sourceinstall
-pas2ut_exampleinstall:
-	$(MAKE) -C pas2ut exampleinstall
-pas2ut_distinstall:
-	$(MAKE) -C pas2ut distinstall
-pas2ut_zipinstall:
-	$(MAKE) -C pas2ut zipinstall
-pas2ut_zipsourceinstall:
-	$(MAKE) -C pas2ut zipsourceinstall
-pas2ut_zipexampleinstall:
-	$(MAKE) -C pas2ut zipexampleinstall
-pas2ut_zipdistinstall:
-	$(MAKE) -C pas2ut zipdistinstall
-pas2ut_clean:
-	$(MAKE) -C pas2ut clean
-pas2ut_distclean:
-	$(MAKE) -C pas2ut distclean
-pas2ut_cleanall:
-	$(MAKE) -C pas2ut cleanall
-pas2ut_info:
-	$(MAKE) -C pas2ut info
-pas2ut_makefiles:
-	$(MAKE) -C pas2ut makefiles
-pas2ut:
-	$(MAKE) -C pas2ut all
-.PHONY: pas2ut_all pas2ut_debug pas2ut_smart pas2ut_release pas2ut_units pas2ut_examples pas2ut_shared pas2ut_install pas2ut_sourceinstall pas2ut_exampleinstall pas2ut_distinstall pas2ut_zipinstall pas2ut_zipsourceinstall pas2ut_zipexampleinstall pas2ut_zipdistinstall pas2ut_clean pas2ut_distclean pas2ut_cleanall pas2ut_info pas2ut_makefiles pas2ut
-endif
-ifdef TARGET_DIRS_PAS2FPM
-pas2fpm_all:
-	$(MAKE) -C pas2fpm all
-pas2fpm_debug:
-	$(MAKE) -C pas2fpm debug
-pas2fpm_smart:
-	$(MAKE) -C pas2fpm smart
-pas2fpm_release:
-	$(MAKE) -C pas2fpm release
-pas2fpm_units:
-	$(MAKE) -C pas2fpm units
-pas2fpm_examples:
-	$(MAKE) -C pas2fpm examples
-pas2fpm_shared:
-	$(MAKE) -C pas2fpm shared
-pas2fpm_install:
-	$(MAKE) -C pas2fpm install
-pas2fpm_sourceinstall:
-	$(MAKE) -C pas2fpm sourceinstall
-pas2fpm_exampleinstall:
-	$(MAKE) -C pas2fpm exampleinstall
-pas2fpm_distinstall:
-	$(MAKE) -C pas2fpm distinstall
-pas2fpm_zipinstall:
-	$(MAKE) -C pas2fpm zipinstall
-pas2fpm_zipsourceinstall:
-	$(MAKE) -C pas2fpm zipsourceinstall
-pas2fpm_zipexampleinstall:
-	$(MAKE) -C pas2fpm zipexampleinstall
-pas2fpm_zipdistinstall:
-	$(MAKE) -C pas2fpm zipdistinstall
-pas2fpm_clean:
-	$(MAKE) -C pas2fpm clean
-pas2fpm_distclean:
-	$(MAKE) -C pas2fpm distclean
-pas2fpm_cleanall:
-	$(MAKE) -C pas2fpm cleanall
-pas2fpm_info:
-	$(MAKE) -C pas2fpm info
-pas2fpm_makefiles:
-	$(MAKE) -C pas2fpm makefiles
-pas2fpm:
-	$(MAKE) -C pas2fpm all
-.PHONY: pas2fpm_all pas2fpm_debug pas2fpm_smart pas2fpm_release pas2fpm_units pas2fpm_examples pas2fpm_shared pas2fpm_install pas2fpm_sourceinstall pas2fpm_exampleinstall pas2fpm_distinstall pas2fpm_zipinstall pas2fpm_zipsourceinstall pas2fpm_zipexampleinstall pas2fpm_zipdistinstall pas2fpm_clean pas2fpm_distclean pas2fpm_cleanall pas2fpm_info pas2fpm_makefiles pas2fpm
-endif
-ifdef TARGET_DIRS_PAS2JNI
-pas2jni_all:
-	$(MAKE) -C pas2jni all
-pas2jni_debug:
-	$(MAKE) -C pas2jni debug
-pas2jni_smart:
-	$(MAKE) -C pas2jni smart
-pas2jni_release:
-	$(MAKE) -C pas2jni release
-pas2jni_units:
-	$(MAKE) -C pas2jni units
-pas2jni_examples:
-	$(MAKE) -C pas2jni examples
-pas2jni_shared:
-	$(MAKE) -C pas2jni shared
-pas2jni_install:
-	$(MAKE) -C pas2jni install
-pas2jni_sourceinstall:
-	$(MAKE) -C pas2jni sourceinstall
-pas2jni_exampleinstall:
-	$(MAKE) -C pas2jni exampleinstall
-pas2jni_distinstall:
-	$(MAKE) -C pas2jni distinstall
-pas2jni_zipinstall:
-	$(MAKE) -C pas2jni zipinstall
-pas2jni_zipsourceinstall:
-	$(MAKE) -C pas2jni zipsourceinstall
-pas2jni_zipexampleinstall:
-	$(MAKE) -C pas2jni zipexampleinstall
-pas2jni_zipdistinstall:
-	$(MAKE) -C pas2jni zipdistinstall
-pas2jni_clean:
-	$(MAKE) -C pas2jni clean
-pas2jni_distclean:
-	$(MAKE) -C pas2jni distclean
-pas2jni_cleanall:
-	$(MAKE) -C pas2jni cleanall
-pas2jni_info:
-	$(MAKE) -C pas2jni info
-pas2jni_makefiles:
-	$(MAKE) -C pas2jni makefiles
-pas2jni:
-	$(MAKE) -C pas2jni all
-.PHONY: pas2jni_all pas2jni_debug pas2jni_smart pas2jni_release pas2jni_units pas2jni_examples pas2jni_shared pas2jni_install pas2jni_sourceinstall pas2jni_exampleinstall pas2jni_distinstall pas2jni_zipinstall pas2jni_zipsourceinstall pas2jni_zipexampleinstall pas2jni_zipdistinstall pas2jni_clean pas2jni_distclean pas2jni_cleanall pas2jni_info pas2jni_makefiles pas2jni
-endif
-ifdef TARGET_DIRS_FPCRES
-fpcres_all:
-	$(MAKE) -C fpcres all
-fpcres_debug:
-	$(MAKE) -C fpcres debug
-fpcres_smart:
-	$(MAKE) -C fpcres smart
-fpcres_release:
-	$(MAKE) -C fpcres release
-fpcres_units:
-	$(MAKE) -C fpcres units
-fpcres_examples:
-	$(MAKE) -C fpcres examples
-fpcres_shared:
-	$(MAKE) -C fpcres shared
-fpcres_install:
-	$(MAKE) -C fpcres install
-fpcres_sourceinstall:
-	$(MAKE) -C fpcres sourceinstall
-fpcres_exampleinstall:
-	$(MAKE) -C fpcres exampleinstall
-fpcres_distinstall:
-	$(MAKE) -C fpcres distinstall
-fpcres_zipinstall:
-	$(MAKE) -C fpcres zipinstall
-fpcres_zipsourceinstall:
-	$(MAKE) -C fpcres zipsourceinstall
-fpcres_zipexampleinstall:
-	$(MAKE) -C fpcres zipexampleinstall
-fpcres_zipdistinstall:
-	$(MAKE) -C fpcres zipdistinstall
-fpcres_clean:
-	$(MAKE) -C fpcres clean
-fpcres_distclean:
-	$(MAKE) -C fpcres distclean
-fpcres_cleanall:
-	$(MAKE) -C fpcres cleanall
-fpcres_info:
-	$(MAKE) -C fpcres info
-fpcres_makefiles:
-	$(MAKE) -C fpcres makefiles
-fpcres:
-	$(MAKE) -C fpcres all
-.PHONY: fpcres_all fpcres_debug fpcres_smart fpcres_release fpcres_units fpcres_examples fpcres_shared fpcres_install fpcres_sourceinstall fpcres_exampleinstall fpcres_distinstall fpcres_zipinstall fpcres_zipsourceinstall fpcres_zipexampleinstall fpcres_zipdistinstall fpcres_clean fpcres_distclean fpcres_cleanall fpcres_info fpcres_makefiles fpcres
-endif
-ifdef TARGET_DIRS_INSTANTFPC
-instantfpc_all:
-	$(MAKE) -C instantfpc all
-instantfpc_debug:
-	$(MAKE) -C instantfpc debug
-instantfpc_smart:
-	$(MAKE) -C instantfpc smart
-instantfpc_release:
-	$(MAKE) -C instantfpc release
-instantfpc_units:
-	$(MAKE) -C instantfpc units
-instantfpc_examples:
-	$(MAKE) -C instantfpc examples
-instantfpc_shared:
-	$(MAKE) -C instantfpc shared
-instantfpc_install:
-	$(MAKE) -C instantfpc install
-instantfpc_sourceinstall:
-	$(MAKE) -C instantfpc sourceinstall
-instantfpc_exampleinstall:
-	$(MAKE) -C instantfpc exampleinstall
-instantfpc_distinstall:
-	$(MAKE) -C instantfpc distinstall
-instantfpc_zipinstall:
-	$(MAKE) -C instantfpc zipinstall
-instantfpc_zipsourceinstall:
-	$(MAKE) -C instantfpc zipsourceinstall
-instantfpc_zipexampleinstall:
-	$(MAKE) -C instantfpc zipexampleinstall
-instantfpc_zipdistinstall:
-	$(MAKE) -C instantfpc zipdistinstall
-instantfpc_clean:
-	$(MAKE) -C instantfpc clean
-instantfpc_distclean:
-	$(MAKE) -C instantfpc distclean
-instantfpc_cleanall:
-	$(MAKE) -C instantfpc cleanall
-instantfpc_info:
-	$(MAKE) -C instantfpc info
-instantfpc_makefiles:
-	$(MAKE) -C instantfpc makefiles
-instantfpc:
-	$(MAKE) -C instantfpc all
-.PHONY: instantfpc_all instantfpc_debug instantfpc_smart instantfpc_release instantfpc_units instantfpc_examples instantfpc_shared instantfpc_install instantfpc_sourceinstall instantfpc_exampleinstall instantfpc_distinstall instantfpc_zipinstall instantfpc_zipsourceinstall instantfpc_zipexampleinstall instantfpc_zipdistinstall instantfpc_clean instantfpc_distclean instantfpc_cleanall instantfpc_info instantfpc_makefiles instantfpc
-endif
-ifdef TARGET_DIRS_UNICODE
-unicode_all:
-	$(MAKE) -C unicode all
-unicode_debug:
-	$(MAKE) -C unicode debug
-unicode_smart:
-	$(MAKE) -C unicode smart
-unicode_release:
-	$(MAKE) -C unicode release
-unicode_units:
-	$(MAKE) -C unicode units
-unicode_examples:
-	$(MAKE) -C unicode examples
-unicode_shared:
-	$(MAKE) -C unicode shared
-unicode_install:
-	$(MAKE) -C unicode install
-unicode_sourceinstall:
-	$(MAKE) -C unicode sourceinstall
-unicode_exampleinstall:
-	$(MAKE) -C unicode exampleinstall
-unicode_distinstall:
-	$(MAKE) -C unicode distinstall
-unicode_zipinstall:
-	$(MAKE) -C unicode zipinstall
-unicode_zipsourceinstall:
-	$(MAKE) -C unicode zipsourceinstall
-unicode_zipexampleinstall:
-	$(MAKE) -C unicode zipexampleinstall
-unicode_zipdistinstall:
-	$(MAKE) -C unicode zipdistinstall
-unicode_clean:
-	$(MAKE) -C unicode clean
-unicode_distclean:
-	$(MAKE) -C unicode distclean
-unicode_cleanall:
-	$(MAKE) -C unicode cleanall
-unicode_info:
-	$(MAKE) -C unicode info
-unicode_makefiles:
-	$(MAKE) -C unicode makefiles
-unicode:
-	$(MAKE) -C unicode all
-.PHONY: unicode_all unicode_debug unicode_smart unicode_release unicode_units unicode_examples unicode_shared unicode_install unicode_sourceinstall unicode_exampleinstall unicode_distinstall unicode_zipinstall unicode_zipsourceinstall unicode_zipexampleinstall unicode_zipdistinstall unicode_clean unicode_distclean unicode_cleanall unicode_info unicode_makefiles unicode
-endif
-ifdef TARGET_DIRS_RMWAIT
-rmwait_all:
-	$(MAKE) -C rmwait all
-rmwait_debug:
-	$(MAKE) -C rmwait debug
-rmwait_smart:
-	$(MAKE) -C rmwait smart
-rmwait_release:
-	$(MAKE) -C rmwait release
-rmwait_units:
-	$(MAKE) -C rmwait units
-rmwait_examples:
-	$(MAKE) -C rmwait examples
-rmwait_shared:
-	$(MAKE) -C rmwait shared
-rmwait_install:
-	$(MAKE) -C rmwait install
-rmwait_sourceinstall:
-	$(MAKE) -C rmwait sourceinstall
-rmwait_exampleinstall:
-	$(MAKE) -C rmwait exampleinstall
-rmwait_distinstall:
-	$(MAKE) -C rmwait distinstall
-rmwait_zipinstall:
-	$(MAKE) -C rmwait zipinstall
-rmwait_zipsourceinstall:
-	$(MAKE) -C rmwait zipsourceinstall
-rmwait_zipexampleinstall:
-	$(MAKE) -C rmwait zipexampleinstall
-rmwait_zipdistinstall:
-	$(MAKE) -C rmwait zipdistinstall
-rmwait_clean:
-	$(MAKE) -C rmwait clean
-rmwait_distclean:
-	$(MAKE) -C rmwait distclean
-rmwait_cleanall:
-	$(MAKE) -C rmwait cleanall
-rmwait_info:
-	$(MAKE) -C rmwait info
-rmwait_makefiles:
-	$(MAKE) -C rmwait makefiles
-rmwait:
-	$(MAKE) -C rmwait all
-.PHONY: rmwait_all rmwait_debug rmwait_smart rmwait_release rmwait_units rmwait_examples rmwait_shared rmwait_install rmwait_sourceinstall rmwait_exampleinstall rmwait_distinstall rmwait_zipinstall rmwait_zipsourceinstall rmwait_zipexampleinstall rmwait_zipdistinstall rmwait_clean rmwait_distclean rmwait_cleanall rmwait_info rmwait_makefiles rmwait
-endif
-ifdef TARGET_DIRS_FPMC
-fpmc_all:
-	$(MAKE) -C fpmc all
-fpmc_debug:
-	$(MAKE) -C fpmc debug
-fpmc_smart:
-	$(MAKE) -C fpmc smart
-fpmc_release:
-	$(MAKE) -C fpmc release
-fpmc_units:
-	$(MAKE) -C fpmc units
-fpmc_examples:
-	$(MAKE) -C fpmc examples
-fpmc_shared:
-	$(MAKE) -C fpmc shared
-fpmc_install:
-	$(MAKE) -C fpmc install
-fpmc_sourceinstall:
-	$(MAKE) -C fpmc sourceinstall
-fpmc_exampleinstall:
-	$(MAKE) -C fpmc exampleinstall
-fpmc_distinstall:
-	$(MAKE) -C fpmc distinstall
-fpmc_zipinstall:
-	$(MAKE) -C fpmc zipinstall
-fpmc_zipsourceinstall:
-	$(MAKE) -C fpmc zipsourceinstall
-fpmc_zipexampleinstall:
-	$(MAKE) -C fpmc zipexampleinstall
-fpmc_zipdistinstall:
-	$(MAKE) -C fpmc zipdistinstall
-fpmc_clean:
-	$(MAKE) -C fpmc clean
-fpmc_distclean:
-	$(MAKE) -C fpmc distclean
-fpmc_cleanall:
-	$(MAKE) -C fpmc cleanall
-fpmc_info:
-	$(MAKE) -C fpmc info
-fpmc_makefiles:
-	$(MAKE) -C fpmc makefiles
-fpmc:
-	$(MAKE) -C fpmc all
-.PHONY: fpmc_all fpmc_debug fpmc_smart fpmc_release fpmc_units fpmc_examples fpmc_shared fpmc_install fpmc_sourceinstall fpmc_exampleinstall fpmc_distinstall fpmc_zipinstall fpmc_zipsourceinstall fpmc_zipexampleinstall fpmc_zipdistinstall fpmc_clean fpmc_distclean fpmc_cleanall fpmc_info fpmc_makefiles fpmc
-endif
-ifdef TARGET_DIRS_IMPORTTL
-importtl_all:
-	$(MAKE) -C importtl all
-importtl_debug:
-	$(MAKE) -C importtl debug
-importtl_smart:
-	$(MAKE) -C importtl smart
-importtl_release:
-	$(MAKE) -C importtl release
-importtl_units:
-	$(MAKE) -C importtl units
-importtl_examples:
-	$(MAKE) -C importtl examples
-importtl_shared:
-	$(MAKE) -C importtl shared
-importtl_install:
-	$(MAKE) -C importtl install
-importtl_sourceinstall:
-	$(MAKE) -C importtl sourceinstall
-importtl_exampleinstall:
-	$(MAKE) -C importtl exampleinstall
-importtl_distinstall:
-	$(MAKE) -C importtl distinstall
-importtl_zipinstall:
-	$(MAKE) -C importtl zipinstall
-importtl_zipsourceinstall:
-	$(MAKE) -C importtl zipsourceinstall
-importtl_zipexampleinstall:
-	$(MAKE) -C importtl zipexampleinstall
-importtl_zipdistinstall:
-	$(MAKE) -C importtl zipdistinstall
-importtl_clean:
-	$(MAKE) -C importtl clean
-importtl_distclean:
-	$(MAKE) -C importtl distclean
-importtl_cleanall:
-	$(MAKE) -C importtl cleanall
-importtl_info:
-	$(MAKE) -C importtl info
-importtl_makefiles:
-	$(MAKE) -C importtl makefiles
-importtl:
-	$(MAKE) -C importtl all
-.PHONY: importtl_all importtl_debug importtl_smart importtl_release importtl_units importtl_examples importtl_shared importtl_install importtl_sourceinstall importtl_exampleinstall importtl_distinstall importtl_zipinstall importtl_zipsourceinstall importtl_zipexampleinstall importtl_zipdistinstall importtl_clean importtl_distclean importtl_cleanall importtl_info importtl_makefiles importtl
-endif
-ifdef TARGET_DIRS_FPCRESLIPO
-fpcreslipo_all:
-	$(MAKE) -C fpcreslipo all
-fpcreslipo_debug:
-	$(MAKE) -C fpcreslipo debug
-fpcreslipo_smart:
-	$(MAKE) -C fpcreslipo smart
-fpcreslipo_release:
-	$(MAKE) -C fpcreslipo release
-fpcreslipo_units:
-	$(MAKE) -C fpcreslipo units
-fpcreslipo_examples:
-	$(MAKE) -C fpcreslipo examples
-fpcreslipo_shared:
-	$(MAKE) -C fpcreslipo shared
-fpcreslipo_install:
-	$(MAKE) -C fpcreslipo install
-fpcreslipo_sourceinstall:
-	$(MAKE) -C fpcreslipo sourceinstall
-fpcreslipo_exampleinstall:
-	$(MAKE) -C fpcreslipo exampleinstall
-fpcreslipo_distinstall:
-	$(MAKE) -C fpcreslipo distinstall
-fpcreslipo_zipinstall:
-	$(MAKE) -C fpcreslipo zipinstall
-fpcreslipo_zipsourceinstall:
-	$(MAKE) -C fpcreslipo zipsourceinstall
-fpcreslipo_zipexampleinstall:
-	$(MAKE) -C fpcreslipo zipexampleinstall
-fpcreslipo_zipdistinstall:
-	$(MAKE) -C fpcreslipo zipdistinstall
-fpcreslipo_clean:
-	$(MAKE) -C fpcreslipo clean
-fpcreslipo_distclean:
-	$(MAKE) -C fpcreslipo distclean
-fpcreslipo_cleanall:
-	$(MAKE) -C fpcreslipo cleanall
-fpcreslipo_info:
-	$(MAKE) -C fpcreslipo info
-fpcreslipo_makefiles:
-	$(MAKE) -C fpcreslipo makefiles
-fpcreslipo:
-	$(MAKE) -C fpcreslipo all
-.PHONY: fpcreslipo_all fpcreslipo_debug fpcreslipo_smart fpcreslipo_release fpcreslipo_units fpcreslipo_examples fpcreslipo_shared fpcreslipo_install fpcreslipo_sourceinstall fpcreslipo_exampleinstall fpcreslipo_distinstall fpcreslipo_zipinstall fpcreslipo_zipsourceinstall fpcreslipo_zipexampleinstall fpcreslipo_zipdistinstall fpcreslipo_clean fpcreslipo_distclean fpcreslipo_cleanall fpcreslipo_info fpcreslipo_makefiles fpcreslipo
-endif
-all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
-debug: fpc_debug
-smart: fpc_smart
-release: fpc_release
-units: fpc_units $(addsuffix _units,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: fpc_shared
-install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: fpc_sourceinstall
-exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: fpc_distinstall
-zipinstall: fpc_zipinstall
-zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
-distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
+units:
+examples:
+shared:
+sourceinstall:
+exampleinstall:
+zipsourceinstall:
+zipexampleinstall:
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
-ptopu$(PPUEXT): ptopu.pp
-ppdep$(EXEEXT): ppdep.pp
-unexport DATA2INC
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=..
+FPMAKE_OPT+=--globalunitdir=../packages
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
+ifndef BUILDFULLNATIVE
+FPMAKE_OPT+=-sp
+endif
 .NOTPARALLEL:
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+CLEAN_TARGET_DIRS=$(subst /Makefile.fpc, ,$(wildcard */Makefile.fpc))
+%_distclean:
+	$(MAKE) -C $* distclean
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS))
+else
+distclean:
+ifdef inUnix
+	{ $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+	$(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+	-$(DEL) fpmake.o
+	-$(DEL) fpmake.dbg
+endif
+cleanall: distclean
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
+endif
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
+endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie
