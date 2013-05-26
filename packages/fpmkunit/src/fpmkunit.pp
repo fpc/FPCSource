@@ -6389,6 +6389,7 @@ begin
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     DoBeforeClean(Apackage);
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     if AllTargets then
       begin
         // Remove the unit-and bin-directories completely. This is safer in case of files
