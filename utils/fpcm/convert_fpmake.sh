@@ -62,7 +62,7 @@ sed -i s,insert-packageunits-here,$PACKAGESDIR, $1/Makefile.fpc
 
 if $initial_conversion
 then
-  svn add Makefile.fpc
+  svn add $1/Makefile.fpc
 fi
 
 cd $1
