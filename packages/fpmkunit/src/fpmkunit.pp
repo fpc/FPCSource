@@ -4880,7 +4880,7 @@ begin
   D1:=FileDateToDateTime(DS);
   D2:=FileDateToDateTime(DD);
   Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
-  Result:=D1=D2;
+  Result:=D1>D2;
   If Result then
     Log(vlInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
 end;
