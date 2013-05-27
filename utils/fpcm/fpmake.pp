@@ -36,10 +36,12 @@ procedure fpcm_update_revision_info(Sender: TObject);
     if i = 0 then
       sleep(100);
     i := AProcess.Output.Read(b,1);
-    if b = 10 then
-      exit;
     if i > 0 then
-      ALine := ALine + chr(b);
+      begin
+        if b = 10 then
+          exit;
+        ALine := ALine + chr(b);
+      end;
     until not AProcess.Running and (i=0);
 
     result := (ALine <> '');
