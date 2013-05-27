@@ -169,7 +169,7 @@ BASEPACKDIR=$(BASEDIR)/basepack
 
 # Always use newly created fpcmake
 ifndef FPCMAKENEW
-FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(SRCEXEEXT)
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/bin/$(SOURCESUFFIX)/fpcmake$(SRCEXEEXT)
 endif
 
 # Build/install options
