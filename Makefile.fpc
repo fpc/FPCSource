@@ -169,7 +169,13 @@ BASEPACKDIR=$(BASEDIR)/basepack
 
 # Always use newly created fpcmake
 ifndef FPCMAKENEW
+ifdef CROSSCOMPILE
+# Use bootstrapped fpcmake when cross-compiling
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(SRCEXEEXT)
+else
+# Use normal fpcmake
 FPCMAKENEW=$(BASEDIR)/utils/fpcm/bin/$(SOURCESUFFIX)/fpcmake$(SRCEXEEXT)
+endif
 endif
 
 # Build/install options
@@ -316,6 +322,11 @@ buildbase: base.$(BUILDSTAMP)
 base.$(BUILDSTAMP):
 # create new compiler
         $(MAKE) compiler_cycle RELEASE=1
+ifdef CROSSCOMPILE
+# Buld a new native fpcmake when cross-compiling.
+# Fresh native compiler and RTL are ready at this stage.
+        $(MAKE) -C utils/fpcm bootstrap $(BUILDOPTS)
+endif
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
 # build everything
