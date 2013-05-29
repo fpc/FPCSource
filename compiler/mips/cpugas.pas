@@ -121,7 +121,10 @@ unit cpugas;
             if assigned(ref.symbol) then
               result:=result+'+';
             result:=result+tostr(ref.offset);
-          end;
+          end
+        { asmreader appears to treat literal numbers as references }
+        else if (ref.symbol=nil) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:='0';
 
         { either base or index may be present, but not both }
         reg:=ref.base;
