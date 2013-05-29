@@ -51,6 +51,18 @@ interface
                     TDef
 ************************************************}
 
+       tgenericconstraintdata=class
+         interfaces : tfpobjectlist;
+         interfacesderef : tfplist;
+         flags : tgenericconstraintflags;
+         constructor create;
+         destructor destroy;override;
+         procedure ppuload(ppufile:tcompilerppufile);
+         procedure ppuwrite(ppufile:tcompilerppufile);
+         procedure buildderef;
+         procedure deref;
+       end;
+
        { tstoreddef }
 
        tstoreddef = class(tdef)
@@ -69,6 +81,9 @@ interface
             generic parameters; the symbols are not owned by this list
             Note: this list is allocated on demand! }
           genericparas    : tfphashobjectlist;
+          { contains additional data if this def is a generic constraint
+            Note: this class is allocated on demand! }
+          genconstraintdata : tgenericconstraintdata;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1376,6 +1391,72 @@ implementation
                      TDEF (base class for definitions)
 ****************************************************************************}
 
+    constructor tgenericconstraintdata.create;
+      begin
+        interfaces:=tfpobjectlist.create(false);
+        interfacesderef:=tfplist.create;
+      end;
+
+
+    destructor tgenericconstraintdata.destroy;
+      var
+        i : longint;
+      begin
+        for i:=0 to interfacesderef.count-1 do
+          dispose(pderef(interfacesderef[i]));
+        interfacesderef.free;
+        interfaces.free;
+        inherited destroy;
+      end;
+
+    procedure tgenericconstraintdata.ppuload(ppufile: tcompilerppufile);
+      var
+        cnt,i : longint;
+        intfderef : pderef;
+      begin
+        ppufile.getsmallset(flags);
+        cnt:=ppufile.getlongint;
+        for i:=0 to cnt-1 do
+          begin
+            new(intfderef);
+            ppufile.getderef(intfderef^);
+            interfacesderef.add(intfderef);
+          end;
+      end;
+
+
+    procedure tgenericconstraintdata.ppuwrite(ppufile: tcompilerppufile);
+      var
+        i : longint;
+      begin
+        ppufile.putsmallset(flags);
+        ppufile.putlongint(interfacesderef.count);
+        for i:=0 to interfacesderef.count-1 do
+          ppufile.putderef(pderef(interfacesderef[i])^);
+      end;
+
+    procedure tgenericconstraintdata.buildderef;
+      var
+        intfderef : pderef;
+        i : longint;
+      begin
+        for i:=0 to interfaces.count-1 do
+          begin
+            new(intfderef);
+            intfderef^.build(tobjectdef(interfaces[i]));
+            interfacesderef.add(intfderef);
+          end;
+      end;
+
+    procedure tgenericconstraintdata.deref;
+      var
+        i : longint;
+      begin
+        for i:=0 to interfacesderef.count-1 do
+          interfaces.add(pderef(interfacesderef[i])^.resolve);
+      end;
+
+
     procedure tstoreddef.fillgenericparas(symtable: tsymtable);
       var
         sym : tsym;
@@ -1444,6 +1525,7 @@ implementation
             generictokenbuf:=nil;
           end;
         genericparas.free;
+        genconstraintdata.free;
         inherited destroy;
       end;
 
@@ -1463,6 +1545,11 @@ implementation
          ppufile.getderef(typesymderef);
          ppufile.getsmallset(defoptions);
          ppufile.getsmallset(defstates);
+         if df_genconstraint in defoptions then
+           begin
+             genconstraintdata:=tgenericconstraintdata.create;
+             genconstraintdata.ppuload(ppufile);
+           end;
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
@@ -1558,6 +1645,8 @@ implementation
         oldintfcrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         ppufile.putsmallset(defstates);
+        if df_genconstraint in defoptions then
+          genconstraintdata.ppuwrite(ppufile);
         if df_generic in defoptions then
           begin
             if assigned(generictokenbuf) then
@@ -1589,6 +1678,8 @@ implementation
       begin
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
+        if assigned(genconstraintdata) then
+          genconstraintdata.buildderef;
       end;
 
 
@@ -1602,6 +1693,8 @@ implementation
         typesym:=ttypesym(typesymderef.resolve);
         if df_specialization in defoptions then
           genericdef:=tstoreddef(genericdefderef.resolve);
+        if assigned(genconstraintdata) then
+          genconstraintdata.deref;
       end;
 
 

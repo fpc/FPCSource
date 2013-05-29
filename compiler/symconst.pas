@@ -206,6 +206,14 @@ type
   );
   tdefstates=set of tdefstate;
 
+  { flags for generic type constraints }
+  tgenericconstraintflag=(gcf_none,
+    gcf_constructor,       { specialization type needs to have a constructor }
+    gcf_class,             { specialization type needs to be a class }
+    gcf_record             { specialization type needs to be a record type }
+  );
+  tgenericconstraintflags=set of tgenericconstraintflag;
+
   { tsymlist entry types }
   tsltype = (sl_none,
     sl_load,

@@ -245,8 +245,13 @@ implementation
 
              { if only one def is a undefined def then they are not considered as
                equal}
-             if (def_from.typ=undefineddef) or
-                (def_to.typ=undefineddef) then
+             if (
+                   (def_from.typ=undefineddef) or
+                   assigned(tstoreddef(def_from).genconstraintdata)
+                 ) or (
+                   (def_to.typ=undefineddef) or
+                   assigned(tstoreddef(def_to).genconstraintdata)
+                 ) then
               begin
                 doconv:=tc_not_possible;
                 compare_defs_ext:=te_incompatible;
@@ -255,9 +260,15 @@ implementation
            end
          else
            begin
-             { undefined defs are considered equal }
-             if (def_from.typ=undefineddef) or
-                (def_to.typ=undefineddef) then
+             { undefined defs or defs with generic constraints are
+               considered equal to everything }
+             if (
+                   (def_from.typ=undefineddef) or
+                   assigned(tstoreddef(def_from).genconstraintdata)
+                 ) or (
+                   (def_to.typ=undefineddef) or
+                   assigned(tstoreddef(def_to).genconstraintdata)
+                 ) then
               begin
                 doconv:=tc_equal;
                 compare_defs_ext:=te_exact;

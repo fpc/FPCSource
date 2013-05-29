@@ -1311,6 +1311,10 @@ type
     mask : tdefstate;
     str  : string[30];
   end;
+  tgenconstrflag=record
+    mask : tgenericconstraintflag;
+    str  : string[30];
+  end;
   ptoken=^ttoken;
   pmsgstate =^tmsgstate;
 const
@@ -1330,6 +1334,11 @@ const
      (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
      (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
   );
+  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
+     (mask:gcf_constructor; str:'Constructor'),
+     (mask:gcf_class;       str:'Class'),
+     (mask:gcf_record;      str:'Record')
+  );
 var
   defstates  : tdefstates;
   i, nb{, msgvalue}, mesgnb : longint;
@@ -1343,6 +1352,7 @@ var
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
+  genconstr : tgenericconstraintflags;
 
   function readtoken: ttoken;
     var
@@ -1465,6 +1475,40 @@ begin
         end;
     end;
   writeln;
+
+  if df_genconstraint in defoptions then
+    begin
+      ppufile.getsmallset(genconstr);
+      write  ([space,'   GenConstraints : ']);
+      if genconstr<>[] then
+        begin
+          first:=true;
+          for i:=1 to high(genconstrflag) do
+           if (genconstrflag[i].mask in genconstr) then
+            begin
+              if first then
+                first:=false
+              else
+                write(', ');
+              write(genconstrflag[i].str);
+            end;
+        end;
+      writeln;
+
+      len:=ppufile.getasizeint;
+      if len>0 then
+        begin
+          space:='    '+space;
+          writeln([space,'------ constraint defs begin ------']);
+          for i:=0 to len-1 do
+            begin
+              writeln([space,'------ constraint def ',i,' ------']);
+              readderef(space);
+            end;
+          writeln([space,'------ constraint defs end ------']);
+          delete(space,1,4);
+        end;
+    end;
 
   if df_generic in defoptions then
     begin

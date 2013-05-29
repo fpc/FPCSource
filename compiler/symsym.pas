@@ -121,30 +121,8 @@ interface
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
-       tgenericconstraintflag=(
-         gcf_constructor,
-         gcf_class,
-         gcf_record
-       );
-       tgenericconstraintflags=set of tgenericconstraintflag;
-
-       tgenericconstraintdata=class
-         basedef : tdef;
-         basedefderef : tderef;
-         interfaces : tfpobjectlist;
-         interfacesderef : tfplist;
-         flags : tgenericconstraintflags;
-         constructor create;
-         destructor destroy;override;
-         procedure ppuload(ppufile:tcompilerppufile);
-         procedure ppuwrite(ppufile:tcompilerppufile);
-         procedure buildderef;
-         procedure deref;
-       end;
-
        ttypesym = class(Tstoredsym)
        public
-          genconstraintdata : tgenericconstraintdata;
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
@@ -2388,76 +2366,6 @@ implementation
 ****************************************************************************}
 
 
-    constructor tgenericconstraintdata.create;
-      begin
-        interfaces:=tfpobjectlist.create(false);
-        interfacesderef:=tfplist.create;
-      end;
-
-
-    destructor tgenericconstraintdata.destroy;
-      var
-        i : longint;
-      begin
-        for i:=0 to interfacesderef.count-1 do
-          dispose(pderef(interfacesderef[i]));
-        interfacesderef.free;
-        interfaces.free;
-        inherited destroy;
-      end;
-
-    procedure tgenericconstraintdata.ppuload(ppufile: tcompilerppufile);
-      var
-        cnt,i : longint;
-        intfderef : pderef;
-      begin
-        ppufile.getsmallset(flags);
-        ppufile.getderef(basedefderef);
-        cnt:=ppufile.getlongint;
-        for i:=0 to cnt-1 do
-          begin
-            new(intfderef);
-            ppufile.getderef(intfderef^);
-            interfacesderef.add(intfderef);
-          end;
-      end;
-
-
-    procedure tgenericconstraintdata.ppuwrite(ppufile: tcompilerppufile);
-      var
-        i : longint;
-      begin
-        ppufile.putsmallset(flags);
-        ppufile.putderef(basedefderef);
-        ppufile.putlongint(interfacesderef.count);
-        for i:=0 to interfacesderef.count-1 do
-          ppufile.putderef(pderef(interfacesderef[i])^);
-      end;
-
-    procedure tgenericconstraintdata.buildderef;
-      var
-        intfderef : pderef;
-        i : longint;
-      begin
-        basedefderef.build(basedef);
-        for i:=0 to interfaces.count-1 do
-          begin
-            new(intfderef);
-            intfderef^.build(tobjectdef(interfaces[i]));
-            interfacesderef.add(intfderef);
-          end;
-      end;
-
-    procedure tgenericconstraintdata.deref;
-      var
-        i : longint;
-      begin
-        basedef:=tdef(basedefderef.resolve);
-        for i:=0 to interfacesderef.count-1 do
-          interfaces.add(pderef(interfacesderef[i])^.resolve);
-      end;
-
-
     constructor ttypesym.create(const n : string;def:tdef);
 
       begin
@@ -2472,7 +2380,6 @@ implementation
 
     destructor ttypesym.destroy;
       begin
-        genconstraintdata.free;
         inherited destroy;
       end;
 
@@ -2482,27 +2389,18 @@ implementation
          inherited ppuload(typesym,ppufile);
          ppufile.getderef(typedefderef);
          fprettyname:=ppufile.getansistring;
-         if ppufile.getbyte<>0 then
-           begin
-             genconstraintdata:=tgenericconstraintdata.create;
-             genconstraintdata.ppuload(ppufile);
-           end;
       end;
 
 
     procedure ttypesym.buildderef;
       begin
         typedefderef.build(typedef);
-        if assigned(genconstraintdata) then
-          genconstraintdata.buildderef;
       end;
 
 
     procedure ttypesym.deref;
       begin
         typedef:=tdef(typedefderef.resolve);
-        if assigned(genconstraintdata) then
-          genconstraintdata.deref;
       end;
 
 
@@ -2511,13 +2409,6 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(typedefderef);
          ppufile.putansistring(fprettyname);
-         if assigned(genconstraintdata) then
-           begin
-             ppufile.putbyte(1);
-             genconstraintdata.ppuwrite(ppufile);
-           end
-         else
-           ppufile.putbyte(0);
          ppufile.writeentry(ibtypesym);
       end;
 

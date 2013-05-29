@@ -102,11 +102,11 @@ uses
       var
         i,j,
         intfcount : longint;
+        formaldef,
         paradef : tstoreddef;
         objdef,
         paraobjdef,
         formalobjdef : tobjectdef;
-        generictype : ttypesym;
         intffound : boolean;
         filepos : tfileposinfo;
       begin
@@ -121,22 +121,25 @@ uses
         result:=true;
         for i:=0 to genericdef.genericparas.count-1 do
           begin
-            generictype:=ttypesym(genericdef.genericparas[i]);
             filepos:=pfileposinfo(poslist[i])^;
-            if not assigned(generictype.genconstraintdata) then
+            formaldef:=tstoreddef(ttypesym(genericdef.genericparas[i]).typedef);
+            if formaldef.typ=undefineddef then
               { the parameter is of unspecified type, so no need to check }
               continue;
+            if not (df_genconstraint in formaldef.defoptions) or
+                not assigned(formaldef.genconstraintdata) then
+              internalerror(2013021602);
             paradef:=tstoreddef(paradeflist[i]);
             { undefineddef is compatible with anything }
-            if generictype.typedef.typ=undefineddef then
+            if formaldef.typ=undefineddef then
               continue;
-            if paradef.typ<>generictype.typedef.typ then
+            if paradef.typ<>formaldef.typ then
               begin
-                case generictype.typedef.typ of
+                case formaldef.typ of
                   recorddef:
                     MessagePos(filepos,type_e_record_type_expected);
                   objectdef:
-                    case tobjectdef(generictype.typedef).objecttype of
+                    case tobjectdef(formaldef).objecttype of
                       odt_class,
                       odt_javaclass:
                         MessagePos1(filepos,type_e_class_type_expected,paradef.typename);
@@ -160,10 +163,10 @@ uses
               begin
                 { the paradef types are the same, so do special checks for the
                   cases in which they are needed }
-                if generictype.typedef.typ=objectdef then
+                if formaldef.typ=objectdef then
                   begin
                     paraobjdef:=tobjectdef(paradef);
-                    formalobjdef:=tobjectdef(generictype.typedef);
+                    formalobjdef:=tobjectdef(formaldef);
                     if not (formalobjdef.objecttype in [odt_class,odt_javaclass,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_dispinterface]) then
                       internalerror(2012101102);
                     if formalobjdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_dispinterface] then
@@ -175,9 +178,9 @@ uses
                           odt_interfacecorba,
                           odt_interfacejava,
                           odt_dispinterface:
-                            if not paraobjdef.is_related(formalobjdef) then
+                            if not paraobjdef.is_related(formalobjdef.childof) then
                               begin
-                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.typename);
+                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                                 result:=false;
                               end;
                           odt_class,
@@ -188,7 +191,7 @@ uses
                               while assigned(objdef) do
                                 begin
                                   for j:=0 to objdef.implementedinterfaces.count-1 do
-                                    if timplementedinterface(objdef.implementedinterfaces[j]).intfdef=formalobjdef then
+                                    if timplementedinterface(objdef.implementedinterfaces[j]).intfdef=formalobjdef.childof then
                                       begin
                                         intffound:=true;
                                         break;
@@ -199,7 +202,7 @@ uses
                                 end;
                               result:=intffound;
                               if not result then
-                                MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,formalobjdef.typename);
+                                MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,formalobjdef.childof.typename);
                             end;
                           else
                             begin
@@ -209,51 +212,44 @@ uses
                         end;
                       end
                     else
-                      if df_genconstraint in formalobjdef.defoptions then
-                        begin
-                          { this is either a "class" or a concrete instance
-                            which shall implement interfaces }
-                          if not (paraobjdef.objecttype in [odt_class,odt_javaclass]) then
-                            begin
-                              MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
-                              result:=false;
-                              continue;
-                            end;
-                          if assigned(formalobjdef.childof) and
-                              not paradef.is_related(formalobjdef.childof) then
-                            begin
-                              MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
-                              result:=false;
-                            end;
-                          intfcount:=0;
-                          for j:=0 to formalobjdef.implementedinterfaces.count-1 do
-                            begin
-                              objdef:=paraobjdef;
-                              while assigned(objdef) do
-                                begin
-                                  intffound:=assigned(
-                                               objdef.find_implemented_interface(
-                                                 timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef
-                                               )
-                                             );
-                                  if intffound then
-                                    break;
-                                  objdef:=objdef.childof;
-                                end;
-                              if intffound then
-                                inc(intfcount)
-                              else
-                                MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef.typename);
-                            end;
-                          if intfcount<>formalobjdef.implementedinterfaces.count then
-                            result:=false;
-                        end
-                      else
-                        if not paraobjdef.is_related(formalobjdef) then
+                      begin
+                        { this is either a "class" or a concrete instance with
+                          or without implemented interfaces }
+                        if not (paraobjdef.objecttype in [odt_class,odt_javaclass]) then
                           begin
-                            MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.typename);
+                            MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
+                            result:=false;
+                            continue;
+                          end;
+                        if assigned(formalobjdef.childof) and
+                            not paradef.is_related(formalobjdef.childof) then
+                          begin
+                            MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                             result:=false;
                           end;
+                        intfcount:=0;
+                        for j:=0 to formalobjdef.implementedinterfaces.count-1 do
+                          begin
+                            objdef:=paraobjdef;
+                            while assigned(objdef) do
+                              begin
+                                intffound:=assigned(
+                                             objdef.find_implemented_interface(
+                                               timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef
+                                             )
+                                           );
+                                if intffound then
+                                  break;
+                                objdef:=objdef.childof;
+                              end;
+                            if intffound then
+                              inc(intfcount)
+                            else
+                              MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef.typename);
+                          end;
+                        if intfcount<>formalobjdef.implementedinterfaces.count then
+                          result:=false;
+                      end;
                   end;
               end;
           end;
@@ -868,7 +864,7 @@ uses
         generictype : ttypesym;
         i,firstidx : longint;
         srsymtable : tsymtable;
-        def : tdef;
+        basedef,def : tdef;
         defname : tidstring;
         allowconstructor,
         doconsume : boolean;
@@ -900,7 +896,7 @@ uses
 
               allowconstructor:=m_delphi in current_settings.modeswitches;
 
-              constraintdata.basedef:=generrordef;
+              basedef:=generrordef;
               repeat
                 doconsume:=true;
 
@@ -916,7 +912,7 @@ uses
                     begin
                       if gcf_class in constraintdata.flags then
                         Message(parser_e_illegal_expression);
-                      if constraintdata.basedef=generrordef then
+                      if basedef=generrordef then
                         include(constraintdata.flags,gcf_class)
                       else
                         Message(parser_e_illegal_expression);
@@ -929,7 +925,7 @@ uses
                       else
                         begin
                           srsymtable:=trecordsymtable.create(defname,0);
-                          constraintdata.basedef:=trecorddef.create(defname,srsymtable);
+                          basedef:=trecorddef.create(defname,srsymtable);
                           include(constraintdata.flags,gcf_record);
                           allowconstructor:=false;
                         end;
@@ -957,10 +953,10 @@ uses
                                 Message(parser_e_illegal_expression)
                               else
                                 { do we already have a concrete class? }
-                                if constraintdata.basedef<>generrordef then
+                                if basedef<>generrordef then
                                   Message(parser_e_illegal_expression)
                                 else
-                                  constraintdata.basedef:=def;
+                                  basedef:=def;
                             end;
                           odt_interfacecom,
                           odt_interfacecorba,
@@ -975,37 +971,44 @@ uses
               until not try_to_consume(_COMMA);
 
               if ([gcf_class,gcf_constructor]*constraintdata.flags<>[]) or
-                  ((constraintdata.interfaces.count>1) and (constraintdata.basedef=generrordef)) or
-                  ((constraintdata.interfaces.count>0) and (constraintdata.basedef<>generrordef)) then
+                  (constraintdata.interfaces.count>1) or
+                  (
+                    (basedef.typ=objectdef) and
+                    (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class])
+                  ) then
                 begin
-                  if constraintdata.basedef.typ=errordef then
+                  if basedef.typ=errordef then
                     { don't pass an errordef as a parent to a tobjectdef }
-                    constraintdata.basedef:=nil
+                    basedef:=class_tobject
                   else
-                    if constraintdata.basedef.typ<>objectdef then
+                    if (basedef.typ<>objectdef) or
+                        not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
                       internalerror(2012101101);
-                  constraintdata.basedef:=tobjectdef.create({$ifdef jvm}odt_javaclass{$else}odt_class{$endif},defname,tobjectdef(constraintdata.basedef));
-                  include(constraintdata.basedef.defoptions,df_genconstraint);
+                  basedef:=tobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef));
                   for i:=0 to constraintdata.interfaces.count-1 do
-                    tobjectdef(constraintdata.basedef).implementedinterfaces.add(
+                    tobjectdef(basedef).implementedinterfaces.add(
                       timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
                 end
               else
                 if constraintdata.interfaces.count=1 then
                   begin
-                    constraintdata.basedef:=tdef(constraintdata.interfaces[0]);
+                    if basedef.typ<>errordef then
+                      internalerror(2013021601);
+                    def:=tdef(constraintdata.interfaces[0]);
+                    basedef:=tobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def));
                     constraintdata.interfaces.delete(0);
+                  end;
+              if basedef.typ<>errordef then
+                with tstoreddef(basedef) do
+                  begin
+                    genconstraintdata:=tgenericconstraintdata.create;
+                    genconstraintdata.flags:=constraintdata.flags;
+                    genconstraintdata.interfaces.assign(constraintdata.interfaces);
+                    include(defoptions,df_genconstraint);
                   end;
 
               for i:=firstidx to result.count-1 do
-                with ttypesym(result[i]) do
-                  begin
-                    genconstraintdata:=tgenericconstraintdata.create;
-                    genconstraintdata.basedef:=constraintdata.basedef;
-                    genconstraintdata.flags:=constraintdata.flags;
-                    genconstraintdata.interfaces.assign(constraintdata.interfaces);
-                    typedef:=constraintdata.basedef;
-                  end;
+                ttypesym(result[i]).typedef:=basedef;
               firstidx:=result.count;
 
               constraintdata.free;
