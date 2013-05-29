@@ -38,6 +38,7 @@ Procedure InitialiseDllist(libpath:string);
 Procedure ReleaseDllist;
 
 var DllistLibraryHandle : TLibHandle;
+var libpgCriticalSection: TRTLCriticalSection;
 
 implementation
 
@@ -46,40 +47,50 @@ var RefCount : integer;
 Procedure InitialiseDllist(libpath:string);
 
 begin
-  inc(RefCount);
-  if RefCount = 1 then
-    begin
-    DllistLibraryHandle := loadlibrary(libpath);
-    if DllistLibraryHandle = nilhandle then
+  EnterCriticalsection(libpgCriticalSection);
+  try
+    inc(RefCount);
+    if RefCount = 1 then
       begin
-      RefCount := 0;
-      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+libpath+')');
-      end;
+      DllistLibraryHandle := loadlibrary(libpath);
+      if DllistLibraryHandle = nilhandle then
+        begin
+        RefCount := 0;
+        Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+libpath+')');
+        end;
 
-    pointer(DLNewList) := GetProcedureAddress(DllistLibraryHandle,'DLNewList');
-    pointer(DLFreeList) := GetProcedureAddress(DllistLibraryHandle,'DLFreeList');
-    pointer( DLNewElem) := GetProcedureAddress(DllistLibraryHandle,' DLNewElem');
-    pointer(DLFreeElem) := GetProcedureAddress(DllistLibraryHandle,'DLFreeElem');
-    pointer( DLGetHead) := GetProcedureAddress(DllistLibraryHandle,' DLGetHead');
-    pointer( DLGetTail) := GetProcedureAddress(DllistLibraryHandle,' DLGetTail');
-    pointer( DLRemTail) := GetProcedureAddress(DllistLibraryHandle,' DLRemTail');
-    pointer( DLGetPred) := GetProcedureAddress(DllistLibraryHandle,' DLGetPred');
-    pointer( DLGetSucc) := GetProcedureAddress(DllistLibraryHandle,' DLGetSucc');
-    pointer(DLRemove) := GetProcedureAddress(DllistLibraryHandle,'DLRemove');
-    pointer(DLAddHead) := GetProcedureAddress(DllistLibraryHandle,'DLAddHead');
-    pointer(DLAddTail) := GetProcedureAddress(DllistLibraryHandle,'DLAddTail');
-    pointer( DLRemHead) := GetProcedureAddress(DllistLibraryHandle,' DLRemHead');
-    end;
+      pointer(DLNewList) := GetProcedureAddress(DllistLibraryHandle,'DLNewList');
+      pointer(DLFreeList) := GetProcedureAddress(DllistLibraryHandle,'DLFreeList');
+      pointer( DLNewElem) := GetProcedureAddress(DllistLibraryHandle,' DLNewElem');
+      pointer(DLFreeElem) := GetProcedureAddress(DllistLibraryHandle,'DLFreeElem');
+      pointer( DLGetHead) := GetProcedureAddress(DllistLibraryHandle,' DLGetHead');
+      pointer( DLGetTail) := GetProcedureAddress(DllistLibraryHandle,' DLGetTail');
+      pointer( DLRemTail) := GetProcedureAddress(DllistLibraryHandle,' DLRemTail');
+      pointer( DLGetPred) := GetProcedureAddress(DllistLibraryHandle,' DLGetPred');
+      pointer( DLGetSucc) := GetProcedureAddress(DllistLibraryHandle,' DLGetSucc');
+      pointer(DLRemove) := GetProcedureAddress(DllistLibraryHandle,'DLRemove');
+      pointer(DLAddHead) := GetProcedureAddress(DllistLibraryHandle,'DLAddHead');
+      pointer(DLAddTail) := GetProcedureAddress(DllistLibraryHandle,'DLAddTail');
+      pointer( DLRemHead) := GetProcedureAddress(DllistLibraryHandle,' DLRemHead');
+      end;
+  finally
+    LeaveCriticalsection(libpgCriticalSection);
+  end;
 end;
 
 Procedure ReleaseDllist;
 
 begin
-  if RefCount > 0 then dec(RefCount);
-  if RefCount = 0 then
-    begin
-    if not UnloadLibrary(DllistLibraryHandle) then inc(RefCount);
-    end;
+  EnterCriticalsection(libpgCriticalSection);
+  try
+    if RefCount > 0 then dec(RefCount);
+    if RefCount = 0 then
+      begin
+      if not UnloadLibrary(DllistLibraryHandle) then inc(RefCount);
+      end;
+  finally
+    LeaveCriticalsection(libpgCriticalSection);
+  end;
 end;
 
 // This function is also defined in Dllist!
@@ -89,4 +100,8 @@ begin
 end;
 
 
+initialization
+  InitCriticalSection(libpgCriticalSection);
+finalization
+  DoneCriticalsection(libpgCriticalSection);
 end.
