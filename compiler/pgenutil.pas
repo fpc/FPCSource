@@ -112,7 +112,7 @@ uses
       begin
         { check whether the given specialization parameters fit to the eventual
           constraints of the generic }
-        if genericdef.genericparas.count=0 then
+        if not assigned(genericdef.genericparas) or (genericdef.genericparas.count=0) then
           internalerror(2012101001);
         if genericdef.genericparas.count<>paradeflist.count then
           internalerror(2012101002);
@@ -1039,6 +1039,8 @@ uses
             internalerror(201101020);
         end;
 
+        if (genericlist.count>0) and not assigned(def.genericparas) then
+          def.genericparas:=tfphashobjectlist.create(false);
         for i:=0 to genericlist.count-1 do
           begin
             generictype:=ttypesym(genericlist[i]);

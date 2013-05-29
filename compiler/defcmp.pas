@@ -271,21 +271,27 @@ implementation
              (df_specialization in def_to.defoptions) and
              (tstoreddef(def_from).genericdef=tstoreddef(def_to).genericdef) then
            begin
-             if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
-               internalerror(2012091301);
+             if assigned(tstoreddef(def_from).genericparas) xor
+                 assigned(tstoreddef(def_to).genericparas) then
+               internalerror(2013030901);
              diff:=false;
-             for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+             if assigned(tstoreddef(def_from).genericparas) then
                begin
-                 if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
-                   internalerror(2012091302);
-                 symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
-                 symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
-                 if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
-                   internalerror(2012121401);
-                 if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
-                   diff:=true;
-                 if diff then
-                   break;
+                 if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
+                   internalerror(2012091301);
+                 for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+                   begin
+                     if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
+                       internalerror(2012091302);
+                     symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
+                     symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
+                     if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                       internalerror(2012121401);
+                     if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                       diff:=true;
+                     if diff then
+                       break;
+                   end;
                end;
              if not diff then
                begin

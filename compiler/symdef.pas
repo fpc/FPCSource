@@ -66,7 +66,8 @@ interface
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
           { this list contains references to the symbols that make up the
-            generic parameters; the symbols are not owned by this list }
+            generic parameters; the symbols are not owned by this list
+            Note: this list is allocated on demand! }
           genericparas    : tfphashobjectlist;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
@@ -1388,7 +1389,11 @@ implementation
           begin
             sym:=tsym(symtable.symlist[i]);
             if sp_generic_para in sym.symoptions then
-              genericparas.Add(sym.name,sym);
+              begin
+                if not assigned(genericparas) then
+                  genericparas:=tfphashobjectlist.create(false);
+                genericparas.Add(sym.name,sym);
+              end;
           end;
       end;
 
@@ -1403,7 +1408,6 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
-         genericparas:=tfphashobjectlist.create(false);
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1450,7 +1454,6 @@ implementation
         buf  : array[0..255] of byte;
       begin
          inherited create(dt);
-         genericparas:=tfphashobjectlist.create(false);
          DefId:=ppufile.getlongint;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
@@ -1697,13 +1700,17 @@ implementation
 
    function tstoreddef.is_generic: boolean;
      begin
-       result:=(genericparas.count>0) and (df_generic in defoptions);
+       result:=assigned(genericparas) and
+                 (genericparas.count>0) and
+                 (df_generic in defoptions);
      end;
 
 
    function tstoreddef.is_specialization: boolean;
      begin
-       result:=(genericparas.count>0) and (df_specialization in defoptions);
+       result:=assigned(genericparas) and
+                 (genericparas.count>0) and
+                 (df_specialization in defoptions);
      end;
 
 
