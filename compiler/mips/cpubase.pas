@@ -112,19 +112,16 @@ unit cpubase;
     type
       TAsmCond=(C_None,
         C_EQ, C_NE, C_LT, C_LE, C_GT, C_GE, C_LTU, C_LEU, C_GTU, C_GEU,
-        C_FEQ,  {Equal}
-        C_FNE, {Not Equal}
-        C_FGT,  {Greater}
-        C_FLT,  {Less}
-        C_FGE, {Greater or Equal}
-        C_FLE  {Less or Equal}
-
+        C_LTZ, C_LEZ, C_GTZ, C_GEZ,
+        C_COP1TRUE,
+        C_COP1FALSE
       );
 
     const
       cond2str : array[TAsmCond] of string[3]=('',
         'eq','ne','lt','le','gt','ge','ltu','leu','gtu','geu',
-        'feq','fne','fgt','flt','fge','fle'
+        'ltz','lez','gtz','gez',
+        'c1t','c1f'
       );
 
 {*****************************************************************************
@@ -326,7 +323,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC, A_BC1T, A_BC1F];
+        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC];
       end;
 
 
@@ -334,12 +331,9 @@ unit cpubase;
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
         C_NE, C_EQ, C_GE, C_GT, C_LE, C_LT, C_GEU, C_GTU, C_LEU, C_LTU,
-        C_FNE, 
-        C_FEQ, 
-        C_FLE, 
-        C_FGE, 
-        C_FLT, 
-        C_FGT  
+        C_GEZ, C_GTZ, C_LEZ, C_LTZ,
+        C_COP1FALSE,
+        C_COP1TRUE
         );
       begin
         result := inverse[c];

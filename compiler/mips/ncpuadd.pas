@@ -343,8 +343,9 @@ const
 
 procedure tmipsaddnode.second_cmpfloat;
 var
-  op,op2: tasmop;
+  op: tasmop;
   lreg,rreg: tregister;
+  ai: Taicpu;
 begin
   pass_left_right;
   if nf_swapped in flags then
@@ -355,11 +356,6 @@ begin
   location_reset(location, LOC_JUMP, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];
-
-  if (nodetype=unequaln) then
-    op2:=A_BC1F
-  else
-    op2:=A_BC1T;
 
   if (nodetype in [gtn,gten]) then
     begin
@@ -373,7 +369,12 @@ begin
     end;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,lreg,rreg));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(op2,current_procinfo.CurrTrueLabel));
+  ai:=taicpu.op_sym(A_BC,current_procinfo.CurrTrueLabel);
+  if (nodetype=unequaln) then
+    ai.SetCondition(C_COP1FALSE)
+  else
+    ai.SetCondition(C_COP1TRUE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
 end;
