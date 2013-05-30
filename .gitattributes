@@ -8259,6 +8259,7 @@ rtl/msdos/sysos.inc svneol=native#text/plain
 rtl/msdos/sysosh.inc svneol=native#text/plain
 rtl/msdos/system.pp svneol=native#text/plain
 rtl/msdos/sysutils.pp svneol=native#text/plain
+rtl/msdos/tthread.inc svneol=native#text/plain
 rtl/msdos/varutils.pp svneol=native#text/plain
 rtl/nativent/Makefile svneol=native#text/plain
 rtl/nativent/Makefile.fpc svneol=native#text/plain

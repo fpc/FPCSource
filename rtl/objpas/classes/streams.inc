@@ -718,7 +718,7 @@ begin
 end;
 
 
-procedure TMemoryStream.SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt);
+procedure TMemoryStream.SetSize({$ifdef CPU64}const NewSize: Int64{$else}NewSize: LongInt{$endif});
 
 begin
   SetCapacity (NewSize);

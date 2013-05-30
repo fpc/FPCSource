@@ -46,7 +46,11 @@ const
 
 { Maximum TList size }
 
+{$ifdef cpu16}
+  MaxListSize = {Maxint div 16}1024;
+{$else cpu16}
   MaxListSize = Maxint div 16;
+{$endif cpu16}
 
 { values for TShortCut }
 
@@ -377,7 +381,11 @@ const
    BITSHIFT = 5;
    MASK = 31; {for longs that are 32-bit in size}
    // to further increase, signed integer limits have to be researched.
+{$ifdef cpu16}
+   MaxBitFlags = $7FE0;
+{$else cpu16}
    MaxBitFlags = $7FFFFFE0;
+{$endif cpu16}
    MaxBitRec = MaxBitFlags Div (SizeOf(cardinal)*8);
 type
    TBitArray = array[0..MaxBitRec - 1] of cardinal;
@@ -960,7 +968,7 @@ type
     procedure Clear;
     procedure LoadFromStream(Stream: TStream);
     procedure LoadFromFile(const FileName: string);
-    procedure SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt); override;
+    procedure SetSize({$ifdef CPU64}const NewSize: Int64{$else}NewSize: LongInt{$endif}); override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 

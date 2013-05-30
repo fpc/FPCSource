@@ -523,7 +523,7 @@ type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
     Count: Word;
-    Entries: array[Word] of TPersistentClass;
+    Entries: array[{$ifdef cpu16}0..16384 div sizeof(TPersistentClass){$else}Word{$endif}] of TPersistentClass;
   end;
 
   PFieldTable = ^TFieldTable;
