@@ -982,6 +982,7 @@ implementation
                 (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
                ((cs_opt_stackframe in current_settings.optimizerswitches) and
                 not(cs_generate_stackframes in current_settings.localswitches) and
+                not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_has_stackparameter,pi_needs_stackframe]+
