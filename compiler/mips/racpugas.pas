@@ -35,7 +35,6 @@ Interface
       procedure BuildReference(oper : TOperand);
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
-      procedure ReadPercent(oper : TOperand);
       procedure ReadSym(oper : TOperand);
       procedure ConvertCalljmp(instr : TInstruction);
       procedure handlepercent;override;
@@ -100,52 +99,28 @@ Interface
       begin
         Inherited handledollar;
         if (c in ['0'..'9','a'..'z']) then
-      begin
+          begin
             Consume(AS_DOLLAR);
             if (actasmtoken=AS_INTNUM) or (actasmtoken=AS_ID) then
-           begin
-             { Try to convert to std register }
-                  if actasmtoken=AS_INTNUM then
-                    actasmregister:=gas_regnum_search('$'+actasmpattern)
-                  else
-                    begin
-                      { AS_ID is uppercased by default but register names
-                        are lowercase }
-                      actasmpattern:=lower(actasmpattern);
-                      actasmregister:=gas_regnum_search(actasmpattern);
-                      if actasmregister=NR_NO then
-                        actasmregister:=std_regnum_search(actasmpattern);
-                    end;
-                  if actasmregister<>NR_NO then
-                    begin
-                      // Consume(actasmtoken);
-                      actasmtoken:=AS_REGISTER;
-                    end;
-              end;
-          end;
-      end;
-
-    procedure TMipsReader.ReadPercent(oper : TOperand);
-      begin
-        { check for ...@ }
-        if actasmtoken=AS_AT then
-          begin
-            if (oper.opr.ref.symbol=nil) and
-               (oper.opr.ref.offset = 0) then
-              Message(asmr_e_invalid_reference_syntax);
-            Consume(AS_AT);
-            if actasmtoken=AS_ID then
               begin
-                if upper(actasmpattern)='LO' then
-                  oper.opr.ref.refaddr:=addr_low
-                else if upper(actasmpattern)='HI' then
-                  oper.opr.ref.refaddr:=addr_high
+                { Try to convert to std register }
+                if actasmtoken=AS_INTNUM then
+                  actasmregister:=gas_regnum_search('$'+actasmpattern)
                 else
-                  Message(asmr_e_invalid_reference_syntax);
-                Consume(AS_ID);
-              end
-            else
-              Message(asmr_e_invalid_reference_syntax);
+                  begin
+                    { AS_ID is uppercased by default but register names
+                      are lowercase }
+                    actasmpattern:=lower(actasmpattern);
+                    actasmregister:=gas_regnum_search(actasmpattern);
+                    if actasmregister=NR_NO then
+                      actasmregister:=std_regnum_search(actasmpattern);
+                  end;
+                if actasmregister<>NR_NO then
+                  begin
+                    // Consume(actasmtoken);
+                    actasmtoken:=AS_REGISTER;
+                  end;
+              end;
           end;
       end;
 
@@ -154,13 +129,11 @@ Interface
       var
         l : aint;
         regs : byte;
-        opening : TAsmToken;
         hasimm : boolean;
       begin
         oper.initref;
         regs:=0;
         hasimm:=false;
-        opening:=ActAsmToken;
         Consume(ActAsmToken);
         repeat
           Case actasmtoken of
@@ -203,15 +176,11 @@ Interface
                 inc(oper.opr.ref.offset,l);
               End;
 
-            AS_RPAREN,
-            AS_RBRACKET:
+            AS_RPAREN:
               begin
                 if (regs=0) and (not hasimm) then
                   Message(asmr_e_invalid_reference_syntax);
-                if opening=AS_LPAREN then
-                  Consume(AS_RPAREN)
-                else
-                  Consume(AS_RBRACKET);
+                Consume(AS_RPAREN);
                 break;
               end;
 
@@ -242,14 +211,12 @@ Interface
           end;
          actasmpattern[0]:=chr(len);
          uppervar(actasmpattern);
-         if is_register(actasmpattern) then
-           exit;
          if (actasmpattern='%HI') then
            actasmtoken:=AS_HI
          else if (actasmpattern='%LO')then
            actasmtoken:=AS_LO
          else
-           Message(asmr_e_invalid_register);
+           Message(asmr_e_invalid_reference_syntax);
       end;
 
 
@@ -376,7 +343,6 @@ Interface
                   negative:=(prevasmtoken=AS_MINUS);
               end;
 
-            AS_LBRACKET,
             AS_LPAREN :
               begin
                 { memory reference }
@@ -459,9 +425,7 @@ Interface
                        end
                       else
                        begin
-                         if oper.SetupVar(expr,false) then
-                           ReadPercent(oper)
-                         else
+                         if not oper.SetupVar(expr,false) then
                           Begin
                             { look for special symbols ... }
                             if expr= '__HIGH' then
