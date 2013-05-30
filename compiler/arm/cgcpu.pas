@@ -3942,7 +3942,7 @@ unit cgcpu;
               it saves us a register }
 {$ifdef DUMMY}
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) and not(cgsetflags or setflags) then
-              a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+              a_op_const_reg_reg(list,OP_SHL,size,l1,dst,dst)
             { for example : b=a*5 -> b=a*4+a with add instruction and shl }
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a-1,l1) and not(cgsetflags or setflags) then
               begin
@@ -3951,7 +3951,7 @@ unit cgcpu;
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
-                list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,src,src,so));
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,dst,dst,so));
               end
             { for example : b=a*7 -> b=a*8-a with rsb instruction and shl }
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a+1,l1) and not(cgsetflags or setflags) then
@@ -3961,9 +3961,9 @@ unit cgcpu;
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
-                list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,dst,dst,so));
               end
-            else if (op in [OP_MUL,OP_IMUL]) and not(cgsetflags or setflags) and try_optimized_mul32_const_reg_reg(list,a,src,dst) then
+            else if (op in [OP_MUL,OP_IMUL]) and not(cgsetflags or setflags) and try_optimized_mul32_const_reg_reg(list,a,dst,dst) then
               begin
                 { nothing to do on success }
               end
@@ -3979,20 +3979,24 @@ unit cgcpu;
               broader range of shifterconstants.}
 {$ifdef DUMMY}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
-              list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
+              list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,not(dword(a))))
             else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
               begin
-                list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,imm1));
+                list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,imm1));
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,imm2));
               end
             else if (op in [OP_ADD, OP_SUB, OP_OR]) and
                     not(cgsetflags or setflags) and
                     split_into_shifter_const(a, imm1, imm2) then
               begin
-                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,imm1));
+                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,dst,imm1));
                 list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,dst,imm2));
               end
 {$endif DUMMY}
+            else if (op in [OP_SHL, OP_SHR, OP_SAR, OP_ROR]) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(op_reg_opcg2asmop[op],dst,dst,a));
+              end
             else
               begin
                 tmpreg:=getintregister(list,size);
