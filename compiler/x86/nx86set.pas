@@ -284,6 +284,9 @@ implementation
 {$ifdef CORRECT_SET_IN_FPC}
          AM         : tasmop;
 {$endif CORRECT_SET_IN_FPC}
+{$ifdef i8086}
+         extra_offset_reg: TRegister;
+{$endif i8086}
 
          function analizeset(Aset:pconstset;is_small:boolean):boolean;
            var
@@ -343,6 +346,25 @@ implementation
               end;
              analizeset:=true;
            end;
+
+{$ifdef i8086}
+         procedure add_extra_offset(offset_reg:TRegister;var ref:treference);
+           var
+             reg: TRegister;
+           begin
+             if ref.index=NR_NO then
+               ref.index:=offset_reg
+             else if ref.base=NR_NO then
+               ref.base:=offset_reg
+             else
+               begin
+                 reg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,ref.index,reg);
+                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,offset_reg,reg);
+                 ref.index:=reg;
+               end;
+           end;
+{$endif i8086}
 
        begin
          { We check first if we can generate jumps, this can be done
@@ -675,10 +697,23 @@ implementation
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
 
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
+
+                  if not use_small then
+                    begin
+                      extra_offset_reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,extra_offset_reg);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,4,extra_offset_reg);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_16,1,extra_offset_reg);
+                    end
+                  else
+                    extra_offset_reg:=NR_NO;
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
+                  if not use_small then
+                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_AND,S_B,15,NR_CL));
 
                   pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
 
@@ -714,7 +749,11 @@ implementation
                       LOC_REGISTER, LOC_CREGISTER :
                         emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
                       LOC_CREFERENCE, LOC_REFERENCE :
-                        emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                        begin
+                          if not use_small then
+                            add_extra_offset(extra_offset_reg,right.location.reference);
+                          emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                        end;
                     else
                       internalerror(2007020301);
                     end;
@@ -733,7 +772,11 @@ implementation
                         LOC_REGISTER, LOC_CREGISTER :
                           emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
                         LOC_CREFERENCE, LOC_REFERENCE :
-                          emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                          begin
+                            if not use_small then
+                              add_extra_offset(extra_offset_reg,right.location.reference);
+                            emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
+                          end;
                       else
                         internalerror(2007020302);
                       end;
