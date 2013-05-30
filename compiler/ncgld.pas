@@ -481,13 +481,7 @@ implementation
                    internalerror(200312011);
                  if assigned(left) then
                    begin
-                     {$if sizeof(pint) = 4}
-                        location_reset(location,LOC_CREGISTER,OS_64);
-                     {$else} {$if sizeof(pint) = 8}
-                        location_reset(location,LOC_CREGISTER,OS_128);
-                     {$else}
-                        internalerror(20020520);
-                     {$endif} {$endif}
+                     location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
                      secondpass(left);
 
                      { load class instance/classrefdef address }
