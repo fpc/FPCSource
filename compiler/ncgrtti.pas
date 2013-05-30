@@ -58,6 +58,7 @@ interface
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
+        procedure start_write_unit_extrtti_info;
         procedure after_write_unit_extrtti_info(st: TSymtable);
       end;
 
@@ -108,9 +109,14 @@ implementation
       var
         extrttilab : tasmsymbol;
       begin
+        if def.owner.ExtRttiCount=0 then
+          start_write_unit_extrtti_info;
+
         extrttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(extrtti),AB_GLOBAL,AT_DATA);
 
-        new_section(current_asmdata.asmlists[al_ext_rtti],sec_rodata,extrttilab.name,const_align(sizeof(pint)));
+        { Create a sec_extrtti section, because a normal data section could be
+          re-ordered by the linker }
+        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,extrttilab.name,const_align(sizeof(pint)));
         current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(extrttilab,0));
 
         // Write reference to 'normal' typedata
@@ -1335,19 +1341,49 @@ implementation
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
       end;
 
+    procedure TRTTIWriter.start_write_unit_extrtti_info;
+      begin
+        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,make_mangledname('EXTR',current_module.localsymtable,''),const_align(sizeof(pint)));
+      end;
+
+
     procedure TRTTIWriter.after_write_unit_extrtti_info(st: TSymtable);
       var
-        startrtti  : TAsmSymbol;
-        s          : string;
+        start_extrtti_symbollist,
+        end_extrtti_symbollist    : TAsmSymbol;
+        first_item,
+        unitinfosize_item,
+        start_extrtti_item,
+        unitnamelength_item,
+        unitname_item             : TLinkedListItem;
+        s                         : string;
     begin
       if st.extrtticount>0 then
         begin
-          startrtti := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+          { Make symbols for the start and the end of the unit-info, so that
+            the linker can calculate the size of the structure. This because
+            some types could be omitted due to smart-linking }
+          start_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+          end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
           s := current_module.realmodulename^;
-          current_asmdata.asmlists[al_ext_rtti].insert(Tai_string.Create(s));
-          current_asmdata.asmlists[al_ext_rtti].insert(Tai_const.Create_8bit(length(s)));
-          current_asmdata.asmlists[al_ext_rtti].insert(Tai_const.Create_aint(st.ExtRttiCount));
-          current_asmdata.asmlists[al_ext_rtti].insert(Tai_symbol.Create_global(startrtti,0));
+
+          { Insert the TUnitInfo structure after the section-start, which is
+            added in start_write_unit_extrtti_info }
+          first_item := current_asmdata.asmlists[al_ext_rtti].First.Next;
+          start_extrtti_item := Tai_symbol.Create_global(start_extrtti_symbollist,0);
+          unitinfosize_item := Tai_const.Create_rel_sym(aitconst_aint, start_extrtti_symbollist, end_extrtti_symbollist);
+          unitnamelength_item := Tai_const.Create_8bit(length(s));
+          unitname_item := Tai_string.Create(s);
+
+          current_asmdata.asmlists[al_ext_rtti].InsertAfter(start_extrtti_item, first_item);
+          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitinfosize_item, start_extrtti_item);
+          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitnamelength_item, unitinfosize_item);
+          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitname_item, unitnamelength_item);
+
+          { Write the symbol to mark the end of the structure }
+          current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(end_extrtti_symbollist,0));
+          current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Create_8bit(0));
+
           current_module.flags:=current_module.flags+uf_extrtti;
         end;
     end;

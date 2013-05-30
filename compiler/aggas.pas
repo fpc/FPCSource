@@ -279,6 +279,7 @@ implementation
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
+          '.extrtti',
           '.toc',
           '.init',
           '.fini',
@@ -336,6 +337,7 @@ implementation
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
+          '.extrtti',
           '.toc',
           '.init',
           '.fini',
@@ -441,7 +443,7 @@ implementation
             result:='d';
 
           { TODO: these need a fix to become read-only }
-          sec_rodata, sec_rodata_norel:
+          sec_rodata, sec_rodata_norel, sec_extrtti:
             result:='d';
 
           sec_bss:
@@ -1629,6 +1631,11 @@ implementation
                 result := '.section __TEXT, .fpc, regular, no_dead_strip';
                 exit;
               end;
+            sec_extrtti:
+              begin
+                result := '.section __FPC, .extrtti, regular';
+                exit;
+              end;
             sec_code:
               begin
                 if (aname='fpc_geteipasebx') or
@@ -1817,6 +1824,7 @@ implementation
          sec_debug_abbrev,
          { ELF resources (+ references to stabs debug information sections) }
          sec_code (* sec_fpc *),
+         sec_data (* sec_extrtti *),
          { Table of contents section }
          sec_code (* sec_toc *),
          sec_code (* sec_init *),
