@@ -1150,18 +1150,35 @@ Implementation
                        {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
                        MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition],
                                              [PF_None, PF_B]) and
-                       (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) and
-                       (taicpu(hp1).oper[1]^.ref^.base <> taicpu(p).oper[0]^.reg) and
+                       (
+                         {If this is address by offset, one of the two registers can be used}
+                         ((taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                           (
+                             (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) xor
+                             (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg)
+                           )
+                         ) or
+                         {For post and preindexed only the index register can be used}
+                         ((taicpu(hp1).oper[1]^.ref^.addressmode in [AM_POSTINDEXED, AM_PREINDEXED]) and
+                           (
+                             (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) and
+                             (taicpu(hp1).oper[1]^.ref^.base <> taicpu(p).oper[0]^.reg)
+                           )
+                         )
+                       ) and
                        { Only fold if there isn't another shifterop already. }
                        (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_None) and
                        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
                        (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
                        begin
-                         DebugMsg('Peephole FoldShiftLdrStr done', hp1);
+                         { If the register we want to do the shift for resides in base, we need to swap that}
+                         if (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg) then
+                           taicpu(hp1).oper[1]^.ref^.base := taicpu(hp1).oper[1]^.ref^.index;
                          taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
                          taicpu(hp1).oper[1]^.ref^.shiftmode := taicpu(p).oper[2]^.shifterop^.shiftmode;
                          taicpu(hp1).oper[1]^.ref^.shiftimm := taicpu(p).oper[2]^.shifterop^.shiftimm;
+                         DebugMsg('Peephole FoldShiftLdrStr done', hp1);
                          asml.remove(p);
                          p.free;
                          p:=hp1;
