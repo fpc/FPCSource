@@ -85,7 +85,6 @@ NR_ES,$05000003,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
 NR_SS,$05000004,ss,%ss,ss,ss,-1,-1,-1,OT_REG_DESS,2
 NR_FS,$05000005,fs,%fs,fs,fs,-1,-1,-1,OT_REG_FSGS,4
 NR_GS,$05000006,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
-NR_FLAGS,$05000007,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
 
 NR_DR0,$05000007,dr0,%dr0,dr0,dr0,-1,-1,-1,OT_REG_DREG,0
 NR_DR1,$05000008,dr1,%dr1,dr1,dr1,-1,-1,-1,OT_REG_DREG,1
@@ -102,6 +101,8 @@ NR_TR4,$05000012,tr4,%tr4,tr4,tr4,-1,-1,-1,OT_REG_TREG,4
 NR_TR5,$05000013,tr5,%tr5,tr5,tr5,-1,-1,-1,OT_REG_TREG,5
 NR_TR6,$05000014,tr6,%tr6,tr6,tr6,-1,-1,-1,OT_REG_TREG,6
 NR_TR7,$05000015,tr7,%tr7,tr7,tr7,-1,-1,-1,OT_REG_TREG,7
+
+NR_FLAGS,$05000016,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
 
 NR_ST0,$02000000,st(0),%st(0),st(0),st0,12,11,33,OT_FPU0,0
 NR_ST1,$02000001,st(1),%st(1),st(1),st1,13,12,34,OT_FPUREG,1
