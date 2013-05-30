@@ -893,6 +893,22 @@ implementation
                      freeparas;
                    end;
 
+{$ifdef i8086}
+                 if href.base<>NR_NO then
+                   begin
+                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
+                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href.base,NR_BX);
+                     href.base:=NR_BX;
+                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_BX);
+                   end;
+                 if href.index<>NR_NO then
+                   begin
+                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
+                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href.base,NR_SI);
+                     href.index:=NR_SI;
+                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+                   end;
+{$endif i8086}
                  cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
                  if cg.uses_registers(R_FPUREGISTER) then
                    cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
