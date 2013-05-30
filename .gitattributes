@@ -11737,6 +11737,7 @@ tests/test/tstdhandle.pp svneol=native#text/plain
 tests/test/tstprocv.pp svneol=native#text/plain
 tests/test/tstring1.pp svneol=native#text/plain
 tests/test/tstring10.pp svneol=native#text/plain
+tests/test/tstring11.pp svneol=native#text/pascal
 tests/test/tstring2.pp svneol=native#text/plain
 tests/test/tstring3.pp svneol=native#text/plain
 tests/test/tstring4.pp svneol=native#text/plain
