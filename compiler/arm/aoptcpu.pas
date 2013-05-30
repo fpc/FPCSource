@@ -443,7 +443,8 @@ Implementation
         not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
         { don't apply the optimization if the (new) index register is loaded }
         (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
-        not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
+        not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) and
+        not(current_settings.cputype in cpu_thumb) then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
