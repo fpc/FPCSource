@@ -26,6 +26,7 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -559,6 +560,11 @@ function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
 {  Result:=StrError(ErrorCode);}
+end;
+
+function GetLastOSError: Integer;
+begin
+    result:=-1;
 end;
 
 {****************************************************************************
