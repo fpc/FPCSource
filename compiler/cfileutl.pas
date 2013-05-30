@@ -142,7 +142,7 @@ interface
 
 {$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
-{$WARNING TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
+{$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
 {$ELSE}
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
