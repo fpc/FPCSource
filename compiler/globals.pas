@@ -446,8 +446,8 @@ interface
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
-        cputype : cpu_mips32;
-        optimizecputype : cpu_mips32;
+        cputype : cpu_mips2;
+        optimizecputype : cpu_mips2;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}

@@ -53,7 +53,7 @@ unit cpugas;
 
     uses
       cutils, systems, cpuinfo,
-      verbose, itcpugas, cgbase, cgutils;
+      globals, verbose, itcpugas, cgbase, cgutils;
 
     function gas_std_regname(r:Tregister):string;
       var
@@ -99,7 +99,7 @@ unit cpugas;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
          { ARCH selection }
-         Replace(result,'$ARCH','-march='+lower(cputypestr[mips_cpu]));
+         Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
       end;
 
 {****************************************************************************}

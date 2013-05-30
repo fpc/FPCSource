@@ -32,9 +32,8 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_mips_default,
        cpu_mips1,
-       cpu_mis2,
+       cpu_mips2,
        cpu_mips3,
        cpu_mips4,
        cpu_mips5,
@@ -80,7 +79,6 @@ Const
      GNU assembler in -arch=XXX option 
      this ilist needs to be uppercased }
    cputypestr : array[tcputype] of string[8] = ('',
-     { cpu_mips_default } 'MIPS2',
      { cpu_mips1        } 'MIPS1',
      { cpu_mips2        } 'MIPS2',
      { cpu_mips3        } 'MIPS3',
@@ -89,8 +87,6 @@ Const
      { cpu_mips32       } 'MIPS32',
      { cpu_mips32r2     } 'MIPS32R2'
    );
-
-   mips_cpu : tcputype = cpu_mips_default;
 
    fputypestr : array[tfputype] of string[9] = ('',
      'SOFT',
