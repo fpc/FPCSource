@@ -6890,7 +6890,7 @@ Const
      TWINDOWPLACEMENT = WINDOWPLACEMENT;
      PWINDOWPLACEMENT = ^WINDOWPLACEMENT;
 
-     WNDCLASS = record
+     WNDCLASSA = record
           style : UINT;
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
@@ -6899,15 +6899,13 @@ Const
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
-          lpszMenuName : LPCTSTR;
-          lpszClassName : LPCTSTR;
+          lpszMenuName : LPCSTR;
+          lpszClassName : LPCSTR;
        end;
-     LPWNDCLASS = ^WNDCLASS;
-     _WNDCLASS = WNDCLASS;
-     TWNDCLASS = WNDCLASS;
-     TWNDCLASSA = WNDCLASS;
-     PWNDCLASS = ^WNDCLASS;
-
+     LPWNDCLASSA = ^WNDCLASSA;
+     _WNDCLASSA = WNDCLASSA;
+     TWNDCLASSA = WNDCLASSA;
+     PWNDCLASSA = ^WNDCLASSA;
 
      WNDCLASSW = record
           style : UINT;
@@ -6925,6 +6923,19 @@ Const
      _WNDCLASSW  = WNDCLASSW;
      TWNDCLASSW  = WNDCLASSW;
      PWNDCLASSW  = ^WNDCLASSW;
+     {$ifdef UNICODE}
+     LPWNDCLASS  = LPWNDCLASSW;
+     _WNDCLASS   = _WNDCLASSW;
+     TWNDCLASS   = TWNDCLASSW;
+     PWNDCLASS   = PWNDCLASSW;
+     WNDCLASS    = WNDCLASSW;
+     {$else}
+     LPWNDCLASS  = LPWNDCLASSA;
+     _WNDCLASS   = _WNDCLASSA;
+     TWNDCLASS   = TWNDCLASSA;
+     PWNDCLASS   = PWNDCLASSA;
+     WNDCLASS    = WNDCLASSA;
+     {$endif}
 
      WNDCLASSEX = record
           cbSize : UINT;
