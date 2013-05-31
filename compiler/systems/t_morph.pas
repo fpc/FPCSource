@@ -38,6 +38,7 @@ implementation
        PlinkerMorphOS=^TlinkerMorphOS;
        TlinkerMorphOS=class(texternallinker)
        private
+          UseVLink: Boolean;
           Function  WriteResponseFile(isdll:boolean) : Boolean;
        public
           constructor Create; override;
@@ -56,6 +57,13 @@ begin
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
+  { TODO: always use vlink on MorphOS for now, but allow ld for cross compiling,
+    we need a command line switch to switch between vlink and ld later. (KB) }
+{$IFDEF MORPHOS}
+  UseVLink:=true;
+{$ELSE}
+  UseVLink:=(cs_link_on_target in current_settings.globalswitches);
+{$ENDIF}
 end;
 
 
@@ -63,7 +71,7 @@ procedure TLinkerMorphOS.SetDefaultInfo;
 begin
   with Info do
    begin
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if not UseVLink then
      begin
       ExeCmd[1]:='ld $OPT -o $EXE $RES';
       ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
@@ -94,7 +102,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if not (cs_link_on_target in current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -118,7 +126,7 @@ begin
     if s<>'' then
      begin
       { vlink doesn't use SEARCH_DIR for object files }
-      if not(cs_link_on_target in current_settings.globalswitches) then
+      if UseVLink then
        s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
@@ -128,7 +136,7 @@ begin
   if not StaticLibFiles.Empty then
    begin
     { vlink doesn't need, and doesn't support GROUP }
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if not UseVLink then
      begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
@@ -140,7 +148,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if not UseVLink then
    begin
     LinkRes.Add(')');
 
@@ -201,7 +209,7 @@ begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
-  if not (cs_link_on_target in current_settings.globalswitches) then
+  if UseVLink then
    begin
     StripStr:='';
     if (cs_link_strip in current_settings.globalswitches) then
@@ -214,7 +222,7 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if not(cs_link_on_target in current_settings.globalswitches) then
+  if UseVLink then
    begin
     Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
@@ -225,13 +233,13 @@ begin
     Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
    end;
-  success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
-  { For MorphOS a separate strip command is needed, to avoid stripping }
+  { For MorphOS ld a separate strip command is needed, to avoid stripping }
   { __abox__ symbol, which is required to be present in current MorphOS }
   { executables. }
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if not UseVLink then
    begin
     if success and (cs_link_strip in current_settings.globalswitches) then
      begin
