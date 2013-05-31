@@ -43,6 +43,30 @@ var
                            Low level Routines
 ****************************************************************************}
 
+procedure dosmemfillword(segm, ofs: Word; count: Word; w: Word); assembler;
+asm
+  mov ax, segm
+  mov es, ax
+  mov di, ofs
+  mov ax, w
+  mov cx, count
+  rep stosw
+end;
+
+procedure dosmemmove(sseg, sofs, dseg, dofs: Word; count: Word); assembler;
+asm
+  mov ax, dseg
+  mov es, ax
+  mov di, dofs
+  mov si, sofs
+  mov cx, count
+  mov ax, sseg
+  push ds
+  mov ds, ax
+  rep movsb
+  pop ds
+end;
+
 procedure setscreenmode(mode : byte);
 var
   regs : registers;
@@ -256,14 +280,13 @@ var
   fil : word;
   y   : longint;
 begin
-  { TODO: fix }
   fil:=32 or (textattr shl 8);
   if FullWin then
-//   DosmemFillWord(VidSeg,0,ScreenHeight*ScreenWidth,fil)
+   DosmemFillWord(VidSeg,0,ScreenHeight*ScreenWidth,fil)
   else
    begin
      for y:=WinMinY to WinMaxY do
-//      DosmemFillWord(VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,WinMaxX-WinMinX+1,fil);
+      DosmemFillWord(VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,WinMaxX-WinMinX+1,fil);
    end;
   Gotoxy(1,1);
 end;
@@ -277,11 +300,10 @@ var
   x,y : longint;
   fil : word;
 Begin
-  // TODO: fix
   GetScreenCursor(x,y);
   fil:=32 or (textattr shl 8);
   if x<=WinMaxX then
-//   DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
+   DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
 End;
 
 
@@ -481,16 +503,15 @@ procedure removeline(y : longint);
 var
   fil : word;
 begin
-  { TODO: implement }
   fil:=32 or (textattr shl 8);
   y:=WinMinY+y-1;
   While (y<WinMaxY) do
    begin
-{     dosmemmove(VidSeg,(y*ScreenWidth+(WinMinX-1))*2,
-                VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);}
+     dosmemmove(VidSeg,(y*ScreenWidth+(WinMinX-1))*2,
+                VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
      inc(y);
    end;
-{  dosmemfillword(VidSeg,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);}
+  dosmemfillword(VidSeg,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
 end;
 
 
@@ -511,11 +532,11 @@ begin
   my:=WinMaxY-WinMinY;
   while (my>=y) do
    begin
-{     dosmemmove(VidSeg,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
-                VidSeg,(((WinMinY+my)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);}
+     dosmemmove(VidSeg,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
+                VidSeg,(((WinMinY+my)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
      dec(my);
    end;
-{  dosmemfillword(VidSeg,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);}
+  dosmemfillword(VidSeg,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
 end;
 
 
