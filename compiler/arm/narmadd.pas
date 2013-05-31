@@ -139,13 +139,10 @@ interface
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
               location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,(left.location.loc<>LOC_CFPUREGISTER));
+              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              if left.location.loc<>LOC_CFPUREGISTER then
-                location.register:=left.location.register
-              else
-                location.register:=right.location.register;
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
               case nodetype of
                 addn :
@@ -174,12 +171,7 @@ interface
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-              if left.location.loc<>LOC_CMMREGISTER then
-                location.register:=left.location.register
-              else if right.location.loc<>LOC_CMMREGISTER then
-                location.register:=right.location.register
-              else
-                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
               singleprec:=tfloatdef(left.resultdef).floattype=s32real;
               case nodetype of
@@ -218,12 +210,7 @@ interface
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-              if left.location.loc<>LOC_CMMREGISTER then
-                location.register:=left.location.register
-              else if right.location.loc<>LOC_CMMREGISTER then
-                location.register:=right.location.register
-              else
-                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
               case nodetype of
                 addn :
