@@ -27,6 +27,11 @@ unit fpmkunit;
 
 Interface
 
+{$IFDEF MORPHOS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
@@ -1745,7 +1750,7 @@ end;
 
 function maybequoted(const s:string):string;
 const
-  {$IFDEF MSWINDOWS}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS)}
     FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                        '{', '}', '''', '`', '~'];
   {$ELSE}
