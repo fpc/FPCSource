@@ -2988,6 +2988,9 @@ implementation
                       tcallparanode(tcallparanode(left).right).left.resultdef.typename);
                 end;
 
+              in_new_x:
+                resultdef:=left.resultdef;
+
               in_low_x,
               in_high_x:
                 begin
@@ -3931,11 +3934,47 @@ implementation
         left:=nil;
      end;
 
+
      function tinlinenode.first_new: tnode;
+       var
+         newstatement : tstatementnode;
+         newblock     : tblocknode;
+         temp         : ttempcreatenode;
+         para         : tcallparanode;
        begin
-         internalerror(2011012201);
-         result:=nil;
+         { create statements with call to getmem+initialize }
+         newblock:=internalstatements(newstatement);
+
+         { create temp for result }
+         temp := ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+         addstatement(newstatement,temp);
+
+         { create call to fpc_getmem }
+         para := ccallparanode.create(cordconstnode.create
+             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true),nil);
+         addstatement(newstatement,cassignmentnode.create(
+             ctemprefnode.create(temp),
+             ccallnode.createintern('fpc_getmem',para)));
+
+         { create call to fpc_initialize }
+         if is_managed_type(tpointerdef(left.resultdef).pointeddef) then
+          begin
+            para := ccallparanode.create(caddrnode.create_internal(crttinode.create
+                       (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal)),
+                    ccallparanode.create(ctemprefnode.create
+                       (temp),nil));
+            addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
+          end;
+
+         { the last statement should return the value as
+           location and type, this is done be referencing the
+           temp and converting it first from a persistent temp to
+           normal temp }
+         addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+         addstatement(newstatement,ctemprefnode.create(temp));
+         result:=newblock;
        end;
+
 
      function tinlinenode.first_length: tnode;
        begin
