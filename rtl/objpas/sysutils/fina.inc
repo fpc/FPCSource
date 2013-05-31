@@ -66,22 +66,27 @@ begin
   l:=Length(FileName);
   if (l<2) then
     exit;
+{$IF DEFINED(AMIGA) OR DEFINED(MORPHOS)}
+  i:=Pos(DriveSeparator,FileName);
+  if (i > 0) then Result:=Copy(FileName,1,i-1); 
+{$ELSE}
   If (FileName[2] in AllowDriveSeparators) then
     result:=Copy(FileName,1,2)
   else if (FileName[1] in AllowDirectorySeparators) and
           (FileName[2] in AllowDirectorySeparators) then
     begin
       i := 2;
-	
-	  { skip share }
+      
+      { skip share }
       While (i<l) and Not (Filename[i+1] in AllowDirectorySeparators) do
         inc(i);
       inc(i);
-	
+
       While (i<l) and Not (Filename[i+1] in AllowDirectorySeparators) do
         inc(i);
       Result:=Copy(FileName,1,i);
     end;
+{$ENDIF}
 end;
 
 function ExtractFileName(const FileName: string): string;
