@@ -8250,6 +8250,7 @@ rtl/morphos/videodata.inc svneol=native#text/plain
 rtl/msdos/Makefile svneol=native#text/plain
 rtl/msdos/Makefile.fpc svneol=native#text/plain
 rtl/msdos/classes.pp svneol=native#text/plain
+rtl/msdos/crt.pp svneol=native#text/plain
 rtl/msdos/dos.pp svneol=native#text/plain
 rtl/msdos/prt0.asm svneol=native#text/plain
 rtl/msdos/registers.inc svneol=native#text/plain

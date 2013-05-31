@@ -5,10 +5,10 @@
 main=rtl
 [target]
 loaders=prt0 # exceptn fpu
-units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
+units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects
-#      crt printer cmem
+#      printer cmem
 #      initc ports profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf ctypes \
 #      msmouse charset \
@@ -99,7 +99,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc dos$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) crt.pp
 
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
