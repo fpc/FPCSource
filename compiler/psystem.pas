@@ -282,6 +282,9 @@ implementation
   {$ifdef i8086}
         voidfarpointertype:=tpointerdef.createx86(voidtype,x86pt_far);
         voidhugepointertype:=tpointerdef.createx86(voidtype,x86pt_huge);
+        bytefarpointertype:=tpointerdef.createx86(u8inttype,x86pt_far);
+        wordfarpointertype:=tpointerdef.createx86(u16inttype,x86pt_far);
+        longintfarpointertype:=tpointerdef.createx86(s32inttype,x86pt_far);
   {$endif i8086}
 {$endif x86}
         cfiletype:=tfiledef.createuntyped;
@@ -416,6 +419,9 @@ implementation
   {$ifdef i8086}
         addtype('$void_farpointer',voidfarpointertype);
         addtype('$void_hugepointer',voidhugepointertype);
+        addtype('$byte_farpointer',bytefarpointertype);
+        addtype('$word_farpointer',wordfarpointertype);
+        addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
 {$endif x86}
         addtype('$openchararray',openchararraytype);
@@ -541,6 +547,9 @@ implementation
   {$ifdef i8086}
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('void_hugepointer',voidhugepointertype);
+        loadtype('byte_farpointer',bytefarpointertype);
+        loadtype('word_farpointer',wordfarpointertype);
+        loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
 {$endif x86}
         loadtype('file',cfiletype);

@@ -848,6 +848,9 @@ interface
   {$ifdef i8086}
        voidfarpointertype,
        voidhugepointertype,
+       bytefarpointertype,        { used for Mem[] }
+       wordfarpointertype,        { used for MemW[] }
+       longintfarpointertype,     { used for MemL[] }
   {$endif i8086}
 {$endif x86}
        cundefinedtype,
