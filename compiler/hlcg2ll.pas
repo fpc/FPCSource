@@ -331,7 +331,6 @@ unit hlcg2ll;
           procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
 
          protected
-          procedure initialize_regvars(p: TObject; arg: pointer); override;
           function getmmcgsize(reg: tregister; size: tcgsize): tcgsize; virtual;
        end;
 
@@ -1364,11 +1363,6 @@ implementation
     end;
 
 (*
-  procedure thlcg2ll.location_force_mmregscalar(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
-    begin
-       ncgutil.location_force_mmregscalar(list,l,maybeconst);
-    end;
-
   procedure thlcg2ll.location_force_mmreg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
     begin
       ncgutil.location_force_mmreg(list,l,maybeconst);
@@ -1563,22 +1557,6 @@ implementation
   procedure thlcg2ll.gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);
     begin
       ncgutil.gen_load_cgpara_loc(list, vardef, para, destloc, reusepara);
-    end;
-
-  procedure thlcg2ll.initialize_regvars(p: TObject; arg: pointer);
-    begin
-      if (tsym(p).typ=staticvarsym) and
-         { not yet handled via tlhcgobj... }
-         (tstaticvarsym(p).initialloc.loc=LOC_CMMREGISTER) then
-        begin
-          { clear the whole register }
-          cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
-            tstaticvarsym(p).initialloc.register,
-            tstaticvarsym(p).initialloc.register,
-            nil);
-        end
-      else
-        inherited initialize_regvars(p, arg);
     end;
 
   function thlcg2ll.getmmcgsize(reg: tregister; size: tcgsize): tcgsize;
