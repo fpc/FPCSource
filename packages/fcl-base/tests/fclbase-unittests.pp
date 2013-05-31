@@ -3,7 +3,7 @@ program fclbase_unittests;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tests_fptemplate;
+  Classes, consoletestrunner, tests_fptemplate, tests_rtti;
 
 var
   Application: TTestRunner;

@@ -57,6 +57,8 @@ begin
     T:=P.Targets.AddUnit('fptimer.pp',AllWindowsOSes+AllUnixOSes);
     T:=P.Targets.AddUnit('gettext.pp');
     T:=P.Targets.AddUnit('idea.pp');
+    T:=P.Targets.AddUnit('rtti.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('inicol.pp');
       T.ResourceStrings:=true;
       with T.Dependencies do
