@@ -14,6 +14,8 @@
  **********************************************************************}
 unit crt;
 
+{$GOTO on}
+
 interface
 
 {$i crth.inc}
@@ -392,65 +394,72 @@ end;
                                    Delay
 *************************************************************************}
 
-procedure Delayloop;assembler;
+procedure Delayloop;assembler;nostackframe;
+label
+  LDelayLoop1, LDelayLoop2;
 asm
-  { TODO: implement }
-{.LDelayLoop1:
-        subl    $1,%eax
+{ input:
+    es:di = $40:$6c
+    bx    = value of [es:dx] before the call
+    dx:ax = counter }
+LDelayLoop1:
+        sub     ax, 1
+        sbb     dx, 0
         jc      .LDelayLoop2
-        cmpl    %fs:(%edi),%ebx
+        cmp     bx, word es:[di]
         je      .LDelayLoop1
-.LDelayLoop2:}
-end ['EAX'];
+LDelayLoop2:
+end;
 
 
-procedure initdelay;assembler;
-asm
-  { TODO: implement }
-{        pushl %ebx
-        pushl %edi}
+procedure initdelay;
+label
+  LInitDel1;
+begin
+  asm
         { for some reason, using int $31/ax=$901 doesn't work here }
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
-{        sti
-        movl    $0x46c,%edi
-        movl    $-28,%edx
-        movl    %fs:(%edi),%ebx
-.LInitDel1:
-        cmpl    %fs:(%edi),%ebx
-        je      .LInitDel1
-        movl    %fs:(%edi),%ebx
-        movl    %edx,%eax
+        sti
+        mov     ax, $40
+        mov     es, ax
+        mov     di, $6c
+        mov     bx, es:[di]
+LInitDel1:
+        cmp     bx, es:[di]
+        je      LInitDel1
+        mov     bx, es:[di]
+        mov     ax, $FFFF
+        mov     dx, $FFFF
         call    DelayLoop
 
-        notl    %eax
-        xorl    %edx,%edx
-        movl    $55,%ecx
-        divl    %ecx
-        movl    %eax,DelayCnt
-        popl %edi
-        popl %ebx}
-end ['EAX','ECX','EDX'];
+        mov     [DelayCnt], ax
+        mov     [DelayCnt + 2], dx
+  end ['AX','BX','DX', 'DI'];
+  DelayCnt := -DelayCnt div $55;
+end;
 
 
 procedure Delay(MS: Word);assembler;
+label
+  LDelay1, LDelay2;
 asm
-{ TODO: implement }
-{        pushl %ebx
-        pushl %edi
-        movzwl  MS,%ecx
-        jecxz   .LDelay2
-        movl    $0x400,%edi
-        movl    DelayCnt,%edx
-        movl    %fs:(%edi),%ebx
-.LDelay1:
-        movl    %edx,%eax
+        mov     ax, $40
+        mov     es, ax
+        mov     di, $6c
+
+        mov     cx, MS
+        test    cx, cx
+        jz      LDelay2
+        mov     si, [DelayCnt + 2]
+LDelay1:
+        mov     ax, [DelayCnt]
+        mov     dx, si
+        mov     bx, es:[di]
         call    DelayLoop
-        loop    .LDelay1
-.LDelay2:
-        popl %edi
-        popl %ebx}
-end ['EAX','ECX','EDX'];
+        loop    LDelay1
+LDelay2:
+end;
 
 
 procedure sound(hz : word);
@@ -526,7 +535,6 @@ var
   my,y : longint;
   fil : word;
 begin
-  { TODO: implement }
   fil:=32 or (textattr shl 8);
   y:=WhereY;
   my:=WinMaxY-WinMinY;
