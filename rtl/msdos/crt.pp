@@ -61,11 +61,19 @@ asm
   mov es, ax
   mov di, dofs
   mov si, sofs
-  mov cx, count
+  mov dx, count
+  mov cx, dx
   mov ax, sseg
   push ds
   mov ds, ax
+  shr cx, 1
+  jz @@1
+  rep movsw
+@@1:
+  and dl, 1
+  jz @@2
   rep movsb
+@@2:
   pop ds
 end;
 
