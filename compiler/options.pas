@@ -2526,6 +2526,10 @@ begin
     else
       undef_system_macro('FPC_HAS_WINLIKERESOURCES');
 
+  { Extended RTTI }
+
+  def_system_macro('FPC_HAS_EXTENDED_RTTI');
+
   { Features }
   case target_info.system of
     system_arm_gba:

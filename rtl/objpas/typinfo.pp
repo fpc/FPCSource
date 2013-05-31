@@ -240,7 +240,7 @@ unit typinfo;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
-      TAttributeProc = function : TObject;
+      TAttributeProc = function : TCustomAttribute;
       PAttributeProcList = ^TAttributeProcList;
       TAttributeProcList = array[0..255] of TAttributeProc;
 
@@ -259,6 +259,20 @@ unit typinfo;
       end;
       PExtRTTIData = ^TExtRTTIData;
 
+      PextRTTIDataList = ^TExtRTTIDataList;
+      TExtRTTIDataList = array[0..65535] of TExtRTTIData;
+
+      PUnitInfo = ^TUnitInfo;
+      TUnitInfo = packed record
+        UnitInfoSize: LongInt;
+        UnitName: shortstring;
+      end;
+
+      PUnitInfoList = ^TUnitInfoList;
+      TUnitInfoList = record
+        UnitCount: IntPtr;
+        Units: array[0..65535] of PUnitInfo;
+      end;
 
    const
       tkAny = [Low(TTypeKind)..High(TTypeKind)];
@@ -375,14 +389,18 @@ procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const V
 procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
 // Extended RTTI
+function GetUnitList: PUnitInfoList;
 function GetExtRTTIData(TypeInfo : PTypeInfo) : PExtRTTIData;
+
+function GetRTTIDataListForUnit(AUnitInfo: PUnitInfo): PExtRTTIDataList;
+function GetRTTIDataCountForUnit(AUnitInfo: PUnitInfo): longint;
 
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
 
 function GetClassAttributeCount(ExtRTTIData: PExtRTTIData): byte;
 function GetClassAttributeProclist(ExtRTTIData: PExtRTTIData): PAttributeProcList;
-function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TObject;
+function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TCustomAttribute;
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -434,12 +452,44 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
+{$ifdef FPC_HAS_EXTENDED_RTTI}
+var
+  UnitList: TUnitInfoList; external name 'INITEXTRTTIUNITS';
+{$endif FPC_HAS_EXTENDED_RTTI}
+
+function GetUnitList: PUnitInfoList;
+begin
+{$ifdef FPC_HAS_EXTENDED_RTTI}
+  result := @UnitList;
+{$else FPC_HAS_EXTENDED_RTTI}
+  result := nil;
+{$endif FPC_HAS_EXTENDED_RTTI}
+end;
+
 function GetExtRTTIData(TypeInfo: PTypeInfo): PExtRTTIData;
 var
   p: pointer;
 begin
   p := pointer(TypeInfo) - sizeof(p);
   result := PExtRTTIData(pointer(p)^);
+end;
+
+function GetRTTIDataListForUnit(AUnitInfo: PUnitInfo): PExtRTTIDataList;
+var
+  p: pointer;
+begin
+  p := AUnitInfo;
+  inc(p,length(AUnitInfo^.UnitName)+1+sizeof(LongInt));
+  p := align(p,sizeof(p));
+  GetRTTIDataListForUnit := pExtRTTIDataList(p);
+end;
+
+function GetRTTIDataCountForUnit(AUnitInfo: PUnitInfo): longint;
+var
+  p: PtrInt;
+begin
+  p := PtrInt(GetRTTIDataListForUnit(AUnitInfo))-PtrInt(AUnitInfo);
+  GetRTTIDataCountForUnit := (AUnitInfo^.UnitInfoSize-p) div SizeOf(TExtRTTIData);
 end;
 
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
@@ -482,7 +532,7 @@ begin
     result := @ExtRTTIData^.AttributeData^.AttributesList;
 end;
 
-function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TObject;
+function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TCustomAttribute;
 var
   AttributeProcList: PAttributeProcList;
 begin
