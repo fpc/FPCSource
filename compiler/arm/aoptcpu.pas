@@ -670,6 +670,30 @@ Implementation
                           end;
                       end;
 
+                    {
+                      Change
+
+                        ldrb dst1, [REF]
+                        and  dst2, dst1, #255
+
+                      into
+
+                        ldrb dst2, [ref]
+                    }
+                    if (taicpu(p).oppostfix=PF_B) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_NONE]) and
+                       (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
+                       (taicpu(hp1).oper[2]^.typ = top_const) and
+                       (taicpu(hp1).oper[2]^.val = $FF) and
+                       not(RegUsedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)) and
+                       RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                       begin
+                         DebugMsg('Peephole LdrbAnd2Ldrb done', p);
+                         taicpu(p).oper[0]^.reg := taicpu(hp1).oper[0]^.reg;
+                         asml.remove(hp1);
+                         hp1.free;
+                       end;
                     LookForPostindexedPattern(taicpu(p));
                     { Remove superfluous mov after ldr
                       changes
