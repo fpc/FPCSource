@@ -259,7 +259,7 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
@@ -286,7 +286,7 @@ implementation
          if use_vectorfpu(left.resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
              case left.location.size of
@@ -320,7 +320,7 @@ implementation
            not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
              case left.location.size of
@@ -371,7 +371,7 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location:=left.location;
              cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
            end
@@ -388,7 +388,7 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:

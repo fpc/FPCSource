@@ -726,8 +726,8 @@ unit nx86add;
             if nf_swapped in flags then
               swapleftright;
 
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-            location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
             location:=left.location;
             if is_double(resultdef) then
               begin
@@ -781,7 +781,7 @@ unit nx86add;
             if (nf_swapped in flags) then
               swapleftright;
 
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
             location.register:=left.location.register;
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
@@ -836,7 +836,7 @@ unit nx86add;
           end
         else
           begin
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register

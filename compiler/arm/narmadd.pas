@@ -170,8 +170,8 @@ interface
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
-              location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               if left.location.loc<>LOC_CMMREGISTER then
@@ -214,8 +214,8 @@ interface
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
-              location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               if left.location.loc<>LOC_CMMREGISTER then
@@ -284,8 +284,8 @@ interface
           fpu_vfpv3,
           fpu_vfpv3_d16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
-              location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               if (tfloatdef(left.resultdef).floattype=s32real) then
                 if nodetype in [equaln,unequaln] then
@@ -303,8 +303,8 @@ interface
             end;
           fpu_fpv4_s16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
-              location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               if nodetype in [equaln,unequaln] then
                 op:=A_VCMP

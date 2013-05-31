@@ -154,7 +154,7 @@ interface
 
         if expectloc=LOC_MMREGISTER then
           begin
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
             { make life of register allocator easier }

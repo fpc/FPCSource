@@ -61,7 +61,6 @@ interface
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
     procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-    procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_allocate_register(list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
@@ -512,54 +511,6 @@ implementation
       end;
 
 
-    procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
-      var
-        reg : tregister;
-        href : treference;
-        newsize : tcgsize;
-      begin
-        if (l.loc<>LOC_MMREGISTER)  and
-           ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
-          begin
-            { if it's in an fpu register, store to memory first }
-            if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-              begin
-                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
-                cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
-                location_reset_ref(l,LOC_REFERENCE,l.size,0);
-                l.reference:=href;
-              end;
-{$ifndef cpu64bitalu}
-            if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) and
-               (l.size in [OS_64,OS_S64]) then
-              begin
-                reg:=cg.getmmregister(list,OS_F64);
-                cg64.a_loadmm_intreg64_reg(list,OS_F64,l.register64,reg);
-                l.size:=OS_F64
-              end
-            else
-{$endif not cpu64bitalu}
-              begin
-                 { on ARM, CFP values may be located in integer registers,
-                   and its second_int_to_real() also uses this routine to
-                   force integer (memory) values in an mmregister }
-                 if (l.size in [OS_32,OS_S32]) then
-                   newsize:=OS_F32
-                 else if (l.size in [OS_64,OS_S64]) then
-                   newsize:=OS_F64
-                 else
-                   newsize:=l.size;
-                 reg:=cg.getmmregister(list,newsize);
-                 hlcg.a_loadmm_loc_reg(list,l.size,newsize,l,reg,mms_movescalar);
-                 l.size:=newsize;
-               end;
-            location_freetemp(list,l);
-            location_reset(l,LOC_MMREGISTER,l.size);
-            l.register:=reg;
-          end;
-      end;
-
-
     procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
       var
         tmpreg: tregister;
@@ -594,7 +545,7 @@ implementation
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
             reg:=cg.getmmregister(list,OS_VECTOR);
-            hlcg.a_loadmm_loc_reg(list,l.size,OS_VECTOR,l,reg,nil);
+            cg.a_loadmm_loc_reg(list,OS_VECTOR,l,reg,nil);
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,OS_VECTOR);
             l.register:=reg;

@@ -69,8 +69,8 @@ unit hlcgobj;
           {# Gets a register suitable to do integer operations on.}
           function getaddressregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getfpuregister(list:TAsmList;size:tdef):Tregister;virtual;
-//        we don't have high level defs yet that translate into all mm cgsizes
-//          function getmmregister(list:TAsmList;size:tdef):Tregister;virtual;
+          { warning: only works correctly for fpu types currently }
+          function getmmregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getflagregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getregisterfordef(list: TAsmList;size:tdef):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
@@ -292,27 +292,26 @@ unit hlcgobj;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;fromsize : tdef;const ref : treference;const cgpara : TCGPara);virtual;
 
           { vector register move instructions }
-//        we don't have high level defs yet that translate into all mm cgsizes
-{
-          procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef;reg1, reg2: tregister;shuffle : pmmshuffle); virtual;
-          procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
-          procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual;
-}
+          procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_ref_ref(list: TAsmList; fromsize, tosize: tdef; const fromref, toref: treference; shuffle: pmmshuffle); virtual;
           { required for subsetreg/ref; still tcgsize rather than tdef because of reason mentioned above }
-          procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);virtual; abstract;
-{
+          procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_cgpara(list: TAsmList; fromsize: tdef; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_loc_cgpara(list: TAsmList; fromsize: tdef; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tdef;src,dst: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tdef;src,dst: tregister;shuffle : pmmshuffle); virtual; abstract;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tdef;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tdef;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tdef;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
-}
-//        we don't have high level defs yet that translate into all mm cgsizes
-//          procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tdef; intreg, mmreg: tregister; shuffle: pmmshuffle); virtual;
-//          procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tdef; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual;
+          { requires a temp that is interpreted in two different ways, and we
+            don't have a way (yet) to tag a treference with tdef information so
+            targets like LLVM can insert the necessary bitcast
+          }
+          procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tdef; intreg, mmreg: tregister; shuffle: pmmshuffle); virtual; abstract;
+          procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tdef; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual; abstract;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -473,7 +472,7 @@ unit hlcgobj;
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;
-//          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
+          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
           { Retrieve the location of the data pointed to in location l, when the location is
@@ -607,6 +606,12 @@ implementation
     begin
       result:=cg.getfpuregister(list,def_cgsize(size));
     end;
+
+  function thlcgobj.getmmregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      result:=cg.getmmregister(list,def_cgsize(size));
+    end;
+
 (*
   function thlcgobj.getmmregister(list: TAsmList; size: tdef): Tregister;
     begin
@@ -771,10 +776,8 @@ implementation
               reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_load_reg_ref(list,size,cgpara.def,r,ref);
            end;
-(*
          LOC_MMREGISTER,LOC_CMMREGISTER:
            a_loadmm_intreg_reg(list,size,cgpara.def,r,cgpara.location^.register,mms_movescalar);
-*)
          LOC_FPUREGISTER,LOC_CFPUREGISTER:
            begin
              tg.gethltemp(list,size,size.size,tt_normal,ref);
@@ -942,10 +945,8 @@ implementation
           a_load_reg_subsetreg(list,fromsize,tosize,reg,loc.sreg);
         LOC_SUBSETREF,LOC_CSUBSETREF:
           a_load_reg_subsetref(list,fromsize,tosize,reg,loc.sref);
-        { we don't have enough type information to handle these here
         LOC_MMREGISTER,LOC_CMMREGISTER:
-          a_loadmm_intreg_reg(list,fromsize,loc.size,reg,loc.register,mms_movescalar);
-        }
+          a_loadmm_intreg_reg(list,fromsize,tosize,reg,loc.register,mms_movescalar);
         else
           internalerror(2010120402);
       end;
@@ -2309,24 +2310,23 @@ implementation
           internalerror(2010120423);
       end;
     end;
-(*
-  procedure thlcgobj.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle);
-    begin
-      cg.a_loadmm_reg_reg(list,def_cgsize(fromsize),def_cgsize(tosize),reg1,reg2,shuffle);
-    end;
 
-  procedure thlcgobj.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+  procedure thlcgobj.a_loadmm_ref_ref(list: TAsmList; fromsize, tosize: tdef; const fromref, toref: treference; shuffle: pmmshuffle);
+    var
+      reg: tregister;
     begin
-      cg.a_loadmm_ref_reg(list,def_cgsize(fromsize),def_cgsize(tosize),ref,reg,shuffle);
-    end;
-
-  procedure thlcgobj.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
-    begin
-      cg.a_loadmm_reg_ref(list,def_cgsize(fromsize),def_cgsize(tosize),reg,ref,shuffle);
+      reg:=getmmregister(list,tosize);
+      a_loadmm_ref_reg(list,fromsize,tosize,fromref,reg,shuffle);
+      a_loadmm_reg_ref(list,tosize,tosize,reg,toref,shuffle);
     end;
 
   procedure thlcgobj.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+    var
+      tmpreg: tregister;
     begin
+      { no vector support yet }
+      if shuffle<>mms_movescalar then
+        internalerror(2012062302);
       case loc.loc of
         LOC_MMREGISTER,LOC_CMMREGISTER:
           a_loadmm_reg_reg(list,fromsize,tosize,loc.register,reg,shuffle);
@@ -2334,6 +2334,13 @@ implementation
           a_loadmm_ref_reg(list,fromsize,tosize,loc.reference,reg,shuffle);
         LOC_REGISTER,LOC_CREGISTER:
           a_loadmm_intreg_reg(list,fromsize,tosize,loc.register,reg,shuffle);
+        LOC_SUBSETREG,LOC_CSUBSETREG,
+        LOC_SUBSETREF,LOC_CSUBSETREF:
+          begin
+            tmpreg:=getintregister(list,fromsize);
+            a_load_loc_reg(list,fromsize,fromsize,loc,tmpreg);
+            a_loadmm_intreg_reg(list,fromsize,tosize,tmpreg,reg,shuffle);
+          end
         else
           internalerror(2010120414);
       end;
@@ -2341,6 +2348,9 @@ implementation
 
   procedure thlcgobj.a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation; shuffle: pmmshuffle);
     begin
+      { no vector support yet }
+      if shuffle<>mms_movescalar then
+        internalerror(2012062303);
       case loc.loc of
         LOC_MMREGISTER,LOC_CMMREGISTER:
           a_loadmm_reg_reg(list,fromsize,tosize,reg,loc.register,shuffle);
@@ -2355,6 +2365,9 @@ implementation
     var
       href  : treference;
     begin
+      { no vector support yet }
+      if shuffle<>mms_movescalar then
+        internalerror(2012062304);
        cgpara.check_simple_location;
        paramanager.alloccgpara(list,cgpara);
        case cgpara.location^.loc of
@@ -2369,11 +2382,11 @@ implementation
           begin
             if assigned(shuffle) and
                not shufflescalar(shuffle) then
-              internalerror(2009112510);
-             a_loadmm_reg_intreg(list,deomsize,cgpara.def,reg,cgpara.location^.register,mms_movescalar);
+              internalerror(2012071205);
+             a_loadmm_reg_intreg(list,fromsize,cgpara.def,reg,cgpara.location^.register,mms_movescalar);
           end
         else
-          internalerror(2010120427);
+          internalerror(2012071204);
       end;
     end;
 
@@ -2382,9 +2395,12 @@ implementation
        hr : tregister;
        hs : tmmshuffle;
     begin
+      { no vector support yet }
+      if shuffle<>mms_movescalar then
+        internalerror(2012062308);
        cgpara.check_simple_location;
-       hr:=cg.getmmregister(list,cgpara.size);
-       a_loadmm_ref_reg(list,deomsize,cgpara.def,ref,hr,shuffle);
+       hr:=getmmregister(list,cgpara.def);
+       a_loadmm_ref_reg(list,fromsize,cgpara.def,ref,hr,shuffle);
        if realshuffle(shuffle) then
          begin
            hs:=shuffle^;
@@ -2399,31 +2415,68 @@ implementation
     begin
 {$ifdef extdebug}
       if def_cgsize(fromsize)<>loc.size then
-        internalerror(2010112105);
+        internalerror(2012071203);
 {$endif}
-      cg.a_loadmm_loc_cgpara(list,loc,cgpara,shuffle);
-    end;
-
-  procedure thlcgobj.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
-    begin
-      cg.a_opmm_reg_reg(list,op,def_cgsize(size),src,dst,shuffle);
+      case loc.loc of
+        LOC_MMREGISTER,LOC_CMMREGISTER:
+          a_loadmm_reg_cgpara(list,fromsize,loc.register,cgpara,shuffle);
+        LOC_REFERENCE,LOC_CREFERENCE:
+          a_loadmm_ref_cgpara(list,fromsize,loc.reference,cgpara,shuffle);
+        else
+          internalerror(2012071202);
+      end;
     end;
 
   procedure thlcgobj.a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+    var
+       hr : tregister;
+       hs : tmmshuffle;
     begin
-      cg.a_opmm_ref_reg(list,op,def_cgsize(size),ref,reg,shuffle)
+       hr:=getmmregister(list,size);
+       a_loadmm_ref_reg(list,size,size,ref,hr,shuffle);
+       if realshuffle(shuffle) then
+         begin
+           hs:=shuffle^;
+           removeshuffles(hs);
+           a_opmm_reg_reg(list,op,size,hr,reg,@hs);
+         end
+       else
+         a_opmm_reg_reg(list,op,size,hr,reg,shuffle);
     end;
 
   procedure thlcgobj.a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size: tdef; const loc: tlocation; reg: tregister; shuffle: pmmshuffle);
     begin
-      cg.a_opmm_loc_reg(list,op,def_cgsize(size),loc,reg,shuffle);
+      case loc.loc of
+        LOC_CMMREGISTER,LOC_MMREGISTER:
+          a_opmm_reg_reg(list,op,size,loc.register,reg,shuffle);
+        LOC_CREFERENCE,LOC_REFERENCE:
+          a_opmm_ref_reg(list,op,size,loc.reference,reg,shuffle);
+        else
+          internalerror(2012071201);
+      end;
     end;
 
   procedure thlcgobj.a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+    var
+       hr : tregister;
+       hs : tmmshuffle;
     begin
-      cg.a_opmm_reg_ref(list,op,def_cgsize(size),reg,ref,shuffle);
+       hr:=getmmregister(list,size);
+       a_loadmm_ref_reg(list,size,size,ref,hr,shuffle);
+       if realshuffle(shuffle) then
+         begin
+           hs:=shuffle^;
+           removeshuffles(hs);
+           a_opmm_reg_reg(list,op,size,reg,hr,@hs);
+           a_loadmm_reg_ref(list,size,size,hr,ref,@hs);
+         end
+       else
+         begin
+           a_opmm_reg_reg(list,op,size,reg,hr,shuffle);
+           a_loadmm_reg_ref(list,size,size,hr,ref,shuffle);
+         end;
     end;
-*)
+
 (*
   procedure thlcgobj.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
     begin
@@ -2801,12 +2854,9 @@ implementation
 
   procedure thlcgobj.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     begin
-{
       if use_vectorfpu(size) then
-        a_loadmm_ref_ref()
-      else
- }
-      if size.typ<>floatdef then
+        a_loadmm_ref_ref(list,size,size,source,dest,mms_movescalar)
+      else if size.typ<>floatdef then
         a_load_ref_ref(list,size,size,source,dest)
       else
         a_loadfpu_ref_ref(list,size,size,source,dest);
@@ -3560,16 +3610,17 @@ implementation
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
           end;
-(*
         LOC_MMREGISTER,
         LOC_CMMREGISTER:
           begin
+            { vectors can't be represented yet using tdef }
+            if size.typ<>floatdef then
+              internalerror(2012062301);
             tg.gethltemp(list,size,size.size,tt_normal,r);
-            cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
+            a_loadmm_reg_ref(list,size,size,l.register,r,mms_movescalar);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
           end;
-*)
         LOC_CONSTANT,
         LOC_REGISTER,
         LOC_CREGISTER,
@@ -3582,7 +3633,7 @@ implementation
                not is_open_array(size) then
               forcesize:=size.size
             else
-              forcesize:=voidpointertype.size;
+              forcesize:=sizeof(pint);
             tg.gethltemp(list,size,forcesize,tt_normal,r);
             a_load_loc_ref(list,size,size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
@@ -3593,6 +3644,55 @@ implementation
         else
           internalerror(2011010304);
       end;
+    end;
+
+  procedure thlcgobj.location_force_mmregscalar(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
+    var
+      reg : tregister;
+      href : treference;
+      newsize : tdef;
+    begin
+      if (l.loc<>LOC_MMREGISTER)  and
+         ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
+        begin
+          { if it's in an fpu register, store to memory first }
+          if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+            begin
+              tg.gethltemp(list,size,-1,tt_normal,href);
+              hlcg.a_loadfpu_reg_ref(list,size,size,l.register,href);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
+              l.reference:=href;
+            end;
+          { on ARM, CFP values may be located in integer registers,
+            and its second_int_to_real() also uses this routine to
+            force integer (memory) values in an mmregister }
+          if (l.size in [OS_32,OS_S32]) then
+            begin
+              size:=tcgsize2orddef(l.size);
+              newsize:=s32floattype;
+            end
+          else if (l.size in [OS_64,OS_S64]) then
+            begin
+              size:=tcgsize2orddef(l.size);
+              newsize:=s64floattype;
+            end
+          else
+            newsize:=size;
+          case size.size of
+            4:
+              newsize:=s32floattype;
+            8:
+              newsize:=s64floattype;
+            else
+              newsize:=size;
+          end;
+          reg:=hlcg.getmmregister(list,newsize);
+          hlcg.a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
+          l.size:=def_cgsize(newsize);
+          location_freetemp(list,l);
+          location_reset(l,LOC_MMREGISTER,l.size);
+          l.register:=reg;
+        end;
     end;
 
     procedure thlcgobj.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
@@ -3972,14 +4072,12 @@ implementation
                  a_load_const_reg(TAsmList(arg),tstaticvarsym(p).vardef,0,
                      tstaticvarsym(p).initialloc.register);
              end;
-(*
            LOC_CMMREGISTER :
              { clear the whole register }
-             cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
+             a_opmm_reg_reg(TAsmList(arg),OP_XOR,tstaticvarsym(p).vardef,
                tstaticvarsym(p).initialloc.register,
                tstaticvarsym(p).initialloc.register,
                nil);
-*)
            LOC_CFPUREGISTER :
              begin
                { initialize fpu regvar by loading from memory }
@@ -4312,9 +4410,10 @@ implementation
     end;
 
   procedure thlcgobj.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
+    var
+      tmploc: tlocation;
     begin
       case l.loc of
-(*
         LOC_MMREGISTER,
         LOC_CMMREGISTER:
           case cgpara.location^.loc of
@@ -4324,30 +4423,27 @@ implementation
             LOC_CMMREGISTER,
             LOC_REGISTER,
             LOC_CREGISTER :
-              cg.a_loadmm_reg_cgpara(list,locsize,l.register,cgpara,mms_movescalar);
+              a_loadmm_reg_cgpara(list,size,l.register,cgpara,mms_movescalar);
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
               begin
                 tmploc:=l;
-                location_force_fpureg(list,tmploc,false);
-                cg.a_loadfpu_reg_cgpara(list,tmploc.size,tmploc.register,cgpara);
+                location_force_fpureg(list,tmploc,size,false);
+                a_loadfpu_reg_cgpara(list,size,tmploc.register,cgpara);
               end;
             else
               internalerror(200204249);
           end;
-*)
         LOC_FPUREGISTER,
         LOC_CFPUREGISTER:
           case cgpara.location^.loc of
-(*
             LOC_MMREGISTER,
             LOC_CMMREGISTER:
               begin
                 tmploc:=l;
-                location_force_mmregscalar(list,tmploc,false);
-                cg.a_loadmm_reg_cgpara(list,tmploc.size,tmploc.register,cgpara,mms_movescalar);
+                location_force_mmregscalar(list,tmploc,size,false);
+                a_loadmm_reg_cgpara(list,size,tmploc.register,cgpara,mms_movescalar);
               end;
-*)
             { Some targets pass floats in normal registers }
             LOC_REGISTER,
             LOC_CREGISTER,
@@ -4362,11 +4458,9 @@ implementation
         LOC_REFERENCE,
         LOC_CREFERENCE:
           case cgpara.location^.loc of
-(*
             LOC_MMREGISTER,
             LOC_CMMREGISTER:
-              cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar);
-*)
+              a_loadmm_ref_cgpara(list,size,l.reference,cgpara,mms_movescalar);
             { Some targets pass floats in normal registers }
             LOC_REGISTER,
             LOC_CREGISTER,
@@ -4416,19 +4510,18 @@ implementation
           begin
             a_load_loc_cgpara(list,vardef,l,cgpara);
           end;
-(*
         LOC_MMREGISTER,
         LOC_CMMREGISTER:
           begin
-            case l.size of
-              OS_F32,
-              OS_F64:
-                cg.a_loadmm_loc_cgpara(list,l,cgpara,mms_movescalar);
-              else
-                cg.a_loadmm_loc_cgpara(list,l,cgpara,nil);
-            end;
+            if use_vectorfpu(vardef) then
+              a_loadmm_loc_cgpara(list,vardef,l,cgpara,mms_movescalar)
+            else
+              { no vector support yet }
+              internalerror(2012071212);
+              {
+              cg.a_loadmm_loc_cgpara(list,l,cgpara,nil);
+              }
           end;
-*)
         else
           internalerror(2011010213);
       end;

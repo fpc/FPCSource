@@ -390,7 +390,7 @@ implementation
           fpu_vfpv3,
           fpu_vfpv3_d16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -403,7 +403,7 @@ implementation
             end;
           fpu_fpv4_s16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);

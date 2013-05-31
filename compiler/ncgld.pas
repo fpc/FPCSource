@@ -818,11 +818,12 @@ implementation
                             releaseright:=true;
                             location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                             right.location.reference:=href;
+                            right.resultdef:=left.resultdef;
                           end;
 {$endif}
-                        cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
-                          right.location.size,
-                          left.location.size,
+                        hlcg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,
+                          left.resultdef,
                           right.location.reference,
                           left.location.register,mms_movescalar);
                       end;
@@ -862,10 +863,10 @@ implementation
                       case left.location.loc of
                         LOC_CMMREGISTER,
                         LOC_MMREGISTER:
-                          cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar);
+                          hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register,mms_movescalar);
                         LOC_REFERENCE,
                         LOC_CREFERENCE:
-                          cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                          hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference,mms_movescalar);
                         else
                           internalerror(2009112601);
                       end;
@@ -899,15 +900,16 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef, left.resultdef.size,tt_normal,href);
+                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
+                          right.resultdef:=left.resultdef;
                         end;
 {$endif}
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,false);
-                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
-                          right.location.size,left.location.size,
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,left.resultdef,
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
@@ -1295,7 +1297,7 @@ implementation
                  case hp.left.location.loc of
                    LOC_MMREGISTER,
                    LOC_CMMREGISTER:
-                     cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,
+                     hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.resultdef,
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :

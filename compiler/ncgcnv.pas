@@ -407,11 +407,12 @@ interface
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
+             left.resultdef:=resultdef;
            end;
 {$endif x86}
          { ARM VFP values are in integer registers when they are function results }
          if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-           location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+           hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -427,7 +428,7 @@ interface
                     end;
                   LOC_MMREGISTER:
                     begin
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                       cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,mms_movescalar);
                     end
@@ -442,7 +443,7 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location,location.register,mms_movescalar)
+                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin

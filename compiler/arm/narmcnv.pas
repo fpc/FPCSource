@@ -246,7 +246,7 @@ implementation
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
                 internalerror(2009112703);
               if left.location.size<>location.size then
@@ -260,7 +260,7 @@ implementation
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
                 internalerror(2009112703);
               if left.location.size<>location.size then
