@@ -163,6 +163,10 @@ unit cgcpu;
         tmpreg: tregister;
         op1, op2: TAsmOp;
         ax_subreg: tregister;
+        hl_loop_start: tasmlabel;
+        ai: taicpu;
+        use_loop: Boolean;
+        i: Integer;
       begin
         optimize_op_const(op, a);
         check_register_size(size,reg);
@@ -205,6 +209,74 @@ unit cgcpu;
                     list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
                     list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
                   end;
+                end;
+              OP_SHR,OP_SHL,OP_SAR:
+                begin
+                  a:=a and 31;
+                  if a<>0 then
+                    begin
+                      use_loop:=a>2;
+
+                      if use_loop then
+                        begin
+                          getcpuregister(list,NR_CX);
+                          a_load_const_reg(list,OS_16,a,NR_CX);
+
+                          current_asmdata.getjumplabel(hl_loop_start);
+                          a_label(list,hl_loop_start);
+
+                          case op of
+                            OP_SHR:
+                              begin
+                                list.concat(taicpu.op_const_reg(A_SHR,S_W,1,GetNextReg(reg)));
+                                list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                              end;
+                            OP_SAR:
+                              begin
+                                list.concat(taicpu.op_const_reg(A_SAR,S_W,1,GetNextReg(reg)));
+                                list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                              end;
+                            OP_SHL:
+                              begin
+                                list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg));
+                                list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg)));
+                              end;
+                            else
+                              internalerror(2013030903);
+                          end;
+
+                          ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
+                          ai.is_jmp:=true;
+                          list.concat(ai);
+
+                          ungetcpuregister(list,NR_CX);
+                        end
+                      else
+                        begin
+                          for i:=1 to a do
+                            begin
+                              case op of
+                                OP_SHR:
+                                  begin
+                                    list.concat(taicpu.op_const_reg(A_SHR,S_W,1,GetNextReg(reg)));
+                                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                                  end;
+                                OP_SAR:
+                                  begin
+                                    list.concat(taicpu.op_const_reg(A_SAR,S_W,1,GetNextReg(reg)));
+                                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                                  end;
+                                OP_SHL:
+                                  begin
+                                    list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg));
+                                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg)));
+                                  end;
+                                else
+                                  internalerror(2013030903);
+                              end;
+                            end;
+                        end;
+                    end;
                 end;
               else
                 begin
