@@ -7,11 +7,12 @@ main=rtl
 loaders=prt0 # exceptn fpu
 units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
-      convutil strutils stdconvs matrix ucomplex getopts fgl classes objects
+      convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
+      msmouse
 #      printer cmem
 #      initc ports profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf ctypes \
-#      msmouse charset \
+#      charset \
 #      video mouse keyboard vesamode fmtbcd \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 # implicitunits=exeinfo
