@@ -7,6 +7,7 @@ uses
 
 type
   { tmyt }
+  // TCustomAttribute without constructor
   tmyt = class(TCustomAttribute);
 
 type
@@ -15,15 +16,15 @@ type
   end;
 
 var
-  td: PTypeData;
+  rtd: PExtRTTIData;
   AClassAttribute: TCustomAttribute;
 
 begin
-  td := GetTypeData(TMyObject.ClassInfo);
-  if td^.AttributeCount<>1 then
+  rtd := GetExtRTTIData(TMyObject.ClassInfo);
+  if rtd^.AttributeData^.AttributeCount<>1 then
     halt(1);
 
-  AClassAttribute := GetClassAttribute(td,0) as TCustomAttribute;
+  AClassAttribute := GetClassAttribute(rtd,0) as TCustomAttribute;
   if AClassAttribute = nil then
     halt(2);
   writeln('ok');
