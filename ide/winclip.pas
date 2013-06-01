@@ -234,7 +234,7 @@ begin
   res:=(SetClipboardData(CF_OEMTEXT,h)=h);
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
   pp:=pchar(GlobalLock(h));
-  OemToCharBuff(p,pp,l+1);
+  OemToCharBuffA(p,pp,l+1);
   SetClipboardData(CF_TEXT,h);
   GlobalUnlock(h);
   SetTextWinClipBoardData:=res;
