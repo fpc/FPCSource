@@ -1111,7 +1111,17 @@ end;
 procedure TSQLTransaction.EndTransaction;
 
 begin
-  rollback;
+  Case Action of
+    caNone : ;
+    caCommit :
+      Commit;
+    caCommitRetaining :
+      CommitRetaining;
+    caRollback :
+      RollBack;
+    caRollbackRetaining :
+      RollbackRetaining;
+  end;
 end;
 
 procedure TSQLTransaction.SetParams(const AValue: TStringList);
@@ -1203,7 +1213,7 @@ end;
 
 destructor TSQLTransaction.Destroy;
 begin
-  Rollback;
+  EndTransaction;
   FreeAndNil(FParams);
   inherited Destroy;
 end;
