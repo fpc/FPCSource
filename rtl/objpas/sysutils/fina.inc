@@ -121,7 +121,7 @@ function ExtractShortPathName(Const FileName : String) : String;
 begin
 {$ifdef MSWINDOWS}
   SetLength(Result,Max_Path);
-  SetLength(Result,GetShortPathName(PChar(FileName), Pchar(Result),Length(Result)));
+  SetLength(Result,GetShortPathNameA(PChar(FileName), Pchar(Result),Length(Result)));
 {$else}
   Result:=FileName;
 {$endif}
