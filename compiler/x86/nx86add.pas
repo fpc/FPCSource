@@ -249,9 +249,6 @@ unit nx86add;
     procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TCgsize);
       var
         tmpref: treference;
-{$ifdef x86_64}
-        tmpreg : tregister;
-{$endif x86_64}
       begin
         if (right.location.loc in [LOC_CSUBSETREG,LOC_SUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
@@ -264,16 +261,7 @@ unit nx86add;
           LOC_CREFERENCE :
             begin
               tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
-              tmpref:=right.location.reference;
-{$ifdef i8086}
-              if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-                begin
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-                  tmpref.segment:=NR_ES;
-                end;
-{$endif i8086}
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,TCGSize2Opsize[opsize],tmpref,left.location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,TCGSize2Opsize[opsize],right.location.reference,left.location.register));
             end;
           LOC_CONSTANT :
             begin

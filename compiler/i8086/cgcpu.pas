@@ -346,13 +346,6 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
-
         if size in [OS_64, OS_S64] then
           internalerror(2013050801);
         if size in [OS_32, OS_S32] then
@@ -498,13 +491,6 @@ unit cgcpu;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
 
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
-
         if size in [OS_64, OS_S64] then
           internalerror(2013030902);
 
@@ -535,13 +521,6 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
-
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
 
         if size in [OS_64, OS_S64] then
           internalerror(2013050803);
@@ -853,13 +832,6 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
-
         if tosize in [OS_S32,OS_32] then
           begin
             a_load_const_ref(list,OS_16,longint(a and $ffff),tmpref);
@@ -881,13 +853,6 @@ unit cgcpu;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(fromsize,reg);
-
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
 
         case tosize of
           OS_8,OS_S8:
@@ -972,13 +937,6 @@ unit cgcpu;
           internalerror(2011021307);
 {        if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
           fromsize:=tosize;}
-
-        if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
-          begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
-            tmpref.segment:=NR_ES;
-          end;
 
         case tosize of
           OS_8,OS_S8:
