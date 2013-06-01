@@ -225,7 +225,6 @@ type
     FTransaction: TSQLTransaction;
     FDatasource : TDatasource;
     FParseSQL: Boolean;
-    procedure DoUnPrepare;
     procedure OnChangeSQL(Sender : TObject);
     procedure SetDatabase(AValue: TSQLConnection);
     procedure SetDataSource(AValue: TDatasource);
@@ -238,6 +237,7 @@ type
     Function IsSelectable : Boolean ; virtual;
     Procedure DoExecute; virtual;
     procedure DoPrepare; virtual;
+    procedure DoUnPrepare; virtual;
     Function CreateParams : TParams; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
@@ -644,7 +644,6 @@ procedure TCustomSQLStatement.SetDatabase(AValue: TSQLConnection);
 begin
   if FDatabase=AValue then Exit;
   UnPrepare;
-  if assigned(FCursor) then TSQLConnection(DataBase).DeAllocateCursorHandle(FCursor);
   If Assigned(FDatabase) then
     FDatabase.RemoveFreeNotification(Self);
   FDatabase:=AValue;
@@ -825,8 +824,14 @@ end;
 procedure TCustomSQLStatement.DoUnPrepare;
 
 begin
-  If Assigned(Database) then
-    DataBase.UnPrepareStatement(FCursor);
+  If Assigned(FCursor) then
+    If Assigned(Database) then
+      begin
+      DataBase.UnPrepareStatement(FCursor);
+      DataBase.DeAllocateCursorHandle(FCursor);
+      end
+    else // this should never happen. It means a cursor handle leaks in the DB itself.
+      FreeAndNil(FCursor);
 end;
 
 procedure TCustomSQLStatement.Unprepare;
