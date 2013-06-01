@@ -595,17 +595,54 @@ end;
 
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
+var
+  c : array[0..255] of char;
 begin
-  {TODO: implement}
-  runerror(304);
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  dosregs.ax:=$7160;
+  dosregs.cx:=1;
+  dosregs.ds:=Seg(c);
+  dosregs.si:=Ofs(c);
+  dosregs.es:=Seg(c);
+  dosregs.di:=Ofs(c);
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetShortName:=true;
+   end
+  else
+   GetShortName:=false;
 end;
 
 
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
+var
+  c : array[0..260] of char;
 begin
-  {TODO: implement}
-  runerror(304);
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  dosregs.ax:=$7160;
+  dosregs.cx:=2;
+  dosregs.ds:=Seg(c);
+  dosregs.si:=Ofs(c);
+  dosregs.es:=Seg(c);
+  dosregs.di:=Ofs(c);
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     c[255]:=#0;
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetLongName:=true;
+   end
+  else
+   GetLongName:=false;
 end;
 
 
