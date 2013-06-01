@@ -168,15 +168,16 @@ implementation
 
     function tcgpara.getcopy:tcgpara;
       var
-        hlocation : pcgparalocation;
+        srcloc,hlocation : pcgparalocation;
       begin
         result.init;
-        while assigned(location) do
+        srcloc:=location;
+        while assigned(srcloc) do
           begin
             hlocation:=result.add_location;
-            hlocation^:=location^;
+            hlocation^:=srcloc^;
             hlocation^.next:=nil;
-            location:=location^.next;
+            srcloc:=srcloc^.next;
           end;
         result.alignment:=alignment;
         result.size:=size;
