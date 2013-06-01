@@ -776,7 +776,7 @@ implementation
   procedure thlcg2ll.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
     begin
       { no vector support yet }
-      if shuffle<>mms_movescalar then
+      if size.typ<>floatdef then
         internalerror(2012071221);
       cg.a_opmm_reg_reg(list,op,def_cgsize(size),src,dst,shuffle);
     end;
@@ -784,7 +784,7 @@ implementation
   procedure thlcg2ll.a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
     begin
       { no vector support yet }
-      if shuffle<>mms_movescalar then
+      if size.typ<>floatdef then
         internalerror(2012071222);
       cg.a_opmm_ref_reg(list,op,def_cgsize(size),ref,reg,shuffle);
     end;
@@ -792,7 +792,7 @@ implementation
   procedure thlcg2ll.a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size: tdef; const loc: tlocation; reg: tregister; shuffle: pmmshuffle);
     begin
       { no vector support yet }
-      if shuffle<>mms_movescalar then
+      if size.typ<>floatdef then
         internalerror(2012071223);
       cg.a_opmm_loc_reg(list,op,def_cgsize(size),loc,reg,shuffle);
     end;
@@ -800,7 +800,7 @@ implementation
   procedure thlcg2ll.a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
     begin
       { no vector support yet }
-      if shuffle<>mms_movescalar then
+      if size.typ<>floatdef then
         internalerror(2012071224);
       cg.a_opmm_reg_ref(list,op,def_cgsize(size),reg,ref,shuffle);
     end;
