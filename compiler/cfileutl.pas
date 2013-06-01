@@ -1203,6 +1203,14 @@ end;
        StartPos, EndPos, L: LongInt;
      begin
        Result:=False;
+
+       if (path_absolute(f)) then
+         begin
+           Result:=FileExistsNonCase('',f, allowcache, foundfile);
+           if Result then
+             Exit;
+         end;
+
        StartPos := 1;
        L := Length(Path);
        repeat
