@@ -143,7 +143,7 @@ begin
     P.Dependencies.Add('rtl');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
-    P.Dependencies.Add('gdbint');
+    P.Dependencies.Add('gdbint',AllOSes-[morphos]);
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
