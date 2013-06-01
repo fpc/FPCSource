@@ -31,7 +31,47 @@ begin
   CloseHandle(h);
 end;
 
+{$ifdef FPC_UNICODE_RTL}
+procedure do_erase(const p : unicodestring);
+var lp:unicodestring;
+begin
+   lp:=p;
+   DoDirSeparators(lp);
+   if DeleteFile(punicodechar(lp))=0 then
+    Begin
+      errno:=GetLastError;
+      if errno=5 then
+       begin
+         if ((GetFileAttributes(punicodechar(lp)) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
+          errno:=2;
+       end;
+      Errno2InoutRes;
+    end;
+end;
 
+procedure do_erase(const p : rawbytestring);
+begin
+   Do_Erase(Unicodestring(p));
+end;
+
+procedure do_rename(const p1:unicodestring;const p2 : unicodestring);
+var lp1,lp2:unicodestring;
+begin
+  lp1:=p1; lp2:=p2;
+  DoDirSeparators(lp1);
+  DoDirSeparators(lp2);
+  if MoveFile(punicodechar(lp1),punicodechar(lp2))=0 then
+   Begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+   end;
+end;
+
+procedure do_rename(const p1:unicodestring;const p2 : rawbytestring);
+begin
+  do_rename(p1,unicodestring(p2));
+end;
+{$else}
 procedure do_erase(p : pchar);
 begin
    DoDirSeparators(p);
@@ -59,7 +99,7 @@ begin
    end;
 end;
 
-
+{$endif}
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var
    size:longint;
@@ -191,7 +231,11 @@ begin
 end;
 
 
+{$ifdef FPC_UNICODE_RTL}
+procedure do_open(var f;const op:unicodestring;flags:longint);
+{$else}
 procedure do_open(var f;p:pchar;flags:longint);
+{$endif}
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -207,7 +251,13 @@ Var
   shflags,
   oflags,cd : longint;
   security : TSecurityAttributes;
+{$ifdef FPC_UNICODE_RTL}
+  p : unicodestring;
+{$endif}
 begin
+{$ifdef FPC_UNICODE_RTL}
+  p:=op;
+{$endif}
   DoDirSeparators(p);
   { close first if opened }
   if ((flags and $10000)=0) then
@@ -266,7 +316,11 @@ begin
   else
     cd:=OPEN_EXISTING;
   { empty name is special }
+{$ifdef FPC_UNICODE_RTL}
+  if p='' then
+{$else}
   if p[0]=#0 then
+{$endif}
    begin
      case FileRec(f).mode of
        fminput :
@@ -285,8 +339,11 @@ begin
   security.nLength := Sizeof(TSecurityAttributes);
   security.bInheritHandle:=true;
   security.lpSecurityDescriptor:=nil;
+  {$ifdef FPC_UNICODE_RTL}
+  filerec(f).handle:=CreateFile(punicodechar(p),oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
+  {$else}
   filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
-
+  {$endif}
   { append mode }
   if ((flags and $100)<>0) and
      (filerec(f).handle<>0) and
@@ -304,3 +361,10 @@ begin
       Errno2InoutRes;
     end;
 end;
+
+{$ifdef FPC_UNICODE_RTL}
+procedure do_open(var f;const p:rawbytestring;flags:longint);
+begin
+ do_open(f,UnicodeString(p),flags);  
+end;
+{$endif}

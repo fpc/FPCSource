@@ -15,7 +15,6 @@
 
 Type
 
-{$IFDEF FPC_UNICODE_RTL}
 
   // Some operating systems need extra find data.
 {$if defined(Win32) or defined(WinCE) or defined(Win64)}
@@ -33,9 +32,6 @@ Type
 {$ifdef nativent}
     TUnicodeSearchFindData = TNativeNTFindData;
 {$endif}
-
-
-{$ENDIF FPC_UNICODE_RTL}
 
 // USEFINDDATA is only defined here.
 
@@ -64,7 +60,6 @@ Type
     {$DEFINE USEFINDDATA}
 {$endif}
 
-{$IFDEF FPC_UNICODE_RTL}
   // The actual unicode search record
   TUnicodeSearchRec = Record
     Time : Longint;
@@ -82,7 +77,6 @@ Type
     FindData : TUnicodeSearchFindData;
 {$ENDIF}    
   end;
-{$ENDIF}
 
   TRawbyteSearchRec = Record
     Time : Longint;
@@ -141,8 +135,6 @@ Type
   TFileSearchOption = (sfoImplicitCurrentDir,sfoStripQuotes);
   TFileSearchOptions = set of TFileSearchOption;
 
-{$IFDEF FPC_UNICODE_RTL}
-
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString) : THandle;
 Function FileCreate (Const FileName : UnicodeString; Rights : Integer) : THandle;
@@ -165,7 +157,6 @@ Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : B
 Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString = '') : UnicodeString;
 Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
-{$ENDIF UNICODERTL}
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString) : THandle;

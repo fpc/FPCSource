@@ -874,7 +874,7 @@ implementation
       {$endif}
       {$ifdef mswindows}
         GetEnvPchar:=nil;
-        p:=GetEnvironmentStrings;
+        p:=GetEnvironmentStringsA;
         hp:=p;
         while hp^<>#0 do
          begin
@@ -891,7 +891,7 @@ implementation
            { next string entry}
            hp:=hp+len+1;
          end;
-        FreeEnvironmentStrings(p);
+        FreeEnvironmentStringsA(p);
         {$define GETENVOK}
       {$endif}
       {$ifdef os2}

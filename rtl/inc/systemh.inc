@@ -1161,7 +1161,7 @@ Procedure mkdir(const s:rawbytestring); overload;
 Procedure rmdir(const s:rawbytestring); overload;
 
 Procedure getdir(drivenr:byte;var dir: unicodestring);
-Procedure getdir(drivenr:byte;var dir: rawbytestring);rtlproc; // defaultrtlfilesystemcodepage is used here
+Procedure getdir(drivenr:byte;var dir: rawbytestring);{$ifndef VER2_6}rtlproc; {$endif}// defaultrtlfilesystemcodepage is used here
 {$ENDIF}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1266,11 +1266,7 @@ Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
 
-{$IFDEF FPC_UNICODE_RTL}
-Function  ParamStr(l:Longint):unicodestring;
-{$ELSE}
-Function  ParamStr(l:Longint):string;
-{$ENDIF}
+Function  ParamStr(l:Longint):RawByteString;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);

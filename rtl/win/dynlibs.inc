@@ -39,7 +39,7 @@ Uses windows;
 Function LoadLibrary(const Name : AnsiString) : TlibHandle;
 
 begin
-  Result:=Windows.LoadLibrary(PChar(Name));
+  Result:=Windows.LoadLibraryA(PChar(Name));
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;

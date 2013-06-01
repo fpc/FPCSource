@@ -23,30 +23,20 @@
 
 
   {$ifndef OS_FILEISREADONLY}
-{$ifdef FPC_UNICODE_RTL}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
-{$else}
-  Function FileIsReadOnly(const FileName: String): Boolean;
-{$endif}
   begin
     Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
   end;
-  {$ifdef  FPC_UNICODE_RTL}
   Function FileIsReadOnly(const FileName: UnicodeString): Boolean;
 
   begin
     Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
   end;
-  {$endif}
   {$endif OS_FILEISREADONLY}
 
 
   {$ifndef OS_FILESETDATEBYNAME}
-  {$ifdef FPC_UNICODE_RTL}
   Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
-  {$else}
-  Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
-  {$endif}
   Var
     fd : THandle;
   begin
@@ -65,7 +55,6 @@
       Result:=-1;
   {$endif}
   end;
-  {$ifdef FPC_UNICODE_RTL}
   Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
   Var
     fd : THandle;
@@ -85,7 +74,6 @@
       Result:=-1;
   {$endif}
   end;
-  {$endif}
   {$endif}
 
   { Read String Handling functions implementation }

@@ -230,14 +230,21 @@ const
     paramcount := argc - 1;
   end;
 
-  function paramstr(l : longint) : string;
+{$ifdef xFPC_UNICODE_RTL}
+  function paramstr(l : longint) : unicodestring;
+{$else}
+  function paramstr(l : longint) : rawbytestring;
+{$endif}
   begin
     if (l>=0) and (l<argc) then
+{$ifdef FPC_UNICODE_RTL}
+      paramstr:=(argv[l])
+{$else}
       paramstr:=strpas(argv[l])
+{$endif}
     else
       paramstr:='';
   end;
-
 
   procedure randomize;
   begin

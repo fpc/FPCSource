@@ -96,9 +96,9 @@ Var
      {$endif}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_COMMANDARGS) and not defined(FPC_UNICODE_RTL)}
+{$if defined(FPC_HAS_FEATURE_COMMANDARGS) }
      { ParamStr should return also an ansistring }
-     Function ParamStr(Param : Integer) : Ansistring;
+     Function ParamStr(Param : Integer) : UnicodeString;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS) and not defined(FPC_UNICODE_RTL)}
@@ -262,8 +262,8 @@ end;
 {$endif}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_COMMANDARGS) and not defined(FPC_UNICODE_RTL)}
-Function ParamStr(Param : Integer) : Ansistring;
+{$if defined(FPC_HAS_FEATURE_COMMANDARGS) }
+Function ParamStr(Param : Integer) : unicodestring;
 
 Var Len : longint;
 

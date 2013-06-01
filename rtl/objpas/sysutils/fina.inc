@@ -143,7 +143,7 @@ end;
 {$I fexpand.inc}
 
 {$ENDIF}
-{$UNDEFINE PathStr}
+{$UNDEF PathStr}
 
 
 function ExpandFileName (Const FileName : string): String;

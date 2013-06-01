@@ -1,4 +1,4 @@
-{
+﻿{
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -266,10 +266,6 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
 {$DEFINE SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
-
-{$IFNDEF FPC_UNICODE_RTL}
-{$DEFINE SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
-{$ENDIF}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -703,13 +699,11 @@ Begin
   f.FindHandle:=nil;
 End;
 
-{$IFDEF FPC_UNICODE_RTL}
 Procedure FindClose(Var f: TUnicodeSearchRec);
 Begin
   Do_findClose(PUnixFindData(f.FindHandle));
   f.FindHandle:=nil;
 End;
-{$ENDIF}
 
 Function Do_FindGetFileInfo(const s:RawByteString; D:PUnixFindData; 
                             out st : baseunix.stat; out WinAttr : longint):boolean;
@@ -747,7 +741,6 @@ begin
     End;
 end;
 
-{$IFDEF FPC_UNICODE_RTL}
 
 Type
   PUnicodeSearchRec = ^TUnicodeSearchRec;
@@ -771,7 +764,6 @@ begin
     f^.Time:=st.st_mtime;
     End;
 end;
-{$ENDIF}
 
 // Returns the FOUND filename. Empty if no result is found.
 // Uses CB to return file info
@@ -836,13 +828,11 @@ begin
   FindNext:=Do_findNext(PUnixFindData(Rslt.FindHandle),@FindGetFileInfoR,@Rslt);
 end;
 
-{$IFDEF FPC_UNICODE_RTL}
 Function FindNext (Var Rslt : TUnicodeSearchRec) : Longint;
 
 begin
   FindNext:=Do_findNext(PUnixFindData(Rslt.FindHandle),@FindGetFileInfoU,@Rslt);
 end;
-{$ENDIF}
 
 Function FindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TRawByteSearchRec) : Longint;
 
@@ -881,7 +871,6 @@ Begin
     FindClose(Rslt); 
 End;
 
-{$IFDEF FPC_UNICODE_RTL}
 Function FindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TUnicodeSearchRec) : Longint;
 
 {
@@ -921,8 +910,6 @@ Begin
   If (Result<>0) then
     FindClose(Rslt); 
 End;
-{$ENDIF}
-
 
 Function FileGetDate (Handle : Longint) : Longint;
 

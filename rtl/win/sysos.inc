@@ -218,7 +218,7 @@ threadvar
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
-   {$ifdef FPC_UNICODE_RTL}
+   {$ifdef FPC_UNICODE_RTLx}
    { command line/environment functions }
 
    function GetCommandLine : pwidechar;
@@ -281,7 +281,7 @@ threadvar
    function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
    {$ifdef FPC_UNICODE_RTL}
-    function GetFileAttributes(p : punicodechar) : dword;
+   function GetFileAttributes(p : punicodechar) : dword;
      stdcall;external KernelDLL name 'GetFileAttributesW';
    function DeleteFile(p : punicodechar) : longint;
      stdcall;external KernelDLL name 'DeleteFileW';
@@ -298,9 +298,8 @@ threadvar
      stdcall;external KernelDLL name 'RemoveDirectoryW';
    function SetCurrentDirectory(name : pointer) : longbool;
      stdcall;external KernelDLL name 'SetCurrentDirectoryW';
-   function GetCurrentDirectory(bufsize : longint;name : punicodechar) : longbool;
+   function GetCurrentDirectory(bufsize : longint;name : punicodechar) : Dword;
      stdcall;external KernelDLL name 'GetCurrentDirectoryW';
-
    {$else}
    function GetFileAttributes(p : pchar) : dword;
      stdcall;external KernelDLL name 'GetFileAttributesA';
