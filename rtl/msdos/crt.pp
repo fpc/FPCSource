@@ -471,43 +471,42 @@ end;
 
 
 procedure sound(hz : word);
+label
+  Lsound_next;
 begin
-  { TODO: implement }
   if hz=0 then
    begin
      nosound;
      exit;
    end;
   asm
-{        movzwl  hz,%ecx
-        movl    $1193046,%eax
-        cltd
-        divl    %ecx
-        movl    %eax,%ecx
-        inb     $0x61,%al
-        testb   $0x3,%al
-        jnz     .Lsound_next
-        orb     $0x3,%al
-        outb    %al,$0x61
-        movb    $0xb6,%al
-        outb    %al,$0x43
-     .Lsound_next:
-        movb    %cl,%al
-        outb    %al,$0x42
-        movb    %ch,%al
-        outb    %al,$0x42}
-  end ['EAX','ECX'];
+        mov     cx, hz
+        { dx:ax = 1193046 }
+        mov     ax, $3456
+        mov     dx, $12
+        div     cx
+        mov     cx, ax
+        in      al, $61
+        test    al, 3
+        jnz     Lsound_next
+        or      al, 3
+        out     $61, al
+        mov     al, $b6
+        out     $43, al
+     Lsound_next:
+        mov     al, cl
+        out     $42, al
+        mov     al, ch
+        out     $42, al
+  end ['AX','CX','DX'];
 end;
 
 
-procedure nosound;
-begin
-  asm
-    {TODO: implement}
-{        inb     $0x61,%al
-        andb    $0xfc,%al
-        outb    %al,$0x61}
-  end ['EAX'];
+procedure nosound; assembler; nostackframe;
+asm
+        in      al, $61
+        and     al, $fc
+        out     $61, al
 end;
 
 
