@@ -216,6 +216,7 @@ type
 
   TCustomSQLStatement = Class(TComponent)
   Private
+    FCheckParams: Boolean;
     FCursor : TSQLCursor;
     FDatabase: TSQLConnection;
     FParams: TParams;
@@ -248,6 +249,7 @@ type
     Property Params : TParams Read FParams Write SetParams;
     Property Datasource : TDatasource Read FDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
+    Property CheckParams : Boolean Read FCheckParams Write FCheckParams default true;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -266,12 +268,15 @@ type
     Property SQL;
     Property Params;
     Property Datasource;
+    Property ParseSQL;
+    Property CheckParams;
   end;
 
 { TCustomSQLQuery }
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
+    FCheckParams: Boolean;
     FCursor              : TSQLCursor;
     FUpdateable          : boolean;
     FTableName           : string;
@@ -399,6 +404,7 @@ type
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
+    Property CheckParams : Boolean Read FCheckParams Write FCheckParams default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
@@ -454,6 +460,7 @@ type
     property UpdateMode;
     property UsePrimaryKeyAsKey;
     property ParseSQL;
+    Property CheckParams;
     Property DataSource;
     property ServerFilter;
     property ServerFiltered;
@@ -617,6 +624,8 @@ var
 
 begin
   UnPrepare;
+  if not CheckParams then
+    exit;
   if assigned(DataBase) then
     ConnOptions:=DataBase.ConnOptions
   else
@@ -742,6 +751,8 @@ begin
   FSQL:=TStringList.Create;
   TStringList(FSQL).OnChange:=@OnChangeSQL;
   FParams:=CreateParams;
+  FCheckParams:=True;
+  FParseSQL:=True;
 end;
 
 destructor TCustomSQLStatement.Destroy;
@@ -1275,7 +1286,7 @@ var ConnOptions : TConnOptions;
 begin
   UnPrepare;
   FSchemaType:=stNoSchema;
-  if (FSQL <> nil) then
+  if (FSQL <> nil) and CheckParams then
     begin
     if assigned(DataBase) then
       ConnOptions := TSQLConnection(DataBase).ConnOptions
@@ -1295,7 +1306,7 @@ begin
     end;
 end;
 
-function TCustomSQLQuery.ParamByName(Const AParamName : String) : TParam;
+function TCustomSQLQuery.ParamByName(const AParamName: String): TParam;
 
 begin
   Result:=Params.ParamByName(AParamName);
@@ -1307,7 +1318,7 @@ begin
   CheckInactive;
 end;
 
-Procedure TCustomSQLQuery.SetTransaction(Value : TDBTransaction);
+procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
 
 begin
   UnPrepare;
@@ -1335,13 +1346,13 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.IsPrepared : Boolean;
+function TCustomSQLQuery.IsPrepared: Boolean;
 
 begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
 end;
 
-Function TCustomSQLQuery.AddFilter(SQLstr : string) : string;
+function TCustomSQLQuery.AddFilter(SQLstr: string): string;
 
 begin
   if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
@@ -1380,7 +1391,7 @@ begin
   First;
 end;
 
-Procedure TCustomSQLQuery.SetActive (Value : Boolean);
+procedure TCustomSQLQuery.SetActive(Value: Boolean);
 
 begin
   inherited SetActive(Value);
@@ -1855,7 +1866,7 @@ begin
   FServerIndexDefs := TServerIndexDefs.Create(Self);
 
   FParseSQL := True;
-
+  CheckParams:=True;
   FServerFiltered := False;
   FServerFilterText := '';
 
@@ -1925,7 +1936,7 @@ begin
     end;
 end;
 
-Procedure TCustomSQLQuery.UpdateServerIndexDefs;
+procedure TCustomSQLQuery.UpdateServerIndexDefs;
 
 begin
   FServerIndexDefs.Clear;
@@ -1933,7 +1944,7 @@ begin
     TSQLConnection(DataBase).UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
-Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
+procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 var FieldNamesQuoteChars : TQuoteChars;
 
@@ -2073,7 +2084,7 @@ begin
 end;
 
 
-Function TCustomSQLQuery.GetCanModify: Boolean;
+function TCustomSQLQuery.GetCanModify: Boolean;
 
 begin
   // the test for assigned(FCursor) is needed for the case that the dataset isn't opened
@@ -2152,7 +2163,7 @@ begin
   FInsertSQL.Assign(AValue);
 end;
 
-Procedure TCustomSQLQuery.SetDataSource(AValue : TDatasource);
+procedure TCustomSQLQuery.SetDataSource(AValue: TDatasource);
 
 Var
   DS : TDatasource;
@@ -2177,7 +2188,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.GetDataSource : TDatasource;
+function TCustomSQLQuery.GetDataSource: TDatasource;
 
 begin
   If Assigned(FMasterLink) then
