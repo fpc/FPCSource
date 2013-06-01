@@ -556,10 +556,17 @@ interface
                begin
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
+                 if (href.segment<>NR_NO) and (not is_segment_reg(href.segment)) then
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_PUSH,S_W,href.segment));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
+                     href.segment:=NR_ES;
+                   end;
                  inc(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register));
                  firstjmp32bitcmp;
-                 emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register);
+                 dec(href.offset,2);
+                 emit_ref_reg(A_CMP,S_W,href,left.location.register);
                  secondjmp32bitcmp;
                  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                  location_freetemp(current_asmdata.CurrAsmList,right.location);
