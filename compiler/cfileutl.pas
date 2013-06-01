@@ -269,7 +269,7 @@ end;
 
     procedure TCachedDirectory.Reload;
       var
-        dir   : TSearchRec;
+        dir   : TRawByteSearchRec;
         entry : PCachedDirectoryEntry;
       begin
         FreeDirectoryEntries;

@@ -2360,7 +2360,7 @@ begin
   while paramindex<paramcount do
    begin
      inc(paramindex);
-     opts:=objpas.paramstr(paramindex);
+     opts:=TCmdStr(objpas.paramstr(paramindex));
      if length(opts)>0 then
        case opts[1] of
          '@' :
