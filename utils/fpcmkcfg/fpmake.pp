@@ -30,7 +30,7 @@ begin
     P.Version:='2.7.1';
 
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fpmkunit');
 
     Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
     p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpc.cft fpccfg.inc DefaultConfig','fpccfg.inc','fpc.cft');
