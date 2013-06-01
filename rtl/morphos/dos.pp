@@ -681,7 +681,6 @@ end;
 
 function FSearch(path: PathStr; dirlist: String) : PathStr;
 var
-  counter: LongInt;
   p1     : LongInt;
   tmpSR  : SearchRec;
   newdir : PathStr;
@@ -727,7 +726,7 @@ begin
     DosError:=0;
     FTime := 0;
     Str := StrPas(filerec(f).name);
-    DoDirSeparators(str);
+    DoDirSeparators(Str);
     FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
@@ -904,7 +903,6 @@ function EnvStr(Index: LongInt): String;
 begin
   EnvStr:='';
 end;
-
 
 
 function GetEnv(envvar : String): String;
