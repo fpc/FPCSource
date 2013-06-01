@@ -255,6 +255,7 @@ type
     Procedure Execute;
     Procedure Unprepare;
     function ParamByName(Const AParamName : String) : TParam;
+    function RowsAffected: TRowsCount; virtual;
     Property Prepared : boolean read GetPrepared;
   end;
 
@@ -826,6 +827,14 @@ end;
 function TCustomSQLStatement.ParamByName(const AParamName: String): TParam;
 begin
   Result:=FParams.ParamByName(AParamName);
+end;
+
+function TCustomSQLStatement.RowsAffected: TRowsCount;
+begin
+  Result := -1;
+  if not Assigned(Database) then
+    Exit;
+  Result:=Database.RowsAffected(FCursor);
 end;
 
 { TSQLConnection }
