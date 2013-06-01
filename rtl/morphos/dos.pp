@@ -107,7 +107,7 @@ end;
 
 function BSTR2STRING(s : LongInt): PChar; Inline;
 begin
-  BSTR2STRING:=Pointer(Longint(BADDR(s))+1);
+  BSTR2STRING:=PChar(BADDR(s))+1;
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
@@ -913,16 +913,18 @@ var
    strbuffer : array[0..255] of char;
    temp : Longint;
 begin
+   GetEnv := '';
    if UpCase(envvar) = 'PATH' then begin
        if StrOfpaths = '' then StrOfPaths := GetPathString;
-       GetEnv := StrofPaths;
+       GetEnv := StrOfPaths;
    end else begin
+      if (Pos(DriveSeparator,envvar) <> 0) or
+         (Pos(DirectorySeparator,envvar) <> 0) then exit;
       move(envvar[1],strbuffer,length(envvar));
       strbuffer[length(envvar)] := #0;
       temp := GetVar(strbuffer,bufarr,255,$100);
-      if temp = -1 then
-        GetEnv := ''
-      else GetEnv := StrPas(bufarr);
+      if temp <> -1 then
+         GetEnv := StrPas(bufarr);
    end;
 end;
 
