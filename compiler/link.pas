@@ -210,8 +210,8 @@ Implementation
          begin
            if FileExists(FixFileName(s),false) then
             begin
-              foundfile:=ScriptFixFileName(s);
-              found:=true;
+              findobjectfile:=ScriptFixFileName(s);
+              exit;
             end;
          end;
         if pos('.',s)=0 then
