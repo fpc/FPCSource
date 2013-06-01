@@ -360,23 +360,82 @@ var
 {$endif DEBUG_LFN}
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+var
+  i : longint;
+  w : LFNSearchRec;
 begin
-  {TODO: implement}
-  runerror(304);
+  { allow slash as backslash }
+  DoDirSeparators(path);
+  dosregs.si:=1; { use ms-dos time }
+  { don't include the label if not asked for it, needed for network drives }
+  if attr=$8 then
+   dosregs.cx:=8
+  else
+   dosregs.cx:=attr and (not 8);
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
+  dosregs.di:=Ofs(w);
+  dosregs.es:=Seg(w);
+  dosregs.ax:=$714e;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=2 then
+    DosError:=18;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN then
+    begin
+      Append(lfnfile);
+      inc(LFNOpenNb);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindFirst called ',path);
+      close(lfnfile);
+    end;
+{$endif DEBUG_LFN}
+  LFNSearchRec2Dos(w,dosregs.ax,s,true);
 end;
 
 
 procedure LFNFindNext(var s:searchrec);
+var
+  hdl : longint;
+  w   : LFNSearchRec;
 begin
-  {TODO: implement}
-  runerror(304);
+  Move(s.Fill,hdl,4);
+  dosregs.si:=1; { use ms-dos time }
+  dosregs.di:=Ofs(w);
+  dosregs.es:=Seg(w);
+  dosregs.bx:=hdl;
+  dosregs.ax:=$714f;
+  msdos(dosregs);
+  LoadDosError;
+  LFNSearchRec2Dos(w,hdl,s,false);
 end;
 
 
 procedure LFNFindClose(var s:searchrec);
+var
+  hdl : longint;
 begin
-  {TODO: implement}
-  runerror(304);
+  Move(s.Fill,hdl,4);
+  { Do not call MsDos if FindFirst returned with an error }
+  if hdl=-1 then
+    begin
+      DosError:=0;
+      exit;
+    end;
+  dosregs.bx:=hdl;
+  dosregs.ax:=$71a1;
+  msdos(dosregs);
+  LoadDosError;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN  then
+    begin
+      Append(lfnfile);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindClose called ');
+      close(lfnfile);
+      if LFNOpenNb>0 then
+        dec(LFNOpenNb);
+    end;
+{$endif DEBUG_LFN}
 end;
 
 
@@ -400,15 +459,32 @@ end;
 
 procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
 begin
-  {TODO: implement}
-  runerror(304);
+  { allow slash as backslash }
+  DoDirSeparators(path);
+  dosregs.dx:=Ofs(f);
+  dosregs.ds:=Seg(f);
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.cx:=attr;
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
+  dosregs.ah:=$4e;
+  msdos(dosregs);
+  LoadDosError;
+  dossearchrec2searchrec(f);
 end;
 
 
 procedure Dosfindnext(var f : searchrec);
 begin
-  {TODO: implement}
-  runerror(304);
+  dosregs.dx:=Ofs(f);
+  dosregs.ds:=Seg(f);
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.ah:=$4f;
+  msdos(dosregs);
+  LoadDosError;
+  dossearchrec2searchrec(f);
 end;
 
 
