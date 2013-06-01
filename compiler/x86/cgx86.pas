@@ -1850,16 +1850,19 @@ unit cgx86;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
         copy_len_sizes = [1, 2, 4, 8];
+        push_segment_size = S_L;
 {$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
         copy_len_sizes = [1, 2, 4];
+        push_segment_size = S_L;
 {$elseif defined(cpu16bitalu)}
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
         copy_len_sizes = [1, 2];
+        push_segment_size = S_W;
 {$endif}
 
     type  copymode=(copy_move,copy_mmx,copy_string);
@@ -1979,8 +1982,8 @@ unit cgx86;
               begin
                 a_loadaddr_ref_reg(list,dest,REGDI);
 {$ifdef volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
 {$endif volatile_es}
               end
             else
@@ -1989,10 +1992,10 @@ unit cgx86;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
 {$ifndef volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_ES));
 {$endif not volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,dest.segment));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment));
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
             if (source.segment=NR_NO) then
@@ -2054,10 +2057,10 @@ unit cgx86;
             ungetcpuregister(list,REGSI);
             ungetcpuregister(list,REGDI);
             if (source.segment<>NR_NO) then
-              list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+              list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
 {$ifndef volatile_es}
             if (dest.segment<>NR_NO) then
-              list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+              list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
 {$endif not volatile_es}
           end;
         end;
