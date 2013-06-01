@@ -218,9 +218,11 @@ procedure UnloadASPI;
 
 implementation
 
+uses dynlibs;
+
 const
-  HWNASPI : THandle = 0;
-  WNASPI  : pchar = 'wnaspi32.dll';
+  HWNASPI : TLibHandle = 0;
+  WNASPI  = 'wnaspi32.dll';
 
 Function ASPILoaded : Boolean;
 
@@ -245,7 +247,7 @@ begin
   if (HWNASPI<>0) then
     begin
     FreeLibrary(HWNASPI);
-    HWNASPI:=0;
+    HWNASPI:=TLibHandle(0);
     SendASPI32Command:=nil;
     GetASPI32SupportInfo:=nil;
     end;
