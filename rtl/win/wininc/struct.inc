@@ -2087,6 +2087,8 @@ Const
                      dmSize        : WORD;
                      dmDriverExtra  : WORD;
                      dmFields       : DWORD;
+                     case byte of
+                  1: (
                      dmOrientation  : short;
                      dmPaperSize    : short;
                      dmPaperLength  : short;
@@ -2115,6 +2117,11 @@ Const
                      dmReserved2    : DWORD;
                      dmPanningWidth : DWORD;
                      dmPanningHeight: DWORD;
+                     );
+                  2: (dmPosition: POINTL;
+                      dmDisplayOrientation: DWORD;
+                      dmDisplayFixedOutput: DWORD;
+                     );
                    end;
 
      LPDEVMODEW   = ^DEVMODEW;
