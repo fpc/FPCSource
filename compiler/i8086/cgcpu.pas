@@ -1244,45 +1244,17 @@ unit cgcpu;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
-        { return from proc }
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
-           { this messes up stack alignment }
-           (target_info.stackalign=4) then
+        { return from interrupt }
+        if po_interrupt in current_procinfo.procdef.procoptions then
           begin
-            if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
-               (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
-              begin
-                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.register)=RS_EAX) then
-                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
-                else
-                  internalerror(2010053001);
-              end
-            else
-              list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
-
-            if (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) and
-               assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
-               assigned(current_procinfo.procdef.funcretloc[calleeside].location^.next) and
-               (current_procinfo.procdef.funcretloc[calleeside].location^.next^.loc=LOC_REGISTER) then
-              begin
-                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.next^.register)=RS_EDX) then
-                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
-                else
-                  internalerror(2010053002);
-              end
-            else
-              list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
-
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ESI));
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDI));
-            { .... also the segment registers }
-            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
-            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_ES));
-            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_FS));
-            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_GS));
-            { this restores the flags }
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ES));
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_DS));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DX));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_CX));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_BX));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_AX));
             list.concat(Taicpu.Op_none(A_IRET,S_NO));
           end
         { Routines with the poclearstack flag set use only a ret }

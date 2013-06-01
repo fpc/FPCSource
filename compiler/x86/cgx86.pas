@@ -2212,7 +2212,28 @@ unit cgx86;
       var
         stackmisalignment: longint;
         para: tparavarsym;
+{$ifdef i8086}
+        dgroup: treference;
+{$endif i8086}
       begin
+{$ifdef i8086}
+        { interrupt support for i8086 }
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_AX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_BX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_SI));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_DS));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_ES));
+            reference_reset(dgroup,0);
+            dgroup.refaddr:=addr_dgroup;
+            list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
+            list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+          end;
+{$endif i8086}
 {$ifdef i386}
         { interrupt support for i386 }
         if (po_interrupt in current_procinfo.procdef.procoptions) and

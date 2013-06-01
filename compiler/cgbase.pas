@@ -97,6 +97,9 @@ interface
          ,addr_lo8
          ,addr_hi8
          {$ENDIF}
+         {$IFDEF i8086}
+         ,addr_dgroup      // the data segment group
+         {$ENDIF}
          );
 
 

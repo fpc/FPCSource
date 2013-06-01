@@ -367,6 +367,12 @@ interface
                     AsmWrite(sizestr(s,dest));
                   WriteReference(o.ref^);
                 end
+{$ifdef i8086}
+              else if o.ref^.refaddr=addr_dgroup then
+                begin
+                  AsmWrite('dgroup');
+                end
+{$endif i8086}
               else
                 begin
 {$ifdef x86_64}
