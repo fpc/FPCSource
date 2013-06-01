@@ -307,7 +307,7 @@ end;
 Function ExeSearch (Const Name : RawByteString; Const DirList : RawByteString ='' ) : RawByteString;
 
 begin
-  Result:=ToSingleByteFileSystemEncodedFileName(ExeSearch(UnicodeString(Name),UnicodeString(Dirlist));
+  Result:=ToSingleByteFileSystemEncodedFileName(ExeSearch(UnicodeString(Name),UnicodeString(Dirlist)));
 end;
 
 Function ExeSearch (Const Name : UnicodeString; Const DirList : UnicodeString ='' ) : UnicodeString;
