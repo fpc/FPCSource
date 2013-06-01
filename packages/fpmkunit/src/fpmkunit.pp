@@ -2325,10 +2325,11 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 
 begin
   result := '';
+  ErrorMessage:='';
   if OS in [freebsd, openbsd] then
-    result := '-Fl/usr/local/lib'
+    result := '/usr/local/lib'
   else if OS = netbsd then
-    result := '-Fl/usr/pkg/lib'
+    result := '/usr/pkg/lib'
   else if OS = linux then
     case CPU of
       i386:     result := GetGccDirArch('cpui386','-m32');
