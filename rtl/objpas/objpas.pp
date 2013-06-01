@@ -266,7 +266,7 @@ end;
 Function ParamStr(Param : Integer) : unicodestring;
 
 Var Len : longint;
-
+    s   : ansistring;
 begin
 {
   Paramstr(0) should return the name of the binary.
@@ -283,12 +283,13 @@ begin
     Len:=0;
     While Argv[Param][Len]<>#0 do
       Inc(len);
-    SetLength(Result,Len);
+    SetLength(s,Len);
     If Len>0 then
-      Move(Argv[Param][0],Result[1],Len);
+      Move(Argv[Param][0],s[1],Len);
+     result:=s;
     end
   else
-    paramstr:='';
+    Result:='';
 end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
