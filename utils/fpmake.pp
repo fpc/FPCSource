@@ -2,6 +2,11 @@
 {$define allpackages}
 program fpmake;
 
+{$IFDEF MORPHOS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
