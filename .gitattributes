@@ -858,6 +858,7 @@ ide/fpide.pas svneol=native#text/plain
 ide/fpini.pas svneol=native#text/plain
 ide/fpintf.pas svneol=native#text/plain
 ide/fpkeys.pas svneol=native#text/plain
+ide/fpmake.pp svneol=native#text/plain
 ide/fpmansi.inc svneol=native#text/plain
 ide/fpmcomp.inc svneol=native#text/plain
 ide/fpmdebug.inc svneol=native#text/plain
