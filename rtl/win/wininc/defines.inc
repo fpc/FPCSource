@@ -222,6 +222,9 @@
      DISP_CHANGE_FAILED = -(1);
      DISP_CHANGE_BADMODE = -(2);
      DISP_CHANGE_NOTUPDATED = -(3);
+     DISP_CHANGE_BADPARAM = -5;
+     DISP_CHANGE_BADDUALVIEW = -6;
+ 
   { ChangeServiceConfig  }
      SERVICE_NO_CHANGE = -(1);
      SERVICE_WIN32_OWN_PROCESS = 16;
@@ -1183,6 +1186,10 @@
   { EnumProtocols  }
   { EnumResLangProc  }
 
+  // DEVMODE dmDisplayFixedOutput 
+     DMDFO_DEFAULT = 0;
+     DMDFO_STRETCH = 1;
+     DMDFO_CENTER  = 2;
 
   //
   // Predefined Resource Types
@@ -3335,6 +3342,9 @@ Type
      DM_PAPERLENGTH = $4;
      DM_PAPERWIDTH = $8;
      DM_SCALE = $10;
+     DM_POSITION = $00000020;
+     DM_NUP = $00000040;
+
      DM_COPIES = $100;
      DM_DEFAULTSOURCE = $200;
      DM_PRINTQUALITY = $400;
@@ -3354,6 +3364,9 @@ Type
      DM_ICMINTENT = $1000000;
      DM_MEDIATYPE = $2000000;
      DM_DITHERTYPE = $4000000;
+     DM_PANNINGWIDTH = $08000000;
+     DM_PANNINGHEIGHT = $10000000;
+
      DMORIENT_PORTRAIT = 1;
      DMORIENT_LANDSCAPE = 2;
      DMPAPER_LETTER                        = 1  ; // US Letter 8 1/2 x 11 in
