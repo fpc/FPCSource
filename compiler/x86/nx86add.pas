@@ -247,8 +247,10 @@ unit nx86add;
 
 
     procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TCgsize);
+{$ifdef x86_64}
       var
-        tmpref: treference;
+        tmpreg : tregister;
+{$endif x86_64}
       begin
         if (right.location.loc in [LOC_CSUBSETREG,LOC_SUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
