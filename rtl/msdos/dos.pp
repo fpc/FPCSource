@@ -636,15 +636,41 @@ end;
 
 procedure getfattr(var f;var attr : word);
 begin
-  {TODO: implement}
-  runerror(304);
+  dosregs.dx:=Ofs(filerec(f).name);
+  dosregs.ds:=Seg(filerec(f).name);
+  if LFNSupport then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=0;
+   end
+  else
+   dosregs.ax:=$4300;
+  msdos(dosregs);
+  LoadDosError;
+  Attr:=dosregs.cx;
 end;
 
 
 procedure setfattr(var f;attr : word);
 begin
-  {TODO: implement}
-  runerror(304);
+  { Fail for setting VolumeId. }
+  if ((attr and VolumeID)<>0) then
+  begin
+    doserror:=5;
+    exit;
+  end;
+  dosregs.dx:=Ofs(filerec(f).name);
+  dosregs.ds:=Seg(filerec(f).name);
+  if LFNSupport then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=1;
+   end
+  else
+   dosregs.ax:=$4301;
+  dosregs.cx:=attr;
+  msdos(dosregs);
+  LoadDosError;
 end;
 
 
