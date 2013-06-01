@@ -115,7 +115,11 @@ end;
 
 Procedure OpenLstPipe ( Var F : Text);
 begin
+{$IFDEF FPC_UNICODE_RTL}
+  POpen (f,textrec(f).name,'W');
+{$ELSE}
   POpen (f,StrPas(textrec(f).name),'W');
+{$ENDIF}
 end;
 
 
@@ -131,7 +135,11 @@ begin
   exit;
  textrec(f).userdata[15]:=0; { set Zero length flag }
  repeat
-   i:=fpOpen(StrPas(textrec(f).name),(Open_WrOnly or Open_Creat), 438);
+{$IFDEF FPC_UNICODE_RTL}
+   i:=fpOpen(textrec(f).name,(Open_WrOnly or Open_Creat), 438);
+{$ELSE}
+  i:=fpOpen(StrPas(textrec(f).name),(Open_WrOnly or Open_Creat), 438);
+{$ENDIF}
  until (i<>-1) or (fpgeterrno<>ESysEINTR);
  if i<0 then
   textrec(f).mode:=fmclosed
@@ -154,12 +162,20 @@ begin
 { In case length is zero, don't print : lpr would give an error }
   if (textrec(f).userdata[15]=0) and (textrec(f).userdata[16]=P_TOF) then
    begin
-     fpUnlink(StrPas(textrec(f).name));
+{$IFDEF FPC_UNICODE_RTL}
+     fpUnlink(textrec(f).name);
+{$ELSE}
+    fpUnlink(StrPas(textrec(f).name));
+{$ENDIF}
      exit
    end;
 { Non empty : needs printing ? }
   if (textrec(f).userdata[16]=P_TOF) then
+{$IFDEF FPC_UNICODE_RTL}
+   PrintAndDelete (textrec(f).name);
+{$ELSE}
    PrintAndDelete (strpas(textrec(f).name));
+{$ENDIF}
   textrec(f).mode:=fmclosed
 end;
 

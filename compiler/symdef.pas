@@ -133,6 +133,7 @@ interface
           procedure deref;override;
           function  GetTypeName:string;override;
           function  getmangledparaname:TSymStr;override;
+          function  size:asizeint;override;
           procedure setsize;
        end;
 
@@ -2559,7 +2560,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_text;
          typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2568,7 +2568,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_untyped;
          typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2577,7 +2576,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_typed;
          typedfiledef:=def;
-         setsize;
       end;
 
 
@@ -2589,7 +2587,6 @@ implementation
            ppufile.getderef(typedfiledefderef)
          else
            typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2622,56 +2619,82 @@ implementation
         if filetyp=ft_typed then
           typedfiledef:=tdef(typedfiledefderef.resolve);
       end;
+      
+    function  tfiledef.size:asizeint;
+    
+    begin
+      if savesize=0 then
+        Setsize;
+      size:=savesize;    
+    end;
 
+const 
+{$ifdef FPC_RTL_UNICODE}
+      wideextra  = 256; // difference between n chars and n widechars
+      widesmall  =  16;
+{$else}
+      wideextra  =  0;
+      widesmall  =  0;
+{$endif}
 
     procedure tfiledef.setsize;
       begin
+{$ifdef FPC_HAS_SYSTEMFILEREC}
+       case filetyp of
+         ft_text    : savesize:=search_system_type('TEXTREC').typedef.size;
+         ft_typed,
+         ft_untyped : savesize:=search_system_type('FILEREC').typedef.size;
+         end;
+{$else}
 {$ifdef cpu64bitaddr}
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=640
+              savesize:=640+wideextra
             else
-              savesize:=632;
+              savesize:=632+wideextra;
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=376
+              savesize:=376+wideextra
             else
-              savesize:=368;
+              savesize:=368+wideextra;
         end;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
-            savesize:=596; { keep this dividable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
+            savesize:=596+wideextra; { keep this dividable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
           ft_typed,
           ft_untyped :
-            savesize:=332;
+            savesize:=332+wideextra;
         end;
 {$endif cpu32bitaddr}
 {$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
             {$ifdef avr}
-              savesize:=96;
+              savesize:=96+widesmall;
             {$else avr}
-              savesize:=576;
+              savesize:=576+wideextra;
             {$endif avr}
           ft_typed,
           ft_untyped :
             {$ifdef avr}
-              savesize:=76;
+              savesize:=76+widesmall;
             {$else avr}
-              savesize:=316;
+              savesize:=316+wideextra;
             {$endif avr}
         end;
 {$endif cpu16bitaddr}
+{$endif}
       end;
 
 
     procedure tfiledef.ppuwrite(ppufile:tcompilerppufile);
       begin
+         if savesize=0 then
+            internalerror(201305131);
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(filetyp));
          if filetyp=ft_typed then

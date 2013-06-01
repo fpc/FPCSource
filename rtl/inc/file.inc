@@ -18,35 +18,50 @@
 type
   UnTypedFile=File;
 
-Procedure Assign(out f:File;const Name:string);
+procedure InitFile(var f : file);
+
+begin
+  FillChar(f,SizeOf(FileRec),0);
+  FileRec(f).Handle:=UnusedHandle;
+  FileRec(f).mode:=fmClosed;
+end;
+
+{$IFDEF FPC_UNICODE_RTL}
+Procedure Assign(out f:File;const Name: UnicodeString);
 {
   Assign Name to file f so it can be used with the file routines
 }
 Begin
-  FillChar(f,SizeOf(FileRec),0);
-  FileRec(f).Handle:=UnusedHandle;
-  FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
+  InitFile(F);
+  FileRec(f).Name:=Name;
 End;
 
-
-Procedure Assign(out f:File;p:pchar);
+Procedure Assign(out f:File;const Name: RawByteString);
 {
   Assign Name to file f so it can be used with the file routines
 }
+Begin
+  InitFile(F);
+  FileRec(f).Name:=Name;
+End;
+{$ELSE}
+
+Procedure Assign(out f:File;p:pchar);
 begin
   Assign(f,StrPas(p));
 end;
 
-
 Procedure Assign(out f:File;c:char);
-{
-  Assign Name to file f so it can be used with the file routines
-}
 begin
   Assign(f,string(c));
 end;
 
+Procedure Assign(out f:File;const Name:string);
+Begin
+  initfile(f);
+  Move(Name[1],FileRec(f).Name,Length(Name));
+End;
+{$ENDIF}
 
 Procedure Rewrite(var f:File;l:Longint);[IOCheck];
 {
@@ -69,7 +84,11 @@ Begin
   else
    Begin
      { Reopen with filemode 2, to be Tp compatible (PFV) }
+{$IFDEF FPC_UNICODE_RTL}
+     Do_Open(f,UnicodeString(FileRec(f).Name),$1002);
+{$ELSE}
      Do_Open(f,PChar(@FileRec(f).Name),$1002);
+{$ENDIF}
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -95,7 +114,11 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PChar(@FileRec(f).Name),Filemode);
+{$IFDEF FPC_UNICODE_RTL}
+     Do_Open(f,UnicodeString(FileRec(f).Name),Filemode);
+{$ELSE}
+     Do_Open(f,PChar(@FileRec(f).Name),FileMode);
+{$ENDIF}
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -383,36 +406,65 @@ Begin
   If InOutRes <> 0 then
    exit;
   If FileRec(f).mode=fmClosed Then
-   Do_Erase(PChar(@FileRec(f).Name));
+{$IFDEF FPC_UNICODE_RTL}
+   Do_Erase(UnicodeString(FileRec(f).Name));
+{$ELSE}
+   Do_Erase(pchar(@FileRec(f).Name));
+{$ENDIF}
 End;
 
 
-Procedure Rename(var f : File;p:pchar);[IOCheck];
+{$IFDEF FPC_UNICODE_RTL}
+Procedure Rename(var f : File; const S : UnicodeString);[IOCheck];
+
 Begin
   If InOutRes <> 0 then
    exit;
-  If FileRec(f).mode=fmClosed Then
-   Begin
-     Do_Rename(PChar(@FileRec(f).Name),p);
-     { check error code of do_rename }
-     If InOutRes = 0 then
-        Move(p^,FileRec(f).Name,StrLen(p)+1);
-   End;
+  Do_Rename(FileRec(f).Name,S);
+  If InOutRes = 0 then
+     FileRec(f).Name:=S
 End;
 
 
+Procedure Rename(var f : File;const s : rawbytestring);[IOCheck];
+
+Begin
+  If InOutRes <> 0 then
+   exit;
+  Do_Rename(FileRec(f).Name,S);
+  If InOutRes = 0 then
+     FileRec(f).Name:=S
+End;
+
+{$ELSE}
+
+Procedure Rename(var f : File;p:pchar);[IOCheck];
+
+Begin
+  If InOutRes <> 0 then
+    exit;
+  If FileRec(f).mode=fmClosed Then
+    Begin
+    Do_Rename(PChar(@FileRec(f).Name),p);
+    { check error code of do_rename }
+    If InOutRes = 0 then
+      Move(p^,FileRec(f).Name,StrLen(p)+1);
+    End;
+End;
+ 
+ 
 Procedure Rename(var f : File;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
+   If InOutRes <> 0 then
+    exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(f,Pchar(@p));
 End;
-
-
+ 
+ 
 Procedure Rename(var f : File;c : char);[IOCheck];
 var
   p : array[0..1] Of Char;
@@ -423,4 +475,5 @@ Begin
   p[1]:=#0;
   Rename(f,Pchar(@p));
 End;
+{$ENDIF}
 

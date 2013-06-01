@@ -63,11 +63,13 @@ Const
   This way we keep TP compatibility, and the TextRec definition is available
   for everyone who needs it.
 }
+{$ifndef FPC_HAS_SYSTEMFILEREC}
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i filerec.inc}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$i textrec.inc}
+{$endif}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -1437,7 +1439,7 @@ begin
       p[i]:=DirectorySeparator;
 end;
 
-procedure DoDirSeparators(var p:shortstring);
+procedure DoDirSeparators(var p:RawByteString);
 var
   i : longint;
 begin
@@ -1445,6 +1447,16 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+
+procedure DoDirSeparators(var p:UnicodeString);
+var
+  i : longint;
+begin
+  for i:=1 to length(p) do
+    if p[i] in AllowDirectorySeparators then
+      p[i]:=DirectorySeparator;
+end;
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
@@ -1471,22 +1483,22 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+{$IFNDEF FPC_UNICODE_RTL}
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
+
+ { this is needed to also allow ansistrings, the shortstring version is
+   OS dependent }
 var
   s : shortstring;
 begin
   getdir(drivenr,s);
   dir:=s;
 end;
+
 {$endif}
-
-{$if defined(FPC_HAS_FEATURE_FILEIO)}
-
 Procedure MkDir(Const s: String);
 Var
   Buffer: Array[0..255] of Char;
@@ -1495,7 +1507,7 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  MkDir(@buffer[0],length(s));
+  do_MkDir(@buffer[0],length(s));
 End;
 
 Procedure RmDir(Const s: String);
@@ -1506,20 +1518,85 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  RmDir(@buffer[0],length(s));
+  do_RmDir(@buffer[0],length(s));
 End;
 
 Procedure ChDir(Const s: String);
 Var
   Buffer: Array[0..255] of Char;
+
 Begin
   If (s='') or (InOutRes <> 0) then
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  ChDir(@buffer[0],length(s));
+  do_ChDir(@buffer[0],length(s));
 End;
-{$endif}
+
+{$ELSE}
+
+// UNICODE Implementation
+
+Procedure getdir(drivenr:byte;Var dir: unicodestring);
+begin
+  do_getdir(drivenr,dir);
+end;
+
+Procedure getdir(drivenr:byte;Var dir: rawbytestring);
+begin
+  do_getdir(drivenr,dir);
+end;
+
+Procedure MkDir(Const s: RawByteString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(S);
+End;
+
+Procedure MkDir(Const s: UnicodeString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(S);
+End;
+
+Procedure RmDir(Const s: RawByteString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(S);
+End;
+
+Procedure RmDir(Const s: UnicodeString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(S);
+End;
+
+Procedure ChDir(Const s: RawByteString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(S);
+End;
+
+Procedure ChDir(Const s: UnicodeString);
+
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(S);
+End;
+{$ENDIF}
+
+{$ENDIF}
 
 {*****************************************************************************
                             Resources support

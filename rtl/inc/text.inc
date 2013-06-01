@@ -57,7 +57,11 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PChar(@t.Name),Flags);
+{$IFDEF FPC_UNICODE_RTL}
+  Do_Open(t,unicodestring(t.Name),Flags);
+{$ELSE FPC_UNICODE_RTL}
+  Do_Open(t,pchar(@t.Name),Flags);
+{$ENDIF FPC_UNICODE_RTL}
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -74,9 +78,9 @@ Begin
    end;
 End;
 
+Procedure InitText(Var t : Text);
 
-Procedure Assign(out t:Text;const s:String);
-Begin
+begin
   FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
@@ -89,20 +93,41 @@ Begin
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
   End;
-  Move(s[1],TextRec(t).Name,Length(s));
-End;
+end;
 
+{$IFDEF FPC_UNICODE_RTL}
+Procedure Assign(out t:Text;const s : UnicodeString);
+
+begin
+  InitText(t);
+  TextRec(t).Name:=S;
+end;
+
+Procedure Assign(out t:Text;const s: RawByteString);
+Begin
+  InitText(t);
+  TextRec(t).Name:=S;
+End;
+{$ELSE}
+
+Procedure Assign(out t:Text;const s:String);
+Begin
+  InitText(T);
+  Move(s[1],TextRec(t).Name,Length(s));
+end;
 
 Procedure Assign(out t:Text;p:pchar);
 begin
   Assign(t,StrPas(p));
+  InitText(t);
 end;
-
 
 Procedure Assign(out t:Text;c:char);
 begin
   Assign(t,string(c));
 end;
+
+{$ENDIF}
 
 
 Procedure Close(var t : Text);[IOCheck];
@@ -205,9 +230,35 @@ Begin
   If InOutRes <> 0 then
    exit;
   If TextRec(t).mode=fmClosed Then
-   Do_Erase(PChar(@TextRec(t).Name));
+{$IFDEF FPC_UNICODE_RTL}
+   Do_Erase(unicodestring(TextRec(t).Name));
+{$ELSE FPC_UNICODE_RTL}
+   Do_Erase(@TextRec(t).Name);
+{$ENDIF FPC_UNICODE_RTL}
 End;
 
+{$IFDEF FPC_UNICODE_RTL}
+
+Procedure Rename(var t : Text;const s : unicodestring);[IOCheck];
+
+Begin
+  If InOutRes <> 0 then
+   exit;
+  Do_Rename(TextRec(T).Name,S);
+  if InoutRes=0 then
+    TextRec(T).Name:=S;
+End;
+
+Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
+Begin
+  If InOutRes <> 0 then
+   exit;
+  Do_Rename(TextRec(T).Name,S);
+  if InoutRes=0 then
+    TextRec(T).Name:=S;
+End;
+
+{$ELSE FPC_UNICODE_RTL}
 
 Procedure Rename(var t : text;p:pchar);[IOCheck];
 Begin
@@ -222,7 +273,6 @@ Begin
    End;
 End;
 
-
 Procedure Rename(var t : Text;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
@@ -234,18 +284,18 @@ Begin
   Rename(t,Pchar(@p));
 End;
 
-
 Procedure Rename(var t : Text;c : char);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin
   If InOutRes <> 0 then
-   exit;
+    exit;
   p[0]:=c;
   p[1]:=#0;
   Rename(t,Pchar(@p));
 End;
 
+{$ENDIF FPC_UNICODE_RTL}
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin
@@ -2071,7 +2121,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure WriteStrUnicode(var t: textrec);
 var
-  temp: ansistring;
+  temp: AnsiString;
   str: punicodestring;
 begin
   if (t.bufpos=0) then

@@ -124,7 +124,13 @@ function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
 function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   begin
     { don't raise an exception here. We need this for text file handling }
-    Result:=DefaultSystemCodePage;
+    if stdcp<>scpFileSystemSingleByte then
+      Result:=DefaultSystemCodePage
+    else
+      { we could return UTF-8 here in case of FPCRTL_FILESYSTEM_UTF8, but
+        without a fully functional widestring manager that will probably cause
+        more problems that it solves }
+      Result:=DefaultFileSystemCodePage
   end;
 
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
@@ -2275,3 +2281,16 @@ procedure initunicodestringmanager;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
+
+Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
+Begin
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(Str),Result,
+    DefaultFileSystemCodePage,Length(Str));
+End;
+
+
+Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
+Begin
+  Result:=Str;
+  SetCodePage(Result,DefaultFileSystemCodePage,True);
+End;

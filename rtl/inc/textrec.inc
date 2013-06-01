@@ -29,7 +29,9 @@ const
 {$endif CPUAVR}
 type
   TLineEndStr = string [3];
-  TextBuf = array[0..TextRecBufSize-1] of char;
+  TextBuf = array[0..TextRecBufSize-1] of ansichar;
+  TTextBuf = TextBuf;
+
   { using packed makes the compiler to generate ugly code on some CPUs, further
     using packed causes the compiler to handle arrays of text wrongly, see  see tw0754 e.g. on arm  }
   TextRec = {$ifdef VER2_6} packed {$endif} Record
@@ -45,7 +47,7 @@ type
     flushfunc,
     closefunc : pointer;
     UserData  : array[1..32] of byte;
-    name      : array[0..textrecnamelength-1] of char;
+    name      : array[0..textrecnamelength-1] of {$IFDEF FPC_UNICODE_RTL} unicodechar {$ELSE} char {$ENDIF};
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
 {$ifdef FPC_HAS_CPSTRING}

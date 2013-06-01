@@ -145,4 +145,6 @@ Function  GetMsCount: int64;
  particular meaning - it can be e.g. amount of milliseconds since computer
  startup on DOS-like x86 platforms, derived from Unix time on Unix etc.}
 
-
+{$ifdef FPC_UNICODE_RTL}
+procedure GetDir(Drivenr:Byte;var Dir: PathStr);
+{$endif}

@@ -265,6 +265,12 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
+{$DEFINE SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
+{$IFNDEF FPC_UNICODE_RTL}
+{$DEFINE SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{$ENDIF}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -432,8 +438,7 @@ begin
 {$endif not beos}
 end;
 
-
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
 
 Var
   LinuxFlags : longint;
@@ -452,8 +457,7 @@ begin
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
-
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 
 begin
   repeat
@@ -461,8 +465,7 @@ begin
   until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
-
-Function FileCreate (Const FileName : String;Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;Rights : Longint) : Longint;
 
 begin
   repeat
@@ -470,8 +473,7 @@ begin
   until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
-Function FileCreate (Const FileName : String; ShareMode : Longint; Rights:LongInt ) : Longint;
-
+Function FileCreate (Const FileName : RawByteString; ShareMode : Longint; Rights:LongInt ) : Longint;
 begin
   Result:=FileCreate( FileName, Rights );
   Result:=DoFileLocking(Result,ShareMode);
@@ -534,8 +536,7 @@ begin
     end;
 end;
 
-
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 
 Var Info : Stat;
 
@@ -546,17 +547,14 @@ begin
     Result:=info.st_mtime;
 end;
 
-
-Function FileExists (Const FileName : String) : Boolean;
-
+Function FileExists (Const FileName : RawByteString) : Boolean;
 begin
   // Don't use stat. It fails on files >2 GB.
   // Access obeys the same access rules, so the result should be the same.
   FileExists:=fpAccess(pointer(filename),F_OK)=0;
 end;
 
-
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
 
 Var Info : Stat;
 
@@ -564,12 +562,12 @@ begin
   DirectoryExists:=(fpstat(pointer(Directory),Info)>=0) and fpS_ISDIR(Info.st_mode);
 end;
 
-
-Function LinuxToWinAttr (const FN : Ansistring; Const Info : Stat) : Longint;
+Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
 
 Var
   LinkInfo : Stat;
-  nm : AnsiString;
+  nm : RawByteString;
+
 begin
   Result:=faArchive;
   If fpS_ISDIR(Info.st_mode) then
@@ -679,78 +677,121 @@ Type
   TUnixFindData = Record
     NamePos    : LongInt;     {to track which search this is}
     DirPtr     : Pointer;     {directory pointer for reading directory}
-    SearchSpec : String;
+    SearchSpec : RawbyteString;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;        {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
 
-Procedure FindClose(Var f: TSearchRec);
-var
-  UnixFindData : PUnixFindData;
-Begin
-  UnixFindData:=PUnixFindData(f.FindHandle);
-  If (UnixFindData=Nil) then
+Procedure Do_FindClose(D : PUnixFindData);
+
+begin
+  If (D=Nil) then
     Exit;
-  if UnixFindData^.SearchType=0 then
+  if D^.SearchType=0 then
     begin
-      if UnixFindData^.dirptr<>nil then
-        fpclosedir(pdir(UnixFindData^.dirptr)^);
+      if D^.dirptr<>nil then
+        fpclosedir(pdir(D^.dirptr)^);
     end;
-  Dispose(UnixFindData);
+  Dispose(D);
+  
+end;
+
+Procedure FindClose(Var f: TRawByteSearchRec);
+Begin
+  Do_findClose(PUnixFindData(f.FindHandle));
   f.FindHandle:=nil;
 End;
 
+{$IFDEF FPC_UNICODE_RTL}
+Procedure FindClose(Var f: TUnicodeSearchRec);
+Begin
+  Do_findClose(PUnixFindData(f.FindHandle));
+  f.FindHandle:=nil;
+End;
+{$ENDIF}
 
-Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
-var
-  st           : baseunix.stat;
-  WinAttr      : longint;
+Function Do_FindGetFileInfo(const s:RawByteString; D:PUnixFindData; 
+                            out st : baseunix.stat; out WinAttr : longint):boolean;
 
 begin
-  FindGetFileInfo:=false;
-  If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+  If Assigned(D) and ( (D^.searchattr and faSymlink) > 0) then
+    Do_FindGetFileInfo:=(fplstat(pointer(s),st)=0)
   else
-    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  If not FindGetFileInfo then
+    Do_FindGetFileInfo:=(fpstat(pointer(s),st)=0);
+  If not Do_FindGetFileInfo then
     exit;
   WinAttr:=LinuxToWinAttr(s,st);
-  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
-   Begin
-     f.Name:=ExtractFileName(s);
-     f.Attr:=WinAttr;
-     f.Size:=st.st_Size;
-     f.Mode:=st.st_mode;
-     f.Time:=st.st_mtime;
-     FindGetFileInfo:=true;
-   End
-  else
-    FindGetFileInfo:=false;
 end;
 
+Type
+  PRawByteSearchRec = ^TRawByteSearchRec;
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
-{
-  re-opens dir if not already in array and calls FindGetFileInfo
-}
+Function FindGetFileInfoR(const s: RawByteString; P : Pointer):boolean;
+
 Var
-  DirName  : String;
+  st : baseunix.stat;
+  A : longint;
+  F : PRawbyteSearchRec;
+
+begin
+  F:=PRawbyteSearchRec(P);
+  Result:=Do_FindGetFileInfo(S,PUnixFindData(f^.FindHandle),st,A);
+  If Result Then
+    Begin
+    f^.Name:=ExtractFileName(s);
+    f^.Attr:=A;
+    f^.Size:=st.st_Size;
+    f^.Mode:=st.st_mode;
+    f^.Time:=st.st_mtime;
+    End;
+end;
+
+{$IFDEF FPC_UNICODE_RTL}
+
+Type
+  PUnicodeSearchRec = ^TUnicodeSearchRec;
+
+Function FindGetFileInfoU(const s: RawByteString ; P : Pointer):boolean;
+
+Var
+  st : baseunix.stat;
+  A : longint;
+  F : PUnicodeSearchRec;
+
+begin
+  F:=PUnicodeSearchRec(P);
+  Result:=Do_FindGetFileInfo(S,PUnixFindData(f^.FindHandle),st,A);
+  If Result Then
+    Begin
+    f^.Name:=ExtractFileName(s);
+    f^.Attr:=A;
+    f^.Size:=st.st_Size;
+    f^.Mode:=st.st_mode;
+    f^.Time:=st.st_mtime;
+    End;
+end;
+{$ENDIF}
+
+// Returns the FOUND filename. Empty if no result is found.
+// Uses CB to return file info
+
+Type
+  TGetFileInfoCB = Function (const s: RawByteString ; P : Pointer):boolean;
+
+Function Do_FindNext (UnixFindData : PUnixFindData; CB : TGetFileInfoCB; Data : Pointer) : Longint;
+
+Var
+  DirName  : RawByteString;
   FName,
-  SName    : string;
+  SName    : RawBytestring;
   Found,
   Finished : boolean;
   p        : pdirent;
-  UnixFindData : PUnixFindData;
+
 Begin
   Result:=-1;
-  UnixFindData:=PUnixFindData(Rslt.FindHandle);
-  { SearchSpec='' means that there were no wild cards, so only one file to
-    find.
-  }
-  If (UnixFindData=Nil) then 
-    exit;
-  if UnixFindData^.SearchSpec='' then
+  If (UnixFindData=Nil) or (UnixFindData^.SearchSpec='') then 
     exit;
   if (UnixFindData^.SearchType=0) and
      (UnixFindData^.Dirptr=nil) then
@@ -777,7 +818,7 @@ Begin
       Begin
         If FNMatch(SName,FName) Then
          Begin
-           Found:=FindGetFileInfo(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Rslt);
+           Found:=CB(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Data);
            if Found then
              begin
                Result:=0;
@@ -788,8 +829,23 @@ Begin
    End;
 End;
 
+Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+
+begin
+  FindNext:=Do_findNext(PUnixFindData(Rslt.FindHandle),@FindGetFileInfoR,@Rslt);
+end;
+
+{$IFDEF FPC_UNICODE_RTL}
+Function FindNext (Var Rslt : TUnicodeSearchRec) : Longint;
+
+begin
+  FindNext:=Do_findNext(PUnixFindData(Rslt.FindHandle),@FindGetFileInfoU,@Rslt);
+end;
+{$ENDIF}
+
+Function FindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TRawByteSearchRec) : Longint;
+
 {
   opens dir and calls FindNext if needed.
 }
@@ -809,7 +865,7 @@ Begin
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
     begin
-    if FindGetFileInfo(Path,Rslt) then
+    if FindGetFileInfoR(Path,@Rslt) then
       Result:=0;
     end
   else
@@ -824,6 +880,48 @@ Begin
   If (Result<>0) then
     FindClose(Rslt); 
 End;
+
+{$IFDEF FPC_UNICODE_RTL}
+Function FindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TUnicodeSearchRec) : Longint;
+
+{
+  opens dir and calls FindNext if needed.
+}
+var
+  UnixFindData : PUnixFindData;
+  P : RawByteString;
+
+Begin
+  Result:=-1;
+  fillchar(Rslt,sizeof(Rslt),0);
+  if Path='' then
+    exit;
+  P:=ToSingleByteFileSystemEncodedFileName(Path);
+  { Allocate UnixFindData (we always need it, for the search attributes) }
+  New(UnixFindData);
+  FillChar(UnixFindData^,sizeof(UnixFindData^),0);
+  Rslt.FindHandle:=UnixFindData;
+   {We always also search for readonly and archive, regardless of Attr:}
+  UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
+  {Wildcards?}
+  if (Pos('?',P)=0)  and (Pos('*',P)=0) then
+    begin
+    if FindGetFileInfoR(P,@Rslt) then
+      Result:=0;
+    end
+  else
+    begin
+    {Create Info}
+    UnixFindData^.SearchSpec := P;
+    UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
+    while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
+      dec(UnixFindData^.NamePos);
+    Result:=FindNext(Rslt);
+    end;
+  If (Result<>0) then
+    FindClose(Rslt); 
+End;
+{$ENDIF}
 
 
 Function FileGetDate (Handle : Longint) : Longint;
@@ -845,8 +943,7 @@ begin
   FileSetDate:=-1;
 end;
 
-
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 
 Var Info : Stat;
   res : Integer;
@@ -860,34 +957,31 @@ begin
     Result:=LinuxToWinAttr(Pchar(FileName),Info);
 end;
 
-
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   Result:=-1;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 
 begin
   Result:=fpUnLink (pointer(FileName))>=0;
 end;
 
-
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 
 begin
   RenameFile:=BaseUnix.FpRename(pointer(OldNAme),pointer(NewName))>=0;
 end;
 
-Function FileIsReadOnly(const FileName: String): Boolean;
+Function FileIsReadOnly(const FileName: RawByteString): Boolean;
 
 begin
   Result := fpAccess(PChar(pointer(FileName)),W_OK)<>0;
 end;
 
-Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
+Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
 
 var
   t: TUTimBuf;

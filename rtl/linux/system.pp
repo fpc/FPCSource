@@ -121,7 +121,11 @@ end;}
 var
  execpathstr : shortstring;
 
+{$IFDEF FPC_UNICODE_RTL}
+function paramstr(l: longint) : unicodestring;
+{$ELSE}
 function paramstr(l: longint) : string;
+{$ENDIF}
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }

@@ -15,72 +15,12 @@
   { Read filename handling functions implementation }
   {$i fina.inc}
 
+  { Read file utility functions implementation }
+  {$i filutil.inc}
+
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
-    Var
-      I : longint;
-      Temp : String;
-
-    begin
-      Result:=Name;
-      temp:=SetDirSeparators(DirList);
-      // Start with checking the file in the current directory
-      If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
-        exit;
-      while True do begin
-        If Temp = '' then
-          Break; // No more directories to search - fail
-        I:=pos(PathSeparator,Temp);
-        If I<>0 then
-          begin
-            Result:=Copy (Temp,1,i-1);
-            system.Delete(Temp,1,I);
-          end
-        else
-          begin
-            Result:=Temp;
-            Temp:='';
-          end;
-        If Result<>'' then
-          begin
-          If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
-            Result:=Copy(Result,2,Length(Result)-2);
-          if (Result<>'') then
-            Result:=IncludeTrailingPathDelimiter(Result)+name;
-          end;
-        If (Result <> '') and FileExists(Result) Then
-          exit;
-      end;
-      result:='';
-    end;
-
-    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
-
-    begin
-      if ImplicitCurrentDir then
-        Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
-      else  
-        Result:=FileSearch(Name,DirList,[]);
-    end;
-    
-    Function ExeSearch (Const Name : String; Const DirList : String ='' ) : String;
-    
-    Var
-      D : String;
-      O : TFileSearchOptions;
-    begin
-      D:=DirList;
-      if (D='') then
-        D:=GetEnvironmentVariable('PATH');
-    {$ifdef unix}
-      O:=[];
-    {$else unix}
-      O:=[sfoImplicitCurrentDir,sfoStripQuotes];
-    {$endif unix}
-      Result := FileSearch(Name, D, O);
-    end;
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: String): Boolean;
@@ -177,24 +117,6 @@ end;
         temp.free;
       end;
 
-   function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
-   
-   Var
-     Info : TSearchRec;
-     A : Integer;
-      
-   begin
-     for A:=1 to Length(FileName) do
-       If (FileName[A] in ['?','*']) then
-         Exit(False);
-     A:=0;
-     if Not FollowLink then
-       A:=A or faSymLink;
-     Result:=FindFirst(FileName,A,Info)=0;
-     If Result then 
-       FileDateTime:=FileDatetoDateTime (Info.Time);
-     FindClose(Info);
-   end;
 
   { Interfaces support }
   {$i sysuintf.inc}

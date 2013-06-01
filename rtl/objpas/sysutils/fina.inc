@@ -127,12 +127,23 @@ begin
 {$endif}
 end;
 
-type
-  PathStr=string;
+{$MACRO ON}
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}
 
+{$IFDEF FPC_UNICODE_RTL}
+{$DEFINE PathStr:=UnicodeString}
 {$I fexpand.inc}
+
+{$DEFINE PathStr:=RawByteString}
+{$I fexpand.inc}
+{$ELSE}
+
+{$DEFINE PathStr:=AnsiString}
+{$I fexpand.inc}
+
+{$ENDIF}
+{$UNDEFINE PathStr}
 
 
 function ExpandFileName (Const FileName : string): String;

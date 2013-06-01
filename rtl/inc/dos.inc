@@ -286,3 +286,12 @@ end;
 
 {$ENDIF HAS_FEXPAND}
 
+{$ifdef FPC_UNICODE_RTL}
+procedure getdir(drivenr:byte;var dir: pathstr);
+var s : ansistring;
+begin
+   s:=dir;
+   system.getdir(drivenr,s);
+   dir:=s;
+end;
+{$endif}

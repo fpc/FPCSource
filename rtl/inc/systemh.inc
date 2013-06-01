@@ -84,6 +84,16 @@
                          Global Types and Constants
 ****************************************************************************}
 
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
 Type
   { The compiler has all integer types defined internally. Here
     we define only aliases }
@@ -331,17 +341,6 @@ Type
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
-{ some values which are used in RTL for TSystemCodePage type }
-const
-  CP_ACP     = 0;     // default to ANSI code page
-  CP_UTF16   = 1200;  // utf-16
-  CP_UTF16BE = 1201;  // unicodeFFFE
-  CP_UTF7    = 65000; // utf-7
-  CP_UTF8    = 65001; // utf-8
-  CP_ASCII   = 20127; // us-ascii
-  CP_NONE    = $FFFF; // rawbytestring encoding
-
-type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -442,8 +441,6 @@ type
 
   TSystemCodePage     = Word;
 
-  { Needed for fpc_get_output }
-  PText               = ^Text;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
@@ -453,7 +450,23 @@ type
 { platform dependent types }
 {$i sysosh.inc}
 
+{*****************************************************************************
+                   TextRec/FileRec exported to allow compiler to take size
+*****************************************************************************}
+
+{$ifdef FPC_HAS_SYSTEMFILEREC}
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$i textrec.inc}
+{$endif}
+
+
 type
+  { Needed for fpc_get_output }
+  PText               = ^Text;
+
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
@@ -574,6 +587,13 @@ var
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
+  { the code page to use when sending paths/file names to OS file system API
+    calls using single byte strings, and to interpret the results gotten back
+    from such API calls }
+  DefaultFileSystemCodePage,
+  { the code page to use to return file names from single byte file system calls
+    in the RTL that return ansistrings (by default, same as a above) }
+  DefaultRTLFileSystemCodePage,
   UTF8CompareLocale : TSystemCodePage;
 
 
@@ -1001,6 +1021,8 @@ function StringElementSize(const S : RawByteString): Word; overload;
 function StringRefCount(const S : RawByteString): SizeInt; overload;
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
 procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteFileSystemCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -1021,9 +1043,19 @@ procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
+{$IFNDEF FPC_UNICODE_RTL}
 Procedure Assign(out f:File;const Name:string);
 Procedure Assign(out f:File;p:pchar);
 Procedure Assign(out f:File;c:char);
+Procedure Rename(var f:File;const s:string);
+Procedure Rename(var f:File;p:pchar);
+Procedure Rename(var f:File;c:char);
+{$ELSE}
+Procedure Assign(out f:File;const Name: UnicodeString);
+Procedure Assign(out f:File;const Name: RawByteString);
+Procedure Rename(var f:File;const s : UnicodeString);
+Procedure Rename(var f:File;const s : RawByteString);
+{$ENDIF}
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -1046,9 +1078,6 @@ Function  FileSize(var f:File):Int64;
 Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
-Procedure Rename(var f:File;const s:string);
-Procedure Rename(var f:File;p:pchar);
-Procedure Rename(var f:File;c:char);
 Procedure Truncate (var F:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1058,9 +1087,14 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
+{$IFNDEF FPC_UNICODE_RTL}
 Procedure Assign(out f:TypedFile;const Name:string);
 Procedure Assign(out f:TypedFile;p:pchar);
 Procedure Assign(out f:TypedFile;c:char);
+{$ELSE}
+Procedure Assign(out f:TypedFile;const Name:unicodestring);
+Procedure Assign(out f:TypedFile;const Name:rawbytestring);
+{$ENDIF}
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -1070,18 +1104,25 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
+{$IFNDEF FPC_UNICODE_RTL}
 Procedure Assign(out t:Text;const s:string);
 Procedure Assign(out t:Text;p:pchar);
 Procedure Assign(out t:Text;c:char);
+Procedure Rename(var t:Text;const s:string);
+Procedure Rename(var t:Text;p:pchar);
+Procedure Rename(var t:Text;c:char);
+{$ELSE}
+Procedure Assign(out t:Text;const s:unicodestring);
+Procedure Assign(out t:Text;const s:rawbytestring);
+Procedure Rename(var t:Text;const s:unicodestring);
+Procedure Rename(var t:Text;const s:rawbytestring);
+{$ENDIF}
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
 Procedure Append(var t:Text);
 Procedure Flush(var t:Text);
 Procedure Erase(var t:Text);
-Procedure Rename(var t:Text;const s:string);
-Procedure Rename(var t:Text;p:pchar);
-Procedure Rename(var t:Text;c:char);
 Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(var t:Text):Boolean;
@@ -1103,15 +1144,25 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
+{$IFNDEF FPC_UNICODE_RTL}
 Procedure chdir(const s:string); overload;
 Procedure mkdir(const s:string); overload;
 Procedure rmdir(const s:string); overload;
-// the pchar versions are exported via alias for use in objpas
-
 Procedure getdir(drivenr:byte;var dir:shortstring);
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure getdir(drivenr:byte;var dir:ansistring);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ELSE}
+Procedure chdir(const s:unicodestring); overload;
+Procedure mkdir(const s:unicodestring); overload;
+Procedure rmdir(const s:unicodestring); overload;
+Procedure chdir(const s:rawbytestring); overload;
+Procedure mkdir(const s:rawbytestring); overload;
+Procedure rmdir(const s:rawbytestring); overload;
+
+Procedure getdir(drivenr:byte;var dir: unicodestring);
+Procedure getdir(drivenr:byte;var dir: rawbytestring);rtlproc; // defaultrtlfilesystemcodepage is used here
+{$ENDIF}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {*****************************************************************************
@@ -1214,7 +1265,12 @@ Const
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
+
+{$IFDEF FPC_UNICODE_RTL}
+Function  ParamStr(l:Longint):unicodestring;
+{$ELSE}
 Function  ParamStr(l:Longint):string;
+{$ENDIF}
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
@@ -1351,3 +1407,7 @@ const
 {$ifdef fpdocsystem}
 {$i system.fpd}
 {$endif}
+
+
+
+

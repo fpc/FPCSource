@@ -60,34 +60,48 @@ Var
 {$ifdef FPC_HAS_FEATURE_FILEIO}
     { Untyped file support }
 
+     {$ifdef FPC_UNICODE_RTL}
+     Procedure AssignFile(out f:File;const Name:UnicodeString);
+     Procedure AssignFile(out f:File;const Name:RawByteString);
+     {$else}
      Procedure AssignFile(out f:File;const Name:string);
      Procedure AssignFile(out f:File;p:pchar);
      Procedure AssignFile(out f:File;c:char);
+     {$endif}
      Procedure CloseFile(var f:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
      { Text file support }
+     {$ifdef FPC_UNICODE_RTL}
+     Procedure AssignFile(out f:Text;const Name:UnicodeString);
+     Procedure AssignFile(out f:Text;const Name:RawByteString);
+     {$else}
      Procedure AssignFile(out t:Text;const s:string);
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
+     {$endif}
      Procedure CloseFile(Var t:Text);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
      { Typed file supoort }
-
+     {$ifdef FPC_UNICODE_RTL}
+     Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+     Procedure AssignFile(out f:TypedFile;const Name:RawByteString);
+     {$else}
      Procedure AssignFile(out f:TypedFile;const Name:string);
      Procedure AssignFile(out f:TypedFile;p:pchar);
      Procedure AssignFile(out f:TypedFile;c:char);
+     {$endif}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+{$if defined(FPC_HAS_FEATURE_COMMANDARGS) and not defined(FPC_UNICODE_RTL)}
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS) and not defined(FPC_UNICODE_RTL)}
      Procedure MkDir(s:ansistring);overload;
      Procedure RmDir(s:ansistring);overload;
      Procedure ChDir(s:ansistring);overload;
@@ -130,20 +144,30 @@ Var
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
+{$ifndef FPC_UNICODE_RTL}
 Procedure MkDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_MKDIR';
 Procedure ChDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_CHDIR';
 Procedure RmDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_RMDIR';
+{$endif}
 
 { Untyped file support }
+{$ifdef FPC_UNICODE_RTL}
+Procedure AssignFile(out f:File;const Name:RawBytestring);
+begin
+  System.Assign (F,Name);
+end;
 
+Procedure AssignFile(out f:File;const Name:UnicodeString);
+begin
+  System.Assign (F,Name);
+end;
+{$else}
 Procedure AssignFile(out f:File;const Name:string);
-
 begin
   System.Assign (F,Name);
 end;
 
 Procedure AssignFile(out f:File;p:pchar);
-
 begin
   System.Assign (F,P);
 end;
@@ -153,7 +177,7 @@ Procedure AssignFile(out f:File;c:char);
 begin
   System.Assign (F,C);
 end;
-
+{$endif}
 Procedure CloseFile(Var f:File); [IOCheck];
 
 begin
@@ -164,6 +188,18 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file support }
+
+{$ifdef FPC_UNICODE_RTL}
+Procedure AssignFile(out f:Text;const Name:RawBytestring);
+begin
+  System.Assign (F,Name);
+end;
+
+Procedure AssignFile(out f:Text;const Name:UnicodeString);
+begin
+  System.Assign (F,Name);
+end;
+{$else}
 
 Procedure AssignFile(out t:Text;const s:string);
 
@@ -182,6 +218,7 @@ Procedure AssignFile(out t:Text;c:char);
 begin
   System.Assign (T,C);
 end;
+{$endif}
 
 Procedure CloseFile(Var t:Text); [IOCheck];
 
@@ -194,6 +231,17 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Typed file support }
 
+{$ifdef FPC_UNICODE_RTL}
+Procedure AssignFile(out f:TypedFile;const Name:RawBytestring);
+begin
+  System.Assign (F,Name);
+end;
+
+Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+begin
+  System.Assign (F,Name);
+end;
+{$else}
 Procedure AssignFile(out f:TypedFile;const Name:string);
 
 begin
@@ -211,9 +259,10 @@ Procedure AssignFile(out f:TypedFile;c:char);
 begin
   system.Assign (F,C);
 end;
+{$endif}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+{$if defined(FPC_HAS_FEATURE_COMMANDARGS) and not defined(FPC_UNICODE_RTL)}
 Function ParamStr(Param : Integer) : Ansistring;
 
 Var Len : longint;
@@ -244,7 +293,7 @@ end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS) and not defined(FPC_UNICODE_RTL)}
 { xxDirPChar procedures can adjust directory separators in supplied string (at least
   Windows implementation does so). Therefore full copy of argument is needed,
   just passing by value isn't enough because it won't copy a string literal. }

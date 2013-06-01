@@ -15,34 +15,55 @@
                     subroutines for typed file handling
 ****************************************************************************}
 
+Procedure InitTypedFile(Var F : TypedFile);
+
+begin
+  FillChar(f,SizeOF(FileRec),0);
+  FileRec(f).Handle:=UnusedHandle;
+  FileRec(f).mode:=fmClosed;
+end;
+
+{$IFDEF FPC_UNICODE_RTL}
+Procedure Assign(out f:TypedFile;const Name:unicodestring);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+  InitTypedFile(F);
+  FileRec(f).Name:=Name;
+End;
+
+Procedure Assign(out f:TypedFile;const Name: rawbytestring);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+  InitTypedFile(F);
+  FileRec(f).Name:=Name;
+End;
+{$ELSE}
 Procedure Assign(out f:TypedFile;const Name:string);
 {
   Assign Name to file f so it can be used with the file routines
 }
 Begin
-  FillChar(f,SizeOF(FileRec),0);
-  FileRec(f).Handle:=UnusedHandle;
-  FileRec(f).mode:=fmClosed;
+   FillChar(f,SizeOF(FileRec),0);
+   FileRec(f).Handle:=UnusedHandle;
+   FileRec(f).mode:=fmClosed;
   Move(Name[1],FileRec(f).Name,Length(Name));
-End;
-
-
+end;
+ 
 Procedure Assign(out f:TypedFile;p:pchar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
 begin
   Assign(f,StrPas(p));
 end;
 
-
-Procedure Assign(out f:TypedFile;c:char);
-{
-  Assign Name to file f so it can be used with the file routines
-}
+Procedure Assign(out f:TypedFile;c : char);
 begin
   Assign(f,string(c));
 end;
+
+{$ENDIF}
 
 
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; compilerproc;
