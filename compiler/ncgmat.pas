@@ -529,8 +529,8 @@ implementation
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_reset(location,LOC_REGISTER,left.location.size);
-        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
