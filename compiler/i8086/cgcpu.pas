@@ -349,7 +349,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -501,7 +501,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -539,7 +539,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -856,7 +856,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -885,7 +885,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -976,7 +976,7 @@ unit cgcpu;
         if (tmpref.segment<>NR_NO) and (not is_segment_reg(tmpref.segment)) then
           begin
             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
             tmpref.segment:=NR_ES;
           end;
 
@@ -1247,8 +1247,8 @@ unit cgcpu;
         { return from interrupt }
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ES));
-            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_DS));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_ES));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DX));

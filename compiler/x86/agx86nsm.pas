@@ -914,6 +914,7 @@ interface
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
+{$ifndef i8086}
                   { We need to explicitely set
                     word prefix to get selectors
                     to be pushed in 2 bytes  PM }
@@ -923,6 +924,7 @@ interface
                       (taicpu(hp).oper[0]^.typ=top_reg) and
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
+{$endif not i8086}
                   AsmWrite(#9#9+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
