@@ -902,6 +902,11 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
+        if (length(GetEnvPChar)=0) then 
+          begin
+            FreeEnvPChar(GetEnvPChar);
+            GetEnvPChar:=nil;
+          end;
       {$endif}
       end;
 
