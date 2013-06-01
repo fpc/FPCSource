@@ -331,7 +331,10 @@ unit hlcg2ll;
           procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
 
          protected
-          function getmmcgsize(reg: tregister; size: tcgsize): tcgsize; virtual;
+          { returns the equivalent MM size for a vector register that contains
+            a record, because in that case "size" will contain a cgsize
+            representing an integer size}
+          function getintmmcgsize(reg: tregister; size: tcgsize): tcgsize; virtual;
        end;
 
 
@@ -670,7 +673,7 @@ implementation
       { sanity check }
       if def_cgsize(fromsize)<>loc.size then
         internalerror(2012071226);
-      tocgsize:=getmmcgsize(reg,def_cgsize(tosize));
+      tocgsize:=getintmmcgsize(reg,def_cgsize(tosize));
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
@@ -692,8 +695,8 @@ implementation
       { no vector support yet }
       if shuffle<>mms_movescalar then
         internalerror(2012062305);
-      fromcgsize:=getmmcgsize(reg1,def_cgsize(fromsize));
-      tocgsize:=getmmcgsize(reg2,def_cgsize(tosize));
+      fromcgsize:=getintmmcgsize(reg1,def_cgsize(fromsize));
+      tocgsize:=getintmmcgsize(reg2,def_cgsize(tosize));
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
       cg.a_loadmm_reg_reg(list,fromcgsize,tocgsize,reg1,reg2,shuffle);
@@ -708,7 +711,7 @@ implementation
         internalerror(2012062306);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      tocgsize:=getmmcgsize(reg,def_cgsize(tosize));
+      tocgsize:=getintmmcgsize(reg,def_cgsize(tosize));
       cg.a_loadmm_ref_reg(list,def_cgsize(fromsize),tocgsize,ref,reg,shuffle);
     end;
 
@@ -721,7 +724,7 @@ implementation
         internalerror(2012062307);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getmmcgsize(reg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
       cg.a_loadmm_reg_ref(list,fromcgsize,def_cgsize(tosize),reg,ref,shuffle);
     end;
 
@@ -737,7 +740,7 @@ implementation
         internalerror(2012071216);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getmmcgsize(reg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
       cg.a_loadmm_reg_loc(list,fromcgsize,reg,loc,shuffle);
     end;
 
@@ -750,7 +753,7 @@ implementation
         internalerror(2012071217);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getmmcgsize(reg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
       cg.a_loadmm_reg_cgpara(list,fromcgsize,reg,cgpara,shuffle);
     end;
 
@@ -814,7 +817,7 @@ implementation
         internalerror(2012071227);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      tocgsize:=getmmcgsize(mmreg,def_cgsize(tosize));
+      tocgsize:=getintmmcgsize(mmreg,def_cgsize(tosize));
       cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),tocgsize,intreg,mmreg,shuffle);
     end;
 
@@ -827,7 +830,7 @@ implementation
         internalerror(2012071228);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getmmcgsize(mmreg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(mmreg,def_cgsize(fromsize));
       cg.a_loadmm_reg_intreg(list,fromcgsize,def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
 
@@ -1559,7 +1562,7 @@ implementation
       ncgutil.gen_load_cgpara_loc(list, vardef, para, destloc, reusepara);
     end;
 
-  function thlcg2ll.getmmcgsize(reg: tregister; size: tcgsize): tcgsize;
+  function thlcg2ll.getintmmcgsize(reg: tregister; size: tcgsize): tcgsize;
     begin
       result:=size;
       if getregtype(reg)=R_MMREGISTER then
