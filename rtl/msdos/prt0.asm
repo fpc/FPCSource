@@ -52,14 +52,29 @@ no_bss:
         ; allocate max heap
         ; TODO: also support user specified heap size
         ; try to resize our main DOS memory block until the end of the data segment
-        mov bx, word [dos_psp]
-        mov es, bx
-        sub bx, dgroup
-        neg bx  ; bx = (ds - psp) in paragraphs
-        add bx, 1000h  ; 64kb in paragraphs
+        mov dx, word [dos_psp]
+        mov cx, dx
+        sub dx, dgroup
+        neg dx  ; dx = (ds - psp) in paragraphs
+        add dx, 1000h  ; 64kb in paragraphs
+
+         ; get our MCB size in paragraphs
+        dec cx
+        mov es, cx
+        mov bx, word [es:3]
+
+        ; is it smaller than the maximum data segment size?
+        cmp bx, dx
+        jbe skip_mem_realloc
+
+        mov bx, dx
+        inc cx
+        mov es, cx
         mov ah, 4Ah
         int 21h
         jc mem_realloc_err
+
+skip_mem_realloc:
 
         ; bx = the new size in paragraphs
         add bx, word [dos_psp]
