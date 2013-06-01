@@ -100,7 +100,7 @@ begin
   {$IFDEF Win32}
 //  Win32Cursor_resurrect;
   txt := FMessage;
-  MessageBox(0, PChar(txt), 'Error', MB_OK or MB_ICONERROR or MB_SETFOREGROUND or MB_TOPMOST);
+  MessageBoxA(0, PChar(txt), 'Error', MB_OK or MB_ICONERROR or MB_SETFOREGROUND or MB_TOPMOST);
   {$ENDIF Win32}
 
   {$IFDEF WinCE}
