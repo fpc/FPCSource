@@ -1012,6 +1012,9 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+
+    FCachedlibcPath: string;
+    FGeneralCriticalSection: TRTLCriticalSection;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
 {$endif HAS_UNIT_ZIPPER}
@@ -1278,6 +1281,7 @@ Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
 procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
 Implementation
 
@@ -1356,6 +1360,9 @@ ResourceString
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
   SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
   SWarnDuplicatePackage = 'Warning: Package %s is already added. Using the existing package';
+  SWarngccNotFound        = 'Could not find libgcc';
+  SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
+  SWarnNoFCLProcessSupport= 'No FCL-Process support';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -2236,7 +2243,7 @@ end;
 
 
 {$ifdef HAS_UNIT_PROCESS}
-function GetCompilerInfo(const ACompiler,AOptions:string):string;
+function GetCompilerInfo(const ACompiler,AOptions:string; ReadStdErr: boolean):string;
 const
   BufSize = 1024;
 var
@@ -2249,11 +2256,90 @@ begin
   S.Options:=[poUsePipes];
   S.execute;
   Count:=s.output.read(buf,BufSize);
+  if (count=0) and ReadStdErr then
+    Count:=s.Stderr.read(buf,BufSize);
   S.Free;
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
 {$endif HAS_UNIT_PROCESS}
+
+function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
+
+  function Get4thWord(const AString: string): string;
+  var p: pchar;
+      spacecount: integer;
+      StartWord: pchar;
+  begin
+    result:='';
+    if length(AString)>6 then
+      begin
+      p := @AString[1];
+      spacecount:=0;
+      StartWord:=nil;
+      while (not (p^ in [#0,#10,#13])) and ((p^<>' ') or (StartWord=nil)) do
+        begin
+        if p^=' ' then
+          begin
+          inc(spacecount);
+          if spacecount=3 then StartWord:=p+1;
+          end;
+        inc(p);
+        end;
+      if StartWord<>nil then
+        begin
+        SetLength(result,p-StartWord);
+        move(StartWord^,result[1],p-StartWord);
+        end
+      else
+        result := '';
+      end;
+  end;
+
+  function GetGccDirArch(const ACpuType, GCCParams: string) : string;
+  var ExecResult: string;
+      libgccFilename: string;
+      GccExecutable: string;
+  begin
+    result := '';
+    GccExecutable := ExeSearch(AddProgramExtension('gcc', OS),GetEnvironmentVariable('PATH'));
+    if FileExists(GccExecutable) then
+      begin
+{$ifdef HAS_UNIT_PROCESS}
+      ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
+      libgccFilename:=Get4thWord(ExecResult);
+      if libgccFilename='' then
+        libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
+      result := ExtractFileDir(libgccFilename);
+{$else HAS_UNIT_PROCESS}
+      ErrorMessage := SWarnNoFCLProcessSupport;
+{$endif HAS_UNIT_PROCESS}
+      end
+    else
+      ErrorMessage := SWarngccNotFound;
+  end;
+
+begin
+  result := '';
+  if OS in [freebsd, openbsd] then
+    result := '-Fl/usr/local/lib'
+  else if OS = netbsd then
+    result := '-Fl/usr/pkg/lib'
+  else if OS = linux then
+    case CPU of
+      i386:     result := GetGccDirArch('cpui386','-m32');
+      x86_64:   result := GetGccDirArch('cpux86_64','-m64');
+      powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
+      powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
+    end {case}
+  else if OS = darwin then
+    case CPU of
+      i386:     result := GetGccDirArch('cpui386','-arch i386');
+      x86_64:   result := GetGccDirArch('cpux86_64','-arch x86_64');
+      powerpc:  result := GetGccDirArch('cpupowerpc','-arch ppc');
+      powerpc64:result := GetGccDirArch('cpupowerpc64','-arch ppc64');
+    end; {case}
+end;
 
 constructor TPackageVariant.Create(ACollection: TCollection);
 begin
@@ -3748,7 +3834,7 @@ begin
       // Detect compiler version/target from -i option
       infosl:=TStringList.Create;
       infosl.Delimiter:=' ';
-      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO');
+      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO', False);
       if infosl.Count<>3 then
         Raise EInstallerError.Create(SErrInvalidFPCInfo);
       if FCompilerVersion='' then
@@ -4438,12 +4524,21 @@ begin
   // With --start-dir=/path/to/sources.
   FStartDir:=includeTrailingPathDelimiter(GetCurrentDir);
   FExternalPackages:=TPackages.Create(TPackage);
+
+{$ifndef NO_THREADING}
+  InitCriticalSection(FGeneralCriticalSection);
+{$endif NO_THREADING}
 end;
 
 
 destructor TBuildEngine.Destroy;
 begin
   FreeAndNil(FExternalPackages);
+
+{$ifndef NO_THREADING}
+  DoneCriticalsection(FGeneralCriticalSection);
+{$endif NO_THREADING}
+
   inherited Destroy;
 end;
 
@@ -5288,6 +5383,7 @@ Var
   L : TUnsortedDuplicatesStringList;
   Args : TStringList;
   s : string;
+  ErrS: string;
   i : Integer;
 begin
   if ATarget.TargetSourceFileName = '' then
@@ -5346,6 +5442,33 @@ begin
   for i:=0 to L.Count-1 do
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
+
+  // libc-linker path
+  if APackage.NeedLibC then
+    begin
+    if FCachedlibcPath='' then
+      begin
+      s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
+      if s='' then
+        Log(vlWarning, SWarngcclibpath +' '+ErrS)
+      else
+        begin
+{$ifndef NO_THREADING}
+        EnterCriticalsection(FGeneralCriticalSection);
+        try
+{$endif NO_THREADING}
+          FCachedlibcPath:=s;
+{$ifndef NO_THREADING}
+        finally
+          LeaveCriticalsection(FGeneralCriticalSection);
+        end;
+{$endif NO_THREADING}
+        end;
+      end;
+
+    Args.Add('-Fl'+FCachedlibcPath);
+    end;
+
   // Custom Options
   If (Defaults.HaveOptions) then
     Args.AddStrings(Defaults.Options);
