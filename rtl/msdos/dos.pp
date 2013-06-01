@@ -89,6 +89,7 @@ type
 {$DEFINE HAS_SWAPVECTORS}
 {$DEFINE HAS_GETINTVEC}
 {$DEFINE HAS_SETINTVEC}
+{$DEFINE HAS_KEEP}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
 
@@ -952,6 +953,21 @@ asm
   lds dx, word [vector]
   int 21h
   pop ds
+end;
+
+{******************************************************************************
+                                  --- Keep ---
+******************************************************************************}
+
+Procedure Keep(exitcode: word); assembler;
+asm
+  mov bx, dos_psp
+  dec bx
+  mov es, bx
+  mov dx, es:[3]
+  mov al, exitcode
+  mov ah, 31h
+  int 21h
 end;
 
 {$ifdef DEBUG_LFN}
