@@ -22,12 +22,24 @@ interface
 
 uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
-type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
-     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
-     TConnOptions= set of TConnOption;
-     TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
+type
+  TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
+  TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
+  TConnOptions= set of TConnOption;
+  TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
+  TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
+    stDDL, stGetSegment, stPutSegment, stExecProcedure,
+    stStartTrans, stCommit, stRollback, stSelectForUpd);
 
-     TRowsCount = LargeInt;
+  TRowsCount = LargeInt;
+
+  TSQLStatementInfo = Record
+    StatementType : TStatementType;
+    TableName : String;
+    Updateable : Boolean;
+    WhereStartPos ,
+    WhereStopPos : integer;
+  end;
 
 type
   TSQLConnection = class;
@@ -37,9 +49,6 @@ type
   TSQLScript = class;
 
 
-  TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
-    stDDL, stGetSegment, stPutSegment, stExecProcedure,
-    stStartTrans, stCommit, stRollback, stSelectForUpd);
 
   TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit,detRollBack);
   TDBEventTypes = set of TDBEventType;
@@ -99,6 +108,7 @@ type
     FRole                : String;
 
     function GetPort: cardinal;
+    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo;
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
@@ -197,9 +207,64 @@ type
     property Handle: Pointer read GetHandle;
     procedure EndTransaction; override;
   published
-    property Action : TCommitRollbackAction read FAction write FAction;
+    property Action : TCommitRollbackAction read FAction write FAction Default caRollBack;
     property Database;
     property Params : TStringList read FParams write SetParams;
+  end;
+
+  { TCustomSQLStatement }
+
+  TCustomSQLStatement = Class(TComponent)
+  Private
+    FCursor : TSQLCursor;
+    FDatabase: TSQLConnection;
+    FParams: TParams;
+    FSQL: TStrings;
+    FSQLBuf : String;
+    FTransaction: TSQLTransaction;
+    FDatasource : TDatasource;
+    FParseSQL: Boolean;
+    procedure DoUnPrepare;
+    procedure OnChangeSQL(Sender : TObject);
+    procedure SetDatabase(AValue: TSQLConnection);
+    procedure SetDataSource(AValue: TDatasource);
+    procedure SetParams(AValue: TParams);
+    procedure SetSQL(AValue: TStrings);
+    procedure SetTransaction(AValue: TSQLTransaction);
+    Function GetPrepared : Boolean;
+  Protected
+    Function GetSchemaType : TSchemaType; virtual;
+    Function IsSelectable : Boolean ; virtual;
+    Procedure DoExecute; virtual;
+    procedure DoPrepare; virtual;
+    Function CreateParams : TParams; virtual;
+    Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    Property Cursor : TSQLCursor read FCursor;
+    Property Database : TSQLConnection Read FDatabase Write SetDatabase;
+    Property Transaction : TSQLTransaction Read FTransaction Write SetTransaction;
+    Property SQL : TStrings Read FSQL Write SetSQL;
+    Property Params : TParams Read FParams Write SetParams;
+    Property Datasource : TDatasource Read FDataSource Write SetDataSource;
+    Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
+  Public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+    Procedure Prepare;
+    Procedure Execute;
+    Procedure Unprepare;
+    function ParamByName(Const AParamName : String) : TParam;
+    Property Prepared : boolean read GetPrepared;
+  end;
+
+  TSQLStatement = Class(TCustomSQLStatement)
+  Published
+    Property Database;
+    Property Transaction;
+    Property SQL;
+    Property Params;
+    Property Datasource;
   end;
 
 { TCustomSQLQuery }
@@ -541,6 +606,228 @@ begin
   result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
+{ TCustomSQLStatement }
+
+procedure TCustomSQLStatement.OnChangeSQL(Sender: TObject);
+
+var
+  ConnOptions : TConnOptions;
+  NewParams: TParams;
+
+begin
+  UnPrepare;
+  if assigned(DataBase) then
+    ConnOptions:=DataBase.ConnOptions
+  else
+    ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
+  NewParams := CreateParams;
+  try
+    NewParams.ParseSQL(FSQL.Text, True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psInterbase);
+    NewParams.AssignValues(FParams);
+    FParams.Assign(NewParams);
+  finally
+    NewParams.Free;
+  end;
+end;
+
+procedure TCustomSQLStatement.SetDatabase(AValue: TSQLConnection);
+begin
+  if FDatabase=AValue then Exit;
+  UnPrepare;
+  if assigned(FCursor) then TSQLConnection(DataBase).DeAllocateCursorHandle(FCursor);
+  If Assigned(FDatabase) then
+    FDatabase.RemoveFreeNotification(Self);
+  FDatabase:=AValue;
+  If Assigned(FDatabase) then
+    begin
+    FDatabase.FreeNotification(Self);
+    if (Transaction=nil) and (Assigned(FDatabase.Transaction)) then
+      transaction := FDatabase.Transaction;
+    OnChangeSQL(Self);
+    end;
+end;
+
+procedure TCustomSQLStatement.SetDataSource(AValue: TDatasource);
+
+begin
+  if FDatasource=AValue then Exit;
+  If Assigned(FDatasource) then
+    FDatasource.RemoveFreeNotification(Self);
+  FDatasource:=AValue;
+  If Assigned(FDatasource) then
+    FDatasource.FreeNotification(Self);
+end;
+
+procedure TCustomSQLStatement.SetParams(AValue: TParams);
+begin
+  if FParams=AValue then Exit;
+  FParams.Assign(AValue);
+end;
+
+procedure TCustomSQLStatement.SetSQL(AValue: TStrings);
+begin
+  if FSQL=AValue then Exit;
+  FSQL.Assign(AValue);
+end;
+
+procedure TCustomSQLStatement.SetTransaction(AValue: TSQLTransaction);
+begin
+  if FTransaction=AValue then Exit;
+  UnPrepare;
+  if Assigned(FTransaction) then
+    FTransaction.RemoveFreeNotification(Self);
+  FTransaction:=AValue;
+  if Assigned(FTransaction) then
+    begin
+    FTransaction.FreeNotification(Self);
+    If (Database=Nil) then
+      Database:=Transaction.Database as TSQLConnection;
+    end;
+end;
+
+procedure TCustomSQLStatement.DoExecute;
+begin
+  If (FParams.Count>0) and Assigned(FDatasource) then
+    ; // FMasterLink.CopyParamsFromMaster(False);
+  If LogEvent(detExecute) then
+    Log(detExecute,FSQLBuf);
+  Database.Execute(FCursor,Transaction, FParams);
+end;
+
+function TCustomSQLStatement.GetPrepared: Boolean;
+begin
+  Result := Assigned(FCursor) and FCursor.FPrepared;
+end;
+
+function TCustomSQLStatement.CreateParams: TParams;
+begin
+  Result:=TParams.Create(Nil);
+end;
+
+function TCustomSQLStatement.LogEvent(EventType: TDBEventType): Boolean;
+begin
+  Result:=Assigned(Database) and Database.LogEvent(EventType);
+end;
+
+procedure TCustomSQLStatement.Log(EventType: TDBEventType; const Msg: String);
+Var
+  M : String;
+
+begin
+  If LogEvent(EventType) then
+    begin
+    If (Name<>'') then
+      M:=Name
+    else
+      M:=ClassName;
+    Database.Log(EventType,M+' : '+Msg);
+    end;
+end;
+
+procedure TCustomSQLStatement.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (operation=opRemove) then
+    If (AComponent=FTransaction) then
+      FTransaction:=Nil
+    else if (AComponent=FDatabase) then
+      FDatabase:=Nil;
+end;
+
+constructor TCustomSQLStatement.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FSQL:=TStringList.Create;
+  TStringList(FSQL).OnChange:=@OnChangeSQL;
+  FParams:=CreateParams;
+end;
+
+destructor TCustomSQLStatement.Destroy;
+begin
+  UnPrepare;
+  Transaction:=Nil;
+  Database:=Nil;
+  FreeAndNil(Fparams);
+  FreeAndNil(FSQL);
+  inherited Destroy;
+end;
+
+function TCustomSQLStatement.GetSchemaType: TSchemaType;
+
+begin
+  Result:=stNoSchema
+end;
+
+function TCustomSQLStatement.IsSelectable: Boolean;
+begin
+  Result:=False;
+end;
+
+procedure TCustomSQLStatement.DoPrepare;
+
+var
+  StmType: TStatementType;
+
+begin
+  FSQLBuf := TrimRight(FSQL.Text);
+  if (FSQLBuf='') then
+    DatabaseError(SErrNoStatement);
+  StmType:=Database.GetStatementInfo(FSQLBuf,ParseSQL,GetSchemaType).StatementType;
+  if not assigned(FCursor) then
+    FCursor:=Database.AllocateCursorHandle;
+  FCursor.FSelectable:=False;
+  FCursor.FStatementType:=StmType;
+  FCursor.FSchemaType:=GetSchemaType;
+  If LogEvent(detPrepare) then
+    Log(detPrepare,FSQLBuf);
+  Database.PrepareStatement(FCursor,Transaction,FSQLBuf,FParams);
+end;
+
+procedure TCustomSQLStatement.Prepare;
+
+begin
+  if Prepared then exit;
+  if not assigned(Database) then
+    DatabaseError(SErrDatabasenAssigned);
+  if not assigned(Transaction) then
+    DatabaseError(SErrTransactionnSet);
+  if not Database.Connected then
+    Database.Open;
+  if not Transaction.Active then
+    Transaction.StartTransaction;
+  DoPrepare;
+end;
+
+procedure TCustomSQLStatement.Execute;
+begin
+  try
+    Prepare;
+    DoExecute;
+  finally
+    if (not Prepared) and (assigned(database)) and (assigned(FCursor))
+      then database.UnPrepareStatement(FCursor);
+  end;
+end;
+
+procedure TCustomSQLStatement.DoUnPrepare;
+
+begin
+  If Assigned(Database) then
+    DataBase.UnPrepareStatement(FCursor);
+end;
+
+procedure TCustomSQLStatement.Unprepare;
+begin
+  if Prepared then
+    DoUnprepare;
+end;
+
+function TCustomSQLStatement.ParamByName(const AParamName: String): TParam;
+begin
+  Result:=FParams.ParamByName(AParamName);
+end;
+
 { TSQLConnection }
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
@@ -660,21 +947,24 @@ begin
     DatabaseError(SErrConnTransactionnSet);
 
   qry := TCustomSQLQuery.Create(nil);
-  qry.transaction := Transaction;
-  qry.database := Self;
-  with qry do
-    begin
-    ParseSQL := False;
-    SetSchemaInfo(ASchemaType,ASchemaObjectName,'');
-    open;
-    AList.Clear;
-    while not eof do
+  try
+    qry.transaction := Transaction;
+    qry.database := Self;
+    with qry do
       begin
-      AList.Append(trim(fieldbyname(AReturnField).asstring));
-      Next;
+      ParseSQL := False;
+      SetSchemaInfo(ASchemaType,ASchemaObjectName,'');
+      open;
+      AList.Clear;
+      while not eof do
+        begin
+        AList.Append(trim(fieldbyname(AReturnField).asstring));
+        Next;
+        end;
       end;
-    end;
-  qry.free;
+  finally
+    qry.free;
+  end;  
 end;
 
 function TSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -908,6 +1198,7 @@ constructor TSQLTransaction.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FParams := TStringList.Create;
+  Action:=caRollBack;
 end;
 
 destructor TSQLTransaction.Destroy;
@@ -1246,7 +1537,24 @@ begin
   end;
 end;
 
+
+
 function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
+
+Var
+  I : TSQLStatementInfo;
+
+begin
+  I:=(Database as TSQLConnection).GetStatementInfo(ASQL,ParseSQL,FSchemaType);
+  FTableName:=I.TableName;
+  FUpdateable:=I.Updateable;
+  FWhereStartPos:=I.WhereStartPos;
+  FWhereStopPos:=I.WhereStopPos;
+  Result:=I.StatementType;
+end;
+
+Function TSQLConnection.GetStatementInfo(const ASQL : string; Full : Boolean; ASchema : TSchemaType) : TSQLStatementInfo;
+
 
 type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
      TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
@@ -1262,7 +1570,6 @@ var
   S                       : string;
   ParsePart               : TParsePart;
   BracketCount            : Integer;
-  ConnOptions             : TConnOptions;
   Separator               : TPhraseSeparator;
   Keyword, K              : TKeyword;
 
@@ -1273,13 +1580,10 @@ begin
   CurrentP := PSQL-1;
   PhraseP := PSQL;
 
-  FTableName := '';
-  FUpdateable := False;
-
-  FWhereStartPos := 0;
-  FWhereStopPos := 0;
-
-  ConnOptions := TSQLConnection(DataBase).ConnOptions;
+  Result.TableName := '';
+  Result.Updateable := False;
+  Result.WhereStartPos := 0;
+  Result.WhereStopPos := 0;
 
   repeat
     begin
@@ -1338,24 +1642,24 @@ begin
 
         case ParsePart of
           ppStart  : begin
-                     Result := TSQLConnection(Database).StrToStatementType(s);
+                     Result.StatementType := StrToStatementType(s);
                      case Keyword of
                        kwWITH  : ParsePart := ppWith;
                        kwSELECT: ParsePart := ppSelect;
                        else      break;
                      end;
-                     if not FParseSQL then break;
+                     if not Full then break;
                      end;
           ppWith   : begin
                      // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
                      //  { SELECT | INSERT | UPDATE | DELETE } ...
                      case Keyword of
-                       kwSELECT: Result := stSelect;
-                       kwINSERT: Result := stInsert;
-                       kwUPDATE: Result := stUpdate;
-                       kwDELETE: Result := stDelete;
+                       kwSELECT: Result.StatementType := stSelect;
+                       kwINSERT: Result.StatementType := stInsert;
+                       kwUPDATE: Result.StatementType := stUpdate;
+                       kwDELETE: Result.StatementType := stDelete;
                      end;
-                     if Result <> stUnknown then break;
+                     if Result.StatementType <> stUnknown then break;
                      end;
           ppSelect : begin
                      if Keyword = kwFROM then
@@ -1366,11 +1670,11 @@ begin
                      // Meta-data requests are never updateable
                      //  and select-statements from more then one table
                      //  and/or derived tables are also not updateable
-                     if (FSchemaType = stNoSchema) and
+                     if (ASchema = stNoSchema) and
                         (Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd]) then
                        begin
-                       FTableName := s;
-                       FUpdateable := True;
+                       Result.TableName := s;
+                       Result.Updateable := True;
                        end;
                      ParsePart := ppFrom;
                      end;
@@ -1385,15 +1689,15 @@ begin
                          else     ParsePart := ppBogus;
                        end;
 
-                       FWhereStartPos := PhraseP-PSQL+1;
+                       Result.WhereStartPos := PhraseP-PSQL+1;
                        PStatementPart := CurrentP;
                        end
                      else
                      // joined table or user_defined_function (...)
                      if (Keyword = kwJOIN) or (Separator in [sepComma, sepParentheses]) then
                        begin
-                       FTableName := '';
-                       FUpdateable := False;
+                       Result.TableName := '';
+                       Result.Updateable := False;
                        end;
                      end;
           ppWhere  : begin
@@ -1401,16 +1705,16 @@ begin
                         (Separator = sepEnd) then
                        begin
                        ParsePart := ppBogus;
-                       FWhereStartPos := PStatementPart-PSQL;
+                       Result.WhereStartPos := PStatementPart-PSQL;
                        if (Separator = sepEnd) then
-                         FWhereStopPos := CurrentP-PSQL+1
+                         Result.WhereStopPos := CurrentP-PSQL+1
                        else
-                         FWhereStopPos := PhraseP-PSQL+1;
+                         Result.WhereStopPos := PhraseP-PSQL+1;
                        end
                      else if (Keyword = kwUNION) then
                        begin
                        ParsePart := ppBogus;
-                       FUpdateable := False;
+                       Result.Updateable := False;
                        end;
                      end;
         end; {case}
