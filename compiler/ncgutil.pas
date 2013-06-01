@@ -312,7 +312,7 @@ implementation
 {$ifdef cpu64bitalu}
                          if opsize in [OS_128,OS_S128] then
                            begin
-                             hlcg.location_force_reg(list,p.location,p.resultdef,hlcg.tcgsize2orddef(opsize),true);
+                             hlcg.location_force_reg(list,p.location,p.resultdef,cgsize_orddef(opsize),true);
                              tmpreg:=cg.getintregister(list,OS_64);
                              cg.a_op_reg_reg_reg(list,OP_OR,OS_64,p.location.register128.reglo,p.location.register128.reghi,tmpreg);
                              location_reset(p.location,LOC_REGISTER,OS_64);
@@ -322,7 +322,7 @@ implementation
 {$else cpu64bitalu}
                          if opsize in [OS_64,OS_S64] then
                            begin
-                             hlcg.location_force_reg(list,p.location,p.resultdef,hlcg.tcgsize2orddef(opsize),true);
+                             hlcg.location_force_reg(list,p.location,p.resultdef,cgsize_orddef(opsize),true);
                              tmpreg:=cg.getintregister(list,OS_32);
                              cg.a_op_reg_reg_reg(list,OP_OR,OS_32,p.location.register64.reglo,p.location.register64.reghi,tmpreg);
                              location_reset(p.location,LOC_REGISTER,OS_32);

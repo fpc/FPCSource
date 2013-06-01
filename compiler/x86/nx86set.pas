@@ -408,7 +408,7 @@ implementation
 {$endif i8086}
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
-         opdef:=hlcg.tcgsize2orddef(opsize);
+         opdef:=cgsize_orddef(opsize);
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);

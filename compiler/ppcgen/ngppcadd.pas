@@ -205,7 +205,7 @@ implementation
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(cgsize),false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
             if isjump then
              begin
                current_procinfo.CurrTrueLabel:=otl;
@@ -224,7 +224,7 @@ implementation
               end;
             secondpass(right);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,hlcg.tcgsize2orddef(cgsize),false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
             if isjump then
              begin
                current_procinfo.CurrTrueLabel:=otl;

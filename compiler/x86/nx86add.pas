@@ -114,7 +114,7 @@ unit nx86add;
               if extra_not then
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,opsize,left.location.register,left.location.register);
               r:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,hlcg.tcgsize2orddef(opsize),right.location,r);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,r);
               emit_reg_reg(op,TCGSize2Opsize[opsize],left.location.register,r);
               cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,r,left.location.register);
             end
@@ -157,7 +157,7 @@ unit nx86add;
                    if extra_not then
                      begin
                         r:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,hlcg.tcgsize2orddef(opsize),right.location,r);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,r);
                         emit_reg(A_NOT,TCGSize2Opsize[opsize],r);
                         emit_reg_reg(A_AND,TCGSize2Opsize[opsize],r,left.location.register);
                      end
@@ -450,7 +450,7 @@ unit nx86add;
 
         { fix the changed opsize we did above because of the missing btsb }
         if opsize<>int_cgsize(resultdef.size) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,hlcg.tcgsize2orddef(int_cgsize(resultdef.size)),false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,cgsize_orddef(int_cgsize(resultdef.size)),false);
       end;
 {$endif not i8086}
 

@@ -96,8 +96,6 @@ unit hlcgobj;
              by the compiler for any purpose other than parameter passing/function
              result loading, this is the register type used }
           function def2regtyp(def: tdef): tregistertype; virtual;
-          { # Returns orddef corresponding to size }
-          class function tcgsize2orddef(size: tcgsize): torddef; static;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
@@ -718,30 +716,6 @@ implementation
         end;
     end;
 
-  class function thlcgobj.tcgsize2orddef(size: tcgsize): torddef;
-    begin
-      case size of
-        OS_8:
-          result:=torddef(u8inttype);
-        OS_S8:
-          result:=torddef(s8inttype);
-        OS_16:
-          result:=torddef(u16inttype);
-        OS_S16:
-          result:=torddef(s16inttype);
-        OS_32:
-          result:=torddef(u32inttype);
-        OS_S32:
-          result:=torddef(s32inttype);
-        OS_64:
-          result:=torddef(u64inttype);
-        OS_S64:
-          result:=torddef(s64inttype);
-        else
-          internalerror(2012050401);
-      end;
-    end;
-
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
     begin
       cg.a_label(list,l);
@@ -1052,7 +1026,7 @@ implementation
       subsetsizereg: tregister;
       stopbit: byte;
     begin
-      subsetregdef:=tcgsize2orddef(sreg.subsetregsize);
+      subsetregdef:=cgsize_orddef(sreg.subsetregsize);
       tmpreg:=getintregister(list,subsetregdef);
       if is_signed(subsetsize) then
         begin
@@ -1093,8 +1067,8 @@ implementation
     begin
       if (fromsreg.bitlen>=tosreg.bitlen) then
         begin
-          fromsubsetregdef:=tcgsize2orddef(fromsreg.subsetregsize);
-          tosubsetregdef:=tcgsize2orddef(tosreg.subsetregsize);
+          fromsubsetregdef:=cgsize_orddef(fromsreg.subsetregsize);
+          tosubsetregdef:=cgsize_orddef(tosreg.subsetregsize);
           if (fromsreg.startbit<=tosreg.startbit) then
             begin
               { tosreg may be larger -> use its size to perform the shift }
@@ -1153,7 +1127,7 @@ implementation
       bitmask: aword;
       stopbit: byte;
     begin
-       subsetregdef:=tcgsize2orddef(sreg.subsetregsize);
+       subsetregdef:=cgsize_orddef(sreg.subsetregsize);
        stopbit:=sreg.startbit+sreg.bitlen;
        // on x86(64), 1 shl 32(64) = 1 instead of 0
        if (stopbit<>AIntBits) then
@@ -1653,7 +1627,7 @@ implementation
 
       if (intloadsize>sizeof(aint)) then
         intloadsize:=sizeof(aint);
-      loadsize:=tcgsize2orddef(int_cgsize(intloadsize));
+      loadsize:=cgsize_orddef(int_cgsize(intloadsize));
 
       if (sref.bitlen>sizeof(aint)*8) then
         internalerror(2006081312);
@@ -1752,7 +1726,7 @@ implementation
           a_op_reg_reg(list,OP_NEG,osuinttype,tmpreg,tmpreg);
 
           { load next "loadbitsize" bits of the array }
-          a_load_ref_reg(list,tcgsize2orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
+          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
 
           a_op_reg_reg(list,OP_SHR,osuinttype,tmpreg,extra_value_reg);
           { if there are no bits in extra_value_reg, then sref.bitindex was      }
@@ -1776,7 +1750,7 @@ implementation
           a_op_reg_reg(list,OP_NEG,osuinttype,tmpreg,tmpreg);
 
           { load next "loadbitsize" bits of the array }
-          a_load_ref_reg(list,tcgsize2orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
+          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
 
           { tmpreg is in the range 1..<cpu_bitsize>-1 -> always ok }
           a_op_reg_reg(list,OP_SHL,osuinttype,tmpreg,extra_value_reg);
@@ -2121,7 +2095,7 @@ implementation
       subsetregdef: torddef;
       stopbit: byte;
     begin
-      subsetregdef:=tcgsize2orddef(sreg.subsetregsize);
+      subsetregdef:=cgsize_orddef(sreg.subsetregsize);
       stopbit:=sreg.startbit+sreg.bitlen;
       // on x86(64), 1 shl 32(64) = 1 instead of 0
       if (stopbit<>AIntBits) then
@@ -3668,12 +3642,12 @@ implementation
             force integer (memory) values in an mmregister }
           if (l.size in [OS_32,OS_S32]) then
             begin
-              size:=tcgsize2orddef(l.size);
+              size:=cgsize_orddef(l.size);
               newsize:=s32floattype;
             end
           else if (l.size in [OS_64,OS_S64]) then
             begin
-              size:=tcgsize2orddef(l.size);
+              size:=cgsize_orddef(l.size);
               newsize:=s64floattype;
             end
           else

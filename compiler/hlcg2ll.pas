@@ -1342,12 +1342,12 @@ implementation
                  force integer (memory) values in an mmregister }
                if (l.size in [OS_32,OS_S32]) then
                  begin
-                   size:=tcgsize2orddef(l.size);
+                   size:=cgsize_orddef(l.size);
                    newsize:=s32floattype;
                  end
                else if (l.size in [OS_64,OS_S64]) then
                  begin
-                   size:=tcgsize2orddef(l.size);
+                   size:=cgsize_orddef(l.size);
                    newsize:=s64floattype;
                  end
                else

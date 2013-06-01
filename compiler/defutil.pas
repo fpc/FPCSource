@@ -293,6 +293,9 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
+    { #Return an orddef (integer) correspondig to a tcgsize }
+    function cgsize_orddef(size: tcgsize): torddef;
+
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
@@ -1241,6 +1244,30 @@ implementation
               { undefined size }
               result:=OS_NO;
             end;
+        end;
+      end;
+
+    function cgsize_orddef(size: tcgsize): torddef;
+      begin
+        case size of
+          OS_8:
+            result:=torddef(u8inttype);
+          OS_S8:
+            result:=torddef(s8inttype);
+          OS_16:
+            result:=torddef(u16inttype);
+          OS_S16:
+            result:=torddef(s16inttype);
+          OS_32:
+            result:=torddef(u32inttype);
+          OS_S32:
+            result:=torddef(s32inttype);
+          OS_64:
+            result:=torddef(u64inttype);
+          OS_S64:
+            result:=torddef(s64inttype);
+          else
+            internalerror(2012050401);
         end;
       end;
 

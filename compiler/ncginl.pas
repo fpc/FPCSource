@@ -733,7 +733,7 @@ implementation
 
       if (left.location.loc <> LOC_REGISTER) or
          (left.location.size <> opsize) then
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(opsize),true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
       location_reset(location,LOC_REGISTER,opsize);
       location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
