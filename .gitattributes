@@ -8253,6 +8253,7 @@ rtl/msdos/classes.pp svneol=native#text/plain
 rtl/msdos/crt.pp svneol=native#text/plain
 rtl/msdos/dos.pp svneol=native#text/plain
 rtl/msdos/msmouse.pp svneol=native#text/plain
+rtl/msdos/ports.pp svneol=native#text/plain
 rtl/msdos/prt0.asm svneol=native#text/plain
 rtl/msdos/registers.inc svneol=native#text/plain
 rtl/msdos/sysdir.inc svneol=native#text/plain
