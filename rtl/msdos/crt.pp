@@ -454,16 +454,16 @@ label
 asm
         mov     ax, $40
         mov     es, ax
-        mov     di, $6c
+        xor     di, di
 
         mov     cx, MS
         test    cx, cx
         jz      LDelay2
         mov     si, [DelayCnt + 2]
+        mov     bx, es:[di]
 LDelay1:
         mov     ax, [DelayCnt]
         mov     dx, si
-        mov     bx, es:[di]
         call    DelayLoop
         loop    LDelay1
 LDelay2:
