@@ -824,6 +824,7 @@ compiler/x86_64/x8664pro.inc svneol=native#text/plain
 compiler/x86_64/x8664tab.inc svneol=native#text/plain
 ide/Makefile svneol=native#text/plain
 ide/Makefile.fpc svneol=native#text/plain
+ide/Makefile.fpc.fpcmake svneol=native#text/plain
 ide/README.txt svneol=native#text/plain
 ide/TODO.txt svneol=native#text/plain
 ide/compiler/Makefile svneol=native#text/plain
