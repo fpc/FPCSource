@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$inline on}
+{$asmmode intel}
 
 unit dos;
 
@@ -86,6 +87,8 @@ type
 {$DEFINE HAS_SETVERIFY}
 {$DEFINE HAS_GETVERIFY}
 {$DEFINE HAS_SWAPVECTORS}
+{$DEFINE HAS_GETINTVEC}
+{$DEFINE HAS_SETINTVEC}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
 
@@ -923,6 +926,32 @@ begin
         break;
       end;
    end;
+end;
+
+{******************************************************************************
+                             --- Get/SetIntVec ---
+******************************************************************************}
+
+procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
+asm
+  mov al, intno
+  mov ah, 35h
+  int 21h
+  xchg ax, bx
+  mov bx, vector
+  mov [bx], ax
+  mov ax, es
+  mov [bx + 2], ax
+end;
+
+procedure SetIntVec(intno: Byte; vector: farpointer); assembler;
+asm
+  push ds
+  mov al, intno
+  mov ah, 25h
+  lds dx, word [vector]
+  int 21h
+  pop ds
 end;
 
 {$ifdef DEBUG_LFN}

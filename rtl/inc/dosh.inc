@@ -134,8 +134,8 @@ Procedure SetVerify(verify: boolean);
 
 {Do Nothing Functions}
 Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
+Procedure GetIntVec(intno: byte; var vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
+Procedure SetIntVec(intno: byte; vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
 Procedure Keep(exitcode: word);
 
 {Additional (non-TP) function for quick access to system timer - for FV etc.}
