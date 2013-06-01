@@ -6937,7 +6937,7 @@ Const
      WNDCLASS    = WNDCLASSA;
      {$endif}
 
-     WNDCLASSEX = record
+     WNDCLASSEXA = record
           cbSize : UINT;
           style : UINT;
           lpfnWndProc : WNDPROC;
@@ -6947,15 +6947,14 @@ Const
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
-          lpszMenuName : LPCTSTR;
-          lpszClassName : LPCTSTR;
+          lpszMenuName : LPCSTR;
+          lpszClassName : LPCSTR;
           hIconSm : HANDLE;
        end;
-     LPWNDCLASSEX = ^WNDCLASSEX;
-     _WNDCLASSEX = WNDCLASSEX;
-     TWNDCLASSEX = WNDCLASSEX;
-     TWNDCLASSEXA = WNDCLASSEX;
-     PWNDCLASSEX = ^WNDCLASSEX;
+     LPWNDCLASSEXA = ^WNDCLASSEXA;
+     _WNDCLASSEXA = WNDCLASSEXA;
+     TWNDCLASSEXA = WNDCLASSEXA;
+     PWNDCLASSEXA = ^WNDCLASSEXA;
 
      WNDCLASSEXW = record
           cbSize : UINT;
@@ -6975,6 +6974,20 @@ Const
      _WNDCLASSEXW  = WNDCLASSEXW;
      TWNDCLASSEXW  = WNDCLASSEXW;
      PWNDCLASSEXW  = ^WNDCLASSEXW;
+
+     {$ifdef UNICODE}
+     LPWNDClassEx  = LPWNDClassExW;
+     _WNDClassEx   = _WNDClassExW;
+     TWNDClassEx   = TWNDClassExW;
+     PWNDClassEx   = PWNDClassExW;
+     WNDClassEx    = WNDClassExW;
+     {$ELSE}
+     LPWNDClassEx  = LPWNDClassExA;
+     _WNDClassEx   = _WNDClassExA;
+     TWNDClassEx   = TWNDClassExA;
+     PWNDClassEx   = PWNDClassExA;
+     WNDClassEx    = WNDClassExA;
+     {$endif}
 
      CONNECTDLGSTRUCT = record
           cbStructure : DWORD;
