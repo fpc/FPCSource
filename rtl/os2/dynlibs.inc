@@ -98,7 +98,7 @@ begin
     Result := StrPas (@OutBuf [0])
    else
     begin
-     WriteStr (Result, DynLibErrNo);
+     Str (DynLibErrNo, Result);
      Result := 'Error ' + Result;
     end;
    if DynLibErrPath [0] <> #0 then
