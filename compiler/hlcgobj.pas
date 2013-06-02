@@ -4530,6 +4530,7 @@ implementation
     var
       ressym : tabstractnormalvarsym;
       funcretloc : TCGPara;
+      retdef : tdef;
     begin
       { Is the loading needed? }
       if is_void(current_procinfo.procdef.returndef) or
@@ -4545,18 +4546,27 @@ implementation
 
       { constructors return self }
       if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-        ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
+        begin
+          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'));
+          retdef:=ressym.vardef;
+          { and TP-style constructors return a pointer to self }
+          if is_object(ressym.vardef) then
+            retdef:=getpointerdef(retdef);
+        end
       else
-        ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
+        begin
+          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
+          retdef:=ressym.vardef;
+        end;
       if (ressym.refs>0) or
-         is_managed_type(ressym.vardef) then
+         is_managed_type(retdef) then
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-            gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
+            gen_load_loc_cgpara(list,retdef,ressym.localloc,funcretloc);
         end
       else
-        gen_load_uninitialized_function_result(list,current_procinfo.procdef,ressym.vardef,funcretloc)
+        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,funcretloc)
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
