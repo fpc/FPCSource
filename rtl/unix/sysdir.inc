@@ -55,10 +55,10 @@ end;
 Procedure Do_RmDir(s: rawbytestring);[IOCheck];
 
 begin
-  If (S='') or (InOutRes <> 0) then
-    exit;
   if (s='.') then
     InOutRes := 16;
+  If (S='') or (InOutRes <> 0) then
+    exit;
   If Fprmdir(pchar(S))<0 Then
    Errno2Inoutres
   Else
