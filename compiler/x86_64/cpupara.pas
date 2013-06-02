@@ -99,7 +99,7 @@ unit cpupara;
       MAX_PARA_CLASSES = 4;
 
     type
-      tx64paraclass = (
+      tx64paraclasstype = (
         X86_64_NO_CLASS,
         X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS,
         X86_64_SSE_CLASS,X86_64_SSESF_CLASS,X86_64_SSEDF_CLASS,X86_64_SSEUP_CLASS,
@@ -107,6 +107,12 @@ unit cpupara;
         X86_64_COMPLEX_X87_CLASS,
         X86_64_MEMORY_CLASS
       );
+
+      tx64paraclass = record
+        def: tdef;
+        typ: tx64paraclasstype;
+      end;
+
       tx64paraclasses = array[0..MAX_PARA_CLASSES-1] of tx64paraclass;
 
     { Win64-specific helper }
@@ -120,82 +126,168 @@ unit cpupara;
        of this code is to classify each 8bytes of incoming argument by the register
        class and assign registers accordingly.  *)
 
+
+       function classify_representative_def(def1, def2: tdef): tdef;
+         var
+           def1size, def2size: asizeint;
+         begin
+           if not assigned(def1) then
+             result:=def2
+           else if not assigned(def2) then
+             result:=def1
+           else
+             begin
+               def1size:=def1.size;
+               def2size:=def2.size;
+               if def1size>def2size then
+                 result:=def1
+               else if def2size>def1size then
+                 result:=def2
+               else if def1.alignment>def2.alignment then
+                 result:=def1
+               else
+                 result:=def2;
+             end;
+         end;
+
+       (* Classify the argument of type TYPE and mode MODE.
+          CLASSES will be filled by the register class used to pass each word
+          of the operand.  The number of words is returned.  In case the parameter
+          should be passed in memory, 0 is returned. As a special case for zero
+          sized containers, classes[0] will be NO_CLASS and 1 is returned.
+
+          real_size contains either def.size, or a value derived from
+          def.bitpackedsize and the field offset denoting the number of bytes
+          spanned by a bitpacked field
+
+          See the x86-64 PS ABI for details.
+       *)
+       procedure classify_single_integer_class(def: tdef; size,real_size: aint; var cl: tx64paraclass; byte_offset: aint);
+         begin
+           if (byte_offset=0) and
+              (real_size in [1,2,4,8]) and
+              (not assigned(cl.def) or
+               (def.alignment>=cl.def.alignment)) then
+             cl.def:=def;
+           if size<=4 then
+             begin
+               cl.typ:=X86_64_INTEGERSI_CLASS;
+               if not assigned(cl.def) or
+                  (cl.def.size<size) then
+                 begin
+                   case size of
+                     1: cl.def:=u8inttype;
+                     2: cl.def:=u16inttype;
+                     3,4: cl.def:=u32inttype;
+                   end;
+                 end;
+             end
+           else
+             begin
+               cl.typ:=X86_64_INTEGER_CLASS;
+               if not assigned(cl.def) or
+                  (cl.def.size<size) then
+                 cl.def:=u64inttype;
+             end;
+         end;
+
+
+       function classify_as_integer_argument(def: tdef; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
+         var
+           size: aint;
+         begin
+           size:=byte_offset+real_size;
+           classify_single_integer_class(def,size,real_size,classes[0],byte_offset);
+           if size<=8 then
+             result:=1
+           else
+             begin
+               classify_single_integer_class(def,size-8,real_size,classes[1],byte_offset-8);
+               if size>16 then
+                 internalerror(2010021401);
+               result:=2;
+             end
+         end;
+
+
     (* Return the union class of CLASS1 and CLASS2.
        See the x86-64 PS ABI for details.  *)
 
     function merge_classes(class1, class2: tx64paraclass): tx64paraclass;
       begin
         (* Rule #1: If both classes are equal, this is the resulting class.  *)
-        if (class1=class2) then
-          exit(class1);
+        if (class1.typ=class2.typ) then
+          begin
+            result.typ:=class1.typ;
+            result.def:=classify_representative_def(class1.def,class2.def);
+            exit;
+          end;
 
         (* Rule #2: If one of the classes is NO_CLASS, the resulting class is
            the other class.  *)
-        if (class1=X86_64_NO_CLASS) then
+        if (class1.typ=X86_64_NO_CLASS) then
           exit(class2);
-        if (class2=X86_64_NO_CLASS) then
+        if (class2.typ=X86_64_NO_CLASS) then
           exit(class1);
 
         (* Rule #3: If one of the classes is MEMORY, the result is MEMORY.  *)
-        if (class1=X86_64_MEMORY_CLASS) or
-           (class2=X86_64_MEMORY_CLASS) then
-          exit(X86_64_MEMORY_CLASS);
+        if (class1.typ=X86_64_MEMORY_CLASS) then
+          exit(class1)
+        else if (class2.typ=X86_64_MEMORY_CLASS) then
+          exit(class2);
 
         (* Rule #4: If one of the classes is INTEGER, the result is INTEGER.  *)
         { 32 bit }
-        if ((class1=X86_64_INTEGERSI_CLASS) and
-            (class2=X86_64_SSESF_CLASS)) or
-           ((class2=X86_64_INTEGERSI_CLASS) and
-            (class1=X86_64_SSESF_CLASS)) then
-          exit(X86_64_INTEGERSI_CLASS);
+        if ((class1.typ=X86_64_INTEGERSI_CLASS) and
+            (class2.typ=X86_64_SSESF_CLASS)) then
+          exit(class1)
+        else if ((class2.typ=X86_64_INTEGERSI_CLASS) and
+            (class1.typ=X86_64_SSESF_CLASS)) then
+          exit(class2);
         { 64 bit }
-        if (class1 in [X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS]) or
-           (class2 in [X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS]) then
-          exit(X86_64_INTEGER_CLASS);
+        if (class1.typ in [X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS]) then
+          begin
+            result:=class1;
+            if result.def.size<8 then
+              begin
+                result.typ:=X86_64_INTEGER_CLASS;
+                result.def:=s64inttype;
+              end;
+            exit
+          end
+        else if (class2.typ in [X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS]) then
+          begin
+            result:=class2;
+            if result.def.size<8 then
+              begin
+                result.typ:=X86_64_INTEGER_CLASS;
+                result.def:=s64inttype;
+              end;
+            exit
+          end;
 
         (* Rule #5: If one of the classes is X87, X87UP, or COMPLEX_X87 class,
            MEMORY is used.  *)
-        if (class1 in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS]) or
-           (class2 in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS]) then
-          exit(X86_64_MEMORY_CLASS);
+        if (class1.typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS]) then
+          begin
+            result:=class1;
+            result.typ:=X86_64_MEMORY_CLASS;
+            exit;
+          end
+        else if (class2.typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS]) then
+          begin
+            result:=class2;
+            result.typ:=X86_64_MEMORY_CLASS;
+            exit;
+          end;
 
         (* Rule #6: Otherwise class SSE is used.  *)
-        result:=X86_64_SSE_CLASS;
-      end;
-
-    (* Classify the argument of type TYPE and mode MODE.
-       CLASSES will be filled by the register class used to pass each word
-       of the operand.  The number of words is returned.  In case the parameter
-       should be passed in memory, 0 is returned. As a special case for zero
-       sized containers, classes[0] will be NO_CLASS and 1 is returned.
-
-       real_size contains either def.size, or a value derived from
-       def.bitpackedsize and the field offset denoting the number of bytes
-       spanned by a bitpacked field
-
-       See the x86-64 PS ABI for details.
-    *)
-    function classify_as_integer_argument(real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
-      var
-        size: aint;
-      begin
-        size:=byte_offset+real_size;
-        if size<=4 then
-          classes[0]:=X86_64_INTEGERSI_CLASS
+        if class1.def.size>class2.def.size then
+          result:=class1
         else
-          classes[0]:=X86_64_INTEGER_CLASS;
-        if size<=8 then
-          result:=1
-        else
-          begin
-             if size<=12 then
-               classes[1]:=X86_64_INTEGERSI_CLASS
-             else if (size<=16) then
-               classes[1]:=X86_64_INTEGER_CLASS
-             else
-               internalerror(2010021401);
-            result:=2;
-          end
+          result:=class2;
+        result.typ:=X86_64_SSE_CLASS;
+        result.def:=getarraydef(s32floattype,2)
       end;
 
 
@@ -211,7 +303,8 @@ unit cpupara;
           begin
             if aggregate_in_registers_win64(varspez,def.size) then
               begin
-                classes[0]:=X86_64_INTEGER_CLASS;
+                classes[0].typ:=X86_64_INTEGER_CLASS;
+                classes[0].def:=def;
                 result:=1;
               end
             else
@@ -231,14 +324,18 @@ unit cpupara;
            signal memory class, so handle it as special case.  *)
         if (words=0) then
           begin
-            classes[0]:=X86_64_NO_CLASS;
+            classes[0].typ:=X86_64_NO_CLASS;
+            classes[0].def:=def;
             exit(1);
           end;
 
         { we'll be merging the classes elements with the subclasses
           elements, so initialise them first }
         for i:=low(classes) to high(classes) do
-          classes[i]:=X86_64_NO_CLASS;
+          begin
+            classes[i].typ:=X86_64_NO_CLASS;
+            classes[i].def:=nil;
+          end;
         result:=words;
       end;
 
@@ -249,6 +346,7 @@ unit cpupara;
         i,
         pos: longint;
       begin
+        fillchar(subclasses,sizeof(subclasses),0);
         result:=classify_argument(def,varspez,real_size,subclasses,new_byte_offset mod 8);
         if (result=0) then
           exit;
@@ -274,38 +372,41 @@ unit cpupara;
                X86_64_SSE_CLASS or any other ones aren't
                X86_64_SSEUP_CLASS, everything should be passed in
                memory.  *)
-            if (classes[0]<>X86_64_SSE_CLASS) then
+            if (classes[0].typ<>X86_64_SSE_CLASS) then
               exit(0);
 
             for i:=1 to words-1 do
-              if (classes[i]<>X86_64_SSEUP_CLASS) then
+              if (classes[i].typ<>X86_64_SSEUP_CLASS) then
                 exit(0);
           end;
 
         (* Final merger cleanup.  *)
         (* The first one must never be X86_64_SSEUP_CLASS or
            X86_64_X87UP_CLASS.  *)
-        if (classes[0]=X86_64_SSEUP_CLASS) or
-           (classes[0]=X86_64_X87UP_CLASS) then
+        if (classes[0].typ=X86_64_SSEUP_CLASS) or
+           (classes[0].typ=X86_64_X87UP_CLASS) then
           internalerror(2010021402);
         for i:=0 to words-1 do
           begin
             (* If one class is MEMORY, everything should be passed in
                memory.  *)
-            if (classes[i]=X86_64_MEMORY_CLASS) then
+            if (classes[i].typ=X86_64_MEMORY_CLASS) then
               exit(0);
 
             (* The X86_64_SSEUP_CLASS should be always preceded by
                X86_64_SSE_CLASS or X86_64_SSEUP_CLASS.  *)
-            if (classes[i]=X86_64_SSEUP_CLASS) and
-               (classes[i-1]<>X86_64_SSE_CLASS) and
-               (classes[i-1]<>X86_64_SSEUP_CLASS) then
-              classes[i]:=X86_64_SSE_CLASS;
+            if (classes[i].typ=X86_64_SSEUP_CLASS) and
+               (classes[i-1].typ<>X86_64_SSE_CLASS) and
+               (classes[i-1].typ<>X86_64_SSEUP_CLASS) then
+              begin
+                classes[i].typ:=X86_64_SSE_CLASS;
+                classes[i].def:=getarraydef(s32floattype,2);
+              end;
 
             (*  If X86_64_X87UP_CLASS isn't preceded by X86_64_X87_CLASS,
                 everything should be passed in memory.  *)
-            if (classes[i]=X86_64_X87UP_CLASS) and
-               (classes[i-1]<>X86_64_X87_CLASS) then
+            if (classes[i].typ=X86_64_X87UP_CLASS) and
+               (classes[i-1].typ<>X86_64_X87_CLASS) then
               exit(0);
           end;
 
@@ -317,20 +418,32 @@ unit cpupara;
             such locations always up to 64 bits, although this loads/stores
             some superfluous data }
           { 1) the first part is 32 bit while there is still a second part }
-          if (classes[1]<>X86_64_NO_CLASS) then
-            case classes[0] of
+          if (classes[1].typ<>X86_64_NO_CLASS) then
+            case classes[0].typ of
               X86_64_INTEGERSI_CLASS:
-                classes[0]:=X86_64_INTEGER_CLASS;
+                begin
+                  classes[0].typ:=X86_64_INTEGER_CLASS;
+                  classes[0].def:=s64inttype;
+                end;
               X86_64_SSESF_CLASS:
-                classes[0]:=X86_64_SSE_CLASS;
+                begin
+                  classes[0].typ:=X86_64_SSE_CLASS;
+                  classes[0].def:=getarraydef(s32floattype,2);
+                end;
             end;
           { 2) the second part is 32 bit, but the total size is > 12 bytes }
           if (def.size>12) then
-            case classes[1] of
+            case classes[1].typ of
               X86_64_INTEGERSI_CLASS:
-                classes[1]:=X86_64_INTEGER_CLASS;
+                begin
+                  classes[1].typ:=X86_64_INTEGER_CLASS;
+                  classes[1].def:=s64inttype;
+                end;
               X86_64_SSESF_CLASS:
-                classes[1]:=X86_64_SSE_CLASS;
+                begin
+                  classes[1].typ:=X86_64_SSE_CLASS;
+                  classes[1].def:=getarraydef(s32floattype,2);
+                end;
             end;
 
           result:=words;
@@ -466,44 +579,51 @@ unit cpupara;
           enumdef,
           pointerdef,
           classrefdef:
-            result:=classify_as_integer_argument(real_size,classes,byte_offset);
+            result:=classify_as_integer_argument(def,real_size,classes,byte_offset);
           formaldef:
-            result:=classify_as_integer_argument(voidpointertype.size,classes,byte_offset);
+            result:=classify_as_integer_argument(voidpointertype,voidpointertype.size,classes,byte_offset);
           floatdef:
             begin
+              classes[0].def:=def;
               case tfloatdef(def).floattype of
                 s32real:
                   begin
                     if byte_offset=0 then
-                      classes[0]:=X86_64_SSESF_CLASS
+                      classes[0].typ:=X86_64_SSESF_CLASS
                     else
-                      { if we have e.g. a record with two successive "single"
-                        fields, we need a 64 bit rather than a 32 bit load }
-                      classes[0]:=X86_64_SSE_CLASS;
+                      begin
+                        { if we have e.g. a record with two successive "single"
+                          fields, we need a 64 bit rather than a 32 bit load }
+                        classes[0].typ:=X86_64_SSE_CLASS;
+                        classes[0].def:=getarraydef(s32floattype,2);
+                      end;
                     result:=1;
                   end;
                 s64real:
                   begin
-                    classes[0]:=X86_64_SSEDF_CLASS;
+                    classes[0].typ:=X86_64_SSEDF_CLASS;
                     result:=1;
                   end;
                 s80real,
                 sc80real:
                   begin
-                    classes[0]:=X86_64_X87_CLASS;
-                    classes[1]:=X86_64_X87UP_CLASS;
+                    classes[0].typ:=X86_64_X87_CLASS;
+                    classes[1].typ:=X86_64_X87UP_CLASS;
+                    classes[1].def:=def;
                     result:=2;
                   end;
                 s64comp,
                 s64currency:
                   begin
-                    classes[0]:=X86_64_INTEGER_CLASS;
+                    classes[0].typ:=X86_64_INTEGER_CLASS;
                     result:=1;
                   end;
                 s128real:
                   begin
-                    classes[0]:=X86_64_SSE_CLASS;
-                    classes[1]:=X86_64_SSEUP_CLASS;
+                    classes[0].typ:=X86_64_SSE_CLASS;
+                    classes[0].def:=getarraydef(s32floattype,2);
+                    classes[1].typ:=X86_64_SSEUP_CLASS;
+                    classes[1].def:=getarraydef(s32floattype,2);
                     result:=2;
                   end;
                 else
@@ -519,12 +639,12 @@ unit cpupara;
                 result:=0
               else
                 { all kinds of pointer types: class, objcclass, interface, ... }
-                result:=classify_as_integer_argument(voidpointertype.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,voidpointertype.size,classes,byte_offset);
             end;
           setdef:
             begin
               if is_smallset(def) then
-                result:=classify_as_integer_argument(def.size,classes,byte_offset)
+                result:=classify_as_integer_argument(def,def.size,classes,byte_offset)
               else
                 result:=0;
             end;
@@ -533,13 +653,13 @@ unit cpupara;
               if (tstringdef(def).stringtype in [st_shortstring,st_longstring]) then
                 result:=0
               else
-                result:=classify_as_integer_argument(def.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,def.size,classes,byte_offset);
             end;
           arraydef:
             begin
               { a dynamic array is treated like a pointer }
               if is_dynamic_array(def) then
-                result:=classify_as_integer_argument(voidpointertype.size,classes,byte_offset)
+                result:=classify_as_integer_argument(def,voidpointertype.size,classes,byte_offset)
               { other special arrays are passed on the stack }
               else if is_open_array(def) or
                       is_array_of_const(def) then
@@ -561,7 +681,7 @@ unit cpupara;
                 end
               else
                 { pointer }
-                result:=classify_as_integer_argument(def.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,def.size,classes,byte_offset);
             end;
           variantdef:
             begin
@@ -585,7 +705,10 @@ unit cpupara;
         { init the classes array, because even if classify_argument inits only
           one element we copy both to loc1/loc2 in case "1" is returned }
         for i:=low(classes) to high(classes) do
-          classes[i]:=X86_64_NO_CLASS;
+          begin
+            classes[i].typ:=X86_64_NO_CLASS;
+            classes[i].def:=nil;
+          end;
         { def.size internalerrors for open arrays and dynamic arrays, since
           their size cannot be determined at compile-time.
           classify_argument does not look at the realsize argument for arrays
@@ -598,16 +721,17 @@ unit cpupara;
         case numclasses of
           0:
            begin
-             loc1:=X86_64_MEMORY_CLASS;
-             loc2:=X86_64_NO_CLASS;
+             loc1.typ:=X86_64_MEMORY_CLASS;
+             loc1.def:=def;
+             loc2.typ:=X86_64_NO_CLASS;
            end;
           1,2:
             begin
               { If the class is X87, X87UP or COMPLEX_X87, it is passed in memory }
-              if classes[0] in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
-                classes[0]:=X86_64_MEMORY_CLASS;
-              if classes[1] in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
-                classes[1]:=X86_64_MEMORY_CLASS;
+              if classes[0].typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
+                classes[0].typ:=X86_64_MEMORY_CLASS;
+              if classes[1].typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
+                classes[1].typ:=X86_64_MEMORY_CLASS;
               loc1:=classes[0];
               loc2:=classes[1];
             end
@@ -625,6 +749,7 @@ unit cpupara;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
+        fillchar(classes,sizeof(classes),0);
         case def.typ of
           { for records it depends on their contents and size }
           recorddef,
@@ -667,6 +792,7 @@ unit cpupara;
         classes: tx64paraclasses;
         numclasses: longint;
       begin
+        fillchar(classes,sizeof(classes),0);
         result:=false;
         { var,out,constref always require address }
         if varspez in [vs_var,vs_out,vs_constref] then
@@ -766,18 +892,23 @@ unit cpupara;
     procedure tx86_64paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
-        def : tdef;
+        psym : tparavarsym;
+        pdef : tdef;
       begin
-        def:=tparavarsym(pd.paras[nr-1]).vardef;
+        psym:=tparavarsym(pd.paras[nr-1]);
+        pdef:=psym.vardef;
+        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+          pdef:=getpointerdef(pdef);
         cgpara.reset;
-        cgpara.size:=def_cgsize(def);
+        cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=get_para_align(pd.proccalloption);
-        cgpara.def:=def;
+        cgpara.def:=pdef;
         paraloc:=cgpara.add_location;
         with paraloc^ do
          begin
-           size:=OS_INT;
+           size:=def_cgsize(pdef);
+           paraloc^.def:=pdef;
            if target_info.system=system_x86_64_win64 then
              begin
                if nr<1 then
@@ -785,7 +916,7 @@ unit cpupara;
                else if nr<=high(paraintsupregs_winx64)+1 then
                  begin
                     loc:=LOC_REGISTER;
-                    register:=newreg(R_INTREGISTER,paraintsupregs_winx64[nr-1],R_SUBWHOLE);
+                    register:=newreg(R_INTREGISTER,paraintsupregs_winx64[nr-1],cgsize2subreg(R_INTREGISTER,size));
                  end
                else
                  begin
@@ -801,7 +932,7 @@ unit cpupara;
                else if nr<=high(paraintsupregs)+1 then
                  begin
                     loc:=LOC_REGISTER;
-                    register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],R_SUBWHOLE);
+                    register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],cgsize2subreg(R_INTREGISTER,size));
                  end
                else
                  begin
@@ -847,6 +978,7 @@ unit cpupara;
         if result.def.typ=floatdef then
           begin
             paraloc:=result.add_location;
+            paraloc^.def:=result.def;
             case tfloatdef(result.def).floattype of
               s32real:
                 begin
@@ -878,6 +1010,7 @@ unit cpupara;
         else
          { Return in register }
           begin
+            fillchar(classes,sizeof(classes),0);
             numclasses:=classify_argument(result.def,vs_value,result.def.size,classes,0);
             { this would mean a memory return }
             if (numclasses=0) then
@@ -890,18 +1023,30 @@ unit cpupara;
             for i:=0 to numclasses-1 do
               begin
                 paraloc:=result.add_location;
-                case classes[i] of
+                paraloc^.def:=classes[i].def;
+                case classes[i].typ of
                   X86_64_INTEGERSI_CLASS,
                   X86_64_INTEGER_CLASS:
                     begin
                       paraloc^.loc:=LOC_REGISTER;
                       paraloc^.register:=intretregs[intretregidx];
-                      if classes[i]=X86_64_INTEGER_CLASS then
-                        paraloc^.size:=OS_64
+                      if classes[i].typ=X86_64_INTEGER_CLASS then
+                        begin
+                          paraloc^.size:=OS_64;
+                          if paraloc^.def.size<>8 then
+                            paraloc^.def:=u64inttype;
+                        end
                       else if result.intsize in [1,2,4] then
-                        paraloc^.size:=retcgsize
+                        begin
+                          paraloc^.size:=retcgsize;
+                          paraloc^.def:=result.def;
+                        end
                       else
-                        paraloc^.size:=OS_32;
+                        begin
+                          paraloc^.size:=OS_32;
+                          if paraloc^.def.size<>4 then
+                            paraloc^.def:=u32inttype;
+                        end;
                       setsubreg(paraloc^.register,cgsize2subreg(R_INTREGISTER,paraloc^.size));
                       inc(intretregidx);
                     end;
@@ -912,7 +1057,7 @@ unit cpupara;
                     begin
                       paraloc^.loc:=LOC_MMREGISTER;
                       paraloc^.register:=mmretregs[mmretregidx];
-                      case classes[i] of
+                      case classes[i].typ of
                         X86_64_SSESF_CLASS:
                           begin
                             setsubreg(paraloc^.register,R_SUBMMS);
@@ -938,6 +1083,7 @@ unit cpupara;
                          (numclasses<>1) then
                         internalerror(2010060302);
                       paraloc^.loc:=LOC_VOID;
+                      paraloc^.def:=voidtype;
                     end;
                   else
                     internalerror(2010021504);
@@ -974,11 +1120,12 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
-                loc[1]:=X86_64_INTEGER_CLASS;
-                loc[2]:=X86_64_NO_CLASS;
+                loc[1].typ:=X86_64_INTEGER_CLASS;
+                loc[2].typ:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
                 paradef:=getpointerdef(paradef);
+                loc[1].def:=paradef;
               end
             else
               begin
@@ -993,6 +1140,7 @@ unit cpupara;
                     paracgsize:=OS_S32;
                     paralen:=4;
                     paradef:=s32inttype;
+                    loc[1].def:=paradef;
                   end;
               end;
 
@@ -1001,19 +1149,20 @@ unit cpupara;
                (target_info.system = system_x86_64_win64) and
                (paradef.typ = floatdef) then
               begin
-                loc[2]:=X86_64_NO_CLASS;
+                loc[2].typ:=X86_64_NO_CLASS;
                 if paracgsize=OS_F64 then
                   begin
-                    loc[1]:=X86_64_INTEGER_CLASS;
+                    loc[1].typ:=X86_64_INTEGER_CLASS;
                     paracgsize:=OS_64;
                     paradef:=u64inttype;
                   end
                 else
                   begin
-                    loc[1]:=X86_64_INTEGERSI_CLASS;
+                    loc[1].typ:=X86_64_INTEGERSI_CLASS;
                     paracgsize:=OS_32;
                     paradef:=u32inttype;
                   end;
+                loc[1].def:=paradef;
               end;
 
             hp.paraloc[side].reset;
@@ -1027,7 +1176,7 @@ unit cpupara;
                 needintloc:=0;
                 needmmloc:=0;
                 for locidx:=low(loc) to high(loc) do
-                  case loc[locidx] of
+                  case loc[locidx].typ of
                     X86_64_INTEGER_CLASS,
                     X86_64_INTEGERSI_CLASS:
                       inc(needintloc);
@@ -1048,9 +1197,10 @@ unit cpupara;
                     { If there are no registers available for any
                       eightbyte of an argument, the whole argument is
                       passed on the stack. }
-                    loc[low(loc)]:=X86_64_MEMORY_CLASS;
+                    loc[low(loc)].typ:=X86_64_MEMORY_CLASS;
+                    loc[low(loc)].def:=paradef;
                     for locidx:=succ(low(loc)) to high(loc) do
-                      loc[locidx]:=X86_64_NO_CLASS;
+                      loc[locidx].typ:=X86_64_NO_CLASS;
                   end;
 
                 locidx:=1;
@@ -1059,31 +1209,38 @@ unit cpupara;
                     if locidx>2 then
                       internalerror(200501283);
                     { Allocate }
-                    case loc[locidx] of
+                    case loc[locidx].typ of
                       X86_64_INTEGER_CLASS,
                       X86_64_INTEGERSI_CLASS:
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REGISTER;
-                          if (paracgsize=OS_NO) or (loc[2]<>X86_64_NO_CLASS) then
+                          paraloc^.def:=loc[locidx].def;
+                          if (paracgsize=OS_NO) or (loc[2].typ<>X86_64_NO_CLASS) then
                             begin
-                              if loc[locidx]=X86_64_INTEGER_CLASS then
+                              if loc[locidx].typ=X86_64_INTEGER_CLASS then
                                 begin
                                   paraloc^.size:=OS_INT;
+                                  paraloc^.def:=u64inttype;
                                   subreg:=R_SUBWHOLE;
                                 end
                               else
                                 begin
                                   paraloc^.size:=OS_32;
+                                  paraloc^.def:=u32inttype;
                                   subreg:=R_SUBD;
                                 end;
                             end
                           else
                             begin
                               paraloc^.size:=paracgsize;
+                              paraloc^.def:=paradef;
                               { s64comp is pushed in an int register }
                               if paraloc^.size=OS_C64 then
-                                paraloc^.size:=OS_64;
+                                begin
+                                  paraloc^.size:=OS_64;
+                                  paraloc^.def:=u64inttype;
+                                end;
                               subreg:=cgsize2subreg(R_INTREGISTER,paraloc^.size);
                             end;
 
@@ -1107,8 +1264,9 @@ unit cpupara;
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_MMREGISTER;
+                          paraloc^.def:=loc[locidx].def;
 
-                          case loc[locidx] of
+                          case loc[locidx].typ of
                             X86_64_SSESF_CLASS:
                               begin
                                 subreg:=R_SUBMMS;
@@ -1143,6 +1301,7 @@ unit cpupara;
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REFERENCE;
+                          paraloc^.def:=loc[locidx].def;
                           {Hack alert!!! We should modify int_cgsize to handle OS_128,
                            however, since int_cgsize is called in many places in the
                            compiler where only a few can already handle OS_128, fixing it
@@ -1171,7 +1330,7 @@ unit cpupara;
                         internalerror(2010053113);
                     end;
                     if (locidx<2) and
-                       (loc[locidx+1]<>X86_64_NO_CLASS) then
+                       (loc[locidx+1].typ<>X86_64_NO_CLASS) then
                       inc(locidx);
                   end;
               end
@@ -1179,6 +1338,7 @@ unit cpupara;
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 paraloc^.loc:=LOC_VOID;
+                paraloc^.def:=paradef;
               end;
           end;
         { Register parameters are assigned from left-to-right, but the

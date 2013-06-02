@@ -68,16 +68,20 @@ unit cpupara;
     procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
-        def : tdef;
+        psym: tparavarsym;
+        pdef: tdef;
       begin
          if nr<1 then
            internalerror(2002070801);
-         def:=tparavarsym(pd.paras[nr-1]).vardef;
+         psym:=tparavarsym(pd.paras[nr-1]);
+         pdef:=psym.vardef;
+         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+           pdef:=getpointerdef(pdef);
          cgpara.reset;
-         cgpara.size:=def_cgsize(def);
+         cgpara.size:=def_cgsize(pdef);
          cgpara.intsize:=tcgsize2size[cgpara.size];
          cgpara.alignment:=std_param_align;
-         cgpara.def:=def;
+         cgpara.def:=pdef;
          paraloc:=cgpara.add_location;
          with paraloc^ do
            begin
@@ -87,7 +91,8 @@ unit cpupara;
               loc:=LOC_REFERENCE;
               reference.index:=NR_STACK_POINTER_REG;
               reference.offset:=target_info.first_parm_offset+nr*4;
-              size:=OS_INT;
+              size:=def_cgsize(pdef);
+              def:=pdef;
            end;
       end;
 
@@ -206,6 +211,7 @@ unit cpupara;
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
             paraloc^.size:=retcgsize;
+            paraloc^.def:=result.def;
           end
         else
          { Return in register }
@@ -215,6 +221,7 @@ unit cpupara;
                { low 32bits }
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
                if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
@@ -223,6 +230,7 @@ unit cpupara;
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
                if side=calleeside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else
@@ -232,6 +240,7 @@ unit cpupara;
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=retcgsize;
+               paraloc^.def:=result.def;
                if side=callerside then
                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
@@ -266,6 +275,7 @@ unit cpupara;
 	nextintreg,
 	nextfloatreg : tsuperregister;
 	stack_offset : longint;
+        firstparaloc : boolean;
 
       begin
         result:=0;
@@ -301,6 +311,7 @@ unit cpupara;
                 paraloc^.loc:=LOC_REGISTER;
 		paraloc^.register:=NR_D0;
                 paraloc^.size:=OS_ADDR;
+                paraloc^.def:=voidpointertype;
                 break;
               end;
 
@@ -344,6 +355,7 @@ unit cpupara;
                 end
               else
                 internalerror(200506052);
+            firstparaloc:=true;
             { can become < 0 for e.g. 3-byte records }
             while (paralen > 0) do
               begin
@@ -384,6 +396,7 @@ unit cpupara;
 {$endif DEBUG_CHARLIE}
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
+                    paraloc^.def:=get_paraloc_def(paradef,paraloc^.size,paralen,firstparaloc);
                     if (side = callerside) then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
@@ -392,6 +405,7 @@ unit cpupara;
                     inc(stack_offset,align(paralen,4));
                     paralen := 0;
                   end;
+                firstparaloc:=false;
               end;
           end;
          result:=stack_offset;
@@ -493,6 +507,7 @@ unit cpupara;
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REGISTER;
               paraloc^.size:=def_cgsize(p.vardef);
+              paraloc^.def:=p.vardef;
               { pattern is always uppercase'd }
               if s='D0' then
                 paraloc^.register:=NR_D0

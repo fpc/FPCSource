@@ -231,18 +231,23 @@ unit cpupara;
     procedure ti8086paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
-        def : tdef;
+        psym: tparavarsym;
+        pdef : tdef;
       begin
-        def:=tparavarsym(pd.paras[nr-1]).vardef;
+        psym:=tparavarsym(pd.paras[nr-1]);
+        pdef:=psym.vardef;
+        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+          pdef:=getpointerdef(pdef);
         cgpara.reset;
-        cgpara.size:=def_cgsize(def);
+        cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=get_para_align(pd.proccalloption);
-        cgpara.def:=def;
+        cgpara.def:=pdef;
         paraloc:=cgpara.add_location;
         with paraloc^ do
          begin
-           size:=OS_INT;
+           size:=def_cgsize(pdef);
+           def:=pdef;
            if pd.proccalloption=pocall_register then
              begin
                if (nr<=length(parasupregs)) then
@@ -321,6 +326,7 @@ unit cpupara;
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
             paraloc^.size:=retcgsize;
+            paraloc^.def:=result.def;
           end
         else
          { Return in register }
@@ -335,6 +341,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
 
                { bits 16..31 }
                paraloc:=result.add_location;
@@ -344,6 +351,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
 
                { bits 32..47 }
                paraloc:=result.add_location;
@@ -353,6 +361,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGHER_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
 
                { bits 48..63 }
                paraloc:=result.add_location;
@@ -362,6 +371,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGHEST_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
              end
             else if retcgsize in [OS_32,OS_S32] then
              begin
@@ -371,6 +381,7 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN32_LOW_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
 
                { high 16bits }
                paraloc:=result.add_location;
@@ -380,10 +391,12 @@ unit cpupara;
                else
                  paraloc^.register:=NR_FUNCTION_RETURN32_HIGH_REG;
                paraloc^.size:=OS_16;
+               paraloc^.def:=u16inttype;
              end
             else
              begin
                paraloc^.size:=retcgsize;
+               paraloc^.def:=result.def;
                if side=callerside then
                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
@@ -403,8 +416,9 @@ unit cpupara;
         paralen,
         varalign   : longint;
         paraalign  : shortint;
-        pushaddr   : boolean;
         paracgsize : tcgsize;
+        firstparaloc,
+        pushaddr   : boolean;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { we push Flags and CS as long
@@ -466,6 +480,7 @@ unit cpupara;
                 paraloc:=hp.paraloc[side].add_location;
                 paraloc^.loc:=LOC_REFERENCE;
                 paraloc^.size:=paracgsize;
+                paraloc^.def:=paradef;
                 if side=callerside then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
@@ -487,6 +502,7 @@ unit cpupara;
               begin
                 if paralen=0 then
                   internalerror(200501163);
+                firstparaloc:=true;
                 while (paralen>0) do
                   begin
                     paraloc:=hp.paraloc[side].add_location;
@@ -495,15 +511,22 @@ unit cpupara;
                     if (paracgsize in [OS_F64,OS_F32]) then
                       begin
                         paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         l:=paralen;
                       end
                     else
                       begin
                         { We can allocate at maximum 32 bits per location }
                         if paralen>sizeof(aint) then
-                          l:=sizeof(aint)
+                          begin
+                            l:=sizeof(aint);
+                            paraloc^.def:=uinttype;
+                          end
                         else
-                          l:=paralen;
+                          begin
+                            l:=paralen;
+                            paraloc^.def:=get_paraloc_def(paradef,paracgsize,l,firstparaloc);
+                          end;
                         paraloc^.size:=int_cgsize(l);
                       end;
                     if (side=callerside) or
@@ -521,6 +544,7 @@ unit cpupara;
                         inc(paraloc^.reference.offset,4);
                     parasize:=align(parasize+l,varalign);
                     dec(paralen,l);
+                    firstparaloc:=false;
                   end;
               end;
             if p.proccalloption in pushleftright_pocalls then
@@ -545,6 +569,7 @@ unit cpupara;
         pushaddr : boolean;
         paraalign : shortint;
         pass : byte;
+        firstparaloc : boolean;
       begin
         if paras.count=0 then
           exit;
@@ -611,6 +636,7 @@ unit cpupara;
                           begin
                             paraloc:=hp.paraloc[side].add_location;
                             paraloc^.size:=paracgsize;
+                            paraloc^.def:=paradef;
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(R_INTREGISTER,paracgsize));
                             inc(parareg);
@@ -626,6 +652,7 @@ unit cpupara;
                               paraloc:=hp.paraloc[side].add_location;
                               paraloc^.loc:=LOC_REFERENCE;
                               paraloc^.size:=paracgsize;
+                              paraloc^.def:=paradef;
                               if side=callerside then
                                 paraloc^.reference.index:=NR_STACK_POINTER_REG
                               else
@@ -640,6 +667,7 @@ unit cpupara;
                             begin
                               if paralen=0 then
                                 internalerror(200501163);
+                              firstparaloc:=true;
                               while (paralen>0) do
                                 begin
                                   paraloc:=hp.paraloc[side].add_location;
@@ -648,15 +676,22 @@ unit cpupara;
                                   if (paracgsize in [OS_F64,OS_F32]) then
                                     begin
                                       paraloc^.size:=paracgsize;
+                                      paraloc^.def:=paradef;
                                       l:=paralen;
                                     end
                                   else
                                     begin
                                       { We can allocate at maximum 32 bits per location }
                                       if paralen>sizeof(aint) then
-                                        l:=sizeof(aint)
+                                        begin
+                                          l:=sizeof(aint);
+                                          paraloc^.def:=uinttype;
+                                        end
                                       else
-                                        l:=paralen;
+                                        begin
+                                          l:=paralen;
+                                          paraloc^.def:=get_paraloc_def(paradef,paracgsize,l,firstparaloc);
+                                        end;
                                       paraloc^.size:=int_cgsize(l);
                                     end;
                                   if side=callerside then
@@ -669,6 +704,7 @@ unit cpupara;
                                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
                                   parasize:=align(parasize+l,varalign);
                                   dec(paralen,l);
+                                  firstparaloc:=false;
                                 end;
                             end;
                         end;

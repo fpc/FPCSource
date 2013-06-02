@@ -39,6 +39,7 @@ unit parabase;
        TCGParaLocation = record
          Next : PCGParaLocation;
          Size : TCGSize; { size of this location }
+         Def  : tdef;
          Loc  : TCGLoc;
          case TCGLoc of
            LOC_REFERENCE : (reference : TCGParaReference);

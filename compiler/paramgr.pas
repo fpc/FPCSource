@@ -149,6 +149,11 @@ unit paramgr;
             itself as well; parameter retinparam is only valid if function
             returns true }
           function handle_common_ret_in_param(def:tdef;pd:tabstractprocdef;out retinparam:boolean):boolean;
+
+          { returns the def to use for a tparalocation part of a cgpara for paradef,
+            for which the tcgsize is locsize and the integer length is restlen.
+            fullsize is true if restlen equals the full paradef size }
+          function get_paraloc_def(paradef: tdef; paracgsize: tcgsize; restlen: aint; fullsize: boolean): tdef;
        end;
 
 
@@ -403,6 +408,7 @@ implementation
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
+            newparaloc^.def:=paraloc^.def;
             newparaloc^.shiftval:=paraloc^.shiftval;
             { $warning maybe release this optimization for all targets?  }
             { released for all CPUs:
@@ -543,6 +549,7 @@ implementation
             retloc.size:=OS_NO;
             retcgsize:=OS_NO;
             retloc.intsize:=0;
+            paraloc^.def:=retloc.def;
             paraloc^.size:=OS_NO;
             paraloc^.loc:=LOC_VOID;
             exit;
@@ -565,6 +572,7 @@ implementation
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
+            paraloc^.def:=retloc.def;
             exit;
           end;
         result:=false;
@@ -599,6 +607,19 @@ implementation
             exit(true);
           end;
         result:=false;
+      end;
+
+
+    function tparamanager.get_paraloc_def(paradef: tdef; paracgsize: tcgsize; restlen: aint; fullsize: boolean): tdef;
+      begin
+        if fullsize then
+          result:=paradef
+        { no support for 128 bit ints -> tcgsize2orddef can't handle
+          OS_(S)128 }
+        else if not(paracgsize in [OS_NO,OS_128,OS_S128]) then
+          result:=cgsize_orddef(paracgsize)
+        else
+          result:=getarraydef(u8inttype,restlen);
       end;
 
 

@@ -126,16 +126,20 @@ implementation
     procedure TMIPSParaManager.GetIntParaLoc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
-        def : tdef;
+        psym: tparavarsym;
+        pdef: tdef;
       begin
         if nr<1 then
           InternalError(2002100806);
-        def:=tparavarsym(pd.paras[nr-1]).vardef;
+        psym:=tparavarsym(pd.paras[nr-1]);
+        pdef:=psym.vardef;
+        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+          pdef:=getpointerdef(pdef);
         cgpara.reset;
-        cgpara.size:=def_cgsize(def);
+        cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=std_param_align;
-        cgpara.def:=def;
+        cgpara.def:=pdef;
         paraloc:=cgpara.add_location;
         with paraloc^ do
           begin
@@ -154,7 +158,8 @@ implementation
                 reference.index:=NR_STACK_POINTER_REG;
                 reference.offset:=nr*mips_sizeof_register_param;
               end;
-            size:=OS_INT;
+            size:=def_cgsize(pdef);
+            def:=pdef;
           end;
       end;
 
@@ -225,6 +230,7 @@ implementation
             if retcgsize=OS_F64 then
               setsubreg(paraloc^.register,R_SUBFD);
             paraloc^.size:=retcgsize;
+            paraloc^.def:=result.def;
           end
         else
          { Return in register }
@@ -239,6 +245,7 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
                { high }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
@@ -247,12 +254,14 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
              end
             else
 {$endif cpu64bitalu}
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=retcgsize;
+               paraloc^.def:=result.def;
                if side=callerside then
                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
@@ -269,11 +278,13 @@ implementation
         hp           : tparavarsym;
         paracgsize   : tcgsize;
         paralen      : longint;
-    paradef      : tdef;
-    fpparareg    : integer;
-    reg           : tsuperregister;
-    alignment     : longint;
-    tmp          : longint;
+        locdef       : tdef;
+        paradef      : tdef;
+        fpparareg    : integer;
+        reg          : tsuperregister;
+        alignment    : longint;
+        tmp          : longint;
+        firstparaloc : boolean;
       begin
         fpparareg := 0;
         for i:=0 to paras.count-1 do
@@ -290,6 +301,7 @@ implementation
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_R0;
                 paraloc^.size:=OS_ADDR;
+                paraloc^.def:=voidpointertype;
                 break;
               end;
 
@@ -321,6 +333,7 @@ implementation
             //writeln('para: ',hp.Name,' typ=',hp.vardef.typ,' paracgsize=',paracgsize,' align=',hp.vardef.alignment);
             hp.paraloc[side].reset;
             hp.paraloc[side].Alignment:=alignment;
+            locdef:=paradef;
             if (paracgsize=OS_NO) or
               { Ordinals on caller side must be promoted to machine word }
               ((target_info.endian=endian_big) and     // applies to little-endian too?
@@ -329,9 +342,15 @@ implementation
               (paralen<tcgsize2size[OS_INT]))then
               begin
                 if is_signed(paradef) then
-                  paracgsize:=OS_S32
+                  begin
+                    paracgsize:=OS_S32;
+                    locdef:=s32inttype;
+                  end
                 else
-                  paracgsize:=OS_32;
+                  begin
+                    paracgsize:=OS_32;
+                    locdef:=u32inttype;
+                  end;
                 paralen:=align(paralen,4);
               end
             else
@@ -363,6 +382,7 @@ implementation
             if (not(paracgsize in [OS_F32, OS_F64])) or (fpparareg = 2) then
               can_use_float := false;
 
+            firstparaloc:=true;
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
@@ -370,9 +390,15 @@ implementation
                 if (paracgsize in [OS_64,OS_S64]) or
                    ((paracgsize in [OS_F32,OS_F64]) and
                      not(can_use_float)) then
-                  paraloc^.size:=OS_32
+                  begin
+                    paraloc^.size:=OS_32;
+                    paraloc^.def:=u32inttype;
+                  end
                 else
-                  paraloc^.size:=paracgsize;
+                  begin
+                    paraloc^.size:=paracgsize;
+                    paraloc^.def:=locdef;
+                  end;
 
                 { ret in param? }
                 if (vo_is_funcret in hp.varoptions) and
@@ -427,6 +453,7 @@ implementation
                          begin
                            paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
                            paraloc^.size := OS_INT;
+                           paraloc^.def := osuinttype;
                          end;
                        inc(intparareg);
                        inc(intparasize,align(tcgsize2size[paraloc^.size],mips_sizeof_register_param));
@@ -436,6 +463,7 @@ implementation
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
+                    paraloc^.def:=get_paraloc_def(locdef,paraloc^.size,paralen,firstparaloc);
 
                     if side=callerside then
                       begin
@@ -463,6 +491,7 @@ implementation
                     paralen:=0;
                   end;
                 dec(paralen,tcgsize2size[paraloc^.size]);
+                firstparaloc:=false;
               end;
           end;
         { O32 ABI reqires at least 16 bytes }
