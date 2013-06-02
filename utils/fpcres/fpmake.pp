@@ -29,6 +29,7 @@ begin
     P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix];
 
     P.Dependencies.Add('fcl-res');
+    P.Dependencies.Add('paszlib');
 
     T:=P.Targets.AddProgram('fpcres.pas');
 
