@@ -463,7 +463,7 @@ implementation
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
-                    paraloc^.def:=get_paraloc_def(locdef,paraloc^.size,paralen,firstparaloc);
+                    paraloc^.def:=get_paraloc_def(locdef,paralen,firstparaloc);
 
                     if side=callerside then
                       begin

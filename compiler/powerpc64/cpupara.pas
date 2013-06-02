@@ -387,7 +387,7 @@ begin
         if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
           begin
             paracgsize := int_cgsize(paralen);
-            locdef:=get_paraloc_def(paradef,paracgsize,paralen,firstparaloc);
+            locdef:=get_paraloc_def(paradef,paralen,firstparaloc);
           end;
 
         { aix requires that record data (including partial data) stored in

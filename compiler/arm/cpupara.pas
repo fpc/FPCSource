@@ -439,7 +439,7 @@ unit cpupara;
                  else
                    begin
                      paraloc^.size:=paracgsize;
-                     paraloc^.def:=get_paraloc_def(paradef,paracgsize,paralen,firstparaloc);
+                     paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
                    end;
                  case loc of
                     LOC_REGISTER:

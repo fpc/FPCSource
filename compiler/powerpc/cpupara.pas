@@ -480,7 +480,7 @@ unit cpupara;
                       if (paradef.typ<>orddef) then
                         begin
                           paracgsize:=int_cgsize(paralen);
-                          locdef:=get_paraloc_def(paradef,paracgsize,paralen,firstparaloc);
+                          locdef:=get_paraloc_def(paradef,paralen,firstparaloc);
                         end;
                       if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
                         begin

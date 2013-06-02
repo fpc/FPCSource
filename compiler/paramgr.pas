@@ -151,9 +151,9 @@ unit paramgr;
           function handle_common_ret_in_param(def:tdef;pd:tabstractprocdef;out retinparam:boolean):boolean;
 
           { returns the def to use for a tparalocation part of a cgpara for paradef,
-            for which the tcgsize is locsize and the integer length is restlen.
+            for which the def is paradef and the integer length is restlen.
             fullsize is true if restlen equals the full paradef size }
-          function get_paraloc_def(paradef: tdef; paracgsize: tcgsize; restlen: aint; fullsize: boolean): tdef;
+          function get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
        end;
 
 
@@ -610,14 +610,14 @@ implementation
       end;
 
 
-    function tparamanager.get_paraloc_def(paradef: tdef; paracgsize: tcgsize; restlen: aint; fullsize: boolean): tdef;
+    function tparamanager.get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
       begin
         if fullsize then
           result:=paradef
         { no support for 128 bit ints -> tcgsize2orddef can't handle
           OS_(S)128 }
-        else if not(paracgsize in [OS_NO,OS_128,OS_S128]) then
-          result:=cgsize_orddef(paracgsize)
+        else if restlen in [1,2,4,8] then
+          result:=cgsize_orddef(int_cgsize(paracgsize))
         else
           result:=getarraydef(u8inttype,restlen);
       end;
