@@ -1129,13 +1129,13 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 Procedure chdir(const s:unicodestring); overload;
 Procedure mkdir(const s:unicodestring); overload;
 Procedure rmdir(const s:unicodestring); overload;
-Procedure getdir(drivenr:byte;var dir: unicodestring);
+Procedure getdir(drivenr:byte;var dir: unicodestring);overload;
 {$endif}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure chdir(const s:rawbytestring); overload;
 Procedure mkdir(const s:rawbytestring); overload;
 Procedure rmdir(const s:rawbytestring); overload;
-Procedure getdir(drivenr:byte;var dir: rawbytestring);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}// defaultrtlfilesystemcodepage is used here
+Procedure getdir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}// defaultrtlfilesystemcodepage is used here
 {$ENDIF}
 {$endif FPC_HAS_FEATURE_FILEIO}
 

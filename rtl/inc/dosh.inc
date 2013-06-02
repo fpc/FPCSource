@@ -149,4 +149,4 @@ Function  GetMsCount: int64;
 Procedure chdir(const s:string);
 Procedure mkdir(const s:string);
 Procedure rmdir(const s:string); overload;
-procedure GetDir(Drivenr:Byte;var Dir: string);
+procedure GetDir(Drivenr:Byte;var Dir: string);overload;
