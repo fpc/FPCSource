@@ -154,6 +154,8 @@ interface
 
          disabledircache : boolean;
 
+         x86memorymodel  : tx86memorymodel;
+
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
@@ -477,6 +479,7 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+        x86memorymodel : mm_small;
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}

@@ -399,6 +399,9 @@ begin
 {$ifdef m68k}
       '6',
 {$endif}
+{$ifdef i8086}
+      '8',
+{$endif}
 {$ifdef arm}
       'A',
 {$endif}
@@ -1837,6 +1840,26 @@ begin
                             set_target_res(res_macho);
                             target_info.resobjext:=
                               targetinfos[target_info.system]^.resobjext;
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
+                    'm':
+                      begin
+                        if (target_info.system in [system_i8086_msdos]) then
+                          begin
+                            Writeln('>', Upper(Copy(More,j+1,255)), '<');
+                            case Upper(Copy(More,j+1,255)) of
+                              'TINY':  init_settings.x86memorymodel:=mm_tiny;
+                              'SMALL': init_settings.x86memorymodel:=mm_small;
+                              'MEDIUM',
+                              'COMPACT',
+                              'LARGE',
+                              'HUGE': IllegalPara(opt); { these are not implemented yet }
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
                           end
                         else
                           IllegalPara(opt);
@@ -3378,6 +3401,16 @@ if (target_info.abi = abi_eabihf) then
       if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
+{$endif}
+{$if defined(i8086)}
+  case init_settings.x86memorymodel of
+    mm_tiny:    def_system_macro('FPC_MM_TINY');
+    mm_small:   def_system_macro('FPC_MM_SMALL');
+    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+    mm_compact: def_system_macro('FPC_MM_COMPACT');
+    mm_large:   def_system_macro('FPC_MM_LARGE');
+    mm_huge:    def_system_macro('FPC_MM_HUGE');
+  end;
 {$endif}
 
 

@@ -669,6 +669,8 @@ interface
         state : tmsgstate;
       end;
 
+    type
+      tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

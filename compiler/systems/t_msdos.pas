@@ -246,7 +246,10 @@ begin
     DOS command line is limited to 126 characters! }
 
   { add objectfiles, start with prt0 always }
-  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0','',false)));
+  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)))
+  else
+    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0','',false)));
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
@@ -259,8 +262,13 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  LinkRes.Add('format dos');
+  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('format dos com')
+  else
+    LinkRes.Add('format dos');
   LinkRes.Add('option dosseg');
+{  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('system com');}
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
   { Write and Close response }

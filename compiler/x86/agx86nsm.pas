@@ -1065,15 +1065,23 @@ interface
           internalerror(2013050101);
       end;
 
-      { NASM complains if you put a missing section in the GROUP directive, so }
-      { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata');
-      AsmWriteLn('SECTION .data');
-      { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=bss');
-      { group these sections in the same segment }
-      AsmWriteLn('GROUP dgroup rodata data bss');
-      AsmWriteLn('SECTION .text');
+      if current_settings.x86memorymodel in [mm_small,mm_tiny] then
+        begin
+          { NASM complains if you put a missing section in the GROUP directive, so }
+          { we add empty declarations to make sure they exist, even if empty }
+          if current_settings.x86memorymodel=mm_tiny then
+            AsmWriteLn('SECTION .text');
+          AsmWriteLn('SECTION .rodata');
+          AsmWriteLn('SECTION .data');
+          { WLINK requires class=bss in order to leave the BSS section out of the executable }
+          AsmWriteLn('SECTION .bss class=bss');
+          { group these sections in the same segment }
+          if current_settings.x86memorymodel=mm_tiny then
+            AsmWriteLn('GROUP dgroup text rodata data bss')
+          else
+            AsmWriteLn('GROUP dgroup rodata data bss');
+          AsmWriteLn('SECTION .text');
+        end;
 {$else i8086}
       AsmWriteLn('BITS 32');
 {$endif i8086}
