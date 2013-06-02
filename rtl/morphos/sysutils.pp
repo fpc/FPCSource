@@ -124,8 +124,25 @@ end;
 
 
 function FileGetDate(Handle: LongInt) : LongInt;
+var
+  tmpFIB : PFileInfoBlock;
+  tmpDateTime: TDateTime;
+  validFile: boolean;
 begin
-  {$WARNING filegetdate call is dummy}
+  validFile:=false;
+
+  if (Handle <> 0) then begin
+    new(tmpFIB);
+    if ExamineFH(Handle,tmpFIB) then begin
+      tmpDateTime:=AmigaFileDateToDateTime(tmpFIB^.fib_Date,validFile);
+    end;
+    dispose(tmpFIB);
+  end;
+
+  if validFile then
+    result:=DateTimeToFileDate(tmpDateTime)
+  else
+    result:=-1;   
 end;
 
 
