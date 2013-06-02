@@ -516,8 +516,8 @@ unit cpupara;
                       end
                     else
                       begin
-                        { We can allocate at maximum 32 bits per location }
-                        if paralen>sizeof(aint) then
+                        { We can allocate at maximum 16 bits per location }
+                        if paralen>=sizeof(aint) then
                           begin
                             l:=sizeof(aint);
                             paraloc^.def:=uinttype;
