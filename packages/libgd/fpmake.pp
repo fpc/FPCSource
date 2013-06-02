@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libgd');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libgd';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

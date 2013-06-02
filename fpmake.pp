@@ -1,18 +1,33 @@
-{$ifndef ALLPACKAGES}
-{$define allpackages}
-{$define no_parent}
 {$mode objfpc}{$H+}
+{$define allpackages}
 program fpmake;
 
-uses fpmkunit, sysutils, Classes;
+{$IFDEF OS2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF OS2}
+
+{$IFDEF GO32V2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF GO32V2}
+
+{$ifndef NO_UNIT_PROCESS}
+  {$define HAS_UNIT_PROCESS}
+{$endif NO_UNIT_PROCESS}
+
+uses
+  fpmkunit,
+  classes,
+{$IFDEF HAS_UNIT_PROCESS}
+  process,
+{$ENDIF HAS_UNIT_PROCESS}
+  sysutils;
+
 
 Var
   TBuild,T : TTarget;
   PBuild,P : TPackage;
   D : TDependency;
   I : Integer;
-
-{$endif ALLPACKAGES}
 
 (*
 
@@ -22,24 +37,20 @@ rm fpmake_proc.inc fpmake_add.inc ; /bin/ls -1 */fpmake.pp| while read file; do 
 
 *)
 
-{$include fpmake_proc.inc}
+{$include fpmake_proc1.inc}
 
-procedure add_packages(const ADirectory: string);
+procedure add_fpc(const ADirectory: string);
 
 begin
-{$include fpmake_add.inc}
+{$include fpmake_add1.inc}
 
-  With Installer do
-    begin
-      // Create fpc-all package
-      PBuild:=AddPackage('fpc-all');
-      PBuild.Version:='2.7.1';
-    end;
 end;
 
-{$ifdef no_parent}
 begin
-  add_packages('');
+  add_fpc('');
   Installer.Run;
 end.
-{$endif no_parent}
+
+
+
+

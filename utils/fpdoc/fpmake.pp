@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
-procedure add_fpdoc;
+procedure add_fpdoc(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -33,9 +33,7 @@ begin
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fpdoc';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.Options.Add('-S2h');
@@ -103,7 +101,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpdoc;
+  add_fpdoc('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

@@ -118,7 +118,7 @@ begin
     end;
 end;
 
-procedure add_ide;
+procedure add_ide(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -139,6 +139,9 @@ begin
 
     P:=AddPackage('ide');
     P.Version:='2.7.1';
+{$ifdef ALLPACKAGES}
+    P.Directory:=ADirectory;
+{$endif ALLPACKAGES}
 
     P.Dependencies.Add('rtl');
     P.Dependencies.Add('fv');
@@ -210,7 +213,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_ide;
+  add_ide('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

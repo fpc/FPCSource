@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libcurl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libcurl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

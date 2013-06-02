@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('opengles');
 {$ifdef ALLPACKAGES}
-    P.Directory:='opengles';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Free Pascal Development team';

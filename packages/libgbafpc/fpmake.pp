@@ -16,7 +16,7 @@ begin
     P.OSes:=[gba];
     P.CPUs:=[arm];
 {$ifdef ALLPACKAGES}
-    P.Directory:='libgbafpc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: libgba and maxmod from devkitARM; headers: Francesco Lombardi';

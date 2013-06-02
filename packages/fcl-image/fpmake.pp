@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-image');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-image';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('pasjpeg');

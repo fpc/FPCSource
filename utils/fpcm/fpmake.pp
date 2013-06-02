@@ -186,7 +186,7 @@ begin
 end;
 {$endif HAS_UNIT_PROCESS}
 
-procedure add_fpcm;
+procedure add_fpcm(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -233,7 +233,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpcm;
+  add_fpcm('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

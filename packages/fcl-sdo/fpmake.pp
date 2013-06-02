@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('fcl-sdo');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-sdo';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');

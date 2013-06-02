@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('ncurses');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ncurses';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];

@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('jni');
 {$ifdef ALLPACKAGES}
-    P.Directory:='jni';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
     P.Version:='2.7.1';

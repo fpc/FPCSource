@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_pas2fpm;
+procedure add_pas2fpm(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -23,9 +23,7 @@ begin
     P.Email := '';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='pas2fpm';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-passrc');
@@ -36,7 +34,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_pas2fpm;
+  add_pas2fpm('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

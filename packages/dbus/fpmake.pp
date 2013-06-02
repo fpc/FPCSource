@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('dbus');
 {$ifdef ALLPACKAGES}
-    P.Directory:='dbus';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

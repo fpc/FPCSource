@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('palmunits');
 {$ifdef ALLPACKAGES}
-    P.Directory:='palmunits';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [palmos];

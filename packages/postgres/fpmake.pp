@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('postgres');
 {$ifdef ALLPACKAGES}
-    P.Directory:='postgres';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

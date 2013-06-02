@@ -133,7 +133,7 @@ begin
   end;
 end;
 
-procedure add_gdbint;
+procedure add_gdbint(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -142,9 +142,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('gdbint');
-{$ifdef ALLPACKAGES}
-    P.Directory:='gdbint';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
@@ -187,7 +185,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_gdbint;
+  add_gdbint('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

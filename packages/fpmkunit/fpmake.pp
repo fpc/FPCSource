@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fpmkunit');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fpmkunit';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Description:='Free Pascal Make Tool';

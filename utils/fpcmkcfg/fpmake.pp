@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fpcmkcfg;
+procedure add_fpcmkcfg(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -24,9 +24,7 @@ begin
     P.Description := 'An utility to creaty the Free Pascal configuration files.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fpcmkcfg';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.Dependencies.Add('fcl-base');
@@ -51,7 +49,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpcmkcfg;
+  add_fpcmkcfg('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

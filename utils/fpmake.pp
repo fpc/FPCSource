@@ -1,5 +1,7 @@
-{$mode objfpc}{$H+}
+{$ifndef ALLPACKAGES}
 {$define allpackages}
+{$define no_parent}
+{$mode objfpc}{$H+}
 program fpmake;
 
 {$IFDEF MORPHOS}
@@ -26,13 +28,27 @@ uses
 {$ENDIF HAS_UNIT_PROCESS}
   sysutils;
 
-procedure add_utils;
+{$endif ALLPACKAGES}
+
+(*
+
+The include files are generated with the following commands:
+
+rm fpmake_proc.inc fpmake_add.inc ; /bin/ls -1 */fpmake.pp| while read file; do cleanedname=`dirname $file | sed -e 's+-+_+g'` ; if ! `grep -i "^procedure add_$cleanedname" $file >/dev/null` ; then printf 'procedure add_%s(const ADirectory: string);\nbegin\n  with Installer do\n{$include %s}\nend;\n\n' $cleanedname $file >> fpmake_proc.inc; else printf '{$include %s}\n\n' $file >> fpmake_proc.inc; fi; echo "  add_$cleanedname(ADirectory+IncludeTrailingPathDelimiter('$cleanedname'));" >> fpmake_add.inc; done
+
+*)
+
+{$include fpmake_proc.inc}
+
+procedure add_utils(const ADirectory: string);
 
 Var
   P : TPackage;
   T : TTarget;
 
 begin
+{$include fpmake_add.inc}
+
   With Installer do
     begin
     P:=AddPackage('utils');
@@ -43,6 +59,9 @@ begin
     P.Email := '';
     P.Description := 'Various Free Pascal utilities.';
     P.NeedLibC:= false;
+{$ifndef NO_PARENT}
+    P.Directory:=ADirectory;
+{$endif ALLPACKAGES}
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('paszlib');
@@ -68,23 +87,13 @@ begin
     end;
 end;
 
-(*
-
-The include files are generated with the following commands:
-
-rm fpmake_proc.inc fpmake_add.inc ; /bin/ls -1 */fpmake.pp| while read file; do cleanedname=`dirname $file | sed -e 's+-+_+g'` ; if ! `grep -i "^procedure add_$cleanedname" $file >/dev/null` ; then printf 'procedure add_%s;\nbegin\n  with Installer do\n{$include %s}\nend;\n\n' $cleanedname $file >> fpmake_proc.inc; else printf '{$include %s}\n\n' $file >> fpmake_proc.inc; fi; echo "  add_$cleanedname;" >> fpmake_add.inc; done
-
-*)
-
-{$include fpmake_proc.inc}
-
+{$ifdef NO_PARENT}
 begin
-{$include fpmake_add.inc}
-  add_utils;
+  add_utils('');
 
   Installer.Run;
 end.
-
+{$endif NO_PARENT}
 
 
 

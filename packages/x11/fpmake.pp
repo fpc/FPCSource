@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('x11');
 {$ifdef ALLPACKAGES}
-    P.Directory:='x11';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix];

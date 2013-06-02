@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gtk2');
 {$ifdef ALLPACKAGES}
-    P.Directory:='gtk2';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SupportBuildModes := [bmOneByOne];

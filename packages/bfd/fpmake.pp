@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('bfd');
 {$ifdef ALLPACKAGES}
-    P.Directory:='bfd';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: Cygnus Support, header: by Uli Tessel';

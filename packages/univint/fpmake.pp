@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('univint');
 {$ifdef ALLPACKAGES}
-    P.Directory:='univint';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

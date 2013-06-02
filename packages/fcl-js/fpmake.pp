@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-js');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-js';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Michael Van Canneyt';

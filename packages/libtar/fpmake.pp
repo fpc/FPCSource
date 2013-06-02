@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libtar');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libtar';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

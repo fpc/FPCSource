@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gtk1');
 {$ifdef ALLPACKAGES}
-    P.Directory:='gtk1';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Peter Vreman';

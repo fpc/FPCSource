@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_unicode;
+procedure add_unicode(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -61,7 +61,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_unicode;
+  add_unicode('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

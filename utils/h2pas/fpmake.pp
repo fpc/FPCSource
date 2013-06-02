@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_h2pas;
+procedure add_h2pas(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -23,9 +23,7 @@ begin
     P.Description := 'An utility to create Pascal header files from c header files.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='h2pas';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.Options.Add('-Sg');
@@ -56,7 +54,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_h2pas;
+  add_h2pas('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

@@ -14,8 +14,9 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('winceunits');
+
 {$ifdef ALLPACKAGES}
-    P.Directory:='winceunits';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
     P.Version:='2.7.1';

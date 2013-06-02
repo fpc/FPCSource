@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fpcreslipo;
+procedure add_fpcreslipo(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -21,9 +21,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fpcreslipo';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-res');
 
@@ -40,7 +38,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpcreslipo;
+  add_fpcreslipo('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

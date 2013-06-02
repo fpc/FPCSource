@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-fpcunit');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-fpcunit';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('paszlib');

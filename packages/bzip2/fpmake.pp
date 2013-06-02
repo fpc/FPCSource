@@ -13,9 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('bzip2');
+
 {$ifdef ALLPACKAGES}
-    P.Directory:='bzip2';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
+
     P.Version:='2.7.1';
 
     P.Version:='2.7.1';

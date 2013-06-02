@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libogcfpc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libogcfpc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
