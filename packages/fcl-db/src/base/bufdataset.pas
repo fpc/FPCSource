@@ -1118,9 +1118,12 @@ begin
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
     FDatasetReader := GetPacketReader(dfAny, FFileStream);
-    FReadFromFile := True;
     end;
-  if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
+  if assigned(FDatasetReader) then
+    begin
+    FReadFromFile := True;
+    IntLoadFielddefsFromFile;
+    end;
 
   // This is to check if the dataset is actually created (By calling CreateDataset,
   // reading from a stream in some other way implemented by a descendent)
@@ -1887,8 +1890,12 @@ begin
   // if the current update buffer matches, immediately return true
   if (FCurrentUpdateBuffer < length(FUpdateBuffer)) and (
       FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) or
-      (IncludePrior and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
-    Result := True
+      (IncludePrior
+        and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete)
+        and  FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
+     begin
+     Result := True;
+     end
   else
     Result := GetRecordUpdateBuffer(ABookmark,IncludePrior);
 end;
@@ -2054,7 +2061,6 @@ begin
     begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
-
     FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
     move(RemRec^, FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
     end
@@ -2090,31 +2096,36 @@ var StoreRecBM     : TBufBookmark;
     TmpBuf         : TRecordBuffer;
     StoreUpdBuf    : integer;
     Bm             : TBufBookmark;
+    x : integer;
   begin
-    with AUpdBuffer do if assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
+    with AUpdBuffer do
       begin
-      if (UpdateKind = ukModify) then
+      if Not assigned(BookmarkData.BookmarkData) then
+        exit;// this is used to exclude buffers which are already handled
+      Case UpdateKind of
+      ukModify:
         begin
         FCurrentIndex.GotoBookmark(@BookmarkData);
         move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
         FreeRecordBuffer(OldValuesBuffer);
-        end
-      else if (UpdateKind = ukDelete) and (assigned(OldValuesBuffer)) then
-        begin
-        FCurrentIndex.GotoBookmark(@NextBookmarkData);
-        FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
-        FCurrentIndex.ScrollBackward;
-        move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-
-{        for x := length(FUpdateBuffer)-1 downto 0 do
+        end;
+      ukDelete:
+        if (assigned(OldValuesBuffer)) then
           begin
-          if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
-            CancelUpdBuffer(FUpdateBuffer[x]);
-          end;}
-        FreeRecordBuffer(OldValuesBuffer);
-        inc(FBRecordCount);
-        end
-      else if (UpdateKind = ukInsert) then
+          FCurrentIndex.GotoBookmark(@NextBookmarkData);
+          FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
+          FCurrentIndex.ScrollBackward;
+          move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+
+          {for x := length(FUpdateBuffer)-1 downto 0 do
+            begin
+            if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
+              CancelUpdBuffer(FUpdateBuffer[x]);
+            end;}
+          FreeRecordBuffer(OldValuesBuffer);
+          inc(FBRecordCount);
+          end  ;
+      ukInsert:
         begin
         // Process all update buffers linked to this record before this record is removed
         StoreUpdBuf:=FCurrentUpdateBuffer;
@@ -2123,7 +2134,10 @@ var StoreRecBM     : TBufBookmark;
         if GetRecordUpdateBuffer(Bm,True,False) then
           begin
           repeat
-          if (FCurrentUpdateBuffer<>StoreUpdBuf) then CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
+          if (FCurrentUpdateBuffer<>StoreUpdBuf) then
+            begin
+            CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
+            end;
           until not GetRecordUpdateBuffer(Bm,True,True);
           end;
         FCurrentUpdateBuffer:=StoreUpdBuf;
@@ -2143,6 +2157,7 @@ var StoreRecBM     : TBufBookmark;
         FreeRecordBuffer(TmpBuf);
         dec(FBRecordCount);
         end;
+      end;
       BookmarkData.BookmarkData:=nil;
       end;
   end;
@@ -2252,6 +2267,9 @@ procedure TCustomBufDataset.MergeChangeLog;
 var r            : Integer;
 
 begin
+  for r:=0 to length(FUpdateBuffer)-1 do
+   if assigned(FUpdateBuffer[r].OldValuesBuffer) then
+      FreeMem(FUpdateBuffer[r].OldValuesBuffer);
   SetLength(FUpdateBuffer,0);
 
   if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
@@ -2320,7 +2338,6 @@ begin
       FAutoIncField.AsInteger := FAutoIncValue;
       inc(FAutoIncValue);
       end;
-
     // The active buffer is the newly created TDataset record,
     // from which the bookmark is set to the record where the new record should be
     // inserted
@@ -2931,6 +2948,7 @@ begin
 
       FFilterBuffer:=IntAllocRecordBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
+
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
       FDatasetReader.RestoreRecord(self);
 
