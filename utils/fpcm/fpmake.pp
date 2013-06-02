@@ -205,7 +205,7 @@ begin
     P.NeedLibC:= false;
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='fpcm';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 
