@@ -356,9 +356,7 @@ unit cpupara;
                     LOC_REFERENCE:
                       begin
                         paraloc^.size:=OS_ADDR;
-                        if push_addr_param(hp.varspez,paradef,p.proccalloption) or
-                          is_open_array(paradef) or
-                          is_array_of_const(paradef) then
+                        if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           assignintreg
                         else
                           begin
