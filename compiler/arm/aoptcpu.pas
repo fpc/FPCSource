@@ -57,6 +57,7 @@ Type
   private
    function SkipEntryExitMarker(current: tai; var next: tai): boolean;
   protected
+    function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
   End;
 
@@ -405,6 +406,60 @@ Implementation
         end;
     end;
 
+  {
+    optimize
+      add/sub reg1,reg1,regY/const
+      ...
+      ldr/str regX,[reg1]
+
+      into
+
+      ldr/str regX,[reg1, regY/const]!
+  }
+  function TCpuAsmOptimizer.LookForPreindexedPattern(p: taicpu): boolean;
+    var
+      hp1: tai;
+    begin
+      if (p.ops=3) and
+        MatchOperand(p.oper[0]^, p.oper[1]^.reg) and
+        GetNextInstructionUsingReg(p, hp1, p.oper[0]^.reg) and
+        (not RegModifiedBetween(p.oper[0]^.reg, p, hp1)) and
+        MatchInstruction(hp1, [A_LDR,A_STR], [C_None], [PF_None,PF_B,PF_H,PF_SH,PF_SB]) and
+        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+        (taicpu(hp1).oper[1]^.ref^.base=p.oper[0]^.reg) and
+        (taicpu(hp1).oper[0]^.reg<>p.oper[0]^.reg) and
+        (taicpu(hp1).oper[1]^.ref^.offset=0) and
+        (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
+        (((p.oper[2]^.typ=top_reg) and
+          (not RegModifiedBetween(p.oper[2]^.reg, p, hp1))) or
+         ((p.oper[2]^.typ=top_const) and
+          ((abs(p.oper[2]^.val) < 256) or
+           ((abs(p.oper[2]^.val) < 4096) and
+            (taicpu(hp1).oppostfix in [PF_None,PF_B]))))) then
+        begin
+          taicpu(hp1).oper[1]^.ref^.addressmode:=AM_PREINDEXED;
+
+          if p.oper[2]^.typ=top_reg then
+            begin
+              taicpu(hp1).oper[1]^.ref^.index:=p.oper[2]^.reg;
+              if p.opcode=A_ADD then
+                taicpu(hp1).oper[1]^.ref^.signindex:=1
+              else
+                taicpu(hp1).oper[1]^.ref^.signindex:=-1;
+            end
+          else
+            begin
+              if p.opcode=A_ADD then
+                taicpu(hp1).oper[1]^.ref^.offset:=p.oper[2]^.val
+              else
+                taicpu(hp1).oper[1]^.ref^.offset:=-p.oper[2]^.val;
+            end;
+
+          result:=true;
+        end
+      else
+        result:=false;
+    end;
 
   {
     optimize
@@ -1466,6 +1521,16 @@ Implementation
                       begin
                         if (taicpu(p).ops=3) then
                           RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
+                      end;
+
+                    if MatchInstruction(p, [A_ADD,A_SUB], [C_None], [PF_None]) and
+                      LookForPreindexedPattern(taicpu(p)) then
+                      begin
+                        GetNextInstruction(p,hp1);
+                        DebugMsg('Peephole Add/Sub to Preindexed done', p);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
                       end;
                   end;
 {$ifdef dummy}                  
