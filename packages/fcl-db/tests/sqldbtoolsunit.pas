@@ -534,7 +534,6 @@ begin
     end; // try
     end;
   inherited Destroy;
-
   FreeAndNil(FQuery);
   FreeAndNil(FTransaction);
   FreeAndNil(FConnection);

@@ -224,6 +224,7 @@ begin
       TSQLDBConnector(DBConnector).CommitDDL;
       end;
   finally
+    AScript.Free;
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
@@ -2242,7 +2243,9 @@ begin
       open;
     except
       on E: Exception do
+      begin
         passed := (E.ClassType.InheritsFrom(EDatabaseError))
+      end;
       end;
     AssertTrue(passed);
 
@@ -2272,10 +2275,12 @@ end;
 procedure TTestFieldTypes.SetUp;
 begin
   InitialiseDBConnector;
+  DBConnector.StartTest;
 end;
 
 procedure TTestFieldTypes.TearDown;
 begin
+  DBConnector.StopTest;
   if assigned(DBConnector) then
     TSQLDBConnector(DBConnector).Transaction.Rollback;
   FreeDBConnector;

@@ -136,6 +136,7 @@ var ds       : TDataset;
     
 begin
   ds := TDataset.Create(nil);
+  try
 
   F1:=TStringField.Create(ds);
   F1.Size := 10;
@@ -164,6 +165,10 @@ begin
   CompareFieldAndFieldDef(F1,ds.FieldDefs[0]);
   CompareFieldAndFieldDef(F2,ds.FieldDefs[1]);
   CompareFieldAndFieldDef(F3,ds.FieldDefs[2]);
+  finally
+    ds.Free;
+  end;
+
 end;
 
 procedure TTestBasics.TestDoubleFieldDef;
@@ -173,22 +178,29 @@ begin
   // If a second field with the same name is added to a TFieldDefs, an exception
   // should occur
   ds := TDataset.create(nil);
-  ds.FieldDefs.Add('Field1',ftInteger);
-  PassException:=False;
   try
-    ds.FieldDefs.Add('Field1',ftString,10,false)
-  except
-    on E: EDatabaseError do PassException := True;
+    ds.FieldDefs.Add('Field1',ftInteger);
+    PassException:=False;
+    try
+      ds.FieldDefs.Add('Field1',ftString,10,false)
+    except
+      on E: EDatabaseError do PassException := True;
+    end;
+    AssertTrue(PassException);
+  finally
+    ds.Free;
   end;
-  AssertTrue(PassException);
 end;
 
 procedure TTestBasics.TestFieldDefWithoutDS;
 var FieldDefs : TFieldDefs;
 begin
   FieldDefs := TFieldDefs.Create(nil);
-  FieldDefs.Add('test',ftString);
-  FieldDefs.Free;
+  try
+    FieldDefs.Add('test',ftString);
+  finally
+    FieldDefs.Free;
+  end;
 end;
 
 procedure TTestBasics.TestGetFieldList;

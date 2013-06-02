@@ -242,6 +242,7 @@ begin
   if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
+  Inherited;
 end;
 
 function TDBConnector.GetTestUniDirectional: boolean;
