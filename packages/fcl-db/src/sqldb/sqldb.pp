@@ -236,6 +236,7 @@ type
     function GetDataSource: TDatasource; Virtual;
     procedure SetDataSource(AValue: TDatasource); virtual;
     procedure AllocateCursor;
+    procedure DeAllocateCursor;
     Function GetSchemaType : TSchemaType; virtual;
     Function GetSchemaObjectName : String; virtual;
     Function GetSchemaPattern: String; virtual;
@@ -814,6 +815,12 @@ begin
     FCursor:=Database.AllocateCursorHandle;
 end;
 
+procedure TCustomSQLStatement.DeAllocateCursor;
+begin
+  if Assigned(FCursor) and Assigned(Database) then
+    DataBase.DeAllocateCursorHandle(FCursor);
+end;
+
 procedure TCustomSQLStatement.DoPrepare;
 
 var
@@ -850,18 +857,19 @@ begin
     Database.Open;
   if not Transaction.Active then
     Transaction.StartTransaction;
-  DoPrepare;
+  try
+    DoPrepare;
+  except
+    if assigned(FCursor) then
+      DataBase.DeAllocateCursorHandle(FCursor);
+    Raise;
+  end;
 end;
 
 procedure TCustomSQLStatement.Execute;
 begin
-  try
-    Prepare;
-    DoExecute;
-  finally
-    if (not Prepared) and (assigned(database)) and (assigned(FCursor))
-      then database.UnPrepareStatement(FCursor);
-  end;
+  Prepare;
+  DoExecute;
 end;
 
 procedure TCustomSQLStatement.DoUnPrepare;
@@ -871,7 +879,7 @@ begin
     If Assigned(Database) then
       begin
       DataBase.UnPrepareStatement(FCursor);
-      DataBase.DeAllocateCursorHandle(FCursor);
+      DeAllocateCursor;
       end
     else // this should never happen. It means a cursor handle leaks in the DB itself.
       FreeAndNil(FCursor);
@@ -1569,7 +1577,12 @@ begin
     begin
     if assigned(Cursor) and Cursor.FSelectable then FreeFldBuffers;
     FStatement.Unprepare;
-    end;
+    end
+  else
+  begin
+    if assigned(Cursor) then
+      FStatement.DeAllocateCursor;
+  end;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
