@@ -1173,7 +1173,8 @@ implementation
                 result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef:
+          pointerdef,
+          formaldef:
             begin
 {$ifdef x86}
               if (def.typ=pointerdef) and
