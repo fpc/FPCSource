@@ -737,24 +737,31 @@ implementation
   procedure thlcgobj.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
     var
       ref: treference;
+      tmpreg : tregister;
     begin
       cgpara.check_simple_location;
       paramanager.alloccgpara(list,cgpara);
+      if cgpara.location^.shiftval<0 then
+        begin
+          tmpreg:=getintregister(list,cgpara.location^.def);
+          a_op_const_reg_reg(list,OP_SHL,cgpara.location^.def,-cgpara.location^.shiftval,r,tmpreg);
+          r:=tmpreg;
+        end;
       case cgpara.location^.loc of
          LOC_REGISTER,LOC_CREGISTER:
-           a_load_reg_reg(list,size,cgpara.def,r,cgpara.location^.register);
+           a_load_reg_reg(list,size,cgpara.location^.def,r,cgpara.location^.register);
          LOC_REFERENCE,LOC_CREFERENCE:
            begin
               reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-              a_load_reg_ref(list,size,cgpara.def,r,ref);
+              a_load_reg_ref(list,size,cgpara.location^.def,r,ref);
            end;
          LOC_MMREGISTER,LOC_CMMREGISTER:
-           a_loadmm_intreg_reg(list,size,cgpara.def,r,cgpara.location^.register,mms_movescalar);
+           a_loadmm_intreg_reg(list,size,cgpara.location^.def,r,cgpara.location^.register,mms_movescalar);
          LOC_FPUREGISTER,LOC_CFPUREGISTER:
            begin
              tg.gethltemp(list,size,size.size,tt_normal,ref);
-             a_load_reg_ref(list,size,cgpara.def,r,ref);
-             a_loadfpu_ref_cgpara(list,cgpara.def,ref,cgpara);
+             a_load_reg_ref(list,size,cgpara.location^.def,r,ref);
+             a_loadfpu_ref_cgpara(list,cgpara.location^.def,ref,cgpara);
              tg.ungettemp(list,ref);
            end
          else
@@ -768,13 +775,15 @@ implementation
     begin
        cgpara.check_simple_location;
        paramanager.alloccgpara(list,cgpara);
+      if cgpara.location^.shiftval<0 then
+        a:=a shl -cgpara.location^.shiftval;
        case cgpara.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,cgpara.def,a,cgpara.location^.register);
+            a_load_const_reg(list,cgpara.location^.def,a,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-               a_load_const_ref(list,cgpara.def,a,ref);
+               a_load_const_ref(list,cgpara.location^.def,a,ref);
             end
           else
             internalerror(2010120416);
@@ -783,38 +792,160 @@ implementation
 
   procedure thlcgobj.a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara);
     var
-      ref: treference;
+      tmpref, ref: treference;
+      tmpreg: tregister;
+      location: pcgparalocation;
+      orgsizeleft,
+      sizeleft: tcgint;
+      reghasvalue: boolean;
     begin
-      cgpara.check_simple_location;
-      paramanager.alloccgpara(list,cgpara);
-      case cgpara.location^.loc of
-         LOC_REGISTER,LOC_CREGISTER:
-           a_load_ref_reg(list,size,cgpara.def,r,cgpara.location^.register);
-         LOC_REFERENCE,LOC_CREFERENCE:
-           begin
-              reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-              a_load_ref_ref(list,size,cgpara.def,r,ref);
-           end;
-         LOC_MMREGISTER,LOC_CMMREGISTER:
-           begin
-              case cgpara.location^.size of
-                OS_F32,
-                OS_F64,
-                OS_F128:
-                  a_loadmm_ref_reg(list,size,cgpara.def,r,cgpara.location^.register,mms_movescalar);
-(*
-                OS_M8..OS_M128,
-                OS_MS8..OS_MS128:
-                  a_loadmm_ref_reg(list,size,cgpara.def,r,cgpara.location^.register,nil);
-*)
-                else
-                  internalerror(2010120417);
+      location:=cgpara.location;
+      tmpref:=r;
+      sizeleft:=cgpara.intsize;
+      while assigned(location) do
+        begin
+          paramanager.allocparaloc(list,location);
+          case location^.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 { Parameter locations are often allocated in multiples of
+                   entire registers. If a parameter only occupies a part of
+                   such a register (e.g. a 16 bit int on a 32 bit
+                   architecture), the size of this parameter can only be
+                   determined by looking at the "size" parameter of this
+                   method -> if the size parameter is <= sizeof(aint), then
+                   we check that there is only one parameter location and
+                   then use this "size" to load the value into the parameter
+                   location }
+                 if (def_cgsize(size)<>OS_NO) and
+                    (size.size<=sizeof(aint)) then
+                   begin
+                     cgpara.check_simple_location;
+                     a_load_ref_reg(list,size,location^.def,tmpref,location^.register);
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.def,-location^.shiftval,location^.register);
+                   end
+                 { there's a lot more data left, and the current paraloc's
+                   register is entirely filled with part of that data }
+                 else if (sizeleft>sizeof(aint)) then
+                   begin
+                     a_load_ref_reg(list,location^.def,location^.def,tmpref,location^.register);
+                   end
+                 { we're at the end of the data, and it can be loaded into
+                   the current location's register with a single regular
+                   load }
+                 else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                   begin
+                     { don't use cgsize_orddef(int_cgsize(sizeleft)) as fromdef,
+                       because that may be larger than location^.register in
+                       case of padding at the end of a record }
+                     a_load_ref_reg(list,location^.def,location^.def,tmpref,location^.register);
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.def,-location^.shiftval,location^.register);
+                   end
+                 { we're at the end of the data, and we need multiple loads
+                   to get it in the register because it's an irregular size }
+                 else
+                   begin
+                     { should be the last part }
+                     if assigned(location^.next) then
+                       internalerror(2010052907);
+                     { load the value piecewise to get it into the register }
+                     orgsizeleft:=sizeleft;
+                     reghasvalue:=false;
+{$ifdef cpu64bitalu}
+                     if sizeleft>=4 then
+                       begin
+                         a_load_ref_reg(list,u32inttype,location^.def,tmpref,location^.register);
+                         dec(sizeleft,4);
+                         if target_info.endian=endian_big then
+                           a_op_const_reg(list,OP_SHL,location^.def,sizeleft*8,location^.register);
+                         inc(tmpref.offset,4);
+                         reghasvalue:=true;
+                       end;
+{$endif cpu64bitalu}
+                     if sizeleft>=2 then
+                       begin
+                         tmpreg:=getintregister(list,location^.def);
+                         a_load_ref_reg(list,u16inttype,location^.def,tmpref,tmpreg);
+                         dec(sizeleft,2);
+                         if reghasvalue then
+                           begin
+                             if target_info.endian=endian_big then
+                               a_op_const_reg(list,OP_SHL,location^.def,sizeleft*8,tmpreg)
+                             else
+                               a_op_const_reg(list,OP_SHL,location^.def,(orgsizeleft-(sizeleft+2))*8,tmpreg);
+                             a_op_reg_reg(list,OP_OR,location^.def,tmpreg,location^.register);
+                           end
+                         else
+                           begin
+                             if target_info.endian=endian_big then
+                               a_op_const_reg_reg(list,OP_SHL,location^.def,sizeleft*8,tmpreg,location^.register)
+                             else
+                               a_load_reg_reg(list,location^.def,location^.def,tmpreg,location^.register);
+                           end;
+                         inc(tmpref.offset,2);
+                         reghasvalue:=true;
+                       end;
+                     if sizeleft=1 then
+                       begin
+                         tmpreg:=getintregister(list,location^.def);
+                         a_load_ref_reg(list,u8inttype,location^.def,tmpref,tmpreg);
+                         dec(sizeleft,1);
+                         if reghasvalue then
+                           begin
+                             if target_info.endian=endian_little then
+                               a_op_const_reg(list,OP_SHL,location^.def,(orgsizeleft-(sizeleft+1))*8,tmpreg);
+                             a_op_reg_reg(list,OP_OR,location^.def,tmpreg,location^.register)
+                           end
+                         else
+                           a_load_reg_reg(list,location^.def,location^.def,tmpreg,location^.register);
+                         inc(tmpref.offset);
+                       end;
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.def,-location^.shiftval,location^.register);
+                     { the loop will already adjust the offset and sizeleft }
+                     dec(tmpref.offset,orgsizeleft);
+                     sizeleft:=orgsizeleft;
+                   end;
               end;
-           end
-         else
-           internalerror(2010120418);
-      end;
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                 if assigned(location^.next) then
+                   internalerror(2010052906);
+                 reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 if (def_cgsize(size)<>OS_NO) and
+                    (size.size=sizeleft) and
+                    (sizeleft<=sizeof(aint)) then
+                   a_load_ref_ref(list,size,location^.def,tmpref,ref)
+                 else
+                   { use concatcopy, because the parameter can be larger than }
+                   { what the OS_* constants can handle                       }
+                   g_concatcopy(list,location^.def,tmpref,ref);
+              end;
+            LOC_MMREGISTER,LOC_CMMREGISTER:
+              begin
+                 case location^.size of
+                   OS_F32,
+                   OS_F64,
+                   OS_F128:
+                     a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,mms_movescalar);
+                   OS_M8..OS_M128,
+                   OS_MS8..OS_MS128:
+                     a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,nil);
+                   else
+                     internalerror(2010053101);
+                 end;
+              end
+            else
+              internalerror(2010053111);
+          end;
+          inc(tmpref.offset,tcgsize2size[location^.size]);
+          dec(sizeleft,tcgsize2size[location^.size]);
+          location:=location^.next;
+        end;
     end;
+
 
   procedure thlcgobj.a_load_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: TCGPara);
     begin
@@ -840,12 +971,12 @@ implementation
        if cgpara.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
          begin
            paramanager.allocparaloc(list,cgpara.location);
-           a_loadaddr_ref_reg(list,fromsize,cgpara.def,r,cgpara.location^.register)
+           a_loadaddr_ref_reg(list,fromsize,cgpara.location^.def,r,cgpara.location^.register)
          end
        else
          begin
            hr:=getaddressregister(list,cgpara.def);
-           a_loadaddr_ref_reg(list,fromsize,cgpara.def,r,hr);
+           a_loadaddr_ref_reg(list,fromsize,cgpara.location^.def,r,hr);
            a_load_reg_cgpara(list,cgpara.def,hr,cgpara);
          end;
     end;
