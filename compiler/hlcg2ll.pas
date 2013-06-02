@@ -667,19 +667,16 @@ implementation
       tmpreg: tregister;
       tocgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071225);
-      { sanity check }
-      if def_cgsize(fromsize)<>loc.size then
+      if def_cgmmsize(fromsize)<>loc.size then
         internalerror(2012071226);
-      tocgsize:=getintmmcgsize(reg,def_cgsize(tosize));
+      tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           begin
             tmpreg:=cg.getintregister(list,loc.size);
             a_load_loc_reg(list,fromsize,fromsize,loc,tmpreg);
+            { integer register -> no def_cgmmsize but plain }
             cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),tocgsize,tmpreg,reg,shuffle);
           end
         else
@@ -692,11 +689,8 @@ implementation
       fromcgsize: tcgsize;
       tocgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062305);
-      fromcgsize:=getintmmcgsize(reg1,def_cgsize(fromsize));
-      tocgsize:=getintmmcgsize(reg2,def_cgsize(tosize));
+      fromcgsize:=getintmmcgsize(reg1,def_cgmmsize(fromsize));
+      tocgsize:=getintmmcgsize(reg2,def_cgmmsize(tosize));
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
       cg.a_loadmm_reg_reg(list,fromcgsize,tocgsize,reg1,reg2,shuffle);
@@ -706,41 +700,32 @@ implementation
     var
       tocgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062306);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      tocgsize:=getintmmcgsize(reg,def_cgsize(tosize));
-      cg.a_loadmm_ref_reg(list,def_cgsize(fromsize),tocgsize,ref,reg,shuffle);
+      tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
+      cg.a_loadmm_ref_reg(list,def_cgmmsize(fromsize),tocgsize,ref,reg,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
     var
       fromcgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062307);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
-      cg.a_loadmm_reg_ref(list,fromcgsize,def_cgsize(tosize),reg,ref,shuffle);
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
+      cg.a_loadmm_reg_ref(list,fromcgsize,def_cgmmsize(tosize),reg,ref,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation; shuffle: pmmshuffle);
     var
       fromcgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071215);
       { sanity check }
-      if def_cgsize(tosize)<>loc.size then
+      if def_cgmmsize(tosize)<>loc.size then
         internalerror(2012071216);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
       cg.a_loadmm_reg_loc(list,fromcgsize,reg,loc,shuffle);
     end;
 
@@ -748,76 +733,52 @@ implementation
     var
       fromcgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071217);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getintmmcgsize(reg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
       cg.a_loadmm_reg_cgpara(list,fromcgsize,reg,cgpara,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference; const cgpara: TCGPara; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071218);
-      cg.a_loadmm_ref_cgpara(list,def_cgsize(fromsize),ref,cgpara,shuffle);
+      cg.a_loadmm_ref_cgpara(list,def_cgmmsize(fromsize),ref,cgpara,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_loc_cgpara(list: TAsmList; fromsize: tdef; const loc: tlocation; const cgpara: TCGPara; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071219);
       { sanity check }
-      if def_cgsize(fromsize)<>loc.size then
+      if def_cgmmsize(fromsize)<>loc.size then
         internalerror(2012071220);
       cg.a_loadmm_loc_cgpara(list,loc,cgpara,shuffle);
     end;
 
   procedure thlcg2ll.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if size.typ<>floatdef then
-        internalerror(2012071221);
-      cg.a_opmm_reg_reg(list,op,def_cgsize(size),src,dst,shuffle);
+      cg.a_opmm_reg_reg(list,op,def_cgmmsize(size),src,dst,shuffle);
     end;
 
   procedure thlcg2ll.a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if size.typ<>floatdef then
-        internalerror(2012071222);
-      cg.a_opmm_ref_reg(list,op,def_cgsize(size),ref,reg,shuffle);
+      cg.a_opmm_ref_reg(list,op,def_cgmmsize(size),ref,reg,shuffle);
     end;
 
   procedure thlcg2ll.a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size: tdef; const loc: tlocation; reg: tregister; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if size.typ<>floatdef then
-        internalerror(2012071223);
-      cg.a_opmm_loc_reg(list,op,def_cgsize(size),loc,reg,shuffle);
+      cg.a_opmm_loc_reg(list,op,def_cgmmsize(size),loc,reg,shuffle);
     end;
 
   procedure thlcg2ll.a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if size.typ<>floatdef then
-        internalerror(2012071224);
-      cg.a_opmm_reg_ref(list,op,def_cgsize(size),reg,ref,shuffle);
+      cg.a_opmm_reg_ref(list,op,def_cgmmsize(size),reg,ref,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
     var
       tocgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071227);
-      { records may be stored in mmregisters, but def_cgsize will return an
+      { records may be stored in mmregisters, but def_cgmmsize will return an
         integer size for them... }
-      tocgsize:=getintmmcgsize(mmreg,def_cgsize(tosize));
+      tocgsize:=getintmmcgsize(mmreg,def_cgmmsize(tosize));
       cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),tocgsize,intreg,mmreg,shuffle);
     end;
 
@@ -825,12 +786,9 @@ implementation
     var
       fromcgsize: tcgsize;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012071228);
       { records may be stored in mmregisters, but def_cgsize will return an
         integer size for them... }
-      fromcgsize:=getintmmcgsize(mmreg,def_cgsize(fromsize));
+      fromcgsize:=getintmmcgsize(mmreg,def_cgmmsize(fromsize));
       cg.a_loadmm_reg_intreg(list,fromcgsize,def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
 

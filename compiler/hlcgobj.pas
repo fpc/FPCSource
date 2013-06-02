@@ -630,10 +630,8 @@ implementation
             result:=getaddressregister(list,size);
           R_FPUREGISTER:
             result:=getfpuregister(list,size);
-(*
           R_MMREGISTER:
             result:=getmmregister(list,size);
-*)
           else
             internalerror(2010122901);
         end;
@@ -796,23 +794,23 @@ implementation
            begin
               reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_load_ref_ref(list,size,cgpara.def,r,ref);
-           end
-(*
+           end;
          LOC_MMREGISTER,LOC_CMMREGISTER:
            begin
-              case location^.size of
+              case cgpara.location^.size of
                 OS_F32,
                 OS_F64,
                 OS_F128:
-                  a_loadmm_ref_reg(list,cgpara.def,cgpara.def,r,location^.register,mms_movescalar);
+                  a_loadmm_ref_reg(list,size,cgpara.def,r,cgpara.location^.register,mms_movescalar);
+(*
                 OS_M8..OS_M128,
                 OS_MS8..OS_MS128:
-                  a_loadmm_ref_reg(list,cgpara.def,cgpara.def,r,location^.register,nil);
+                  a_loadmm_ref_reg(list,size,cgpara.def,r,cgpara.location^.register,nil);
+*)
                 else
                   internalerror(2010120417);
               end;
            end
-*)
          else
            internalerror(2010120418);
       end;
@@ -2298,9 +2296,6 @@ implementation
     var
       tmpreg: tregister;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062302);
       case loc.loc of
         LOC_MMREGISTER,LOC_CMMREGISTER:
           a_loadmm_reg_reg(list,fromsize,tosize,loc.register,reg,shuffle);
@@ -2322,9 +2317,6 @@ implementation
 
   procedure thlcgobj.a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation; shuffle: pmmshuffle);
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062303);
       case loc.loc of
         LOC_MMREGISTER,LOC_CMMREGISTER:
           a_loadmm_reg_reg(list,fromsize,tosize,reg,loc.register,shuffle);
@@ -2339,9 +2331,6 @@ implementation
     var
       href  : treference;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062304);
        cgpara.check_simple_location;
        paramanager.alloccgpara(list,cgpara);
        case cgpara.location^.loc of
@@ -2369,9 +2358,6 @@ implementation
        hr : tregister;
        hs : tmmshuffle;
     begin
-      { no vector support yet }
-      if shuffle<>mms_movescalar then
-        internalerror(2012062308);
        cgpara.check_simple_location;
        hr:=getmmregister(list,cgpara.def);
        a_loadmm_ref_reg(list,fromsize,cgpara.def,ref,hr,shuffle);

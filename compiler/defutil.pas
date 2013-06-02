@@ -296,6 +296,10 @@ interface
     { #Return an orddef (integer) correspondig to a tcgsize }
     function cgsize_orddef(size: tcgsize): torddef;
 
+    {# Same as def_cgsize, except that it will interpret certain arrays as
+       vectors and return OS_M* sizes for them }
+    function def_cgmmsize(def: tdef): tcgsize;
+
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
@@ -1269,6 +1273,36 @@ implementation
             result:=torddef(s64inttype);
           else
             internalerror(2012050401);
+        end;
+      end;
+
+    function def_cgmmsize(def: tdef): tcgsize;
+      begin
+        case def.typ of
+          arraydef:
+            begin
+              if tarraydef(def).elementdef.typ in [orddef,floatdef] then
+                begin
+                  { this is not correct, OS_MX normally mean that the vector
+                    contains elements of size X. However, vectors themselves
+                    can also have different sizes (e.g. a vector of 2 singles on
+                    SSE) and the total size is currently more important }
+                  case def.size of
+                    1: result:=OS_M8;
+                    2: result:=OS_M16;
+                    4: result:=OS_M32;
+                    8: result:=OS_M64;
+                    16: result:=OS_M128;
+                    32: result:=OS_M256;
+                    else
+                      internalerror(2013060103);
+                  end;
+                end
+              else
+                result:=def_cgsize(def);
+            end
+          else
+            result:=def_cgsize(def);
         end;
       end;
 
