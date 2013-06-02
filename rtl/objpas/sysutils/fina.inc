@@ -68,7 +68,7 @@ begin
     exit;
 {$IF DEFINED(AMIGA) OR DEFINED(MORPHOS)}
   i:=Pos(DriveSeparator,FileName);
-  if (i > 0) then Result:=Copy(FileName,1,i-1); 
+  if (i > 0) then Result:=Copy(FileName,1,i); 
 {$ELSE}
   If (FileName[2] in AllowDriveSeparators) then
     result:=Copy(FileName,1,2)
