@@ -617,7 +617,7 @@ implementation
         { no support for 128 bit ints -> tcgsize2orddef can't handle
           OS_(S)128 }
         else if restlen in [1,2,4,8] then
-          result:=cgsize_orddef(int_cgsize(paracgsize))
+          result:=cgsize_orddef(int_cgsize(restlen))
         else
           result:=getarraydef(u8inttype,restlen);
       end;

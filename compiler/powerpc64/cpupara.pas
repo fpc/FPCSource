@@ -453,7 +453,7 @@ begin
           LOC_REFERENCE:
             begin
               paraloc^.size:=int_cgsize(paralen);
-              paraloc^.def:=get_paraloc_def(paradef,paraloc^.size,paralen,firstparaloc);
+              paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
             end;
           else
             internalerror(2006011101);

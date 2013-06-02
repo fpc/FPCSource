@@ -696,7 +696,7 @@ unit cpupara;
                                       else
                                         begin
                                           l:=paralen;
-                                          paraloc^.def:=get_paraloc_def(paradef,paracgsize,l,firstparaloc);
+                                          paraloc^.def:=get_paraloc_def(paradef,l,firstparaloc);
                                         end;
                                       paraloc^.size:=int_cgsize(l);
                                     end;
