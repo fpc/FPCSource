@@ -38,7 +38,6 @@ interface
           procedure generate_nested_access(vs: tsym);virtual;
          public
           procedure pass_generate_code;override;
-          procedure generate_picvaraccess;virtual;
           procedure changereflocation(const ref: treference);
        end;
 
@@ -213,15 +212,6 @@ implementation
 {*****************************************************************************
                              SecondLoad
 *****************************************************************************}
-
-    procedure tcgloadnode.generate_picvaraccess;
-      begin
-{$ifndef sparc}
-        location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname+'@GOT');
-{$endif sparc}
-      end;
-
 
     procedure tcgloadnode.changereflocation(const ref: treference);
       var
