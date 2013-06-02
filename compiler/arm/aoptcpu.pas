@@ -2081,7 +2081,7 @@ Implementation
     begin
       result:=true;
 
-      list:=TAsmList.Create;
+      list:=TAsmList.create_without_marker;
       p:=BlockStart;
       while p<>BlockEnd Do
         begin
