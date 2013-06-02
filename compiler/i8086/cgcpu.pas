@@ -217,8 +217,9 @@ unit cgcpu;
                     to the high reg, then zero the low register, then do the
                     remaining part of the shift (by const-16) in 16 bit on the
                     high register. the same thing applies to shr with low and high
-                    reversed. }
-                  if (op in [OP_SHR,OP_SHL]) and (a >= 16) then
+                    reversed. sar is exactly like shr, except that instead of
+                    zeroing the high register, we sar it by 15. }
+                  if a>=16 then
                     case op of
                       OP_SHR:
                         begin
@@ -231,6 +232,12 @@ unit cgcpu;
                           a_load_reg_reg(list,OS_16,OS_16,reg,GetNextReg(reg));
                           a_load_const_reg(list,OS_16,0,reg);
                           a_op_const_reg(list,OP_SHL,OS_16,a-16,GetNextReg(reg));
+                        end;
+                      OP_SAR:
+                        begin
+                          a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),reg);
+                          a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg));
+                          a_op_const_reg(list,OP_SAR,OS_16,a-16,reg);
                         end;
                       else
                         internalerror(2013060201);
