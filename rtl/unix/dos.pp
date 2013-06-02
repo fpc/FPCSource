@@ -783,7 +783,7 @@ Var
   r: RawByteString;
 Begin
   DosError:=0;
-  r:=textrec(f).name[0];
+  r:=textrec(f).name;
   if FPStat(r,info)<0 then
    begin
      Attr:=0;
@@ -796,7 +796,7 @@ Begin
    Attr:=$10
   else
    Attr:=$0;
-  if fpAccess(@textrec(f).name[0],W_OK)<0 then
+  if fpAccess(r,W_OK)<0 then
    Attr:=Attr or $1;
   if filerec(f).name[0]='.' then
    Attr:=Attr or $2;

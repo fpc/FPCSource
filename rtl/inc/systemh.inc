@@ -1378,6 +1378,3 @@ const
 {$i system.fpd}
 {$endif}
 
-
-
-

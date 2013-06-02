@@ -954,7 +954,7 @@ end;
 Function DeleteFile (Const FileName : RawByteString) : Boolean;
 
 begin
-  Result:=fpUnLink (pointer(FileName))>=0;
+  Result:=fpUnLink (pchar(FileName))>=0;
 end;
 
 Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;

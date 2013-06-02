@@ -279,6 +279,14 @@ end;
                A platform independent implementation of FExpand
 ****************************************************************************}
 
+procedure getdir(drivenr:byte;var dir: string);
+var s : ansistring;
+begin
+   s:=dir;
+   system.getdir(drivenr,s);
+   dir:=s;
+end;
+
 {$IFNDEF HAS_FEXPAND}
 
 (* FExpand maintained in standalone include file for easier maintenance. *)
@@ -286,13 +294,6 @@ end;
 
 {$ENDIF HAS_FEXPAND}
 
-procedure getdir(drivenr:byte;var dir: pathstr);
-var s : ansistring;
-begin
-   s:=dir;
-   system.getdir(drivenr,s);
-   dir:=s;
-end;
 
 Procedure MkDir(Const s: String);
 Begin
