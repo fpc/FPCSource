@@ -286,7 +286,6 @@ end;
 
 {$ENDIF HAS_FEXPAND}
 
-{$ifdef FPC_UNICODE_RTL}
 procedure getdir(drivenr:byte;var dir: pathstr);
 var s : ansistring;
 begin
@@ -294,4 +293,19 @@ begin
    system.getdir(drivenr,s);
    dir:=s;
 end;
-{$endif}
+
+Procedure MkDir(Const s: String);
+Begin
+  system.mkdir(ansistring(s));
+End;
+
+Procedure RmDir(Const s: String);
+Begin
+  system.rmdir(ansistring(s));
+End;
+
+Procedure ChDir(Const s: String);
+Begin
+  system.chdir(ansistring(s));
+End;
+

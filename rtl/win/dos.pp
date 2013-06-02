@@ -833,7 +833,6 @@ function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
 function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
   stdcall; external 'kernel32' name 'GetProcAddress';
 
-
 begin
    GetDiskFreeSpaceEx:=nil;
    kernel32dll:=GetModuleHandle('kernel32');

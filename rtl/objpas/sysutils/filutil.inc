@@ -96,7 +96,6 @@ end;
 {$endif}
 
 function FileAge(const FileName: RawByteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
-   
 Var
   Info : TSearchRec;
   A : Integer;

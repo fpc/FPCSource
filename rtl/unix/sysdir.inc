@@ -25,7 +25,6 @@ const
                S_IWOTH OR S_IROTH OR
                S_IXUSR OR S_IXGRP OR S_IXOTH;
 
-{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_MkDir(s: rawbytestring);[IOCheck];
 
 Begin
@@ -37,6 +36,7 @@ Begin
    InOutRes:=0;
 End;
 
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_MkDir(s: unicodestring);[IOCheck];
 
 Var
@@ -46,25 +46,12 @@ begin
   R:=ToSingleByteFileSystemEncodedFileName(S);
   Do_MkDir(R);  
 end;
-
-{$ELSE}
-
-Procedure do_MkDir(p: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
-Begin
-  If (P=nil) or (p[0]=#0) or (InOutRes <> 0) then
-    exit;
-  If Fpmkdir(p, MODE_MKDIR)<0 Then
-   Errno2Inoutres
-  Else
-   InOutRes:=0;
-End;
 {$ENDIF}
 
 // len is not passed to the *nix functions because the unix API doesn't 
 // use length safeguards for these functions. (probably because there
 // already is a length limit due to PATH_MAX)
 
-{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_RmDir(s: rawbytestring);[IOCheck];
 
 begin
@@ -78,8 +65,8 @@ begin
    InOutRes:=0;
 End;
 
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_RmDir(s: unicodestring);[IOCheck];
-
 Var
   R : RawByteString;
 
@@ -87,23 +74,8 @@ begin
   R:=ToSingleByteFileSystemEncodedFileName(S);
   Do_RMDir(R);  
 end;
-
-{$ELSE}
-Procedure do_RMDir(p: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
-
-Begin
-  if (len=1) and (p^ = '.') then
-    InOutRes := 16;
-  If not assigned(p) or (len=0) or (InOutRes <> 0) then
-    exit;
-  If Fprmdir(p)<0 Then
-   Errno2Inoutres
-  Else
-   InOutRes:=0;
-End;
 {$ENDIF}
 
-{$IFDEF FPC_UNICODE_RTL}
 Procedure do_ChDir(s: rawbytestring);[IOCheck];
 
 Begin
@@ -118,8 +90,8 @@ Begin
    InOutRes:=3;
 End;
 
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_ChDir(s: unicodestring);[IOCheck];
-
 Var
   R : RawByteString;
 
@@ -127,19 +99,6 @@ begin
   R:=ToSingleByteFileSystemEncodedFileName(S);
   Do_ChDir(R);  
 end;
-
-{$ELSE}
-
-Procedure do_ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
-Begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-  If Fpchdir(s)<0 Then
-    Errno2Inoutres
-   Else
-    InOutRes:=0;
-end;
-
 {$ENDIF}
 
 // !! for now we use getcwd, unless we are fpc_use_libc.
@@ -150,11 +109,7 @@ end;
 // !! dos legacy api's better visibile due to cut-off path, instead of "empty"
 
 
-{$IFDEF FPC_UNICODE_RTL}
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);
-{$ELSE}
-procedure getdir(drivenr : byte;var dir : shortstring);
-{$ENDIF}
 var
   buf          : array[0..2047] of char;
   cwdinfo      : stat;

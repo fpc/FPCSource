@@ -240,7 +240,7 @@ const
 {$ifdef FPC_UNICODE_RTL}
       paramstr:=(argv[l])
 {$else}
-      paramstr:=strpas(argv[l])
+      paramstr:=argv[l]
 {$endif}
     else
       paramstr:='';

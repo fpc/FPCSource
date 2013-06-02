@@ -145,6 +145,9 @@ Function  GetMsCount: int64;
  particular meaning - it can be e.g. amount of milliseconds since computer
  startup on DOS-like x86 platforms, derived from Unix time on Unix etc.}
 
-{$ifdef FPC_UNICODE_RTL}
+// in 2.7.1+ all shortstring routines from system move to dos.
+Procedure chdir(const s:string);
+Procedure mkdir(const s:string);
+Procedure rmdir(const s:string); overload;
 procedure GetDir(Drivenr:Byte;var Dir: PathStr);
-{$endif}
+

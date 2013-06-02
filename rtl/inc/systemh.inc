@@ -1043,19 +1043,12 @@ procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-{$IFNDEF FPC_UNICODE_RTL}
-Procedure Assign(out f:File;const Name:string);
-Procedure Assign(out f:File;p:pchar);
-Procedure Assign(out f:File;c:char);
-Procedure Rename(var f:File;const s:string);
-Procedure Rename(var f:File;p:pchar);
-Procedure Rename(var f:File;c:char);
-{$ELSE}
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Assign(out f:File;const Name: UnicodeString);
-Procedure Assign(out f:File;const Name: RawByteString);
 Procedure Rename(var f:File;const s : UnicodeString);
+{$Endif}
+Procedure Assign(out f:File;const Name: RawByteString);
 Procedure Rename(var f:File;const s : RawByteString);
-{$ENDIF}
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -1087,14 +1080,10 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-{$IFNDEF FPC_UNICODE_RTL}
-Procedure Assign(out f:TypedFile;const Name:string);
-Procedure Assign(out f:TypedFile;p:pchar);
-Procedure Assign(out f:TypedFile;c:char);
-{$ELSE}
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Assign(out f:TypedFile;const Name:unicodestring);
-Procedure Assign(out f:TypedFile;const Name:rawbytestring);
 {$ENDIF}
+Procedure Assign(out f:TypedFile;const Name:rawbytestring);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -1104,19 +1093,12 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-{$IFNDEF FPC_UNICODE_RTL}
-Procedure Assign(out t:Text;const s:string);
-Procedure Assign(out t:Text;p:pchar);
-Procedure Assign(out t:Text;c:char);
-Procedure Rename(var t:Text;const s:string);
-Procedure Rename(var t:Text;p:pchar);
-Procedure Rename(var t:Text;c:char);
-{$ELSE}
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Assign(out t:Text;const s:unicodestring);
-Procedure Assign(out t:Text;const s:rawbytestring);
 Procedure Rename(var t:Text;const s:unicodestring);
+{$endif}
 Procedure Rename(var t:Text;const s:rawbytestring);
-{$ENDIF}
+Procedure Assign(out t:Text;const s:rawbytestring);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
@@ -1142,26 +1124,18 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
                             Directory Management
 ****************************************************************************}
 
-
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-{$IFNDEF FPC_UNICODE_RTL}
-Procedure chdir(const s:string); overload;
-Procedure mkdir(const s:string); overload;
-Procedure rmdir(const s:string); overload;
-Procedure getdir(drivenr:byte;var dir:shortstring);
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure getdir(drivenr:byte;var dir:ansistring);
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
-{$ELSE}
+{$IFDEF FPC_UNICODE_RTL}
 Procedure chdir(const s:unicodestring); overload;
 Procedure mkdir(const s:unicodestring); overload;
 Procedure rmdir(const s:unicodestring); overload;
+Procedure getdir(drivenr:byte;var dir: unicodestring);
+{$endif}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure chdir(const s:rawbytestring); overload;
 Procedure mkdir(const s:rawbytestring); overload;
 Procedure rmdir(const s:rawbytestring); overload;
-
-Procedure getdir(drivenr:byte;var dir: unicodestring);
-Procedure getdir(drivenr:byte;var dir: rawbytestring);{$ifndef VER2_6}rtlproc; {$endif}// defaultrtlfilesystemcodepage is used here
+Procedure getdir(drivenr:byte;var dir: rawbytestring);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}// defaultrtlfilesystemcodepage is used here
 {$ENDIF}
 {$endif FPC_HAS_FEATURE_FILEIO}
 

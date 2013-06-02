@@ -60,7 +60,7 @@ Begin
 {$IFDEF FPC_UNICODE_RTL}
   Do_Open(t,unicodestring(t.Name),Flags);
 {$ELSE FPC_UNICODE_RTL}
-  Do_Open(t,pchar(@t.Name),Flags);
+  Do_Open(t,(t.Name),Flags);
 {$ENDIF FPC_UNICODE_RTL}
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
@@ -102,33 +102,12 @@ begin
   InitText(t);
   TextRec(t).Name:=S;
 end;
-
+{$endif}
 Procedure Assign(out t:Text;const s: RawByteString);
 Begin
   InitText(t);
   TextRec(t).Name:=S;
 End;
-{$ELSE}
-
-Procedure Assign(out t:Text;const s:String);
-Begin
-  InitText(T);
-  Move(s[1],TextRec(t).Name,Length(s));
-end;
-
-Procedure Assign(out t:Text;p:pchar);
-begin
-  Assign(t,StrPas(p));
-  InitText(t);
-end;
-
-Procedure Assign(out t:Text;c:char);
-begin
-  Assign(t,string(c));
-end;
-
-{$ENDIF}
-
 
 Procedure Close(var t : Text);[IOCheck];
 Begin
@@ -233,7 +212,7 @@ Begin
 {$IFDEF FPC_UNICODE_RTL}
    Do_Erase(unicodestring(TextRec(t).Name));
 {$ELSE FPC_UNICODE_RTL}
-   Do_Erase(@TextRec(t).Name);
+   Do_Erase(TextRec(t).Name);
 {$ENDIF FPC_UNICODE_RTL}
 End;
 
@@ -248,6 +227,7 @@ Begin
   if InoutRes=0 then
     TextRec(T).Name:=S;
 End;
+{$endif}
 
 Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
 Begin
@@ -257,45 +237,6 @@ Begin
   if InoutRes=0 then
     TextRec(T).Name:=S;
 End;
-
-{$ELSE FPC_UNICODE_RTL}
-
-Procedure Rename(var t : text;p:pchar);[IOCheck];
-Begin
-  If InOutRes <> 0 then
-   exit;
-  If TextRec(t).mode=fmClosed Then
-   Begin
-     Do_Rename(PChar(@TextRec(t).Name),p);
-     { check error code of do_rename }
-     If InOutRes = 0 then
-         Move(p^,TextRec(t).Name,StrLen(p)+1);
-   End;
-End;
-
-Procedure Rename(var t : Text;const s : string);[IOCheck];
-var
-  p : array[0..255] Of Char;
-Begin
-  If InOutRes <> 0 then
-   exit;
-  Move(s[1],p,Length(s));
-  p[Length(s)]:=#0;
-  Rename(t,Pchar(@p));
-End;
-
-Procedure Rename(var t : Text;c : char);[IOCheck];
-var
-  p : array[0..1] Of Char;
-Begin
-  If InOutRes <> 0 then
-    exit;
-  p[0]:=c;
-  p[1]:=#0;
-  Rename(t,Pchar(@p));
-End;
-
-{$ENDIF FPC_UNICODE_RTL}
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin

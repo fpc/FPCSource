@@ -488,7 +488,7 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=StrPas(@F.FindData.cFileName[0]);
+  f.Name:=F.FindData.cFileName[0];
   Result:=0;
 end;
 
@@ -539,7 +539,7 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=StrPas(@F.FindData.cFileName[0]);
+  f.Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
@@ -1119,7 +1119,7 @@ begin
                  MsgBuffer,                 { This function allocs the memory }
                  MaxMsgSize,                           { Maximum message size }
                  nil);
-  SysErrorMessage := StrPas(MsgBuffer);
+  SysErrorMessage := MsgBuffer;
   FreeMem(MsgBuffer, MaxMsgSize);
 end;
 
@@ -1143,7 +1143,7 @@ begin
    hp:=p;
    while hp^<>#0 do
      begin
-        s:=strpas(hp);
+        s:=hp;
         i:=pos('=',s);
         if uppercase(copy(s,1,i-1))=upcase(envvar) then
           begin
@@ -1168,7 +1168,7 @@ begin
    hp:=p;
    while hp^<>#0 do
      begin
-        s:=strpas(hp);
+        s:=hp;
         i:=pos('=',s);
         if uppercase(copy(s,1,i-1))=uppercase(envvar) then
           begin
@@ -1214,7 +1214,7 @@ begin
       hp:=hp+strlen(hp)+1;
       end;
     If (hp^<>#0) then
-      Result:=StrPas(HP);
+      Result:=HP;
     end;
   FreeEnvironmentStringsA(p);
 end;

@@ -72,7 +72,7 @@ var
 Procedure InitDLL;
 
 Var
-  pathBuf: array[0..MAX_PATH-1] of {$ifdef FPC_UNICODE_RTL}WideChar{$else}char{$endif};
+  pathBuf: array[0..MAX_PATH-1] of {$ifdef FPC_UNICODE_RTL}WideChar{$else}Ansichar{$endif};
   pathLength: Integer;
 begin
   { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)

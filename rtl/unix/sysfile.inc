@@ -22,59 +22,40 @@ Begin
   until (res<>-1) or (geterrno<>ESysEINTR);
 End;
 
+Procedure Do_Erase(p : RawByteString);
+
+var
+  fileinfo : stat;
+
+Begin
+  { verify if the filename is actually a directory }
+  { if so return error and do nothing, as defined  }
+  { by POSIX                                       }
+  if Fpstat(pchar(P),fileinfo)<0 then
+   begin
+     Errno2Inoutres;
+     exit;
+   end;
+  if FpS_ISDIR(fileinfo.st_mode) then
+   begin
+     InOutRes := 2;
+     exit;
+   end;
+  if Fpunlink(pchar(p))<0 then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
+End;
+
 {$IFDEF FPC_UNICODE_RTL}
 Procedure Do_Erase(S : UnicodeString);
-
 var
-  fileinfo : stat;
   R : RawByteString;
-
 Begin
   R:=ToSingleByteFileSystemEncodedFileName(S);
-  { verify if the filename is actually a directory }
-  { if so return error and do nothing, as defined  }
-  { by POSIX                                       }
-  if Fpstat(PChar(R),fileinfo)<0 then
-   begin
-     Errno2Inoutres;
-     exit;
-   end;
-  if FpS_ISDIR(fileinfo.st_mode) then
-   begin
-     InOutRes := 2;
-     exit;
-   end;
-  if Fpunlink(pchar(R))<0 then
-   Errno2Inoutres
-  Else
-   InOutRes:=0;
-End;
-{$ELSE}
-Procedure Do_Erase(p : pchar);
-
-var
-  fileinfo : stat;
-
-Begin
-  { verify if the filename is actually a directory }
-  { if so return error and do nothing, as defined  }
-  { by POSIX                                       }
-  if Fpstat(P,fileinfo)<0 then
-   begin
-     Errno2Inoutres;
-     exit;
-   end;
-  if FpS_ISDIR(fileinfo.st_mode) then
-   begin
-     InOutRes := 2;
-     exit;
-   end;
-  if Fpunlink(p)<0 then
-   Errno2Inoutres
-  Else
-   InOutRes:=0;
-End;
-{$ENDIF}
+  Do_Erase(R);
+end;
+{$endif}
 
 { truncate at a given position }
 procedure do_truncate (handle:thandle;fpos:longint);
@@ -87,12 +68,9 @@ begin
    InOutRes:=0;
 end;
 
-{$IFDEF FPC_UNICODE_RTL}
-Procedure Do_Rename(Src : UnicodeString; Dest : RawByteString);
-
+Procedure Do_Rename(Src : RawByteString; Dest : RawByteString);
 Var
  S : RawbyteString;
-
 Begin
   S:=ToSingleByteFileSystemEncodedFileName(Src);
   If Fprename(Pchar(S),Pchar(Dest))<0 Then
@@ -101,26 +79,16 @@ Begin
     InOutRes:=0;
 End;
 
-
+{$IFDEF FPC_UNICODE_RTL}
 Procedure Do_Rename(Src,Dest : UnicodeString);
-
 Var
- S : RawbyteString;
-
+ sdest,ssrc : RawbyteString;
 Begin
-  S:=ToSingleByteFileSystemEncodedFileName(Dest);
-  Do_Rename(Src,S);
+  SDest:=ToSingleByteFileSystemEncodedFileName(Dest);
+  SSrc:=ToSingleByteFileSystemEncodedFileName(Src);
+  Do_Rename(SSrc,SDest);
 end;
-{$ELSE}
-Procedure Do_Rename(p1,p2:pchar);
-
-Begin
-  If Fprename(P1,P2)<0 Then
-    Errno2Inoutres
-  Else
-    InOutRes:=0;
-End;
-{$ENDIF}
+{$endif}
 
 Function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
 
@@ -200,11 +168,7 @@ Begin
    InOutRes:=0;
 End;
 
-{$IFNDEF FPC_UNICODE_RTL}
-Procedure Do_Open(var f; p:pchar; flags:longint);
-{$ELSE}
 Procedure Do_Open(var f; const s : RawByteString;flags:longint);
-{$ENDIF}
 
 {
   FileRec and textrec have both Handle and mode as the first items so
@@ -220,13 +184,9 @@ const
               S_IWOTH OR S_IROTH;
 var
   oflags : cint;
-{$IFDEF FPC_UNICODE_RTL}
   p : pchar;
-{$ENDIF}
 Begin
-{$IFDEF FPC_UNICODE_RTL}
   p:=pchar(S);
-{$ENDIF}
   {}
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -299,7 +259,6 @@ Begin
 End;
 
 {$IFDEF FPC_UNICODE_RTL}
-
 Procedure Do_Open(var f; const s : UnicodeString;flags:longint);
 
 Var

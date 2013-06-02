@@ -72,15 +72,15 @@ begin
   do_rename(p1,unicodestring(p2));
 end;
 {$else}
-procedure do_erase(p : pchar);
+procedure do_erase(p : rawbytestring);
 begin
    DoDirSeparators(p);
-   if DeleteFile(p)=0 then
+   if DeleteFile(pchar(p))=0 then
     Begin
       errno:=GetLastError;
       if errno=5 then
        begin
-         if ((GetFileAttributes(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
+         if ((GetFileAttributes(pchar(p)) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
           errno:=2;
        end;
       Errno2InoutRes;
@@ -88,11 +88,11 @@ begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : rawbytestring);
 begin
   DoDirSeparators(p1);
   DoDirSeparators(p2);
-  if MoveFile(p1,p2)=0 then
+  if MoveFile(pchar(p1),pchar(p2))=0 then
    Begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -234,7 +234,7 @@ end;
 {$ifdef FPC_UNICODE_RTL}
 procedure do_open(var f;const op:unicodestring;flags:longint);
 {$else}
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:RawByteString;flags:longint);
 {$endif}
 {
   filerec and textrec have both handle and mode as the first items so
@@ -316,11 +316,7 @@ begin
   else
     cd:=OPEN_EXISTING;
   { empty name is special }
-{$ifdef FPC_UNICODE_RTL}
   if p='' then
-{$else}
-  if p[0]=#0 then
-{$endif}
    begin
      case FileRec(f).mode of
        fminput :
@@ -342,7 +338,7 @@ begin
   {$ifdef FPC_UNICODE_RTL}
   filerec(f).handle:=CreateFile(punicodechar(p),oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
   {$else}
-  filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
+  filerec(f).handle:=CreateFile(pchar(p),oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
   {$endif}
   { append mode }
   if ((flags and $100)<>0) and

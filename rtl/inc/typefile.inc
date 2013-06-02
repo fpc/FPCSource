@@ -32,6 +32,7 @@ Begin
   InitTypedFile(F);
   FileRec(f).Name:=Name;
 End;
+{$endif}
 
 Procedure Assign(out f:TypedFile;const Name: rawbytestring);
 {
@@ -41,30 +42,6 @@ Begin
   InitTypedFile(F);
   FileRec(f).Name:=Name;
 End;
-{$ELSE}
-Procedure Assign(out f:TypedFile;const Name:string);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-Begin
-   FillChar(f,SizeOF(FileRec),0);
-   FileRec(f).Handle:=UnusedHandle;
-   FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
-end;
- 
-Procedure Assign(out f:TypedFile;p:pchar);
-begin
-  Assign(f,StrPas(p));
-end;
-
-Procedure Assign(out f:TypedFile;c : char);
-begin
-  Assign(f,string(c));
-end;
-
-{$ENDIF}
-
 
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; compilerproc;
 Begin
