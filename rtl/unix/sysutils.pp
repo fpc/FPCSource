@@ -716,6 +716,7 @@ begin
   If not Do_FindGetFileInfo then
     exit;
   WinAttr:=LinuxToWinAttr(s,st);
+  result:=(WinAttr and Not d^.searchattr)=0;
 end;
 
 Type
