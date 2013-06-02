@@ -1870,14 +1870,17 @@ implementation
 {$if defined(i8086)}
                                if try_to_consume(_COLON) then
                                 begin
-                                  p2:=ctypeconvnode.create_explicit(p2,u32inttype);
+                                  inserttypeconv(p2,u16inttype);
+                                  inserttypeconv_internal(p2,u32inttype);
                                   p3:=cshlshrnode.create(shln,p2,cordconstnode.create($10,s16inttype,false));
                                   p2:=comp_expr(true,false);
+                                  inserttypeconv(p2,u16inttype);
+                                  inserttypeconv_internal(p2,u32inttype);
                                   p2:=caddnode.create(addn,p2,p3);
                                   case tloadnode(p1).symtableentry.name of
-                                    'MEM': p2:=ctypeconvnode.create_explicit(p2,bytefarpointertype);
-                                    'MEMW': p2:=ctypeconvnode.create_explicit(p2,wordfarpointertype);
-                                    'MEML': p2:=ctypeconvnode.create_explicit(p2,longintfarpointertype);
+                                    'MEM': p2:=ctypeconvnode.create_internal(p2,bytefarpointertype);
+                                    'MEMW': p2:=ctypeconvnode.create_internal(p2,wordfarpointertype);
+                                    'MEML': p2:=ctypeconvnode.create_internal(p2,longintfarpointertype);
                                     else
                                       internalerror(2013053102);
                                   end;
