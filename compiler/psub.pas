@@ -257,9 +257,16 @@ implementation
 
     procedure check_finalize_paras(p:TObject;arg:pointer);
       begin
-        if (tsym(p).typ=paravarsym) and
-           tparavarsym(p).needs_finalization then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+        if (tsym(p).typ=paravarsym) then
+          begin
+            if tparavarsym(p).needs_finalization then
+              include(current_procinfo.flags,pi_needs_implicit_finally);
+            if (tparavarsym(p).varspez in [vs_value,vs_out]) and
+               (cs_create_pic in current_settings.moduleswitches) and
+               (tf_pic_uses_got in target_info.flags) and
+               is_rtti_managed_type(tparavarsym(p).vardef) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 
@@ -270,7 +277,13 @@ implementation
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
            is_managed_type(tlocalvarsym(p).vardef) then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+          begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
+            if is_rtti_managed_type(tlocalvarsym(p).vardef) and
+              (cs_create_pic in current_settings.moduleswitches) and
+              (tf_pic_uses_got in target_info.flags) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 

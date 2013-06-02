@@ -110,6 +110,9 @@ interface
     {# Returns whether def is reference counted }
     function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { # Returns whether def is needs to load RTTI for reference counting }
+    function is_rtti_managed_type(def: tdef) : boolean;
+
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
 {*****************************************************************************
@@ -620,6 +623,19 @@ implementation
     function is_managed_type(def: tdef): boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
         result:=def.needs_inittable;
+      end;
+
+
+    function is_rtti_managed_type(def: tdef): boolean;
+      begin
+        result:=def.needs_inittable and not (
+          is_interfacecom_or_dispinterface(def) or
+          (def.typ=variantdef) or
+          (
+            (def.typ=stringdef) and
+            (tstringdef(def).stringtype in [st_ansistring,st_widestring,st_unicodestring])
+          )
+        );
       end;
 
 
