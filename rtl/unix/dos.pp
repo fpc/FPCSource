@@ -780,9 +780,11 @@ Procedure GetFAttr(var f; var attr : word);
 Var
   info    : baseunix.stat;
   LinAttr : longint;
+  r: RawByteString;
 Begin
   DosError:=0;
-  if FPStat(@textrec(f).name[0],info)<0 then
+  r:=textrec(f).name[0];
+  if FPStat(r,info)<0 then
    begin
      Attr:=0;
      DosError:=3;
@@ -822,7 +824,7 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-
+  r : Rawbytestring;
 Begin
   doserror:=0;
   with utim do
@@ -831,7 +833,8 @@ Begin
       UnPackTime(Time,DT);
       modtime:=DTToUnixDate(DT);
     end;
-  if fputime(@filerec(f).name[0],@utim)<0 then
+  r:=filerec(f).name;
+  if fputime(r,@utim)<0 then
     begin
       Time:=0;
       doserror:=3;
