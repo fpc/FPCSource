@@ -201,9 +201,88 @@ const
   DOS_MAX_COMMAND_LINE_LENGTH = 126;
 
 procedure exec_ansistring(path : string;comline : ansistring);
+type
+  realptr = packed record
+    ofs,seg : word;
+  end;
+  texecblock = packed record
+    envseg    : word;
+    comtail   : realptr;
+    firstFCB  : realptr;
+    secondFCB : realptr;
+    iniStack  : realptr;
+    iniCSIP   : realptr;
+  end;
+var
+  execblock       : texecblock;
+  c               : ansistring;
+  p               : string;
+  arg_ofs         : integer;
+  fcb1            : array [0..15] of byte;
+  fcb2            : array [0..15] of byte;
 begin
-  {TODO: implement}
-  runerror(304);
+  { create command line }
+  c:=comline;
+  if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
+    begin
+      writeln(stderr,'Dos.exec command line truncated to ',
+              DOS_MAX_COMMAND_LINE_LENGTH,' chars');
+      writeln(stderr,'Before: "',c,'"');
+      setlength(c, DOS_MAX_COMMAND_LINE_LENGTH);
+      writeln(stderr,'After: "',c,'"');
+    end;
+  p:=path;
+  { allow slash as backslash }
+  DoDirSeparators(p);
+  if LFNSupport then
+    GetShortName(p);
+  { allocate FCB see dosexec code }
+  arg_ofs:=1;
+  while (c[arg_ofs] in [' ',#9]) and
+   (arg_ofs<length(c)) do
+    inc(arg_ofs);
+  dosregs.ax:=$2901;
+  dosregs.ds:=Seg(c[arg_ofs]);
+  dosregs.si:=Ofs(c[arg_ofs]);
+  dosregs.es:=Seg(fcb1);
+  dosregs.di:=Ofs(fcb1);
+  msdos(dosregs);
+  { allocate second FCB see dosexec code }
+  dosregs.ax:=$2901;
+  dosregs.ds:=Seg(c[arg_ofs]);
+  dosregs.si:=Ofs(c[arg_ofs]);
+  dosregs.es:=Seg(fcb2);
+  dosregs.di:=Ofs(fcb2);
+  msdos(dosregs);
+
+  c := Chr(Length(c)) + c + #13 + #0;
+  with execblock do
+  begin
+    envseg:={la_env shr 4}0;
+    comtail.seg:=Seg(c[1]);
+    comtail.ofs:=Ofs(c[1]);
+    firstFCB.seg:=Seg(fcb1);
+    firstFCB.ofs:=Ofs(fcb1);
+    secondFCB.seg:=Seg(fcb2);
+    secondFCB.ofs:=Ofs(fcb2);
+  end;
+
+  p := p + #0;
+  dosregs.dx:=Ofs(p[1]);
+  dosregs.ds:=Seg(p[1]);
+  dosregs.bx:=Ofs(execblock);
+  dosregs.es:=Seg(execblock);
+  dosregs.ax:=$4b00;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     dosregs.ax:=$4d00;
+     msdos(dosregs);
+     LastDosExitCode:=DosRegs.al
+   end
+  else
+   LastDosExitCode:=0;
 end;
 
 procedure exec(const path : pathstr;const comline : comstr);
