@@ -59,6 +59,7 @@ Interface
       scanner,
       procinfo,
       rabase,
+      rgbase,
       itcpugas,
       cgbase,cgobj
       ;
@@ -644,7 +645,13 @@ Interface
           begin
             condition := actcondition;
             if is_calljmp(opcode) then
-            ConvertCalljmp(instr);
+              ConvertCalljmp(instr);
+            if (opcode in [A_MTC0,A_MFC0]) then
+              begin
+                if (ops<2) or (operands[2].opr.typ<>OPR_REGISTER) then
+                  message(asmr_e_syn_operand);
+                operands[2].opr.reg:=newreg(R_SPECIALREGISTER,getsupreg(operands[2].opr.reg),R_SUBNONE);
+              end;
             ConcatInstruction(curlist);
             Free;
           end;

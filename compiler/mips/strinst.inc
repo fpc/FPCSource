@@ -204,4 +204,11 @@
 'shl64sub',
 'shr64sub',
 'xor64sub',
+'ehb',
+'ext',
+'ins',
+'mfc0',
+'mtc0',
+'sdbbp',
+'wrpgpr',
 'end_def'

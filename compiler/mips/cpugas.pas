@@ -67,7 +67,10 @@ unit cpugas;
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
            setsubreg(hr, R_SUBD);
         end;
-        result:=std_regname(hr);
+        if getregtype(r)=R_SPECIALREGISTER then
+          result:=tostr(getsupreg(r))
+        else
+          result:=std_regname(hr);
       end;
 
 
