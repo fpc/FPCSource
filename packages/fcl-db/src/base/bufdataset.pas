@@ -461,9 +461,9 @@ type
     procedure SetBufUniDirectional(const AValue: boolean);
     procedure InitDefaultIndexes;
   protected
-    procedure UpdateIndexDefs; override;
     function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
+    procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
@@ -507,7 +507,6 @@ type
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
     function IsReadFromPacket : Boolean;
-
   public
     constructor Create(AOwner: TComponent); override;
     function GetFieldData(Field: TField; Buffer: Pointer;
@@ -1904,7 +1903,7 @@ function TCustomBufDataset.LoadBuffer(Buffer : TRecordBuffer): TGetResult;
 
 var NullMask        : pbyte;
     x               : longint;
-    CreateblobField : boolean;
+    CreateBlobField : boolean;
     BufBlob         : PBufBlobField;
 
 begin
@@ -1928,9 +1927,9 @@ begin
 
   for x := 0 to FieldDefs.count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer,CreateblobField) then
+    if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
       SetFieldIsNull(NullMask,x)
-    else if CreateblobField then
+    else if CreateBlobField then
       begin
       BufBlob := PBufBlobField(Buffer);
       BufBlob^.BlobBuffer := GetNewBlobBuffer;
@@ -1944,7 +1943,7 @@ end;
 function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   if State = dsFilter then Result := FFilterBuffer
-  else if state = dsCalcFields then Result := CalcBuffer
+  else if State = dsCalcFields then Result := CalcBuffer
   else Result := ActiveBuffer;
 end;
 
@@ -2096,7 +2095,6 @@ var StoreRecBM     : TBufBookmark;
     TmpBuf         : TRecordBuffer;
     StoreUpdBuf    : integer;
     Bm             : TBufBookmark;
-    x : integer;
   begin
     with AUpdBuffer do
       begin
@@ -2489,7 +2487,7 @@ var
     TmpRecBuffer : PBufRecLinkItem;
 
 begin
-  checkbrowsemode;
+  CheckBrowseMode;
   if value > RecordCount then
     begin
     repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
@@ -2512,7 +2510,7 @@ Var abuf            :  TRecordBuffer;
 begin
   abuf := GetCurrentBuffer;
   // If abuf isn't assigned, the recordset probably isn't opened.
-  if assigned(abuf) and (FBRecordCount>0) and (state <> dsInsert) then
+  if assigned(abuf) and (FBRecordCount>0) and (State <> dsInsert) then
     Result:=FCurrentIndex.GetRecNo(PBufBookmark(abuf+FRecordSize))
   else
     result := 0;
@@ -2582,7 +2580,7 @@ begin
   Case Origin of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=FBlobBuffer^.Size+Offset;
-    soFromCurrent   : FpoSition:=FPosition+Offset;
+    soFromCurrent   : FPosition:=FPosition+Offset;
   end;
   Result:=FPosition;
 end;
@@ -2620,24 +2618,24 @@ var bufblob : TBufBlobField;
 
 begin
   FDataset := Field.DataSet as TCustomBufDataset;
-  if mode = bmread then
+  if Mode = bmRead then
     begin
-    if not field.getData(@bufblob) then
+    if not Field.GetData(@bufblob) then
       DatabaseError(SFieldIsNull);
     if not assigned(bufblob.BlobBuffer) then with FDataSet do
       begin
       FBlobBuffer := GetNewBlobBuffer;
       bufblob.BlobBuffer := FBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[field.FieldNo-1],@bufblob);
+      LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1],@bufblob);
       end
     else
       FBlobBuffer := bufblob.BlobBuffer;
     end
-  else if mode=bmWrite then with FDataSet as TCustomBufDataset do
+  else if Mode=bmWrite then with FDataSet as TCustomBufDataset do
     begin
     FBlobBuffer := GetNewWriteBlobBuffer;
     FBlobBuffer^.FieldNo := Field.FieldNo;
-    if (field.getData(@bufblob)) and assigned(bufblob.BlobBuffer) then
+    if (Field.GetData(@bufblob)) and assigned(bufblob.BlobBuffer) then
       FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
     else
       FBlobBuffer^.OrgBufID := -1;
@@ -2650,22 +2648,19 @@ var bufblob : TBufBlobField;
 
 begin
   result := nil;
-  if mode=bmread then
+  if Mode = bmRead then
     begin
-    if not field.getData(@bufblob) then
+    if not Field.GetData(@bufblob) then
       exit;
 
-    result := TBufBlobStream.Create(Field as tblobfield,bmread);
+    result := TBufBlobStream.Create(Field as TBlobField, bmRead);
     end
-  else if mode=bmWrite then
+  else if Mode = bmWrite then
     begin
-    if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-      begin
+    if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
       DatabaseErrorFmt(SNotEditing,[Name],self);
-      exit;
-      end;
 
-    result := TBufBlobStream.Create(Field as tblobfield,bmWrite);
+    result := TBufBlobStream.Create(Field as TBlobField, bmWrite);
 
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
