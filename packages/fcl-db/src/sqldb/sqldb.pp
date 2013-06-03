@@ -837,7 +837,7 @@ begin
   GetStatementInfo(FServerSQL,ParseSQL,GetSchemaType,I);
   StmType:=I.StatementType;
   AllocateCursor;
-  FCursor.FSelectable:=False;
+  FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
   FCursor.FStatementType:=StmType;
   FCursor.FSchemaType:=GetSchemaType;
   If LogEvent(detPrepare) then
