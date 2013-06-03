@@ -2275,8 +2275,7 @@ begin
     begin
     if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
       begin
-      Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
-      Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+      FreeBlobBuffer(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
       FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
       end
     else
@@ -2284,7 +2283,6 @@ begin
       setlength(FBlobBuffers,length(FBlobBuffers)+1);
       FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
       FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
-
       end;
     end;
   SetLength(FUpdateBlobBuffers,0);
@@ -2297,12 +2295,8 @@ Var i            : integer;
 
 begin
   if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
-   if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
-    begin
-    Reallocmem(FUpdateBlobBuffers[i]^.Buffer,0);
-    Dispose(FUpdateBlobBuffers[i]);
-    FUpdateBlobBuffers[i] := nil;
-    end;
+    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
+      FreeBlobBuffer(FUpdateBlobBuffers[i]);
 end;
 
 procedure TCustomBufDataset.InternalPost;
