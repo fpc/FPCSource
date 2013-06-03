@@ -451,13 +451,8 @@ implementation
                          TYPEINFO GENERIC HANDLING
 *****************************************************************************}
       procedure tcginlinenode.second_typeinfo;
-        var
-         href : treference;
         begin
-          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0,sizeof(pint));
-          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+          internalerror(2013060301);
         end;
 
 

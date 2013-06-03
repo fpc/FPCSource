@@ -3277,14 +3277,14 @@ implementation
               firstpass(result);
             end;
 
-          in_sizeof_x:
-            begin
-              expectloc:=LOC_REGISTER;
-            end;
-
+          in_sizeof_x,
           in_typeof_x:
             begin
-               expectloc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
+              if (left.nodetype=typen) and
+                 (cs_create_pic in current_settings.moduleswitches) and
+                 (tf_pic_uses_got in target_info.flags) then
+                include(current_procinfo.flags,pi_needs_got);
             end;
 
           in_length_x:
@@ -3294,7 +3294,9 @@ implementation
 
           in_typeinfo_x:
             begin
-               expectloc:=LOC_REGISTER;
+              result:=caddrnode.create_internal(
+                crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)
+              );
             end;
 
           in_assigned_x:
