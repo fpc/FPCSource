@@ -172,7 +172,7 @@ unit typinfo;
               ();
             tkAString:
               (CodePage: Word);
-            tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
+            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
