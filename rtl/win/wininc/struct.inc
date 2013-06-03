@@ -6836,7 +6836,7 @@ Const
      TVSFIXEDFILEINFO = VS_FIXEDFILEINFO;
      PVSFIXEDFILEINFO = ^VS_FIXEDFILEINFO;
 
-     WIN32_FIND_DATA = record
+     WIN32_FIND_DATAA = record
           dwFileAttributes : DWORD;
           ftCreationTime : FILETIME;
           ftLastAccessTime : FILETIME;
@@ -6845,16 +6845,13 @@ Const
           nFileSizeLow : DWORD;
           dwReserved0 : DWORD;
           dwReserved1 : DWORD;
-          cFileName : array[0..(MAX_PATH)-1] of TCHAR;
-          cAlternateFileName : array[0..13] of TCHAR;
+          cFileName : array[0..(MAX_PATH)-1] of AnsiCHAR;
+          cAlternateFileName : array[0..13] of AnsiCHAR;
        end;
-     LPWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-     PWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-     _WIN32_FIND_DATA = WIN32_FIND_DATA;
-     TWIN32FINDDATA = WIN32_FIND_DATA;
-     TWIN32FINDDATAA = WIN32_FIND_DATA;
-     WIN32FINDDATAA = WIN32_FIND_DATA;
-     PWIN32FINDDATA = ^WIN32_FIND_DATA;
+     LPWIN32_FIND_DATAA = ^WIN32_FIND_DATAA;
+     PWIN32_FIND_DATAA  = ^WIN32_FIND_DATAA;
+     _WIN32_FIND_DATAA  = WIN32_FIND_DATAA;
+     TWIN32FINDDATAA    = WIN32_FIND_DATAA;
 
      WIN32_FIND_DATAW = record
           dwFileAttributes : DWORD;
@@ -6874,6 +6871,19 @@ Const
      TWIN32FINDDATAW = WIN32_FIND_DATAW;
      PWIN32FINDDATAW = ^WIN32_FIND_DATAW;
 
+     {$ifdef Unicode}
+      LPWIN32_FIND_DATA = ^WIN32_FIND_DATAW;
+      PWIN32_FIND_DATA  = ^WIN32_FIND_DATAW;
+      _WIN32_FIND_DATA  = WIN32_FIND_DATAW;
+      TWIN32FINDDATA    = WIN32_FIND_DATAW;
+      WIN32_FIND_DATA   = WIN32_FIND_DATAW;
+     {$else}
+      LPWIN32_FIND_DATA = ^WIN32_FIND_DATAA;
+      PWIN32_FIND_DATA  = ^WIN32_FIND_DATAA;
+      _WIN32_FIND_DATA  = WIN32_FIND_DATAA;
+      TWIN32FINDDATA    = WIN32_FIND_DATAA;
+      WIN32_FIND_DATA   = WIN32_FIND_DATAA;
+     {$endif}
      WIN32_STREAM_ID = record
           dwStreamId : DWORD;
           dwStreamAttributes : DWORD;
