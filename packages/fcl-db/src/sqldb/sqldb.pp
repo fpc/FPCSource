@@ -1419,7 +1419,7 @@ begin
   if Assigned(Fstatement) then
     Result := FStatement.Prepared
   else
-    Result:=False;
+    Result := False;
 end;
 
 function TCustomSQLQuery.AddFilter(SQLstr: string): string;
@@ -1448,7 +1448,7 @@ begin
   FreeFldBuffers;
   FStatement.Unprepare;
   FIsEOF := False;
-  inherited internalclose;
+  inherited InternalClose;
   FStatement.DoPrepare;
   FStatement.DoExecute;
   inherited InternalOpen;
@@ -1575,14 +1575,18 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if not IsReadFromPacket then
     begin
-    if assigned(Cursor) and Cursor.FSelectable then FreeFldBuffers;
-    FStatement.Unprepare;
+    if assigned(Cursor) and Cursor.FSelectable then
+      FreeFldBuffers;
+    // Some SQLConnections does not support statement [un]preparation,
+    //  so let them do cleanup f.e. cancel pending queries and/or free resultset
+    if not FStatement.Prepared then
+      FStatement.DoUnprepare;
     end
   else
-  begin
+    begin
     if assigned(Cursor) then
       FStatement.DeAllocateCursor;
-  end;
+    end;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -1590,7 +1594,7 @@ begin
   if assigned(FInsertQry) then FreeAndNil(FInsertQry);
   if assigned(FDeleteQry) then FreeAndNil(FDeleteQry);
 //  FRecordSize := 0;
-  inherited internalclose;
+  inherited InternalClose;
 end;
 
 procedure TCustomSQLQuery.InternalInitFieldDefs;
