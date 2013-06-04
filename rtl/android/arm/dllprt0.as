@@ -31,6 +31,9 @@ FPC_SHARED_LIB_START:
         /* Get environment info from libc */
         ldr ip,=environ
         ldr r0,[ip]
+        /* Check if environment is NULL */
+        cmp r0,#0
+        ldreq r0,=EmptyEnv
         ldr ip,=operatingsystem_parameter_envp
         str r0,[ip]
         
@@ -69,6 +72,10 @@ EmptyCmdLine:
         .long EmptyCmdStr
 EmptyCmdStr:
         .ascii "\0"
+EmptyEnv:
+        .long 0
+        .long 0
+        .long 0
 
 /* --------------------------------------------------------- */
       	.section .init_array, "aw"

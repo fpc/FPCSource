@@ -30,6 +30,11 @@ FPC_SHARED_LIB_START:
 
         /* Get environment info from libc */
         movl    environ,%eax
+        /* Check if environment is NULL */
+        cmpl    %eax,0
+        jne     env_ok
+        leal    EmptyEnv,%eax
+env_ok:
         movl    %eax,operatingsystem_parameter_envp
 
         /* Register exit handler. It is called only when the main process terminates */
@@ -66,6 +71,10 @@ EmptyCmdLine:
         .long EmptyCmdStr
 EmptyCmdStr:
         .ascii "\0"
+EmptyEnv:
+        .long 0
+        .long 0
+        .long 0
 
 /* --------------------------------------------------------- */
       	.section .init_array, "aw"
