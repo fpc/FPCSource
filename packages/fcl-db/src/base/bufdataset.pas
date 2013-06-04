@@ -2266,25 +2266,26 @@ var r            : Integer;
 
 begin
   for r:=0 to length(FUpdateBuffer)-1 do
-   if assigned(FUpdateBuffer[r].OldValuesBuffer) then
+    if assigned(FUpdateBuffer[r].OldValuesBuffer) then
       FreeMem(FUpdateBuffer[r].OldValuesBuffer);
   SetLength(FUpdateBuffer,0);
 
   if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
-   if assigned(FUpdateBlobBuffers[r]) then
-    begin
-    if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+    if assigned(FUpdateBlobBuffers[r]) then
       begin
-      FreeBlobBuffer(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
-      FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
-      end
-    else
-      begin
-      setlength(FBlobBuffers,length(FBlobBuffers)+1);
-      FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
-      FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+      // update blob buffer is already referenced from record buffer (see InternalPost)
+      if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+        begin
+        FreeBlobBuffer(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+        FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] := FUpdateBlobBuffers[r];
+        end
+      else
+        begin
+        setlength(FBlobBuffers,length(FBlobBuffers)+1);
+        FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
+        FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+        end;
       end;
-    end;
   SetLength(FUpdateBlobBuffers,0);
 end;
 
@@ -2542,7 +2543,7 @@ begin
   setlength(FBlobBuffers,length(FBlobBuffers)+1);
   new(ABlobBuffer);
   fillbyte(ABlobBuffer^,sizeof(ABlobBuffer^),0);
-  ABlobBuffer^.OrgBufID := high(FUpdateBlobBuffers);
+  ABlobBuffer^.OrgBufID := high(FBlobBuffers);
   FBlobBuffers[high(FBlobBuffers)] := ABlobBuffer;
   result := ABlobBuffer;
 end;

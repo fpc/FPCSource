@@ -1574,7 +1574,7 @@ procedure TTestBufDatasetDBBasics.TestMergeChangeLog;
 var
   ds: TCustomBufDataset;
   i: integer;
-  s: string;
+  s, FN: string;
 begin
   ds := DBConnector.GetNDataset(5) as TCustomBufDataset;
   with ds do
@@ -1603,6 +1603,27 @@ begin
     CheckEquals(ChangeCount,0);
     checkequals(fields[0].OldValue,23);
     checkequals(fields[1].OldValue,'hanged');
+    end;
+
+  // Test handling of [Update]BlobBuffers in TBufDataset
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
+  with ds do
+    begin
+    // Testing scenario: read some records, so blob data are added into FBlobBuffers,
+    // then update blob field, so element is added to FUpdateBlobBuffers, then read again some records
+    // so next elements are added to FBlobBuffers, then again update blob field
+    // DefaultBufferCount is 10
+    PacketRecords:=1;
+    Open;
+    FN := 'F'+FieldTypeNames[ftBlob];
+    First;     Edit; FieldByName(FN).AsString:='b01'; Post;
+    RecNo:=11; Edit; FieldByName(FN).AsString:='b11'; Post;
+    Next     ; Edit; FieldByName(FN).AsString:='b12'; Post;
+    Last;
+    MergeChangeLog;
+    First;     CheckEquals('b01', FieldByName(FN).AsString);
+    RecNo:=11; CheckEquals('b11', FieldByName(FN).AsString);
+    Next;      CheckEquals('b12', FieldByName(FN).AsString);
     end;
 end;
 
