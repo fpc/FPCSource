@@ -1,3 +1,8 @@
+
+{ As this is a Delphi compatibility test
+  I suppose delphi mode is OK, PM 2013-06-05 }
+{$mode delphi}
+
 program tstrtest;
 
 {$APPTYPE CONSOLE}
@@ -69,5 +74,5 @@ begin
   TestOpenArray([], []);
 
   Writeln('ok');
-  Readln;
+  // Readln;
 end.
