@@ -249,7 +249,7 @@ begin
   if current_settings.x86memorymodel=mm_tiny then
     LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)))
   else
-    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0','',false)));
+    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
