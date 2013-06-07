@@ -271,31 +271,6 @@ begin
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
-{$ifdef unused}
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
-begin
-  result := CreateFileA(PChar(FileName), dword(AccessMode[Mode and 3]),
-                       dword(ShareModes[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
-                       FILE_ATTRIBUTE_NORMAL, 0);
-  //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
-end;
-
-Function FileCreate (Const FileName : RawbyteString) : THandle;
-begin
-  FileCreate:=FileCreate(FileName, fmShareExclusive, 0);
-end;
-
-Function FileCreate (Const FileName : RawbyteString; Rights:longint) : THandle;
-begin
-  FileCreate:=FileCreate(FileName, fmShareExclusive, Rights);
-end;
-
-Function FileCreate (Const FileName : RawbyteString; ShareMode : Integer; Rights : Integer) : THandle;
-begin
-  Result := CreateFileA(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
-                       dword(ShareModes[(ShareMode and $F0) shr 4]), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-end;
-{$endif}
 
 Function FileCreate (Const FileName : UnicodeString) : THandle;
 begin
@@ -389,24 +364,6 @@ begin
                 FileTimeToDosDateTime(lft,Longrec(Dtime).Hi,LongRec(DTIME).lo);
 end;
 
-{$ifdef unused}
-Function FileAge (Const FileName : String): Longint;
-var
-  Handle: THandle;
-  FindData: TWin32FindData;
-begin
-  Handle := FindFirstFile(Pchar(FileName), FindData);
-  if Handle <> INVALID_HANDLE_VALUE then
-    begin
-      Windows.FindClose(Handle);
-      if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
-        If WinToDosTime(FindData.ftLastWriteTime,Result) then
-          exit;
-    end;
-  Result := -1;
-end;
-{$endif}
-
 Function FileAge (Const FileName : UnicodeString): Longint;
 var
   Handle: THandle;
@@ -423,44 +380,17 @@ begin
   Result := -1;
 end;
 
-{$ifdef unused}
-
-Function FileExists (Const FileName : String) : Boolean;
-var
-  Attr:Dword;
-begin
-  Attr:=GetFileAttributesA(PChar(FileName));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
-  else
-    Result:=False;
-end;
-{$endif}
-
 Function FileExists (Const FileName : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
+
   Attr:=GetFileAttributesW(PWideChar(FileName));
   if Attr <> $ffffffff then
     Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
   else
     Result:=False;
 end;
-
-{$ifdef unused}
-Function DirectoryExists (Const Directory : String) : Boolean;
-var
-  Attr:Dword;
-begin
-  Attr:=GetFileAttributesA(PChar(Directory));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
-  else
-    Result:=False;
-end;
-{$endif}
-
 
 Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 var
@@ -488,7 +418,7 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=F.FindData.cFileName[0];
+  f.Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
@@ -511,7 +441,7 @@ end;
 
 Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;
 begin
-  if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
+  if FindNextFileA(Rslt.FindHandle, Rslt.FindData) then
     Result := FindMatch(Rslt)
   else
     Result := GetLastError;
