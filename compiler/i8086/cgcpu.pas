@@ -1196,7 +1196,12 @@ unit cgcpu;
     procedure tcg8086.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         stacksize : longint;
+        ret_instr: TAsmOp;
       begin
+        if po_far in current_procinfo.procdef.procoptions then
+          ret_instr:=A_RETF
+        else
+          ret_instr:=A_RET;
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
@@ -1257,19 +1262,19 @@ unit cgcpu;
                (tf_safecall_exceptions in target_info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
                                        current_procinfo.procdef) then
-             list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
+             list.concat(Taicpu.Op_const(ret_instr,S_W,sizeof(aint)))
            else
-             list.concat(Taicpu.Op_none(A_RET,S_NO));
+             list.concat(Taicpu.Op_none(ret_instr,S_NO));
          end
         { ... also routines with parasize=0 }
         else if (parasize=0) then
-         list.concat(Taicpu.Op_none(A_RET,S_NO))
+         list.concat(Taicpu.Op_none(ret_instr,S_NO))
         else
          begin
            { parameters are limited to 65535 bytes because ret allows only imm16 }
            if (parasize>65535) then
              CGMessage(cg_e_parasize_too_big);
-           list.concat(Taicpu.Op_const(A_RET,S_W,parasize));
+           list.concat(Taicpu.Op_const(ret_instr,S_W,parasize));
          end;
       end;
 
