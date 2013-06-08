@@ -743,7 +743,6 @@ implementation
                            tpointerdef(hdef).x86pointertyp:=x86pt_near;
                          consume(_SEMICOLON);
                        end;
-                    tpointerdef(hdef).update_savesize;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
                       far even on non-x86 platforms.
