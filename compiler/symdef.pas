@@ -5389,13 +5389,22 @@ implementation
 
 
     function tprocvardef.size : asizeint;
+      var
+        far_code_extra_bytes: integer = 0;
+        far_data_extra_bytes: integer = 0;
       begin
+{$ifdef i8086}
+         if po_far in procoptions then
+           far_code_extra_bytes:=2;
+         if current_settings.x86memorymodel in x86_far_data_models then
+           far_data_extra_bytes:=2;
+{$endif i8086}
          if ((po_methodpointer in procoptions) or
              is_nested_pd(self)) and
             not(po_addressonly in procoptions) then
-           size:=2*sizeof(pint)
+           size:=2*sizeof(pint)+far_code_extra_bytes+far_data_extra_bytes
          else
-           size:=sizeof(pint);
+           size:=sizeof(pint)+far_code_extra_bytes;
       end;
 
 
