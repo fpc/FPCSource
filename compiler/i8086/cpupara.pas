@@ -495,7 +495,11 @@ unit cpupara;
                   paralen:=16;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then
-                  inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                  begin
+                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                    if po_far in p.procoptions then
+                      inc(paraloc^.reference.offset,2);
+                  end;
                 parasize:=align(parasize+paralen,varalign);
               end
             else
@@ -537,11 +541,15 @@ unit cpupara;
                     varalign:=used_align(size_2_align(l),paraalign,paraalign);
                     paraloc^.reference.offset:=parasize;
                     if side=calleeside then
-                      if not(po_nostackframe in p.procoptions) then
-                        inc(paraloc^.reference.offset,target_info.first_parm_offset)
-                      else
-                        { return addres }
-                        inc(paraloc^.reference.offset,4);
+                      begin
+                        if not(po_nostackframe in p.procoptions) then
+                          inc(paraloc^.reference.offset,target_info.first_parm_offset)
+                        else
+                          { return addres }
+                          inc(paraloc^.reference.offset,2);
+                        if po_far in p.procoptions then
+                          inc(paraloc^.reference.offset,2);
+                      end;
                     parasize:=align(parasize+l,varalign);
                     dec(paralen,l);
                     firstparaloc:=false;
@@ -660,7 +668,11 @@ unit cpupara;
                               varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                               paraloc^.reference.offset:=parasize;
                               if side=calleeside then
-                                inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                begin
+                                  inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                  if po_far in p.procoptions then
+                                    inc(paraloc^.reference.offset,2);
+                                end;
                               parasize:=align(parasize+paralen,varalign);
                             end
                           else
@@ -701,7 +713,11 @@ unit cpupara;
                                   varalign:=used_align(size_2_align(l),paraalign,paraalign);
                                   paraloc^.reference.offset:=parasize;
                                   if side=calleeside then
-                                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                    begin
+                                      inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                      if po_far in p.procoptions then
+                                        inc(paraloc^.reference.offset,2);
+                                    end;
                                   parasize:=align(parasize+l,varalign);
                                   dec(paralen,l);
                                   firstparaloc:=false;
