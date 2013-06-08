@@ -350,7 +350,9 @@ type
     { the visibility of of this procdef was raised automatically by the
       compiler, e.g. because it was designated as a getter/setter for a property
       with a higher visibility on the JVM target }
-    po_auto_raised_visibility
+    po_auto_raised_visibility,
+    { procedure is far (x86 only) }
+    po_far
   );
   tprocoptions=set of tprocoption;
 
