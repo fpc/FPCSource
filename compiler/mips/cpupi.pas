@@ -129,10 +129,14 @@ implementation
 
     procedure TMIPSProcInfo.allocate_got_register(list:tasmlist);
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (pi_needs_got in flags) and
-           not (po_nostackframe in procdef.procoptions) then
-          tg.gettemp(list,sizeof(aint),sizeof(aint),tt_noreuse,save_gp_ref);
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            if (pi_do_call in flags) then
+              include(flags,pi_needs_got);
+            if (pi_needs_got in flags) and
+               not (po_nostackframe in procdef.procoptions) then
+              tg.gettemp(list,sizeof(aint),sizeof(aint),tt_noreuse,save_gp_ref);
+          end;
       end;
 
 
