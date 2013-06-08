@@ -671,11 +671,6 @@ interface
 
     type
       tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
-    const
-      x86_near_code_models = [mm_tiny,mm_small,mm_compact];
-      x86_far_code_models = [mm_medium,mm_large,mm_huge];
-      x86_near_data_models = [mm_tiny,mm_small,mm_medium];
-      x86_far_data_models = [mm_compact,mm_large,mm_huge];
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

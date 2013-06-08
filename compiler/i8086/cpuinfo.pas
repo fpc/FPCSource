@@ -125,6 +125,11 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
 
+   x86_near_code_models = [mm_tiny,mm_small,mm_compact];
+   x86_far_code_models = [mm_medium,mm_large,mm_huge];
+   x86_near_data_models = [mm_tiny,mm_small,mm_medium];
+   x86_far_data_models = [mm_compact,mm_large,mm_huge];
+
 Implementation
 
 end.
