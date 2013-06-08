@@ -4,7 +4,7 @@
 [package]
 main=rtl
 [target]
-loaders=prt0s prt0t # exceptn fpu
+loaders=prt0s prt0t prt0m # exceptn fpu
 units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
@@ -62,10 +62,12 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 # Loaders
 #
-prt0s$(OEXT) : prt0s.asm prt0st.asm
+prt0s$(OEXT) : prt0s.asm prt0stm.asm
         nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
-prt0t$(OEXT) : prt0t.asm prt0st.asm
+prt0t$(OEXT) : prt0t.asm prt0stm.asm
         nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
+prt0m$(OEXT) : prt0m.asm prt0stm.asm
+        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
 #
 # System Units (System, Objpas, Strings)
 #

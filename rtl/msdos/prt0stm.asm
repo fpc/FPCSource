@@ -1,4 +1,16 @@
-; common startup code for the SMALL and TINY memory models
+; common startup code for the SMALL, TINY and MEDIUM memory models
+
+%ifdef __MEDIUM__
+        %define __FAR_CODE__
+%else
+        %define __NEAR_CODE__
+%endif
+
+%ifdef __FAR_CODE__
+        extra_param_offset equ 2
+%else
+        extra_param_offset equ 0
+%endif
 
         cpu 8086
 
@@ -112,7 +124,11 @@ skip_mem_realloc:
         dec bx
         mov word [__nearheap_end], bx
 
+%ifdef __FAR_CODE__
+        jmp far PASCALMAIN
+%else
         jmp PASCALMAIN
+%endif
 
 not_enough_mem:
         mov dx, not_enough_mem_msg
@@ -133,17 +149,23 @@ FPC_MSDOS_CARRY:
 FPC_MSDOS:
         mov al, 21h  ; not ax, because only the low byte is used
         pop dx
+%ifdef __FAR_CODE__
+        pop bx
+%endif
         pop cx
         push ax
         push cx
+%ifdef __FAR_CODE__
+        push bx
+%endif
         push dx
         global FPC_INTR
 FPC_INTR:
         push bp
         mov bp, sp
-        mov al, byte [ss:bp + 6]
+        mov al, byte [ss:bp + 6 + extra_param_offset]
         mov byte [cs:int_number], al
-        mov si, [ss:bp + 4]
+        mov si, [ss:bp + 4 + extra_param_offset]
         push ds
         mov ax, word [si + 16]
         mov es, ax
@@ -169,7 +191,7 @@ int_number:
         mov bp, sp
         mov si, word [ss:bp + 8]
         mov ds, si
-        mov si, word [ss:bp + 14]
+        mov si, word [ss:bp + 14 + extra_param_offset]
         mov word [si], ax
         mov word [si + 2], bx
         mov word [si + 4], cx
@@ -188,7 +210,11 @@ int_number:
         
         pop ds
         pop bp
+%ifdef __FAR_CODE__
+        retf 4
+%else
         ret 4
+%endif
 
         segment data
 mem_realloc_err_msg:
