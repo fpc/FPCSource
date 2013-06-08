@@ -139,10 +139,10 @@ uses
         R : TResourceStringItem;
       begin
         { Put resourcestrings in a new objectfile. Putting it in multiple files
-	  makes the linking too dependent on the linker script requiring a SORT(*) for
-	  the data sections }
+          makes the linking too dependent on the linker script requiring a SORT(*) for
+          the data sections }
         maybe_new_object_file(current_asmdata.asmlists[al_const]);
-        new_section(current_asmdata.asmlists[al_const],sec_data,make_mangledname('RESSTRTABLE',current_module.localsymtable,''),sizeof(pint));
+        new_section(current_asmdata.asmlists[al_const],sec_rodata_norel,make_mangledname('RESSTRTABLE',current_module.localsymtable,''),sizeof(pint));
 
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(pint));
