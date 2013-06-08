@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="17">
+    <Units Count="39">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -109,10 +109,110 @@
         <UnitName Value="n8086cal"/>
       </Unit15>
       <Unit16>
+        <Filename Value="x86\cgx86.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cgx86"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="x86\agx86nsm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="agx86nsm"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="x86\nx86set.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86set"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="x86\nx86add.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86add"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="x86\nx86cnv.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86cnv"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="x86\cpubase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cpubase"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="x86\nx86mem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86mem"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="x86\nx86inl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86inl"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="x86\nx86cal.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86cal"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="x86\rgx86.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="rgx86"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="x86\agx86att.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="agx86att"/>
+      </Unit26>
+      <Unit27>
         <Filename Value="i8086\n8086con.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="n8086con"/>
-      </Unit16>
+      </Unit27>
+      <Unit28>
+        <Filename Value="x86\nx86con.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nx86con"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="x86\aasmcpu.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="x86\agx86int.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="x86\cga.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="x86\hlcgx86.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="x86\itcpugas.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="x86\itx86int.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="x86\nx86mat.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="x86\rax86.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="x86\rax86att.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="x86\rax86int.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit38>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
