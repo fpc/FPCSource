@@ -36,6 +36,8 @@ interface
 
       T386NasmAssembler = class(texternalassembler)
       private
+        function CodeSectionName: string;
+
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; op : tasmop);
@@ -291,6 +293,18 @@ interface
                                T386NasmAssembler
  ****************************************************************************}
 
+
+    function T386NasmAssembler.CodeSectionName: string;
+      begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          result:=current_module.modulename^ + '_TEXT'
+        else
+{$endif}
+          result:='.text';
+      end;
+
+
     procedure T386NasmAssembler.WriteReference(var ref : treference);
       var
         first : boolean;
@@ -517,6 +531,8 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           AsmWrite('.data')
+        else if secnames[atype]='.text' then
+          AsmWrite(CodeSectionName)
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -1069,7 +1085,7 @@ interface
       end;
 
       if current_settings.x86memorymodel in x86_near_code_models then
-        AsmWriteLn('SECTION .text use16 class=code');
+        AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
       if current_settings.x86memorymodel in x86_near_data_models then
         begin
           { NASM complains if you put a missing section in the GROUP directive, so }
@@ -1084,7 +1100,7 @@ interface
           else
             AsmWriteLn('GROUP dgroup rodata data bss');
         end;
-      AsmWriteLn('SECTION .text');
+      AsmWriteLn('SECTION ' + CodeSectionName);
 {$else i8086}
       AsmWriteLn('BITS 32');
 {$endif i8086}
