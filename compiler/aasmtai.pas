@@ -1693,7 +1693,8 @@ implementation
       begin
         getcopy:=inherited getcopy;
         { we need to increase the reference number }
-        sym.increfs;
+        if assigned(sym) then
+          sym.increfs;
         if assigned(endsym) then
           endsym.increfs;
       end;
