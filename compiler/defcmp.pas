@@ -1282,7 +1282,10 @@ implementation
                      { check for far pointers }
                      if (tpointerdef(def_from).x86pointertyp<>tpointerdef(def_to).x86pointertyp) then
                        begin
-                         eq:=te_incompatible;
+                         if fromtreetype=niln then
+                           eq:=te_equal
+                         else
+                           eq:=te_incompatible;
                        end
                      else
 {$endif x86}
