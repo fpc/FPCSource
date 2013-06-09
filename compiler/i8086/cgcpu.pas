@@ -47,6 +47,8 @@ unit cgcpu;
         procedure a_call_name_far(list : TAsmList;const s : string; weak: boolean);
         procedure a_call_name_static(list : TAsmList;const s : string);override;
         procedure a_call_name_static_far(list : TAsmList;const s : string);
+        procedure a_call_reg(list : TAsmList;reg : tregister);override;
+        procedure a_call_reg_far(list : TAsmList;reg : tregister);
         procedure a_call_ref(list : TAsmList;ref : treference);override;
         procedure a_call_ref_far(list : TAsmList;ref : treference);
 
@@ -105,7 +107,8 @@ unit cgcpu;
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,
-       symtype,symsym;
+       symtype,symsym,
+       tgobj;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -207,6 +210,37 @@ unit cgcpu;
         reference_reset_symbol(r,sym,0,sizeof(pint));
         r.refaddr:=addr_far;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+      end;
+
+
+    procedure tcg8086.a_call_reg(list: TAsmList; reg: tregister);
+      begin
+        if current_settings.x86memorymodel in x86_far_code_models then
+          a_call_reg_far(list,reg)
+        else
+          a_call_reg_near(list,reg);
+      end;
+
+
+    procedure tcg8086.a_call_reg_far(list: TAsmList; reg: tregister);
+      var
+        href: treference;
+      begin
+        { unfortunately, x86 doesn't have a 'call far reg:reg' instruction, so }
+        { we have to use a temp }
+        tg.gettemp(list,4,2,tt_normal,href);
+        { HACK!!! at this point all registers are allocated, due to the fact that
+          in the pascal calling convention, all registers are caller saved. This
+          causes the register allocator to fail on the next move instruction, so we
+          temporarily deallocate 2 registers.
+          TODO: figure out a better way to do this. }
+        cg.ungetcpuregister(list,NR_BX);
+        cg.ungetcpuregister(list,NR_SI);
+        a_load_reg_ref(list,OS_32,OS_32,reg,href);
+        cg.getcpuregister(list,NR_BX);
+        cg.getcpuregister(list,NR_SI);
+        a_call_ref_far(list,href);
+        tg.ungettemp(list,href);
       end;
 
 
