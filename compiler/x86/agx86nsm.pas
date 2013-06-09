@@ -667,6 +667,25 @@ interface
                  aitconst_128bit:
                     begin
                     end;
+{$ifdef i8086}
+                 aitconst_farptr:
+                   begin
+                     AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         s:=tai_const(hp).sym.name;
+                         if tai_const(hp).value<>0 then
+                           s:=s+tostr_with_plus(tai_const(hp).value);
+                         s:=s+',SEG '+tai_const(hp).sym.name;
+                       end
+                     else
+                       s:=tostr(lo(longint(tai_const(hp).value)))+','+
+                          tostr(hi(longint(tai_const(hp).value)));
+                     AsmWriteLn(s);
+                   end;
+{$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,

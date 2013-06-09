@@ -138,7 +138,9 @@ interface
           { for use by dwarf debugger information }
           aitconst_16bit_unaligned,
           aitconst_32bit_unaligned,
-          aitconst_64bit_unaligned
+          aitconst_64bit_unaligned,
+          { i8086 far pointer }
+          aitconst_farptr
         );
 
     const
@@ -1628,7 +1630,12 @@ implementation
       begin
          inherited Create;
          typ:=ait_const;
-         consttype:=aitconst_ptr;
+{$ifdef i8086}
+         if current_settings.x86memorymodel in x86_far_code_models then
+           consttype:=aitconst_farptr
+         else
+{$endif i8086}
+           consttype:=aitconst_ptr;
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
