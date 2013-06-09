@@ -426,8 +426,14 @@ interface
           top_reg :
             AsmWrite(nasm_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr=addr_no then
-              WriteReference(o.ref^)
+            if o.ref^.refaddr in [addr_no{$ifdef i8086},addr_far_ref{$endif}] then
+              begin
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far_ref then
+                  AsmWrite('far ');
+{$endif i8086}
+                WriteReference(o.ref^);
+              end
             else
               begin
 { NEAR forces NASM to emit near jumps, which are 386+ }
