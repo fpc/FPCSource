@@ -605,7 +605,7 @@ const
   ThreadingAlreadyUsed : boolean = FALSE;
   { Indicates if there was an error }
   StackError : boolean = FALSE;
-  InitProc : Pointer = nil;
+  InitProc : CodePointer = nil;
   { compatibility }
   ModuleIsLib : Boolean = FALSE;
   ModuleIsPackage : Boolean = FALSE;
