@@ -1848,11 +1848,10 @@ begin
                       begin
                         if (target_info.system in [system_i8086_msdos]) then
                           begin
-                            Writeln('>', Upper(Copy(More,j+1,255)), '<');
                             case Upper(Copy(More,j+1,255)) of
-                              'TINY':  init_settings.x86memorymodel:=mm_tiny;
-                              'SMALL': init_settings.x86memorymodel:=mm_small;
-                              'MEDIUM',
+                              'TINY':    init_settings.x86memorymodel:=mm_tiny;
+                              'SMALL':   init_settings.x86memorymodel:=mm_small;
+                              'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
                               'COMPACT',
                               'LARGE',
                               'HUGE': IllegalPara(opt); { these are not implemented yet }
