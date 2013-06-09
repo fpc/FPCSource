@@ -543,6 +543,7 @@ interface
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;
+          function address_size:asizeint;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -4316,6 +4317,16 @@ implementation
 {$else}
         result:=false;
 {$endif}
+      end;
+
+    function tabstractprocdef.address_size: asizeint;
+      begin
+{$ifdef i8086}
+        if po_far in procoptions then
+          result:=sizeof(pint)+2
+        else
+{$endif i8086}
+          result:=sizeof(pint);
       end;
 
 
