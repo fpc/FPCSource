@@ -318,6 +318,7 @@ Type
   ValUInt = qword;
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
+  CodePointer = Pointer;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -329,6 +330,7 @@ Type
   ValUInt = Cardinal;
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
+  CodePointer = Pointer;
 {$endif CPU32}
 
 {$ifdef CPU16}
@@ -340,6 +342,13 @@ Type
   {$else}
     PtrInt = Integer;
     PtrUInt = Word;
+  {$endif}
+  {$if defined(FPC_X86_CODE_FAR)}
+    CodePointer = FarPointer;
+  {$elseif defined(FPC_X86_CODE_NEAR)}
+    CodePointer = NearPointer;
+  {$else}
+    CodePointer = Pointer;
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
