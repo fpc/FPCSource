@@ -382,7 +382,10 @@ interface
                   asmwrite('dword ');
 {$endif i386}
 {$ifdef i8086}
-                  asmwrite('word ');
+                  if o.ref^.refaddr=addr_far then
+                    asmwrite('far ')
+                  else
+                    asmwrite('word ');
 {$endif i8086}
                   if assigned(o.ref^.symbol) then
                    begin

@@ -99,6 +99,7 @@ interface
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
+         ,addr_far         // used for emitting 'call far' or 'jmp far' instructions
          {$ENDIF}
          );
 
