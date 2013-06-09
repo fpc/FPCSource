@@ -246,10 +246,14 @@ begin
     DOS command line is limited to 126 characters! }
 
   { add objectfiles, start with prt0 always }
-  if current_settings.x86memorymodel=mm_tiny then
-    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)))
-  else
-    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
+  case current_settings.x86memorymodel of
+    mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
+    mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0h','',false)));
+  end;
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
