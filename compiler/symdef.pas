@@ -2654,18 +2654,27 @@ implementation
 {$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            {$ifdef avr}
+            {$if defined(avr)}
               savesize:=96;
-            {$else avr}
-              savesize:=576;
-            {$endif avr}
+            {$elseif defined(i8086)}
+              case current_settings.x86memorymodel of
+                mm_tiny,mm_small: savesize:=576;
+                mm_medium:        savesize:=584;
+                else
+                  internalerror(2013060901);
+              end;
+            {$else}
+              {$fatal TODO: define the textrec size for your cpu}
+            {$endif}
           ft_typed,
           ft_untyped :
-            {$ifdef avr}
+            {$if defined(avr)}
               savesize:=76;
-            {$else avr}
+            {$elseif defined(i8086)}
               savesize:=316;
-            {$endif avr}
+            {$else}
+              {$fatal TODO: define the textrec size for your cpu}
+            {$endif}
         end;
 {$endif cpu16bitaddr}
       end;
