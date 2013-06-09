@@ -1088,8 +1088,7 @@ interface
           internalerror(2013050101);
       end;
 
-      if current_settings.x86memorymodel in x86_near_code_models then
-        AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
+      AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
       if current_settings.x86memorymodel in x86_near_data_models then
         begin
           { NASM complains if you put a missing section in the GROUP directive, so }
