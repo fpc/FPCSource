@@ -60,6 +60,7 @@ unit cgx86;
         procedure a_call_name_static(list : TAsmList;const s : string);override;
         procedure a_call_name_static_near(list : TAsmList;const s : string);
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
+        procedure a_call_reg_near(list : TAsmList;reg : tregister);
         procedure a_call_ref(list : TAsmList;ref : treference);override;
         procedure a_call_ref_near(list : TAsmList;ref : treference);
 
@@ -806,6 +807,12 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_reg(list : TAsmList;reg : tregister);
+      begin
+        a_call_reg_near(list,reg);
+      end;
+
+
+    procedure tcgx86.a_call_reg_near(list: TAsmList; reg: tregister);
       begin
         list.concat(taicpu.op_reg(A_CALL,S_NO,reg));
       end;
