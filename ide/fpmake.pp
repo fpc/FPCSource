@@ -146,6 +146,8 @@ begin
     P.Dependencies.Add('rtl');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
+    { This one is only needed if DEBUG is set }
+    P.Dependencies.Add('regexpr');
     P.Dependencies.Add('gdbint',AllOSes-[morphos]);
     P.Dependencies.Add('graph',[go32v2]);
 
