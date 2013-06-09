@@ -443,6 +443,10 @@ interface
                       ) then
                   AsmWrite('NEAR ');
 {$endif i8086}
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far then
+                  AsmWrite('far ');
+{$endif i8086}
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
