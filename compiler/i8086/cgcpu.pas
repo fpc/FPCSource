@@ -43,6 +43,11 @@ unit cgcpu;
 
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
 
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
+        procedure a_call_name_far(list : TAsmList;const s : string; weak: boolean);
+        procedure a_call_name_static(list : TAsmList;const s : string);override;
+        procedure a_call_name_static_far(list : TAsmList;const s : string);
+
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -154,6 +159,52 @@ unit cgcpu;
           else
             internalerror(2013030201);
         end;
+      end;
+
+
+    procedure tcg8086.a_call_name(list: TAsmList; const s: string; weak: boolean);
+      begin
+        if current_settings.x86memorymodel in x86_far_code_models then
+          a_call_name_far(list,s,weak)
+        else
+          a_call_name_near(list,s,weak);
+      end;
+
+
+    procedure tcg8086.a_call_name_far(list: TAsmList; const s: string;
+      weak: boolean);
+      var
+        sym : tasmsymbol;
+        r : treference;
+      begin
+        if not(weak) then
+          sym:=current_asmdata.RefAsmSymbol(s)
+        else
+          sym:=current_asmdata.WeakRefAsmSymbol(s);
+        reference_reset_symbol(r,sym,0,sizeof(pint));
+        r.refaddr:=addr_far;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+      end;
+
+
+    procedure tcg8086.a_call_name_static(list: TAsmList; const s: string);
+      begin
+        if current_settings.x86memorymodel in x86_far_code_models then
+          a_call_name_static_far(list,s)
+        else
+          a_call_name_static_near(list,s);
+      end;
+
+
+    procedure tcg8086.a_call_name_static_far(list: TAsmList; const s: string);
+      var
+        sym : tasmsymbol;
+        r : treference;
+      begin
+        sym:=current_asmdata.RefAsmSymbol(s);
+        reference_reset_symbol(r,sym,0,sizeof(pint));
+        r.refaddr:=addr_far;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
 
 
