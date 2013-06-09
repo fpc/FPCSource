@@ -53,9 +53,11 @@ unit cgx86;
         procedure inc_fpu_stack;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
+        procedure a_call_name_near(list : TAsmList;const s : string; weak: boolean);
+        procedure a_call_name_static(list : TAsmList;const s : string);override;
+        procedure a_call_name_static_near(list : TAsmList;const s : string);
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
         procedure a_call_ref(list : TAsmList;ref : treference);override;
-        procedure a_call_name_static(list : TAsmList;const s : string);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
@@ -742,6 +744,12 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      begin
+        a_call_name_near(list,s,weak);
+      end;
+
+
+    procedure tcgx86.a_call_name_near(list : TAsmList;const s : string; weak: boolean);
       var
         sym : tasmsymbol;
         r : treference;
@@ -776,6 +784,12 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name_static(list : TAsmList;const s : string);
+      begin
+        a_call_name_static_near(list,s);
+      end;
+
+
+    procedure tcgx86.a_call_name_static_near(list : TAsmList;const s : string);
       var
         sym : tasmsymbol;
         r : treference;
