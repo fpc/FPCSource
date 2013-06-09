@@ -1199,7 +1199,7 @@ Type
   PExitProcInfo = ^TExitProcInfo;
   TExitProcInfo = Record
     Next     : PExitProcInfo;
-    SaveExit : Pointer;
+    SaveExit : CodePointer;
     Proc     : TProcedure;
   End;
 const
