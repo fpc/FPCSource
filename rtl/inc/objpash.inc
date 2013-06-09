@@ -425,7 +425,7 @@
        end;
 
   var
-    DispCallByIDProc : pointer;
+    DispCallByIDProc : codepointer;
 
   const
     { for safe as operator support }
