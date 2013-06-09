@@ -25,6 +25,8 @@ Const
   KEY_READ               = Windows.KEY_READ;
   KEY_SET_VALUE          = Windows.KEY_SET_VALUE;
   KEY_WRITE              = Windows.KEY_WRITE;
+  KEY_WOW64_64KEY        = Windows.KEY_WOW64_64KEY;
+  KEY_WOW64_32KEY        = Windows.KEY_WOW64_32KEY;
 
 {$else}
 
@@ -47,5 +49,7 @@ Const
   KEY_READ               = $20019;
   KEY_SET_VALUE          = 2;
   KEY_WRITE              = $20006;
+  KEY_WOW64_64KEY        = $100;
+  KEY_WOW64_32KEY        = $200;
   
 {$endif windows}
