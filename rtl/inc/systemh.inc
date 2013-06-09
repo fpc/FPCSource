@@ -131,6 +131,28 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
+
+  {$if defined(FPC_MM_TINY)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_SMALL)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_MEDIUM)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_COMPACT)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_LARGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_HUGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_HUGE}
+  {$else}
+    {$fatal No memory model defined}
+  {$endif}
 {$endif CPUI8086}
 
 {$ifdef CPUX86_64}
@@ -294,6 +316,8 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -303,19 +327,25 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
 {$endif CPU32}
 
 {$ifdef CPU16}
   SizeInt = Integer;
   SizeUInt = Word;
-  PtrInt = Integer;
-  PtrUInt = Word;
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    PtrInt = Longint;
+    PtrUInt = DWord;
+  {$else}
+    PtrInt = Integer;
+    PtrUInt = Word;
+  {$endif}
   ValSInt = Integer;
   ValUInt = Word;
+  NativeInt  = Integer;
+  NativeUint = Word;
 {$endif CPU16}
-
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
