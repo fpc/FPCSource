@@ -452,6 +452,9 @@ type
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
+  PCodePointer        = ^CodePointer;
+  PPCodePointer       = ^PCodePointer;
+
   PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;

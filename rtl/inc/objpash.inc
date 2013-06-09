@@ -83,7 +83,7 @@
        { to access the message table from outside }
        TMsgStrTable = record
           name   : pshortstring;
-          method : pointer;
+          method : codepointer;
        end;
 
        PMsgStrTable = ^TMsgStrTable;
