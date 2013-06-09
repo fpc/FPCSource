@@ -14,7 +14,7 @@
 
         cpu 8086
 
-        segment text use16
+        segment text use16 class=code
 
         extern PASCALMAIN
         extern dos_psp

@@ -1068,12 +1068,12 @@ interface
           internalerror(2013050101);
       end;
 
-      if current_settings.x86memorymodel in [mm_small,mm_tiny] then
+      if current_settings.x86memorymodel in x86_near_code_models then
+        AsmWriteLn('SECTION .text use16 class=code');
+      if current_settings.x86memorymodel in x86_near_data_models then
         begin
           { NASM complains if you put a missing section in the GROUP directive, so }
           { we add empty declarations to make sure they exist, even if empty }
-          if current_settings.x86memorymodel=mm_tiny then
-            AsmWriteLn('SECTION .text');
           AsmWriteLn('SECTION .rodata');
           AsmWriteLn('SECTION .data');
           { WLINK requires class=bss in order to leave the BSS section out of the executable }
@@ -1083,8 +1083,8 @@ interface
             AsmWriteLn('GROUP dgroup text rodata data bss')
           else
             AsmWriteLn('GROUP dgroup rodata data bss');
-          AsmWriteLn('SECTION .text');
         end;
+      AsmWriteLn('SECTION .text');
 {$else i8086}
       AsmWriteLn('BITS 32');
 {$endif i8086}
