@@ -1213,20 +1213,7 @@ implementation
                 result := OS_ADDR;
             end;
           procvardef:
-            begin
-              if not tprocvardef(def).is_addressonly then
-                {$if sizeof(pint) = 2}
-                  result:=OS_32
-                {$elseif sizeof(pint) = 4}
-                  result:=OS_64
-                {$elseif sizeof(pint) = 8}
-                  result:=OS_128
-                {$else}
-                  internalerror(200707141)
-                {$endif}
-              else
-                result:=OS_ADDR;
-            end;
+            result:=int_cgsize(def.size);
           stringdef :
             begin
               if is_ansistring(def) or is_wide_or_unicode_string(def) then
