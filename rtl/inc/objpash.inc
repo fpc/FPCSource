@@ -181,7 +181,8 @@
        end;
 
        TMethod = record
-         Code, Data : Pointer;
+         Code : CodePointer;
+         Data : Pointer;
        end;
 
        TObject = class
