@@ -754,6 +754,8 @@ implementation
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
         pd : tprocdef;
+        proc_addr_size: TCgSize;
+        proc_addr_voidptrdef: tdef;
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
@@ -773,6 +775,16 @@ implementation
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
          regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
+
+         proc_addr_size:=int_cgsize(procdefinition.address_size);
+{$ifdef i8086}
+         if po_far in procdefinition.procoptions then
+           proc_addr_voidptrdef:=voidfarpointertype
+         else
+           proc_addr_voidptrdef:=voidnearpointertype;
+{$else i8086}
+         proc_addr_voidptrdef:=voidpointertype;
+{$endif i8086}
 
          { Include Function result registers }
          if (not is_void(resultdef)) then
@@ -860,7 +872,7 @@ implementation
                    begin
                      { Load VMT value in register }
                      { todo: fix vmt type for high level cg }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,voidpointertype,voidpointertype,false);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,proc_addr_voidptrdef,proc_addr_voidptrdef,false);
                      vmtreg:=methodpointer.location.register;
                    end;
 
@@ -876,11 +888,11 @@ implementation
                      wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifndef x86}
-                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
 {$endif not x86}
-                 reference_reset_base(href,vmtreg,vmtoffset,sizeof(pint));
+                 reference_reset_base(href,vmtreg,vmtoffset,procdefinition.address_size);
 {$ifndef x86}
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,pvreg);
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
 {$endif not x86}
 
                  { Load parameters that are in temporary registers in the
@@ -968,22 +980,22 @@ implementation
            begin
               secondpass(right);
 
-              pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+              pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
               { Only load OS_ADDR from the reference (when converting to hlcg:
                 watch out with procedure of object) }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
+                cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,right.location.reference,pvreg)
               else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                 begin
                   { in case left is a method pointer and we are on a big endian target, then
                     the method address is stored in registerhi }
                   if (target_info.endian=endian_big) and (right.location.size in [OS_PAIR,OS_SPAIR]) then
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.registerhi,pvreg)
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.registerhi,pvreg)
                   else
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location.register,pvreg);
+                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.register,pvreg);
                 end
               else
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,right.location,pvreg);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
