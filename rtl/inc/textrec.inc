@@ -43,7 +43,7 @@ type
     openfunc,
     inoutfunc,
     flushfunc,
-    closefunc : pointer;
+    closefunc : codepointer;
     UserData  : array[1..32] of byte;
     name      : array[0..textrecnamelength-1] of char;
     LineEnd   : TLineEndStr;
