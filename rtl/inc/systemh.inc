@@ -584,7 +584,7 @@ const
   Max_Frame_Dump : Word = 8;
 
 { Exit Procedure handling consts and types  }
-  ExitProc : pointer = nil;
+  ExitProc : codepointer = nil;
   Erroraddr: pointer = nil;
   Errorcode: Word    = 0;
 
