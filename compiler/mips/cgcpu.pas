@@ -593,17 +593,16 @@ procedure TCGMIPS.a_load_const_reg(list: tasmlist; size: TCGSize; a: tcgint; reg
 begin
   if (a = 0) then
     list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
-  { LUI allows to set the upper 16 bits, so we'll take full advantage of it }
-  else if (a and aint($ffff)) = 0 then
-    list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 16))
   else if (a >= simm16lo) and (a <= simm16hi) then
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
     list.concat(taicpu.op_reg_reg_const(A_ORI, reg, NR_R0, a))
   else
-  begin
-    list.concat(taicpu.op_reg_const(A_LI, reg, aint(a) ));
-  end;
+    begin
+      list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 16));
+      if (a and aint($FFFF))<>0 then
+        list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,a and aint($FFFF)));
+    end;
 end;
 
 
@@ -1250,8 +1249,8 @@ begin
     end
   else
     begin
-      list.concat(Taicpu.Op_reg_const(A_LI,NR_R9,-LocalSize));
-      list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R9));
+      a_load_const_reg(list,OS_32,-LocalSize,NR_R9);
+      list.concat(Taicpu.Op_reg_reg_reg(A_ADDU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R9));
       if assigned(ra_save) then
         list.concat(ra_save);
       if assigned(framesave) then
