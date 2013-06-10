@@ -139,7 +139,7 @@ interface
           aitconst_16bit_unaligned,
           aitconst_32bit_unaligned,
           aitconst_64bit_unaligned,
-          { i8086 far pointer }
+          { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
           aitconst_farptr
         );
 
