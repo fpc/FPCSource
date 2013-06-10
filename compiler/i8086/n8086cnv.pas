@@ -84,14 +84,13 @@ implementation
               end
             else
               begin
-                { TODO: update for far procs }
                 { conversion from a procedure of object/nested procvar to plain procvar }
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                       { code field is the first one }
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
