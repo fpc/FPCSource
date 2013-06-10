@@ -398,6 +398,8 @@ interface
 {$ifdef i8086}
                   if o.ref^.refaddr=addr_far then
                     asmwrite('far ')
+                  else if o.ref^.refaddr=addr_seg then
+                    asmwrite('SEG ')
                   else
                     asmwrite('word ');
 {$endif i8086}
