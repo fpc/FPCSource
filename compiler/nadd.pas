@@ -1618,12 +1618,22 @@ implementation
                     { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
                     { optimized away, since the result already was a voidpointer, so   }
                     { use a charpointer instead (JM)                                   }
-{$ifndef jvm}
-                    inserttypeconv_internal(left,charpointertype);
-                    inserttypeconv_internal(right,charpointertype);
-{$else jvm}
+{$if defined(jvm)}
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
+{$elseif defined(i8086)}
+                    { we don't have a charfarpointertype yet, so for far pointers we use bytefarpointertype }
+                    if is_farpointer(left.resultdef) then
+                      inserttypeconv_internal(left,bytefarpointertype)
+                    else
+                      inserttypeconv_internal(left,charpointertype);
+                    if is_farpointer(right.resultdef) then
+                      inserttypeconv_internal(right,bytefarpointertype)
+                    else
+                      inserttypeconv_internal(right,charpointertype);
+{$else}
+                    inserttypeconv_internal(left,charpointertype);
+                    inserttypeconv_internal(right,charpointertype);
 {$endif jvm}
                  end;
                ltn,lten,gtn,gten:
