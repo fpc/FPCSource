@@ -3634,6 +3634,7 @@ A*2WI_Turn on/off the usage of import sections (Windows)
 8*2Wm<x>_Set memory model
 8*3WmTiny_Tiny memory model
 8*3WmSmall_Small memory model (default)
+8*3WmMedium_Medium memory model
 3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
