@@ -83,6 +83,15 @@ implementation
 const
   fCarry = 1;
 
+  { used for an offset fixup for accessing the proc parameters in asm routines
+    that use nostackframe. We can't use the parameter name directly, because
+    i8086 doesn't support sp relative addressing. }
+{$ifdef FPC_X86_CODE_FAR}
+  extra_param_offset = 2;
+{$else FPC_X86_CODE_FAR}
+  extra_param_offset = 0;
+{$endif FPC_X86_CODE_FAR}
+
 type
   PFarByte = ^Byte;far;
   PFarChar = ^Char;far;
