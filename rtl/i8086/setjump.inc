@@ -42,11 +42,10 @@ asm
   jnz @@L1
   inc ax
 @@L1:
-  mov dx, word [bx + Jmp_buf.ip]
   mov bp, word [bx + Jmp_buf.bp]
   mov sp, word [bx + Jmp_buf.sp]
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also
-  jmp dx
+  jmp word [bx + Jmp_buf.ip]
 end;
