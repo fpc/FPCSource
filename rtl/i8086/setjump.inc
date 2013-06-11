@@ -20,7 +20,7 @@ asm
   push bp
   mov bp, sp
 
-  mov bx, ss:[bp + 4]
+  mov bx, ss:[bp + 4 + extra_param_offset]  // S
   mov word [bx + Jmp_buf.bp], ax
   mov word [bx + Jmp_buf.sp], di
   mov di, word ss:[di]
@@ -36,8 +36,8 @@ asm
   push bp
   mov bp, sp
 
-  mov bx, ss:[bp + 6]
-  mov ax, ss:[bp + 4]
+  mov bx, ss:[bp + 6 + extra_param_offset]  // S
+  mov ax, ss:[bp + 4 + extra_param_offset]  // value
   test ax, ax
   jnz @@L1
   inc ax
