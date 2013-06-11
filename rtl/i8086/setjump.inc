@@ -24,7 +24,7 @@ asm
   mov word [bx + Jmp_buf.bp], ax
   mov word [bx + Jmp_buf.sp], di
   mov di, word ss:[di]
-  mov word [bx + Jmp_buf.pc], di
+  mov word [bx + Jmp_buf.ip], di
 
   xor ax, ax
   pop bp
@@ -42,7 +42,7 @@ asm
   jnz @@L1
   inc ax
 @@L1:
-  mov dx, word [bx + Jmp_buf.pc]
+  mov dx, word [bx + Jmp_buf.ip]
   mov bp, word [bx + Jmp_buf.bp]
   mov sp, word [bx + Jmp_buf.sp]
   // we should also clear the fpu

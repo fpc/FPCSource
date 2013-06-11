@@ -17,7 +17,7 @@ Type
   jmp_buf = packed record
 //    bx,si,di: Word;
     bp,sp: Word;
-    pc: Pointer;
+    ip: Word;
   end;
   PJmp_buf = ^jmp_buf;
 
