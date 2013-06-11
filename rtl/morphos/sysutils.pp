@@ -25,6 +25,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 { Include platform independent interface part }
@@ -75,7 +76,6 @@ begin
   dosLock:=Lock(buffer,accessmode);
 end;
 
-
 function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
 var
   tmpSecs: DWord;
@@ -87,7 +87,7 @@ begin
     tmpSecs:=(ds_Days * (24 * 60 * 60)) + (ds_Minute * 60) + (ds_Tick div TICKS_PER_SECOND);
 
   Amiga2Date(tmpSecs,@clockData);
-{$WARNING TODO: implement msec values, if possible}
+{$HINT TODO: implement msec values, if possible}
   with clockData do begin
      success:=TryEncodeDate(year,month,mday,tmpDate) and
               TryEncodeTime(hour,min,sec,0,tmpTime);
@@ -96,6 +96,26 @@ begin
   result:=ComposeDateTime(tmpDate,tmpTime);
 end;
 
+function DateTimeToAmigaDateStamp(dateTime: TDateTime): TDateStamp;
+var
+  tmpSecs: DWord;
+  clockData: TClockData;
+  tmpMSec: Word;
+begin
+{$HINT TODO: implement msec values, if possible}
+  with clockData do begin
+     DecodeDate(dateTime,year,month,mday);
+     DecodeTime(dateTime,hour,min,sec,tmpMSec);
+  end;
+
+  tmpSecs:=Date2Amiga(@clockData);
+
+  with result do begin
+     ds_Days:= tmpSecs div (24 * 60 * 60);
+     ds_Minute:= (tmpSecs div 60) mod ds_Days;
+     ds_Tick:= (((tmpSecs mod 60) mod ds_Minute) mod ds_Days) * TICKS_PER_SECOND;
+  end;
+end;
 
 
 {****************************************************************************
@@ -142,14 +162,40 @@ begin
   if validFile then
     result:=DateTimeToFileDate(tmpDateTime)
   else
-    result:=-1;   
+    result:=-1;
 end;
 
 
 function FileSetDate(Handle, Age: LongInt) : LongInt;
+var
+  tmpDateStamp: TDateStamp;
+  tmpName: array[0..255] of char;
 begin
-  // Impossible under unix from FileHandle !!
-  FileSetDate:=-1;
+  result:=0;
+  if (Handle <> 0) then begin
+    if (NameFromFH(Handle, @tmpName, 256) = dosTrue) then begin
+      tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
+      if not SetFileDate(@tmpName,@tmpDateStamp) then begin
+        IoErr(); // dump the error code for now (TODO)
+        result:=-1;
+      end;
+    end;
+  end;
+end;
+
+
+function FileSetDate(const FileName: string; Age: LongInt) : LongInt;
+var
+  tmpDateStamp: TDateStamp;
+  tmpName: array[0..255] of char;
+begin
+  result:=0;
+  tmpName:=PathConv(FileName)+#0;
+  tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
+  if not SetFileDate(@tmpName,@tmpDateStamp) then begin
+    IoErr(); // dump the error code for now (TODO)
+    result:=-1;
+  end;
 end;
 
 
@@ -158,16 +204,24 @@ var
   dosResult: LongInt;
   tmpStr   : array[0..255] of char;
 begin
- tmpStr:=PathConv(FileName)+#0;
- dosResult:=Open(@tmpStr,MODE_NEWFILE);
- if dosResult=0 then
-   dosResult:=-1
- else
-   AddToList(MOS_fileList,dosResult);
+  dosResult:=-1;
 
- FileCreate:=dosResult;
+  { Open file in MODDE_READWRITE, then truncate it by hand rather than
+    opening it in MODE_NEWFILE, because that returns an exclusive lock 
+    so some operations might fail with it (KB) }
+  tmpStr:=PathConv(FileName)+#0;
+  dosResult:=Open(@tmpStr,MODE_READWRITE);
+  if dosResult = 0 then exit;
+
+  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 
+    AddToList(MOS_fileList,dosResult)
+  else begin
+    dosClose(dosResult);
+    dosResult:=-1;
+  end;
+
+  FileCreate:=dosResult;
 end;
-
 
 function FileCreate(const FileName: string; Rights: integer): LongInt;
 begin
