@@ -762,7 +762,7 @@ begin
     end
     else
     begin
-    	  if ( count shl 64 )<>0 then
+         if ( count < 64 ) then
           z1 := a0 shr ( count and 63 )
         else
           z1 := 0;
@@ -2855,7 +2855,7 @@ begin
     if ( roundBits<>0 ) then
       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     zSig := ( zSig + roundIncrement ) shr 10;
-    zSig := zSig and not( ord( ( roundBits xor $200 ) = 0 ) and roundNearestEven );
+    zSig := zSig and not(qword(ord( ( roundBits xor $200 ) = 0 ) and roundNearestEven ));
     if ( zSig = 0 ) then
       zExp := 0;
     result:=packFloat64( zSign, zExp, zSig );
@@ -5853,8 +5853,8 @@ Begin
           begin
             intval.low := int64rec(AbsA).low;
             intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.high, intval.low, - shiftCount,
-               intval.high, intval.low);
+            shift64RightJamming( intval.low, intval.high, - shiftCount,
+               intval.low, intval.high);
             int64rec(absA).low := intval.low;
             int64rec(absA).high := intval.high;
           end
@@ -8210,7 +8210,7 @@ begin
     aSig0 := aSig0 or ord( aSig1 <> 0 );
     shift64RightJamming( aSig0, 18, aSig0 );
     zSig := aSig0;
-    if ( aExp or zSig )<>0 then
+    if ( aExp<>0 ) or (aSig0 <> 0 ) then
     begin
         zSig := zSig or $40000000;
         dec(aExp,$3F81);
@@ -8248,7 +8248,7 @@ begin
     end;
     shortShift128Left( aSig0, aSig1, 14, aSig0, aSig1 );
     aSig0 := aSig0 or ord( aSig1 <> 0 );
-    if ( aExp or aSig0 )<>0 then
+    if ( aExp<>0 ) or (aSig0 <> 0 ) then
     begin
         aSig0 := aSig0 or int64( $4000000000000000 );
         dec(aExp,$3C01);
