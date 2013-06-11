@@ -18,6 +18,9 @@ Type
 //    bx,si,di: Word;
     bp,sp: Word;
     ip: Word;
+{$ifdef FPC_X86_CODE_FAR}
+    cs: Word;
+{$endif FPC_X86_CODE_FAR}
   end;
   PJmp_buf = ^jmp_buf;
 
