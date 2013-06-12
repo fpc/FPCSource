@@ -440,9 +440,9 @@ implementation
       begin
         case o of
           A_CALL,
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           A_JCXZ,
-{$endif i386}
+{$endif defined(i386) or defined(i8086)}
           A_JECXZ,
 {$ifdef x86_64}
           A_JRCXZ,
