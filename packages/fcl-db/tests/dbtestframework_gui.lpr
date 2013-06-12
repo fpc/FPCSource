@@ -30,6 +30,7 @@ uses
   TestDBBasics,
   TestDatasources,
   TestBufDatasetStreams,
+  TestSQLDB,
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestDBExport;

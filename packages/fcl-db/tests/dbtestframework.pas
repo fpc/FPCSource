@@ -24,6 +24,7 @@ uses
   TestDatasources,
   TestDBBasics,
   TestBufDatasetStreams,
+  TestSQLDB,
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestDBExport,
