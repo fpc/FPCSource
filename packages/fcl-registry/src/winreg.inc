@@ -151,8 +151,8 @@ begin
   Result:=false;
   OldAccess:=FAccess;
   try
-    FAccess:=KEY_QUERY_VALUE or KEY_ENUMERATE_SUB_KEYS or STANDARD_RIGHTS_READ or
-      (OldAccess and (KEY_WOW64_64KEY or KEY_WOW64_32KEY));
+    FAccess:=KEY_QUERY_VALUE or KEY_ENUMERATE_SUB_KEYS or STANDARD_RIGHTS_READ 
+    {$ifndef WinCE} or (OldAccess and (KEY_WOW64_64KEY or KEY_WOW64_32KEY)) {$endif};
     KeyHandle:=GetKey(Key);
     if KeyHandle<>0 then
       begin
@@ -210,7 +210,7 @@ Var
   OldAccess: LongWord;
 begin
   OldAccess:=fAccess;
-  fAccess:=KEY_READ or (OldAccess and (KEY_WOW64_64KEY or KEY_WOW64_32KEY));
+  fAccess:=KEY_READ {$ifndef WinCE} or (OldAccess and (KEY_WOW64_64KEY or KEY_WOW64_32KEY)) {$endif};
   try
     Result:=OpenKey(Key, False);
   finally

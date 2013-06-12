@@ -25,9 +25,10 @@ Const
   KEY_READ               = Windows.KEY_READ;
   KEY_SET_VALUE          = Windows.KEY_SET_VALUE;
   KEY_WRITE              = Windows.KEY_WRITE;
+{$ifndef WinCE}
   KEY_WOW64_64KEY        = Windows.KEY_WOW64_64KEY;
   KEY_WOW64_32KEY        = Windows.KEY_WOW64_32KEY;
-
+{$endif WinCE}
 {$else}
 
 Const
