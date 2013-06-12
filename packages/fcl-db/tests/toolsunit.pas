@@ -19,6 +19,7 @@ Const
 type
 
   { TDBConnector }
+
   TDBConnectorClass = class of TDBConnector;
   TDBConnector = class(TPersistent)
      private
@@ -53,8 +54,8 @@ type
        procedure DropNDatasets; virtual; abstract;
        procedure DropFieldDataset; virtual; abstract;
      public
-       constructor create; virtual;
-       destructor destroy; override;
+       constructor Create; virtual;
+       destructor Destroy; override;
 
        procedure DataEvent(dataset :TDataset);
 
@@ -72,15 +73,7 @@ type
        property FormatSettings: TFormatSettings read FFormatSettings;
      end;
 
-  { TDBBasicsTestSetup }
-
-  TDBBasicsTestSetup = class(TTestSetup)
-    protected
-      procedure OneTimeSetup; override;
-      procedure OneTimeTearDown; override;
-    end;
-
-{ TTestDataLink }
+  { TTestDataLink }
 
   TTestDataLink = class(TDataLink)
      protected
@@ -92,6 +85,14 @@ type
        procedure DataEvent(Event: TDataEvent; Info: longint); override;
 {$ENDIF}
      end;
+
+  { TDBBasicsTestSetup }
+
+  TDBBasicsTestSetup = class(TTestSetup)
+    protected
+      procedure OneTimeSetup; override;
+      procedure OneTimeTearDown; override;
+    end;
 
 const
   DataEventnames : Array [TDataEvent] of String[21] =
@@ -224,7 +225,9 @@ uses
 
 var DBConnectorRefCount: integer;
 
-constructor TDBConnector.create;
+{ TDBConnector }
+
+constructor TDBConnector.Create;
 begin
   FFormatSettings.DecimalSeparator:='.';
   FFormatSettings.ThousandSeparator:=#0;
@@ -237,7 +240,7 @@ begin
   CreateNDatasets;
 end;
 
-destructor TDBConnector.destroy;
+destructor TDBConnector.Destroy;
 begin
   if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
@@ -255,6 +258,11 @@ begin
   raise exception.create('Connector does not support tests for unidirectional datasets');
 end;
 
+procedure TDBConnector.DataEvent(dataset : tdataset);
+begin
+  DataEvents := DataEvents + 'DataEvent' + ';';
+end;
+
 procedure TDBConnector.ResetNDatasets;
 begin
   DropNDatasets;
@@ -267,16 +275,101 @@ begin
   CreateFieldDataset;
 end;
 
-procedure TDBConnector.DataEvent(dataset : tdataset);
-
-begin
-  DataEvents := DataEvents + 'DataEvent' + ';';
-end;
-
 function TDBConnector.GetNDataset(n: integer): TDataset;
 begin
   Result := GetNDataset(False,n);
 end;
+
+function TDBConnector.GetNDataset(AChange : Boolean; n: integer): TDataset;
+begin
+  if AChange then FChangedDatasets[n] := True;
+  Result := InternalGetNDataset(n);
+  FUsedDatasets.Add(Result);
+end;
+
+function TDBConnector.GetFieldDataset: TDataSet;
+begin
+  Result := GetFieldDataset(False);
+end;
+
+function TDBConnector.GetFieldDataset(AChange: Boolean): TDataSet;
+begin
+  if AChange then FChangedFieldDataset := True;
+  Result := InternalGetFieldDataset;
+  FUsedDatasets.Add(Result);
+end;
+
+function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
+begin
+  result := GetNDataset(AChange,NForTraceDataset);
+end;
+
+procedure TDBConnector.StartTest;
+begin
+  // Do nothing?
+end;
+
+procedure TDBConnector.StopTest;
+var i : integer;
+    ds : TDataset;
+begin
+  for i := 0 to FUsedDatasets.Count -1 do
+    begin
+    ds := tdataset(FUsedDatasets[i]);
+    if ds.active then ds.Close;
+    ds.Free;
+    end;
+  FUsedDatasets.Clear;
+  if FChangedFieldDataset then ResetFieldDataset;
+  for i := 0 to MaxDataSet do if FChangedDatasets[i] then
+    begin
+    ResetNDatasets;
+    fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
+    break;
+    end;
+end;
+
+
+{ TTestDataLink }
+
+procedure TTestDataLink.DataSetScrolled(Distance: Integer);
+begin
+  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
+  inherited DataSetScrolled(Distance);
+end;
+
+procedure TTestDataLink.DataSetChanged;
+begin
+  DataEvents := DataEvents + 'DataSetChanged;';
+  inherited DataSetChanged;
+end;
+
+{$IFDEF FPC}
+procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
+{$ELSE}
+procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
+{$ENDIF}
+begin
+  if Event <> deFieldChange then
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';'
+  else
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + TField(info).FieldName + ';';
+  inherited DataEvent(Event, Info);
+end;
+
+
+{ TDBBasicsTestSetup }
+
+procedure TDBBasicsTestSetup.OneTimeSetup;
+begin
+  InitialiseDBConnector;
+end;
+
+procedure TDBBasicsTestSetup.OneTimeTearDown;
+begin
+  FreeDBConnector;
+end;
+
 
 procedure ReadIniFile;
 
@@ -401,96 +494,6 @@ begin
   end;
 end;
 
-
-{ TTestDataLink }
-
-procedure TTestDataLink.DataSetScrolled(Distance: Integer);
-begin
-  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
-  inherited DataSetScrolled(Distance);
-end;
-
-procedure TTestDataLink.DataSetChanged;
-begin
-  DataEvents := DataEvents + 'DataSetChanged;';
-  inherited DataSetChanged;
-end;
-
-{$IFDEF FPC}
-procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
-{$ELSE}
-procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
-{$ENDIF}
-begin
-  if Event <> deFieldChange then
-    DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';'
-  else
-    DataEvents := DataEvents + DataEventnames[Event] + ':' + TField(info).FieldName + ';';
-  inherited DataEvent(Event, Info);
-end;
-
-{ TDBConnector }
-
-function TDBConnector.GetNDataset(AChange : Boolean; n: integer): TDataset;
-begin
-  if AChange then FChangedDatasets[n] := True;
-  Result := InternalGetNDataset(n);
-  FUsedDatasets.Add(Result);
-end;
-
-function TDBConnector.GetFieldDataset: TDataSet;
-begin
-  Result := GetFieldDataset(False);
-end;
-
-function TDBConnector.GetFieldDataset(AChange: Boolean): TDataSet;
-begin
-  if AChange then FChangedFieldDataset := True;
-  Result := InternalGetFieldDataset;
-  FUsedDatasets.Add(Result);
-end;
-
-function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
-begin
-  result := GetNDataset(AChange,NForTraceDataset);
-end;
-
-procedure TDBConnector.StartTest;
-begin
-// Do nothing?
-end;
-
-procedure TDBConnector.StopTest;
-var i : integer;
-    ds : TDataset;
-begin
-  for i := 0 to FUsedDatasets.Count -1 do
-    begin
-    ds := tdataset(FUsedDatasets[i]);
-    if ds.active then ds.Close;
-    ds.Free;
-    end;
-  FUsedDatasets.Clear;
-  if FChangedFieldDataset then ResetFieldDataset;
-  for i := 0 to MaxDataSet do if FChangedDatasets[i] then
-    begin
-    ResetNDatasets;
-    fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
-    break;
-    end;
-end;
-
-{ TDBBasicsTestSetup }
-
-procedure TDBBasicsTestSetup.OneTimeSetup;
-begin
-  InitialiseDBConnector;
-end;
-
-procedure TDBBasicsTestSetup.OneTimeTearDown;
-begin
-  FreeDBConnector;
-end;
 
 initialization
   ReadIniFile;
