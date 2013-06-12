@@ -1009,6 +1009,8 @@ class constructor TUnicodeStringManager.ClassCreate;
       stdin etc, so setting this to utf-8 or so won't help) }
     if DefaultSystemCodePage=65535 then
       DefaultSystemCodePage:=20127;
+    DefaultFileSystemCodePage:=DefaultSystemCodePage;
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16BE;
   end;
 

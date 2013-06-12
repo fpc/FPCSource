@@ -568,7 +568,8 @@ function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP';
 function Win32GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   begin
     case stdcp of
-      scpAnsi: Result := GetACP;
+      scpAnsi,
+      scpFileSystemSingleByte: Result := GetACP;
       scpConsoleInput: Result := GetConsoleCP;
       scpConsoleOutput: Result := GetConsoleOutputCP;
     end;
@@ -612,5 +613,7 @@ procedure InitWin32Widestrings;
 
     DefaultSystemCodePage:=GetACP;
     DefaultUnicodeCodePage:=CP_UTF16;
+    DefaultFileSystemCodePage:=DefaultSystemCodePage;
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
   end;
 

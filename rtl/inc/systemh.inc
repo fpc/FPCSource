@@ -447,8 +447,11 @@ Type
 { procedure type }
   TProcedure  = Procedure;
 
-{ platform dependent types }
+{ platform-dependent types }
 {$i sysosh.inc}
+
+{ platform-dependent defines }
+{$i rtldefs.inc}
 
 {*****************************************************************************
                    TextRec/FileRec exported to allow compiler to take size
