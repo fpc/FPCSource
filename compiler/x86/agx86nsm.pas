@@ -677,15 +677,18 @@ interface
                        begin
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
-                         s:=tai_const(hp).sym.name;
+                         AsmWrite(tai_const(hp).sym.name);
                          if tai_const(hp).value<>0 then
-                           s:=s+tostr_with_plus(tai_const(hp).value);
-                         s:=s+',SEG '+tai_const(hp).sym.name;
+                           AsmWrite(tostr_with_plus(tai_const(hp).value));
+                         AsmLn;
+                         AsmWrite(ait_const2str[aitconst_16bit]);
+                         AsmWrite('SEG ');
+                         AsmWrite(tai_const(hp).sym.name);
                        end
                      else
-                       s:=tostr(lo(longint(tai_const(hp).value)))+','+
-                          tostr(hi(longint(tai_const(hp).value)));
-                     AsmWriteLn(s);
+                       AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
+                                tostr(hi(longint(tai_const(hp).value))));
+                     AsmLn;
                    end;
 {$endif i8086}
                  aitconst_32bit,
