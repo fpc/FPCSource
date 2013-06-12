@@ -1579,8 +1579,7 @@ begin
       FreeFldBuffers;
     // Some SQLConnections does not support statement [un]preparation,
     //  so let them do cleanup f.e. cancel pending queries and/or free resultset
-    if not FStatement.Prepared then
-      FStatement.DoUnprepare;
+    if not Prepared then FStatement.DoUnprepare;
     end
   else
     begin
@@ -1892,8 +1891,9 @@ begin
     Execute;
   finally
     // Cursor has to be assigned, or else the prepare went wrong before PrepareStatment was
-    // called, so UnPrepareStatement shoudn't be called either
-    if (not IsPrepared) and (assigned(database)) and (assigned(Cursor)) then TSQLConnection(database).UnPrepareStatement(Cursor);
+    //   called, so UnPrepareStatement shoudn't be called either
+    // Don't deallocate cursor; f.e. RowsAffected is requested later
+    if not Prepared and (assigned(Database)) and (assigned(Cursor)) then TSQLConnection(Database).UnPrepareStatement(Cursor);
   end;
 end;
 
@@ -1983,6 +1983,7 @@ begin
   inherited OnChangeSQL(Sender);
   If CheckParams and Assigned(FMasterLink) then
     FMasterLink.RefreshParamNames;
+  FQuery.ServerIndexDefs.Updated:=false;
 end;
 
 destructor TQuerySQLStatement.Destroy;

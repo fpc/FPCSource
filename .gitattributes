@@ -2212,6 +2212,7 @@ packages/fcl-db/tests/testjsondataset.pp svneol=native#text/plain
 packages/fcl-db/tests/testleaks.sh svneol=native#text/plain
 packages/fcl-db/tests/testspecifictbufdataset.pas svneol=native#text/plain
 packages/fcl-db/tests/testspecifictdbf.pas svneol=native#text/plain
+packages/fcl-db/tests/testsqldb.pas svneol=native#text/pascal
 packages/fcl-db/tests/testsqlfiles.lpi svneol=native#text/plain
 packages/fcl-db/tests/testsqlfiles.lpr svneol=native#text/plain
 packages/fcl-db/tests/testsqlscanner.lpi svneol=native#text/plain

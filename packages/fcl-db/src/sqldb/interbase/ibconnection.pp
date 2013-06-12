@@ -1385,6 +1385,11 @@ begin
   if not assigned(Transaction) then
     DatabaseError(SErrConnTransactionnSet);
 
+  if (length(TableName)>2) and (TableName[1]='"') and (TableName[length(TableName)]='"') then
+    TableName := AnsiDequotedStr(TableName, '"')
+  else
+    TableName := UpperCase(TableName);
+
   qry := tsqlquery.Create(nil);
   qry.transaction := Transaction;
   qry.database := Self;
@@ -1408,7 +1413,7 @@ begin
               'rel_con.rdb$index_name = ind.rdb$index_name '+
             'where '+
               '(ind_seg.rdb$index_name = ind.rdb$index_name) and '+
-              '(ind.rdb$relation_name=''' +  UpperCase(TableName) +''') '+
+              '(ind.rdb$relation_name=' + QuotedStr(TableName) + ') '+
             'order by '+
               'ind.rdb$index_name;');
     open;
