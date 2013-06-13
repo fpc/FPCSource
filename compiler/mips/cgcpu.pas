@@ -39,7 +39,6 @@ type
 
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
-    function getfpuregister(list: tasmlist; size: Tcgsize): Tregister; override;
 ///    { needed by cg64 }
     procedure make_simple_ref(list: tasmlist; var ref: treference);
     procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
@@ -442,15 +441,6 @@ begin
   rg[R_FPUREGISTER].Free;
   rg[R_MMREGISTER].Free;
   inherited done_register_allocators;
-end;
-
-
-function TCGMIPS.getfpuregister(list: tasmlist; size: Tcgsize): Tregister;
-begin
-  if size = OS_F64 then
-    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFD)
-  else
-    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFS);
 end;
 
 

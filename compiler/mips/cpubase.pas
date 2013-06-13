@@ -296,10 +296,17 @@ unit cpubase;
 
     function cgsize2subreg(regtype: tregistertype; s:tcgsize):tsubregister;
       begin
-        if s in [OS_64,OS_S64] then
-          cgsize2subreg:=R_SUBQ
+        case regtype of
+          R_FPUREGISTER:
+            if s=OS_F32 then
+              result:=R_SUBFS
+            else if s=OS_F64 then
+              result:=R_SUBFD
+            else
+              internalerror(2013021301);
         else
-          cgsize2subreg:=R_SUBWHOLE;
+          result:=R_SUBWHOLE;
+        end;
       end;
 
 
