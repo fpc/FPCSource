@@ -14,24 +14,26 @@ uses
 
 type
 
+  { TSQLDBTestCase }
+
+  TSQLDBTestCase = class(TTestCase)
+    protected
+      procedure SetUp; override;
+      procedure TearDown; override;
+  end;
+
   { TTestTSQLQuery }
 
-  TTestTSQLQuery = class(TTestCase)
+  TTestTSQLQuery = class(TSQLDBTestCase)
   private
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestUpdateServerIndexDefs;
   end;
 
   { TTestTSQLConnection }
 
-  TTestTSQLConnection = class(TTestCase)
+  TTestTSQLConnection = class(TSQLDBTestCase)
   private
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure ReplaceMe;
   end;
@@ -114,38 +116,23 @@ begin
 end;
 
 
-procedure TTestTSQLQuery.SetUp;
+{ TSQLDBTestCase }
+
+procedure TSQLDBTestCase.SetUp;
 begin
-  inherited;
+  inherited SetUp;
   InitialiseDBConnector;
   DBConnector.StartTest;
 end;
 
-procedure TTestTSQLConnection.SetUp;
-begin
-  inherited;
-  InitialiseDBConnector;
-  DBConnector.StartTest;
-end;
-
-procedure TTestTSQLQuery.TearDown;
+procedure TSQLDBTestCase.TearDown;
 begin
   DBConnector.StopTest;
   if assigned(DBConnector) then
     with TSQLDBConnector(DBConnector) do
       Transaction.Rollback;
   FreeDBConnector;
-  inherited;
-end;
-
-procedure TTestTSQLConnection.TearDown;
-begin
-  DBConnector.StopTest;
-  if assigned(DBConnector) then
-    with TSQLDBConnector(DBConnector) do
-      Transaction.Rollback;
-  FreeDBConnector;
-  inherited;
+  inherited TearDown;
 end;
 
 

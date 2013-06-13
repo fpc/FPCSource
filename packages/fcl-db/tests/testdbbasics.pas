@@ -18,14 +18,11 @@ type
 
   { TTestDBBasics }
 
-  TTestDBBasics = class(TTestCase)
+  TTestDBBasics = class(TDBBasicsTestCase)
   private
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
@@ -66,13 +63,10 @@ type
 
   { TTestBufDatasetDBBasics }
 {$ifdef fpc}
-  TTestBufDatasetDBBasics = class(TTestCase)
+  TTestBufDatasetDBBasics = class(TDBBasicsTestCase)
   private
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
@@ -120,14 +114,11 @@ type
 
   { TTestCursorDBBasics }
 
-  TTestCursorDBBasics = class(TTestCase)
+  TTestCursorDBBasics = class(TDBBasicsTestCase)
   private
     procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
@@ -175,6 +166,7 @@ type
     procedure OneTimeTearDown; override;
   end;
 {$endif fpc}
+
 implementation
 
 uses
@@ -186,19 +178,9 @@ uses
   strutils,
   FmtBCD;
 
-type THackDataLink=class(TdataLink);
+type THackDataLink=class(TDataLink);
 
 { TTestCursorDBBasics }
-
-procedure TTestCursorDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestCursorDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 
 procedure TTestCursorDBBasics.TestAppendOnEmptyDataset;
 begin
@@ -615,16 +597,6 @@ begin
     end;
 end;
 
-
-procedure TTestDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 
 procedure TTestCursorDBBasics.TestOldValueObsolete;
 var v : variant;
@@ -2782,19 +2754,8 @@ begin
   DBConnector.TestUniDirectional:=false;
   inherited OneTimeTearDown;
 end;
-
-{ TTestBufDatasetDBBasics }
-
-procedure TTestBufDatasetDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestBufDatasetDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 {$endif fpc}
+
 
 initialization
 {$ifdef fpc}

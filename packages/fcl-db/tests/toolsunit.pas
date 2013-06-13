@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB, testdecorator;
+  Classes, SysUtils, DB, testdecorator, fpcunit;
 
 Const
   // Number of "N" test datasets (as opposed to FieldDatasets) that will be created
@@ -93,6 +93,14 @@ type
       procedure OneTimeSetup; override;
       procedure OneTimeTearDown; override;
     end;
+
+  { TDBBasicsTestCase }
+  TDBBasicsTestCase = class(TTestCase)
+    protected
+      procedure SetUp; override;
+      procedure TearDown; override;
+  end;
+
 
 const
   DataEventnames : Array [TDataEvent] of String[21] =
@@ -368,6 +376,20 @@ end;
 procedure TDBBasicsTestSetup.OneTimeTearDown;
 begin
   FreeDBConnector;
+end;
+
+{ TDBBasicsTestCase }
+
+procedure TDBBasicsTestCase.SetUp;
+begin
+  inherited SetUp;
+  DBConnector.StartTest;
+end;
+
+procedure TDBBasicsTestCase.TearDown;
+begin
+  DBConnector.StopTest;
+  inherited TearDown;
 end;
 
 
