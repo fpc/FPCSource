@@ -3468,6 +3468,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
             End;
         end;
         float32_round_to_int.float32 := packFloat32( aSign, 0, 0 );
+        exit;
       End;
     lastBitMask := 1;
     {_____________________________!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
@@ -3774,6 +3775,7 @@ Function float32_mul(a: float32rec; b: float32rec ) : float32rec; compilerproc;
         if ( (aSig<>0) OR ( ( bExp = $FF ) AND  (bSig<>0) ) ) then
         Begin
             float32_mul.float32 := propagateFloat32NaN( a.float32, b.float32 );
+            exit;
         End;
         if ( ( bExp OR  bSig ) = 0 ) then
         Begin
@@ -3863,6 +3865,7 @@ Function float32_div(a: float32rec;b: float32rec ): float32rec; compilerproc;
             if ( bSig <> 0) then
             Begin
               float32_div.float32 := propagateFloat32NaN( a.float32, b.float32 );
+              exit;
             End;
             float_raise( float_flag_invalid );
             float32_div.float32 := float32_default_nan;
@@ -4849,6 +4852,7 @@ Begin
                exit;
             End;
             packFloat64( zSign, $7FF, 0, 0, out );
+            exit;
         End;
         if ( aExp = 0 ) then
         Begin
