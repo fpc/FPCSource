@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02091 is the last used one
+# 02094 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -388,6 +388,12 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 % the compiler with support for this codepage.
 scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the target OS
 % The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
+scan_e_illegal_peflag=02093_E_Illegal argument for SETPEFLAGS
+% The given argument for SETPEFLAGS is neither a correct named value nor an
+% ordinal value
+scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
+% The given argument for SETPEOPTFLAGS is neither a correct named value nor an
+% ordinal value
 % \end{description}
 #
 # Parser
