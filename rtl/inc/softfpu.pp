@@ -5853,8 +5853,8 @@ Begin
           begin
             intval.low := int64rec(AbsA).low;
             intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.low, intval.high, - shiftCount,
-               intval.low, intval.high);
+            shift64RightJamming( intval.high, intval.low, - shiftCount,
+               intval.high, intval.low);
             int64rec(absA).low := intval.low;
             int64rec(absA).high := intval.high;
           end
