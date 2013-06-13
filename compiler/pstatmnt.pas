@@ -1187,7 +1187,11 @@ implementation
                 code:=cnodeutils.call_fail_node;
              end;
            _ASM :
-             code:=_asm_statement;
+             begin
+               if parse_generic then
+                 Message(parser_e_no_assembler_in_generic);
+               code:=_asm_statement;
+             end;
            _EOF :
              Message(scan_f_end_of_file);
          else
@@ -1365,6 +1369,9 @@ implementation
 {$endif arm}
         srsym : tsym;
       begin
+         if parse_generic then
+           message(parser_e_no_assembler_in_generic);
+
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.returndef) then
            begin

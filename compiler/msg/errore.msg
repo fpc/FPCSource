@@ -398,7 +398,7 @@ scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 #
 # Parser
 #
-# 03333 is the last used one
+# 03334 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1496,6 +1496,8 @@ parser_e_not_allowed_in_record=03332_E_Visibility section "$1" not allowed in re
 parser_e_proc_dir_not_allowed=03333_E_Procedure directive "$1" not allowed here
 % This procedure directive is not allowed in the given context. E.g. "static"
 % is not allowed for instance methods or class operators.
+parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside generics
+% The use of assembler blocks/routines is not allowed inside generics.
 %
 %
 % \end{description}
