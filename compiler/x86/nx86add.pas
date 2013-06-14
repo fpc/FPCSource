@@ -769,7 +769,8 @@ unit nx86add;
         { we can use only right as left operand if the operation is commutative }
         else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
           begin
-            location.register:=right.location.register;
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,location.size,right.location.register,location.register,mms_movescalar);
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -781,11 +782,20 @@ unit nx86add;
           end
         else
           begin
-            if (nf_swapped in flags) then
+            if nf_swapped in flags then
               swapleftright;
 
-            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-            location.register:=left.location.register;
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
+
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -793,6 +803,7 @@ unit nx86add;
             }
             if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
+
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,location.register,mms_movescalar);
           end;
       end;
