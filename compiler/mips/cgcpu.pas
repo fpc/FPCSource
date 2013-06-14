@@ -668,6 +668,7 @@ end;
 procedure TCGMIPS.a_load_reg_reg(list: tasmlist; fromsize, tosize: tcgsize; reg1, reg2: tregister);
 var
   instr: taicpu;
+  done: boolean;
 begin
   if (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
     (
@@ -675,6 +676,7 @@ begin
     ) or  ((fromsize = OS_S8) and
              (tosize = OS_16)) then
   begin
+    done:=true;
     case tosize of
       OS_8:
         list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ff));
@@ -682,13 +684,7 @@ begin
         list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ffff));
       OS_32,
       OS_S32:
-      begin
-        instr := taicpu.op_reg_reg(A_MOVE, reg2, reg1);
-        list.Concat(instr);
-                  { Notify the register allocator that we have written a move instruction so
-                   it can try to eliminate it. }
-        add_move_instruction(instr);
-      end;
+        done:=false;
       OS_S8:
       begin
         list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 24));
@@ -704,17 +700,16 @@ begin
     end;
   end
   else
-  begin
-    if reg1 <> reg2 then
-    begin
-      { same size, only a register mov required }
-      instr := taicpu.op_reg_reg(A_MOVE, reg2, reg1);
-      list.Concat(instr);
-//                { Notify the register allocator that we have written a move instruction so
-//                  it can try to eliminate it. }
+    done:=false;
 
-      add_move_instruction(instr);
-    end;
+  if (not done) and (reg1 <> reg2) then
+  begin
+    { same size, only a register mov required }
+    instr := taicpu.op_reg_reg(A_MOVE, reg2, reg1);
+    list.Concat(instr);
+    { Notify the register allocator that we have written a move instruction so
+      it can try to eliminate it. }
+    add_move_instruction(instr);
   end;
 end;
 
@@ -880,7 +875,6 @@ end;
 
 
 const
-  ops_mul_ovf: array[boolean] of TAsmOp = (A_MULOU, A_MULO);
   ops_mul: array[boolean] of TAsmOp = (A_MULTU,A_MULT);
   ops_add: array[boolean] of TAsmOp = (A_ADDU, A_ADD);
   ops_sub: array[boolean] of TAsmOp = (A_SUBU, A_SUB);
@@ -1024,7 +1018,8 @@ end;
 procedure TCGMIPS.a_op_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
 var
   signed: boolean;
-  hreg: TRegister;
+  hreg,hreg2: TRegister;
+  hl: tasmlabel;
 begin
   ovloc.loc := LOC_VOID;
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
@@ -1049,14 +1044,24 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
+        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], src2, src1));
+        list.concat(taicpu.op_reg(A_MFLO, dst));
         if setflags then
-          { TODO: still uses a macro }
-          list.concat(taicpu.op_reg_reg_reg(ops_mul_ovf[op=OP_IMUL], dst, src2, src1))
-        else
-        begin
-          list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], src2, src1));
-          list.concat(taicpu.op_reg(A_MFLO, dst));
-        end;
+          begin
+            current_asmdata.getjumplabel(hl);
+            hreg:=GetIntRegister(list,OS_INT);
+            list.concat(taicpu.op_reg(A_MFHI,hreg));
+            if (op=OP_IMUL) then
+              begin
+                hreg2:=GetIntRegister(list,OS_INT);
+                list.concat(taicpu.op_reg_reg_const(A_SRA,hreg2,dst,31));
+                a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg2,hreg,hl);
+              end
+            else
+              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg,NR_R0,hl);
+            list.concat(taicpu.op_const(A_BREAK,6));
+            a_label(list,hl);
+          end;
       end;
     OP_AND,OP_OR,OP_XOR:
       begin
