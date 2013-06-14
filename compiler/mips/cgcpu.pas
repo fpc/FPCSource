@@ -1080,29 +1080,44 @@ end;
 procedure TCGMIPS.a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
 var
   tmpreg: tregister;
-  ai : Taicpu;
 begin
-if a = 0 then
-  tmpreg := NR_R0
-else
-begin
-  tmpreg := GetIntRegister(list, OS_INT);
-  a_load_const_reg(list,OS_INT,a,tmpreg);
-end;
-  ai := taicpu.op_reg_reg_sym(A_BC, reg, tmpreg, l);
-  ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
-  list.concat(ai);
-  { Delay slot }
-  list.Concat(TAiCpu.Op_none(A_NOP));
+  if a = 0 then
+    a_cmp_reg_reg_label(list,size,cmp_op,NR_R0,reg,l)
+  else
+    begin
+      tmpreg := GetIntRegister(list,OS_INT);
+      a_load_const_reg(list,OS_INT,a,tmpreg);
+      a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
+    end;
 end;
 
+const
+  TOpCmp2AsmCond_z : array[OC_GT..OC_LTE] of TAsmCond=(
+    C_GTZ,C_LTZ,C_GEZ,C_LEZ
+  );
 
 procedure TCGMIPS.a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   ai : Taicpu;
 begin
-  ai := taicpu.op_reg_reg_sym(A_BC, reg2, reg1, l);
-  ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
+  if ((reg1=NR_R0) or (reg2=NR_R0)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
+    begin
+      if (reg2=NR_R0) then
+        begin
+          ai:=taicpu.op_reg_sym(A_BC,reg1,l);
+          ai.setcondition(inverse_cond(TOpCmp2AsmCond_z[cmp_op]));
+        end
+      else
+        begin
+          ai:=taicpu.op_reg_sym(A_BC,reg2,l);
+          ai.setcondition(TOpCmp2AsmCond_z[cmp_op]);
+        end;
+    end
+  else
+    begin
+      ai:=taicpu.op_reg_reg_sym(A_BC,reg2,reg1,l);
+      ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
+    end;
   list.concat(ai);
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
@@ -1399,7 +1414,6 @@ var
   src, dst: TReference;
   lab:      tasmlabel;
   Count, count2: aint;
-  ai : TaiCpu;
 
   function reference_is_reusable(const ref: treference): boolean;
     begin
@@ -1457,11 +1471,7 @@ begin
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, src.base, src.base, 4));
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, dst.base, dst.base, 4));
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, countreg, countreg, -1));
-      //list.concat(taicpu.op_reg_sym(A_BGTZ, countreg, lab));
-      ai := taicpu.op_reg_reg_sym(A_BC,countreg, NR_R0, lab);
-      ai.setcondition(C_GT);
-      list.concat(ai);
-      list.concat(taicpu.op_none(A_NOP));
+      a_cmp_reg_reg_label(list,OS_INT,OC_GT,NR_R0,countreg,lab);
       len := len mod 4;
     end;
     { unrolled loop }
@@ -1511,7 +1521,6 @@ var
   tmpreg1, countreg: TRegister;
   i:   aint;
   lab: tasmlabel;
-  ai : TaiCpu;
 begin
   if (len > 31) and
     { see comment in g_concatcopy }
@@ -1541,11 +1550,7 @@ begin
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, src.base, src.base, 1));
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, dst.base, dst.base, 1));
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, countreg, countreg, -1));
-      //list.concat(taicpu.op_reg_sym(A_BGTZ, countreg, lab));
-      ai := taicpu.op_reg_reg_sym(A_BC,countreg, NR_R0, lab);
-      ai.setcondition(C_GT);
-      list.concat(ai);
-      list.concat(taicpu.op_none(A_NOP));
+      a_cmp_reg_reg_label(list,OS_INT,OC_GT,NR_R0,countreg,lab);
     end
     else
     begin
