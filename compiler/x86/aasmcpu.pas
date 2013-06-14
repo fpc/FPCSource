@@ -296,7 +296,7 @@ interface
          constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
          constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;_op3 : tregister);
          constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference;_op3 : tregister);
-         constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; const _op3 : treference);
+         constructor op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
          constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
 
          { this is for Jmp instructions }
@@ -375,7 +375,8 @@ implementation
        systems,
        procinfo,
        itcpugas,
-       symsym;
+       symsym,
+       cpuinfo;
 
 {*****************************************************************************
                               Instruction table
@@ -813,14 +814,14 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
+    constructor taicpu.op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
          ops:=3;
-         loadreg(0,_op1);
+         loadref(0,_op1);
          loadreg(1,_op2);
-         loadref(2,_op3);
+         loadreg(2,_op3);
       end;
 
 
@@ -2874,7 +2875,9 @@ implementation
                  (oper[0]^.reg=oper[1]^.reg)
                 ) or
                 (((opcode=A_MOVSS) or (opcode=A_MOVSD) or (opcode=A_MOVQ) or
-                  (opcode=A_MOVAPS) or (OPCODE=A_MOVAPD)) and
+                  (opcode=A_MOVAPS) or (OPCODE=A_MOVAPD) or
+                  (opcode=A_VMOVSS) or (opcode=A_VMOVSD) or (opcode=A_VMOVQ) or
+                  (opcode=A_VMOVAPS) or (OPCODE=A_VMOVAPD)) and
                  (regtype = R_MMREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
@@ -2929,8 +2932,11 @@ implementation
       begin
         { the information in the instruction table is made for the string copy
           operation MOVSD so hack here (FK)
+
+          VMOVSS and VMOVSD has two and three operand flavours, this cannot modelled by x86ins.dat
+          so fix it here (FK)
         }
-        if (opcode=A_MOVSD) and (ops=2) then
+        if ((opcode=A_MOVSD) or (opcode=A_VMOVSS) or (opcode=A_VMOVSD)) and (ops=2) then
           begin
             case opnr of
               0:
@@ -2961,17 +2967,30 @@ implementation
               result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),tmpref,r);
             end;
           R_MMREGISTER :
-            case getsubreg(r) of
-              R_SUBMMD:
-                result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
-              R_SUBMMS:
-                result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
-              R_SUBQ,
-              R_SUBMMWHOLE:
-                result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
-              else
-                internalerror(200506043);
-            end;
+            if current_settings.fputype in fpu_avx_instructionsets then
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),ref,r);
+                R_SUBMMS:
+                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),ref,r);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,ref,r);
+                else
+                  internalerror(200506043);
+              end
+            else
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
+                R_SUBMMS:
+                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
+                else
+                  internalerror(200506043);
+              end;
           else
             internalerror(200401041);
         end;
@@ -3002,17 +3021,30 @@ implementation
               result:=taicpu.op_reg_ref(A_MOV,size,r,tmpref);
             end;
           R_MMREGISTER :
-            case getsubreg(r) of
-              R_SUBMMD:
-                result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
-              R_SUBMMS:
-                result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
-              R_SUBQ,
-              R_SUBMMWHOLE:
-                result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
-              else
-                internalerror(200506042);
-            end;
+            if current_settings.fputype in fpu_avx_instructionsets then
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,ref);
+                R_SUBMMS:
+                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,ref);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,ref);
+                else
+                  internalerror(200506042);
+              end
+            else
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
+                R_SUBMMS:
+                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
+                else
+                  internalerror(200506042);
+              end;
           else
             internalerror(200401041);
         end;

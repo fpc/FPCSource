@@ -276,14 +276,25 @@ implementation
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-            case location.size of
-              OS_F32:
-                op:=A_CVTSI2SS;
-              OS_F64:
-                op:=A_CVTSI2SD;
-              else
-                internalerror(2007120902);
-            end;
+            if UseAVX then
+              case location.size of
+                OS_F32:
+                  op:=A_VCVTSI2SS;
+                OS_F64:
+                  op:=A_VCVTSI2SD;
+                else
+                  internalerror(2007120902);
+              end
+            else
+              case location.size of
+                OS_F32:
+                  op:=A_CVTSI2SS;
+                OS_F64:
+                  op:=A_CVTSI2SD;
+                else
+                  internalerror(2007120902);
+              end;
+
             { don't use left.location.size, because that one may be OS_32/OS_64
               if the lower bound of the orddef >= 0
             }
@@ -301,11 +312,19 @@ implementation
                 begin
                   href:=left.location.reference;
                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,opsize,href,location.register));
+                  if UseAVX then
+                    { VCVTSI2.. requires a second source operand to copy bits 64..127 }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(op,opsize,href,location.register,location.register))
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,opsize,href,location.register));
                 end;
               LOC_REGISTER,
               LOC_CREGISTER:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
+                if UseAVX then
+                    { VCVTSI2.. requires a second source operand to copy bits 64..127 }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,opsize,left.location.register,location.register,location.register))
+                else
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
             end;
           end
         else

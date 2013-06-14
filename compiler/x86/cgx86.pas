@@ -92,6 +92,8 @@ unit cgx86;
         procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
         procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle);override;
+        procedure a_opmm_ref_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;const ref : treference;src,dst : tregister;shuffle : pmmshuffle);override;
+        procedure a_opmm_reg_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;src1,src2,dst : tregister;shuffle : pmmshuffle);override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -126,9 +128,9 @@ unit cgx86;
         procedure check_register_size(size:tcgsize;reg:tregister);
 
         procedure opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
+        procedure opmm_loc_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;loc : tlocation;src,dst : tregister;shuffle : pmmshuffle);
 
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
-      private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
         procedure floatload(list: TAsmList; t : tcgsize;const ref : treference);
@@ -175,7 +177,7 @@ unit cgx86;
 
     function UseAVX: boolean;
       begin
-        Result:=current_settings.fputype in [fpu_avx];
+        Result:=current_settings.fputype in fpu_avx_instructionsets;
       end;
 
     const
@@ -1144,9 +1146,15 @@ unit cgx86;
 
     function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
       const
-        convertop : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
+        convertopsse : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
           (A_MOVSS,A_CVTSS2SD,A_NONE,A_NONE,A_NONE),
           (A_CVTSD2SS,A_MOVSD,A_NONE,A_NONE,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
+        convertopavx : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
+          (A_VMOVSS,A_VCVTSS2SD,A_NONE,A_NONE,A_NONE),
+          (A_VCVTSD2SS,A_VMOVSD,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
@@ -1161,14 +1169,24 @@ unit cgx86;
             OS_64:
               tosize:=OS_F64;
           end;
-        if (fromsize in [low(convertop)..high(convertop)]) and
-           (tosize in [low(convertop)..high(convertop)]) then
-          result:=convertop[fromsize,tosize]
+        if (fromsize in [low(convertopsse)..high(convertopsse)]) and
+           (tosize in [low(convertopsse)..high(convertopsse)]) then
+          begin
+            if UseAVX then
+              result:=convertopavx[fromsize,tosize]
+            else
+              result:=convertopsse[fromsize,tosize];
+          end
         { we can have OS_M64 (record in function result/LOC_MMREGISTER) to
           OS_64 (record in memory/LOC_REFERENCE) }
         else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
                 (fromsize=OS_M64) then
-          result:=A_MOVQ
+          begin
+            if UseAVX then
+              result:=A_VMOVQ
+            else
+              result:=A_MOVQ;
+          end
         else
           internalerror(2010060104);
         if result=A_NONE then
@@ -1179,6 +1197,7 @@ unit cgx86;
     procedure tcgx86.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle);
       var
         instr : taicpu;
+        op : TAsmOp;
       begin
         if shuffle=nil then
           begin
@@ -1200,8 +1219,26 @@ unit cgx86;
           end
         else if shufflescalar(shuffle) then
           begin
-            instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2);
+            op:=get_scalar_mm_op(fromsize,tosize);
+
+            { VMOVSD/SS is not available with two register operands }
+            if op=A_VMOVSD then
+              op:=A_VMOVAPD
+            else if op=A_VMOVSS then
+              op:=A_VMOVAPS;
+
+            { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+            if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg2,reg2)
+            else
+              instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
+
             case get_scalar_mm_op(fromsize,tosize) of
+              A_VMOVAPD,
+              A_VMOVAPS,
+              A_VMOVSS,
+              A_VMOVSD,
+              A_VMOVQ,
               A_MOVSS,
               A_MOVSD,
               A_MOVQ:
@@ -1217,6 +1254,7 @@ unit cgx86;
     procedure tcgx86.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
        var
          tmpref  : treference;
+         op : tasmop;
        begin
          tmpref:=ref;
          make_simple_ref(list,tmpref);
@@ -1233,7 +1271,15 @@ unit cgx86;
 {$endif x86_64}
            end
          else if shufflescalar(shuffle) then
-           list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,tmpref,reg))
+           begin
+             op:=get_scalar_mm_op(fromsize,tosize);
+
+             { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+             if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+               list.concat(taicpu.op_ref_reg_reg(op,S_NO,tmpref,reg,reg))
+             else
+               list.concat(taicpu.op_ref_reg(op,S_NO,tmpref,reg))
+           end
          else
            internalerror(200312252);
        end;
@@ -1243,6 +1289,7 @@ unit cgx86;
        var
          hreg : tregister;
          tmpref  : treference;
+         op : tasmop;
        begin
          tmpref:=ref;
          make_simple_ref(list,tmpref);
@@ -1263,8 +1310,15 @@ unit cgx86;
              if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
                begin
                  hreg:=getmmregister(list,tosize);
-                 list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg,hreg));
-                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref));
+                 op:=get_scalar_mm_op(fromsize,tosize);
+
+                 { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+                 if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,hreg,hreg))
+                 else
+                   list.concat(taicpu.op_reg_reg(op,S_NO,reg,hreg));
+
+                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref))
                end
              else
                list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,tmpref));
@@ -1296,6 +1350,103 @@ unit cgx86;
      end;
 
 
+    procedure tcgx86.opmm_loc_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;src,dst: tregister; shuffle : pmmshuffle);
+      const
+        opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
+          ( { scalar }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDSS,A_NOP,A_VDIVSS,A_NOP,A_NOP,A_VMULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSS,A_NOP,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDSD,A_NOP,A_VDIVSD,A_NOP,A_NOP,A_VMULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSD,A_NOP,A_NOP,A_NOP
+            )
+          ),
+          ( { vectorized/packed }
+            { because the logical packed single instructions have shorter op codes, we use always
+              these
+            }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDPS,A_NOP,A_VDIVPS,A_NOP,A_NOP,A_VMULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPS,A_VXORPS,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDPD,A_NOP,A_VDIVPD,A_NOP,A_NOP,A_VMULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPD,A_VXORPD,A_NOP,A_NOP
+            )
+          )
+        );
+
+      var
+        resultreg : tregister;
+        asmop : tasmop;
+      begin
+        { this is an internally used procedure so the parameters have
+          some constrains
+        }
+        if loc.size<>size then
+          internalerror(2013061108);
+        resultreg:=dst;
+        { deshuffle }
+        //!!!
+        if (shuffle<>nil) and not(shufflescalar(shuffle)) then
+          begin
+            internalerror(2013061107);
+          end
+        else if (shuffle=nil) then
+          asmop:=opmm2asmop[1,size,op]
+        else if shufflescalar(shuffle) then
+          begin
+            asmop:=opmm2asmop[0,size,op];
+            { no scalar operation available? }
+            if asmop=A_NOP then
+              begin
+                { do vectorized and shuffle finally }
+                internalerror(2010060102);
+              end;
+          end
+        else
+          internalerror(2013061106);
+        if asmop=A_NOP then
+          internalerror(2013061105);
+        case loc.loc of
+          LOC_CREFERENCE,LOC_REFERENCE:
+            begin
+              make_simple_ref(current_asmdata.CurrAsmList,loc.reference);
+              list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,src,resultreg));
+            end;
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            list.concat(taicpu.op_reg_reg_reg(asmop,S_NO,loc.register,src,resultreg));
+          else
+            internalerror(2013061104);
+        end;
+        { shuffle }
+        if resultreg<>dst then
+          begin
+            internalerror(2013061103);
+          end;
+      end;
+
+
+    procedure tcgx86.a_opmm_reg_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src1,src2,dst: tregister;shuffle : pmmshuffle);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_MMREGISTER;
+        l.register:=src1;
+        l.size:=size;
+        opmm_loc_reg_reg(list,op,size,l,src2,dst,shuffle);
+      end;
+
+
+    procedure tcgx86.a_opmm_ref_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; src,dst: tregister;shuffle : pmmshuffle);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_REFERENCE;
+        l.reference:=ref;
+        l.size:=size;
+        opmm_loc_reg_reg(list,op,size,l,src,dst,shuffle);
+      end;
+
+
     procedure tcgx86.opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
       const
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
@@ -1319,7 +1470,6 @@ unit cgx86;
             )
           )
         );
-
       var
         resultreg : tregister;
         asmop : tasmop;

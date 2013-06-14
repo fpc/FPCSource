@@ -289,14 +289,24 @@ implementation
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
-             case left.location.size of
-               OS_F32:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
-               OS_F64:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
-               else
-                 internalerror(2007031402);
-             end;
+             if UseAVX then
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031402);
+               end
+             else
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031402);
+               end;
            end
          else
 {$endif x86_64}
@@ -323,14 +333,24 @@ implementation
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
-             case left.location.size of
-               OS_F32:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
-               OS_F64:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
-               else
-                 internalerror(2007031401);
-             end;
+             if UseAVX then
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031401);
+               end
+             else
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031401);
+               end;
            end
          else
 {$endif x86_64}
@@ -371,9 +391,18 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-             location:=left.location;
-             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
+             location_reset(location,LOC_MMREGISTER,left.location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             if UseAVX then
+               begin
+                 hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                 cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location.register,left.location.register,location.register,mms_movescalar);
+               end
+             else
+               begin
+                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
+                 cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,location.register,location.register,mms_movescalar);
+               end;
            end
          else
            begin
@@ -389,15 +418,26 @@ implementation
            begin
              secondpass(left);
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-             location:=left.location;
-             case tfloatdef(resultdef).floattype of
-               s32real:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
-               s64real:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,location.register,location.register));
-               else
-                 internalerror(200510031);
-             end;
+             location_reset(location,LOC_MMREGISTER,left.location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             if UseAVX then
+               case tfloatdef(resultdef).floattype of
+                 s32real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_XMM,left.location.register,location.register,location.register));
+                 s64real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_XMM,left.location.register,location.register,location.register));
+                 else
+                   internalerror(200510031);
+               end
+             else
+               case tfloatdef(resultdef).floattype of
+                 s32real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,left.location.register,location.register));
+                 s64real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,left.location.register,location.register));
+                 else
+                   internalerror(200510031);
+               end;
            end
          else
            begin
