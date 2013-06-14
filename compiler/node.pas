@@ -967,7 +967,10 @@ implementation
     function tnode.allocoptinfo : poptinfo;inline;
       begin
         if not(assigned(optinfo)) then
-          new(optinfo);
+          begin
+            new(optinfo);
+            fillchar(optinfo^,sizeof(optinfo^),0);
+          end;
         result:=optinfo;
       end;
 
