@@ -1920,6 +1920,7 @@ Var
 
 
 begin
+  Result:='';
   CurrentIndent:=CurrentIndent+Indent;  
   For I:=0 to Count-1 do
     begin
