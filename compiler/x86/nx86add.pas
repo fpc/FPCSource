@@ -808,6 +808,7 @@ unit nx86add;
           end;
       end;
 
+
     procedure tx86addnode.second_addfloatavx;
       var
         op : topcg;
@@ -903,6 +904,28 @@ unit nx86add;
                     internalerror(201108163);
                 end;
               end
+          end
+        { left*2 ? }
+        else if (nodetype=muln) and is_constrealnode(right) and is_number_float(trealconstnode(right).value_real) and (trealconstnode(right).value_real=2) then
+          begin
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,location.size,
+              left.location.register,
+              left.location.register,
+              location.register,
+              mms_movescalar);
+          end
+        { right*2 ? }
+        else if (nodetype=muln) and is_constrealnode(left) and is_number_float(trealconstnode(left).value_real) and (trealconstnode(left).value_real=2) then
+          begin
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,right.location.size);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+            cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,location.size,
+              right.location.register,
+              right.location.register,
+              location.register,
+              mms_movescalar);
           end
         { we can use only right as left operand if the operation is commutative }
         else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
@@ -1007,7 +1030,6 @@ unit nx86add;
           end;
         location.resflags:=getresflags(true);
       end;
-
 
 
     procedure tx86addnode.second_cmpfloatavx;
