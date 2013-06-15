@@ -2134,9 +2134,12 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$ifdef x86}
+{$if defined(x86) or defined(mips)}
         { Try replacing the register with the spilltemp. This is useful only
-          for the i386,x86_64 that support memory locations for several instructions }
+          for the i386,x86_64 that support memory locations for several instructions
+
+          For non-x86 it is nevertheless possible to replace moves to/from the register
+          with loads/stores to spilltemp (Sergei) }
         for counter := 0 to pred(regindex) do
           with regs[counter] do
             begin
@@ -2146,7 +2149,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif x86}
+{$endif defined(x86) or defined(mips)}
 
         {
           There are registers that need are spilled. We generate the
