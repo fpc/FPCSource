@@ -1120,6 +1120,17 @@ Unit AoptObj;
       end;
 {$pop}
 
+    function IsJumpToLabel(hp: taicpu): boolean;
+      begin
+        result:=(hp.opcode=aopt_uncondjmp) and
+{$ifdef arm}
+          (hp.condition=c_None) and
+{$endif arm}
+          (hp.oper[0]^.typ = top_ref) and
+          (hp.oper[0]^.ref^.symbol is TAsmLabel);
+      end;
+
+
     function TAOptObj.GetFinalDestination(hp: taicpu; level: longint): boolean;
       {traces sucessive jumps to their final destination and sets it, e.g.
        je l1                je l3
@@ -1148,13 +1159,7 @@ Unit AoptObj;
                (taicpu(p1).is_jmp) then
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
-                 (((taicpu(p1).opcode = aopt_uncondjmp) and
-{$ifdef arm}
-                   (taicpu(p1).condition = C_None) and
-{$endif arm}
-                   (taicpu(p1).oper[0]^.typ = top_ref) and
-                   (assigned(taicpu(p1).oper[0]^.ref^.symbol)) and
-                   (taicpu(p1).oper[0]^.ref^.symbol is TAsmLabel)) or
+                 (IsJumpToLabel(taicpu(p1)) or
                   conditions_equal(taicpu(p1).condition,hp.condition)) or
                  { the next instruction after the label where the jump hp arrives
                    is the opposite of hp (so this one is never taken), but after
@@ -1165,13 +1170,7 @@ Unit AoptObj;
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
                   (taicpu(p2).is_jmp) and
-                  (((taicpu(p2).opcode = aopt_uncondjmp) and
-{$ifdef arm}
-                    (taicpu(p1).condition = C_None) and
-{$endif arm}
-                    (taicpu(p2).oper[0]^.typ = top_ref) and
-                    (assigned(taicpu(p2).oper[0]^.ref^.symbol)) and
-                    (taicpu(p2).oper[0]^.ref^.symbol is TAsmLabel)) or
+                   (IsJumpToLabel(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1)) then
                 begin
@@ -1255,13 +1254,7 @@ Unit AoptObj;
                       { the following if-block removes all code between a jmp and the next label,
                         because it can never be executed
                       }
-                      if (taicpu(p).opcode = aopt_uncondjmp) and
-{$ifdef arm}
-                         (taicpu(p).condition = C_None) and
-{$endif arm}
-                         (taicpu(p).oper[0]^.typ = top_ref) and
-                         (assigned(taicpu(p).oper[0]^.ref^.symbol)) and
-                         (taicpu(p).oper[0]^.ref^.symbol is TAsmLabel) then
+                      if IsJumpToLabel(taicpu(p)) then
                         begin
                           hp2:=p;
                           while GetNextInstruction(hp2, hp1) and
@@ -1271,7 +1264,6 @@ Unit AoptObj;
                                 if (hp1.typ = ait_instruction) and
                                    taicpu(hp1).is_jmp and
                                    (taicpu(hp1).oper[0]^.typ = top_ref) and
-                                   assigned(taicpu(hp1).oper[0]^.ref^.symbol) and
                                    (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) then
                                    TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
                                 { don't kill start/end of assembler block,
@@ -1305,13 +1297,7 @@ Unit AoptObj;
                               if hp1.typ = ait_label then
                                 SkipLabels(hp1,hp1);
                               if (tai(hp1).typ=ait_instruction) and
-                                  (taicpu(hp1).opcode=aopt_uncondjmp) and
-{$ifdef arm}
-                                  (taicpu(hp1).condition=C_None) and
-{$endif arm}
-                                  (taicpu(hp1).oper[0]^.typ = top_ref) and
-                                  (assigned(taicpu(hp1).oper[0]^.ref^.symbol)) and
-                                  (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) and
+                                  IsJumpToLabel(taicpu(hp1)) and
                                   GetNextInstruction(hp1, hp2) and
                                   FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp2) then
                                 begin
