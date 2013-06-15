@@ -62,7 +62,8 @@ Type
       fpu_ssse3,
       fpu_sse41,
       fpu_sse42,
-      fpu_avx
+      fpu_avx,
+      fpu_avx2
      );
 
 
@@ -102,11 +103,14 @@ Const
      'SSSE3',
      'SSE41',
      'SSE42',
-     'AVX'
+     'AVX',
+     'AVX2'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
-   sse_doublescalar : set of tfputype = [fpu_sse2,fpu_sse3];
+   sse_singlescalar : set of tfputype = [fpu_sse..fpu_avx2];
+   sse_doublescalar : set of tfputype = [fpu_sse2..fpu_avx2];
+
+   fpu_avx_instructionsets = [fpu_avx,fpu_avx2];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
