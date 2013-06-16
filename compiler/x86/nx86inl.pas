@@ -400,6 +400,8 @@ implementation
                end
              else
                begin
+                 if left.location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER] then
+                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                  cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
                  cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,location.register,location.register,mms_movescalar);
                end;
@@ -417,7 +419,7 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
              location_reset(location,LOC_MMREGISTER,left.location.size);
              location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
              if UseAVX then
