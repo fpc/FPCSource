@@ -428,6 +428,8 @@ implementation
        IF_SSE42  = $00200000;
        IF_AVX    = $00200000;
        IF_SANDYBRIDGE = $00200000;
+       IF_BMI1 = $00200000;
+       IF_BMI2 = $00200000;
 
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
