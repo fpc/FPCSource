@@ -42,6 +42,7 @@ Type
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
+	ParaIncludeCfgPath,
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
@@ -2161,14 +2162,17 @@ var
   level : longint;
   option_read : boolean;
   oldfilemode : byte;
+  ConfigFile: TPathStr;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
   Option_read:=false;
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
+  if not ParaIncludeCfgPath.FindFile(fileName,true,ConfigFile) then
+    ConfigFile := ExpandFileName(filename);
 { Maybe It's Directory ?}   //Jaro Change:
-  if PathExists(filename,false) then
+  if PathExists(ConfigFile,false) then
     begin
        Message1(option_config_is_dir,filename);
        exit;
@@ -2177,7 +2181,7 @@ begin
   Message1(option_using_file,filename);
   oldfilemode:=filemode;
   filemode:=0;
-  assign(f,ExpandFileName(filename));
+  assign(f,ConfigFile);
   {$push}{$I-}
    reset(f);
   {$pop}
@@ -2288,6 +2292,14 @@ begin
                 begin
                   Delete(opts,1,1);
                   Interpret_file(opts);
+                  Option_read:=true;
+                end
+              else
+               if (s='CFGDIR') then
+                begin
+                  Delete(opts,1,1);
+                  DefaultReplacements(opts);
+                  ParaIncludeCfgPath.AddPath(opts,false);
                   Option_read:=true;
                 end;
             end;
@@ -2657,6 +2669,7 @@ begin
   OptCPUSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
+  ParaIncludeCfgPath:=TSearchPathList.Create;
   ParaIncludePath:=TSearchPathList.Create;
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
@@ -2669,6 +2682,7 @@ end;
 
 destructor TOption.destroy;
 begin
+  ParaIncludeCfgPath.Free;
   ParaIncludePath.Free;
   ParaObjectPath.Free;
   ParaUnitPath.Free;
