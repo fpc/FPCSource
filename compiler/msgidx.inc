@@ -420,7 +420,7 @@ const
   parser_e_feature_unsupported_for_vm=03320;
   parser_e_jvm_invalid_virtual_constructor_call=03321;
   parser_e_method_lower_visibility=03322;
-  parser_w_nostackframe_without_assembler=03323;
+  parser_e_nostackframe_without_assembler=03323;
   parser_e_nostackframe_with_locals=03324;
   parser_e_cannot_generate_property_getter_setter=03325;
   parser_w_overriding_property_getter_setter=03326;
@@ -976,7 +976,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 69135;
+  MsgTxtSize = 69123;
 
   MsgIdxMax : array[1..20] of longint=(
     26,95,335,121,88,56,126,27,202,63,
