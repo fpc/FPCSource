@@ -38,7 +38,7 @@ interface
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -61,7 +61,7 @@ implementation
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
+       ncon,nmat,nadd,ncal,nset,ncnv,ninl,nld,nflw,nmem,nutils,
        { codegen }
        ncgutil,ngenutil,
        { parser }
@@ -103,15 +103,13 @@ implementation
                   case sym.typ of
                     fieldvarsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_load,sym);
                         def:=tfieldvarsym(sym).vardef;
                       end;
                     procsym :
                       begin
-                        if (symtablestack.top.currentvisibility<>vis_private) then
-                          addsymref(sym);
+                        addsymref(sym);
                         pl.addsym(sl_call,sym);
                       end;
                     else
@@ -325,32 +323,6 @@ implementation
                 end;
             end;
 
-          procedure add_parameters(p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              i: integer;
-              orig, hparavs: tparavarsym;
-            begin
-              for i := 0 to p.parast.SymList.Count - 1 do
-                begin
-                  orig:=tparavarsym(p.parast.SymList[i]);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  readprocdef.parast.insert(hparavs);
-                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                  writeprocdef.parast.insert(hparavs);
-                end;
-            end;
-
-          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocdef);
-            var
-              hparavs: tparavarsym;
-            begin
-              inc(paranr);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              readprocdef.parast.insert(hparavs);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              writeprocdef.parast.insert(hparavs);
-            end;
-
       var
          sym : tsym;
          srsymtable: tsymtable;
@@ -371,6 +343,10 @@ implementation
          storedprocdef: tprocvardef;
          readprocdef,
          writeprocdef : tprocdef;
+ {$ifdef jvm}
+          orgaccesspd : tprocdef;
+          wrongvisibility : boolean;
+ {$endif}
       begin
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
@@ -457,7 +433,7 @@ implementation
                 index parameter doesn't count (PFV) }
               if paranr>0 then
                 begin
-                  add_parameters(p,readprocdef,writeprocdef);
+                  p.add_accessor_parameters(readprocdef,writeprocdef);
                   include(p.propoptions,ppo_hasparameters);
                 end;
            end;
@@ -499,7 +475,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                   p.add_index_parameter(paranr,readprocdef,writeprocdef);
                    pt.free;
                 end;
            end
@@ -514,21 +490,9 @@ implementation
                  (overridden.typ=propertysym) and
                  not(is_dispinterface(astruct)) then
                 begin
+                  tpropertysym(overridden).makeduplicate(p,readprocdef,writeprocdef,paranr);
                   p.overriddenpropsym:=tpropertysym(overridden);
-                  { inherit all type related entries }
-                  p.indexdef:=tpropertysym(overridden).indexdef;
-                  p.propdef:=tpropertysym(overridden).propdef;
-                  p.index:=tpropertysym(overridden).index;
-                  p.default:=tpropertysym(overridden).default;
-                  p.propoptions:=tpropertysym(overridden).propoptions + [ppo_overrides];
-                  if ppo_hasparameters in p.propoptions then
-                    begin
-                      p.parast:=tpropertysym(overridden).parast.getcopy;
-                      add_parameters(p,readprocdef,writeprocdef);
-                      paranr:=p.parast.SymList.Count;
-                    end;
-                  if ppo_indexed in p.propoptions then
-                    add_index_parameter(paranr,p,readprocdef,writeprocdef);
+                  include(p.propoptions,ppo_overrides);
                 end
               else
                 begin
@@ -570,15 +534,21 @@ implementation
                           else
                             begin
 {$ifdef jvm}
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_read].procdef);
+                              wrongvisibility:=tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility;
+                              if (prop_auto_getter_prefix<>'') and
+                                 (wrongvisibility or
+                                   (p.propaccesslist[palt_read].firstsym^.sym.RealName<>prop_auto_getter_prefix+p.RealName)) then
+                                jvm_create_getter_for_property(p,orgaccesspd)
                               { if the visibility of the getter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
                                 property is visible }
-                              if (tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility) then
-                                begin
-                                  p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
-                                  p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
-                                end;
+                              else if wrongvisibility then
+                               begin
+                                 p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
+                                 p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
+                               end;
 {$endif jvm}
                             end;
                         end;
@@ -601,8 +571,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_getter_for_property(p);
+                             if (prop_auto_getter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_getter_for_property(p,nil);
 {$endif}
                            end
                           else
@@ -646,11 +617,17 @@ implementation
                           else
                             begin
 {$ifdef jvm}
-                              { if the visibility of the getter is lower than
+                              orgaccesspd:=tprocdef(p.propaccesslist[palt_write].procdef);
+                              wrongvisibility:=tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility;
+                              if (prop_auto_setter_prefix<>'') and
+                                 ((sym.RealName<>prop_auto_setter_prefix+p.RealName) or
+                                  wrongvisibility) then
+                                jvm_create_setter_for_property(p,orgaccesspd)
+                              { if the visibility of the setter is lower than
                                 the visibility of the property, wrap it so that
                                 we can call it from all contexts in which the
                                 property is visible }
-                              if (tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility) then
+                              else if wrongvisibility then
                                 begin
                                   p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
                                   p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
@@ -677,8 +654,9 @@ implementation
                                visibility of the property, wrap it in a getter
                                so that we can access it from all contexts in
                                which the property is visibile }
-                             if (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_setter_for_property(p);
+                             if (prop_auto_setter_prefix<>'') or
+                                (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_setter_for_property(p,nil);
 {$endif}
                            end
                           else
@@ -1247,9 +1225,9 @@ implementation
           abssym : tabsolutevarsym;
           pt,hp  : tnode;
           st     : tsymtable;
-          {$ifdef i386}
+          {$if defined(i386) or defined(i8086)}
           tmpaddr : int64;
-          {$endif}
+          {$endif defined(i386) or defined(i8086)}
         begin
           abssym:=nil;
           { only allowed for one var }
@@ -1290,9 +1268,9 @@ implementation
              else
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
               abssym.absseg:=false;
-              if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                   try_to_consume(_COLON) then
                 begin
                   pt.free;
@@ -1580,12 +1558,12 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc);
       var
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype : tdef;
+         hdef,casetype,tmpdef : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
@@ -1640,6 +1618,7 @@ implementation
                if token=_ID then
                  begin
                    vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
                      potentially mixed visibility, and then the individual
@@ -1660,13 +1639,32 @@ implementation
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
-             if not (vd_class in options) and
-               (is_object(hdef) or is_record(hdef)) and
-               is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(hdef)) then
+             if not (vd_class in options) then
                begin
-                 Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
-                 { for error recovery or compiler will crash later }
-                 hdef:=generrordef;
+                 if hdef.typ=arraydef then
+                   begin
+                     tmpdef:=hdef;
+                     while (tmpdef.typ=arraydef) do
+                       begin
+                         { dynamic arrays are allowed }
+                         if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                           begin
+                             tmpdef:=nil;
+                             break;
+                           end;
+                         tmpdef:=tarraydef(tmpdef).elementdef;
+                       end;
+                   end
+                 else
+                   tmpdef:=hdef;
+                 if assigned(tmpdef) and
+                     (is_object(tmpdef) or is_record(tmpdef)) and
+                     is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(tmpdef)) then
+                   begin
+                     Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
+                     { for error recovery or compiler will crash later }
+                     hdef:=generrordef;
+                   end;
                end;
 
              { Process procvar directives }
@@ -1824,6 +1822,15 @@ implementation
               maxsize:=0;
               maxalignment:=0;
               maxpadalign:=0;
+
+              { already inside a variant record? if not, setup a new variantdesc chain }
+              if not(assigned(variantdesc)) then
+                variantdesc:=@trecorddef(trecordsymtable(recst).defowner).variantrecdesc;
+
+              { else just concat the info to the given one }
+              new(variantdesc^);
+              fillchar(variantdesc^^,sizeof(tvariantrecdesc),0);
+
               { including a field declaration? }
               fieldvs:=nil;
               sorg:=orgpattern;
@@ -1834,6 +1841,7 @@ implementation
                   consume(_ID);
                   consume(_COLON);
                   fieldvs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;
               read_anon_type(casetype,true);
@@ -1854,6 +1862,7 @@ implementation
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
               UnionDef:=trecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
+
               startvarrecsize:=UnionSymtable.datasize;
               { align the bitpacking to the next byte }
               UnionSymtable.datasize:=startvarrecsize;
@@ -1861,12 +1870,24 @@ implementation
               startpadalign:=Unionsymtable.padalignment;
               symtablestack.push(UnionSymtable);
               repeat
+                SetLength(variantdesc^^.branches,length(variantdesc^^.branches)+1);
+                fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
+                  sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
                   pt:=comp_expr(true,false);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
-                  if try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true,false));
+                  { iso pascal does not support ranges in variant record definitions }
+                  if not(m_iso in current_settings.modeswitches) and try_to_consume(_POINTPOINT) then
+                    pt:=crangenode.create(pt,comp_expr(true,false))
+                  else
+                    begin
+                      with variantdesc^^.branches[high(variantdesc^^.branches)] do
+                        begin
+                          SetLength(values,length(values)+1);
+                          values[high(values)]:=tordconstnode(pt).value;
+                        end;
+                    end;
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)
@@ -1882,9 +1903,10 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_record_fields([vd_record],nil);
+                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
+
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,unionsymtable.datasize);
                 maxalignment:=max(maxalignment,unionsymtable.fieldalignment);

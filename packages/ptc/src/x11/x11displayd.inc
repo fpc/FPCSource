@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -42,7 +42,8 @@ type
                    PTC_X11_DITHER,
                    PTC_X11_FULLSCREEN_CURSOR_VISIBLE,
                    PTC_X11_WINDOWED_CURSOR_INVISIBLE,
-                   PTC_X11_GRAB_MOUSE);
+                   PTC_X11_GRAB_MOUSE,
+                   PTC_X11_USE_OPENGL);
   TX11Flags = set of TX11FlagsEnum;
 
 type
@@ -88,11 +89,12 @@ type
     function GetPitch: Integer; virtual; abstract;
     function GetFormat: IPTCFormat;
     function GetArea: IPTCArea;
+    procedure HandleKeyEvent(const e: TXKeyEvent);
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); virtual;
     destructor Destroy; override;
 
-    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat); virtual; abstract;
+    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); virtual; abstract;
 
     { This will always return a windowed console. The first version
       fills the whole window, the second one has a custom size }
@@ -142,6 +144,7 @@ type
     function Clip: IPTCArea;
 
     function IsFullScreen: Boolean; virtual; abstract;
+    function IsOpen: Boolean; virtual; abstract;
 
     { set flags (only used internally now!) }
     procedure SetFlags(AFlags: TX11Flags);
@@ -164,4 +167,8 @@ type
     property Pitch: Integer read GetPitch;
     property Area: IPTCArea read GetArea;
     property Format: IPTCFormat read GetFormat;
+
+    procedure OpenGL_SwapBuffers; virtual;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); virtual;
+    function OpenGL_GetSwapInterval: Integer; virtual;
   end;

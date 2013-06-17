@@ -29,3 +29,9 @@ Procedure int_Addref (Data,TypeInfo : Pointer); [external name 'FPC_ADDREF'];
 Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZE'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count : longint); [external name 'FPC_FINALIZE_ARRAY'];
 
+{$if defined(FPC_HAS_FEATURE_RTTI) and not defined(cpujvm)}
+type
+  TRTTIProc=procedure(Data,TypeInfo:Pointer);
+
+procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc); forward;
+{$endif FPC_HAS_FEATURE_RTTI and not cpujvm}

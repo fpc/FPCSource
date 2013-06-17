@@ -44,6 +44,17 @@ begin
   end;
 end;
 
+procedure testFormatBCD(const Format: string; BCD: TBCD; Output: string);
+var s: string;
+begin
+  s := FormatBCD(Format, BCD);
+  if s <> Output then
+  begin
+    writeln('FormatBCD ''', Format, ''': ', s, ' Expected: ', Output);
+    inc(ErrorCount);
+  end;
+end;
+
 procedure testBCDPrecScale(const s: string; const prec,scale: integer);
 var bcd: TBCD;
 begin
@@ -53,6 +64,24 @@ begin
     writeln('StrToBcd: ', bcdtostr(bcd), ' (', s, ') Precision:', bcd.Precision, ' Scale: ', BCDScale(bcd));
     inc(ErrorCount);
   end;
+end;
+
+procedure testBCDToCurr(const s: string; c1: currency);
+var c2: currency;
+    b1, b2: boolean;
+begin
+  b1 := c1<>0;
+  b2 := BCDToCurr(StrToBCD(s), c2);
+  if b1 <> b2 then
+    begin
+    writeln('BCDToCurr for ', s, ' returned ', b2,' but expected ', b1);
+    inc(ErrorCount);
+    end
+  else if b2 and (c1 <> c2) then
+    begin
+    writeln('BCDToCurr for ', s, ' returned ', c2,' but expected ', c1);
+    inc(ErrorCount);
+    end;
 end;
 
 procedure testBCDCompare(bcd1,bcd2: TBCD; res: integer);
@@ -122,6 +151,7 @@ begin
   testBCDToStrF(bcdtostrf(bcd, ffFixed, 30, 4), '123456789123456789,1235'); //no thousand separators
   testBCDToStrF(bcdtostrf(bcd, ffNumber, 30, 5), '123 456 789 123 456 789,12345'); //with thousand separators
   testBCDToStrF(bcdtostrf(bcd, ffCurrency, 30, 2), '123 456 789 123 456 789,12 $'); //with thousand separators
+  testBCDToStrF(bcdtostrf(bcd, ffExponent, 9, 2), '1,23456789E+17');
 
   FS.DecimalSeparator:='.';
   FS.ThousandSeparator:=',';
@@ -130,8 +160,46 @@ begin
   bcd:=strtobcd('123456789123456789.12345');
   testBCDToStrF(bcdtostr(bcd), '123456789123456789.12345');
   testBCDToStrF(bcdtostrf(bcd, ffFixed, 30, 3), '123456789123456789.123'); //no thousand separators
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 30, 0), '123456789123456789');
   testBCDToStrF(bcdtostrf(bcd, ffNumber, 30, 6), '123,456,789,123,456,789.123450'); //with thousand separators
   testBCDToStrF(bcdtostrf(bcd, ffCurrency, 30, 5), '$123,456,789,123,456,789.12345'); //with thousand separators
+  testBCDToStrF(bcdtostrf(bcd, ffExponent, 8, 3), '1.2345679E+017');
+  bcd:=strtobcd('123456789');
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 10, 0), '123456789');
+  testBCDToStrF(bcdtostrf(bcd, ffExponent, 8, 3), '1.2345679E+008');
+  bcd:=strtobcd('9.99'); // test rounding
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 10, 1), '10.0');
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 10, 0), '10');
+  testBCDToStrF(bcdtostrf(bcd, ffExponent, 8, 3), '9.9900000E+000');
+  bcd:=strtobcd('0.09');
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 10, 1), '0.1');
+  testBCDToStrF(bcdtostrf(bcd, ffFixed, 10, 0), '0');
+  testBCDToStrF(bcdtostrf(bcd, ffExponent, 8, 3), '9.0000000E-002');
+
+  // test FormatBCD:
+  bcd:=strtobcd('123456789123456789.12345');
+  testFormatBCD('',bcd, '123456789123456789.12345');
+  testFormatBCD('0',bcd, '123456789123456789');
+  testFormatBCD('0.',bcd, '123456789123456789');
+  testFormatBCD('0.0',bcd, '123456789123456789.1');
+  testFormatBCD('#.0000',bcd, '123456789123456789.1235');
+  testFormatBCD('#.000000',bcd, '123456789123456789.123450');
+  testFormatBCD('# ###.000',bcd, '123456789123456 789.123');
+  testFormatBCD('#-#-###.0000',bcd, '12345678912345-6-789.1235');
+  testFormatBCD('#,#,###.0000',bcd, '123,456,789,123,456,789.1235');
+  testFormatBCD('#,#.0000##',bcd, '123,456,789,123,456,789.12345');
+  bcd:=strtobcd('-123.455');
+  testFormatBCD('0.0',bcd, '-123.5');
+  testFormatBCD('00000.0',bcd, '-00123.5');
+  testFormatBCD('#####.#',bcd, '-123.5');
+  testFormatBCD('.0000',bcd, '-123.4550');
+  testFormatBCD('+0.0',bcd, '+-123.5'); // sign is part of number
+  testFormatBCD('0.00" $"',bcd, '-123.46 $');
+  testFormatBCD('0.0;(neg)0.00',bcd, '(neg)123.46');
+  bcd:=strtobcd('0');
+  testFormatBCD('0;;0',bcd, '0');
+  testFormatBCD('0;;#',bcd, '');
+  testFormatBCD('0;;0.00',bcd, '0.00');
 
   // test StrToBCD:
   testBCDPrecScale(' 1.0000000000000000E-0003 ', 3, 3);
@@ -139,6 +207,13 @@ begin
   testBCDPrecScale('1.001', 4, 3);
   testBCDPrecScale('1001', 4, 0);
   testBCDPrecScale('1001.1001', 8, 4);
+
+  // test BCDToCurr:
+  testBCDToCurr( '922337203685477.5807', MaxCurrency); // test boundary values
+  testBCDToCurr('-922337203685477.5807', MinCurrency);
+  testBCDToCurr('-922337203685477.5808', StrToCurr('-922337203685477.5808'));
+  testBCDToCurr( '922337203685477.5808', 0); // out-of-range values
+  testBCDToCurr('-922337203685477.5809', 0);
 
   DefaultFormatSettings := DFS;
 

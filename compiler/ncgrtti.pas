@@ -43,10 +43,11 @@ interface
         function  published_properties_count(st:tsymtable):longint;
         procedure published_properties_write_rtti_data(propnamelist:TFPHashObjectList;st:tsymtable);
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
+        function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
         procedure write_rtti_name(def:tdef);
         procedure write_rtti_data(def:tdef;rt:trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
-        function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+        procedure write_rtti_reference(def:tdef;rt:trttitype);
         procedure write_header(def: tdef; typekind: byte);
         procedure write_string(const s: string);
         procedure maybe_write_align;
@@ -66,7 +67,7 @@ implementation
     uses
        cutils,
        globals,globtype,verbose,systems,
-       fmodule,
+       fmodule, procinfo,
        symsym,
        aasmtai,aasmdata,
        defutil,
@@ -158,8 +159,8 @@ implementation
             Assigned(tobjectdef(def).childof) and
             ((rt=fullrtti) or (tobjectdef(def).childof.needs_inittable)) then
           begin
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tobjectdef(def).childof,rt)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(0));
+            write_rtti_reference(tobjectdef(def).childof,rt);
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
             inc(fieldcnt);
           end;
         st:=def.symtable;
@@ -174,8 +175,8 @@ implementation
                ) and
                not is_objc_class_or_protocol(tfieldvarsym(sym).vardef) then
               begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tfieldvarsym(sym).vardef,rt)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
+                write_rtti_reference(tfieldvarsym(sym).vardef,rt);
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
                 inc(fieldcnt);
               end;
           end;
@@ -373,7 +374,7 @@ implementation
                   proctypesinfo:=$40
                 else
                   proctypesinfo:=0;
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tpropertysym(sym).propdef,fullrtti)));
+                write_rtti_reference(tpropertysym(sym).propdef,fullrtti);
                 writeaccessproc(palt_read,0,0);
                 writeaccessproc(palt_write,2,0);
                 { is it stored ? }
@@ -416,7 +417,11 @@ implementation
         begin
           case def.stringtype of
             st_ansistring:
-              write_header(def,tkAString);
+              begin
+                write_header(def,tkAString);
+                maybe_write_align;
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.encoding));
+              end;
 
             st_widestring:
               write_header(def,tkWString);
@@ -463,10 +468,7 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           maybe_write_align;  // is align necessary here?
           { write base type }
-          if assigned(def.basedef) then
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
-          else
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+          write_rtti_reference(def.basedef,rt);
           for i := 0 to def.symtable.SymList.Count - 1 do
             begin
               hp:=tenumsym(def.symtable.SymList[i]);
@@ -570,11 +572,16 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
            end;
            maybe_write_align;
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+           write_rtti_reference(def.elementdef,rt);
         end;
 
 
         procedure arraydef_rtti(def:tarraydef);
+          var
+            lastai: TLinkedListItem;
+            dimcount: byte;
+            totalcount: asizeuint;
+            curdef:tarraydef;
         begin
            if ado_IsDynamicArray in def.arrayoptions then
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkdynarray))
@@ -582,14 +589,39 @@ implementation
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkarray));
            write_rtti_name(def);
            maybe_write_align;
-           { size of elements }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
 
            if not(ado_IsDynamicArray in def.arrayoptions) then
              begin
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(pint(def.elecount)));
-               { element type }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+               { remember tha last instruction. we will need to insert some
+                 calculated values after it }
+               lastai:=current_asmdata.asmlists[al_rtti].last;
+               curdef:=def;
+               totalcount:=1;
+               dimcount:=0;
+               while assigned(curdef) do
+                 begin
+                   { Dims[i] PTypeInfo }
+                   write_rtti_reference(curdef.rangedef,rt);
+                   inc(dimcount);
+                   totalcount:=totalcount*curdef.elecount;
+                   { get the next static array }
+                   if assigned(curdef.elementdef) and
+                      (curdef.elementdef.typ=arraydef) and
+                      not(ado_IsDynamicArray in tarraydef(curdef.elementdef).arrayoptions) then
+                     curdef:=tarraydef(curdef.elementdef)
+                   else
+                     break;
+                 end;
+               if (tf_requires_proper_alignment in target_info.flags) then
+                 current_asmdata.asmlists[al_rtti].InsertAfter(cai_align.Create(sizeof(TConstPtrUInt)),lastai);
+               { dimension count }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_8bit(dimcount),lastai);
+               { last dimension element type }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt)),lastai);
+               { total element count }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_pint(pint(totalcount)),lastai);
+               { total size = elecount * elesize of the first arraydef }
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_pint(def.elecount*def.elesize),lastai);
              end
            else
              { write a delphi almost compatible dyn. array entry:
@@ -599,21 +631,34 @@ implementation
                the names are swapped in typinfo.pp
              }
              begin
+               { size of elements }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
                { element type }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
-             end;
-           { variant type }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
-           if ado_IsDynamicArray in def.arrayoptions then
-             begin
+               write_rtti_reference(def.elementdef,rt);
+               { variant type }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
                { element type }
                if def.elementdef.needs_inittable then
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
+                 write_rtti_reference(def.elementdef,rt)
                else
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
                { write unit name }
                write_string(current_module.realmodulename^);
              end;
+        end;
+
+        procedure classrefdef_rtti(def:tclassrefdef);
+        begin
+          write_header(def,tkClassRef);
+          maybe_write_align;
+          write_rtti_reference(def.pointeddef,rt);
+        end;
+
+        procedure pointerdef_rtti(def:tpointerdef);
+        begin
+          write_header(def,tkPointer);
+          maybe_write_align;
+          write_rtti_reference(def.pointeddef,rt);
         end;
 
         procedure recorddef_rtti(def:trecorddef);
@@ -626,7 +671,6 @@ implementation
 
 
         procedure procvardef_rtti(def:tprocvardef);
-
            const
              ProcCallOptionToCallConv: array[tproccalloption] of byte = (
               { pocall_none       } 0,
@@ -645,43 +689,64 @@ implementation
               { pocall_interrupt  } 12
              );
 
-           procedure write_para(parasym:tparavarsym);
-           var
-             paraspec : byte;
-           begin
-             { only store user visible parameters }
-             if not(vo_is_hidden_para in parasym.varoptions) then
-               begin
-                 case parasym.varspez of
-                   vs_value   : paraspec := 0;
-                   vs_const   : paraspec := pfConst;
-                   vs_var     : paraspec := pfVar;
-                   vs_out     : paraspec := pfOut;
-                   vs_constref: paraspec := pfConstRef;
-                 end;
-                 { Kylix also seems to always add both pfArray and pfReference
-                   in this case
-                 }
-                 if is_open_array(parasym.vardef) then
-                   paraspec:=paraspec or pfArray or pfReference;
-                 { and these for classes and interfaces (maybe because they
-                   are themselves addresses?)
-                 }
-                 if is_class_or_interface(parasym.vardef) then
-                   paraspec:=paraspec or pfAddress;
-                 { set bits run from the highest to the lowest bit on
-                   big endian systems
-                 }
-                 if (target_info.endian = endian_big) then
-                   paraspec:=reverse_byte(paraspec);
-                 { write flags for current parameter }
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
-                 { write name of current parameter }
-                 write_string(parasym.realname);
-                 { write name of type of current parameter }
-                 write_rtti_name(parasym.vardef);
+           procedure write_param_flag(parasym:tparavarsym);
+             var
+               paraspec : byte;
+             begin
+               case parasym.varspez of
+                 vs_value   : paraspec := 0;
+                 vs_const   : paraspec := pfConst;
+                 vs_var     : paraspec := pfVar;
+                 vs_out     : paraspec := pfOut;
+                 vs_constref: paraspec := pfConstRef;
                end;
-           end;
+               { Kylix also seems to always add both pfArray and pfReference
+                 in this case
+               }
+               if is_open_array(parasym.vardef) then
+                 paraspec:=paraspec or pfArray or pfReference;
+               { and these for classes and interfaces (maybe because they
+                 are themselves addresses?)
+               }
+               if is_class_or_interface(parasym.vardef) then
+                 paraspec:=paraspec or pfAddress;
+               { set bits run from the highest to the lowest bit on
+                 big endian systems
+               }
+               if (target_info.endian = endian_big) then
+                 paraspec:=reverse_byte(paraspec);
+               { write flags for current parameter }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
+             end;
+
+           procedure write_para(parasym:tparavarsym);
+             begin
+               { only store user visible parameters }
+               if not(vo_is_hidden_para in parasym.varoptions) then
+                 begin
+                   { write flags for current parameter }
+                   write_param_flag(parasym);
+                   { write name of current parameter }
+                   write_string(parasym.realname);
+                   { write name of type of current parameter }
+                   write_rtti_name(parasym.vardef);
+                 end;
+             end;
+
+           procedure write_procedure_param(parasym:tparavarsym);
+             begin
+               { only store user visible parameters }
+               if not(vo_is_hidden_para in parasym.varoptions) then
+                 begin
+                   { write flags for current parameter }
+                   write_param_flag(parasym);
+                   maybe_write_align;
+                   { write param type }
+                   write_rtti_reference(parasym.vardef,fullrtti);
+                   { write name of current parameter }
+                   write_string(parasym.realname);
+                 end;
+             end;
 
         var
           methodkind : byte;
@@ -732,9 +797,8 @@ implementation
                  { write name of result type }
                  write_rtti_name(def.returndef);
                  maybe_write_align;
-
                  { write result typeinfo }
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)))
+                 write_rtti_reference(def.returndef,fullrtti);
                end;
 
                { write calling convention }
@@ -744,10 +808,29 @@ implementation
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
                  if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
-                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tparavarsym(def.paras[i]).vardef,fullrtti)));
+                   write_rtti_reference(tparavarsym(def.paras[i]).vardef,fullrtti);
             end
           else
-            write_header(def,tkProcvar);
+            begin
+              write_header(def,tkProcvar);
+              maybe_write_align;
+
+              { flags }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+              //maybe_write_align;     // aligning between bytes is not necessary
+              { write calling convention }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+              maybe_write_align;
+              { write result typeinfo }
+              write_rtti_reference(def.returndef,fullrtti);
+              { write parameter count }
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
+              for i:=0 to def.paras.count-1 do
+                begin
+                  maybe_write_align;
+                  write_procedure_param(tparavarsym(def.paras[i]));
+                end;
+            end;
         end;
 
 
@@ -779,15 +862,12 @@ implementation
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
 
             { write parent typeinfo }
-            if assigned(def.childof) then
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.childof,fullrtti)))
-            else
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+            write_rtti_reference(def.childof,fullrtti);
 
             { write typeinfo of extended type }
             if is_objectpascal_helper(def) then
               if assigned(def.extendeddef) then
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.extendeddef,fullrtti)))
+                write_rtti_reference(def.extendeddef,fullrtti)
               else
                 InternalError(2011033001);
 
@@ -820,10 +900,7 @@ implementation
             collect_propnamelist(propnamelist,def);
 
             { write parent typeinfo }
-            if assigned(def.childof) then
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.childof,fullrtti)))
-            else
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+            write_rtti_reference(def.childof,fullrtti);
 
             { interface: write flags, iid and iidstr }
             IntfFlags:=0;
@@ -938,6 +1015,10 @@ implementation
             end;
           objectdef :
             objectdef_rtti(tobjectdef(def));
+          classrefdef :
+            classrefdef_rtti(tclassrefdef(def));
+          pointerdef :
+            pointerdef_rtti(tpointerdef(def));
           else
             unknown_rtti(tstoreddef(def));
         end;
@@ -1193,7 +1274,10 @@ implementation
           setdef :
             write_rtti(tsetdef(def).elementdef,rt);
           arraydef :
-            write_rtti(tarraydef(def).elementdef,rt);
+            begin
+              write_rtti(tarraydef(def).rangedef,rt);
+              write_rtti(tarraydef(def).elementdef,rt);
+            end;
           recorddef :
             fields_write_rtti(trecorddef(def).symtable,rt);
           objectdef :
@@ -1205,13 +1289,28 @@ implementation
               else
                 published_write_rtti(tobjectdef(def).symtable,rt);
             end;
+          classrefdef,
+          pointerdef:
+            if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
+              write_rtti(tabstractpointerdef(def).pointeddef,rt);
         end;
+      end;
+
+    procedure TRTTIWriter.write_rtti_reference(def:tdef;rt:trttitype);
+      begin
+        if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
+        else
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def,rt)));
       end;
 
 
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1245,16 +1344,25 @@ implementation
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
+        if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 end.

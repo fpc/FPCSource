@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('winunits-jedi');
 {$ifdef ALLPACKAGES}
-    P.Directory:='winunits-jedi';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=[win32,win64];

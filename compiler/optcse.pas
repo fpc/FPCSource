@@ -133,7 +133,7 @@ unit optcse;
         end;
 
       var
-        i,j : longint;
+        i : longint;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -158,8 +158,12 @@ unit optcse;
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
-              their complexity is probably <= 1 anyways }
-            not(n.nodetype in [temprefn,callparan]) and
+              their complexity is probably <= 1 anyways
+
+              neither add setelementn nodes because the compiler sometimes depends on the fact
+              that a certain node stays a setelementn, this does not hurt either because
+              setelementn nodes itself generate no real code (except moving data into register) }
+            not(n.nodetype in [temprefn,callparan,setelementn]) and
 
             { node worth to add?
 
@@ -175,7 +179,9 @@ unit optcse;
               current stack frame, those are in registers anyways if possible
             }
             (not(n.nodetype=loadn) or
-             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
+             { apply cse on non-regable static variables }
+             ((tloadnode(n).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(n).symtableentry).varregable=vr_none)) or
              (node_complexity(n)>1)
             ) and
 
@@ -234,6 +240,17 @@ unit optcse;
               DFASetExclude(plists(arg)^.avail,i);
             result:=fen_norecurse_false;
           end;
+{$ifdef cpuhighleveltarget}
+          { The high level targets use the functionality from ncgnstld for
+            nested accesses, and that one stores the complete location of the
+            nested variable in tloadnode.left rather than only the location of
+            the parent context containing it. This causes problems with the
+            CSE in case the nested variable is used as an lvalue, so disable
+            CSE in that case
+          }
+          if (n.nodetype=loadn) and assigned(tloadnode(n).left) then
+            result:=fen_norecurse_false;
+{$endif}
        end;
 
 

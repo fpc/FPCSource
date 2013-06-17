@@ -11,6 +11,7 @@
    =================================================================================================
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -86,6 +87,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -95,6 +97,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -110,6 +113,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -119,6 +123,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -129,6 +134,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -175,8 +181,6 @@ interface
 uses MacTypes;
 {$endc} {not MACOSALLINCLUDE}
 
-
-{$ifc TARGET_OS_MAC}
 
 {$ALIGN POWER}
 
@@ -254,6 +258,9 @@ type
   CBLAS_INDEX = SInt32;
 
 function cblas_errprn( ierr: SInt32; info: SInt32; var form: char; ... ): SInt32; external name '_cblas_errprn';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_xerbla( p: SInt32; var rout: char; var form: char; ... ); external name '_cblas_xerbla';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
  * ===========================================================================
@@ -261,42 +268,62 @@ function cblas_errprn( ierr: SInt32; info: SInt32; var form: char; ... ): SInt32
  * ===========================================================================
  }
 function cblas_sdsdot( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ): Float32; external name '_cblas_sdsdot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_dsdot( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ): Float64; external name '_cblas_dsdot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_sdot( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ): Float32; external name '_cblas_sdot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_ddot( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32 ): Float64; external name '_cblas_ddot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 {
  * Functions having prefixes Z and C only
  }
 procedure cblas_cdotu_sub( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; dotu: UnivPtr ); external name '_cblas_cdotu_sub';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cdotc_sub( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; dotc: UnivPtr ); external name '_cblas_cdotc_sub';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_zdotu_sub( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; dotu: UnivPtr ); external name '_cblas_zdotu_sub';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zdotc_sub( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; dotc: UnivPtr ); external name '_cblas_zdotc_sub';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Functions having prefixes S D SC DZ
  }
 function cblas_snrm2( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32 ): Float32; external name '_cblas_snrm2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_sasum( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32 ): Float32; external name '_cblas_sasum';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 function cblas_dnrm2( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32 ): Float64; external name '_cblas_dnrm2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_dasum( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32 ): Float64; external name '_cblas_dasum';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 function cblas_scnrm2( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): Float32; external name '_cblas_scnrm2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_scasum( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): Float32; external name '_cblas_scasum';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 function cblas_dznrm2( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): Float64; external name '_cblas_dznrm2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_dzasum( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): Float64; external name '_cblas_dzasum';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Functions having standard 4 prefixes (S D C Z)
  }
 function cblas_isamax( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32 ): CBLAS_INDEX; external name '_cblas_isamax';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_idamax( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32 ): CBLAS_INDEX; external name '_cblas_idamax';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_icamax( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): CBLAS_INDEX; external name '_cblas_icamax';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 function cblas_izamax( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32 ): CBLAS_INDEX; external name '_cblas_izamax';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
  * ===========================================================================
@@ -307,62 +334,100 @@ function cblas_izamax( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt
 {
  * Routines with standard 4 prefixes (s, d, c, z)
  }
-procedure cblas_sswap( {const} N: SInt32; var X: Float32; {const} incX: SInt32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_sswap';
-procedure cblas_scopy( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_scopy';
-procedure cblas_saxpy( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_saxpy';
-procedure catlas_saxpby( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_catlas_saxpby';
-procedure catlas_sset( {const} N: SInt32; {const} alpha: Float32; var X: Float32; {const} incX: SInt32 ); external name '_catlas_sset';
+procedure cblas_sswap( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_sswap';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_scopy( {const} N: SInt32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_scopy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_saxpy( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_saxpy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure catlas_saxpby( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_catlas_saxpby';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure catlas_sset( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32 ); external name '_catlas_sset';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
-procedure cblas_dswap( {const} N: SInt32; var X: Float64; {const} incX: SInt32; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dswap';
-procedure cblas_dcopy( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dcopy';
-procedure cblas_daxpy( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_daxpy';
-procedure catlas_daxpby( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_catlas_daxpby';
-procedure catlas_dset( {const} N: SInt32; {const} alpha: Float64; var X: Float64; {const} incX: SInt32 ); external name '_catlas_dset';
-                       
+procedure cblas_dswap( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dswap';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dcopy( {const} N: SInt32; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dcopy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_daxpy( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_daxpy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure catlas_daxpby( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_catlas_daxpby';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure catlas_dset( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32 ); external name '_catlas_dset';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+
 procedure cblas_cswap( {const} N: SInt32; X: UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_cswap';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ccopy( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_ccopy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_caxpy( {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_caxpy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure catlas_caxpby( {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_catlas_caxpby';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure catlas_cset( {const} N: SInt32; alpha: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_catlas_cset';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_zswap( {const} N: SInt32; X: UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zswap';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zcopy( {const} N: SInt32; X: {const} UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zcopy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zaxpy( {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zaxpy';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure catlas_zaxpby( {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_catlas_zaxpby';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure catlas_zset( {const} N: SInt32; alpha: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_catlas_zset';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Routines with S and D prefix only
  }
 procedure cblas_srotg( var a: Float32; var b: Float32; var c: Float32; var s: Float32 ); external name '_cblas_srotg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_srotmg( var d1: Float32; var d2: Float32; var b1: Float32; {const} b2: Float32; var P: Float32 ); external name '_cblas_srotmg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_srot( {const} N: SInt32; var X: Float32; {const} incX: SInt32; var Y: Float32; {const} incY: SInt32; {const} c: Float32; {const} s: Float32 ); external name '_cblas_srot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_srotm( {const} N: SInt32; var X: Float32; {const} incX: SInt32; var Y: Float32; {const} incY: SInt32; P: Float32Ptr ); external name '_cblas_srotm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_drotg( var a: Float64; var b: Float64; var c: Float64; var s: Float64 ); external name '_cblas_drotg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_drotmg( var d1: Float64; var d2: Float64; var b1: Float64; {const} b2: Float64; var P: Float64 ); external name '_cblas_drotmg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_drot( {const} N: SInt32; var X: Float64; {const} incX: SInt32; var Y: Float64; {const} incY: SInt32; {const} c: Float64; {const} s: Float64 ); external name '_cblas_drot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_drotm( {const} N: SInt32; var X: Float64; {const} incX: SInt32; var Y: Float64; {const} incY: SInt32; P: Float64Ptr ); external name '_cblas_drotm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Routines with S D C Z CS and ZD prefixes
  }
-procedure cblas_sscal( {const} N: SInt32; {const} alpha: Float32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_sscal';
-procedure cblas_dscal( {const} N: SInt32; {const} alpha: Float64; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dscal';
+procedure cblas_sscal( {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_sscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dscal( {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cscal( {const} N: SInt32; alpha: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_cscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zscal( {const} N: SInt32; alpha: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_zscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_csscal( {const} N: SInt32; {const} alpha: Float32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_csscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zdscal( {const} N: SInt32; {const} alpha: Float64; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_zdscal';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
  * Extra reference routines provided by ATLAS, but not mandated by the standard
  }
 procedure cblas_crotg( a: UnivPtr; b: UnivPtr; c: UnivPtr; s: UnivPtr ); external name '_cblas_crotg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zrotg( a: UnivPtr; b: UnivPtr; c: UnivPtr; s: UnivPtr ); external name '_cblas_zrotg';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_csrot( {const} N: SInt32; X: UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32; {const} c: Float32; {const} s: Float32 ); external name '_cblas_csrot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zdrot( {const} N: SInt32; X: UnivPtr; {const} incX: SInt32; Y: UnivPtr; {const} incY: SInt32; {const} c: Float64; {const} s: Float64 ); external name '_cblas_zdrot';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
  * ===========================================================================
@@ -373,87 +438,152 @@ procedure cblas_zdrot( {const} N: SInt32; X: UnivPtr; {const} incX: SInt32; Y: U
 {
  * Routines with standard 4 prefixes (S, D, C, Z)
  }
-procedure cblas_sgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_sgemv';
-procedure cblas_sgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_sgbmv';
-procedure cblas_strmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float32Ptr; {const} lda: SInt32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_strmv';
-procedure cblas_stbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float32Ptr; {const} lda: SInt32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_stbmv';
-procedure cblas_stpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; const (*var*) Ap: Float32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_stpmv';
-procedure cblas_strsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float32Ptr; {const} lda: SInt32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_strsv';
-procedure cblas_stbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float32Ptr; {const} lda: SInt32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_stbsv';
-procedure cblas_stpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; const (*var*) Ap: Float32; var X: Float32; {const} incX: SInt32 ); external name '_cblas_stpsv';
+procedure cblas_sgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_sgemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_sgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_sgbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_strmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_strmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_stbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_stbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_stpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} Ap: Float32Ptr; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_stpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_strsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_strsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_stbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_stbsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_stpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} Ap: Float32Ptr; X: Float32Ptr; {const} incX: SInt32 ); external name '_cblas_stpsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
-procedure cblas_dgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dgemv';
-procedure cblas_dgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dgbmv';
-procedure cblas_dtrmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float64Ptr; {const} lda: SInt32; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtrmv';
-procedure cblas_dtbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float64Ptr; {const} lda: SInt32; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtbmv';
-procedure cblas_dtpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; const (*var*) Ap: Float64; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtpmv';
-procedure cblas_dtrsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float64Ptr; {const} lda: SInt32; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtrsv';
-procedure cblas_dtbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float64Ptr; {const} lda: SInt32; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtbsv';
-procedure cblas_dtpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; const (*var*) Ap: Float64; var X: Float64; {const} incX: SInt32 ); external name '_cblas_dtpsv';
+procedure cblas_dgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dgemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dgbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtrmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtrmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} Ap: Float64Ptr; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtrsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtrsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtbsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} Ap: Float64Ptr; X: Float64Ptr; {const} incX: SInt32 ); external name '_cblas_dtpsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_cgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_cgemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_cgbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctrmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctrmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; Ap: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctrsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctrsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctbsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; Ap: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ctpsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_zgemv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zgemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zgbmv( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} KL: SInt32; {const} KU: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zgbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztrmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztrmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; Ap: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztrsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztrsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztbsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; {const} K: SInt32; A: {const} UnivPtr; {const} lda: SInt32; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztbsv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztpsv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} N: SInt32; Ap: {const} UnivPtr; X: UnivPtr; {const} incX: SInt32 ); external name '_cblas_ztpsv';
 
 
 {
  * Routines with S and D prefixes only
  }
-procedure cblas_ssymv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_ssymv';
-procedure cblas_ssbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_ssbmv';
-procedure cblas_sspmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; const (*var*) Ap: Float32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; var Y: Float32; {const} incY: SInt32 ); external name '_cblas_sspmv';
-procedure cblas_sger( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; var A: Float32; {const} lda: SInt32 ); external name '_cblas_sger';
-procedure cblas_ssyr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; var A: Float32; {const} lda: SInt32 ); external name '_cblas_ssyr';
-procedure cblas_sspr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; var Ap: Float32 ); external name '_cblas_sspr';
-procedure cblas_ssyr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; var A: Float32; {const} lda: SInt32 ); external name '_cblas_ssyr2';
-procedure cblas_sspr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; var A: Float32 ); external name '_cblas_sspr2';
+procedure cblas_ssymv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_ssymv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_ssbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_sspmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; {const} Ap: Float32Ptr; {const} X: Float32Ptr; {const} incX: SInt32; {const} beta: Float32; Y: Float32Ptr; {const} incY: SInt32 ); external name '_cblas_sspmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_sger( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; A: Float32Ptr; {const} lda: SInt32 ); external name '_cblas_sger';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssyr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; A: Float32Ptr; {const} lda: SInt32 ); external name '_cblas_ssyr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_sspr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Ap: Float32Ptr ); external name '_cblas_sspr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssyr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; A: Float32Ptr; {const} lda: SInt32 ); external name '_cblas_ssyr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_sspr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: Float32Ptr; {const} incX: SInt32; Y: Float32Ptr; {const} incY: SInt32; A: Float32Ptr ); external name '_cblas_sspr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
-procedure cblas_dsymv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dsymv';
-procedure cblas_dsbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dsbmv';
-procedure cblas_dspmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; const (*var*) Ap: Float64; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; var Y: Float64; {const} incY: SInt32 ); external name '_cblas_dspmv';
-procedure cblas_dger( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; var A: Float64; {const} lda: SInt32 ); external name '_cblas_dger';
-procedure cblas_dsyr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; var A: Float64; {const} lda: SInt32 ); external name '_cblas_dsyr';
-procedure cblas_dspr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; var Ap: Float64 ); external name '_cblas_dspr';
-procedure cblas_dsyr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; var A: Float64; {const} lda: SInt32 ); external name '_cblas_dsyr2';
-procedure cblas_dspr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; var A: Float64 ); external name '_cblas_dspr2';
+procedure cblas_dsymv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dsymv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dsbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dspmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; {const} Ap: Float64Ptr; {const} X: Float64Ptr; {const} incX: SInt32; {const} beta: Float64; Y: Float64Ptr; {const} incY: SInt32 ); external name '_cblas_dspmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dger( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; A: Float64Ptr; {const} lda: SInt32 ); external name '_cblas_dger';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsyr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; A: Float64Ptr; {const} lda: SInt32 ); external name '_cblas_dsyr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dspr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Ap: Float64Ptr ); external name '_cblas_dspr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsyr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; A: Float64Ptr; {const} lda: SInt32 ); external name '_cblas_dsyr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dspr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: Float64Ptr; {const} incX: SInt32; Y: Float64Ptr; {const} incY: SInt32; A: Float64Ptr ); external name '_cblas_dspr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Routines with C and Z prefixes only
  }
 procedure cblas_chemv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_chemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_chbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_chbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_chpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; Ap: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_chpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cgeru( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_cgeru';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cgerc( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_cgerc';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cher( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: {const} UnivPtr; {const} incX: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_cher';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_chpr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float32; X: {const} UnivPtr; {const} incX: SInt32; A: UnivPtr ); external name '_cblas_chpr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cher2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_cher2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_chpr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; Ap: UnivPtr ); external name '_cblas_chpr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_zhemv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zhemv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zhbmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zhbmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zhpmv( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; Ap: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; beta: {const} UnivPtr; Y: UnivPtr; {const} incY: SInt32 ); external name '_cblas_zhpmv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zgeru( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_zgeru';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zgerc( {const} Order: CBLAS_ORDER; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_zgerc';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zher( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: {const} UnivPtr; {const} incX: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_zher';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zhpr( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; {const} alpha: Float64; X: {const} UnivPtr; {const} incX: SInt32; A: UnivPtr ); external name '_cblas_zhpr';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zher2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; A: UnivPtr; {const} lda: SInt32 ); external name '_cblas_zher2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zhpr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} N: SInt32; alpha: {const} UnivPtr; X: {const} UnivPtr; {const} incX: SInt32; Y: {const} UnivPtr; {const} incY: SInt32; Ap: UnivPtr ); external name '_cblas_zhpr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
  * ===========================================================================
@@ -464,83 +594,115 @@ procedure cblas_zhpr2( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {co
 {
  * Routines with standard 4 prefixes (S, D, C, Z)
  }
-procedure cblas_sgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; var C: Float32; {const} ldc: SInt32 ); external name '_cblas_sgemm';
-procedure cblas_ssymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; var C: Float32; {const} ldc: SInt32 ); external name '_cblas_ssymm';
-procedure cblas_ssyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; {const} beta: Float32; var C: Float32; {const} ldc: SInt32 ); external name '_cblas_ssyrk';
-procedure cblas_ssyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; var C: Float32; {const} ldc: SInt32 ); external name '_cblas_ssyr2k';
-procedure cblas_strmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; var B: Float32; {const} ldb: SInt32 ); external name '_cblas_strmm';
-procedure cblas_strsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; var B: Float32; {const} ldb: SInt32 ); external name '_cblas_strsm';
+procedure cblas_sgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; C: Float32Ptr; {const} ldc: SInt32 ); external name '_cblas_sgemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; C: Float32Ptr; {const} ldc: SInt32 ); external name '_cblas_ssymm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; {const} beta: Float32; C: Float32Ptr; {const} ldc: SInt32 ); external name '_cblas_ssyrk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_ssyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32; {const} beta: Float32; C: Float32Ptr; {const} ldc: SInt32 ); external name '_cblas_ssyr2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_strmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32 ); external name '_cblas_strmm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_strsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float32; A: Float32Ptr; {const} lda: SInt32; B: Float32Ptr; {const} ldb: SInt32 ); external name '_cblas_strsm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
-procedure cblas_dgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; var C: Float64; {const} ldc: SInt32 ); external name '_cblas_dgemm';
-procedure cblas_dsymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; var C: Float64; {const} ldc: SInt32 ); external name '_cblas_dsymm';
-procedure cblas_dsyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; {const} beta: Float64; var C: Float64; {const} ldc: SInt32 ); external name '_cblas_dsyrk';
-procedure cblas_dsyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; var C: Float64; {const} ldc: SInt32 ); external name '_cblas_dsyr2k';
-procedure cblas_dtrmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; var B: Float64; {const} ldb: SInt32 ); external name '_cblas_dtrmm';
-procedure cblas_dtrsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; var B: Float64; {const} ldb: SInt32 ); external name '_cblas_dtrsm';
+procedure cblas_dgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; C: Float64Ptr; {const} ldc: SInt32 ); external name '_cblas_dgemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; C: Float64Ptr; {const} ldc: SInt32 ); external name '_cblas_dsymm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; {const} beta: Float64; C: Float64Ptr; {const} ldc: SInt32 ); external name '_cblas_dsyrk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dsyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32; {const} beta: Float64; C: Float64Ptr; {const} ldc: SInt32 ); external name '_cblas_dsyr2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtrmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32 ); external name '_cblas_dtrmm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
+procedure cblas_dtrsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; {const} alpha: Float64; A: Float64Ptr; {const} lda: SInt32; B: Float64Ptr; {const} ldb: SInt32 ); external name '_cblas_dtrsm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_cgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_cgemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_csymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_csymm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_csyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_csyrk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_csyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_csyr2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctrmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: UnivPtr; {const} ldb: SInt32 ); external name '_cblas_ctrmm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ctrsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: UnivPtr; {const} ldb: SInt32 ); external name '_cblas_ctrsm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 procedure cblas_zgemm( {const} Order: CBLAS_ORDER; {const} TransA: CBLAS_TRANSPOSE; {const} TransB: CBLAS_TRANSPOSE; {const} M: SInt32; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zgemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zsymm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zsymm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zsyrk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zsyrk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zsyr2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zsyr2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztrmm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: UnivPtr; {const} ldb: SInt32 ); external name '_cblas_ztrmm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_ztrsm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} TransA: CBLAS_TRANSPOSE; {const} Diag: CBLAS_DIAG; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: UnivPtr; {const} ldb: SInt32 ); external name '_cblas_ztrsm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 
 {
  * Routines with prefixes C and Z only
  }
 procedure cblas_chemm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_chemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cherk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float32; A: {const} UnivPtr; {const} lda: SInt32; {const} beta: Float32; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_cherk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_cher2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; {const} beta: Float32; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_cher2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zhemm( {const} Order: CBLAS_ORDER; {const} Side: CBLAS_SIDE; {const} Uplo: CBLAS_UPLO; {const} M: SInt32; {const} N: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; beta: {const} UnivPtr; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zhemm';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zherk( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; {const} alpha: Float64; A: {const} UnivPtr; {const} lda: SInt32; {const} beta: Float64; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zherk';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 procedure cblas_zher2k( {const} Order: CBLAS_ORDER; {const} Uplo: CBLAS_UPLO; {const} Trans: CBLAS_TRANSPOSE; {const} N: SInt32; {const} K: SInt32; alpha: {const} UnivPtr; A: {const} UnivPtr; {const} lda: SInt32; B: {const} UnivPtr; {const} ldb: SInt32; {const} beta: Float64; C: UnivPtr; {const} ldc: SInt32 ); external name '_cblas_zher2k';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
-   Apple extensions follow.
-}
+ Apple extensions follow.
+ }
 
 {
-   The level 3 BLAS may allocate a large (approximately 4Mb) buffer to hold intermediate operands
-   and results. These intermediate quantities are organized in memory for efficient access and
-   so contribute to optimal performance. By default, this buffer is retained across calls to the
-   BLAS. This strategy has substantial advantages when the BLAS are executed repeatedly. Clients
-   who wish to free this buffer and return the memory allocation to the malloc heap can call the
-   following routine at any time. Note that subsequent calls to the level 3 BLAS may allocate this
-   buffer again.
-}
+ The level 3 BLAS may allocate a large (approximately 4Mb) buffer to hold intermediate operands
+ and results. These intermediate quantities are organized in memory for efficient access and
+ so contribute to optimal performance. By default, this buffer is retained across calls to the
+ BLAS. This strategy has substantial advantages when the BLAS are executed repeatedly. Clients
+ who wish to free this buffer and return the memory allocation to the malloc heap can call the
+ following routine at any time. Note that subsequent calls to the level 3 BLAS may allocate this
+ buffer again.
+ }
 
 procedure ATLU_DestroyThreadMemory; external name '_ATLU_DestroyThreadMemory';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {
-   -------------------------------------------------------------------------------------------------
-   The BLAS standard requires that parameter errors be reported and cause the program to terminate.
-   The default behavior for the Mac OS implementation of the BLAS is to print a message in English
-   to stdout using printf and call exit with EXIT_FAILURE as the status.  If this is adequate, then
-   you need do nothing more or worry about error handling.
-   The BLAS standard also mentions a function, cblas_xerbla, suggesting that a program provide its
-   own implementation to override the default error handling.  This will not work in the shared
-   library environment of Mac OS.  Instead the Mac OS implementation provides a means to install
-   an error handler.  There can only be one active error handler, installing a new one causes any
-   previous handler to be forgotten.  Passing a null function pointer installs the default handler.
-   The default handler is automatically installed at startup and implements the default behavior
-   defined above.
-   An error handler may return, it need not abort the program.  If the error handler returns, the
-   BLAS routine also returns immediately without performing any processing.  Level 1 functions that
-   return a numeric value return zero if the error handler returns.
-   -------------------------------------------------------------------------------------------------
-}
+ -------------------------------------------------------------------------------------------------
+ The BLAS standard requires that parameter errors be reported and cause the program to terminate.
+ The default behavior for the Mac OS implementation of the BLAS is to print a message in English
+ to stdout using printf and call exit with EXIT_FAILURE as the status.  If this is adequate, then
+ you need do nothing more or worry about error handling.
+ The BLAS standard also mentions a function, cblas_xerbla, suggesting that a program provide its
+ own implementation to override the default error handling.  This will not work in the shared
+ library environment of Mac OS.  Instead the Mac OS implementation provides a means to install
+ an error handler.  There can only be one active error handler, installing a new one causes any
+ previous handler to be forgotten.  Passing a null function pointer installs the default handler.
+ The default handler is automatically installed at startup and implements the default behavior
+ defined above.
+ An error handler may return, it need not abort the program.  If the error handler returns, the
+ BLAS routine also returns immediately without performing any processing.  Level 1 functions that
+ return a numeric value return zero if the error handler returns.
+ -------------------------------------------------------------------------------------------------
+ }
 
 type
 	BLASParamErrorProc = procedure( funcName: ConstCStringPtr; paramName: ConstCStringPtr; (*const*) var paramPos: SInt32; (*const*) var paramValue: SInt32 );
 procedure SetBLASParamErrorProc( ErrorProc: BLASParamErrorProc ); external name '_SetBLASParamErrorProc';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {$ifc not undefined TARGET_CPU_PPC or defined TARGET_CPU_PPC64}
 
@@ -576,17 +738,17 @@ procedure vMultMatMat_16x16( ConstVectorFloat A[16][4]; ConstVectorFloat B[16][4
 procedure vMultVecMat_32x32( ConstVectorFloat X[8]; ConstVectorFloat A[32][8]; VectorFloat Y[8] ); external name '_vMultVecMat_32x32';
 procedure vMultMatVec_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat X[8]; VectorFloat Y[8] ); external name '_vMultMatVec_32x32';
 procedure vMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8]; VectorFloat C[32][8] ); external name '_vMultMatMat_32x32';
-
-{
-   -------------------------------------------------------------------------------------------------
-   These routines provide optimized support for common small matrix multiplications. They use
-   the scalar floating point unit and have no dependancy on SIMD instructions. They are intended
-   as complements to the AltiVec-only routines above. They do not check for parameter errors.  They just do
-   the multiplication as fast as possible.  Matrices are presumed to use row major storage.  Because
-   these are all square, column major matrices can be multiplied by simply reversing the parameters.
-   -------------------------------------------------------------------------------------------------
-}
-  
+    
+    {
+     -------------------------------------------------------------------------------------------------
+     These routines provide optimized support for common small matrix multiplications. They use
+     the scalar floating point unit and have no dependancy on SIMD instructions. They are intended
+     as complements to the AltiVec-only routines above. They do not check for parameter errors.  They just do
+     the multiplication as fast as possible.  Matrices are presumed to use row major storage.  Because
+     these are all square, column major matrices can be multiplied by simply reversing the parameters.
+     -------------------------------------------------------------------------------------------------
+     }
+    
 procedure sMultVecMat_4x4( ConstVectorFloat X[1]; ConstVectorFloat A[4][1]; VectorFloat Y[1] ); external name '_sMultVecMat_4x4';
 procedure sMultMatVec_4x4( ConstVectorFloat A[4][1]; ConstVectorFloat X[1]; VectorFloat Y[1] ); external name '_sMultMatVec_4x4';
 procedure sMultMatMat_4x4( ConstVectorFloat A[4][1]; ConstVectorFloat B[4][1]; VectorFloat C[4][1] ); external name '_sMultMatMat_4x4';
@@ -599,7 +761,7 @@ procedure sMultMatMat_16x16( ConstVectorFloat A[16][4]; ConstVectorFloat B[16][4
 procedure sMultVecMat_32x32( ConstVectorFloat X[8]; ConstVectorFloat A[32][8]; VectorFloat Y[8] ); external name '_sMultVecMat_32x32';
 procedure sMultMatVec_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat X[8]; VectorFloat Y[8] ); external name '_sMultMatVec_32x32';
 procedure sMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8]; VectorFloat C[32][8] ); external name '_sMultMatMat_32x32';
-
+    
 procedure dMultVecMat_4x4( const double X[4]; const double A[4][4]; double Y[4] ); external name '_dMultVecMat_4x4';
 procedure dMultMatVec_4x4( const double A[4][4]; const double X[4]; double Y[4] ); external name '_dMultMatVec_4x4';
 procedure dMultMatMat_4x4( const double A[4][4]; const double B[4][4]; double C[4][4] ); external name '_dMultMatMat_4x4';
@@ -615,8 +777,6 @@ procedure dMultMatMat_32x32( const double A[32][32]; const double B[32][32]; dou
 *)
 
 {$endc} { defined(__VEC__) || defined(__SSE__)}
-
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

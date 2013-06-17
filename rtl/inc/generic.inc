@@ -892,7 +892,7 @@ begin
   res[0]:=chr(slen);
 end;
 
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; compilerproc;
+procedure fpc_shortstr_assign(len:{$ifdef cpu16}smallint{$else}longint{$endif};sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; compilerproc;
 var
   slen : byte;
 begin
@@ -2456,8 +2456,6 @@ const
   PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
 
 function fpc_PopCnt_byte(AValue : Byte): Byte;[Public,Alias:'FPC_POPCNT_BYTE'];compilerproc;
-  var
-    i : SizeInt;
   begin
     Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
   end;
@@ -2491,10 +2489,10 @@ function fpc_PopCnt_dword(AValue : DWord): DWord;[Public,Alias:'FPC_POPCNT_DWORD
 
 {$ifndef FPC_SYSTEM_HAS_POPCNT_QWORD}
 function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD'];compilerproc;
+{$ifdef VER2_6}
   var
     i : SizeInt;
   begin
-{$ifdef VER2_6}
     Result:=0;
     for i:=0 to 15 do
       begin
@@ -2502,6 +2500,7 @@ function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD
         AValue:=AValue shr 4;
       end;
 {$else VER2_6}
+  begin
     Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
 {$endif VER2_6}
   end;

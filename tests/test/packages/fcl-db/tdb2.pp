@@ -45,4 +45,5 @@ begin
     post;
     AssertTrue(PassException);
     end;
+  FreeDBConnector;
 end.

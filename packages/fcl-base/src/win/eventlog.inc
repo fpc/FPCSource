@@ -32,7 +32,7 @@ Procedure TEventLog.ActivateSystemLog;
 
 begin
   CheckIdentification;
-  FLogHandle := Pointer(OpenEventLog(Nil,Pchar(Identification)));
+  FLogHandle := Pointer(OpenEventLogA(Nil,Pchar(Identification)));
   If (FLogHandle=Nil) and FRaiseExceptionOnError then
     Raise ELogError.CreateFmt(SErrNoSysLog,[GetLastError]);
 end;

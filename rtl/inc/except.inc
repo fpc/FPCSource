@@ -30,13 +30,21 @@ Type
   TExceptAddr = record
     buf       : pjmp_buf;
     next      : PExceptAddr;
+{$ifdef CPU16}
+    frametype : Smallint;
+{$else CPU16}
     frametype : Longint;
+{$endif CPU16}
   end;
 
 Const
   CatchAllExceptions = PtrInt(-1);
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : longint;
@@ -77,7 +85,7 @@ begin
 end;
 
 
-Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
+Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
 var
   _ExceptAddrstack : ^PExceptAddr;

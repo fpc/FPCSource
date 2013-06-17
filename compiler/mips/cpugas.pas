@@ -26,13 +26,15 @@ unit cpugas;
   interface
 
     uses
-      cpubase,
-       aasmtai, aasmcpu, assemble, aggas;
+      cpubase, aasmbase, globtype,
+      aasmtai, aasmcpu, assemble, aggas;
 
     type
       TMIPSGNUAssembler = class(TGNUassembler)
         nomacro, noreorder, noat : boolean;
         constructor create(smart: boolean); override;
+        {# Constructs the command line for calling the assembler }
+        function MakeCmdLine: TCmdStr; override;
       end;
 
       TMIPSInstrWriter = class(TCPUInstrWriter)
@@ -50,13 +52,12 @@ unit cpugas;
   implementation
 
     uses
-      aasmbase, cutils, systems,
-      verbose, itcpugas, cgbase, cgutils;
+      cutils, systems, cpuinfo,
+      globals, verbose, itcpugas, cgbase, cgutils;
 
     function gas_std_regname(r:Tregister):string;
       var
         hr: tregister;
-        p:  longint;
       begin
         { Double uses the same table as single }
         hr := r;
@@ -66,7 +67,10 @@ unit cpugas;
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
            setsubreg(hr, R_SUBD);
         end;
-        result:=std_regname(hr);
+        if getregtype(r)=R_SPECIALREGISTER then
+          result:=tostr(getsupreg(r))
+        else
+          result:=std_regname(hr);
       end;
 
 
@@ -92,6 +96,14 @@ unit cpugas;
         noat:=false;
       end;
 
+    function TMIPSGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+         result := Inherited MakeCmdLine;
+         { ABI selection }
+         Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
+         { ARCH selection }
+         Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
+      end;
 
 {****************************************************************************}
 {                  Helper routines for Instruction Writer                    }
@@ -99,82 +111,67 @@ unit cpugas;
 
     function GetReferenceString(var ref: TReference): string;
       var
-        hasgot : boolean;
-        gotprefix : string;
+        reg: TRegister;
+        regstr: string;
       begin
-        GetReferenceString := '';
-        hasgot:=false;
-        with ref do
-        begin
-          if (base = NR_NO) and (index = NR_NO) then
+        result:='';
+        if assigned(ref.symbol) then
+          result:=ref.symbol.name;
+        if (ref.offset<0) then
+          result:=result+tostr(ref.offset)
+        else if (ref.offset>0) then
           begin
-            if assigned(symbol) then
-              begin
-                GetReferenceString := symbol.Name;
-                if symbol.typ=AT_FUNCTION then
-                  gotprefix:='%call16('
-                else
-                  gotprefix:='%got(';
-                hasgot:=true;
-              end;
-            if offset > 0 then
-              GetReferenceString := GetReferenceString + '+' + ToStr(offset)
-            else if offset < 0 then
-              GetReferenceString := GetReferenceString + ToStr(offset);
-            case refaddr of
-              addr_high:
-                GetReferenceString := '%hi(' + GetReferenceString + ')';
-              addr_low:
-                GetReferenceString := '%lo(' + GetReferenceString + ')';
-              addr_pic:
-                begin
-                  if hasgot then
-                    GetReferenceString := gotprefix + GetReferenceString + ')'
-                  else
-                    internalerror(2012070401);
-                end;
-            end;
+            if assigned(ref.symbol) then
+              result:=result+'+';
+            result:=result+tostr(ref.offset);
           end
-          else
-          begin
-      {$ifdef extdebug}
-            if assigned(symbol) and
-              not(refaddr in [addr_pic,addr_low]) then
-              internalerror(2003052601);
-      {$endif extdebug}
-            if base <> NR_NO then
-              GetReferenceString := GetReferenceString + '(' + asm_regname(base) + ')';
-            if index = NR_NO then
-            begin
-              if offset <> 0 then
-                GetReferenceString := ToStr(offset) + GetReferenceString;
-              if assigned(symbol) then
-              begin
-                if refaddr = addr_low then
-                  GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString
-                else if refaddr = addr_pic then
-                  begin
-                    if symbol.typ=AT_FUNCTION then
-                      gotprefix:='%call16('
-                    else
-                      gotprefix:='%got(';
-                    GetReferenceString := gotprefix + symbol.Name + ')' + GetReferenceString;
-                   end
-                else
-                  GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
-              end;
-            end
-            else
-            begin
-  {$ifdef extdebug}
-              if (Offset<>0) or assigned(symbol) then
-                internalerror(2003052603);
-  {$endif extdebug}
-              GetReferenceString := GetReferenceString + '(' + asm_regname(index) + ')';
+        { asmreader appears to treat literal numbers as references }
+        else if (ref.symbol=nil) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:='0';
 
-            end;
-          end;
+        { either base or index may be present, but not both }
+        reg:=ref.base;
+        if (reg=NR_NO) then
+          reg:=ref.index
+        else if (ref.index<>NR_NO) then
+          InternalError(2013013001);
+
+        if (reg=NR_NO) then
+          regstr:=''
+        else
+          regstr:='('+asm_regname(reg)+')';
+
+        case ref.refaddr of
+          addr_no,
+          addr_full:
+            if assigned(ref.symbol) and (reg<>NR_NO) then
+              InternalError(2013013002)
+            else
+              begin
+                result:=result+regstr;
+                exit;
+              end;
+          addr_pic:
+            result:='%got('+result;
+          addr_high:
+            result:='%hi('+result;
+          addr_low:
+            result:='%lo('+result;
+          addr_pic_call16:
+            result:='%call16('+result;
+          addr_low_pic:
+            result:='%got_lo('+result;
+          addr_high_pic:
+            result:='%got_hi('+result;
+          addr_low_call:
+            result:='%call_lo('+result;
+          addr_high_call:
+            result:='%call_hi('+result;
+        else
+          InternalError(2013013003);
         end;
+
+        result:=result+')'+regstr;
       end;
 
 
@@ -187,11 +184,7 @@ unit cpugas;
             top_const:
               getopstr := tostr(longint(val));
             top_ref:
-              if (oper.ref^.refaddr in [addr_no, addr_pic]) or ((oper.ref^.refaddr = addr_low) and ((oper.ref^.base <> NR_NO) or
-                (oper.ref^.index <> NR_NO))) then
-                getopstr := getreferencestring(ref^)
-              else
-                getopstr := getreferencestring(ref^);
+              getopstr := getreferencestring(ref^);
             else
               internalerror(10001);
           end;
@@ -235,10 +228,23 @@ unit cpugas;
      end;
 }
 
-    function is_macro_instruction(op : TAsmOp) : boolean;
+    function is_macro_instruction(ai : taicpu) : boolean;
+      var
+        op: tasmop;
       begin
+        op:=ai.opcode;
         is_macro_instruction :=
-          (op=A_SEQ) or (op=A_SNE);
+        { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
+          (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
+          (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
+          { JAL is not here! See comments in TCGMIPS.a_call_name. }
+          or (op=A_LA) or ((op=A_BC) and
+            not (ai.condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE])) {or (op=A_JAL)}
+          or (op=A_REM) or (op=A_REMU)
+          or (op=A_DIV) or (op=A_DIVU)
+          or (op=A_MULO) or (op=A_MULOU)
+          { A_LI is only a macro if the immediate is not in thez 16-bit range }
+          or (op=A_LI);
       end;
 
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
@@ -257,8 +263,7 @@ unit cpugas;
         case op of
           A_P_SET_NOMIPS16:
             begin
-              s := #9 + '.set' + #9 + 'nomips16';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'nomips16');
             end;
           A_P_MASK,
           A_P_FMASK:
@@ -268,37 +273,33 @@ unit cpugas;
             end;
           A_P_SET_MACRO:
             begin
-              s := #9 + '.set' + #9 + 'macro';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'macro');
               TMIPSGNUAssembler(owner).nomacro:=false;
             end;
           A_P_SET_REORDER:
             begin
-              s := #9 + '.set' + #9 + 'reorder';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'reorder');
               TMIPSGNUAssembler(owner).noreorder:=false;
             end;
           A_P_SET_NOMACRO:
             begin
-              s := #9 + '.set' + #9 + 'nomacro';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'nomacro');
               TMIPSGNUAssembler(owner).nomacro:=true;
             end;
           A_P_SET_NOREORDER:
             begin
-              s := #9 + '.set' + #9 + 'noreorder';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'noreorder');
               TMIPSGNUAssembler(owner).noreorder:=true;
             end;
-          A_P_SW:
+          A_P_SET_NOAT:
             begin
-              s := #9 + gas_op2str[A_SW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteln(#9'.set'#9'noat');
+              TMIPSGNUAssembler(owner).noat:=true;
             end;
-          A_P_LW:
+          A_P_SET_AT:
             begin
-              s := #9 + gas_op2str[A_LW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteln(#9'.set'#9'at');
+              TMIPSGNUAssembler(owner).noat:=false;
             end;
           A_LDC1:
             begin
@@ -351,7 +352,7 @@ unit cpugas;
             end;
           else
             begin
-              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
                 owner.AsmWriteln(#9'.set'#9'macro');
               s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
               if taicpu(hp).delayslot_annulled then
@@ -363,7 +364,7 @@ unit cpugas;
                   s := s + ',' + getopstr(taicpu(hp).oper[i]^);
               end;
               owner.AsmWriteLn(s);
-              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
                 owner.AsmWriteln(#9'.set'#9'nomacro');
             end;
         end;
@@ -376,9 +377,9 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 $NOWARN -EL $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $ASM';
         supported_targets: [system_mipsel_linux];
-        flags: [af_allowdirect, af_needar, af_smartlink_sections];
+        flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';
         dollarsign: '$';
@@ -388,9 +389,9 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 $NOWARN -EB $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $ASM';
         supported_targets: [system_mipseb_linux];
-        flags: [af_allowdirect, af_needar, af_smartlink_sections];
+        flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';
         dollarsign: '$';

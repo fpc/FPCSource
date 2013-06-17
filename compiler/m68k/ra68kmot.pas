@@ -221,6 +221,7 @@ const
   var
    token: tasmtoken;
    forcelabel: boolean;
+   s : string;
   begin
     forcelabel := FALSE;
     actasmpattern :='';
@@ -314,8 +315,10 @@ const
                              end;
                              uppervar(actasmpattern);
 
-                             If is_asmopcode(actasmpattern) then
-                               exit;
+                             { this isn't the first token, so it can't be an
+                               opcode }
+                             {If is_asmopcode(actasmpattern) then
+                               exit;}
                              if is_register(actasmpattern) then
                                exit;
                              if is_asmdirective(actasmpattern) then
@@ -504,7 +507,8 @@ const
                            end;
             else
              begin
-               Message(scan_f_illegal_char);
+               s:=c;
+               Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
              end;
 
       end; { end case }
@@ -1585,7 +1589,6 @@ const
      AS_SEPARATOR, AS_COMMA: ;
     else
      begin
-      writeln('looofasz');
       Message(asmr_e_invalid_opcode_and_operand);
       Consume(actasmtoken);
      end;
@@ -1614,7 +1617,7 @@ const
                       expr:=actasmpattern;
                       if asciiz then
                        expr:=expr+#0;
-                      ConcatPasString(curlist,expr);
+                      ConcatString(curlist,expr);
                       Consume(AS_STRING);
                     end;
           AS_COMMA:  begin
@@ -1697,7 +1700,7 @@ const
         hl: tasmlabel;
         instr : TM68kInstruction;
       begin
-        Message(asmr_d_start_reading);
+        //Message(asmr_d_start_reading);
         firsttoken := TRUE;
         operandnum := 0;
         { sets up all opcode and register tables in uppercase }
@@ -1806,7 +1809,7 @@ const
         LocalLabelList.Free;
 
         assemble:=curlist;
-        Message(asmr_d_finish_reading);
+        //Message(asmr_d_finish_reading);
       end;
 
 

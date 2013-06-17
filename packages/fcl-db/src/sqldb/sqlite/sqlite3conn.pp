@@ -76,7 +76,7 @@ type
  
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-           //if bufsize < 0 -> buffer was to small, should be -bufsize
+           //if bufsize < 0 -> buffer was too small, should be -bufsize
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -86,14 +86,20 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     // New methods
     procedure execsql(const asql: string);
-    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override; // Differs from SQLDB.
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     function StrToStatementType(s : string) : TStatementType; override;
   public
     constructor Create(AOwner : TComponent); override;
-    function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
+    function GetInsertID: int64;
+    // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
+    // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
+    // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
+    // Warning: CollationName has to be a UTF-8 string
+    procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
@@ -105,18 +111,21 @@ type
     class function TypeName: string; override;
     class function ConnectionClass: TSQLConnectionClass; override;
     class function Description: string; override;
+    class function LoadedLibraryName: string; override;
   end;
   
 Var
-  SQLiteLibraryName : String = sqlite3lib; 
+  SQLiteLibraryName : String absolute sqlite3dyn.SQLiteDefaultLibrary deprecated 'use sqlite3dyn.SQLiteDefaultLibrary instead';
    
 implementation
 
 uses
   dbconst, sysutils, dateutils, FmtBCD;
 
+{$IF NOT DECLARED(JulianEpoch)} // sysutils/datih.inc
 const
-  JulianDateShift = 2415018.5; //distance from "julian day 0" (January 1, 4713 BC 12:00AM) to "1899-12-30 00:00AM"
+  JulianEpoch = TDateTime(-2415018.5); // "julian day 0" is January 1, 4713 BC 12:00AM
+{$ENDIF}
 
 type
 
@@ -132,7 +141,7 @@ type
    fparambinding: array of Integer;
    procedure checkerror(const aerror: integer);
    procedure bindparams(AParams : TParams);
-   Procedure Prepare(Buf : String; APArams : TParams);
+   Procedure Prepare(Buf : String; AParams : TParams);
    Procedure UnPrepare;
    Procedure Execute;
    Function Fetch : Boolean;
@@ -171,37 +180,34 @@ Procedure TSQLite3Cursor.bindparams(AParams : TParams);
 Var
   I : Integer;
   P : TParam;  
-  pc : pchar;
   str1: string;
-  cu1: currency;
   do1: double;
-  parms : array of Integer;
   wstr1: widestring;
   
 begin
-  for I:=1  to high(fparambinding)+1 do 
+  for I:=1 to high(fparambinding)+1 do
     begin
-    P:=aparams[fparambinding[I-1]];
-    if P.isnull then 
+    P:=AParams[fparambinding[I-1]];
+    if P.IsNull then
       checkerror(sqlite3_bind_null(fstatement,I))
     else 
       case P.datatype of
-        ftinteger,
-        ftboolean,
-        ftsmallint: checkerror(sqlite3_bind_int(fstatement,I,p.asinteger));
-        ftword:     checkerror(sqlite3_bind_int(fstatement,I,P.asword));
-        ftlargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.aslargeint));
-        ftbcd,
-        ftfloat,
-        ftcurrency:
+        ftInteger,
+        ftBoolean,
+        ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
+        ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
+        ftLargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
+        ftBcd,
+        ftFloat,
+        ftCurrency:
                 begin
                 do1:= P.AsFloat;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
-        ftdatetime,
-        ftdate,
-        fttime: begin
-                do1:= P.AsFloat + JulianDateShift;
+        ftDateTime,
+        ftDate,
+        ftTime: begin
+                do1:= P.AsFloat - JulianEpoch;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
         ftFMTBcd:
@@ -209,9 +215,9 @@ begin
                 str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
                 checkerror(sqlite3_bind_text(fstatement, I, PChar(str1), length(str1), sqlite3_destructor_type(SQLITE_TRANSIENT)));
                 end;
-        ftstring,
+        ftString,
         ftFixedChar,
-        ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
+        ftMemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
                 checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end;
@@ -232,12 +238,12 @@ begin
     end;   
 end;
 
-Procedure TSQLite3Cursor.Prepare(Buf : String; APArams : TParams);
+Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
 
 begin
-  if assigned(aparams) and (aparams.count > 0) then 
-    buf := aparams.parsesql(buf,false,false,false,psinterbase,fparambinding);
-  checkerror(sqlite3_prepare(fhandle,pchar(buf),length(buf),@fstatement,@ftail));
+  if assigned(AParams) and (AParams.Count > 0) then
+    Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+  checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
   FPrepared:=True;
 end;
 
@@ -267,8 +273,9 @@ begin
 {$endif}
   if (fstate<=sqliteerrormax) then
     checkerror(sqlite3_reset(fstatement));
+  FSelectable :=sqlite3_column_count(fstatement)>0;
   RowsAffected:=sqlite3_changes(fhandle);
-  if (fstate=sqlite_row) then 
+  if (fstate=sqlite_row) then
     fstate:= sqliteerrormax; //first row
 end;  
 
@@ -367,7 +374,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 26;
+  FieldMapCount = 27;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -383,6 +390,7 @@ Const
    (n:'DATE'; t: ftDate),
    (n:'TIME'; t: ftTime),
    (n:'CURRENCY'; t: ftCurrency),
+   (n:'MONEY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
    (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
@@ -407,7 +415,6 @@ var
  FN,FD : string;
  ft1   : tfieldtype;
  size1, size2 : integer;
- ar1   : TStringArray;
  fi    : integer;
  st    : psqlite3_stmt;
 
@@ -471,7 +478,7 @@ begin
                  size1 := 255; //sql: if length is omitted then length is 1
                  size2 := 0;
                  ExtractPrecisionAndScale(FD, size1, size2);
-                 if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
+                 if size1 > MaxSmallint then size1 := MaxSmallint;
                end;
       ftBCD:   begin
                  size2 := MaxBCDPrecision; //sql: if a precision is omitted, then use implementation-defined
@@ -614,7 +621,7 @@ begin
                begin
                PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
                if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
-                  PDateTime(buffer)^ := PDateTime(buffer)^ - JulianDateShift; //backward compatibility hack
+                  PDateTime(buffer)^ := PDateTime(buffer)^ + JulianEpoch; //backward compatibility hack
                end;
     ftFixedChar,
     ftString: begin
@@ -623,6 +630,7 @@ begin
                 int1:=FieldDef.Size;
               if int1 > 0 then 
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
+              PAnsiChar(buffer + int1)^ := #0;
               end;
     ftFmtBCD: begin
               int1:= sqlite3_column_bytes(st,fnum);
@@ -643,11 +651,12 @@ begin
     ftFixedWideChar,
     ftWideString:
       begin
-      int1 := sqlite3_column_bytes16(st,fnum)+2; //The value returned does not include the zero terminator at the end of the string
-      if int1>(FieldDef.Size+1)*2 then
-        int1:=(FieldDef.Size+1)*2;
+      int1 := sqlite3_column_bytes16(st,fnum); //The value returned does not include the zero terminator at the end of the string
+      if int1>FieldDef.Size*2 then
+        int1:=FieldDef.Size*2;
       if int1 > 0 then
         move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
+      PWideChar(buffer + int1)^ := #0;
       end;
     ftVarBytes,
     ftBytes:
@@ -724,7 +733,7 @@ var
 begin
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  InitializeSqlite(SQLiteLibraryName);
+  InitializeSqlite(SQLiteDefaultLibrary);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
@@ -877,10 +886,10 @@ begin
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
-  //primary key fields
+  //primary key fields; 5th column "pk" is zero for columns that are not part of PK
   artableinfo := stringsquery('PRAGMA table_info('+TableName+');');
   for ii:=low(artableinfo) to high(artableinfo) do
-    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] = '1') then
+    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
       PKFields.Add(artableinfo[ii][1]);
 
   //list of all table indexes
@@ -921,7 +930,50 @@ begin
   GetDBInfo(stColumns,TableName,'name',List);
 end;
 
-procedure Tsqlite3connection.LoadExtension(Libraryfile: String);
+function TSQLite3Connection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    InitializeSqlite(SQLiteDefaultLibrary);
+    case InfoType of
+      citServerType:
+        Result:=TSQLite3ConnectionDef.TypeName;
+      citServerVersion,
+      citClientVersion:
+        Result:=inttostr(sqlite3_libversion_number());
+      citServerVersionString:
+        Result:=sqlite3_libversion();
+      citClientName:
+        Result:=TSQLite3ConnectionDef.LoadedLibraryName;
+    else
+      Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    ReleaseSqlite;
+  end;
+end;
+
+function UTF8CompareCallback(user: pointer; len1: longint; data1: pointer; len2: longint; data2: pointer): longint; cdecl;
+var S1, S2: AnsiString;
+begin
+  SetString(S1, data1, len1);
+  SetString(S2, data2, len2);
+  Result := UnicodeCompareStr(UTF8Decode(S1), UTF8Decode(S2));
+end;
+
+procedure TSQLite3Connection.CreateCollation(const CollationName: string;
+  eTextRep: integer; Arg: Pointer; Compare: xCompare);
+begin
+  if eTextRep = 0 then
+  begin
+    eTextRep := SQLITE_UTF8;
+    Compare := @UTF8CompareCallback;
+  end;
+  CheckConnected;
+  CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
+end;
+
+procedure TSQLite3Connection.LoadExtension(LibraryFile: String);
 var
   LoadResult: integer;
 begin
@@ -970,6 +1022,11 @@ end;
 class function TSQLite3ConnectionDef.Description: string;
 begin
   Result := 'Connect to a SQLite3 database directly via the client library';
+end;
+
+class function TSQLite3ConnectionDef.LoadedLibraryName: string;
+begin
+  Result := SQLiteLoadedLibrary;
 end;
 
 initialization

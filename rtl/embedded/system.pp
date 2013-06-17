@@ -67,7 +67,7 @@ const
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCrLF;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -145,18 +145,7 @@ end;
 {$endif}
 
 
-{$ifdef FPC_HAS_FEATURE_RANDOM}
-
-Procedure Randomize;
-Begin
-  RandSeed := 63458; 
-End;
-
-{$endif FPC_HAS_FEATURE_RANDOM}
-
-
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-
 Function ParamCount: Longint;
 Begin
   Paramcount:=argc-1
@@ -165,15 +154,43 @@ End;
 
 function paramstr(l: longint) : string;
  begin
-   if l=0 then
-     begin
-       paramstr := '';
-     end
-   else
-     paramstr:=strpas(argv[l]);
+   paramstr := '';
  end;
-
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
+
+const
+  QRAN_SHIFT  = 15;
+  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
+  QRAN_MAX    = QRAN_MASK;
+  QRAN_A      = 1664525;
+  QRAN_C      = 1013904223;
+
+{$ifdef FPC_HAS_FEATURE_RANDOM}
+procedure randomize();
+begin
+  RandSeed := 63458;
+end;
+
+procedure randomize(value: integer);
+begin
+  RandSeed := value;
+end;
+
+function random(): integer;
+begin
+  RandSeed := QRAN_A * RandSeed + QRAN_C;
+  random := (RandSeed shr 16) and QRAN_MAX;
+end;
+
+function random(value: integer): integer;
+var
+  a: integer;
+begin
+  RandSeed := QRAN_A * RandSeed + QRAN_C;
+  a := (RandSeed shr 16) and QRAN_MAX;
+  random := (a * value) shr 15;
+end;
+{$endif FPC_HAS_FEATURE_RANDOM}
 
 
 {*****************************************************************************
@@ -208,7 +225,14 @@ begin
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-  SysInitExceptions;
+  { SysInitExceptions initializes only ExceptObjectstack and ExceptAddrStack
+    with nil since both are located in the bss section, they are zeroed at startup
+    anyways so not calling SysInitExceptions saves some bytes for simple programs. Even for threaded
+    programs this does not matter because in the main thread, the variables are located
+    in bss
+
+    SysInitExceptions;
+  }
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
@@ -229,3 +253,4 @@ begin
 //  initunicodestringmanager;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 end.
+

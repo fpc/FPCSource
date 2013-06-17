@@ -26,13 +26,6 @@ unit constexp;
 
 interface
 
-{ bootstrapping with 2.0.x }
-{$ifdef VER2_0}
-  {$Q-}
-  {$R-}
-{$endif}
-
-
 type  Tconstexprint=record
         overflow:boolean;
         case signed:boolean of
@@ -41,8 +34,6 @@ type  Tconstexprint=record
           true:
             (svalue:int64);
       end;
-
-      Tconststring = type pchar;
 
       errorproc=procedure (i:longint);
 

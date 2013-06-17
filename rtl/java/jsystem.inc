@@ -18,33 +18,36 @@
 Const
    // please update tkManagedTypes below if you add new
    // values
-   tkUnknown       = 0;
-   tkInteger       = 1;
-   tkChar          = 2;
-   tkEnumeration   = 3;
-   tkFloat         = 4;
-   tkSet           = 5;
-   tkMethod        = 6;
-   tkSString       = 7;
-   tkString        = tkSString;
-   tkLString       = 8;
-   tkAString       = 9;
-   tkWString       = 10;
-   tkVariant       = 11;
-   tkArray         = 12;
-   tkRecord        = 13;
-   tkInterface     = 14;
-   tkClass         = 15;
-   tkObject        = 16;
-   tkWChar         = 17;
-   tkBool          = 18;
-   tkInt64         = 19;
-   tkQWord         = 20;
-   tkDynArray      = 21;
+   tkUnknown        = 0;
+   tkInteger        = 1;
+   tkChar           = 2;
+   tkEnumeration    = 3;
+   tkFloat          = 4;
+   tkSet            = 5;
+   tkMethod         = 6;
+   tkSString        = 7;
+   tkString         = tkSString;
+   tkLString        = 8;
+   tkAString        = 9;
+   tkWString        = 10;
+   tkVariant        = 11;
+   tkArray          = 12;
+   tkRecord         = 13;
+   tkInterface      = 14;
+   tkClass          = 15;
+   tkObject         = 16;
+   tkWChar          = 17;
+   tkBool           = 18;
+   tkInt64          = 19;
+   tkQWord          = 20;
+   tkDynArray       = 21;
    tkInterfaceCorba = 22;
-   tkProcVar       = 23;
-   tkUString       = 24;
-   tkHelper        = 26;
+   tkProcVar        = 23;
+   tkUString        = 24;
+   tkHelper         = 26;
+   tkFile           = 27;
+   tkClassRef       = 28;
+   tkPointer        = 29;
 
   // all potentially managed types
   tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
@@ -78,7 +81,7 @@ Const
   {$endif FPC_OBJFPC_EXTENDED_IF}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
+Procedure HandleError (Errno : Longint); external name 'fpc_handleerror';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
 Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer); forward;
@@ -226,7 +229,7 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i armdefines.inc}
-  {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+  {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
     {$i arm.inc}  { Case dependent, don't change }
@@ -804,7 +807,7 @@ end;
 
 {$PUSH}
 {$S-}
-procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
 var
   c : Pointer;
 begin
@@ -1408,7 +1411,7 @@ end;
                           Thread support
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_THREADING}
+{$if defined(FPC_HAS_FEATURE_THREADING) and not defined(cpujvm)}
 { Generic threadmanager }
 {$i thread.inc}
 
@@ -1419,7 +1422,7 @@ end;
 { OS Dependent implementation }
 {$i systhrd.inc}
 {$endif DISABLE_NO_THREAD_MANAGER}
-{$endif FPC_HAS_FEATURE_THREADING}
+{$endif FPC_HAS_FEATURE_THREADING and not cpujvm}
 
 
 {*****************************************************************************

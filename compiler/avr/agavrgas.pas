@@ -205,7 +205,7 @@ unit agavrgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_targets : [system_avr_embedded];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: 's';

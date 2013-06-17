@@ -375,7 +375,7 @@ unit cgcpu;
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
                (tf_safecall_exceptions in target_info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
-                                       current_procinfo.procdef.proccalloption) then
+                                       current_procinfo.procdef) then
              list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));

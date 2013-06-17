@@ -1,8 +1,9 @@
 {	CFSet.h
-	Copyright (c) 1998-2009, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -290,7 +296,8 @@ type
 	This is the type of a reference to immutable CFSets.
 }
 type
-	CFSetRef = ^SInt32; { an opaque type }
+	CFSetRef = ^__CFSet; { an opaque type }
+	__CFSet = record end;
 	CFSetRefPtr = ^CFSetRef;
 
 {!
@@ -483,7 +490,7 @@ function CFSetGetCount( theSet: CFSetRef ): CFIndex; external name '_CFSetGetCou
 	@function CFSetGetCountOfValue
 	Counts the number of times the given value occurs in the set. Since 
         sets by definition contain only one instance of a value, this function
-        is synomous to SFSetContainsValue.
+        is synonymous to CFSetContainsValue.
 	@param theSet The set to be searched. If this parameter is not a
 		valid CFSet, the behavior is undefined.
 	@param value The value for which to find matches in the set. The
@@ -526,7 +533,7 @@ function CFSetContainsValue( theSet: CFSetRef; value: {const} UnivPtr ): Boolean
 function CFSetGetValue( theSet: CFSetRef; value: {const} UnivPtr ): UnivPtr; external name '_CFSetGetValue';
 
 {!
-	@function CFSetGetValue
+	@function CFSetGetValueIfPresent
 	Retrieves a value in the set which hashes the same as the specified value,
         if present.
 	@param theSet The set to be queried. If this parameter is not a

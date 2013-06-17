@@ -3,7 +3,7 @@
  
      Contains:   Process Manager Interfaces.
  
-     Version:    HIServices-308~1
+     Version:    HIServices-416~44
  
      Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
  
@@ -13,8 +13,9 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -90,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +101,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +117,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +138,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -279,6 +285,8 @@ type
 	ProcessApplicationTransformState = UInt32;
 const
 	kProcessTransformToForegroundApplication = 1;
+	kProcessTransformToBackgroundApplication = 2; { functional in Mac OS X Barolo and later }
+	kProcessTransformToUIElementApplication = 4; { functional in Mac OS X Barolo and later }
 
 {
    Record returned by GetProcessInformation
@@ -1067,14 +1075,24 @@ function ShowHideProcess( const (*var*) psn: ProcessSerialNumber; visible: Boole
  *     The type is specified in the transformState parameter.
  *  
  *  Discussion:
- *    Given a psn which is a background-only application, this call can
- *    cause that application to be transformed into a foreground
- *    application.  A background only application does not appear in
- *    the Dock or in the Force Quit dialog, and never has a menu bar or
- *    is frontmost, while a foreground application does appear in the
- *    Dock and Force Quit dialog and does have a menu bar.  This call
- *    does not cause the application to be brought to the front ( use
- *    SetFrontProcess for that ).
+ *    Given a psn for an application, this call transforms that
+ *    application into the given type.  Foreground applications have a
+ *    menu bar and appear in the Dock.  Background applications do not
+ *    appear in the Dock, do not have a menu bar ( and should not have
+ *    windows or other user interface ).  UIElement applications do not
+ *    have a menu bar, do not appear in the dock, but may in limited
+ *    circumstances present windows and user interface. If a foreground
+ *    application is frontmost when transformed into a background
+ *    application, it is first hidden and another application is made
+ *    frontmost.  A UIElement or background-only application which is
+ *    transformed into a foreground application is not brought to the
+ *    front (use SetFrontProcess() after the transform if this is
+ *    required) nor will it be shown if it is hidden ( even if hidden
+ *    automatically by being transformed into a background-only
+ *    application ), so the caller should use ShowHideProcess() to show
+ *    the application after it is transformed into a foreground
+ *    application. Applications can only transform themselves; this
+ *    call cannot change the type of another application.
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.3

@@ -108,7 +108,11 @@ CONST
 {                            MAXIUM DATA SIZES                              }
 {---------------------------------------------------------------------------}
 {$IFDEF FPC}
+  {$IFDEF CPU16}
+   MaxBytes = 16384;
+  {$ELSE CPU16}
    MaxBytes = 128*1024*128;                               { Maximum data size }
+  {$ENDIF CPU16}
 {$ELSE}
    MaxBytes = 16384;
 {$ENDIF}
@@ -521,7 +525,7 @@ TYPE
       Count, Offset: Word;
    END;
 
-   TStrIndex = Array [0..9999] Of TStrIndexRec;
+   TStrIndex = Array [0..{$ifdef CPU16}MaxBytes div SizeOf(TStrIndexRec){$else}9999{$endif}] Of TStrIndexRec;
    PStrIndex = ^TStrIndex;
 
 {---------------------------------------------------------------------------}

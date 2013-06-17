@@ -7,17 +7,21 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
+units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
-      fpintres heaptrc lineinfo lnfodwrf \
+      heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
-      charset character ucomplex getopts \
+      charset cpall buildcollations character unixcp ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard variants types dateutils sysconst fmtbcd \
+      video mouse keyboard variants types dateutils sysconst fmtbcd fpwidestring \
       cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix clocale
-implicitunits=exeinfo
+implicitunits=exeinfo \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
+      unicodedata unicodeducet unicodenumtable \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
 
@@ -29,6 +33,7 @@ units=syslinux linux
 
 [install]
 fpcpackage=y
+buildunit=buildcollations
 
 [default]
 fpcdir=../..
@@ -128,11 +133,30 @@ ifeq ($(ARCH),powerpc64)
 endif
 # Select 32/64 mode
 ifeq ($(ARCH),mips)
-  ASTARGET=-EB
+  ASTARGET=-32 -mips32 -EB
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
-  ASTARGET=-EL
+  ASTARGET=-32 -mips32 -EL
+  ASSHAREDOPT=-KPIC
 endif
+
+ifeq ($(ARCH),sparc)
+  ifneq ($(findstring -Cg ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+endif
+
+ifeq ($(ARCH),arm)
+  ifeq ($(SUBARCH),armv6m)
+    ASTARGET+=-mthumb --def __thumb__=1
+    ARMTHUMB=1
+  endif
+endif
+
 
 #
 # Loaders
@@ -141,23 +165,40 @@ endif
 prt0$(OEXT) : $(ARCH)/prt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 
+
+# ASSHAREDOPT adds -KPIC mandatoy for mips/mipsel objects in shared libs
+#
+# the following startup files do not support thumb yet
+#
 dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+ifndef ARMTHUMB
+        $(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+endif
 
 gprt0$(OEXT) : $(ARCH)/gprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
+endif
 
 cprt0$(OEXT) : $(ARCH)/cprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
+endif
 
 cprt21$(OEXT) : $(ARCH)/cprt21.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
+endif
 
 gprt21$(OEXT) : $(ARCH)/gprt21.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
+endif
 
 ucprt0$(OEXT) : $(ARCH)/ucprt0.as
+ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
+endif
 
 
 #
@@ -168,6 +209,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -217,6 +259,9 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
 
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixcp.pp
+
 #
 # TP7 Compatible RTL Units
 #
@@ -249,7 +294,8 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-character$(PPUEXT): $(OBJPASDIR)/character.pas objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
+# let it depend on buildcollations to prevent simultaneous building of unicodedata
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -305,8 +351,10 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 
 ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
 endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -330,6 +378,12 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
 
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
+
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
 
@@ -342,6 +396,8 @@ iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
 
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #

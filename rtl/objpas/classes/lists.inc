@@ -154,7 +154,7 @@ end;
 
 class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPList.Exchange(Index1, Index2: Integer);
@@ -646,7 +646,7 @@ end;
 
 destructor TList.Destroy;
 begin
-  If (Flist<>Nil) then
+  if Assigned(Flist) then
     Clear;
   If Assigned(FObservers) then
     begin
@@ -667,7 +667,7 @@ begin
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If not Assigned(FObservers) then
     FObservers:=TFPList.Create;
-  FObservers.Add(AObserver);
+  FObservers.Add(I);
 end;
 
 procedure TList.FPODetachObserver(AObserver: TObject);
@@ -679,7 +679,7 @@ begin
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If Assigned(FObservers) then
     begin
-    FObservers.Remove(AObserver);
+    FObservers.Remove(I);
     If (FObservers.Count=0) then
       FreeAndNil(FObservers);
     end;
@@ -689,7 +689,6 @@ procedure TList.FPONotifyObservers(ASender: TObject;
   AOperation: TFPObservedOperation; Data : Pointer);
 
 Var
-  O : TObject;
   I : Integer;
   Obs : IFPObserver;
 
@@ -697,9 +696,8 @@ begin
   If Assigned(FObservers) then
     For I:=FObservers.Count-1 downto 0 do
       begin
-      O:=TObject(FObservers[i]);
-      If O.GetInterface(SGUIDObserver,Obs) then
-        Obs.FPOObservedChanged(Self,AOperation,Data);
+      Obs:=IFPObserver(FObservers[i]);
+      Obs.FPOObservedChanged(ASender,AOperation,Data);
       end;
 end;
 
@@ -726,9 +724,8 @@ end;
 procedure TList.Clear;
 
 begin
-  If Assigned(Flist) then
-    While (FList.Count>0) do
-      Delete(Count-1);
+  While (FList.Count>0) do
+    Delete(Count-1);
 end;
 
 procedure TList.Delete(Index: Integer);
@@ -744,7 +741,7 @@ end;
 
 class procedure TList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);

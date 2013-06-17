@@ -206,6 +206,7 @@ implementation
          hpd : tprocdef;
          i : longint;
          diff : boolean;
+         symfrom,symto : tsym;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -244,8 +245,13 @@ implementation
 
              { if only one def is a undefined def then they are not considered as
                equal}
-             if (def_from.typ=undefineddef) or
-                (def_to.typ=undefineddef) then
+             if (
+                   (def_from.typ=undefineddef) or
+                   assigned(tstoreddef(def_from).genconstraintdata)
+                 ) or (
+                   (def_to.typ=undefineddef) or
+                   assigned(tstoreddef(def_to).genconstraintdata)
+                 ) then
               begin
                 doconv:=tc_not_possible;
                 compare_defs_ext:=te_incompatible;
@@ -254,9 +260,15 @@ implementation
            end
          else
            begin
-             { undefined defs are considered equal }
-             if (def_from.typ=undefineddef) or
-                (def_to.typ=undefineddef) then
+             { undefined defs or defs with generic constraints are
+               considered equal to everything }
+             if (
+                   (def_from.typ=undefineddef) or
+                   assigned(tstoreddef(def_from).genconstraintdata)
+                 ) or (
+                   (def_to.typ=undefineddef) or
+                   assigned(tstoreddef(def_to).genconstraintdata)
+                 ) then
               begin
                 doconv:=tc_equal;
                 compare_defs_ext:=te_exact;
@@ -270,17 +282,27 @@ implementation
              (df_specialization in def_to.defoptions) and
              (tstoreddef(def_from).genericdef=tstoreddef(def_to).genericdef) then
            begin
-             if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
-               internalerror(2012091301);
+             if assigned(tstoreddef(def_from).genericparas) xor
+                 assigned(tstoreddef(def_to).genericparas) then
+               internalerror(2013030901);
              diff:=false;
-             for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+             if assigned(tstoreddef(def_from).genericparas) then
                begin
-                 if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
-                   internalerror(2012091302);
-                 if tstoreddef(def_from).genericparas[i]<>tstoreddef(def_to).genericparas[i] then
-                   diff:=true;
-                 if diff then
-                   break;
+                 if tstoreddef(def_from).genericparas.count<>tstoreddef(def_to).genericparas.count then
+                   internalerror(2012091301);
+                 for i:=0 to tstoreddef(def_from).genericparas.count-1 do
+                   begin
+                     if tstoreddef(def_from).genericparas.nameofindex(i)<>tstoreddef(def_to).genericparas.nameofindex(i) then
+                       internalerror(2012091302);
+                     symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
+                     symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
+                     if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                       internalerror(2012121401);
+                     if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                       diff:=true;
+                     if diff then
+                       break;
+                   end;
                end;
              if not diff then
                begin
@@ -542,7 +564,12 @@ implementation
                  arraydef :
                    begin
                      { array of char to string, the length check is done by the firstpass of this node }
-                     if is_chararray(def_from) or is_open_chararray(def_from) then
+                     if (is_chararray(def_from) or
+                         is_open_chararray(def_from)) and
+                        { bitpacked arrays of char whose element bitsize is not
+                          8 cannot be auto-converted to strings }
+                        (not is_packed_array(def_from) or
+                         (tarraydef(def_from).elementdef.packedbitsize=8)) then
                       begin
                         { "Untyped" stringconstn is an array of char }
                         if fromtreetype=stringconstn then
@@ -852,12 +879,14 @@ implementation
                         { strings in ISO Pascal (at least if the lower bound }
                         { is 1, but GPC makes all equal-length chararrays    }
                         { compatible), so treat those the same as regular    }
-                        { char arrays                                        }
+                        { char arrays -- except if they use subrange types   }
                         if (is_packed_array(def_from) and
-                            not is_chararray(def_from) and
+                            (not is_chararray(def_from) or
+                             (tarraydef(def_from).elementdef.packedbitsize<>8)) and
                             not is_widechararray(def_from)) xor
                            (is_packed_array(def_to) and
-                            not is_chararray(def_to) and
+                            (not is_chararray(def_to) or
+                             (tarraydef(def_to).elementdef.packedbitsize<>8)) and
                             not is_widechararray(def_to)) then
                           { both must be packed }
                           begin
@@ -960,7 +989,11 @@ implementation
                         else
                           { to array of char, from "Untyped" stringconstn (array of char) }
                           if (fromtreetype=stringconstn) and
-                             (is_chararray(def_to) or
+                             ((is_chararray(def_to) and
+                               { bitpacked arrays of char whose element bitsize is not
+                                 8 cannot be auto-converted from strings }
+                               (not is_packed_array(def_to) or
+                                (tarraydef(def_to).elementdef.packedbitsize=8))) or
                               is_widechararray(def_to)) then
                             begin
                               eq:=te_convert_l1;
@@ -1010,8 +1043,12 @@ implementation
                     stringdef :
                       begin
                         { string to char array }
-                        if (not is_special_array(def_to)) and
-                           (is_char(tarraydef(def_to).elementdef)or
+                        if not is_special_array(def_to) and
+                           ((is_char(tarraydef(def_to).elementdef) and
+                             { bitpacked arrays of char whose element bitsize is not
+                               8 cannot be auto-converted from strings }
+                             (not is_packed_array(def_to) or
+                              (tarraydef(def_to).elementdef.packedbitsize=8))) or
                             is_widechar(tarraydef(def_to).elementdef)) then
                          begin
                            doconv:=tc_string_2_chararray;
@@ -1241,12 +1278,17 @@ implementation
                    end;
                  pointerdef :
                    begin
+{$ifdef x86}
                      { check for far pointers }
-                     if (tpointerdef(def_from).is_far<>tpointerdef(def_to).is_far) then
+                     if (tpointerdef(def_from).x86pointertyp<>tpointerdef(def_to).x86pointertyp) then
                        begin
-                         eq:=te_incompatible;
+                         if fromtreetype=niln then
+                           eq:=te_equal
+                         else
+                           eq:=te_incompatible;
                        end
                      else
+{$endif x86}
                       { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
                          ((tpointerdef(def_to).pointeddef.typ=forwarddef) or
@@ -1376,10 +1418,12 @@ implementation
                      if assigned(tsetdef(def_from).elementdef) and
                         assigned(tsetdef(def_to).elementdef) then
                       begin
-                        { sets with the same element base type and the same range are equal }
+                        { sets with the same size (packset setting), element
+                          base type and the same range are equal }
                         if equal_defs(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
-                          (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
-                          (tsetdef(def_from).setmax=tsetdef(def_to).setmax) then
+                           (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
+                           (tsetdef(def_from).setmax=tsetdef(def_to).setmax) and
+                           (def_from.size=def_to.size) then
                           eq:=te_equal
                         else if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
                           begin

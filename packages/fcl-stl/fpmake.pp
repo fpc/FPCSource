@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-stl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-stl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
     P.Version:='2.7.1';
@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.Options.Add('-S2h');
     P.SourcePath.Add('src');
@@ -46,6 +47,7 @@ begin
           AddUnit('gdeque');
         end;
     T:=P.Targets.AddUnit('gset.pp');
+    T:=P.Targets.AddUnit('gtree.pp');
     T:=P.Targets.AddUnit('gstack.pp');
       with T.Dependencies do
         begin

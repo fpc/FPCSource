@@ -1,0 +1,15 @@
+#
+#   Makefile.fpc for Free Pascal Utils
+#
+
+[target]
+programs=rmwait
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+rmwait$(EXEEXT): rmwait.pas

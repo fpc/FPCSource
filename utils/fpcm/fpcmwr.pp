@@ -335,6 +335,7 @@ implementation
         T : TOs;
         C : TCpu;
       begin
+        result:='';
         for c:=low(TCpu) to high(TCpu) do
           for t:=low(TOS) to high(TOS) do
             if FInput.IncludeTargets[c,t] then

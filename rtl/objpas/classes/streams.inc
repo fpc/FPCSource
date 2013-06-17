@@ -16,12 +16,12 @@
 
 procedure TStream.ReadNotImplemented;
 begin
-  raise EStreamError.CreateFmt(SStreamNoReading, [ClassName]) at get_caller_addr(get_frame);
+  raise EStreamError.CreateFmt(SStreamNoReading, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TStream.WriteNotImplemented;
 begin
-  raise EStreamError.CreateFmt(SStreamNoWriting, [ClassName]) at get_caller_addr(get_frame);
+  raise EStreamError.CreateFmt(SStreamNoWriting, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 function TStream.Read(var Buffer; Count: Longint): Longint;
@@ -154,7 +154,7 @@ end;
   procedure TStream.InvalidSeek;
 
   begin
-    raise EStreamError.CreateFmt(SStreamInvalidSeek, [ClassName]) at get_caller_addr(get_frame);
+    raise EStreamError.CreateFmt(SStreamInvalidSeek, [ClassName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
   end;
 
   procedure TStream.FakeSeekForward(Offset: Int64;  const Origin: TSeekOrigin; const Pos: Int64);
@@ -592,8 +592,9 @@ begin
   Result:=0;
   If (FSize>0) and (FPosition<Fsize) and (FPosition>=0) then
     begin
-    Result:=FSize-FPosition;
-    If Result>Count then Result:=Count;
+    Result:=Count;
+    If (Result>(FSize-FPosition)) then
+      Result:=(FSize-FPosition);
     Move ((FMemory+FPosition)^,Buffer,Result);
     FPosition:=Fposition+Result;
     end;
@@ -717,7 +718,7 @@ begin
 end;
 
 
-procedure TMemoryStream.SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt);
+procedure TMemoryStream.SetSize({$ifdef CPU64}const NewSize: Int64{$else}NewSize: LongInt{$endif});
 
 begin
   SetCapacity (NewSize);
@@ -871,7 +872,7 @@ end;
 {*                             TResourceStream                              *}
 {****************************************************************************}
 
-{$ifdef UNICODE}
+{$ifdef FPC_OS_UNICODE}
 procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PWideChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
@@ -899,7 +900,7 @@ constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: In
     inherited create;
     Initialize(Instance,PWideChar(ResID),ResType,True);
   end;
-{$else UNICODE}
+{$else FPC_OS_UNICODE}
 
 procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType: PChar; NameIsID: Boolean);
   begin
@@ -928,7 +929,7 @@ constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: In
     inherited create;
     Initialize(Instance,pchar(PtrInt(ResID)),ResType,True);
   end;
-{$endif UNICODE}
+{$endif FPC_OS_UNICODE}
 
 
 destructor TResourceStream.Destroy;

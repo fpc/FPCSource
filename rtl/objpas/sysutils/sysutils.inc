@@ -124,6 +124,28 @@
   {$i dati.inc}
 {$endif}
 
+{$IFNDEF HAS_GETTICKCOUNT}
+function GetTickCount: LongWord;
+begin
+  Result := LongWord(GetTickCount64);
+end;
+{$ENDIF}
+
+{$IFNDEF HAS_GETTICKCOUNT64}
+function GetTickCount64: QWord;
+begin
+{$IFDEF FPU_NONE}
+  {$IFDEF HAS_SYSTIMERTICK}
+  Result := SysTimerTick;
+  {$ELSE}
+  Result := 0;
+  {$ENDIF}
+{$ELSE}
+  Result := Trunc(Now * 24 * 60 * 60 * 1000);
+{$ENDIF}
+end;
+{$ENDIF}
+
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
@@ -332,7 +354,7 @@ type
   end;
 
 const
-  exceptmap: array[0..27] of TExceptMapEntry = (
+  exceptmap: array[0..28] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -341,6 +363,7 @@ const
     (code: 207; cls: EInvalidOp;     msg: @SInvalidOp),
     { Delphi distinguishes reDivByZero from reZeroDivide, but maps both to code 200. }
     (code: 208; cls: EZeroDivide;    msg: @SZeroDivide),
+    (code: 210; cls: EObjectCheck;   msg: @SObjectCheckError),
     (code: 211; cls: EAbstractError; msg: @SAbstractError),
     (code: 212; cls: EExternalException; msg: @SExternalException),
     (code: 214; cls: EBusError;      msg: @SBusError),

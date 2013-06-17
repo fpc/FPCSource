@@ -20,7 +20,7 @@ Type
 
   { TDBFExportFormatSettings }
 
-  TTableFormat = (tfDBaseIII,tfDBaseIV,tfDBaseVII,tfFoxPro);
+  TTableFormat = (tfDBaseIII,tfDBaseIV,tfDBaseVII,tfFoxPro,tfVisualFoxPro);
   
   TDBFExportFormatSettings = class(TExportFormatSettings)
   private
@@ -42,7 +42,7 @@ Type
     function GetSettings: TDBFExportFormatSettings;
     procedure SetSettings(const AValue: TDBFExportFormatSettings);
   Protected
-    Procedure CheckExportFieldNames(const MaxFieldNameLength: integer); virtual;
+    Procedure CheckExportFieldName(ThisExportField: TExportFieldItem; const MaxFieldNameLength: integer);
     Function BindFields : Boolean; override;
     Function CreateFormatSettings : TCustomExportFormatSettings; override;
 
@@ -97,51 +97,53 @@ begin
   Inherited FormatSettings.Assign(AValue);
 end;
 
-procedure TFPCustomDBFExport.CheckExportFieldNames(const MaxFieldNameLength: integer);
+procedure TFPCustomDBFExport.CheckExportFieldName(ThisExportField: TExportFieldItem; const MaxFieldNameLength: integer);
+// Cut off field name at max length, and rename if it already exists
+Const
+  CounterInvalid=100;
 
 Var
-  i,NameCounter : Integer;
-  EF : TExportFieldItem;
+  NameCounter : Integer;
   NewFieldName : String;
   
 begin
-  For i:=0 to ExportFields.Count-1 do
+  If (Length(ThisExportField.ExportedName)>MaxFieldNameLength) then
     begin
-    EF:=ExportFields[i];
-    { Cut off field name at max length, and
-      rename if it already exists:}
-    If (Length(EF.ExportedName)>MaxFieldNameLength) then
+    NewFieldName:=Copy(ThisExportField.ExportedName,1,MaxFieldNameLength);
+    If ExportFields.IndexOfExportedName(NewFieldName)<>-1 then
       begin
-      NewFieldName:=Copy(EF.ExportedName,1,MaxFieldNameLength);
-      If ExportFields.IndexOfExportedName(NewFieldName)<>-1 then
-        begin
-        NameCounter:=1;
-        Repeat
-          NewFieldName:=Copy(EF.ExportedName,1,8)+Format('%.2d',[NameCounter]);
-        Until (ExportFIelds.IndexOfExportedName(NewFieldName)=-1);
-        end;
-      EF.ExportedName:=NewFieldName;
+      // Try using 2-character number sequence to generate unique name
+      NameCounter:=1;
+      Repeat
+        NewFieldName:=Copy(ThisExportField.ExportedName,1,MaxFieldNameLength-2)+Format('%.2d',[NameCounter]);
+      Until (ExportFields.IndexOfExportedName(NewFieldName)=-1) or (NameCounter=CounterInvalid);
+      if NameCounter=CounterInvalid then
+        ExportError('Could not create a unique export field name for field %s',[ThisExportField.FieldName]);
       end;
+    ThisExportField.ExportedName:=NewFieldName;
     end;
 end;
 
 function TFPCustomDBFExport.BindFields: Boolean;
 
 Const
-  Levels : Array[TTableFormat] of integer = (3,4,7,25);
+  // Translate tableformat to tablelevel
+  Levels : Array[TTableFormat] of integer = (3,4,7,25,30);
   
 Var
   EF : TDBFExportFieldItem;
   i : Integer;
-  
+  MaxFieldName: integer;
+
 begin
-  // DBase III,IV, and FoxPro have a 10 character field length limit.
-  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat in [tfDbaseIII,tfDbaseIV,tfFoxPro]) then
-    CheckExportFieldNames(10);
-  // DBase VII has a 32 character field length limit.
-  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat=tfDbaseVII) then
-    CheckExportFieldNames(32);
   Result:=Inherited;
+  // DBase III,IV, and FoxPro have a 10 character field length limit.
+  // Visual Foxpro free tables (without .dbc file) also
+  // DBase VII has a 32 character field length limit.
+  if (FormatSettings.TableFormat=tfDbaseVII) then
+    MaxFieldName:=32
+  else
+    MaxFieldName:=10;
   try
     with FDBF.FieldDefs do
       begin
@@ -149,6 +151,8 @@ begin
       For i:=0 to ExportFields.Count-1 do
         begin
         EF:=ExportFields[i] as TDBFExportFieldItem;
+        If FormatSettings.AutoRenameFields then
+          CheckExportFieldName(EF,MaxFieldName);
         If EF.Enabled and Assigned(EF.Field) then
           Add(EF.ExportedName,EF.Field.DataType,EF.Field.Size);
         end;

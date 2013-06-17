@@ -3,7 +3,7 @@
  
      Contains:   HIToolbox HITheme interfaces.
  
-     Version:    HIToolbox-437~1
+     Version:    HIToolbox-624~3
  
      Copyright:  © 1994-2008 by Apple Computer, Inc., all rights reserved.
  
@@ -16,6 +16,7 @@
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -91,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +102,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +118,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +139,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -1540,15 +1546,16 @@ function HIThemeDrawButton( const (*var*) inBounds: HIRect; const (*var*) inDraw
  *  Parameters:
  *    
  *    inBounds:
- *      The HIRect in which to draw.
+ *      An HIRect indicating where the button would be drawn.
  *    
  *    inDrawInfo:
- *      An HIThemeButtonDrawInfo describing the button that will be
+ *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the button. Needs to be released by caller.
+ *      the button that would be drawn. It needs to be released by the
+ *      caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -1571,10 +1578,10 @@ function HIThemeGetButtonShape( const (*var*) inBounds: HIRect; const (*var*) in
  *  Parameters:
  *    
  *    inBounds:
- *      An HIRect indicating where the button is to be drawn.
+ *      An HIRect indicating where the button would be drawn.
  *    
  *    inDrawInfo:
- *      An HIThemeButtonDrawInfo describing the button that will be
+ *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
  *    
  *    outBounds:
@@ -1602,10 +1609,10 @@ function HIThemeGetButtonContentBounds( const (*var*) inBounds: HIRect; const (*
  *  Parameters:
  *    
  *    inBounds:
- *      An HIRect indicating where the button is to be drawn.
+ *      An HIRect indicating where the button would be drawn.
  *    
  *    inDrawInfo:
- *      An HIThemeButtonDrawInfo describing the button that will be
+ *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
  *    
  *    outBounds:
@@ -1910,14 +1917,14 @@ function HIThemeDrawMenuSeparator( const (*var*) inMenuRect: HIRect; const (*var
  *    
  *    inMenuRect:
  *      An HIRect indicating the bounds of the menu for which the menu
- *      background is to be drawn.
+ *      background is to be retrieved.
  *    
  *    inMenuDrawInfo:
  *      An HIThemeMenuDrawInfo describing the menu to be measured.
  *    
  *    outShape:
  *      A valid HIShape that will be cleared and filled with the shape
- *      of the menu background.
+ *      of the menu background. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -2215,18 +2222,20 @@ function HIThemeDrawTab( const (*var*) inRect: HIRect; const (*var*) inDrawInfo:
  *  Parameters:
  *    
  *    inRect:
- *      The HIRect for which to get the shape.
+ *      An HIRect indicating the entire tabs area for which the tab
+ *      pane shape is to be retrieved.
  *    
  *    inDirection:
  *      A ThemeTabDirection describing on which side of the pane the
- *      tabs will be drawn.
+ *      tabs would be drawn.
  *    
  *    inTabSize:
- *      An HIThemeTabSize indicating what size of tab pane to draw.
+ *      An HIThemeTabSize indicating the size of tab pane that would be
+ *      drawn.
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the draw area. Needs to be released by caller.
+ *      the draw area. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -2255,18 +2264,20 @@ function HIThemeGetTabPaneDrawShape( const (*var*) inRect: HIRect; inDirection: 
  *  Parameters:
  *    
  *    inRect:
- *      The HIRect for which to get the shape.
+ *      An HIRect indicating the entire tabs area for which the tab
+ *      content shape is to be retrieved.
  *    
  *    inDirection:
  *      A ThemeTabDirection describing on which side of the pane the
- *      tabs will be drawn.
+ *      tabs would be drawn.
  *    
  *    inTabSize:
- *      An HIThemeTabSize indicating what size of tab pane to draw.
+ *      An HIThemeTabSize indicating what size of tab pane that would
+ *      be drawn.
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the draw content. Needs to be released by caller.
+ *      the draw content. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -2295,14 +2306,15 @@ function HIThemeGetTabPaneContentShape( const (*var*) inRect: HIRect; inDirectio
  *  Parameters:
  *    
  *    inRect:
- *      The HIRect for which to get the shape.
+ *      An HIRect indicating the entire tab+pane area for which the tab
+ *      shape is to be retrieved.
  *    
  *    inDrawInfo:
- *      An HIThemeTabDrawInfo describing the tab that will be drawn.
+ *      An HIThemeTabDrawInfo describing the tab that would be drawn.
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the tab drawing area. Needs to be released by caller.
+ *      the tab drawing area. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -2334,11 +2346,11 @@ function HIThemeGetTabDrawShape( const (*var*) inRect: HIRect; const (*var*) inD
  *      shape is to be retrieved.
  *    
  *    inDrawInfo:
- *      An HIThemeTabDrawInfo describing the tab that will be drawn.
+ *      An HIThemeTabDrawInfo describing the tab that would be drawn.
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the tab. Needs to be released by caller.
+ *      the tab. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -2858,7 +2870,7 @@ function HIThemeDrawTickMark( const (*var*) inBounds: HIRect; const (*var*) inDr
  *    
  *    outThumbShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the themed track's thumb. Needs to be released by caller.
+ *      the themed track's thumb. It needs to be released by the caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -3146,16 +3158,16 @@ function HIThemeGetTrackLiveValue( const (*var*) inDrawInfo: HIThemeTrackDrawInf
  *  Parameters:
  *    
  *    inBounds:
- *      An HIRect indicating the area in which the scroll bar will be
+ *      An HIRect indicating the area in which the scroll bar would be
  *      drawn.
  *    
  *    inTrackInfo:
- *      An HIScrollBarTrackInfo for the scroll bar to be drawn.
+ *      An HIScrollBarTrackInfo for the scroll bar that would be drawn.
  *      Currently, only the pressState and enableState fields are used.
  *    
  *    inIsHoriz:
- *      A Boolean where true means that the scroll bar is to be
- *      horizontal and false means that the scroll bar is to be
+ *      A Boolean where true means that the scroll bar would be
+ *      horizontal and false means that the scroll bar would be
  *      vertical.
  *    
  *    outTrackBounds:
@@ -3395,8 +3407,8 @@ function HIThemeDrawGrowBox( const (*var*) inOrigin: HIPoint; const (*var*) inDr
  *      The origin from which to draw the grow box.
  *    
  *    inDrawInfo:
- *      An HIThemeGrowBoxDrawInfo describing the grow box to be drawn
- *      or measured. The state field is ignored.
+ *      An HIThemeGrowBoxDrawInfo describing the grow box to be
+ *      measured. The state field is ignored.
  *    
  *    outBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
@@ -3429,7 +3441,7 @@ function HIThemeGetGrowBoxBounds( const (*var*) inOrigin: HIPoint; const (*var*)
  *    
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
- *      window to be drawn.
+ *      window that would be drawn.
  *    
  *    inDrawInfo:
  *      The HIThemeWindowDrawInfo of the window frame to be measured.
@@ -3440,7 +3452,8 @@ function HIThemeGetGrowBoxBounds( const (*var*) inOrigin: HIPoint; const (*var*)
  *    
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
- *      the requested window region. Needs to be released by caller.
+ *      the requested window region. It needs to be released by the
+ *      caller.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -3467,7 +3480,7 @@ function HIThemeGetWindowShape( const (*var*) inContRect: HIRect; const (*var*) 
  *    
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
- *      window to be drawn.
+ *      window that would be drawn.
  *    
  *    inDrawInfo:
  *      The HIThemeWindowDrawInfo of the window frame to be measured.

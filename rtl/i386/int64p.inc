@@ -18,10 +18,10 @@
 {$define FPC_SYSTEM_HAS_DIV_QWORD}
     function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
       var
-         shift,lzz,lzn : longint;
-         saveebx,saveedi : longint;
+         saveebx,saveedi,saveesi : longint;
       asm
             movl %ebx,saveebx
+            movl %esi,saveesi
             movl %edi,saveedi
             { the following piece of code is taken from the     }
             { AMD Athlon Processor x86 Code Optimization manual }
@@ -68,18 +68,23 @@
             roll $1,%edi
             divl %ebx
             movl z,%ebx
-            movl %eax,%ecx
+            movl %eax,%esi             // save quotient to esi
             imull %eax,%edi
             mull n
             addl %edi,%edx
+            setcb %cl                  // cl:edx:eax = 65 bits quotient*divisor
+
+            movl z+4,%edi              // edi:ebx = dividend
             subl %eax,%ebx
-            movl %ecx,%eax
-            movl z+4,%ecx
-            sbbl %edx,%ecx
-            sbbl $0,%eax
+            movb $0,%al
+            sbbl %edx,%edi
+            sbbb %cl,%al
+            sbbl $0,%esi
             xorl %edx,%edx
+            movl %esi,%eax
 .Lexit:
             movl saveebx,%ebx
+            movl saveesi,%esi
             movl saveedi,%edi
       end;
 
@@ -87,7 +92,6 @@
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
     function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; compilerproc;
       var
-         shift,lzz,lzn : longint;
          saveebx,saveedi : longint;
       asm
             movl %ebx,saveebx
@@ -139,19 +143,22 @@
             roll $1,%edi
             divl %ebx
             movl z,%ebx
-            movl %eax,%ecx
             imull %eax,%edi
             mull n
             addl %edi,%edx
-            subl %eax,%ebx
-            movl z+4,%ecx
+            setcb %cl                  // cl:edx:eax = 65 bits quotient*divisor
+            movl z+4,%edi
+            subl %eax,%ebx             // subtract (quotient*divisor) from dividend
+            movb $0,%al
+            sbbl %edx,%edi
+            sbbb %cl,%al               // if carry is set now, the quotient was off by 1,
+                                       // and we need to add divisor to result
             movl n,%eax
-            sbbl %edx,%ecx
             sbbl %edx,%edx
             andl %edx,%eax
             andl n+4,%edx
             addl %ebx,%eax
-            adcl %ecx,%edx
+            adcl %edi,%edx
 .Lexit:
             movl saveebx,%ebx
             movl saveedi,%edi

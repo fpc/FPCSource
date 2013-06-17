@@ -109,7 +109,7 @@ uses
                              Executable Loaders
 ****************************************************************************}
 
-{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos)}
+{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android)}
   {$ifdef cpu64}
     {$define ELF64}
   {$else}
@@ -379,7 +379,17 @@ begin
      if asecname=secname then
        begin
          secofs:=cardinal(sechdr.datapos) + E.ImgOffset;
+{$ifdef GO32V2}
          seclen:=sechdr.datalen;
+{$else GO32V2}
+         { In PECOFF, datalen includes file padding up to the next section.
+           vsize is the actual payload size if it does not exceed datalen,
+           otherwise it is .bss (or alike) section that we should ignore.  }
+         if sechdr.vsize<=sechdr.datalen then
+           seclen:=sechdr.vsize
+         else
+           exit;
+{$endif GO32V2}
          FindSectionCoff:=true;
          exit;
        end;

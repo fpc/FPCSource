@@ -41,6 +41,8 @@ interface
 {$endif symansistr}
        PSymStr = ^TSymStr;
 
+       Int32 = Longint;
+
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}
        PUint = qword;
@@ -101,7 +103,11 @@ interface
          pointer(-1) will result in a pointer with the value
          $fffffffffffffff on a 32bit machine if the compiler uses
          int64 constants internally (JM) }
+{$ifdef i8086}
+       TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
+{$else i8086}
        TConstPtrUInt = AWord;
+{$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
        tdoublerec=record
@@ -136,7 +142,8 @@ interface
          { macpas specific}
          cs_external_var, cs_externally_visible,
          { jvm specific }
-         cs_check_var_copyout
+         cs_check_var_copyout,
+         cs_zerobasedstrings
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -220,8 +227,12 @@ interface
            of the current class, then this virtual method may already have
            initialized that field with another value and the constructor
            initialization will result in data loss }
-         ts_jvm_enum_field_init
-
+         ts_jvm_enum_field_init,
+         { when automatically generating getters/setters for properties, use
+           these strings as prefixes for the generated getters/setter names }
+         ts_auto_getter_prefix,
+         ts_auto_setter_predix,
+         ts_thumb_interworking
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -252,7 +263,9 @@ interface
              explicit side-effects, only implicit side-effects (like the ones
              mentioned before) can disappear.
          }
-         cs_opt_dead_values
+         cs_opt_dead_values,
+         { compiler checks for empty procedures/methods and removes calls to them if possible }
+         cs_opt_remove_emtpy_proc
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -267,17 +280,24 @@ interface
        { Used by ARM / AVR to differentiate between specific microcontrollers }
        tcontrollerdatatype = record
           controllertypestr, controllerunitstr: string[20];
-          interruptvectors:integer;
           flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
        end;
 
+       ttargetswitchinfo = record
+          name: string[22];
+          { target switch can have an arbitratry value, not only on/off }
+          hasvalue: boolean;
+          { target switch can be used only globally }
+          isglobal: boolean;
+       end;
+
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[11] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[16] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH','DEADVALUES'
+         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -286,14 +306,19 @@ interface
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
-       TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
-         'SMALLTOC',
-         'COMPACTINTARRAYINIT',
-         'ENUMFIELDINIT');
+       TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
+         (name: '';                    hasvalue: false; isglobal: true ),
+         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ),
+         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
+         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true )
+       );
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
-       genericlevel2optimizerswitches = [cs_opt_level2];
+       genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
        genericlevel3optimizerswitches = [cs_opt_level3];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
@@ -311,7 +336,7 @@ interface
 
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
-       tmodeswitch = (m_none,m_all, { needed for keyword }
+       tmodeswitch = (m_none,
          { generic }
          m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
          {$ifdef fpc_mode}m_gpc,{$endif}
@@ -352,16 +377,20 @@ interface
        );
        tmodeswitches = set of tmodeswitch;
 
-       { Win32, OS/2 & MacOS application types }
+    const
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+
+    type
+       { Application types (platform specific) }
        tapptype = (
          app_none,
-         app_native,
-         app_gui,       { graphic user-interface application}
-         app_cui,       { console application}
+         app_native,    { native for Windows and NativeNT targets }
+         app_gui,       { graphic user-interface application }
+         app_cui,       { console application }
          app_fs,        { full-screen type application (OS/2 and EMX only) }
-         app_tool,      { tool application, (MPW tool for MacOS, MacOS only)}
-         app_arm7,
-         app_arm9,
+         app_tool,      { tool application, (MPW tool for MacOS, MacOS only) }
+         app_arm7,      { for Nintendo DS target }
+         app_arm9,      { for Nintendo DS target }
          app_bundle     { dynamically loadable bundle, Darwin only }
        );
 
@@ -465,7 +494,9 @@ interface
          );
 
        { Default calling convention }
-{$ifdef x86}
+{$if defined(i8086)}
+       pocall_default = pocall_pascal;
+{$elseif defined(i386) or defined(x86_64)}
        pocall_default = pocall_register;
 {$else}
        pocall_default = pocall_stdcall;
@@ -473,7 +504,7 @@ interface
 
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
-       modeswitchstr : array[tmodeswitch] of string[18] = ('','',
+       modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
@@ -548,7 +579,9 @@ interface
          { subroutine contains interprocedural gotos }
          pi_has_global_goto,
          { subroutine contains inherited call }
-         pi_has_inherited
+         pi_has_inherited,
+         { subroutine has nested exit }
+         pi_has_nested_exit
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -636,6 +669,8 @@ interface
         state : tmsgstate;
       end;
 
+    type
+      tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

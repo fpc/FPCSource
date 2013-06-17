@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for debugserver
+#
+
+[target]
+units=msgintf debugserverintf dbugintf
+dirs=gtk console
+examples=testdebug speeddebug
+rsts=debugserverintf dbugintf
+
+[clean]
+
+[compiler]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+
+[rules]
+.NOTPARALLEL:
+debugserverintf$(PPUEXT): msgintf$(PPUEXT) debugserverintf.pp
+        $(COMPILER) debugserverintf$(PASEXT)
+
+dbugintf$(PPUEXT): msgintf$(PPUEXT) dbugintf.pp
+        $(COMPILER) dbugintf.pp

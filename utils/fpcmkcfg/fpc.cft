@@ -177,6 +177,11 @@
 #undef NEEDCROSSBINUTILS
 #endif
 
+# for android cross-prefix is set by compiler
+#ifdef android
+#undef NEEDCROSSBINUTILS
+#endif
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
 #IFDEF NEEDCROSSBINUTILS

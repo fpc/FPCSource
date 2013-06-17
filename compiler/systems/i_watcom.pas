@@ -94,9 +94,9 @@ unit i_watcom;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef watcom}
     set_source_info(system_i386_watcom_info);
   {$endif watcom}
-{$endif cpu86}
+{$endif cpui386}
 end.

@@ -2,19 +2,12 @@
     *********************************************************************
     Copyright (C) 2002 by Florian Klaempfl
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     *********************************************************************
 }
 
@@ -39,13 +32,17 @@ Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Ca
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const);
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const; Const FormatSettings: TFormatSettings);
 
+function StrMove(dest,source : PWideChar;l : SizeInt) : PWideChar; overload;
 function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
 function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
-{$IFNDEF VER2_4}
+function StrScan(P: PWideChar; C: WideChar): PWideChar; overload;
+function strnew(p : PWideChar) : PWideChar; overload;
+
+function StrPas(Str: PWideChar): UnicodeString;overload;
+
 function BytesOf(const Val: UnicodeString): TBytes; overload;
 function BytesOf(const Val: WideChar): TBytes; overload;
 function StringOf(const Bytes: TBytes): UnicodeString;
-{$ENDIF VER2_4}
 function WideBytesOf(const Value: UnicodeString): TBytes;
 function WideStringOf(const Value: TBytes): UnicodeString;
 function ByteLength(const S: UnicodeString): Integer;

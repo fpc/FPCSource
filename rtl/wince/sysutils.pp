@@ -30,7 +30,7 @@ uses
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_TEMPDIR}
-
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -463,6 +463,21 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetLocalTimeOffset: Integer;
+var
+  TZInfo: TTimeZoneInformation;
+begin
+   case GetTimeZoneInformation(TZInfo) of
+     TIME_ZONE_ID_UNKNOWN:
+       Result := TZInfo.Bias;
+     TIME_ZONE_ID_STANDARD:
+       Result := TZInfo.Bias + TZInfo.StandardBias;
+     TIME_ZONE_ID_DAYLIGHT:
+       Result := TZInfo.Bias + TZInfo.DaylightBias;
+     else
+       Result := 0;
+   end;
+end;
 
 {****************************************************************************
                               Misc Functions
@@ -775,23 +790,36 @@ end;
 ****************************************************************************}
 
 
-function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+function DoCompareString(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
 begin
   SetLastError(0);
-  Result:=CompareString(LOCALE_USER_DEFAULT,0,pwidechar(s1),
-    length(s1),pwidechar(s2),length(s2))-2;
+  Result:=CompareString(LOCALE_USER_DEFAULT,Flags,P1,L1,P2,L2)-2;
   if GetLastError<>0 then
     RaiseLastOSError;
 end;
 
 
+function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+end;
+
+
 function WinCECompareTextWideString(const s1, s2 : WideString) : PtrInt;
 begin
-  SetLastError(0);
-  Result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pwidechar(s1),
-    length(s1),pwidechar(s2),length(s2))-2;
-  if GetLastError<>0 then
-    RaiseLastOSError;
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+end;
+
+
+function WinCECompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+end;
+
+
+function WinCECompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+begin
+  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
 end;
 
 
@@ -934,6 +962,8 @@ procedure InitWinCEWidestrings;
   begin
     widestringmanager.CompareWideStringProc:=@WinCECompareWideString;
     widestringmanager.CompareTextWideStringProc:=@WinCECompareTextWideString;
+    widestringmanager.CompareUnicodeStringProc:=@WinCECompareUnicodeString;
+    widestringmanager.CompareTextUnicodeStringProc:=@WinCECompareTextUnicodeString;
 
     widestringmanager.UpperAnsiStringProc:=@WinCEAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@WinCEAnsiLowerCase;

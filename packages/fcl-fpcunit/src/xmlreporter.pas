@@ -18,10 +18,10 @@
   
 
   Purpose:
-    This unit contains a XML TestListener for use with the fpcUnit testing
-    framework.  It uses the XMLWrite unit, which is part of FPC, to generate
-    the XML document. The benefit of using the XMLWrite unit, is that the
-    data generated is valid XML, with resevered characters correctly escaped.
+    This unit contains an XML TestListener for use with the fpcUnit testing
+    framework. It uses the XMLWrite unit, which is part of FPC, to generate
+    the XML document. The benefit of using the XMLWrite unit is that the
+    data generated is valid XML, with reserved characters correctly escaped.
     This allows the XML document to be further processed with XSLT etc without
     any issues.
 
@@ -43,7 +43,7 @@ uses
   
 
 type
-  { XML Test Listner }
+  { XML Test Listener }
 
   { TXMLResultsWriter }
 
@@ -58,6 +58,7 @@ type
     FErrors: TDOMNode;
     FLastTestSuite: TDOMNode;
     FStartCrono: TDateTime;
+    FskipTiming : Boolean;
     { Converts the actual test results into XML nodes. This gets called
       by the public method WriteResult. }
     procedure   TestResultAsXML(pTestResult: TTestResult);
@@ -78,6 +79,7 @@ type
 
     { A public property to the internal XML document }
     property    Document: TXMLDocument read FDoc;
+    Property    SkipTiming : Boolean Read FSkipTiming Write FSkipTiming;
   end;
 
 
@@ -107,9 +109,13 @@ begin
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);
 
-  n := FDoc.CreateElement('TotalElapsedTime');
-  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - pTestResult.StartingTime)));
-  lResults.AppendChild(n);
+  { We don't have access to TCustomResultsWriter so we cannot honour SkipTiming}
+  if not(SkipTiming) then
+  begin
+    n := FDoc.CreateElement('TotalElapsedTime');
+    n.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - pTestResult.StartingTime)));
+    lResults.AppendChild(n);
+  end;
 
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
   n := FDoc.CreateElement('DateTimeRan');
@@ -244,9 +250,12 @@ var
   lNew: TDOMElement;
 begin
   n := FLastTestSuite.LastChild;
-  lNew := FDoc.CreateElement('ElapsedTime');
-  lNew.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - FStartCrono)));
-  n.AppendChild(lNew);
+  if not(SkipTiming) then
+  begin
+    lNew := FDoc.CreateElement('ElapsedTime');
+    lNew.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - FStartCrono)));
+    n.AppendChild(lNew);
+  end;
 end;
 
 procedure TXMLResultsWriter.StartTestSuite(ATestSuite: TTestSuite);

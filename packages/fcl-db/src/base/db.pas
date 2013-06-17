@@ -356,11 +356,11 @@ type
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
-    procedure SetAsInteger(AValue: Integer); virtual;
+    procedure SetAsInteger(AValue: Longint); virtual;
     procedure SetAsLargeint(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
-    procedure SetAsWideString(const aValue: WideString); virtual;
+    procedure SetAsWideString(const AValue: WideString); virtual;
     procedure SetDataset(AValue : TDataset); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
@@ -392,7 +392,7 @@ type
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
     property AsLargeInt: LargeInt read GetAsLargeInt write SetAsLargeInt;
-    property AsInteger: Integer read GetAsInteger write SetAsInteger;
+    property AsInteger: Longint read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
     property AsWideString: WideString read GetAsWideString write SetAsWideString;
     property AsVariant: variant read GetAsVariant write SetAsVariant;
@@ -415,7 +415,7 @@ type
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
-    property ValidChars : TFieldChars Read FValidChars;
+    property ValidChars : TFieldChars read FValidChars write FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;
@@ -458,7 +458,7 @@ type
     function GetAsBoolean: Boolean; override;
     function GetAsDateTime: TDateTime; override;
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -468,7 +468,7 @@ type
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
@@ -486,18 +486,18 @@ type
 
   TWideStringField = class(TStringField)
   protected
-    class procedure CheckTypeSize(aValue: Integer); override;
+    class procedure CheckTypeSize(AValue: Integer); override;
 
-    function GetValue(var aValue: WideString): Boolean;
+    function GetValue(var AValue: WideString): Boolean;
 
     function GetAsString: string; override;
-    procedure SetAsString(const aValue: string); override;
+    procedure SetAsString(const AValue: string); override;
 
     function GetAsVariant: Variant; override;
-    procedure SetVarValue(const aValue: Variant); override;
+    procedure SetVarValue(const AValue: Variant); override;
 
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
 
     function GetDataSize: Integer; override;
   public
@@ -534,27 +534,27 @@ type
     FMinValue,
     FMaxValue,
     FMinRange,
-    FMAxRange  : Longint;
+    FMaxRange  : Longint;
     Procedure SetMinValue (AValue : longint);
     Procedure SetMaxValue (AValue : longint);
   protected
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     function GetAsLargeint: Largeint; override;
     procedure SetAsLargeint(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : longint) : Boolean;
-    property Value: Longint read GetAsLongint write SetAsLongint;
+    Function CheckRange(AValue : Longint) : Boolean;
+    property Value: Longint read GetAsInteger write SetAsInteger;
   published
     property MaxValue: Longint read FMaxValue write SetMaxValue default 0;
     property MinValue: Longint read FMinValue write SetMinValue default 0;
@@ -568,12 +568,12 @@ type
     FMinValue,
     FMaxValue,
     FMinRange,
-    FMAxRange  : Largeint;
+    FMaxRange  : Largeint;
     Procedure SetMinValue (AValue : Largeint);
     Procedure SetMaxValue (AValue : Largeint);
   protected
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsInteger: Longint; override;
     function GetAsLargeint: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
@@ -581,7 +581,7 @@ type
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsLargeint(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -616,7 +616,7 @@ type
 
   TAutoIncField = class(TLongintField)
   Protected
-    Procedure SetAsLongInt(AValue : Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -633,13 +633,15 @@ type
     procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsLargeInt: LargeInt; override;
+    function GetAsInteger: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
@@ -680,7 +682,7 @@ type
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsString(const AValue: string); override;
-    procedure SetAsInteger(AValue: Integer); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -739,6 +741,7 @@ type
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    function GetValue(var AValue: TBytes): Boolean;
     procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
@@ -777,17 +780,19 @@ type
     FCurrency   : boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
+    function GetAsBCD: TBCD; override;
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetValue(var AValue: Currency): Boolean;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -820,7 +825,8 @@ type
     function GetAsBCD: TBCD; override;
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
-    function GetAsLongint: Longint; override;
+    function GetAsLargeInt: LargeInt; override;
+    function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -828,7 +834,8 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -866,7 +873,7 @@ type
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Clear; override;
@@ -890,7 +897,7 @@ type
   TMemoField = class(TBlobField)
   protected
     function GetAsWideString: WideString; override;
-    procedure SetAsWideString(const aValue: WideString); override;
+    procedure SetAsWideString(const AValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -905,7 +912,7 @@ type
     procedure SetVarValue(const AValue: Variant); override;
 
     function GetAsString: string; override;
-    procedure SetAsString(const aValue: string); override;
+    procedure SetAsString(const AValue: string); override;
   public
     constructor Create(aOwner: TComponent); override;
     property Value: WideString read GetAsWideString write SetAsWideString;
@@ -936,7 +943,7 @@ type
     procedure SetAsFloat(aValue: Double); override;
 
     function GetAsInteger: Longint; override;
-    procedure SetAsInteger(aValue: Longint); override;
+    procedure SetAsInteger(AValue: Longint); override;
 
     function GetAsString: string; override;
     procedure SetAsString(const aValue: string); override;
@@ -960,7 +967,7 @@ type
     function GetDefaultWidth: Longint; override;
 
     function GetAsGuid: TGUID;
-    procedure SetAsGuid(const aValue: TGUID);
+    procedure SetAsGuid(const AValue: TGUID);
   public
     constructor Create(AOwner: TComponent); override;
     property AsGuid: TGUID read GetAsGuid write SetAsGuid;
@@ -1064,10 +1071,10 @@ type
 
 { TFields }
 
-  Tfields = Class(TObject)
+  TFields = Class(TObject)
     Private
       FDataset : TDataset;
-      FFieldList : TList;
+      FFieldList : TFpList;
       FOnChange : TNotifyEvent;
       FValidFieldKinds : TFieldKinds;
     Protected
@@ -1159,7 +1166,7 @@ type
     Procedure SetDataType(AValue: TFieldType);
     Procedure SetText(const AValue: string);
     function GetAsWideString: WideString;
-    procedure SetAsWideString(const aValue: WideString);
+    procedure SetAsWideString(const AValue: WideString);
   public
     constructor Create(ACollection: TCollection); overload; override;
     constructor Create(AParams: TParams; AParamType: TParamType); reintroduce; overload;
@@ -1231,8 +1238,8 @@ type
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1584,24 +1591,24 @@ type
     procedure EnableControls;
     function FieldByName(const FieldName: string): TField;
     function FindField(const FieldName: string): TField;
-    function FindFirst: Boolean;
-    function FindLast: Boolean;
-    function FindNext: Boolean;
-    function FindPrior: Boolean;
+    function FindFirst: Boolean; virtual;
+    function FindLast: Boolean; virtual;
+    function FindNext: Boolean; virtual;
+    function FindPrior: Boolean; virtual;
     procedure First;
     procedure FreeBookmark(ABookmark: TBookmark); virtual;
     function GetBookmark: TBookmark; virtual;
     function GetCurrentRecord(Buffer: TRecordBuffer): Boolean; virtual;
     procedure GetFieldList(List: TList; const FieldNames: string);
     procedure GetFieldNames(List: TStrings);
-    procedure GotoBookmark(ABookmark: TBookmark);
+    procedure GotoBookmark(const ABookmark: TBookmark);
     procedure Insert;
     procedure InsertRecord(const Values: array of const);
     function IsEmpty: Boolean;
     function IsLinkedTo(ADataSource: TDataSource): Boolean;
     function IsSequenced: Boolean; virtual;
     procedure Last;
-    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; virtual;
+    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; virtual;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; virtual;
     function MoveBy(Distance: Longint): Longint;
     procedure Next;
@@ -1760,6 +1767,22 @@ type
     property OnMasterDisable: TNotifyEvent read FOnMasterDisable write FOnMasterDisable;
   end;
 
+{ TMasterParamsDataLink }
+
+  TMasterParamsDataLink = Class(TMasterDataLink)
+  Private
+    FParams : TParams;
+    Procedure SetParams(AValue : TParams);
+  Protected
+    Procedure DoMasterDisable; override;
+    Procedure DoMasterChange; override;
+  Public
+    constructor Create(ADataSet: TDataSet); override;
+    Procedure RefreshParamNames; virtual;
+    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
+    Property Params : TParams Read FParams Write SetParams;
+  end;
+
 { TDataSource }
 
   TDataChangeEvent = procedure(Sender: TObject; Field: TField) of object;
@@ -1800,7 +1823,7 @@ type
     property OnUpdateData: TNotifyEvent read FOnUpdateData write FOnUpdateData;
   end;
 
- { TDBDataset }
+  { TDBDataset }
 
   TDBDatasetClass = Class of TDBDataset;
   TDBDataset = Class(TDataset)
@@ -1817,7 +1840,7 @@ type
       Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     end;
 
- { TDBTransaction }
+  { TDBTransaction }
 
   TDBTransactionClass = Class of TDBTransaction;
   TDBTransaction = Class(TComponent)
@@ -1852,7 +1875,7 @@ type
     property Active : boolean read FActive write setactive;
   end;
 
-    { TCustomConnection }
+  { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
 
@@ -1862,6 +1885,7 @@ type
     FAfterDisconnect: TNotifyEvent;
     FBeforeConnect: TNotifyEvent;
     FBeforeDisconnect: TNotifyEvent;
+    FForcedClose: Boolean;
     FLoginPrompt: Boolean;
     FOnLogin: TLoginEvent;
     FStreamedConnected: Boolean;
@@ -1878,9 +1902,10 @@ type
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    property ForcedClose : Boolean read FForcedClose write FForcedClose;
     property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
-    procedure Close;
+    procedure Close(ForceClose: Boolean=False);
     destructor Destroy; override;
     procedure Open;
     property DataSetCount: Longint read GetDataSetCount;
@@ -1950,20 +1975,6 @@ type
     property Params : TStrings read FParams Write SetParams;
   end;
 
-
-  TMasterParamsDataLink = Class(TMasterDataLink)
-  Private
-    FParams : TParams;
-    Procedure SetParams(AVAlue : TParams);  
-  Protected  
-    Procedure DoMasterDisable; override;
-    Procedure DoMasterChange; override;
-  Public
-    constructor Create(ADataSet: TDataSet); override;
-    Procedure RefreshParamNames; virtual;
-    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
-    Property Params : TParams Read FParams Write SetParams;  
-  end;
 
 const
   FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,

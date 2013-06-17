@@ -62,6 +62,8 @@ type
     procedure IncrementIgnores;
   end;
 
+  { TCustomResultsWriter }
+
   TCustomResultsWriter = class(TComponent, ITestListener)
   private
     FLevel: integer;
@@ -79,6 +81,7 @@ type
     FOnEndTest: TTestEvent;
     FOnStartTestSuite: TTestEvent;
     FOnEndTestSuite: TTestEvent;
+    FSkipTiming: Boolean;
   protected
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); virtual;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); virtual;
@@ -118,6 +121,7 @@ type
     property OnEndTest: TTestEvent read FOnEndTest write FOnEndTest;
     property OnStartTestSuite: TTestEvent read FOnStartTestSuite write FOnStartTestSuite;
     property OnEndTestSuite: TTestEvent read FOnEndTestSuite write FOnEndTestSuite;
+    Property SkipTiming : Boolean Read FSkipTiming Write FSkipTiming;
   end; 
 
 implementation

@@ -9,10 +9,7 @@ uses
   ,db, sqldb
   ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn
   ,ibconnection
-  {$IFNDEF WIN64}
-  {See packages\fcl-db\src\sqldb\postgres\fpmake.pp: postgres connector won't be present on Win64}
   ,pqconnection
-  {$ENDIF WIN64}
   ,odbcconn
   {$IFNDEF WIN64}
   {See packages\fcl-db\fpmake.pp: Oracle connector is not built if PostgreSQL connectoris not built}
@@ -22,56 +19,17 @@ uses
   ,mssqlconn
   ;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql);
+type
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
-const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
-      DBTypesNames : Array [TSQLDBTypes] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL');
+const
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
+  SQLConnTypesNames : Array [TSQLConnType] of String[19] =
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
-      FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
-        (
-          '',
-          'VARCHAR(10)',
-          'SMALLINT',
-          'INTEGER',
-          '',
-          'BOOLEAN',
-          'FLOAT',
-          '',             // ftCurrency
-          'DECIMAL(18,4)',// ftBCD
-          'DATE',
-          'TIME',
-          'TIMESTAMP',    // ftDateTime
-          '',
-          '',
-          '',
-          'BLOB',         // ftBlob
-          'BLOB',         // ftMemo
-          'BLOB',         // ftGraphic
-          '',
-          '',
-          '',
-          '',
-          '',
-          'CHAR(10)',     // ftFixedChar
-          '',
-          'BIGINT',       // ftLargeInt
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',             // ftGuid
-          'TIMESTAMP',    // ftTimestamp
-          'NUMERIC(18,6)',// ftFmtBCD
-          '',
-          ''
-        );
-             
+  STestNotApplicable = 'This test does not apply to this sqldb-connection type';
+
 
 type
 { TSQLDBConnector }
@@ -97,114 +55,237 @@ type
   public
     destructor Destroy; override;
     constructor Create; override;
+    procedure ExecuteDirect(const SQL: string);
+    procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
     property Query : TSQLQuery read FQuery;
   end;
 
-var SQLDbType : TSQLDBTypes;
+var SQLConnType : TSQLConnType;
+    SQLServerType : TSQLServerType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
     
 implementation
 
 uses StrUtils;
 
+type
+  TSQLServerTypesMapItem = record
+    s: string;
+    t: TSQLServerType;
+  end;
+
+const
+  FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
+    (
+      '',
+      'VARCHAR(10)',
+      'SMALLINT',
+      'INTEGER',
+      '',             // ftWord
+      'BOOLEAN',
+      'DOUBLE PRECISION', // ftFloat
+      '',             // ftCurrency
+      'DECIMAL(18,4)',// ftBCD
+      'DATE',
+      'TIME',
+      'TIMESTAMP',    // ftDateTime
+      '',             // ftBytes
+      '',             // ftVarBytes
+      '',             // ftAutoInc
+      'BLOB',         // ftBlob
+      'BLOB',         // ftMemo
+      'BLOB',         // ftGraphic
+      '',
+      '',
+      '',
+      '',
+      '',
+      'CHAR(10)',     // ftFixedChar
+      '',             // ftWideString
+      'BIGINT',       // ftLargeInt
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',             // ftGuid
+      'TIMESTAMP',    // ftTimestamp
+      'NUMERIC(18,6)',// ftFmtBCD
+      '',             // ftFixedWideChar
+      ''              // ftWideMemo
+    );
+
+  // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
+  SQLServerTypesMap : array [0..7] of TSQLServerTypesMapItem = (
+    (s: 'Firebird'; t: ssFirebird),
+    (s: 'Interbase'; t: ssInterbase),
+    (s: 'Microsoft SQL Server'; t: ssMSSQL),
+    (s: 'MySQL'; t: ssMySQL),
+    (s: 'Oracle'; t: ssOracle),
+    (s: 'PostgreSQL'; t: ssPostgreSQL),
+    (s: 'SQLite3'; t: ssSQLite),
+    (s: 'ASE'; t: ssSybase)
+  );
+
+  // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
+  SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+
+
 { TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFConnection;
-var i : TSQLDBTypes;
-    t : integer;
+var t : TSQLConnType;
+    i : integer;
+    s : string;
 begin
-  for i := low(DBTypesNames) to high(DBTypesNames) do
-    if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
+  for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
+    if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
+
+  if SQLConnType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
+  if SQLConnType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
+  if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
+  if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
+  if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
+  if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
+  if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
+  if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
+  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
+  {$IFNDEF Win64}
+  if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  {$ENDIF Win64}
+  if SQLConnType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
+  if SQLConnType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
+
+  if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
+
+  with Fconnection do
+  begin
+    DatabaseName := dbname;
+    UserName := dbuser;
+    Password := dbpassword;
+    HostName := dbhostname;
+    if (dbhostname='') and (SQLConnType=interbase) then
+    begin
+      // Firebird embedded: create database file if it doesn't yet exist
+      // Note: pagesize parameter has influence on behavior. We're using
+      // Firebird default here.
+      if not(fileexists(dbname)) then
+        CreateDB; //Create testdb
+    end;
+
+    if length(dbQuoteChars)>1 then
+      FieldNameQuoteChars:=dbQuoteChars;
+
+    Open;
+  end;
+
+  // determine remote SQL Server to which we are connected
+  s := Fconnection.GetConnectionInfo(citServerType);
+  if s = '' then
+    SQLServerType := SQLConnTypeToServerTypeMap[SQLConnType] // if citServerType isn't implemented
+  else
+    for i := low(SQLServerTypesMap) to high(SQLServerTypesMap) do
+      if SQLServerTypesMap[i].s = s then
+        SQLServerType := SQLServerTypesMap[i].t;
 
   FieldtypeDefinitions := FieldtypeDefinitionsConst;
-    
-  if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
-  if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
-  if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
-  if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
-  if SQLDbType = MYSQL55 then Fconnection := tMySQL55Connection.Create(nil);
-  if SQLDbType in [mysql40,mysql41] then
+
+  case SQLServerType of
+    ssFirebird:
+      begin
+      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftMemo]    := 'BLOB SUB_TYPE TEXT';
+      end;
+    ssInterbase:
+      begin
+      FieldtypeDefinitions[ftMemo]     := 'BLOB SUB_TYPE TEXT';
+      FieldtypeDefinitions[ftLargeInt] := 'NUMERIC(18,0)';
+      end;
+    ssMSSQL, ssSybase:
+      // todo: Sybase: copied over MSSQL; verify correctness
+      begin
+      FieldtypeDefinitions[ftBoolean] := 'BIT';
+      FieldtypeDefinitions[ftFloat]   := 'FLOAT';
+      FieldtypeDefinitions[ftCurrency]:= 'MONEY';
+      FieldtypeDefinitions[ftDate]    := 'DATETIME';
+      FieldtypeDefinitions[ftTime]    := '';
+      FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
+      FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
+      FieldtypeDefinitions[ftBlob]    := 'IMAGE';
+      FieldtypeDefinitions[ftMemo]    := 'TEXT';
+      FieldtypeDefinitions[ftGraphic] := '';
+      end;
+    ssMySQL:
+      begin
+      //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
+      FieldtypeDefinitions[ftBoolean]  := '';
+      // Use 'DATETIME' for datetime-fields instead of timestamp, because
+      // mysql's timestamps are only valid in the range 1970-2038.
+      // Downside is that fields defined as 'TIMESTAMP' aren't tested
+      FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+      FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
+      FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      end;
+    ssOracle:
+      begin
+      FieldtypeDefinitions[ftBoolean] := '';
+      FieldtypeDefinitions[ftTime]    := 'TIMESTAMP';
+      FieldtypeDefinitions[ftMemo]    := 'CLOB';
+      end;
+    ssPostgreSQL:
+      begin
+      FieldtypeDefinitions[ftCurrency] := 'MONEY'; // ODBC?!
+      FieldtypeDefinitions[ftBlob] := 'BYTEA';
+      FieldtypeDefinitions[ftMemo] := 'TEXT';
+      FieldtypeDefinitions[ftGraphic] := '';
+      end;
+    ssSQLite:
+      begin
+      FieldtypeDefinitions[ftWord] := 'WORD';
+      FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+      FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+      FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
+      FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
+      FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
+      end;
+  end;
+
+  if SQLConnType in [mysql40,mysql41] then
     begin
     // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
     // fields on insertion. So to test properly, we have to do the same
-    for t := 0 to testValuesCount-1 do
-      testStringValues[t] := TrimRight(testStringValues[t]);
-    end;
-  if SQLDbType in MySQLdbTypes then
-    begin
-    //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
-    FieldtypeDefinitions[ftBoolean] := '';
-    FieldtypeDefinitions[ftFloat] := 'DOUBLE';
-    // Use 'DATETIME' for datetime-fields instead of timestamp, because
-    // mysql's timestamps are only valid in the range 1970-2038.
-    // Downside is that fields defined as 'TIMESTAMP' aren't tested
-    FieldtypeDefinitions[ftDateTime] := 'DATETIME';
-    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-    FieldtypeDefinitions[ftMemo] := 'TEXT';
-    end;
-  if SQLDbType = sqlite3 then
-    begin
-    Fconnection := TSQLite3Connection.Create(nil);
-    FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
-    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-    FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
-    end;
-  {$IFNDEF Win64}    
-  if SQLDbType = POSTGRESQL then
-    begin
-    Fconnection := tPQConnection.Create(nil);
-    FieldtypeDefinitions[ftCurrency] := 'MONEY';
-    FieldtypeDefinitions[ftBlob] := 'BYTEA';
-    FieldtypeDefinitions[ftMemo] := 'TEXT';
-    FieldtypeDefinitions[ftGraphic] := '';
-    end;
-  {$ENDIF Win64}
-  if SQLDbType = INTERBASE then
-    begin
-    Fconnection := tIBConnection.Create(nil);
-    FieldtypeDefinitions[ftBoolean] := '';
-    FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
-    end;
-  if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
-  {$IFNDEF Win64}
-  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
-  {$ENDIF Win64}
-  if SQLDbType = MSSQL then
-    begin
-    Fconnection := TMSSQLConnection.Create(nil);
-    FieldtypeDefinitions[ftBoolean] := 'BIT';
-    FieldtypeDefinitions[ftCurrency]:= 'MONEY';
-    FieldtypeDefinitions[ftDate]    := 'DATETIME';
-    FieldtypeDefinitions[ftTime]    := '';
-    FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
-    FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
-    FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
-    FieldtypeDefinitions[ftBlob]    := 'IMAGE';
-    FieldtypeDefinitions[ftMemo]    := 'TEXT';
-    FieldtypeDefinitions[ftGraphic] := '';
+    for i := 0 to testValuesCount-1 do
+      testStringValues[i] := TrimRight(testStringValues[i]);
     end;
 
-  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc] then
+  if SQLServerType in [ssMySQL] then
     begin
     // Some DB's do not support milliseconds in datetime and time fields.
-    for t := 0 to testValuesCount-1 do
+    for i := 0 to testValuesCount-1 do
       begin
-      testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
-      testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
-      if length(testValues[ftDateTime,t]) > 19 then
-        testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
+      testTimeValues[i] := copy(testTimeValues[i],1,8)+'.000';
+      testValues[ftTime,i] := copy(testTimeValues[i],1,8)+'.000';
+      if length(testValues[ftDateTime,i]) > 19 then
+        testValues[ftDateTime,i] := copy(testValues[ftDateTime,i],1,19)+'.000';
       end;
     end;
-  if SQLDbType in [postgresql,interbase,mssql] then
+
+  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssPostgreSQL, ssSybase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
     testValues[ftTime,3]:='13:25:15.000';
-    if SQLDbType = interbase then
+    if SQLServerType in [ssFirebird, ssInterbase] then
       begin
       // Firebird does not support time = 24:00:00
       testTimeValues[2]:='23:00:00.000';
@@ -212,34 +293,27 @@ begin
       end;
     end;
 
+  if SQLServerType in [ssMSSQL, ssSybase] then
+    // Some DB's do not support datetime values before 1753-01-01
+    for i := 18 to testValuesCount-1 do
+      begin
+      testValues[ftDate,i] := testValues[ftDate,0];
+      testValues[ftDateTime,i] := testValues[ftDateTime,0];
+      end;
+
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
-  if SQLDbType in [postgresql] then
-    for t := 0 to testValuesCount-1 do
-      testValues[ftCurrency,t] := QuotedStr(CurrToStr(testCurrencyValues[t]));
+  if SQLServerType in [ssPostgreSQL] then
+    for i := 0 to testValuesCount-1 do
+      testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
 
   // SQLite does not support fixed length CHAR datatype
   // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
   // MSSQL set SET ANSI_PADDING ON
-  if SQLDbType in [sqlite3] then
-    for t := 0 to testValuesCount-1 do
-      testValues[ftFixedChar,t] := PadRight(testValues[ftFixedChar,t], 10);
-
-
-  if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
-
-  with Fconnection do
-    begin
-    DatabaseName := dbname;
-    UserName := dbuser;
-    Password := dbpassword;
-    HostName := dbhostname;
-    if length(dbQuoteChars)>1 then
-      begin
-        FieldNameQuoteChars:=dbquotechars;
-      end;
-    Open;
-    end;
+  // todo: verify Sybase behaviour
+  if SQLServerType in [ssSQLite] then
+    for i := 0 to testValuesCount-1 do
+      testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
 end;
 
 procedure TSQLDBConnector.CreateFTransaction;
@@ -250,7 +324,7 @@ begin
     database := Fconnection;
 end;
 
-Function TSQLDBConnector.CreateQuery : TSQLQuery;
+function TSQLDBConnector.CreateQuery: TSQLQuery;
 
 begin
   Result := TSQLQuery.create(nil);
@@ -279,11 +353,11 @@ begin
   try
     Ftransaction.StartTransaction;
     TryDropIfExist('FPDEV');
-    Fconnection.ExecuteDirect('create table FPDEV (       ' +
-                              '  ID INT NOT NULL,           ' +
-                              '  NAME VARCHAR(50),          ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+    Fconnection.ExecuteDirect('create table FPDEV (' +
+                              '  ID INT NOT NULL,  ' +
+                              '  NAME VARCHAR(50), ' +
+                              '  PRIMARY KEY (ID)  ' +
+                              ')');
 
     FTransaction.CommitRetaining;
 
@@ -402,20 +476,57 @@ end;
 
 procedure TSQLDBConnector.TryDropIfExist(ATableName: String);
 begin
-  // This makes live soo much easier, since it avoids the exception if the table already
+  // This makes life soo much easier, since it avoids the exception if the table already
   // exists. And while this exeption is in a try..except statement, the debugger
-  // always shows the exception. Which is pretty annoying
-  // It only works with Firebird 2, though.
+  // always shows the exception, which is pretty annoying.
   try
-    if SQLDbType = INTERBASE then
-      begin
-      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
-             'then execute statement ''drop table ' + ATAbleName + ';'';end');
-      FTransaction.CommitRetaining;
-      end;
+    case SQLServerType of
+      ssFirebird:
+        begin
+        // This only works with Firebird 2+
+        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+          'then execute statement ''drop table ' + ATableName + ';'';end');
+        FTransaction.CommitRetaining;
+        end;
+      ssMSSQL:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Use SQL92 ISO standard INFORMATION_SCHEMA:
+        FConnection.ExecuteDirect(
+          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        end;
+      ssSybase:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Can't use SQL standard information_schema; instead query sysobjects for User tables
+        FConnection.ExecuteDirect(
+          'if exists (select * from sysobjects where type = ''U'' and name=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        end;
+    end;
   except
     FTransaction.RollbackRetaining;
   end;
+end;
+
+procedure TSQLDBConnector.ExecuteDirect(const SQL: string);
+begin
+  Connection.ExecuteDirect(SQL);
+end;
+
+procedure TSQLDBConnector.CommitDDL;
+begin
+  // Commits schema definition and manipulation statements;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  if SQLServerType in [ssFirebird, ssInterbase] then
+    Transaction.CommitRetaining;
 end;
 
 destructor TSQLDBConnector.Destroy;
@@ -428,11 +539,10 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      if Ftransaction.Active then Ftransaction.Rollback;
     end; // try
     end;
   inherited Destroy;
-
   FreeAndNil(FQuery);
   FreeAndNil(FTransaction);
   FreeAndNil(FConnection);

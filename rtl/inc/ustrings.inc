@@ -18,6 +18,7 @@
 
 
 {$ifndef FPC_UNICODESTRING_TYPE_DEFINED}
+{$define FPC_UNICODESTRING_TYPE_DEFINED}
 {
   This file contains the implementation of the UnicodeString type,
   and all things that are needed for it.
@@ -928,30 +929,14 @@ end;
 {$endif FPC_HAS_UNICODESTR_COMPARE_EQUAL}
 
 
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer);[Public,Alias : 'FPC_UNICODESTR_CHECKZERO']; compilerproc;
-begin
-  if p=nil then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
-begin
-  if (index>len) or (Index<1) then
-    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-end;
-
-{$else VER2_4}
 {$ifndef FPC_HAS_UNICODESTR_RANGECHECK}
 {$define FPC_HAS_UNICODESTR_RANGECHECK}
-Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
+Procedure fpc_UnicodeStr_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
   if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<1) then
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 {$endif FPC_HAS_UNICODESTR_RANGECHECK}
-{$endif VER2_4}
 
 
 {$ifndef FPC_HAS_UNICODESTR_SETLENGTH}
@@ -1499,6 +1484,38 @@ end;
 {$endif CPU64}
 
 
+{$if defined(CPU16) or defined(CPU8)}
+Function fpc_Val_longword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): longword; [public, alias:'FPC_VAL_LONGWORD_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_longword_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_longword_UnicodeStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_longint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongInt; [public, alias:'FPC_VAL_LONGINT_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_longint_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_longint_UnicodeStr,Code);
+    end;
+end;
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString);compilerproc;
 var
@@ -1576,6 +1593,28 @@ begin
 end;
 
 {$endif CPU64}
+
+
+{$if defined(CPU16) or defined(CPU8)}
+
+Procedure fpc_UnicodeStr_LongInt(v : LongInt; Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  Str (v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+
+Procedure fpc_UnicodeStr_LongWord(v : LongWord;Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  str(v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+{$endif CPU16 or CPU8}
 
 
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}

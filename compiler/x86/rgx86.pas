@@ -115,6 +115,7 @@ implementation
 
       var
         n,replaceoper : longint;
+        is_subh: Boolean;
       begin
         result:=false;
         with instr do
@@ -133,156 +134,184 @@ implementation
                 end;
               2,3 :
                 begin
-                  { We can handle opcodes with 2 and 3 operands the same way. The opcodes
-                    with 3 registers are shrd/shld, where the 3rd operand is const or CL,
-                    that doesn't need spilling.
-                    However, due to AT&T order inside the compiler, the 3rd operand is
-                    numbered 0, so look at operand no. 1 and 2 if we have 3 operands by
-                    adding a "n". }
-                  n:=0;
-                  if ops=3 then
-                    n:=1;
-                  if (oper[n+0]^.typ=top_reg) and
-                     (oper[n+1]^.typ=top_reg) and
-                     ((getregtype(oper[n+0]^.reg)<>regtype) or
-                      (getregtype(oper[n+1]^.reg)<>regtype) or
-                      (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg)))) then
+                  { avx instruction?
+                    currently this rule is sufficient but it might be extended }
+                  if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) then
                     begin
-                      if (getregtype(oper[n+0]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[n+0]^.reg))=orgreg) then
-                        replaceoper:=0+n
-                      else if (getregtype(oper[n+1]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[n+1]^.reg))=orgreg) then
-                        replaceoper:=1+n;
+                      { avx instructions allow only the first operand (at&t counting) to be a register operand }
+                      { all operands must be registers ... }
+                      if (oper[0]^.typ=top_reg) and
+                         (oper[1]^.typ=top_reg) and
+                         (oper[2]^.typ=top_reg) and
+                         { but they must be different }
+                         ((getregtype(oper[1]^.reg)<>regtype) or
+                          (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[1]^.reg)))
+                         ) and
+                         ((getregtype(oper[2]^.reg)<>regtype) or
+                          (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[2]^.reg)))
+                         ) and
+                         (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
+                        replaceoper:=0;
                     end
-                  else if (oper[n+0]^.typ=top_reg) and
-                     (oper[n+1]^.typ=top_const) then
+                  else
                     begin
-                      if (getregtype(oper[0+n]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[0+n]^.reg))=orgreg) then
-                        replaceoper:=0+n
-                      else
-                        internalerror(200704282);
-                    end
-                  else if (oper[n+0]^.typ=top_const) and
-                     (oper[n+1]^.typ=top_reg) then
-                    begin
-                      if (getregtype(oper[1+n]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[1+n]^.reg))=orgreg) then
-                        replaceoper:=1+n
-                      else
-                        internalerror(200704283);
-                    end;
-                  case replaceoper of
-                    0 :
-                      begin
-                        { Some instructions don't allow memory references
-                          for source }
-                        case instr.opcode of
-                          A_BT,
-                          A_BTS,
-                          A_BTC,
-                          A_BTR,
-
-                          { shufp* would require 16 byte alignment for memory locations so we force the source
-                            operand into a register }
-                          A_SHUFPD,
-                          A_SHUFPS :
-                            replaceoper:=-1;
+                      { We can handle opcodes with 2 and shrd/shld the same way, where the 3rd operand is const or CL,
+                        that doesn't need spilling.
+                        However, due to AT&T order inside the compiler, the 3rd operand is
+                        numbered 0, so look at operand no. 1 and 2 if we have 3 operands by
+                        adding a "n". }
+                      n:=0;
+                      if ops=3 then
+                        n:=1;
+                      if (oper[n+0]^.typ=top_reg) and
+                         (oper[n+1]^.typ=top_reg) and
+                         ((getregtype(oper[n+0]^.reg)<>regtype) or
+                          (getregtype(oper[n+1]^.reg)<>regtype) or
+                          (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg)))) then
+                        begin
+                          if (getregtype(oper[n+0]^.reg)=regtype) and
+                             (get_alias(getsupreg(oper[n+0]^.reg))=orgreg) then
+                            replaceoper:=0+n
+                          else if (getregtype(oper[n+1]^.reg)=regtype) and
+                             (get_alias(getsupreg(oper[n+1]^.reg))=orgreg) then
+                            replaceoper:=1+n;
+                        end
+                      else if (oper[n+0]^.typ=top_reg) and
+                         (oper[n+1]^.typ=top_const) then
+                        begin
+                          if (getregtype(oper[0+n]^.reg)=regtype) and
+                             (get_alias(getsupreg(oper[0+n]^.reg))=orgreg) then
+                            replaceoper:=0+n
+                          else
+                            internalerror(200704282);
+                        end
+                      else if (oper[n+0]^.typ=top_const) and
+                         (oper[n+1]^.typ=top_reg) then
+                        begin
+                          if (getregtype(oper[1+n]^.reg)=regtype) and
+                             (get_alias(getsupreg(oper[1+n]^.reg))=orgreg) then
+                            replaceoper:=1+n
+                          else
+                            internalerror(200704283);
                         end;
-                      end;
-                    1 :
-                      begin
-                        { Some instructions don't allow memory references
-                          for destination }
-                        case instr.opcode of
-                          A_CMOVcc,
-                          A_MOVZX,
-                          A_MOVSX,
-                          A_MOVSXD,
-                          A_MULSS,
-                          A_MULSD,
-                          A_SUBSS,
-                          A_SUBSD,
-                          A_ADDSD,
-                          A_ADDSS,
-                          A_DIVSD,
-                          A_DIVSS,
-                          A_SHLD,
-                          A_SHRD,
-                          A_COMISD,
-                          A_COMISS,
-                          A_CVTDQ2PD,
-                          A_CVTDQ2PS,
-                          A_CVTPD2DQ,
-                          A_CVTPD2PI,
-                          A_CVTPD2PS,
-                          A_CVTPI2PD,
-                          A_CVTPS2DQ,
-                          A_CVTPS2PD,
-                          A_CVTSD2SI,
-                          A_CVTSD2SS,
-                          A_CVTSI2SD,
-                          A_CVTSS2SD,
-                          A_CVTTPD2PI,
-                          A_CVTTPD2DQ,
-                          A_CVTTPS2DQ,
-                          A_CVTTSD2SI,
-                          A_CVTPI2PS,
-                          A_CVTPS2PI,
-                          A_CVTSI2SS,
-                          A_CVTSS2SI,
-                          A_CVTTPS2PI,
-                          A_CVTTSS2SI,
-                          A_IMUL,
-                          A_XORPD,
-                          A_XORPS,
-                          A_ORPD,
-                          A_ORPS,
-                          A_ANDPD,
-                          A_ANDPS,
-                          A_UNPCKLPS,
-                          A_UNPCKHPS,
-                          A_SHUFPD,
-                          A_SHUFPS:
+                      case replaceoper of
+                        0 :
+                          begin
+                            { Some instructions don't allow memory references
+                              for source }
+                            case instr.opcode of
+                              A_BT,
+                              A_BTS,
+                              A_BTC,
+                              A_BTR,
 
-                            replaceoper:=-1;
+                              { shufp* would require 16 byte alignment for memory locations so we force the source
+                                operand into a register }
+                              A_SHUFPD,
+                              A_SHUFPS :
+                                replaceoper:=-1;
+                            end;
+                          end;
+                        1 :
+                          begin
+                            { Some instructions don't allow memory references
+                              for destination }
+                            case instr.opcode of
+                              A_CMOVcc,
+                              A_MOVZX,
+                              A_MOVSX,
+                              A_MOVSXD,
+                              A_MULSS,
+                              A_MULSD,
+                              A_SUBSS,
+                              A_SUBSD,
+                              A_ADDSD,
+                              A_ADDSS,
+                              A_DIVSD,
+                              A_DIVSS,
+                              A_SHLD,
+                              A_SHRD,
+                              A_COMISD,
+                              A_COMISS,
+                              A_CVTDQ2PD,
+                              A_CVTDQ2PS,
+                              A_CVTPD2DQ,
+                              A_CVTPD2PI,
+                              A_CVTPD2PS,
+                              A_CVTPI2PD,
+                              A_CVTPS2DQ,
+                              A_CVTPS2PD,
+                              A_CVTSD2SI,
+                              A_CVTSD2SS,
+                              A_CVTSI2SD,
+                              A_CVTSS2SD,
+                              A_CVTTPD2PI,
+                              A_CVTTPD2DQ,
+                              A_CVTTPS2DQ,
+                              A_CVTTSD2SI,
+                              A_CVTPI2PS,
+                              A_CVTPS2PI,
+                              A_CVTSI2SS,
+                              A_CVTSS2SI,
+                              A_CVTTPS2PI,
+                              A_CVTTSS2SI,
+                              A_IMUL,
+                              A_XORPD,
+                              A_XORPS,
+                              A_ORPD,
+                              A_ORPS,
+                              A_ANDPD,
+                              A_ANDPS,
+                              A_UNPCKLPS,
+                              A_UNPCKHPS,
+                              A_SHUFPD,
+                              A_SHUFPS:
+
+                                replaceoper:=-1;
 {$ifdef x86_64}
-                          A_MOV:
-                             { 64 bit constants can only be moved into registers }
-                             if (oper[0]^.typ=top_const) and
-                                (oper[1]^.typ=top_reg) and
-                                ((oper[0]^.val<low(longint)) or
-                                 (oper[0]^.val>high(longint))) then
-                               replaceoper:=-1;
+                              A_MOV:
+                                 { 64 bit constants can only be moved into registers }
+                                 if (oper[0]^.typ=top_const) and
+                                    (oper[1]^.typ=top_reg) and
+                                    ((oper[0]^.val<low(longint)) or
+                                     (oper[0]^.val>high(longint))) then
+                                   replaceoper:=-1;
 {$endif x86_64}
+                            end;
+                          end;
                         end;
-                      end;
                     end;
                 end;
              end;
 
-            {$ifdef x86_64}
+{$ifdef x86_64}
             { 32 bit operations on 32 bit registers on x86_64 can result in
               zeroing the upper 32 bits of the register. This does not happen
               with memory operations, so we have to perform these calculations
               in registers.  }
             if (instr.opsize=S_L) then
               replaceoper:=-1;
-            {$endif x86_64}
+{$endif x86_64}
 
             { Replace register with spill reference }
             if replaceoper<>-1 then
               begin
+                is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
                 oper[replaceoper]^.typ:=top_ref;
                 new(oper[replaceoper]^.ref);
                 oper[replaceoper]^.ref^:=spilltemp;
+                if is_subh then
+                  inc(oper[replaceoper]^.ref^.offset);
                 { memory locations aren't guaranteed to be aligned }
                 case opcode of
                   A_MOVAPS:
                     opcode:=A_MOVSS;
                   A_MOVAPD:
                     opcode:=A_MOVSD;
+                  A_VMOVAPS:
+                    opcode:=A_VMOVSS;
+                  A_VMOVAPD:
+                    opcode:=A_VMOVSD;
                 end;
                 result:=true;
               end;

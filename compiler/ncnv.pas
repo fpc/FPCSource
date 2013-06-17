@@ -1118,8 +1118,22 @@ implementation
                       if (current_settings.sourcecodepage<>CP_UTF8) then
                         begin
                           if tordconstnode(left).value.uvalue>127 then
-                            Message(type_w_unicode_data_loss);
-                          hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                            begin
+                              Message(type_w_unicode_data_loss);
+                              // compiler has different codepage than a system running an application
+                              // to prevent wrong codepage and data loss we are converting unicode char
+                              // using a helper routine. This is not delphi compatible behavior.
+                              // Delphi converts UniocodeChar to ansistring at the compile time
+                              // old behavior:
+                              // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
+                                   ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
+                                   ccallparanode.create(left,nil)),resultdef);
+                              left:=nil;
+                              exit;
+                            end
+                          else
+                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                         end
                       else
                         begin
@@ -1996,7 +2010,6 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
-        nestinglevel : byte;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2268,8 +2281,13 @@ implementation
                   { Handle explicit type conversions }
                   if nf_explicit in flags then
                    begin
-                     { do common tc_equal cast }
-                     convtype:=tc_equal;
+                     { do common tc_equal cast, except when dealing with proc -> procvar
+                       (may have to get rid of method pointer) }
+                     if (left.resultdef.typ<>procdef) or
+                        (resultdef.typ<>procvardef) then
+                       convtype:=tc_equal
+                     else
+                       convtype:=tc_proc_2_procvar;
 
                      { ordinal constants can be resized to 1,2,4,8 bytes }
                      if (left.nodetype=ordconstn) then
@@ -2812,6 +2830,9 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
+         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -2835,6 +2856,8 @@ implementation
 
       begin
          first_char_to_string:=nil;
+         if tstringdef(resultdef).stringtype=st_shortstring then
+           inc(current_procinfo.estimatedtempsize,256);
          expectloc:=LOC_REFERENCE;
       end;
 
@@ -3063,7 +3086,7 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resultdef.size > sizeof(aint) then
            begin
-             result := ctypeconvnode.create_internal(left,s32inttype);
+             result := ctypeconvnode.create_internal(left,sinttype);
              result := ctypeconvnode.create(result,resultdef);
              left := nil;
              firstpass(result);
@@ -3226,6 +3249,9 @@ implementation
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
+         { Use of FPC_EMPTYCHAR label requires setting pi_needs_got flag }
+         if (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
       end;
 
 

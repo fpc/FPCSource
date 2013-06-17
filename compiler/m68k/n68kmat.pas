@@ -36,6 +36,9 @@ interface
       end;
 
       tm68kmoddivnode = class(tcgmoddivnode)
+      private
+        procedure call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
+      public
          procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
          procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
       end;
@@ -52,7 +55,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,
+      symconst,symdef,symtable,aasmbase,aasmtai,aasmdata,aasmcpu,
       pass_1,pass_2,procinfo,
       ncon,
       cpuinfo,paramgr,defutil,parabase,
@@ -69,6 +72,7 @@ implementation
       var
          hl : tasmlabel;
          opsize : tcgsize;
+         loc : tcgloc;
       begin
          opsize:=def_cgsize(resultdef);
          if is_boolean(resultdef) then
@@ -76,10 +80,15 @@ implementation
             { the second pass could change the location of left }
             { if it is a register variable, so we've to do      }
             { this before the case statement                    }
-            if left.location.loc<>LOC_JUMP then
-             secondpass(left);
+            if left.expectloc<>LOC_JUMP then
+              begin
+                secondpass(left);
+                loc:=left.location.loc;
+              end
+            else
+              loc:=LOC_JUMP;
 
-            case left.location.loc of
+            case loc of
               LOC_JUMP :
                 begin
                   location_reset(location,LOC_JUMP,OS_NO);
@@ -111,7 +120,7 @@ implementation
                   location.resflags:=F_E;
                 end;
              else
-                internalerror(200203224);
+                internalerror(200203223);
             end;
           end
          else if is_64bitint(left.resultdef) then
@@ -134,6 +143,28 @@ implementation
           end;
       end;
 
+  procedure tm68kmoddivnode.call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
+    var
+      paraloc1,paraloc2 : tcgpara;
+      pd : tprocdef;
+    begin
+      pd:=search_system_proc(name);
+      paraloc1.init;
+      paraloc2.init;
+      paramanager.getintparaloc(pd,1,paraloc1);
+      paramanager.getintparaloc(pd,2,paraloc2);
+      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,num,paraloc2);
+      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,denum,paraloc1);
+      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
+      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
+      cg.a_call_name(current_asmdata.CurrAsmList,name,false);
+      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
+      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,NR_FUNCTION_RESULT_REG,num);
+      paraloc2.done;
+      paraloc1.done;
+    end;
 
 {*****************************************************************************
                                TM68KMODDIVNODE
@@ -142,10 +173,10 @@ implementation
    var
      continuelabel : tasmlabel;
      reg_d0,reg_d1 : tregister;
-     paraloc1 : tcgpara;
+     paraloc1,paraloc2 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype <> cpu_MC68000 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -165,22 +196,11 @@ implementation
        end
      else
        begin
-         { On MC68000/68010 mw must pass through RTL routines }
-         reg_d0:=NR_D0;
-         cg.getcpuregister(current_asmdata.CurrAsmList,NR_D0);
-         reg_d1:=NR_D1;
-         cg.getcpuregister(current_asmdata.CurrAsmList,NR_D1);
-         { put numerator in d0 }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,reg_d0);
-         { put denum in D1 }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,denum,reg_d1);
+         { On MC68000/68010/Coldfire we must pass through RTL routines }
          if signed then
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_LONGINT',false)
+           call_rtl_divmod_reg_reg(denum,num,'fpc_div_longint')
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_CARDINAL',false);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,reg_d0,denum);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d0);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d1);
+           call_rtl_divmod_reg_reg(denum,num,'fpc_div_dword');
        end;
    end;
 
@@ -193,7 +213,7 @@ implementation
     begin
 //     writeln('emit mod reg reg');
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype <> cpu_MC68000 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -228,22 +248,11 @@ implementation
        end
      else
        begin
-         { On MC68000/68010 mw must pass through RTL routines }
-         Reg_d0:=NR_D0;
-         cg.getcpuregister(current_asmdata.CurrAsmList,NR_D0);
-         Reg_d1:=NR_D1;
-         cg.getcpuregister(current_asmdata.CurrAsmList,NR_D1);
-         { put numerator in d0 }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,Reg_D0);
-         { put denum in D1 }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,denum,Reg_D1);
+         { On MC68000/68010/coldfire we must pass through RTL routines }
          if signed then
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_LONGINT',false)
+           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_longint')
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_CARDINAL',false);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,Reg_D0,denum);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D0);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D1);
+           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_dword');
        end;
 //      writeln('exits');
     end;
@@ -255,8 +264,12 @@ implementation
 
     function tm68kShlShrNode.first_shlshr64bitint:TNode;
       begin
-        { 2nd pass is our friend }
-        result := nil;
+        if is_64bit(left.resultdef) and not (right.nodetype=ordconstn) then
+          { for 64bit shifts with anything but constants we use rtl helpers }
+          result:=inherited
+        else
+          { 2nd pass is our friend }
+          result := nil;
       end;
 
 

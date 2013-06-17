@@ -14,9 +14,11 @@ begin
 
     P:=AddPackage('regexpr');
 {$ifdef ALLPACKAGES}
-    P.Directory:='regexpr';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes:=P.OSes-[embedded];
+
     P.SourcePath.Add('src');
 
     // Sorokin's RegExpr

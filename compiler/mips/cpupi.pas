@@ -29,7 +29,7 @@ interface
     cutils,
     globtype,symdef,
     procinfo,cpuinfo,cpupara,
-    psub;
+    psub,aasmdata,cgutils;
 
   type
 
@@ -40,17 +40,18 @@ interface
       floatregstart : aint;
       intregssave,
       floatregssave : byte;
-      needs_frame_pointer: boolean;
       register_used : tparasupregsused;
       register_size : tparasupregsize;
       register_name : tparasuprename;
       register_offset : tparasupregsoffset;
       computed_local_size : longint;
+      save_gp_ref: treference;
       //intparareg,
       //parasize : longint;
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
+      procedure allocate_got_register(list:tasmlist);override;
     end;
 
    { Used by Stabs debug info generator }
@@ -61,7 +62,7 @@ implementation
 
     uses
       systems,globals,verbose,
-      cpubase,cgbase,cgutils,cgobj,
+      cpubase,cgbase,cgobj,
       tgobj,paramgr,symconst;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
@@ -69,6 +70,9 @@ implementation
         i : longint;
       begin
         inherited create(aparent);
+        { if (cs_generate_stackframes in current_settings.localswitches) or
+           not (cs_opt_stackframe in current_settings.optimizerswitches) then }
+          include(flags,pi_needs_stackframe);
         for i:=low(tparasupregs)  to high(tparasupregs) do
           begin
             register_used[i]:=false;
@@ -77,11 +81,9 @@ implementation
             register_offset[i]:=-1;
           end;
         floatregssave:=12; { f20-f31 }
-        intregssave:=12;   { r16-r23,r28-r31 }
-        { for testing }
-        needs_frame_pointer := true;//false;
+        intregssave:=10;   { r16-r23,r30,r31 }
         computed_local_size:=-1;
-        { pi_needs_got is not yet set correctly 
+        { pi_needs_got is not yet set correctly
           so include it always if creating PIC code }
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -95,21 +97,50 @@ implementation
 
     procedure TMIPSProcInfo.set_first_temp_offset;
       begin
+        { MIPS stack frame is always "optimized" }
+        framepointer:=NR_STACK_POINTER_REG;
+        tg.direction:=1;
+
         { We allocate enough space to save all registers because we can't determine
           the necessary space because the used registers aren't known before
           secondpass is run. }
-        if tg.direction = -1 then
-          tg.setfirsttemp(0)
+
+        { will call _mcount if profiling }
+        if (cs_profile in current_settings.moduleswitches) and
+           not (po_nostackframe in procdef.procoptions) then
+          include(flags,pi_do_call);
+
+        { Fixes the case when there are calls done by low-level means
+          (cg.a_call_name) but no child callnode. !!For assembler procedure
+          there is no clean way to determine what it calls, unless it is
+          also declared as nostackframe and everything is managed manually. }
+        if (pi_do_call in flags) or
+           ((pi_is_assembler in flags) and not (po_nostackframe in procdef.procoptions)) then
+          allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+
+        if not (po_nostackframe in procdef.procoptions) then
+          tg.setfirsttemp(Align(maxpushedparasize+
+            floatregssave*sizeof(aint)+intregssave*sizeof(aint)
+            ,max(current_settings.alignment.localalignmin,8)))
         else
-          tg.setfirsttemp(maxpushedparasize+
-           floatregssave*sizeof(aint)+intregssave*sizeof(aint));
+          tg.setfirsttemp(align(maxpushedparasize,max(current_settings.alignment.localalignmin,8)));
+      end;
+
+
+    procedure TMIPSProcInfo.allocate_got_register(list:tasmlist);
+      begin
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            if (pi_do_call in flags) then
+              include(flags,pi_needs_got);
+            if (pi_needs_got in flags) and
+               not (po_nostackframe in procdef.procoptions) then
+              tg.gettemp(list,sizeof(aint),sizeof(aint),tt_noreuse,save_gp_ref);
+          end;
       end;
 
 
     function TMIPSProcInfo.calc_stackframe_size:longint;
-      var
-         r : byte;
-         regs: tcpuregisterset;
       begin
         result:=maxpushedparasize;
         floatregstart:=result;

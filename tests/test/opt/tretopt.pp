@@ -295,7 +295,8 @@ begin
     movl %eax,p3-.Lpic(%ecx)
 {$else darwin}
    addl $_GLOBAL_OFFSET_TABLE_+1,%ecx
-   movl %eax,p3@GOT(%ecx)
+   movl p3@GOT(%ecx),%edx
+   movl %eax,(%edx)
 {$endif darwin}
 {$endif FPC_PIC}
 {$endif cpui386}
@@ -350,7 +351,8 @@ begin
     movl %eax,p3-.Lpic(%ecx)
 {$else darwin}
    addl $_GLOBAL_OFFSET_TABLE_+1,%ecx
-   movl %eax,p3@GOT(%ecx)
+   movl p3@GOT(%ecx),%edx
+   movl %eax,(%edx)
 {$endif darwin}
 {$endif FPC_PIC}
 {$endif}

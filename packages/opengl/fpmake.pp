@@ -14,10 +14,10 @@ begin
 
     P:=AddPackage('opengl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='opengl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=AllUnixOSes+[Win32,Win64];
+    P.OSes:=AllUnixOSes+[Win32,Win64]-[Android];
 
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     if Defaults.CPU<>arm then

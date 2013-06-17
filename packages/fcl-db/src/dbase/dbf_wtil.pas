@@ -142,7 +142,7 @@ const
   SUBLANG_SPANISH_GUATEMALA            = $04;    { Spanish (Guatemala) }
   SUBLANG_SPANISH_COSTA_RICA           = $05;    { Spanish (Costa Rica) }
   SUBLANG_SPANISH_PANAMA               = $06;    { Spanish (Panama) }
-  SUBLANG_SPANISH_DOMINICAN_REPUBLIC   = $07;  { Spanish (Dominican Republic) }
+  SUBLANG_SPANISH_DOMINICAN_REPUBLIC   = $07;    { Spanish (Dominican Republic) }
   SUBLANG_SPANISH_VENEZUELA            = $08;    { Spanish (Venezuela) }
   SUBLANG_SPANISH_COLOMBIA             = $09;    { Spanish (Colombia) }
   SUBLANG_SPANISH_PERU                 = $0a;    { Spanish (Peru) }
@@ -253,8 +253,8 @@ function GetOEMCP: Cardinal;
 function GetACP: Cardinal;
 function OemToChar(lpszSrc: PChar; lpszDst: PChar): BOOL;
 function CharToOem(lpszSrc: PChar; lpszDst: PChar): BOOL;
-function OemToCharBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
-function CharToOemBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function OemToCharBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function CharToOemBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
 function MultiByteToWideChar(CodePage: DWORD; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lpWideCharStr: LPWSTR; cchWideChar: Integer): Integer;
 function WideCharToMultiByte(CodePage: DWORD; dwFlags: DWORD; lpWideCharStr: LPWSTR; cchWideChar: Integer; lpMultiByteStr: LPSTR; cchMultiByte: Integer; lpDefaultChar: LPCSTR; lpUsedDefaultChar: PBOOL): Integer;
 function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
@@ -588,7 +588,7 @@ begin
   Result := true;
 end;
 
-function OemToCharBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function OemToCharBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
@@ -598,7 +598,7 @@ begin
   Result := true;
 end;
 
-function CharToOemBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function CharToOemBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);

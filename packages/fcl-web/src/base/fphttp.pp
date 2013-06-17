@@ -94,9 +94,9 @@ Type
     constructor Create(AItemClass: TCollectionItemClass);
     Procedure Assign(Source : TPersistent); override;
     Function Add : TCustomWebAction;
-    Function ActionByName(AName : String) : TCustomWebAction;
-    Function FindAction(AName : String): TCustomWebAction;
-    Function IndexOfAction(AName : String) : Integer;
+    Function ActionByName(const AName : String) : TCustomWebAction;
+    Function FindAction(const AName : String): TCustomWebAction;
+    Function IndexOfAction(const AName : String) : Integer;
     Property OnGetAction : TGetActionEvent Read FOnGetAction Write FOnGetAction;
     Property Actions[Index : Integer] : TCustomWebAction Read GetActions Write SetActions; Default;
     Property DefActionWhenUnknown : Boolean read FDefActionWhenUnknown write FDefActionWhenUnknown;
@@ -201,9 +201,9 @@ Type
     function GetModule(Index : Integer): TModuleItem;
     procedure SetModule(Index : Integer; const AValue: TModuleItem);
   Public
-    Function FindModule(AModuleName : String) : TModuleItem;
-    Function ModuleByName(AModuleName : String) : TModuleItem;
-    Function IndexOfModule(AModuleName : String) : Integer;
+    Function FindModule(const AModuleName : String) : TModuleItem;
+    Function ModuleByName(const AModuleName : String) : TModuleItem;
+    Function IndexOfModule(const AModuleName : String) : Integer;
     Property Modules [Index : Integer]: TModuleItem Read GetModule Write SetModule;default;
   end;
 
@@ -299,7 +299,7 @@ begin
   Items[Index]:=AValue;
 end;
 
-function TModuleFactory.FindModule(AModuleName: String): TModuleItem;
+function TModuleFactory.FindModule(const AModuleName: String): TModuleItem;
 
 Var
   I : Integer;
@@ -312,14 +312,14 @@ begin
     Result:=GetModule(I);
 end;
 
-function TModuleFactory.ModuleByName(AModuleName: String): TModuleItem;
+function TModuleFactory.ModuleByName(const AModuleName: String): TModuleItem;
 begin
   Result:=FindModule(AModuleName);
   If (Result=Nil) then
     Raise EFPHTTPError.CreateFmt(SErrNosuchModule,[AModuleName]);
 end;
 
-function TModuleFactory.IndexOfModule(AModuleName: String): Integer;
+function TModuleFactory.IndexOfModule(const AModuleName: String): Integer;
 
 begin
   Result:=Count-1;
@@ -559,14 +559,14 @@ begin
   Result:=TCustomWebAction(Inherited Add);
 end;
 
-function TCustomWebActions.ActionByName(AName: String): TCustomWebAction;
+function TCustomWebActions.ActionByName(const AName: String): TCustomWebAction;
 begin
   Result:=FindAction(AName);
   If (Result=Nil) then
     Raise HTTPError.CreateFmt(SErrUnknownAction,[AName]);
 end;
 
-function TCustomWebActions.FindAction(AName: String): TCustomWebAction;
+function TCustomWebActions.FindAction(const AName: String): TCustomWebAction;
 
 Var
   I : Integer;
@@ -579,7 +579,7 @@ begin
     Result:=Actions[I];
 end;
 
-function TCustomWebActions.IndexOfAction(AName: String): Integer;
+function TCustomWebActions.IndexOfAction(const AName: String): Integer;
 
 begin
   Result:=Count-1;

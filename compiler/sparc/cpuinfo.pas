@@ -55,14 +55,15 @@ const
   supported_calling_conventions : tproccalloptions = [
     pocall_internproc,
     pocall_stdcall,
+    pocall_safecall,
     pocall_cdecl,
     pocall_cppdecl
   ];
 
    cputypestr : array[tcputype] of string[10] = ('',
-     'SPARC V7',
-     'SPARC V8',
-     'SPARC V9'
+     'SPARCV7',
+     'SPARCV8',
+     'SPARCV9'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',

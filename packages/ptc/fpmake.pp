@@ -2,8 +2,6 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-// Note this package is currently not compiled and a mess.
-
 uses fpmkunit;
 
 Var
@@ -16,10 +14,16 @@ begin
 
     P:=AddPackage('ptc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ptc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+
+    P.Author := 'Nikolay Nikolov, Glenn Fiedler, Christian Nentwich';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'http://ptcpas.sourceforge.net/';
+    P.Description := 'A free, portable framebuffer library.';
     p.OSes:=[linux,win32,win64];
+
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');
     P.SourcePath.Add('src/win32/directx', [win32, win64]);
@@ -46,6 +50,7 @@ begin
 
   P.Dependencies.Add('hermes');
   P.Dependencies.Add('x11',AllUnixOSes);
+  P.Dependencies.Add('opengl',AllUnixOSes + [win32, win64]);
   P.Dependencies.Add('fcl-base');
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
@@ -53,61 +58,103 @@ begin
   T:=P.Targets.AddUnit('ptc.pp');
   with T.Dependencies do
     begin
-      AddInclude('coreinterface.inc');
       AddInclude('aread.inc');
-      AddInclude('colord.inc');
-      AddInclude('formatd.inc');
-      AddInclude('eventd.inc');
-      AddInclude('keyeventd.inc');
-      AddInclude('mouseeventd.inc');
-      AddInclude('moded.inc');
-      AddInclude('paletted.inc');
-      AddInclude('cleard.inc');
-      AddInclude('copyd.inc');
-      AddInclude('clipperd.inc');
-      AddInclude('basesurfaced.inc');
-      AddInclude('surfaced.inc');
-      AddInclude('baseconsoled.inc');
-      AddInclude('consoled.inc');
-      AddInclude('errord.inc');
-      AddInclude('timerd.inc');
-      AddInclude('log.inc');
-      AddInclude('coreimplementation.inc');
-      AddInclude('errori.inc');
       AddInclude('areai.inc');
-      AddInclude('colori.inc');
-      AddInclude('formati.inc');
-      AddInclude('eventi.inc');
-      AddInclude('keyeventi.inc');
-      AddInclude('mouseeventi.inc');
-      AddInclude('modei.inc');
-      AddInclude('palettei.inc');
-      AddInclude('cleari.inc');
-      AddInclude('copyi.inc');
-      AddInclude('clipperi.inc');
-      AddInclude('basesurfacei.inc');
+      AddInclude('baseconsoled.inc');
       AddInclude('baseconsolei.inc');
-      AddInclude('surfacei.inc');
-      AddInclude('timeri.inc');
-      AddInclude('includes.inc',allunixoses+[WinCE]);
-      AddInclude('extensions.inc',allunixoses);
-      AddInclude('x11modesd.inc',allunixoses);
-      AddInclude('x11imaged.inc',allunixoses);
-      AddInclude('x11displayd.inc',allunixoses);
-      AddInclude('x11windowdisplayd.inc',allunixoses);
-      AddInclude('x11dga1displayd.inc',allunixoses);
-      AddInclude('x11dga2displayd.inc',allunixoses);
-      AddInclude('x11consoled.inc',allunixoses);
-      AddInclude('check.inc',allunixoses);
-      AddInclude('x11modesi.inc',allunixoses);
-      AddInclude('x11imagei.inc',allunixoses);
-      AddInclude('x11displayi.inc',allunixoses);
-      AddInclude('xunikey.inc',allunixoses);
-      AddInclude('x11windowdisplayi.inc',allunixoses);
-      AddInclude('x11dga1displayi.inc',allunixoses);
-      AddInclude('x11dga2displayi.inc',allunixoses);
-      AddInclude('x11consolei.inc',allunixoses);
+      AddInclude('basesurfaced.inc');
+      AddInclude('basesurfacei.inc');
+      AddInclude('cleard.inc');
+      AddInclude('cleari.inc');
+      AddInclude('clipperd.inc');
+      AddInclude('clipperi.inc');
+      AddInclude('colord.inc');
+      AddInclude('colori.inc');
+      AddInclude('consoled.inc');
       AddInclude('consolei.inc');
+      AddInclude('copyd.inc');
+      AddInclude('copyi.inc');
+      AddInclude('coreimplementation.inc');
+      AddInclude('coreinterface.inc');
+      AddInclude('errord.inc');
+      AddInclude('errori.inc');
+      AddInclude('eventd.inc');
+      AddInclude('eventi.inc');
+      AddInclude('formatd.inc');
+      AddInclude('formati.inc');
+      AddInclude('keyeventd.inc');
+      AddInclude('keyeventi.inc');
+      AddInclude('log.inc');
+      AddInclude('moded.inc');
+      AddInclude('modei.inc');
+      AddInclude('mouseeventd.inc');
+      AddInclude('mouseeventi.inc');
+      AddInclude('openglattributesd.inc');
+      AddInclude('openglattributesi.inc');
+      AddInclude('paletted.inc');
+      AddInclude('palettei.inc');
+      AddInclude('surfaced.inc');
+      AddInclude('surfacei.inc');
+      AddInclude('timerd.inc');
+      AddInclude('timeri.inc');
+      AddInclude('includes.inc',[WinCE]);
+      AddInclude('x11check.inc',allunixoses);
+      AddInclude('x11consoled.inc',allunixoses);
+      AddInclude('x11consolei.inc',allunixoses);
+      AddInclude('x11dga1displayd.inc',allunixoses);
+      AddInclude('x11dga1displayi.inc',allunixoses);
+      AddInclude('x11dga2displayd.inc',allunixoses);
+      AddInclude('x11dga2displayi.inc',allunixoses);
+      AddInclude('x11displayd.inc',allunixoses);
+      AddInclude('x11displayi.inc',allunixoses);
+      AddInclude('x11extensions.inc',allunixoses);
+      AddInclude('x11glxfbconfigd.inc',allunixoses);
+      AddInclude('x11glxfbconfigi.inc',allunixoses);
+      AddInclude('x11imaged.inc',allunixoses);
+      AddInclude('x11imagei.inc',allunixoses);
+      AddInclude('x11includes.inc',allunixoses);
+      AddInclude('x11modesd.inc',allunixoses);
+      AddInclude('x11modesi.inc',allunixoses);
+      AddInclude('x11unikey.inc',allunixoses);
+      AddInclude('x11windowdisplayd.inc',allunixoses);
+      AddInclude('x11windowdisplayi.inc',allunixoses);
+      AddInclude('win32cursor.inc', [win32, win64]);
+      AddInclude('win32cursord.inc', [win32, win64]);
+      AddInclude('win32cursormoded.inc', [win32, win64]);
+      AddInclude('win32event.inc', [win32, win64]);
+      AddInclude('win32eventd.inc', [win32, win64]);
+      AddInclude('win32hook.inc', [win32, win64]);
+      AddInclude('win32hookd.inc', [win32, win64]);
+      AddInclude('win32kbd.inc', [win32, win64]);
+      AddInclude('win32kbdd.inc', [win32, win64]);
+      AddInclude('win32monitor.inc', [win32, win64]);
+      AddInclude('win32monitord.inc', [win32, win64]);
+      AddInclude('win32moused.inc', [win32, win64]);
+      AddInclude('win32mousei.inc', [win32, win64]);
+      AddInclude('win32window.inc', [win32, win64]);
+      AddInclude('win32windowd.inc', [win32, win64]);
+      AddInclude('win32directxcheck.inc', [win32, win64]);
+      AddInclude('win32directxconsoled.inc', [win32, win64]);
+      AddInclude('win32directxconsolei.inc', [win32, win64]);
+      AddInclude('win32directxdisplay.inc', [win32, win64]);
+      AddInclude('win32directxdisplayd.inc', [win32, win64]);
+      AddInclude('win32directxhook.inc', [win32, win64]);
+      AddInclude('win32directxhookd.inc', [win32, win64]);
+      AddInclude('win32directxlibrary.inc', [win32, win64]);
+      AddInclude('win32directxlibraryd.inc', [win32, win64]);
+      AddInclude('win32directxprimary.inc', [win32, win64]);
+      AddInclude('win32directxprimaryd.inc', [win32, win64]);
+      AddInclude('win32directxtranslate.inc', [win32, win64]);
+      AddInclude('win32gdiconsoled.inc', [win32, win64]);
+      AddInclude('win32gdiconsolei.inc', [win32, win64]);
+      AddInclude('win32gdihookd.inc', [win32, win64]);
+      AddInclude('win32gdihooki.inc', [win32, win64]);
+      AddInclude('win32dibd.inc', [win32, win64]);
+      AddInclude('win32dibi.inc', [win32, win64]);
+      AddInclude('win32modesetterd.inc', [win32, win64]);
+      AddInclude('win32modesetteri.inc', [win32, win64]);
+      AddInclude('win32openglwindowd.inc', [win32, win64]);
+      AddInclude('win32openglwindowi.inc', [win32, win64]);
       AddUnit('p_gx',[Wince]);
       AddUnit('textfx2',[Go32v2]);
       AddUnit('cga',[Go32v2]);
@@ -149,10 +196,13 @@ begin
     P.Targets.AddExampleProgram('mojo.pp');
     P.Targets.AddExampleProgram('land.pp');
     P.Targets.AddExampleProgram('keyboard2.pp');
+    P.Targets.AddExampleProgram('keyboard3.pp');
     P.Targets.AddExampleProgram('clear.pp');
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
     P.Targets.AddExampleProgram('tunnel3d.pp');
+    P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
+    P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
     P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}

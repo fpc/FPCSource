@@ -45,19 +45,48 @@
 	.globl _dynamic_start
 	.type _dynamic_start,#function
 _dynamic_start:
+.ifdef __thumb__
+         ldr r7,=__dl_fini
+         str a1,[r7]
+.else
          ldr ip,=__dl_fini
          str a1,[ip]
+.endif
          b _start
 
 	.text
 	.globl _start
 	.type _start,#function
 _start:
+.ifdef __thumb__
+        pop {a2}
+
+        /* Pop argc off the stack and save a pointer to argv */
+	ldr r7,=operatingsystem_parameter_argc
+	str a2,[r7]
+
+	ldr r7,=operatingsystem_parameter_argv
+        mov a3,sp
+   	str a3,[r7]
+
+	/* calc envp */
+	ldr r7,=operatingsystem_parameter_envp
+	add a2,a2,#1
+        lsl a2,a2,#2
+	add a2,sp,a2
+        str a2,[r7]
+
+        /* Save initial stackpointer */
+	ldr r7,=__stkptr
+        str a3,[r7]
+
 	/* Clear the frame pointer since this is the outermost frame.  */
+	mov r7, #0
+.else
 	mov fp, #0
 	ldmia   sp!, {a2}
 
-	/* Pop argc off the stack and save a pointer to argv */
+        /* Pop argc off the stack and save a pointer to argv */
 	ldr ip,=operatingsystem_parameter_argc
 	ldr a3,=operatingsystem_parameter_argv
 	str a2,[ip]
@@ -73,6 +102,8 @@ _start:
         /* Save initial stackpointer */
 	ldr ip,=__stkptr
 	str sp,[ip]
+.endif
+
         /* align sp again to 8 byte boundary, needed by eabi */
         sub sp,sp,#4
 
@@ -83,7 +114,14 @@ _start:
     .type   _haltproc,#function
 _haltproc:
         /* r0 contains exitcode */
+.ifdef __thumb__
+        ldr r0,=operatingsystem_result
+        ldr r0,[r0]
+        mov r7,#248  /* exit group call */
+	swi 0x0
+.else
 	swi 0x900001
+.endif
 	b _haltproc
 
 	.globl  _haltproc_eabi
@@ -93,9 +131,17 @@ _haltproc_eabi:
         ldr r0,[r0]
         cmp r0,#0
 
+.ifdef __thumb__
+        beq .Lnobranch
+        /* only branch if not equal zero */
+        mov lr,pc
+        bx  r0     /* we require armv5 anyway, so use bx here */
+.Lnobranch:
+.else
         /* only branch if not equal zero */
         movne lr,pc
         bxne  r0     /* we require armv5 anyway, so use bx here */
+.endif
 
 .Lloop:
         ldr r0,=operatingsystem_result

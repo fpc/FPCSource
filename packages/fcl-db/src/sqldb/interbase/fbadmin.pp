@@ -93,7 +93,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    //Connect to service manage. Specify User,Password and, for remote databases,
+    //Connect to service manager. Specify User,Password and, for remote databases,
     //Host and, if not standard, Port
     function Connect:boolean;
     //Disconnect from service manager. Done automatically when destroying component
@@ -158,7 +158,7 @@ type
     property Port: word read FPort write FPort default 3050;
     //Protocol used to connect to service manager. One of:
     //IBSPLOCAL: Host and port ignored
-    //IBSPTCPIP: Connectoct to Host:Port
+    //IBSPTCPIP: Connect to Host:Port
     //IBSPNETBEUI: Connect to \\Host\
     //IBSPNAMEDPIPE: Connect to //Host/
     property Protocol: TServiceProtocol read FProtocol write FProtocol;

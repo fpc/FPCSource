@@ -20,6 +20,10 @@ fpcdir=.
 rule=help
 
 [prerules]
+REQUIREDVERSION=2.6.2
+REQUIREDVERSION2=2.6.0
+
+
 # make versions < 3.77 (OS2 version) are buggy
 ifndef inOS2
 override FPCDIR:=$(BASEDIR)
@@ -69,6 +73,9 @@ endif
 ifeq ($(CPU_TARGET),mipsel)
 PPSUF=mipsel
 endif
+ifeq ($(CPU_TARGET),i8086)
+PPSUF=8086
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)
@@ -83,6 +90,18 @@ PPPRE=ppc
 endif
 
 PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
+endif
+
+# Use FPCFPMAKENEW to explicitly specify FPCFPMAKE.
+# Otherwise fpmkunit build will use wrong (starting) compiler
+# if there has been no compiler binary available in the compiler
+# dir before running make.
+ifndef FPCFPMAKENEW
+ifdef CROSSCOMPILE
+FPCFPMAKENEW=$(BASEDIR)/compiler/ppc$(SRCEXEEXT)
+else
+FPCFPMAKENEW=$(PPNEW)
+endif
 endif
 
 # Check if install/ subdir is available
@@ -148,16 +167,20 @@ endif
 # Temporary path to pack a file
 BASEPACKDIR=$(BASEDIR)/basepack
 
-# Newly created fpcmake
-ifeq ($(FULL_SOURCE),$(FULL_TARGET))
-FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
+# Always use newly created fpcmake
+ifndef FPCMAKENEW
+ifdef CROSSCOMPILE
+# Use bootstrapped fpcmake when cross-compiling
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(SRCEXEEXT)
 else
-FPCMAKENEW=fpcmake
+# Use normal fpcmake
+FPCMAKENEW=$(BASEDIR)/utils/fpcm/bin/$(SOURCESUFFIX)/fpcmake$(SRCEXEEXT)
+endif
 endif
 
 # Build/install options
 CLEANOPTS=FPC=$(PPNEW)
-BUILDOPTS=FPC=$(PPNEW) RELEASE=1
+BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
 # Compile also IDE (check for ide and fv dir)
@@ -230,15 +253,31 @@ compiler_cycle:
 
 BUILDSTAMP=build-stamp.$(FULL_TARGET)
 
-.PHONY: all clean distclean build buildbase install installbase installother zipinstallbase zipinstallotherzipinstall singlezipinstall
+.PHONY: all clean distclean build buildbase install installbase
+.PHONY: installother zipinstallbase zipinstallotherzipinstall
+.PHONY: singlezipinstall versioncheckstartingcompiler
 
+versioncheckstartingcompiler: 
+ifndef CROSSCOMPILE
+ifneq ($(FPC_VERSION),$(REQUIREDVERSION))
+ifneq ($(FPC_VERSION),$(REQUIREDVERSION2))
+ifndef OVERRIDEVERSIONCHECK
+	$(error The only supported starting compiler version is $(REQUIREDVERSION). You are trying to build with $(FPC_VERSION). If you are absolutely sure that the current compiler is built from the exact same version/revision, you can try to use OVERRIDEVERSIONCHECK=1 to override )
+else
+	@$(ECHO) You have overriden the starting compiler versioncheck while using starting compiler version $(FPC_VERSION). This situation is not supported and strange things and errors may happen. Remove OVERRIDEVERSIONCHECK=1 to fix this. 
+endif
+endif
+endif
+endif
 
 ifeq ($(findstring $(CPU_TARGET),$(BuildOnlyBaseCPUs)),)
-all: build
+all: versioncheckstartingcompiler build
 install: installall
+zipinstall: zipinstallall
 else
-all: buildbase
+all: versioncheckstartingcompiler buildbase
 install: installbase
+zipinstall: zipinstallbase
 endif
 
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
@@ -251,6 +290,11 @@ build: $(BUILDSTAMP)
 $(BUILDSTAMP):
 # create new compiler
         $(MAKE) compiler_cycle RELEASE=1
+ifdef CROSSCOMPILE
+# Buld a new native fpcmake when cross-compiling.
+# Fresh native compiler and RTL are ready at this stage.
+        $(MAKE) -C utils/fpcm bootstrap $(BUILDOPTS)
+endif
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
@@ -278,6 +322,11 @@ buildbase: base.$(BUILDSTAMP)
 base.$(BUILDSTAMP):
 # create new compiler
         $(MAKE) compiler_cycle RELEASE=1
+ifdef CROSSCOMPILE
+# Buld a new native fpcmake when cross-compiling.
+# Fresh native compiler and RTL are ready at this stage.
+        $(MAKE) -C utils/fpcm bootstrap $(BUILDOPTS)
+endif
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
 # build everything
@@ -320,8 +369,8 @@ ifeq ($(findstring $(CPU_TARGET), $(BuildOnlyBaseCPUs)),)
         $(MAKE) installother $(INSTALLOPTS)
 endif
 
-singlezipinstall: zipinstall
-zipinstall: $(BUILDSTAMP)
+singlezipinstall: zipinstallall
+zipinstallall: $(BUILDSTAMP)
         $(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
 
 

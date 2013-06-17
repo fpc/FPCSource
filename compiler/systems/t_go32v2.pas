@@ -137,7 +137,7 @@ implementation
             Concat('  OBJSECTION .dtors');
             Concat('  SYMBOL djgpp_last_dtor');
             Concat('  SYMBOL __environ');
-            Concat('  PROVIDE _environ');
+            Concat('  SYMBOL _environ');
             Concat('  LONG 0');
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
@@ -309,11 +309,14 @@ begin
   ScriptRes.Add('      *(.dtors)');
   ScriptRes.Add('      djgpp_last_dtor = . ;');
   ScriptRes.Add('      __environ = . ;');
-  ScriptRes.Add('      PROVIDE(_environ = .);');
+  ScriptRes.Add('      _environ = .;');
   ScriptRes.Add('      LONG(0)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.data)');
   ScriptRes.Add('      *(.data.*)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.fpc*)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.gcc_exc)');
   ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
   ScriptRes.Add('      *(.eh_fram*)');

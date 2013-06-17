@@ -360,6 +360,52 @@ implementation
 
     procedure types_dec(in_structure: boolean);
 
+      function determine_generic_def(name:tidstring):tstoreddef;
+        var
+          hashedid : THashedIDString;
+          pd : tprocdef;
+          sym : tsym;
+        begin
+          result:=nil;
+          { check whether this is a declaration of a type inside a
+            specialization }
+          if assigned(current_structdef) and
+              (df_specialization in current_structdef.defoptions) then
+            begin
+              if not assigned(current_structdef.genericdef) or
+                  not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
+                internalerror(2011052301);
+              hashedid.id:=name;
+              { we could be inside a method of the specialization
+                instead of its declaration, so check that first (as
+                local nested types aren't allowed we don't need to
+                walk the symtablestack to find the localsymtable) }
+              if symtablestack.top.symtabletype=localsymtable then
+                begin
+                  { we are in a method }
+                  if not assigned(symtablestack.top.defowner) or
+                      (symtablestack.top.defowner.typ<>procdef) then
+                    internalerror(2011120701);
+                  pd:=tprocdef(symtablestack.top.defowner);
+                  if not assigned(pd.genericdef) or (pd.genericdef.typ<>procdef) then
+                    internalerror(2011120702);
+                  sym:=tsym(tprocdef(pd.genericdef).localst.findwithhash(hashedid));
+                end
+              else
+                sym:=nil;
+              if not assigned(sym) or not (sym.typ=typesym) then
+                begin
+                  { now search in the declaration of the generic }
+                  sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.findwithhash(hashedid));
+                  if not assigned(sym) or not (sym.typ=typesym) then
+                    internalerror(2011052302);
+                end;
+              { use the corresponding type in the generic's symtable as
+                genericdef for the specialized type }
+              result:=tstoreddef(ttypesym(sym).typedef);
+            end;
+        end;
+
       procedure finalize_class_external_status(od: tobjectdef);
         begin
           if  [oo_is_external,oo_is_forward] <= od.objectoptions then
@@ -389,8 +435,9 @@ implementation
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
-         pd: tprocdef;
-         hashedid : thashedidstring;
+{$ifdef x86}
+         segment_register: string;
+{$endif x86}
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -422,7 +469,7 @@ implementation
                  Message(parser_f_no_generic_inside_generic);
 
                consume(_LSHARPBRACKET);
-               generictypelist:=parse_generic_parameters;
+               generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
 
                str(generictypelist.Count,s);
@@ -505,8 +552,11 @@ implementation
                         internalerror(200811072);
                     end;
                     consume(token);
+                    { determine the generic def in case we are in a nested type
+                      of a specialization }
+                    gendef:=determine_generic_def(gentypename);
                     { we can ignore the result, the definition is modified }
-                    object_dec(objecttype,genorgtypename,newtype,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
+                    object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -561,43 +611,9 @@ implementation
                       sym:=nil;
                     end;
 
-                  { check whether this is a declaration of a type inside a
-                    specialization }
-                  if assigned(current_structdef) and
-                      (df_specialization in current_structdef.defoptions) then
-                    begin
-                      if not assigned(current_structdef.genericdef) or
-                          not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
-                        internalerror(2011052301);
-                      hashedid.id:=gentypename;
-                      { we could be inside a method of the specialization
-                        instead of its declaration, so check that first (as
-                        local nested types aren't allowed we don't need to
-                        walk the symtablestack to find the localsymtable) }
-                      if symtablestack.top.symtabletype=localsymtable then
-                        begin
-                          { we are in a method }
-                          if not assigned(symtablestack.top.defowner) or
-                              (symtablestack.top.defowner.typ<>procdef) then
-                            internalerror(2011120701);
-                          pd:=tprocdef(symtablestack.top.defowner);
-                          if not assigned(pd.genericdef) or (pd.genericdef.typ<>procdef) then
-                            internalerror(2011120702);
-                          sym:=tsym(tprocdef(pd.genericdef).localst.findwithhash(hashedid));
-                        end
-                      else
-                        sym:=nil;
-                      if not assigned(sym) or not (sym.typ=typesym) then
-                        begin
-                          { now search in the declaration of the generic }
-                          sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.findwithhash(hashedid));
-                          if not assigned(sym) or not (sym.typ=typesym) then
-                            internalerror(2011052302);
-                        end;
-                      { use the corresponding type in the generic's symtable as
-                        genericdef for the specialized type }
-                      gendef:=tstoreddef(ttypesym(sym).typedef);
-                    end;
+                  { determine the generic def in case we are in a nested type
+                    of a specialization }
+                  gendef:=determine_generic_def(gentypename);
                 end;
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
@@ -609,7 +625,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,newtype,gendef,generictypelist,false);
+              read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin
@@ -692,11 +708,50 @@ implementation
                   begin
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
+{$ifdef x86}
                     if try_to_consume(_FAR) then
                      begin
-                       tpointerdef(hdef).is_far:=true;
+  {$if defined(i8086)}
+                       tpointerdef(hdef).x86pointertyp:=x86pt_far;
+  {$elseif defined(i386)}
+                       tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+  {$elseif defined(x86_64)}
+                       { for compatibility with previous versions of fpc,
+                         far pointer = regular pointer on x86_64 }
+                       { TODO: decide if we still want to keep this }
+  {$endif}
+                       consume(_SEMICOLON);
+                     end
+                    else
+                      if try_to_consume(_NEAR) then
+                       begin
+                         if token <> _SEMICOLON then
+                           begin
+                             segment_register:=get_stringconst;
+                             case UpCase(segment_register) of
+                               'CS': tpointerdef(hdef).x86pointertyp:=x86pt_near_cs;
+                               'DS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ds;
+                               'SS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ss;
+                               'ES': tpointerdef(hdef).x86pointertyp:=x86pt_near_es;
+                               'FS': tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+                               'GS': tpointerdef(hdef).x86pointertyp:=x86pt_near_gs;
+                               else
+                                 Message(asmr_e_invalid_register);
+                             end;
+                           end
+                         else
+                           tpointerdef(hdef).x86pointertyp:=x86pt_near;
+                         consume(_SEMICOLON);
+                       end;
+{$else x86}
+                    { Previous versions of FPC support declaring a pointer as
+                      far even on non-x86 platforms.
+                      TODO: decide if we still want to keep this }
+                    if try_to_consume(_FAR) then
+                     begin
                        consume(_SEMICOLON);
                      end;
+{$endif x86}
                   end;
                 procvardef :
                   begin
@@ -839,7 +894,13 @@ implementation
         consume(_THREADVAR);
         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
-        read_var_decls([vd_threadvar]);
+        if f_threading in features then
+          read_var_decls([vd_threadvar])
+        else
+          begin
+            Message(parser_f_unsupported_feature);
+            read_var_decls([]);
+          end;
       end;
 
 

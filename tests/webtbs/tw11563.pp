@@ -15,6 +15,9 @@ program ExecStack;
 {$ifdef cpuarm}
     'add arm code to test stack execution'
 {$endif}
+{$ifdef cpumips}
+    ret: array[0..1] of longword;
+{$endif}
     DoNothing: proc;
 
   begin
@@ -37,6 +40,16 @@ program ExecStack;
 {$if defined(cpui386) or defined(cpux86_64)}
     ret := $C3;
     DoNothing := proc(@ret);
+    DoNothing;
+{$endif}
+{$ifdef cpumips}
+{$ifdef ENDIAN_BIG}
+    ret[0]:=$03e00008;
+{$else ENDIAN_BIG}
+    ret[0]:=$0800e003;
+{$endif ENDIAN_BIG}    
+    ret[1]:=0;                   { delay slot }
+    DoNothing:=proc(@ret);
     DoNothing;
 {$endif}
   end;

@@ -16,7 +16,7 @@ begin
     P.OSes:=[nds];
     P.CPUs:=[arm];
 {$ifdef ALLPACKAGES}
-    P.Directory:='libndsfpc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: libnds, dswifi, maxmod and gl2d from devkitARM; headers: Francesco Lombardi';

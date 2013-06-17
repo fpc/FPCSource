@@ -28,35 +28,48 @@ interface
 implementation
 
   uses
-    verbose,
+    verbose,elfbase,
     systems,ogbase,ogelf,assemble;
-
-  type
-    TElfObjOutputSparc=class(TElfObjectOutput)
-      function encodereloc(objrel:TObjRelocation):byte;override;
-    end;
-
-    TElfAssemblerSparc=class(TInternalAssembler)
-      constructor create(smart:boolean);override;
-    end;
 
   const
     { Relocation types }
+    R_SPARC_NONE = 0;
+    R_SPARC_8 = 1;
+    R_SPARC_16 = 2;
     R_SPARC_32 = 3;
+    R_SPARC_DISP8 = 4;
+    R_SPARC_DISP16 = 5;
+    R_SPARC_DISP32 = 6;
     R_SPARC_WDISP30 = 7;
+    R_SPARC_WDISP22 = 8;
     R_SPARC_HI22 = 9;
+    R_SPARC_22 = 10;
+    R_SPARC_13 = 11;
     R_SPARC_LO10 = 12;
+    R_SPARC_GOT10 = 13;
+    R_SPARC_GOT13 = 14;
+    R_SPARC_GOT22 = 15;
+    R_SPARC_PC10 = 16;
+    R_SPARC_PC22 = 17;
+    R_SPARC_WPLT30 = 18;
+    R_SPARC_COPY = 19;
+    R_SPARC_GLOB_DAT = 20;
+    R_SPARC_JMP_SLOT = 21;
+    R_SPARC_RELATIVE = 22;
+    R_SPARC_UA32 = 23;
     R_SPARC_GNU_VTINHERIT = 250;
     R_SPARC_GNU_VTENTRY = 251;
 
 
 {****************************************************************************
-                               TElfObjOutputSparc
+                               ELF Target methods
 ****************************************************************************}
 
-   function TElfObjOutputSparc.encodereloc(objrel:TObjRelocation):byte;
+   function elf_sparc_encodereloc(objrel:TObjRelocation):byte;
      begin
        case objrel.typ of
+         RELOC_NONE :
+           result:=R_SPARC_NONE;
          RELOC_ABSOLUTE :
            result:=R_SPARC_32;
          { TODO }
@@ -67,15 +80,16 @@ implementation
      end;
 
 
-{****************************************************************************
-                               TElfAssemblerSparc
-****************************************************************************}
+   function elf_sparc_relocname(reltyp:byte):string;
+     begin
+       result:='TODO';
+     end;
 
-  constructor TElfAssemblerSparc.create(smart:boolean);
-    begin
-      inherited Create(smart);
-      CObjOutput:=TElfObjOutputSparc;
-    end;
+
+   procedure elf_sparc.loadreloc(objrel:TObjRelocation);
+     begin
+     end;
+
 
 
 {*****************************************************************************
@@ -83,6 +97,25 @@ implementation
 *****************************************************************************}
 
   const
+    elf_target_sparc: TElfTarget =
+      (
+        max_page_size:     $8000; // fixme
+        exe_image_base:    $8000; // fixme
+        machine_code:      EM_SPARC;
+        relocs_use_addend: false;
+        dyn_reloc_codes: (
+          R_SPARC_RELATIVE,
+          R_SPARC_GLOB_DAT,
+          R_SPARC_JUMP_SLOT,
+          R_SPARC_COPY,
+          0      // IRELATIVE is absent(?)
+        );
+        relocname:         @elf_sparc_relocName;
+        encodereloc:       @elf_sparc_encodeReloc;
+        loadreloc:         @elf_sparc_loadReloc;
+        loadsection:       nil;
+      );
+
     as_sparc_elf32_info : tasminfo =
        (
          id     : as_sparc_elf32;
@@ -99,7 +132,8 @@ implementation
        );
 
 initialization
-  RegisterAssembler(as_sparc_elf32_info,TElfAssemblerSparc);
+  RegisterAssembler(as_sparc_elf32_info,TElfAssembler);
+  ElfTarget:=elf_target_sparc;
 
 end.
 

@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 18275
+#   Based on errore.msg of SVN revision 23596
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2010 by the Free Pascal Development team
+#   Copyright (c) 1998-2013 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -23,6 +23,7 @@
 #   asmr_     assembler parsing
 #   asmw_     assembler writing/binary writers
 #   unit_     unit handling
+#   option_   command line parameter parsing
 #   scan_     scanner
 #   parser_   parser
 #   type_     type checking
@@ -45,6 +46,9 @@
 #   x_   executable informations
 #   o_   normal (e.g., "press enter to continue")
 #
+# <type> can contain a minus sign at the beginning to mark that
+# the message is off by default. Look at type_w_explicit_string_cast
+# for example.
 
 #
 # General
@@ -139,7 +143,7 @@ general_f_oserror=01025_F_Betriebsystemfehler: $1
 #
 # Scanner
 #
-# 02088 is the last used one
+# 02092 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -378,6 +382,20 @@ scanner_w_illegal_warn_identifier=02087_W_Ungültige Bezeichner "$1" für die $W
 scanner_e_illegal_alignment_directive=02088_E_Ungültige "alignment" Direktive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
+scanner_f_illegal_utf8_bom=02089_F_Eine Datei, die mit einem UTF-8 BOM anfängt, kann nicht in einem Modul mit einer anderen Codepage verwendet werden
+% All source code that is part of a single compilation entity (program, library, unit) must be encoded
+% in the same code page
+scanner_w_directive_ignored_on_target=02090_W_Die Direktive "$1" wird für die aktuelle Zielplatform ignoriert
+% Some directives are ignored for certain targets, such as changing the
+% packrecords and packenum settings on managed platforms.
+scan_w_unavailable_system_codepage=02091_W_Die aktuelle System-Codepage "$1" steht für den Compiler nicht zur Verfügung. Stelle die voreingestellte Codepage um auf "$2".
+% The current system codepage is not known by the compiler.
+% The compiler is compiled with support for several codepages built-in.
+% The codepage of the operation system is not in that list. You will need to recompile
+% the compiler with support for this codepage.
+scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS wird für das Ziel-OS nicht unterstützt
+% The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
+%
 %
 % \end{description}
 # EndOfTeX
@@ -385,7 +403,7 @@ scanner_e_illegal_alignment_directive=02088_E_Ungültige "alignment" Direktive
 #
 # Parser
 #
-# 03313 is the last used one
+# 03332 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -635,7 +653,7 @@ parser_e_expr_have_to_be_destructor_call=03077_E_Ausdruck muss ein Destruktor-Au
 parser_e_invalid_record_const=03078_E_Unzulässige Reihenfolge der Record-Elemente
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_Typ des Ausdrucks muss eine Klasse oder ein Recordtyp sein
+parser_e_false_with_expr=03079_E_Typ des Ausdrucks muss eine Klasse oder ein Recordtyp sein, $1 erhalten
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
@@ -685,9 +703,10 @@ parser_e_mix_of_classes_and_objects=03093_E_Das Mischen von Klassen und Objekten
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unbekannte Prozedur, Direktive $1 wurde ignoriert
 % The procedure direcive you secified is unknown.
-parser_e_absolute_only_one_var=03095_E_ABSOLUTE kann nur auf eine alleinstehende Variable angewendet werden
-% You cannot specify more than one variable before the \var{absolute} directive.
-% Thus, the following construct will provide this error:
+parser_e_directive_only_one_var=03095_E_$1 kann nur auf eine alleinstehende Variable angewendet werden
+% You cannot specify more than one variable before the \var{absolute}, \var{export}, \var{external},
+% \var{weakexternal}, \var{public} and \var{cvar} directives.
+% As a result, for example the following construct will provide this error:
 % \begin{verbatim}
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
@@ -735,7 +754,7 @@ parser_d_compiling_second_time=03107_DL_Übersetze $1 zum zweiten Mal
 parser_e_no_property_found_to_override=03109_E_Es gibt keine Property diesen Namens, die überschrieben werden könnte
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Es ist nur eine einzelne Default-Property erlaubt, vererbte Default-Property in Klasse $1 gefunden
+parser_e_only_one_default_property=03110_E_Es ist nur eine einzelne Default-Property erlaubt
 % You specified a property as \var{Default}, but a parent class already has a
 % default property, and a class can have only one default property.
 parser_e_property_need_paras=03111_E_Die Default-Property muss eine Array-Property sein
@@ -1068,8 +1087,8 @@ parser_e_invalid_qualifier=03205_E_Ungültiger Qualifier
 parser_e_upper_lower_than_lower=03206_E_High Range Limit < low Range Limit
 % You are declaring a subrange, and the high limit is less than the low limit of
 % the range.
-parser_e_macpas_exit_wrong_param=03207_E_Exits Parameter muss der Name der Prozedur sein, in der es benutzt wird
-% Non local exit is not allowed. This error occurs only in mode MacPas.
+parser_e_macpas_exit_wrong_param=03207_E_Exits Parameter muss der Name der Prozedur sein, in der es benutzt wird oder einer übergeordneten Prozedur
+% The parameter of a exit call in macpas mode must be either the name of the current subroutine or of a surrounding one
 parser_e_illegal_assignment_to_count_var=03208_E_Ungültige Zuweisung zur for-loop Variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings. You also cannot assign values to
@@ -1194,8 +1213,8 @@ parser_e_forward_mismatch=03249_E_Forward Typdefinition passt nicht
 % when being implemented. A forward interface cannot be changed into a class.
 parser_n_ignore_lower_visibility=03250_N_Die virtuelle Methode "$1" hat eine niedrigere Sichtbarkeit ($2) als die Elternklasse $3 ($4)
 % The virtual method overrides an method that is declared with a higher visibility. This might give
-% unexpected results. In case the new visibility is private than it might be that a call to inherited in a
-% new child class will call the higher visible method in a parent class and ignores the private method.
+% unexpected results. E.g., in case the new visibility is private then a call to ``inherited'' in a
+% new child class will call the higher-visible method in a parent class and ignores the private method.
 parser_e_field_not_allowed_here=03251_E_Felder sind nach der Definition einer Methode oder Eigenschaft nicht erlaubt. Beginne vorher eine neue Sichtbarkeitssektion
 % Once a method or property has been defined in a class or object, you cannot define any fields afterwards
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
@@ -1265,23 +1284,23 @@ parser_e_no_objc_published=03271_E_Objective-C Klassen können keinen Abschnitt 
 parser_f_need_objc=03272_F_Dieses Modul erfordert, dass der Objective-C Mode-Schalter übersetzt wird
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Vererbte Methoden können nur in Objective-C überschrieben werden, füge "override" hinzu (Vererbte Methode ist in $1 definiert)
-parser_h_should_use_override_objc=03274_H_Vererbte Methoden können nur in Objective-C überschrieben werden, füge "override" hinzu (Vererbte Methode ist in $1 definiert)
-% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
+parser_e_must_use_override=03273_E_Vererbte Methoden können nur in Objective-C und Java überschrieben werden, füge "override" hinzu (Vererbte Methode ist in $1 definiert)
+parser_h_should_use_override=03274_H_Vererbte Methoden können nur in Objective-C und Java überschrieben werden, füge "override" hinzu (Vererbte Methode ist in $1 definiert)
+% It is not possible to \var{reintroduce} methods in Objective-C or Java like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
-% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
-% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
+% Objective-C or Java methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C and Java
+% do not have any \var{override}-style keyword (since it's the default and only behaviour in these languages),
 % which makes it hard for automated header conversion tools to include it everywhere.
 % The type in which the inherited method is defined is explicitly mentioned, because this may either
-% be an objcclass or an objccategory.
+% be an objcclass or an objccategory in case of Objective-C.
 parser_e_objc_message_name_changed=03275_E_Der Nachrichtenname "$1" in der vererbten Klasse unterscheidet sich vom Nachrichtennamen "$2" in der aktuellen Klasse
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-parser_e_no_objc_unique=03276_E_Noch können eindeutige Kopien von Objective-C Typen nicht erstellt werden
-% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
-% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+parser_e_unique_unsupported=03276_E_Noch können eindeutige Kopien von Objective-C oder Java Typen nicht erstellt werden
+% Duplicating an Objective-C or Java type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} resp.{} \var{type x = class(y) end;} instead.
 parser_e_no_category_as_types=03277_E_Objective-C Kategorien und Object-Pascal Klassenhelfer können nicht als Typen benutzt werden
 % It is not possible to declare a variable as an instance of an Objective-C
 % category or an Object Pascal class helper. A category/class helper adds
@@ -1361,9 +1380,9 @@ parser_f_no_generic_inside_generic=03297_F_Die Deklaration einer generischen Kla
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
-parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Vorwärts-Deklarationen des ObjC-Protokolls "$1" müssen aufgelöst sein, bevor eine ObjC-Klasse ihr folgen kann
-% An objcprotocol must be fully defined before classes can conform to it.
-% This error occurs in the following situation:
+parser_e_forward_intf_declaration_must_be_resolved=03298_E_Die Vorwärts-Deklaration "$1" muss aufgelöst sein, bevor eine Klasse ihr folgen oder sie implementieren kann
+% An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
+% This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
 % \begin{verbatim}
 %  Type MyProtocol = objcprotoocl;
 %       ChildClass = Class(NSObject,MyProtocol)
@@ -1378,8 +1397,8 @@ parser_e_no_destructor_in_records=03300_E_Destruktoren sind in Records und Helfe
 parser_e_class_methods_only_static_in_records=03301_E_Klassenmethoden müssen in Records statisch sein
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_constructor_in_records=03302_E_Konstruktoren sind in Records und Recordhelfern nicht erlaubt
-% Constructor declarations aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Konstruktoren ohne Parameter sind in Records und Record/Typhelfern nicht erlaubt
+% Constructor declarations with no arguments aren't allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Entweder das Ergebnis oder mindestens ein Parameter müssen vom Typ "$1" sein
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
@@ -1411,6 +1430,75 @@ parser_e_mapping_no_implements=03312_E_Das Interface "$1" kann nicht durch "$2" 
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Das Interface "$1" kann keine Methoden-Auflösung haben, "$2" delegiert es bereits
 % Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+parser_e_invalid_codepage=03314_E_Ungültige Codepage
+% When declaring a string with a given codepage, the range of valid codepages values is limited
+% to 0 to 65535.
+parser_e_final_only_const_var=03315_E_Nur Felder (var-Sektionen) und Konstanten können in Object-Typen final sein
+% A final (class) field must be assigned a single value in the (class) constructor, and cannot
+% be overwritten afterwards. A final (typed) constant is read-only.
+parser_e_final_only_external=03316_E_Finale Felder werden derzeit nur in externen Klassen unterstützt
+% Support for final fields in non-external classes requires a full data flow
+% analysis implementation in FPC, which it currently still lacks.
+parser_e_no_typed_const=03317_E_Typisierte Konstanten sind hier nicht erlaubt, nur formale Konstanten
+% Java interfaces define a namespace in which formal constant can be defined,
+% but since they define no storage it is not possible to define typed constants
+% in them (those are more or less the same as initialised class fields).
+parser_e_java_no_inherited_constructor=03318_E_Konstruktoren werden in der JVM nicht automatisch geerbt; füge einen Konstruktur explizit hinzu, der, falls nötig, den geerbten aufruft
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% For compatibility with external Java code, FPC does the same. If you require access to the same
+% constructors in a child class, define them in the child class and call the inherited one from
+% there.
+parser_d_internal_parser_string=03319_D_Parsen intern erzeugten Codes: $1
+% The compiler sometimes internally constructs Pascal code that is subsequently
+% injected into the program. These messages display such code, in order to help
+% with debugging errors in them.
+parser_e_feature_unsupported_for_vm=03320_E_Dieses Feature wird auf managed VM-Zielen nicht unterstützt
+% Certain language features are not supported on targets that are managed virtual machines.
+parser_e_jvm_invalid_virtual_constructor_call=03321_E_Einen virtuellen Konstruktor für die aktuelle Instanz innerhalb eines anderen Konstruktors aufzurufen, ist für das JVM-Ziel nicht möglich
+% The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
+% emulate them in a way that makes it possible to support calling virtual constructors
+% for the current instance inside another constructor.
+parser_e_method_lower_visibility=03322_E_Die überschreibende Method "$1" kann keine niedrigere Sichtbarkeit ($2) haben als in der Elternklasse $3 ($4)
+% The JVM does not allow lowering the visibility of an overriding method.
+parser_e_nostackframe_without_assembler=03323_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME aber ohne ASSEMBLER deklariert
+% nostackframe call modifier is supposed to be used in conjunction with assembler.
+parser_e_nostackframe_with_locals=03324_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME deklariert, aber die Größe des lokalen Stack ist $1
+% nostackframe call modifier used without assembler modifier
+% might still generate local stack needs.
+parser_e_cannot_generate_property_getter_setter=03325_E_Kann die Eigenschaft getter/setter $1 nicht erzeugen weil ihr Name mit dem existierenden Bezeichner $2 kollidiert
+% Automatically generated getters/setters cannot have the same name as existing
+% identifiers, because this may change the behaviour of existing code.
+parser_w_overriding_property_getter_setter=03326_W_Die automatische erzeugte Eigenschaft getter/setter $1 überschreibt den getter/setter mit dem selben Name in der Klasse $2
+% Automatically generated property getters/setters on the JVM platform are virtual methods, because
+% the JVM does not support non-virtual methods that can be changed in child classes. This means
+% that if a child class changes an inherited property definition, the behaviour of that property
+% can change compared to native targets since even if a variable is declared as the parent type,
+% by calling the virtual method the getter from the child will be used. This is different from
+% the behaviour on native targets or when not activating automatically generated setters/getters,
+% because in that case only the declared type of a variable influences the property behaviour.
+parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Diskrepanz in Groß/Kleinschreibung zwischen der deklarierten Eigenschaft getter/setter $1 und dem automatisch erzeugten Namen $2, behalte deklarierten Namen bei
+% If a property's specified getter/setter already corresponded to the naming convention specified
+% by the automatic getter/setter generation setting except in terms of upper/lowercase, the
+% compiler will print a warning because it cannot necessarily change that other declaration itself
+% not can it add one using the correct case (it could conflict with the original declaration).
+% Manually correct the case of the getter/setter to conform to the desired coding rules.
+% \var{TChild} overrides
+parser_e_no_consts_in_local_anonymous_records=03328_E_Deklarationen von Konstanten sind in lokalen oder anonymen Records nicht erlaubt
+% Records with constants must be defined globally. Constants cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_methods_in_local_anonymous_records=03329_E_Deklarationen von Methoden sind in lokalen oder anonymen Records nicht erlaubt
+% Records with methods must be defined globally. Methods cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_properties_in_local_anonymous_records=03330_E_Deklarationen von Eigenschaften sind in lokalen oder anonymen Records nicht erlaubt
+% Records with properties must be defined globally. Properties cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_class_in_local_anonymous_records=03331_E_Deklarationen von Klassenmitgliedern sind in lokalen oder anonymen Records nicht erlaubt
+% Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_not_allowed_in_record=03332_E_Sichtbarkeits-Abschnitt "$1" ist in Records nicht erlaubt
+% The visibility sections \var(protected) and \var(strict protected) are only
+% useful together with inheritance. Since records do not support that they are
+% forbidden.
 %
 % \end{description}
 # EndOfTeX
@@ -1418,7 +1506,7 @@ parser_e_implements_no_mapping=03313_E_Das Interface "$1" kann keine Methoden-Au
 #
 # Type Checking
 #
-# 04103 is the last used one
+# 04120 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1574,7 +1662,7 @@ type_h_mixed_signed_unsigned=04035_H_Mischen von signed Ausdrücken und Longword
 % then everything has to be evaluated in 64-bit arithmetic which is slower than normal
 % 32-bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_w_mixed_signed_unsigned2=04036_W_Mischen von signed Ausdrücken und kardinalen Typen hier kann einen Bereichsprüfungsfehler verursachen
+type_w_mixed_signed_unsigned2=04036_W_Mischen von signed Ausdrücken und kardinalen Typen hier kann eine Bereichsüberschreitung verursachen
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
@@ -1641,8 +1729,7 @@ type_e_constant_expr_expected=04052_E_Konstanter Ausdruck erwartet
 type_e_operator_not_supported_for_types=04053_E_Operation "$1" wird für die Typen "$2" und "$3" nicht unterstützt
 % The operation is not allowed for the supplied types.
 type_e_illegal_type_conversion=04054_E_Illegale Typ-Konversion: "$1" nach "$2"
-% When doing a type-cast, you must take care that the sizes of
- the variable and
+% When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
 type_h_pointer_to_longint_conv_not_portable=04055_H_Konversion zwischen ordinalen Typen und Zeigern ist nicht portierbar
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
@@ -1776,13 +1863,73 @@ type_e_record_type_expected=04100_E_Recordtyp erwartet
 type_e_class_helper_must_extend_subclass=04101_E_Abgeleitete Klassenhelfer müssen eine Unterklasse von "$1" oder die Klasse selbst erweitern
 % If a class helper inherits from another class helper the extended class must
 % extend either the same class as the parent class helper or a subclass of it
-type_e_record_helper_must_extend_same_record=04102_E_Abgeleitete Recordhelfer müssen "$1" erweitern
+type_e_record_helper_must_extend_same_record=04102_E_Abgeleitete Record- und Typhelfer müssen "$1" erweitern
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
 type_e_procedures_return_no_value=04103_E_Ungültige Zuweisung, eine Prozedur gibt keinen Wert zurück
 % This error occurs when one tries to assign the result of a procedure or destructor call.
 % A procedure or destructor returns no value so this is not
 % possible.
+type_w_implicit_string_cast=04104_W_Implizite Umwandlung einer Zeichenkette von "$1" nach "$2"
+% An implicit type conversion from an ansi string type to an unicode string type is
+% encountered. To avoid this warning perform an explicit type conversion.
+type_w_implicit_string_cast_loss=04105_W_Implizite Umwandlung einer Zeichenkette von "$1" nach "$2", bei der möglicherweise Informationen verloren gehen
+% An implicit type conversion from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type.
+type_w_explicit_string_cast=04106_-W_Explizites Typecast einer Zeichenkette von "$1" nach "$2"
+% An explicit typecast from an ansi string type to an unicode string type is
+% encountered. This warning is off by default. You can turn it on to see all suspicious string conversions.
+type_w_explicit_string_cast_loss=04107_-W_W_Explizites Typecast einer Zeichenkette von "$1" nach "$2", bei der möglicherweise Informationen verloren gehen
+% An explicit typecast from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type. This warning is off by default. You can turn it on to see all the places with lossy string
+% conversions.
+type_w_unicode_data_loss=04108_W_Cast einer Unicode Konstanten, bei der möglicherweise Informationen verloren gehen
+% Conversion from a WideChar to AnsiChar can lose data since now all unicode characters may be represented in the current
+% system codepage
+% You can nest function definitions only 31 levels deep.
+type_e_range_check_error_bounds=04109_E_Bereichsüberschreitung bei der Berechnung einer Konstanten ($1 muss zwischen $2 und $3 liegen)
+type_w_range_check_error_bounds=04110_W_Bereichsüberschreitung bei der Berechnung einer Konstanten ($1 muss zwischen $2 und $3 liegen)
+% The constants are outside their allowed range.
+type_e_type_not_allowed_for_default=04111_E_Dieser Typ wird für die intrinsische Funktion Default() nicht unterstützt
+% Some types like for example Text and File Of X are not supported by the Default intrinsic.
+type_e_java_class_method_not_static_virtual=04112_E_JVM virtuelle Klassenmethoden können nicht statisch sein
+% Virtual class methods cannot be static when targetting the JVM platform, because
+% the self pointer is required for correct dispatching.
+type_e_invalid_final_assignment=04113_E_Finale (Klassen-)Felder können nur im (Klassen-)Konstruktur ihrer Klasse zugewiesen werden
+% It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
+type_e_no_managed_formal_assign_typecast=04114_E_Typecast für nicht typisierte Parameter wird auf managed Platformen nicht unterstützt, weise stattdessen einfach einen Wert zu
+% On managed platforms, untyped parameters are translated by the compiler into
+% the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
+% such parameters are automatically wrapped (or boxed) in a class, and after the
+% call the potentially modified value is assigned back to the original variable.
+% On the caller side, changing untyped var/out parameters happens by simply assigning
+% values to them (either class-based or primitive ones). On the caller side,
+% they will be extracted and if their type does not match the original variable's,
+% an exception will be raised.
+type_e_no_managed_assign_generic_typecast=04115_E_Auf managed Platformen kann für die Zuweisungsseite eines Ausdrucks kein Typecast auf einen Supertyp erfolgen
+% Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
+% to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
+% variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
+% longer be guaranteed and the generated code would fail verification at run time time.
+type_w_interface_lower_visibility=04116_-W_Die Interfacemethode "$1" erhöht die Sichtbarkeit von "$2" auf öffentlich, wenn sie über eine Interfaceinstanz benutzt wird
+type_e_interface_lower_visibility=04117_E_Die Interfacemethode "$1" hat eine größere Sichtbarkeit (öffentlich) als "$2"
+% All methods in an interface have always public visibility. That means that if
+% an interface method is implemented using a (strict) protected or private method,
+% this method is actually publicly accessible via the interface. On the JVM
+% target this situation results in an error because the JVM rejects such
+% attempts to circumvent the visibility rules. On other targets this is a
+% warning that is disabled by default because such situations are common
+% practice, but it can be enabled in case you are concerned with keeping your
+% code compilable for the JVM target.
+type_e_typeof_requires_vmt=04118_E_TYPEOF kann nur auf Objekttypen mit VMT angewendet werden
+% Typeof() intrinsic returns pointer to VMT of its argument. It cannot be used on object types that do not have VMT.
+type_e_invalid_default_value=04119_E_Der Defaultwert für einen Parameter des Typs "$1" kann nicht definiert werden
+% Parameters declared as structured types, such as files, variants, non-dynamic
+% arrays and TP-style objects, cannot have a default value.
+type_e_type_not_allowed_for_type_helper=04120_E_Typ "$1" kann durch einen Typhelfer nicht erweitert werden
+% Types like procedural variables can not be extended by type helpers
 %
 % \end{description}
 # EndOfTeX
@@ -1790,7 +1937,7 @@ type_e_procedures_return_no_value=04103_E_Ungültige Zuweisung, eine Prozedur gi
 #
 # Symtable
 #
-# 05084 is the last used one
+# 05087 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2021,7 +2168,7 @@ sym_w_experimental_unit=05079_W_Unit "$1" ist experimentell
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_objc_formal_class_not_resolved=05080_E_Die vollständige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich
+sym_e_formal_class_not_resolved=05080_E_Die vollständige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich
 % Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
@@ -2040,6 +2187,22 @@ sym_w_library_overload=05084_W_Möglicher Bibliothekenkonflikt: Das Symbol "$1" 
 % the 'libname' part is only a hint, funcname might also be loaded
 % by another library. This warning appears if 'funcname' is used twice
 % with two different library names.
+sym_e_duplicate_id_create_java_constructor=05085_E_Kann den impliziten Konstruktor 'Create' nicht hinzufügen, weil der Bezeichner schon von "$1" verwendet wird
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. In Java, constructors are nameless,
+% but in FPC they are all called ``Create''. Therefore, if you do not add a constructor to
+% a Java class and furthermore use the ``Create'' identifier for another entity (e.g., a field,
+% or a parameterless method), the compiler cannot satisfy this requirement.
+sym_e_no_matching_inherited_parameterless_constructor=05086_E_Kann den voreingestellten Konstruktor für die Klasse nicht erzeugen, weil die Elternklasse keinen parameterlosen Konstruktor hat
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. This compiler must then call
+% the parameterless constructor from the parent class inside this added constructor.
+% This is however impossible if the parent class does not declare such a constructor.
+% In this case you must add a valid constructor yourself.
+sym_d_adding_helper_for=05087_D_Helfer für $1 hinzugefügt
+% A helper for the mentioned type is added to the current scope
 %
 % \end{description}
 # EndOfTeX
@@ -2187,6 +2350,10 @@ cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_ Label müssen im s
 cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Eine Prozedur, die explizite oder implizite Excpetion Frames enthält, darf nicht mit einem goto verlassen werden
 % Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
 % which use automated types like ansistrings or class constructurs are affected by this too.
+cg_e_mod_only_defined_for_pos_quotient=06054_E_Im ISO-Modus ist der Operator mod nur für positive Quotienten definiert
+% In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
+cg_d_autoinlining=06055_DL_Automatisches inlining: $1
+% Due to auto inlining turned on, the compiler auto inlines this subroutine.
 %
 % \end{description}
 # EndOfTeX
@@ -2194,7 +2361,7 @@ cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Eine Prozedur, d
 #
 # Assembler reader
 #
-# 07110 is the last used one
+# 07125 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2449,6 +2616,52 @@ asmr_e_empty_regset=07109_E_Ein Registerset kann nicht leer sein
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL ist nutzlos und bei lokalen Symbole möglicherweise gefährlich
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code
+asmr_w_general_segment_with_constant=07111_W_Konstante in einem "general purpose segment" Register
+% General purpose register should not have constant offsets
+% as OS memory allocation might not be compatible with that.
+asmr_e_bad_seh_directive_offset=07112_E_Ungültiger Offsetwert für $1
+% Win64 SEH directives have certain restrictions on possible offset values, e.g. they should
+% be positive and have 3 or 4 low bits clear.
+asmr_e_bad_seh_directive_register=07113_E_Ungültiges Register für $1
+% Win64 SEH directives accept only 64-bit integer registers or XMM registers.
+asmr_e_seh_in_pure_asm_only=07114_E_SEH-Direktiven sind nur in reinen Assemblerroutinen erlaubt
+% Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
+% blocks of regular procedures.
+asmr_e_unsupported_directive=07115_E_Die Direktive "$1" wird für das aktuelle Ziel nicht unterstützt
+asmr_e_complex_function_result_location=07116_E_Der Platz des Ergebnisses dieser Funktion nicht direkt in einem einzigen Operanden kodiert werden, wenn "nostackframe" verwendet wird
+% Functions declared with the \var{nostackframe} modifier do not have a stack frame, and hence
+% do not have a local variable to hold the temporary function result.  Accesses to the function
+% result in such routines directly go to the registers or memory location that will be used
+% to return their result to the caller.  In some cases this result may be spread over multiple
+% registers, in which case it is not possible to access the location via its symbolic name.
+% You have to directly use the appropriate register names in this case.
+asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL Referenzen in der Intel Assembler-Syntax können kein Basis- oder Index-Register enthalten und ihre Offsets müssen 0 sein.
+% The syntax for a gotpcrel PIC memory expression in Intel assembler syntax is
+% \verb*[global_symbol wrt ..gotpcrel]*
+asmr_e_no_gotpcrel_support=07118_E_GOTPCREL Relocations werden vom aktuellen Ziel nicht unterstützt
+% Not all targets support position-independent code using a global offset table.
+% Use a different way to access symbols in a position-indepent way in these cases.
+asmr_w_global_access_without_got=07119_W_Auf exportierte/globale Symbole sollte via GOT zugegriffen werden
+% Global symbols (symbols from the unit interface, or defined in a program
+% or library) should be accessed via the GOT when generating position-indepent code.
+asmr_w_check_mem_operand_size=07120_W_Überprüfe die Größe des Speicheroperanden "$1"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size3=07121_W_Überprüfe die Größe des Speicheroperanden "$1: Sie ist $2 bits, aber [$3 bits] werden erwartet"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size_offset=07122_W_Überprüfe die Größe des Speicheroperanden "$1: Sie ist $2 bits, aber[$3 bits + $4 byte offset] werden erwartet"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_negative_offset=07123_W_Überprüfe "$1: Der Offset des Speicheroperanden ist negativ "$2 byte"
+% The offset of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_automap_multiple_size=07124_W_Überprüfe "$1: Die Größe des Speicheroperanden ist leer, aber es existieren andere Definitionen der Speichergröße =>> abbilden auf $2 (kleinste Option)"
+% The size of memory operand is empty and we have different definitions of possible memory sizes. Check it!
+asmr_e_invalid_ref_register=07125_E_Ungültiges Register in Speicherreferenzausdruck: "$1"
+% FPU, vector and sometimes integer registers cannot be used in memory reference
+% expressions, due to limitations of the cpu architecture or simple because
+% it is not meaningful.
 
 #
 # Assembler/binary writers
@@ -2485,11 +2698,20 @@ asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH oder DH können nicht in einer Ins
 % 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
 % The REX prefix is required whenever the instruction operand size is 64 bits, or
 % when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
+asmw_e_missing_endprologue=08023_E_Die ".seh_endprologue"-Direktive fehlt
+% x86_64-win64 only: Normally, SEH directives are handled internally by compiler.
+% However, in pure assembler procedures .seh_endprologue directive is required
+% if other SEH directives are present.
+asmw_e_prologue_too_large=08024_E_Der Funktionsprolog überschreitet 255 Byte
+% x86_64-win64: .seh_prologue directive must be placed within 255 bytes from function start.
+asmw_e_handlerdata_no_handler=08025_E_".seh_handlerdata"-Direktive ohne vorangehendes ".seh_handler"
+% x86_64-win64: If .seh_handlerdata directive is used, then a .seh_handler directive must be
+% present earlier in the same function.
 
 #
 # Executing linker/assembler
 #
-# 09032 is the last used one
+# 09033 is the last used one
 #
 # BeginOfTeX
 %
@@ -2504,7 +2726,7 @@ exec_i_assembling_pipe=09001_I_Assembliere (pipe) $1
 exec_d_cant_create_asmfile=09002_E_Kann Assemblerdatei nicht erzeugen: $1
 % The mentioned file can't be created. Check if you have
 % access permissions to create this file.
-exec_e_cant_create_objectfile=09003_E_Kann Objektdatei nicht erzeugen: $1
+exec_e_cant_create_objectfile=09003_E_Kann Objektdatei nicht erzeugen: $1 (Fehlercode: $2)
 % The mentioned file can't be created. Check if you have
 % got access permissions to create this file.
 exec_e_cant_create_archivefile=09004_E_Kann Archivdatei nicht erzeugen: $1
@@ -2579,6 +2801,8 @@ exec_e_cant_open_resource_file=09031_E_Kann die Resourcedatei "$1" nicht öffnen
 % An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Kann die Resourcedatei "$1" nicht schreiben
 % An error occurred resource file cannot be written.
+exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommando cat nicht gefunden
+% The compiler did not find the file that should be expanded into linker parameters
 %
 % \end{description}
 # EndOfTeX
@@ -2842,7 +3066,7 @@ unit_u_indirect_crc_changed=10062_U_Die CRC des indirekten Interface (Objekte/Kl
 #
 # Options
 #
-# 11048 is the last used one
+# 11053 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2938,7 +3162,7 @@ option_read_config_file=11034_D_Konfigurationsdatei "$1" lesen
 option_found_file=11035_D_Name der Quelldatei "$1" gefunden
 % Additional information about options.
 % Displayed when you have the debug option turned on.
-option_code_page_not_available=11039_E_Unbekannte code page
+option_code_page_not_available=11039_E_Unbekannte Codepage "$1"
 % An unknown code page for the source files was requested.
 % The compiler is compiled with support for several code pages built-in.
 % The requested code page is not in that list. You will need to recompile
@@ -2968,6 +3192,20 @@ option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplattfo
 option_debug_external_unsupported=11048_W_Schalte externe Debuginformation aus, weil es für die gewählte Kombination Ziel/Debugformat nicht unterstützt wird
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
+option_dwarf_smartlink_creation=11049_N_DWARF Debug-Information kann nicht benutzt werden, wenn das Smartlinken mit dem externen Assembler erfolgt. Das Erstellen einer statischen Bibliothek wird ausgeschaltet.
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
+option_invalid_macosx_deployment_target=11050_E_Ungültiger Wert für die Umgebungsvariable MACOSX_DEPLOYMENT_TARGET: $1
+option_invalid_iphoneos_deployment_target=11051_E_Ungültiger Wert für die Umgebungsvariable IPHONEOS_DEPLOYMENT_TARGET: $1
+% On Mac OS X, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
+% used to set the default target OS version. In case of Mac OS X, it has to be of the format
+% XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
+% In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
+% digits from 0-9.
+option_illegal_fpu_eabihf=11052_E_Sie müssen beim Ziel EABIHF ABI einen der FPU Typen VFPV2, VFPV3 oder VFPV3_D16 verwenden
+% The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
+option_w_unsupported_debug_format=11053_W_Das ausgewählte Debugformat wird auf dem aktuellen Ziel nicht unterstützt. Die aktuelle Einstellung wird beibehalten
+% Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
 %
 % \end{description}
 # EndOfTeX
@@ -3054,7 +3292,7 @@ wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1"
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2012 Florian Klämpfl und andere
+Copyright (c) 1993-2013 Florian Klämpfl und andere
 ]
 
 #
@@ -3091,8 +3329,13 @@ Unterstützte Microcontroller:
 Dieses Programm unterliegt der GNU General Public Licence
 Weitere Informationen sind in COPYING.v2 zu finden
 
-Fehlerberichte, Vorschläge usw. bitte senden an:
+Fehlerberichte bitte senden an:
              http://bugs.freepascal.org
+
+Weiter Information stehen auf unseren WWW Seiten (einschließlich Links zu
+Mailing-Listen, auf denen Fragen gestellt und potentielle neue Features 
+diskutiert werden können, usw.):
+                 http://www.freepascal.org
 ]
 
 #
@@ -3106,6 +3349,7 @@ Fehlerberichte, Vorschläge usw. bitte senden an:
 #    6 = 680x0 targets
 #    A = ARM
 #    e = in extended debug mode only
+#    F = help for the 'fpc' binary (independent of the target compiler)
 #    P = PowerPC targets
 #    S = Sparc targets
 #    V = Virtual machine targets
@@ -3121,7 +3365,7 @@ option_help_pages=11025_[
 **0*_Nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 **1a_Lösche die erzeugte Assembler-Datei nicht
 **2al_Liste Quellcode-Zeilen in der Assembler-Datei
-**2an_Liste "node info" in der Assembler-Datei
+**2an_Liste "node info" in der Assembler-Datei (-dEXTDEBUG Compiler)
 *L2ap_Benutze Pipes anstelle temporärer Assembler-Dateien
 **2ar_Liste Registerbelegungsinformation in Assembler-Datei
 **2at_Liste Temp. Variablenbelegungsinfo in Assembler-Datei
@@ -3159,7 +3403,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **1C<x>_Optionen für Code-Erzeugung:
 **2C3<x>_Schalte ieee-Prüfung von Konstanten ein
 **2Ca<x>_Wähle ABI aus; fpc -i gibt die möglichen Werte aus
-**2Cb_Erzeuge "big-endian" Code
+**2Cb_Erzeuge Code für die "big-endian"-Variante der Zielarchitektur
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
 **2Ce_Übersetze mit emulierten Fliesskomma opcodes
@@ -3169,6 +3413,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
 **2Ci_I/O-Prüfung
 **2Cn_Lasse die Linkstufe aus
+P*2CN_Erzeuge Überprüfungen auf Nil-Zeiger (nur AIX)
 **2Co_Prüfe auf Überlauf von Integer-Operationen
 **2CO_Prüfe auf möglichen Überlauf von Integer-Operationen
 **2Cp<x>_Wähle instruction set aus; fpc -i gibt die möglichen Werte aus
@@ -3178,7 +3423,19 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2CR_Verifiziere die Gültigkiet des Aufrufs der Objektmethoden
 **2Cs<n>_Setze die Prüfgrösse des Stacks auf <n>
 **2Ct_Führe Stackprüfung durch (nur zum Testen, siehe Handbuch)
-**2Cx_Benutze Smartlinking
+p*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+P*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+J*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+A*2CT<x>_Optionen für die ziel-spezifische Code-Erzeugung
+p*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausführungsgeschwindigkeit (AIX)
+P*3CTsmalltoc_ Erzeuge kleinere TOCs auf Kosten der Ausführungsgeschwindigkeit (AIX)
+J*3CTcompactintarrayinit_ Erzeuge kleineren (aber möglicherweise langsameren) Code für die Initialisierung von Integer-Array-Konstanten
+J*3CTenumfieldinit_ Initialisiere Aufzählungsfelder in Konstruktoren mit enumtype(0), nach dem Aufruf geerbter Konstruktoren
+J*3CTautogetterprefix=X_ Erzeuge automatisch Getter für Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
+J*3CTautosetterprefix=X_ Erzeuge automatisch Setter für Eigenschaften mit dem Prefix X (Leerstring schaltet aus)
+A*3CTthumbinterworking_ Erzeuge "Thumb interworking-safe code", wenn möglich
+J*2Cv_Var/out Parameter copy-out Überprüfung
+**2CX_Benutze Smartlinking
 **1d<x>_Definiere das Symbol <x>
 **1D_Erzeuge eine DEF-Datei
 **2Dd<x>_Setze Beschreibung zu <x>
@@ -3247,6 +3504,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2O1_Level 1 Optimierung (schnell und Debugger freundlich)
 **2O2_Level 2 Optimierung (-O1 + schnelle Optimierungen)
 **2O3_Level 3 Optimierung (-O2 + langsame Optimierungen)
+**2O4_Level 4 Optimierung (-O3 + Optimierungen, die unerwartete Nebeneffekte haben können)
 **2Oa<x>=<y>_Ausrichtung (alignment) von Mengen
 **2Oo[NO]<x>_Optimierungen ein- oder ausschalten; fpc -i gibt die möglichen Werte aus
 **2Op<x>_Setze Zielprozessor für die Optimierung; fpc -i gibt die möglichen Werte aus
@@ -3254,11 +3512,15 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Ow<x>_Führe die Gesamtprogramm-Optimierung durch <x>, siehe fpc -i für mögliche Werte
 **2Os_Erzeuge kürzeren Code
 **1pg_Erzeuge Profiler-Code für gprof
-**1R<x>_Assembler Code Format:
-**2Rdefault_Benutze den default Assembler
-3*2Ratt_Lese Assembler Code im AT&T Format
-3*2Rintel_Lese Assembler im Intel Format
-6*2RMOT_Lese Assembler im Motorola Format
+F*1P<x>_Ziel CPU / Compiler bezogene Optionen:
+F*2PB_Zeige die voreingestellte Compilerbinärdatei
+F*2PP_Zeige die voreingestellte Ziel-CPU
+F*2P<x>_Setze die Ziel-CPU (arm, i386, m68k, mips, mipsel, powerpc, powerpc64, sparc, x86_64)
+**1R<x>_Assembler Code-Format:
+**2Rdefault_Benutze den voreingestellten Assembler
+3*2Ratt_Lese Assembler Code im AT&T-Format
+3*2Rintel_Lese Assembler im Intel-Format
+6*2RMOT_Lese Assembler im Motorola-Format
 **1S<x>_Syntax-Optionen:
 **2S2_Schalte einige der Delphi 2 Erweiterungen ein (wie -Mobjfpc)
 **2Sc_Unterstütze spezielle C Operatoren (*=,+=,/= and -=)
@@ -3291,6 +3553,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 des DJ Delorie DOS extender
 3*2Tlinux_Linux
+3*2Tnativent_Native NT API (experimentell)
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
 3*2Tnetwlibc_Novell Netware Module (libc)
@@ -3338,6 +3601,7 @@ S*2Tlinux_Linux
 **2*_    Dateinamen den vollständigen  v : Schreibe fpcdebug.txt mit 
 **2*_    Pfad                              ganz viel Information
 **2*_m<x>,<y> : Zeige die Meldungen mit den Nummern <x> und <y> nicht
+F*1V<x>_Hänge '-<x>' an den Namen der Compilerbinary an (z.B. für die Version)
 **1W<x>_Spezifiziere ein natives Programm (Windows)
 3*2WA_Spezifiziere ein natives Programm (Windows)
 4*2WA_Spezifiziere ein natives Programm (Windows)
@@ -3378,11 +3642,17 @@ p*2Wi_Benutze interne Resourcen (Darwin)
 3*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 4*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 A*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
+3*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
+4*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
+p*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
+P*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 4*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 A*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 A*2Wpxxxx_Spezifiziere den Kontrollertyp, mögliche Werte liefert fpc -i
 V*2Wpxxxx_Spezifiziere den Kontrollertyp, mögliche Werte liefert fpc -i
+3*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (iphonesim)
+A*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Erzeuge "relocation code" (Windows)
 4*2WR_Erzeuge "relocation code" (Windows)
 A*2WR_Erzeuge "relocation code" (Windows)
@@ -3390,14 +3660,15 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2WX_Ermögliche den executable stack (Linux)
 **1X_Programm-Optionen:
 **2Xc_Übergebe --shared an den Linker (nur Unix)
-**2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile)
+**2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile, wenn nicht -XR verwendet wird)
 **2Xe_Verwende den externen Linker
 **2Xg_Erstelle die Debug-Informationen in einer separaten Datei und einen "Debug-Link"-Abschnitt im ausführbaren Programm
 **2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xi_Verwende den internen Linker
 **2Xm_Erzeuge die "link map"
 **2XM<x>_Setze den Namen der 'main' program Routine   (default ist 'main')
-**2XP<x>_Stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
+F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
+**2XP<x>_Stelle dem Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
 **2Xr<x>_Setze den rlink-Pfad des Linker zu <x> (benötigt für cross compile, siehe ld-Manual für mehr Informationen) (BeOS, Linux)
 **2XR<x>_Stelle allen Linker-Suchpfaden den Namen <x> voran (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Entferne alle Symbole aus der ausführbaren Datei

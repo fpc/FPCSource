@@ -1,9 +1,8 @@
 { Thread management routines }
 
-constructor TThread.Create(CreateSuspended: Boolean;
-                           const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 begin
-  inherited Create;
   FSuspended := CreateSuspended;
   FInitialSuspended := CreateSuspended;
   { Always start in suspended state, will be resumed in AfterConstruction if necessary
@@ -17,7 +16,7 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
   if FHandle<>0 then
     begin
@@ -33,12 +32,10 @@ begin
             Start;
           WaitFor;
         end;
-      CloseHandle(FHandle);
     end;
 
   FFatalException.Free;
   FFatalException := nil;
-  inherited Destroy;
 end;
 
 procedure TThread.CallOnTerminate;

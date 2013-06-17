@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('ibase');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ibase';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: (Codegear?), header: ?';

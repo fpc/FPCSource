@@ -14,7 +14,7 @@ begin
     P:=AddPackage('hash');
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='hash';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
     P.Author := 'Free Pascal development team, Mark Adler, Jacques Nomssi Nzali';
@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Several hash algorithms (MD5,CRC,Linux crypt and NTLM1).';
     P.NeedLibC:= false;
+    P.OSes:=P.OSes-[embedded];
 
     P.Version:='2.7.1';
     T:=P.Targets.AddUnit('src/md5.pp');

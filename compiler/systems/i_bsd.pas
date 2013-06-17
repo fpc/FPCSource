@@ -39,7 +39,7 @@ unit i_bsd;
              resbin : 'fpcres';
              rescmd : '-o $OBJ -a $ARCH -s $SUBARCH -of mach-o $DBG';
              rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
              resourcefileclass : nil;
              resflags : [];
            );
@@ -49,7 +49,7 @@ unit i_bsd;
              resbin : 'fpcres';
              rescmd : '-o $OBJ -a $ENDIAN -of external $DBG';
              rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
              resourcefileclass : nil;
              resflags : [res_external_file,res_arch_in_file_name];
           );
@@ -64,7 +64,7 @@ unit i_bsd;
                             tf_section_threadvars,
 {$endif segment_threadvars}
                             tf_needs_symbol_type,tf_needs_symbol_size,tf_smartlink_library
-                            {,tf_smartlink_sections},tf_has_winlike_resources];
+                            ,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -129,8 +129,8 @@ unit i_bsd;
             shortname    : 'FreeBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -319,8 +319,8 @@ unit i_bsd;
             shortname    : 'OpenBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -509,8 +509,8 @@ unit i_bsd;
             shortname    : 'NetBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
-                            tf_dwarf_only_local_labels
-                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+                            tf_dwarf_only_local_labels,
+                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -951,7 +951,7 @@ unit i_bsd;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef FreeBSD}
      set_source_info(system_i386_FreeBSD_info);
   {$endif}
@@ -964,7 +964,7 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_i386_Darwin_info);
   {$endif Darwin}
-{$endif cpu86}
+{$endif cpui386}
 {$ifdef cpux86_64}
    {$ifdef FreeBSD}
      set_source_info(system_x86_64_FreeBSD_info);

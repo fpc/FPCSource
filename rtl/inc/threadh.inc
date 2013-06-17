@@ -15,8 +15,19 @@
  **********************************************************************}
 
 const
+{$ifndef FPC_USE_SMALL_DEFAULTSTACKSIZE}
   { includes 16384 bytes margin for stackchecking }
   DefaultStackSize = 4*1024*1024;
+{$else i.e. FPC_USE_SMALL_DEFAULTSTACKSIZE}
+  { Special value of Default stack size }
+  DefaultStackSize = 16 * 1024;
+{$endif not FPC_USE_SMALL_DEFAULTSTACKSIZE}
+
+{ every platform can have it's own implementation of GetCPUCount; use the define
+  HAS_GETCPUCOUNT to disable the default implementation which simply returns 1 }
+function GetCPUCount: LongWord;
+
+property CPUCount: LongWord read GetCPUCount;
 
 type
   PEventState = pointer;
@@ -46,7 +57,6 @@ type
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
   TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
   TRTLCreateEventHandler    = function:PRTLEvent;
-  TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
   // semaphores stuff
   TSempahoreInitHandler     = function: Pointer;
   TSemaphoreDestroyHandler  = procedure (const sem: Pointer);
@@ -87,7 +97,6 @@ type
     RTLEventSetEvent       : TRTLEventHandler;
     RTLEventResetEvent     : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
-    RTLEventSync           : TRTLEventSyncHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
     // semaphores stuff
     SemaphoreInit          : TSempahoreInitHandler;
@@ -107,7 +116,7 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
-procedure InitThreadVars(RelocProc : Pointer);
+procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 procedure InitThread(stklen:SizeUInt);
 procedure DoneThread;
 
@@ -163,5 +172,4 @@ procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
-procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 

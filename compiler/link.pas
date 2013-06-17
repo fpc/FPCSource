@@ -98,7 +98,9 @@ interface
          FImportLibraryList : TFPHashObjectList;
          FGroupStack : TFPObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
-         procedure Load_ReadStaticLibrary(const para:TCmdStr);
+         procedure Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean=false);
+         procedure Load_Group;
+         procedure Load_EndGroup;
          procedure ParseScript_Handle;
          procedure ParseScript_PostCheck;
          procedure ParseScript_Load;
@@ -145,6 +147,9 @@ Implementation
 
     uses
       cutils,cfileutl,cstreams,
+{$ifdef hasUnix}
+      baseunix,
+{$endif hasUnix}
       script,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;
@@ -952,7 +957,7 @@ Implementation
               end
             else if src.token in [tkIDENT,tkLITERAL] then
               begin
-                Load_ReadStaticLibrary(src.tokenstr);
+                Load_ReadStaticLibrary(src.tokenstr,asneeded);
                 src.nextToken;
               end
             else if src.CheckFor('-') then
@@ -1002,7 +1007,6 @@ Implementation
         fn:=FindObjectFile(para,'',false);
         Comment(V_Tried,'Reading object '+fn);
         objinput:=CObjInput.Create;
-        objdata:=objinput.newObjData(para);
         objreader:=TObjectreader.create;
         if objreader.openfile(fn) then
           begin
@@ -1015,12 +1019,13 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr);
+    procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
         objreader : TArObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
         ScriptLexer: TScriptLexer;
+        stmt:TStaticLibrary;
       begin
 { TODO: Cleanup ignoring of   FPC generated libimp*.a files}
         { Don't load import libraries }
@@ -1035,11 +1040,11 @@ Implementation
             begin
               { may be a regular object as well as a dynamic one }
               objinput:=CObjInput.Create;
-              objdata:=objinput.newObjData(para);
               if objinput.ReadObjData(objreader,objdata) then
                 begin
-                  TFPObjectList(FGroupStack.Last).Add(TStaticLibrary.create_object(objdata));
-                  //exeoutput.addobjdata(objdata);
+                  stmt:=TStaticLibrary.create_object(objdata);
+                  stmt.AsNeeded:=asneededflag;
+                  TFPObjectList(FGroupStack.Last).Add(stmt);
                 end;
               objinput.Free;
               objreader.Free;
@@ -1052,6 +1057,22 @@ Implementation
               ScriptLexer.Free;
               objreader.Free;
             end;
+      end;
+
+
+    procedure TInternalLinker.Load_Group;
+      var
+        group: TStaticLibrary;
+      begin
+        group:=TStaticLibrary.create_group;
+        TFPObjectList(FGroupStack.Last).Add(group);
+        FGroupStack.Add(group.GroupMembers);
+      end;
+
+
+    procedure TInternalLinker.Load_EndGroup;
+      begin
+        FGroupStack.Delete(FGroupStack.Count-1);
       end;
 
 
@@ -1093,7 +1114,9 @@ Implementation
                (keyword<>'EXESECTION') and
                (keyword<>'ENDEXESECTION') and
                (keyword<>'OBJSECTION') and
-               (keyword<>'HEADER')
+               (keyword<>'HEADER') and
+               (keyword<>'GROUP') and
+               (keyword<>'ENDGROUP')
                then
               Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
                 +'" internal linker script');
@@ -1179,6 +1202,10 @@ Implementation
               UseStabs:=true
             else if keyword='READSTATICLIBRARY' then
               Load_ReadStaticLibrary(para)
+            else if keyword='GROUP' then
+              Load_Group
+            else if keyword='ENDGROUP' then
+              Load_EndGroup
             else
               handled:=false;
             if handled then
@@ -1353,10 +1380,10 @@ Implementation
         Message1(exec_i_linking,outputname);
         FlushOutput;
 
+        exeoutput:=CExeOutput.Create;
+
 { TODO: Load custom linker script}
         DefaultLinkScript;
-
-        exeoutput:=CExeOutput.Create;
 
         if (cs_link_map in current_settings.globalswitches) then
           exemap:=texemap.create(current_module.mapfilename);
@@ -1388,6 +1415,7 @@ Implementation
           STABS for empty linker scripts }
           exeoutput.MergeStabs;
         exeoutput.MarkEmptySections;
+        exeoutput.AfterUnusedSectionRemoval;
         if ErrorCount>0 then
           goto myexit;
 
@@ -1459,6 +1487,9 @@ Implementation
       begin
         IsSharedLibrary:=false;
         result:=RunLinkScript(current_module.exefilename);
+{$ifdef hasUnix}
+        fpchmod(current_module.exefilename,493);
+{$endif hasUnix}
       end;
 
 
@@ -1540,9 +1571,16 @@ Implementation
             arfinishcmd : 'gar s $LIB'
           );
 
+      ar_watcom_wlib_omf_info : tarinfo =
+          ( id          : ar_watcom_wlib_omf;
+            arcmd       : 'wlib -q -fo -c $LIB $FILES';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
   RegisterAr(ar_gnu_ar_scripted_info);
   RegisterAr(ar_gnu_gar_info);
+  RegisterAr(ar_watcom_wlib_omf_info);
 end.

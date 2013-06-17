@@ -6,6 +6,8 @@
 
 {$include fpcres/fpmake.pp}
 
+{$include fpcreslipo/fpmake.pp}
+
 {$include fpdoc/fpmake.pp}
 
 {$include fpmc/fpmake.pp}
@@ -20,7 +22,15 @@
 
 {$include instantfpc/fpmake.pp}
 
+{$include pas2fpm/fpmake.pp}
+
+{$include pas2jni/fpmake.pp}
+
+{$include pas2ut/fpmake.pp}
+
 {$include rmwait/fpmake.pp}
 
 {$include tply/fpmake.pp}
+
+{$include unicode/fpmake.pp}
 

@@ -5,7 +5,7 @@ Program GParMake;
 procedure Usage;
   begin
     writeln('GParMake: create make rules for parallel execution of testsuite');
-    writeln('Usage: gparmake [-a] <outputfile>  <startchunk> <tests_per_chunk> <test1> [<test2> ...]');
+    writeln('Usage: gparmake [-a] <outputfile> <dirname> <startchunk> <tests_per_chunk> <test1> [<test2> ...]');
     writeln('Output: makefile fragment with rules to run the tests in sequences of <tests_per_chunk>');
     writeln;
     halt(1);
@@ -23,14 +23,14 @@ function rulenr2str(rulenr: longint): string;
         rulenr2str[i]:='0';
   end;
 
-procedure WriteChunkRule(rulenr: longint; const files: ansistring);
+procedure WriteChunkRule(rulenr: longint; const dirname, files: ansistring);
   var
     rulestr: string;
   begin
-    rulestr:=rulenr2str(rulenr);
+    rulestr:=rulenr2str(rulenr)+dirname;
     writeln('$(TEST_OUTPUTDIR)/testchunk_',rulestr,'-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)');
     writeln(#9'$(Q)$(DOTEST) $(DOTESTOPT) -Lchunk',rulestr,' -e ',files);
-    writeln(#9'$(ECHOREDIR) $(DATE) > $@');
+    writeln(#9'$(ECHOREDIR) $(TEST_DATETIME) > $@');
     writeln;
     writeln('$(addsuffix .chunk',rulestr,', $(LOGFILES)) : $(TEST_OUTPUTDIR)/testchunk_',rulestr,'-stamp.$(TEST_FULL_TARGET)');
     writeln;
@@ -41,6 +41,7 @@ procedure WriteChunkRule(rulenr: longint; const files: ansistring);
 
 var
   startchunk: longint;
+  dirname : ansistring;
   doappend: boolean;
 
 Function ProcessArgs: longint;
@@ -58,7 +59,7 @@ Function ProcessArgs: longint;
 
   procedure FlushChunk;
     begin
-      WriteChunkRule(chunknr,testlist);
+      WriteChunkRule(chunknr,dirname,testlist);
       inc(chunknr);
       testlist:='';
       chunksize:=0;
@@ -78,6 +79,9 @@ Function ProcessArgs: longint;
       end;
 
     outputname:=paramstr(paramnr);
+    inc(paramnr);
+
+    dirname:=paramstr(paramnr);
     inc(paramnr);
 
     val(paramstr(paramnr),startchunk,error);
@@ -137,7 +141,7 @@ procedure WriteWrapperRules(totalchunks: longint);
       begin
         write('$(TEST_OUTPUTDIR)/',lognames[logi],' :');
         for i:=startchunk to totalchunks do
-          write(' $(TEST_OUTPUTDIR)/',lognames[logi],'.chunk',rulenr2str(i));
+          write(' $(TEST_OUTPUTDIR)/',lognames[logi],'.chunk',rulenr2str(i)+dirname);
         writeln;
         { if you have multiple rules for one (non-pattern) target, all
           prerequisites will be merged, but only one of the rules can have a
@@ -151,7 +155,7 @@ procedure WriteWrapperRules(totalchunks: longint);
       end;
     if not doappend then
       begin
-        writeln('allexectests : $(LOGFILES)');
+        writeln('gparmake_allexectests : $(LOGFILES)');
         writeln;
       end;
   end;

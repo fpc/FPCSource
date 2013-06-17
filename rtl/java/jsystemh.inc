@@ -848,9 +848,9 @@ const
 *****************************************************************************}
 
 { Generic threadmanager }
-{$ifdef FPC_HAS_FEATURE_THREADING}
+{$if defined(FPC_HAS_FEATURE_THREADING) and not defined(cpujvm)}
 {$i threadh.inc}
-{$endif FPC_HAS_FEATURE_THREADING}
+{$endif FPC_HAS_FEATURE_THREADING and not cpujvm}
 
 {*****************************************************************************
                           Resources support

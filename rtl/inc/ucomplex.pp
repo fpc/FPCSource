@@ -155,6 +155,8 @@ Unit UComplex;
     inline;
     {$endif TEST_INLINE}
 
+    function cinit(_re,_im : real) : complex;inline;
+    function csamevalue(z1, z2 : complex) : boolean;
 
     { complex functions }
     function cong (z : complex) : complex;      { conjuge }
@@ -169,6 +171,7 @@ Unit UComplex;
     { fonctions elementaires }
     function cexp (z : complex) : complex;       { exponential }
     function cln (z : complex) : complex;        { natural logarithm }
+    function csqr (z: complex) : complex;        { square }
     function csqrt (z : complex) : complex;      { square root }
 
     { complex trigonometric functions  }
@@ -197,6 +200,17 @@ Unit UComplex;
     function cstr(z:complex;len,dec : integer) : string;
 
   implementation
+
+    function cinit(_re,_im : real) : complex;inline;
+    begin
+      cinit.re:=_re;
+      cinit.im:=_im;
+    end;
+
+    function csamevalue(z1, z2: complex): boolean;
+    begin
+      csamevalue:=SameValue(z1.re, z2.re) and SameValue(z1.im, z2.im);
+    end;
 
   operator := (r : real) z : complex;
   {$ifdef TEST_INLINE}
@@ -435,6 +449,13 @@ Unit UComplex;
        cln.im := arctan2(z.im, z.re);
     end;
 
+  function csqr(z: complex): complex;
+    { square : r := z*z }
+    begin
+      csqr.re := z.re * z.re - z.im * z.im;
+      csqr.im := 2 * z.re * z.im;
+    end;
+
   function csqrt (z : complex) : complex;
     { square root : r := sqrt(z) }
     var
@@ -632,7 +653,6 @@ Unit UComplex;
        else if z.im>0 then
          cstr:=cstr+'+'+istr+'i';
     end;
-
 
 {$else}
 implementation

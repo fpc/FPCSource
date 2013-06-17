@@ -16,13 +16,15 @@ units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 strings \
       strutils convutils math dateutils \
       varutils variants \
       matrix ucomplex \
-      charset getopts winsock sockets
+      charset cpall getopts winsock sockets
 # initc cmem signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut
-implicitunits=exeinfo
+implicitunits=exeinfo \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
 
 # rsts=math varutils typinfo variants classes dateutils sysconst
 
@@ -136,6 +138,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 #####################################################################
 # Libs
 #####################################################################

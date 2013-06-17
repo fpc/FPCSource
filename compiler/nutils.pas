@@ -94,7 +94,6 @@ interface
       containing no code }
     function has_no_code(n : tnode) : boolean;
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -590,11 +589,19 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
+              labeln,
               blockn,
               callparan:
                 p := tunarynode(p).left;
               notn,
               derefn :
+                begin
+                  inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
+              addrn:
                 begin
                   inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
@@ -684,6 +691,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
+                    in_aligned_x,
                     in_unaligned_x,
                     in_prefetch_var:
                       begin
@@ -886,25 +894,6 @@ implementation
       end;
 
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
-    var
-      hpropsym : tpropertysym;
-    begin
-      result:=false;
-      { find property in the overridden list }
-      hpropsym:=propsym;
-      repeat
-        propaccesslist:=hpropsym.propaccesslist[pap];
-        if not propaccesslist.empty then
-          begin
-            result:=true;
-            exit;
-          end;
-        hpropsym:=hpropsym.overriddenpropsym;
-      until not assigned(hpropsym);
-    end;
-
-
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
       var
         plist : ppropaccesslistitem;
@@ -1048,7 +1037,8 @@ implementation
               { only orddefs and enumdefs are actually bitpacked. Don't consider
                 e.g. an access to a 3-byte record as "bitpacked", since it
                 isn't }
-              (tvecnode(n).left.resultdef.typ in [orddef,enumdef]) and
+              (tvecnode(n).left.resultdef.typ = arraydef) and
+              (tarraydef(tvecnode(n).left.resultdef).elementdef.typ in [orddef,enumdef]) and
               not(tarraydef(tvecnode(n).left.resultdef).elepackedbitsize in [8,16,32,64]);
           subscriptn:
             result:=

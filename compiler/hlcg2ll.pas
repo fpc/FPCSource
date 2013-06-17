@@ -67,8 +67,8 @@ unit hlcg2ll;
           {# Gets a register suitable to do integer operations on.}
           function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
           function getfpuregister(list:TAsmList;size:tdef):Tregister;override;
-//        we don't have high level defs yet that translate into all mm cgsizes
-//          function getmmregister(list:TAsmList;size:tdef):Tregister;override;
+          { warning: only works correctly for fpu types currently }
+          function getmmregister(list:TAsmList;size:tdef):Tregister;override;
           function getflagregister(list:TAsmList;size:tdef):Tregister;override;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
@@ -112,7 +112,7 @@ unit hlcg2ll;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : aint;const cgpara : TCGPara);override;
+          procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -160,9 +160,9 @@ unit hlcg2ll;
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
 
           { move instructions }
-          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
-          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);override;
-          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : aint;const loc : tlocation);override;
+          procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
+          procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
+          procedure a_load_const_loc(list : TAsmList;tosize : tdef;a : tcgint;const loc : tlocation);override;
           procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
@@ -188,14 +188,10 @@ unit hlcg2ll;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;fromsize : tdef;const ref : treference;const cgpara : TCGPara);override;
 
           { vector register move instructions }
-//        we don't have high level defs yet that translate into all mm cgsizes
-{
           procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef;reg1, reg2: tregister;shuffle : pmmshuffle); override;
           procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
           procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
-}
-          procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);override;
-{
+          procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);override;
           procedure a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);override;
           procedure a_loadmm_reg_cgpara(list: TAsmList; fromsize: tdef; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); override;
           procedure a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); override;
@@ -204,19 +200,17 @@ unit hlcg2ll;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tdef;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tdef;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); override;
           procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tdef;reg: tregister;const ref: treference; shuffle : pmmshuffle); override;
-}
-//        we don't have high level defs yet that translate into all mm cgsizes
-//          procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tdef; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
-//          procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tdef; mmreg, intreg: tregister; shuffle : pmmshuffle); override;
+          procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tdef; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+          procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tdef; mmreg, intreg: tregister; shuffle : pmmshuffle); override;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister); override;
-          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference); override;
-          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);override;
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); override;
+          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);override;
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: tdef; reg: TRegister; const ref: TReference); override;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); override;
@@ -226,17 +220,17 @@ unit hlcg2ll;
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
           { are any processors that support it (JM)                         }
-          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister); override;
+          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister); override;
           procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister); override;
-          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
+          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
           procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;reg : tregister;
+          procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);override;
-          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : aint;const ref : treference;
+          procedure a_cmp_const_ref_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;const ref : treference;
             l : tasmlabel); override;
-          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: aint; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; a: tcgint; const loc: tlocation;
             l : tasmlabel);override;
           procedure a_cmp_reg_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
           procedure a_cmp_ref_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); override;
@@ -322,7 +316,7 @@ unit hlcg2ll;
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);override;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);override;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
-//          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
+          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 
           procedure maketojumpbool(list:TAsmList; p : tnode);override;
@@ -337,7 +331,10 @@ unit hlcg2ll;
           procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
 
          protected
-          procedure initialize_regvars(p: TObject; arg: pointer); override;
+          { returns the equivalent MM size for a vector register that contains
+            a record, because in that case "size" will contain a cgsize
+            representing an integer size}
+          function getintmmcgsize(reg: tregister; size: tcgsize): tcgsize; virtual;
        end;
 
 
@@ -385,6 +382,12 @@ implementation
     begin
       result:=cg.getfpuregister(list,def_cgsize(size));
     end;
+
+  function thlcg2ll.getmmregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      result:=cg.getmmregister(list,def_cgsize(size));
+    end;
+
 (*
   function thlcg2ll.getmmregister(list: TAsmList; size: tdef): Tregister;
     begin
@@ -436,7 +439,7 @@ implementation
       cg.a_load_reg_cgpara(list,def_cgsize(size),r,cgpara);
     end;
 
-  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: aint; const cgpara: TCGPara);
+  procedure thlcg2ll.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
       cg.a_load_const_cgpara(list,def_cgsize(tosize),a,cgpara);
     end;
@@ -478,17 +481,17 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);
+  procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
       cg.a_load_const_reg(list,def_cgsize(tosize),a,register);
     end;
 
-  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: aint; const ref: treference);
+  procedure thlcg2ll.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     begin
        cg.a_load_const_ref(list,def_cgsize(tosize),a,ref);
     end;
 
-  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: aint; const loc: tlocation);
+  procedure thlcg2ll.a_load_const_loc(list: TAsmList; tosize: tdef; a: tcgint; const loc: tlocation);
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
@@ -659,104 +662,147 @@ implementation
       cg.a_loadfpu_ref_cgpara(list,def_cgsize(fromsize),ref,cgpara);
     end;
 
-  procedure thlcg2ll.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+  procedure thlcg2ll.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
     var
       tmpreg: tregister;
+      tocgsize: tcgsize;
     begin
+      if def_cgmmsize(fromsize)<>loc.size then
+        internalerror(2012071226);
+      tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           begin
             tmpreg:=cg.getintregister(list,loc.size);
-            a_load_loc_reg(list,tcgsize2orddef(fromsize),tcgsize2orddef(fromsize),loc,tmpreg);
-            cg.a_loadmm_intreg_reg(list,loc.size,tosize,tmpreg,reg,shuffle);
+            a_load_loc_reg(list,fromsize,fromsize,loc,tmpreg);
+            { integer register -> no def_cgmmsize but plain }
+            cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),tocgsize,tmpreg,reg,shuffle);
           end
         else
-          cg.a_loadmm_loc_reg(list,tosize,loc,reg,shuffle);
+          cg.a_loadmm_loc_reg(list,tocgsize,loc,reg,shuffle);
       end;
     end;
 
-(*
   procedure thlcg2ll.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle);
+    var
+      fromcgsize: tcgsize;
+      tocgsize: tcgsize;
     begin
-      cg.a_loadmm_reg_reg(list,def_cgsize(fromsize),def_cgsize(tosize),reg1,reg2,shuffle);
+      fromcgsize:=getintmmcgsize(reg1,def_cgmmsize(fromsize));
+      tocgsize:=getintmmcgsize(reg2,def_cgmmsize(tosize));
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      cg.a_loadmm_reg_reg(list,fromcgsize,tocgsize,reg1,reg2,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+    var
+      tocgsize: tcgsize;
     begin
-      cg.a_loadmm_ref_reg(list,def_cgsize(fromsize),def_cgsize(tosize),ref,reg,shuffle);
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
+      cg.a_loadmm_ref_reg(list,def_cgmmsize(fromsize),tocgsize,ref,reg,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+    var
+      fromcgsize: tcgsize;
     begin
-      cg.a_loadmm_reg_ref(list,def_cgsize(fromsize),def_cgsize(tosize),reg,ref,shuffle);
-    end;
-
-  procedure thlcg2ll.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
-    begin
-{$ifdef extdebug}
-      if def_cgsize(fromsize)<>loc.size then
-        internalerror(2010112103);
-{$endif}
-      cg.a_loadmm_loc_reg(list,def_cgsize(tosize),loc,reg,shuffle);
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
+      cg.a_loadmm_reg_ref(list,fromcgsize,def_cgmmsize(tosize),reg,ref,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation; shuffle: pmmshuffle);
+    var
+      fromcgsize: tcgsize;
     begin
-{$ifdef extdebug}
-      if def_cgsize(tosize)<>loc.size then
-        internalerror(2010112104);
-{$endif}
-      cg.a_loadmm_reg_loc(list,def_cgsize(fromsize),reg,loc,shuffle);
+      { sanity check }
+      if def_cgmmsize(tosize)<>loc.size then
+        internalerror(2012071216);
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
+      cg.a_loadmm_reg_loc(list,fromcgsize,reg,loc,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_cgpara(list: TAsmList; fromsize: tdef; reg: tregister; const cgpara: TCGPara; shuffle: pmmshuffle);
+    var
+      fromcgsize: tcgsize;
     begin
-      cg.a_loadmm_reg_cgpara(list,def_cgsize(fromsize),reg,cgpara,shuffle);
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      fromcgsize:=getintmmcgsize(reg,def_cgmmsize(fromsize));
+      cg.a_loadmm_reg_cgpara(list,fromcgsize,reg,cgpara,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference; const cgpara: TCGPara; shuffle: pmmshuffle);
     begin
-      cg.a_loadmm_ref_cgpara(list,def_cgsize(fromsize),ref,cgpara,shuffle);
+      cg.a_loadmm_ref_cgpara(list,def_cgmmsize(fromsize),ref,cgpara,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_loc_cgpara(list: TAsmList; fromsize: tdef; const loc: tlocation; const cgpara: TCGPara; shuffle: pmmshuffle);
     begin
-{$ifdef extdebug}
-      if def_cgsize(fromsize)<>loc.size then
-        internalerror(2010112105);
-{$endif}
+      { sanity check }
+      if def_cgmmsize(fromsize)<>loc.size then
+        internalerror(2012071220);
       cg.a_loadmm_loc_cgpara(list,loc,cgpara,shuffle);
+    end;
+
+  procedure thlcg2ll.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
+    begin
+      cg.a_opmm_reg_reg(list,op,def_cgmmsize(size),src,dst,shuffle);
+    end;
+
+  procedure thlcg2ll.a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+    begin
+      cg.a_opmm_ref_reg(list,op,def_cgmmsize(size),ref,reg,shuffle);
     end;
 
   procedure thlcg2ll.a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size: tdef; const loc: tlocation; reg: tregister; shuffle: pmmshuffle);
     begin
-      cg.a_opmm_loc_reg(list,op,def_cgsize(size),loc,reg,shuffle);
+      cg.a_opmm_loc_reg(list,op,def_cgmmsize(size),loc,reg,shuffle);
     end;
-*)
 
-(*
-  procedure thlcg2ll.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
+  procedure thlcg2ll.a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
     begin
-      cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),def_cgsize(tosize),intreg,mmreg,shuffle);
+      cg.a_opmm_reg_ref(list,op,def_cgmmsize(size),reg,ref,shuffle);
+    end;
+
+  procedure thlcg2ll.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
+    var
+      tocgsize: tcgsize;
+    begin
+      { records may be stored in mmregisters, but def_cgmmsize will return an
+        integer size for them... }
+      tocgsize:=getintmmcgsize(mmreg,def_cgmmsize(tosize));
+      cg.a_loadmm_intreg_reg(list,def_cgsize(fromsize),tocgsize,intreg,mmreg,shuffle);
     end;
 
   procedure thlcg2ll.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tdef; mmreg, intreg: tregister; shuffle: pmmshuffle);
+    var
+      fromcgsize: tcgsize;
     begin
-      cg.a_loadmm_reg_intreg(list,def_cgsize(fromsize),def_cgsize(tosize),mmreg,intreg,shuffle);
+      { records may be stored in mmregisters, but def_cgsize will return an
+        integer size for them... }
+      fromcgsize:=getintmmcgsize(mmreg,def_cgmmsize(fromsize));
+      cg.a_loadmm_reg_intreg(list,fromcgsize,def_cgsize(tosize),mmreg,intreg,shuffle);
     end;
-*)
-  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister);
+
+  procedure thlcg2ll.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
     begin
       cg.a_op_const_reg(list,op,def_cgsize(size),a,reg);
     end;
 
-  procedure thlcg2ll.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference);
+  procedure thlcg2ll.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     begin
       cg.a_op_const_ref(list,op,def_cgsize(size),a,ref);
     end;
 
-  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const loc: tlocation);
+  procedure thlcg2ll.a_op_const_loc(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const loc: tlocation);
     begin
 {$ifdef extdebug}
       if def_cgsize(size)<>loc.size then
@@ -816,7 +862,7 @@ implementation
       end;
     end;
 
-  procedure thlcg2ll.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister);
+  procedure thlcg2ll.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
       cg.a_op_const_reg_reg(list,op,def_cgsize(size),a,src,dst);
     end;
@@ -826,7 +872,7 @@ implementation
       cg.a_op_reg_reg_reg(list,op,def_cgsize(size),src1,src2,dst);
     end;
 
-  procedure thlcg2ll.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+  procedure thlcg2ll.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
       cg.a_op_const_reg_reg_checkoverflow(list,op,def_cgsize(size),a,src,dst,setflags,ovloc);
     end;
@@ -836,17 +882,17 @@ implementation
       cg.a_op_reg_reg_reg_checkoverflow(list,op,def_cgsize(size),src1,src2,dst,setflags,ovloc);
     end;
 
-  procedure thlcg2ll.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
       cg.a_cmp_const_reg_label(list,def_cgsize(size),cmp_op,a,reg,l);
     end;
 
-  procedure thlcg2ll.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     begin
       cg.a_cmp_const_ref_label(list,def_cgsize(size),cmp_op,a,ref,l);
     end;
 
-  procedure thlcg2ll.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const loc: tlocation; l: tasmlabel);
+  procedure thlcg2ll.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const loc: tlocation; l: tasmlabel);
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
@@ -996,14 +1042,14 @@ implementation
             { load a smaller size to OS_64 }
             if l.loc=LOC_REGISTER then
              begin
-{$ifdef AVR}
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
                { on avr, we cannot change the size of a register
                  due to the nature how register with size > OS8 are handled
                }
                hregister:=cg.getintregister(list,OS_32);
-{$else AVR}
+{$else}
                hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
-{$endif AVR}
+{$endif}
                cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
              end
             else
@@ -1028,7 +1074,7 @@ implementation
                   cg.a_label(list,hl);
                 end;
               else
-                a_load_loc_reg(list,src_size,osuinttype,l,hregister);
+                a_load_loc_reg(list,src_size,u32inttype,l,hregister);
             end;
             { reset hi part, take care of the signed bit of the current value }
             hregisterhi:=cg.getintregister(list,OS_32);
@@ -1127,7 +1173,12 @@ implementation
                 if (TCGSize2Size[dst_cgsize]<TCGSize2Size[l.size]) then
                  begin
                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     l.register:=cg.makeregsize(list,l.register,dst_cgsize);
+                     begin
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                       if TCGSize2Size[dst_cgsize]<=TCGSize2Size[OS_INT] then
+{$endif}
+                         l.register:=cg.makeregsize(list,l.register,dst_cgsize);
+                     end;
                    { for big endian systems, the reference's offset must }
                    { be increased in this case, since they have the      }
                    { MSB first in memory and e.g. byte(word_var) should  }
@@ -1217,12 +1268,62 @@ implementation
           inherited;
       end;
     end;
-(*
+
   procedure thlcg2ll.location_force_mmregscalar(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
+    var
+      reg : tregister;
+      href : treference;
+      newsize : tdef;
     begin
-       ncgutil.location_force_mmregscalar(list,l,maybeconst);
+      if (l.loc<>LOC_MMREGISTER)  and
+         ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
+        begin
+          { if it's in an fpu register, store to memory first }
+          if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+            begin
+              tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
+              cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
+              l.reference:=href;
+            end;
+{$ifndef cpu64bitalu}
+          if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+             (l.size in [OS_64,OS_S64]) then
+            begin
+              reg:=cg.getmmregister(list,OS_F64);
+              cg64.a_loadmm_intreg64_reg(list,OS_F64,l.register64,reg);
+              l.size:=OS_F64;
+              size:=s64floattype;
+            end
+          else
+{$endif not cpu64bitalu}
+            begin
+               { on ARM, CFP values may be located in integer registers,
+                 and its second_int_to_real() also uses this routine to
+                 force integer (memory) values in an mmregister }
+               if (l.size in [OS_32,OS_S32]) then
+                 begin
+                   size:=cgsize_orddef(l.size);
+                   newsize:=s32floattype;
+                 end
+               else if (l.size in [OS_64,OS_S64]) then
+                 begin
+                   size:=cgsize_orddef(l.size);
+                   newsize:=s64floattype;
+                 end
+               else
+                 newsize:=size;
+               reg:=getmmregister(list,newsize);
+               a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
+               l.size:=def_cgsize(newsize);
+             end;
+          location_freetemp(list,l);
+          location_reset(l,LOC_MMREGISTER,l.size);
+          l.register:=reg;
+        end;
     end;
 
+(*
   procedure thlcg2ll.location_force_mmreg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
     begin
       ncgutil.location_force_mmreg(list,l,maybeconst);
@@ -1277,7 +1378,7 @@ implementation
             LOC_CMMREGISTER:
               begin
                 tmploc:=l;
-                location_force_mmregscalar(list,tmploc,false);
+                location_force_mmregscalar(list,tmploc,size,false);
                 cg.a_loadmm_reg_cgpara(list,tmploc.size,tmploc.register,cgpara,mms_movescalar);
               end;
             { Some targets pass floats in normal registers }
@@ -1419,20 +1520,19 @@ implementation
       ncgutil.gen_load_cgpara_loc(list, vardef, para, destloc, reusepara);
     end;
 
-  procedure thlcg2ll.initialize_regvars(p: TObject; arg: pointer);
+  function thlcg2ll.getintmmcgsize(reg: tregister; size: tcgsize): tcgsize;
     begin
-      if (tsym(p).typ=staticvarsym) and
-         { not yet handled via tlhcgobj... }
-         (tstaticvarsym(p).initialloc.loc=LOC_CMMREGISTER) then
+      result:=size;
+      if getregtype(reg)=R_MMREGISTER then
         begin
-          { clear the whole register }
-          cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
-            tstaticvarsym(p).initialloc.register,
-            tstaticvarsym(p).initialloc.register,
-            nil);
-        end
-      else
-        inherited initialize_regvars(p, arg);
+          case size of
+            OS_32:
+              result:=OS_F32;
+            OS_64:
+              result:=OS_F64;
+          end;
+        end;
     end;
+
 
 end.

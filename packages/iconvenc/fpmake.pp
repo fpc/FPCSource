@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('iconvenc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='iconvenc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Marco van de Voort';

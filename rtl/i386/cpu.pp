@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 unit cpu;
   interface
 
@@ -25,13 +26,16 @@ unit cpu;
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
+    function AVXSupport: boolean;inline;
+
     var
       is_sse3_cpu : boolean = false;
 
   implementation
 
 {$ASMMODE INTEL}
-
+    var
+      _AVXSupport : boolean;
 
     function cpuid_support : boolean;assembler;
       {
@@ -76,10 +80,19 @@ unit cpu;
 
 
 {$ASMMODE ATT}
-    function sse3_support : boolean;
+    function XGETBV(i : dword) : int64;assembler;
+      asm
+        movl %eax,%ecx
+        // older FPCs don't know the xgetbv opcode
+        .byte 0x0f,0x01,0xd0
+      end;
+
+
+    procedure SetupSupport;
       var
          _ecx : longint;
       begin
+        is_sse3_cpu:=false;
          if cpuid_support then
            begin
               asm
@@ -89,13 +102,23 @@ unit cpu;
                  movl %ecx,_ecx
                  popl %ebx
               end;
-              sse3_support:=(_ecx and $1)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never sse3 }
-           sse3_support:=false;
+              is_sse3_cpu:=(_ecx and $1)<>0;
+              _AVXSupport:=
+                { XGETBV suspport? }
+                ((_ecx and $08000000)<>0) and
+                { xmm and ymm state enabled? }
+                ((XGETBV(0) and %110)=%110) and
+                { avx supported? }
+                ((_ecx and $10000000)<>0);
+           end;
+      end;
+
+
+    function AVXSupport: boolean;inline;
+      begin
+        result:=_AVXSupport;
       end;
 
 begin
-  is_sse3_cpu:=sse3_support;
+  SetupSupport;
 end.

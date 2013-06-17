@@ -147,6 +147,12 @@ begin
   if AOS_DOSBase<>nil then CloseLibrary(AOS_DOSBase);
   if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
 
+  { If in Workbench mode, replying WBMsg }
+  if AOS_wbMsg<>nil then begin
+    Forbid;
+    ReplyMsg(AOS_wbMsg);
+  end;
+
   haltproc(ExitCode);
 end;
 

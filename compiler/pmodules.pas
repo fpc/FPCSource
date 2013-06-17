@@ -46,7 +46,7 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,
        cpuinfo;
 
 
@@ -99,7 +99,8 @@ implementation
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
-        GenerateAsm(false);
+        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in target_info.flags) then
+          GenerateAsm(false);
 
         { Also create a smartlinked version ? }
         if create_smartlink_library then
@@ -502,8 +503,6 @@ implementation
              end;
             pu:=tused_unit(pu.next);
           end;
-
-         consume(_SEMICOLON);
       end;
 
 
@@ -542,7 +541,10 @@ implementation
     procedure parse_implementation_uses;
       begin
          if token=_USES then
-           loadunits;
+           begin
+             loadunits;
+             consume(_SEMICOLON);
+           end;
       end;
 
 
@@ -598,12 +600,12 @@ implementation
     { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
 
     procedure maybe_load_got;
-{$ifdef i386}
+{$if defined(i386) or defined (sparc)}
        var
          gotvarsym : tstaticvarsym;
-{$endif i386}
+{$endif i386 or sparc}
       begin
-{$ifdef i386}
+{$if defined(i386) or defined(sparc)}
          if (cs_create_pic in current_settings.moduleswitches) and
             (tf_pic_uses_got in target_info.flags) then
            begin
@@ -616,7 +618,7 @@ implementation
              gotvarsym.varstate:=vs_read;
              gotvarsym.refs:=1;
            end;
-{$endif i386}
+{$endif i386 or sparc}
       end;
 
     function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
@@ -743,6 +745,7 @@ type
          i,j : longint;
          finishstate:pfinishstate;
          globalstate:pglobalstate;
+         consume_semicolon_after_uses:boolean;
       begin
          result:=true;
 
@@ -847,7 +850,10 @@ type
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
                exit;
-           end;
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { move the global symtable from the temporary local to global }
          current_module.globalsymtable:=current_module.localsymtable;
@@ -856,6 +862,11 @@ type
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          { create whole program optimisation information (may already be
            updated in the interface, e.g., in case of classrefdef typed
@@ -1011,7 +1022,7 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        i,idx : longint;
+        i : longint;
         ag : boolean;
         finishstate : tfinishstate;
         globalstate : tglobalstate;
@@ -1149,10 +1160,6 @@ type
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
-
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable,true);
@@ -1889,6 +1896,7 @@ type
          force_init_final : boolean;
          resources_used : boolean;
          program_name : ansistring;
+         consume_semicolon_after_uses : boolean;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2004,10 +2012,20 @@ type
 
          {Load the units used by the program we compile.}
          if token=_USES then
-           loadunits;
+           begin
+             loadunits;
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { All units are read, now give them a number }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
@@ -2190,9 +2208,6 @@ type
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
 
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
-
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
@@ -2224,11 +2239,6 @@ type
          cnodeutils.InsertWideInitsTablesTable;
          cnodeutils.InsertResStrTablesTable;
          cnodeutils.InsertMemorySizes;
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           InsertInterruptTable;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
          { Insert symbol to resource info }
          cnodeutils.InsertResourceInfo(resources_used);

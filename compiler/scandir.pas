@@ -56,7 +56,8 @@ unit scandir;
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
-      symconst,symtable,
+      defutil,
+      symconst,symtable,symbase,symtype,symsym,
       rabase;
 
 {*****************************************************************************
@@ -252,20 +253,20 @@ unit scandir;
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
                  if hs='GUI' then
-                   apptype:=app_gui
+                   SetApptype(app_gui)
                  else if hs='CONSOLE' then
-                   apptype:=app_cui
+                   SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
-                   apptype:=app_native
+                   SetApptype(app_native)
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
-                   apptype:=app_fs
+                   SetApptype(app_fs)
                  else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
-                   apptype:=app_tool
+                   SetApptype(app_tool)
                  else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
-                   apptype:=app_arm9
+                   SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
-                   apptype:=app_arm7
+                   SetApptype(app_arm7)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
               end;
@@ -945,7 +946,7 @@ unit scandir;
         if not(c in ['1','2','4','8']) then
          begin
            hs:=current_scanner.readid;
-           if (hs='FIXED') or ((hs='DEFAULT') OR (hs='NORMAL')) then
+           if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
             current_settings.setalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
            else
             Message(scan_e_only_packset);
@@ -1084,13 +1085,55 @@ unit scandir;
         do_localswitch(cs_scopedenums);
       end;
 
+    function get_peflag_const(const ident:string;error:longint):longint;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=0;
+        if searchsym(ident,srsym,srsymtable) then
+          if (srsym.typ=constsym) and
+              (tconstsym(srsym).consttyp=constord) and
+              is_integer(tconstsym(srsym).constdef) then
+            with tconstsym(srsym).value.valueord do
+              if signed then
+                result:=tconstsym(srsym).value.valueord.svalue
+              else
+                result:=tconstsym(srsym).value.valueord.uvalue
+          else
+            message(error)
+        else
+          message1(sym_e_id_not_found,ident);
+      end;
+
     procedure dir_setpeflags;
+      var
+        ident : string;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
-        peflags:=current_scanner.readval;
+        ident:=current_scanner.readid;
+        if ident<>'' then
+          peflags:=peflags or get_peflag_const(ident,scan_e_illegal_peflag)
+        else
+          peflags:=peflags or current_scanner.readval;
         SetPEFlagsSetExplicity:=true;
+      end;
+
+    procedure dir_setpeoptflags;
+      var
+        ident : string;
+      begin
+        if not (target_info.system in (systems_all_windows)) then
+          Message(scan_w_setpeoptflags_not_support);
+        current_scanner.skipspace;
+        ident:=current_scanner.readid;
+        if ident<>'' then
+          peoptflags:=peoptflags or get_peflag_const(ident,scan_e_illegal_peoptflag)
+        else
+          peoptflags:=peoptflags or current_scanner.readval;
+        SetPEOptFlagsSetExplicity:=true;
       end;
 
     procedure dir_smartlink;
@@ -1144,6 +1187,24 @@ unit scandir;
           comment (V_Warning,'Invalid Syscall directive ignored.');
       end;
 {$endif}
+
+    procedure dir_targetswitch;
+      var
+        name, value: string;
+      begin
+        { note: *not* recorded in the tokenstream, so not replayed for generics }
+        current_scanner.skipspace;
+        name:=current_scanner.readid;
+        if c='=' then
+          begin
+            current_scanner.readchar;
+            current_scanner.readid;
+            value:=orgpattern;
+            UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
+          end
+        else
+          UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
+      end;
 
     procedure dir_typedaddress;
       begin
@@ -1469,6 +1530,11 @@ unit scandir;
       begin
       end;
 
+    procedure dir_zerobasesstrings;
+      begin
+        do_localswitch(cs_zerobasedstrings);
+      end;
+
 
 {****************************************************************************
                          Initialize Directives
@@ -1568,6 +1634,7 @@ unit scandir;
         AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
         AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
+        AddDirective('SETPEOPTFLAGS', directive_all, @dir_setpeoptflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
@@ -1576,6 +1643,7 @@ unit scandir;
 {$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
 {$endif powerpc}
+        AddDirective('TARGETSWITCH',directive_all, @dir_targetswitch);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
@@ -1593,6 +1661,7 @@ unit scandir;
         AddDirective('Z1',directive_all, @dir_z1);
         AddDirective('Z2',directive_all, @dir_z2);
         AddDirective('Z4',directive_all, @dir_z4);
+        AddDirective('ZEROBASEDSTRINGS',directive_all, @dir_zerobasesstrings);
       end;
 
 end.

@@ -69,7 +69,6 @@ type
   protected
     procedure Changed; override;
   public
-    constructor Create;
     destructor Destroy; override;
     function IndexOf(const S: String): Integer; override;
     function IndexOfName(const Name: String): Integer; override;
@@ -199,6 +198,9 @@ type
 
 implementation
 
+Resourcestring
+  SErrCouldNotCreatePath = 'Could not create directory "%s"';
+
 const
    Brackets  : array[0..1] of Char = ('[', ']');
    Separator : Char = '=';
@@ -227,21 +229,10 @@ end;
 
 { THashedStringList }
 
-constructor THashedStringList.Create;
-begin
-  inherited;
-  FValueHash := nil;
-  FNameHash := nil;
-  FValueHashValid := False;
-  FNameHashValid := False;
-end;
-
 destructor THashedStringList.Destroy;
 begin
-  if Assigned(FValueHash) then
-    FValueHash.Free;
-  if Assigned(FNameHash) then
-    FNameHash.Free;
+  FreeAndNil(FValueHash);
+  FreeAndNil(FNameHash);
   inherited Destroy;
 end;
 
@@ -934,6 +925,8 @@ procedure TIniFile.UpdateFile;
 var
   slLines: TStringList;
   i, j: integer;
+  D : String;
+  
 begin
   slLines := TStringList.Create;
   try
@@ -956,7 +949,13 @@ begin
           slLines.Add('');
       end;
     if FFileName > '' then
-      slLines.SaveToFile(FFileName)
+      begin
+      D:=ExtractFilePath(FFileName);
+      If D <> '' Then
+        if not ForceDirectories(D) then
+          Raise EInoutError.CreateFmt(SErrCouldNotCreatePath,[D]);
+      slLines.SaveToFile(FFileName);
+      end
     else if FStream <> nil then
       slLines.SaveToStream(FStream);
     FillSectionList(slLines);

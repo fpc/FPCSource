@@ -58,16 +58,10 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,fmodule,
-      cpuinfo, defutil,
-      symconst,symdef,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,cgutils,
-      pass_1,pass_2,
-      cpubase,paramgr,
-      nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu, hlcgobj;
+      globtype,verbose,globals,
+      cpuinfo, defutil,symdef,aasmdata,aasmcpu,
+      cgbase,cgutils,pass_2,
+      cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
 
 {*****************************************************************************
                               tarminlinenode
@@ -91,9 +85,10 @@ implementation
             end;
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv3_d16:
+          fpu_vfpv3_d16,
+          fpu_fpv4_s16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CMMREGISTER then
                 begin
@@ -123,6 +118,13 @@ implementation
               fpu_vfpv3,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
+              fpu_fpv4_s16:
+                begin
+                  if tfloatdef(left.resultdef).floattype=s32real then
+                    expectloc:=LOC_MMREGISTER
+                  else
+                    exit(inherited first_abs_real);
+                end;
               else
                 internalerror(2009112401);
             end;
@@ -146,6 +148,13 @@ implementation
               fpu_vfpv3,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
+              fpu_fpv4_s16:
+                begin
+                  if tfloatdef(left.resultdef).floattype=s32real then
+                    expectloc:=LOC_MMREGISTER
+                  else
+                    exit(inherited first_sqr_real);
+                end;
               else
                 internalerror(2009112402);
             end;
@@ -169,6 +178,13 @@ implementation
               fpu_vfpv3,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
+              fpu_fpv4_s16:
+                begin
+                  if tfloatdef(left.resultdef).floattype=s32real then
+                    expectloc:=LOC_MMREGISTER
+                  else
+                    exit(inherited first_sqrt_real);
+                end;
               else
                 internalerror(2009112403);
             end;
@@ -227,6 +243,8 @@ implementation
                 op:=A_FABSD;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
         else
           internalerror(2009111402);
         end;
@@ -254,6 +272,8 @@ implementation
                 op:=A_FMULD;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
         else
           internalerror(2009111403);
         end;
@@ -281,6 +301,8 @@ implementation
                 op:=A_FSQRTD;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register));
         else
           internalerror(2009111402);
         end;
@@ -341,14 +363,12 @@ implementation
 
     procedure tarminlinenode.second_abs_long;
       var
-        hregister : tregister;
         opsize : tcgsize;
         hp : taicpu;
       begin
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-        hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);

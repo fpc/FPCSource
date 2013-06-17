@@ -31,6 +31,16 @@ BUGS & WARNINGS
     - storedefs is not updated automatically when fielddefs are changed
 
 
+FreePascal trunk (future V7.0.0):
+- add support for memo and index stream so no disk files are needed when using streams
+- clarification on field types; remove some workarounds (r24169) todo: reinstate depending on test set
+- initial support for (Visual) FoxPro files (r24139)
+- annotated constants/file structure (r24139)
+- factored out get version/get codepage subprocedure for readability (r24139)
+- split out existing support for Visual FoxPro and Foxpro (r24109) 
+  so future Visual FoxPro only features can be implemented
+- implemented FindFirst,FindNext,FindPrior,FindLast (r24107)
+- compile fix for FPC 2.6.2 (r24069), possibly useful for Delphi
 
 ------------------------
 V6.9.2

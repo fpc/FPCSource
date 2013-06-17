@@ -74,6 +74,10 @@ implementation
         callflag : tcallnodeflag;
         destructorpos,
         storepos : tfileposinfo;
+        variantdesc : pvariantrecdesc;
+        found : boolean;
+        j,i : longint;
+        variantselectsymbol : tfieldvarsym;
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
@@ -149,7 +153,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if not(m_mac in current_settings.modeswitches) and
+        else if (([m_mac,m_iso]*current_settings.modeswitches)=[]) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -158,6 +162,16 @@ implementation
             destructorname:=pattern;
             destructorpos:=current_tokenpos;
             consume(_ID);
+
+            if is_typeparam(p.resultdef) then
+              begin
+                 p.free;
+                 p:=factor(false,false);
+                 p.free;
+                 consume(_RKLAMMER);
+                 new_dispose_statement:=cnothingnode.create;
+                 exit;
+              end;
 
             if (p.resultdef.typ<>pointerdef) then
               begin
@@ -278,8 +292,18 @@ implementation
           begin
              if (p.resultdef.typ<>pointerdef) then
                Begin
-                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
-                  new_dispose_statement:=cerrornode.create;
+                 if is_typeparam(p.resultdef) then
+                   begin
+                      p.free;
+                      consume(_RKLAMMER);
+                      new_dispose_statement:=cnothingnode.create;
+                      exit;
+                   end
+                 else
+                   begin
+                     Message1(type_e_pointer_type_expected,p.resultdef.typename);
+                     new_dispose_statement:=cerrornode.create;
+                   end;
                end
              else
                begin
@@ -323,6 +347,45 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
+                     if (m_iso in current_settings.modeswitches) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+                       begin
+                         variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
+                         while (token=_COMMA) and assigned(variantdesc) do
+                           begin
+                             consume(_COMMA);
+                             p2:=factor(false,false);
+                             do_typecheckpass(p2);
+                             if p2.nodetype=ordconstn then
+                               begin
+                                 found:=false;
+                                 for i:=0 to high(variantdesc^.branches) do
+                                   begin
+                                     for j:=0 to high(variantdesc^.branches[i].values) do
+                                       if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
+                                         begin
+                                           found:=true;
+                                           variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
+                                           variantdesc:=variantdesc^.branches[i].nestedvariant;
+                                           break;
+                                         end;
+                                     if found then
+                                       break;
+                                   end;
+                                 if found then
+                                   begin
+                                     { setup variant selector }
+                                     addstatement(newstatement,cassignmentnode.create(
+                                         csubscriptnode.create(variantselectsymbol,
+                                           cderefnode.create(ctemprefnode.create(temp))),
+                                         p2));
+                                   end
+                                 else
+                                   Message(parser_e_illegal_expression);
+                               end
+                             else
+                               Message(parser_e_illegal_expression);
+                           end;
+                       end;
                      { release temp }
                      addstatement(newstatement,ctempdeletenode.create(temp));
                    end
@@ -384,39 +447,10 @@ implementation
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
               Message(parser_w_use_extended_syntax_for_objects);
 
-            { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement);
+            if p1.nodetype=typen then
+              ttypenode(p1).allowed:=true;
 
-            { create temp for result }
-            temp := ctempcreatenode.create(p1.resultdef,p1.resultdef.size,tt_persistent,true);
-            addstatement(newstatement,temp);
-
-            { create call to fpc_getmem }
-            para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resultdef).pointeddef.size,s32inttype,true),nil);
-            addstatement(newstatement,cassignmentnode.create(
-                ctemprefnode.create(temp),
-                ccallnode.createintern('fpc_getmem',para)));
-
-            { create call to fpc_initialize }
-            if is_managed_type(tpointerdef(p1.resultdef).pointeddef) then
-             begin
-               para := ccallparanode.create(caddrnode.create_internal(crttinode.create
-                          (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti,rdt_normal)),
-                       ccallparanode.create(ctemprefnode.create
-                          (temp),nil));
-               addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
-             end;
-
-            { the last statement should return the value as
-              location and type, this is done be referencing the
-              temp and converting it first from a persistent temp to
-              normal temp }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctemprefnode.create(temp));
-
-            p1.destroy;
-            p1:=newblock;
+            p1:=cinlinenode.create(in_new_x,false,p1);
           end
         else
           begin

@@ -1,7 +1,8 @@
 {	CFStringTokenizer.h
-	Copyright (c) 2006-2009, Apple Inc. All rights reserved.
+	Copyright (c) 2006-2012, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -77,6 +78,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -86,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -101,6 +104,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -110,6 +114,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -120,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -208,7 +214,7 @@ uses MacTypes,CFBase,CFLocale,CFArray,CFString;
 		characters are required to reliably guess the language of a string.
 }
 function CFStringTokenizerCopyBestStringLanguage( strng: CFStringRef; range: CFRange ): CFStringRef; external name '_CFStringTokenizerCopyBestStringLanguage';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 
 {
 ===================================================================
@@ -291,7 +297,7 @@ type
 	@result the type identifier of all CFStringTokenizer instances.
 }
 function CFStringTokenizerGetTypeID: CFTypeID; external name '_CFStringTokenizerGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 																				
 {!
 	@function CFStringTokenizerCreate
@@ -306,14 +312,12 @@ function CFStringTokenizerGetTypeID: CFTypeID; external name '_CFStringTokenizer
 		string should be tokenized. Optionally specify one or more attribute
 		specifiers to tell the tokenizer to prepare specified attributes when it
 		tokenizes the string.
-	@param locale The locale to specify language or region specific behavior.
-		If the locale is NULL and the unit is not kCFStringTokenizerUnitWord, 
-        default locale will be used.
-        The locale is ignored if the unit is kCFStringTokenizerUnitWord.
+	@param locale The locale to specify language or region specific behavior. Pass
+               NULL if you want tokenizer to identify the locale automatically.
 	@result A reference to the new CFStringTokenizer.
 }
 function CFStringTokenizerCreate( alloc: CFAllocatorRef; strng: CFStringRef; range: CFRange; options: CFOptionFlags; locale: CFLocaleRef ): CFStringTokenizerRef; external name '_CFStringTokenizerCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 
 {!
 	@function CFStringTokenizerSetString
@@ -325,7 +329,7 @@ function CFStringTokenizerCreate( alloc: CFAllocatorRef; strng: CFStringRef; ran
 		specified range must not exceed the length of the string.
 }
 procedure CFStringTokenizerSetString( tokenizer: CFStringTokenizerRef; strng: CFStringRef; range: CFRange ); external name '_CFStringTokenizerSetString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 																		
 {!
 	@function CFStringTokenizerGoToTokenAtIndex
@@ -343,7 +347,7 @@ procedure CFStringTokenizerSetString( tokenizer: CFStringTokenizerRef; strng: CF
 		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens. 
 }
 function CFStringTokenizerGoToTokenAtIndex( tokenizer: CFStringTokenizerRef; index: CFIndex ): CFStringTokenizerTokenType; external name '_CFStringTokenizerGoToTokenAtIndex';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 
 {!
 	@function CFStringTokenizerAdvanceToNextToken
@@ -367,7 +371,7 @@ function CFStringTokenizerGoToTokenAtIndex( tokenizer: CFStringTokenizerRef; ind
 		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens. 
 }
 function CFStringTokenizerAdvanceToNextToken( tokenizer: CFStringTokenizerRef ): CFStringTokenizerTokenType; external name '_CFStringTokenizerAdvanceToNextToken';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 
 {!
 	@function CFStringTokenizerGetCurrentTokenRange
@@ -377,7 +381,7 @@ function CFStringTokenizerAdvanceToNextToken( tokenizer: CFStringTokenizerRef ):
 	@result Range of current token, or (kCFNotFound,0) if there is no current token.
 }
 function CFStringTokenizerGetCurrentTokenRange( tokenizer: CFStringTokenizerRef ): CFRange; external name '_CFStringTokenizerGetCurrentTokenRange';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 																				
 {!
 	@function CFStringTokenizerCopyCurrentTokenAttribute
@@ -391,7 +395,7 @@ function CFStringTokenizerGetCurrentTokenRange( tokenizer: CFStringTokenizerRef 
 		attribute or if there is no current token.
 }
 function CFStringTokenizerCopyCurrentTokenAttribute( tokenizer: CFStringTokenizerRef; attribute: CFOptionFlags ): CFTypeRef; external name '_CFStringTokenizerCopyCurrentTokenAttribute';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
 
 {!
 	@function CFStringTokenizerGetCurrentSubTokens
@@ -418,7 +422,8 @@ function CFStringTokenizerCopyCurrentTokenAttribute( tokenizer: CFStringTokenize
 		the ordinary non-derived subtokens are added to the derivedSubTokens array. 
 }
 function CFStringTokenizerGetCurrentSubTokens( tokenizer: CFStringTokenizerRef; var ranges: CFRange; maxRangeLength: CFIndex; derivedSubTokens: CFMutableArrayRef ): CFIndex; external name '_CFStringTokenizerGetCurrentSubTokens';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 3_0) *)
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

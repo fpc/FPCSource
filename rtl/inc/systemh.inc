@@ -30,10 +30,10 @@
 {$inline on}
 {$define SYSTEMINLINE}
 
-{ don't use FPU registervariables on the i386 }
-{$ifdef CPUI386}
+{ don't use FPU registervariables on the i386 and i8086 }
+{$if defined(CPUI386) or defined(CPUI8086)}
   {$maxfpuregisters 0}
-{$endif CPUI386}
+{$endif CPUI386 or CPUI8086}
 
 { the assembler helpers need this}
 {$ifdef CPUPOWERPC}
@@ -112,7 +112,48 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
+
+  {$ifndef VER2_6}
+  FarPointer = NearFsPointer;
+  {$endif}
 {$endif CPUI386}
+
+{$ifdef CPUI8086}
+  {$define CPU16}
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
+
+  {$if defined(FPC_MM_TINY)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_SMALL)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_MEDIUM)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_COMPACT)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_LARGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_HUGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_HUGE}
+  {$else}
+    {$fatal No memory model defined}
+  {$endif}
+{$endif CPUI8086}
 
 {$ifdef CPUX86_64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -137,10 +178,19 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$ifndef VER2_6}
+  FarPointer = Pointer;
+  {$endif}
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
+
+  {$ifdef FPUSOFT}
+    {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+    {$define FPC_INCLUDE_SOFTWARE_MUL}
+    {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$endif}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
@@ -266,6 +316,9 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
+  CodePointer = Pointer;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -275,19 +328,33 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
+  CodePointer = Pointer;
 {$endif CPU32}
 
 {$ifdef CPU16}
   SizeInt = Integer;
   SizeUInt = Word;
-  PtrInt = Integer;
-  PtrUInt = Word;
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    PtrInt = Longint;
+    PtrUInt = DWord;
+  {$else}
+    PtrInt = Integer;
+    PtrUInt = Word;
+  {$endif}
+  {$if defined(FPC_X86_CODE_FAR)}
+    CodePointer = FarPointer;
+  {$elseif defined(FPC_X86_CODE_NEAR)}
+    CodePointer = NearPointer;
+  {$else}
+    CodePointer = Pointer;
+  {$endif}
   ValSInt = Integer;
   ValUInt = Word;
+  NativeInt  = Integer;
+  NativeUint = Word;
 {$endif CPU16}
-
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -385,9 +452,23 @@ type
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
+  PCodePointer        = ^CodePointer;
+  PPCodePointer       = ^PCodePointer;
+
   PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
+
+  PNativeInt 	      = PPtrInt;
+  PNativeUInt	      = PPtrUint;
+  pInt8   	      = PShortInt;
+  pInt16  	      = PSmallint;
+  pInt32  	      = PLongint;
+  PIntPtr 	      = PPtrInt;
+  pUInt8  	      = PByte;
+  pUInt16 	      = PWord;
+  pUInt32 	      = PDWord;
+  PUintPtr	      = PPtrUInt;
 
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
@@ -487,6 +568,16 @@ const
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
+{$ifdef cpui8086}
+  { will be detected at startup }
+  { 0=8086, 1=80286, 2=80386 }
+  Test8086 : byte = 0;
+  { Always 387 or newer. Emulated if needed. }
+  Test8087 : byte = 3;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
+{$endif cpui8086}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
@@ -496,7 +587,7 @@ const
   Max_Frame_Dump : Word = 8;
 
 { Exit Procedure handling consts and types  }
-  ExitProc : pointer = nil;
+  ExitProc : codepointer = nil;
   Erroraddr: pointer = nil;
   Errorcode: Word    = 0;
 
@@ -517,7 +608,7 @@ const
   ThreadingAlreadyUsed : boolean = FALSE;
   { Indicates if there was an error }
   StackError : boolean = FALSE;
-  InitProc : Pointer = nil;
+  InitProc : CodePointer = nil;
   { compatibility }
   ModuleIsLib : Boolean = FALSE;
   ModuleIsPackage : Boolean = FALSE;
@@ -536,8 +627,6 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-  { Threading support }
-  fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
@@ -828,7 +917,7 @@ function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
 {$define FPC_HAS_INTERNAL_BSF_BYTE}
 {$define FPC_HAS_INTERNAL_BSF_WORD}
 {$define FPC_HAS_INTERNAL_BSF_DWORD}
@@ -1235,6 +1324,7 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
+procedure EmptyMethod;external name 'FPC_EMPTYMETHOD';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 (* Supposed to return address of previous CtrlBreakHandler *)

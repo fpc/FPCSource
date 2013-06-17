@@ -3,7 +3,7 @@
  
      Contains:   Public interface to the Font Manager.
  
-     Version:    Quickdraw-262~1
+     Version:    Quickdraw-285~150
  
      Copyright:  © 1985-2008 by Apple Inc. all rights reserved.
  
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -333,7 +339,24 @@ const
 	fontWid = 44208;
 
 type
-	FMInputPtr = ^FMInput;
+	FontRec = record
+		fontType: SInt16;               {font type}
+		firstChar: SInt16;              {ASCII code of first character}
+		lastChar: SInt16;               {ASCII code of last character}
+		widMax: SInt16;                 {maximum character width}
+		kernMax: SInt16;                {negative of maximum character kern}
+		nDescent: SInt16;               {negative of descent}
+		fRectWidth: SInt16;             {width of font rectangle}
+		fRectHeight: SInt16;            {height of font rectangle}
+		owTLoc: UInt16;                 {offset to offset/width table}
+		ascent: SInt16;                 {ascent}
+		descent: SInt16;                {descent}
+		leading: SInt16;                {leading}
+		rowWords: SInt16;               {row width of bit image / 2 }
+	end;
+	FontRecPtr = ^FontRec;
+type
+	FontRecHdl = ^FontRecPtr;
 	FMInput = record
 		family: SInt16;
 		size: SInt16;
@@ -343,7 +366,69 @@ type
 		numer: Point;
 		denom: Point;
 	end;
+	FMInputPtr = ^FMInput;
 type
+	FamRecPtr = ^FamRec;
+	FamRec = record
+		ffFlags: SInt16;                {flags for family}
+		ffFamID: SInt16;                {family ID number}
+		ffFirstChar: SInt16;            {ASCII code of 1st character}
+		ffLastChar: SInt16;             {ASCII code of last character}
+		ffAscent: SInt16;               {maximum ascent for 1pt font}
+		ffDescent: SInt16;              {maximum descent for 1pt font}
+		ffLeading: SInt16;              {maximum leading for 1pt font}
+		ffWidMax: SInt16;               {maximum widMax for 1pt font}
+		ffWTabOff: SInt32;              {offset to width table}
+		ffKernOff: SInt32;              {offset to kerning table}
+		ffStylOff: SInt32;              {offset to style mapping table}
+		ffProperty: array [0..8] of SInt16;          {style property info}
+		ffIntl: array [0..1] of SInt16;              {for international use}
+		ffVersion: SInt16;              {version number}
+	end;
+type
+	AsscEntryPtr = ^AsscEntry;
+	AsscEntry = record
+		fontSize: SInt16;
+		fontStyle: SInt16;
+		fontID: SInt16;                 {font resource ID}
+	end;
+type
+	FontAssocPtr = ^FontAssoc;
+	FontAssoc = record
+		numAssoc: SInt16;               {number of entries - 1}
+	end;
+type
+	StyleTablePtr = ^StyleTable;
+	StyleTable = record
+		fontClass: SInt16;
+		offset: SInt32;
+		reserved: SInt32;
+		indexes: array [0..47] of SInt8;
+	end;
+type
+	NameTablePtr = ^NameTable;
+	NameTable = record
+		stringCount: SInt16;
+		baseFontName: Str255;
+	end;
+type
+	KernPairPtr = ^KernPair;
+	KernPair = record
+		kernFirst: char;              {1st character of kerned pair}
+		kernSecond: char;             {2nd character of kerned pair}
+		kernWidth: SInt16;              {kerning in 1pt fixed format}
+	end;
+type
+	KernEntryPtr = ^KernEntry;
+	KernEntry = record
+		kernStyle: SInt16;              {style the entry applies to}
+		kernLength: SInt16;             {length of this entry}
+	end;
+type
+	KernTablePtr = ^KernTable;
+	KernTable = record
+		numKerns: SInt16;               {number of kerning entries}
+	end;
 	FMOutput = record
 		errNum: SInt16;
 		fontHandle: Handle;
@@ -1223,50 +1308,6 @@ type
 		numWidths: SInt16;              {number of entries - 1}
 	end;
 type
-	AsscEntryPtr = ^AsscEntry;
-	AsscEntry = record
-		fontSize: SInt16;
-		fontStyle: SInt16;
-		fontID: SInt16;                 {font resource ID}
-	end;
-type
-	FontAssocPtr = ^FontAssoc;
-	FontAssoc = record
-		numAssoc: SInt16;               {number of entries - 1}
-	end;
-type
-	StyleTablePtr = ^StyleTable;
-	StyleTable = record
-		fontClass: SInt16;
-		offset: SInt32;
-		reserved: SInt32;
-		indexes: array [0..47] of SInt8;
-	end;
-type
-	NameTablePtr = ^NameTable;
-	NameTable = record
-		stringCount: SInt16;
-		baseFontName: Str255;
-	end;
-type
-	KernPairPtr = ^KernPair;
-	KernPair = record
-		kernFirst: char;              {1st character of kerned pair}
-		kernSecond: char;             {2nd character of kerned pair}
-		kernWidth: SInt16;              {kerning in 1pt fixed format}
-	end;
-type
-	KernEntryPtr = ^KernEntry;
-	KernEntry = record
-		kernStyle: SInt16;              {style the entry applies to}
-		kernLength: SInt16;             {length of this entry}
-	end;
-type
-	KernTablePtr = ^KernTable;
-	KernTable = record
-		numKerns: SInt16;               {number of kerning entries}
-	end;
-type
 	WidthTable = packed record
 		tabData: array [0..255] of Fixed;           {character widths}
 		tabFont: Handle;                {font record used to build table}
@@ -1292,42 +1333,6 @@ type
 	WidthTablePtr = ^WidthTable;
 type
 	WidthTableHdl = ^WidthTablePtr;
-	FamRecPtr = ^FamRec;
-	FamRec = record
-		ffFlags: SInt16;                {flags for family}
-		ffFamID: SInt16;                {family ID number}
-		ffFirstChar: SInt16;            {ASCII code of 1st character}
-		ffLastChar: SInt16;             {ASCII code of last character}
-		ffAscent: SInt16;               {maximum ascent for 1pt font}
-		ffDescent: SInt16;              {maximum descent for 1pt font}
-		ffLeading: SInt16;              {maximum leading for 1pt font}
-		ffWidMax: SInt16;               {maximum widMax for 1pt font}
-		ffWTabOff: SInt32;              {offset to width table}
-		ffKernOff: SInt32;              {offset to kerning table}
-		ffStylOff: SInt32;              {offset to style mapping table}
-		ffProperty: array [0..8] of SInt16;          {style property info}
-		ffIntl: array [0..1] of SInt16;              {for international use}
-		ffVersion: SInt16;              {version number}
-	end;
-type
-	FontRec = record
-		fontType: SInt16;               {font type}
-		firstChar: SInt16;              {ASCII code of first character}
-		lastChar: SInt16;               {ASCII code of last character}
-		widMax: SInt16;                 {maximum character width}
-		kernMax: SInt16;                {negative of maximum character kern}
-		nDescent: SInt16;               {negative of descent}
-		fRectWidth: SInt16;             {width of font rectangle}
-		fRectHeight: SInt16;            {height of font rectangle}
-		owTLoc: UInt16;                 {offset to offset/width table}
-		ascent: SInt16;                 {ascent}
-		descent: SInt16;                {descent}
-		leading: SInt16;                {leading}
-		rowWords: SInt16;               {row width of bit image / 2 }
-	end;
-	FontRecPtr = ^FontRec;
-type
-	FontRecHdl = ^FontRecPtr;
 {$ifc OLDROUTINENAMES}
 const
 	newYork = kFontIDNewYork;

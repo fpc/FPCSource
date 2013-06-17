@@ -25,6 +25,9 @@
   {$i datih.inc}
 {$endif}
 
+function GetTickCount: LongWord; deprecated 'Use GetTickCount64 instead';
+function GetTickCount64: QWord;
+
   { Read String Handling functions declaration }
   {$i sysstrh.inc}
 
@@ -93,10 +96,10 @@ type
    end;
 
    PByteArray = ^TByteArray;
-   TByteArray = Array[0..32767] of Byte;
+   TByteArray = Array[0..{$ifdef CPU16}32766{$else}32767{$endif}] of Byte;
 
    PWordarray = ^TWordArray;
-   TWordArray = array[0..16383] of Word;
+   TWordArray = array[0..{$ifdef CPU16}16382{$else}16383{$endif}] of Word;
 
    TBytes = array of Byte;   
 
@@ -186,6 +189,7 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
+   EObjectCheck     = Class(Exception);
 
    EPropReadOnly = class(Exception);
    EPropWriteOnly = class(Exception);

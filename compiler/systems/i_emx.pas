@@ -35,7 +35,7 @@ unit i_emx;
              resbin : '';
              rescmd : '';
              rcbin  : 'wrc';
-             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             rccmd  : '-r -zm -q -bt=os2 -dFPC -fo=$RES $RC';
              resourcefileclass : nil;
              resflags : [res_single_file];
           );
@@ -106,7 +106,7 @@ unit i_emx;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef EMX}
     {$IFNDEF VER1_0}
       set_source_info(system_i386_emx_info);
@@ -115,5 +115,5 @@ initialization
         source_info.scriptext := '.bat';
     {$ENDIF VER1_0}
   {$endif EMX}
-{$endif CPU86}
+{$endif CPUI386}
 end.

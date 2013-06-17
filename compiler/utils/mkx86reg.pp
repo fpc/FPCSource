@@ -17,7 +17,7 @@
 program mkx86reg;
 
 const Version = '1.00';
-      max_regcount = 128;
+      max_regcount = 200;
 
 var s : string;
     i : longint;

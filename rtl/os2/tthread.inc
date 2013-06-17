@@ -101,12 +101,11 @@ begin
 end;
 
 
-constructor TThread.Create(CreateSuspended: Boolean;
-                           const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 var
   Flags: cardinal;
 begin
-  inherited Create;
   AddThread;
   Flags := dtStack_Commited;
   FSuspended := CreateSuspended;
@@ -117,7 +116,7 @@ begin
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
  if not FFinished and not Suspended then
  begin
@@ -127,7 +126,6 @@ begin
 { if FHandle <> 0 then DosKillThread (cardinal (FHandle));}
  FFatalException.Free;
  FFatalException := nil;
- inherited Destroy;
  RemoveThread;
 end;
 

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-js');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-js';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Michael Van Canneyt';
@@ -22,6 +22,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'michael@freepascal.org';
     P.Description := 'Javascript scanner/parser/syntax tree units';
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

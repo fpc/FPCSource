@@ -17,19 +17,93 @@ usage ()
   echo "libdir=\"space separated list of library directories\""
 }
 
-# Try to find GNU make and GNU awk
-MAKE=`which gmake 2> /dev/null`
-AWK=`which gawk 2> /dev/null`
-# Assume make is OK if gmake is not found
-if [ "${MAKE}" == "" ]; then
-  MAKE=make
+
+# Try to find out which C compiler is used in Makefile
+# Look for CC make variable
+MAKE_CC=`sed -n "s:^[[:space:]]*CC[[:space:]]*=[[:space:]]*\(.*\):\1:p" \
+		Makefile | head -1`
+
+if [ "x$MAKE_CC" != "x" ] ; then
+  echo "Found CC=\"$MAKE_CC\" in Makefile"
 fi
-# Assume awk is OK if gawk is not found
-if [ "${AWK}" == "" ]; then
-  AWK=awk
+
+# Try to find used make executable
+
+# Try to find MAKE inside Makefile
+MAKE_MAKE=`sed -n "s:^[[:space:]]*MAKE[[:space:]]*=[[:space:]]*\(.*\):\1:p" \
+          Makefile | head -1`
+
+if [ "x$MAKE_MAKE" != "x" ] ; then
+  echo "Found MAKE=\"$MAKE_MAKE\" in Makefile"
+  MAKE=$MAKE_MAKE
+else
+  MAKE=`which gmake 2> /dev/null`
+  if [ "x${MAKE}" == "x" ] ; then
+    # Assume make is OK if MAKE is not found inside Makefile
+    MAKE=make
+  fi
 fi
+
+# Try to find used awk executable
+# Try to use AWK from Makefile
+MAKE_AWK=`sed -n "s:^[[:space:]]*AWK[[:space:]]*=[[:space:]]*\(.*\):\1:p" \
+  		Makefile | head -1`
+
+if [ "x$MAKE_AWK" != "x" ] ; then
+    echo "Found AWK=\"$MAKE_AWK\""
+    AWK=$MAKE_AWK
+else
+  AWK=`which gawk 2> /dev/null`
+  if [ "x$AWK" == "x" ] ; then
+    #Assume awk is OK if gawk is not found
+    AWK=awk
+  fi
+fi
+
+# Set CC_is_gcc if GNU C compiler used
+if [ "${MAKE_CC}" != "${MAKE_CC/gcc/}" ] ; then
+  CC_is_gcc=1
+  echo "Found compiler is gcc"
+else
+  CC_is_gcc=0
+fi
+
 # Possible extra option to pass when rebuilding gdb executable below
 MAKEOPT=
+if [ $CC_is_gcc -eq 1 ] ; then
+  echo "Adding --verbose option to parse collect2 command line"
+  LDFLAGS=--verbose
+else
+  LDFLAGS=
+fi
+
+MAKE_EXEEXT=`sed -n "s:^[[:space:]]*EXEEXT[[:space:]]*=[[:space:]]*\(.*\):\1:p" \
+		Makefile | head -1`
+
+if [ "x$MAKE_EXEEXT" != "x" ] ; then
+  PATHEXT=$MAKE_EXEEXT
+fi
+
+if [ "${PATHEXT}" != "" ] ; then
+  EXEEXT=.exe
+  if [ "${DJDIR}" != "" ] ; then
+    libdir=${DJDIR}/lib
+  else
+    # Do not add /lib, it is wrong, at least for msys systems
+    libdir=
+  fi
+else
+  EXEEXT=
+  if [ "$libdir" == "" ]; then
+    # Do not add /lib, if -print-search-dirs can be used
+    if [ $CC_is_gcc -eq 1 ] ; then
+      libdir=
+    else
+      libdir=/lib
+    fi
+  fi
+fi
+
 
 if [ "$1" == "--help" ]; then
   usage
@@ -50,7 +124,7 @@ fi
 if [ "$1" == "--forcestatic" ]; then
   echo "Using only static libraries in gdblib.inc"
   forcestatic=1
-  MAKEOPT="LDFLAGS=-static"
+  LDFLAGS="$LDFLAGS -static"
   opt_handled=1
 fi
 
@@ -80,20 +154,7 @@ done
 if [ "$1" != "" ]; then
   echo "Unrecognized option \"$1\""
   usage
-fi
-
-if [ "${PATHEXT}" != "" ]; then
-  EXEEXT=.exe
-  if [ "${DJDIR}" != "" ]; then
-    libdir=${DJDIR}/lib
-  else
-    libdir=/lib
-  fi
-else
-  EXEEXT=
-  if [ "$libdir" == "" ]; then
-    libdir=/lib
-  fi
+  exit
 fi
 
 if [ "$OSTYPE" == "msys" ]; then
@@ -107,12 +168,46 @@ echo "Deleting gdb${EXEEXT} to force recompile"
 rm -f gdb${EXEEXT}
 echo "Rebuilding gdb${EXEEXT}"
 
-${MAKE} gdb${EXEEXT} ${MAKEOPT} | tee make.log
+${MAKE} gdb${EXEEXT} ${MAKEOPT} LDFLAGS="$LDFLAGS" 2>&1 | tee make.log
+
+
+# Create gdb_get_stdin.c source file
+# To avoid stdin macro expansion hell.
+
+cat > gdb_get_stdin.c <<EOF
+#include "stdio.h"
+
+/* Missing prototypes.  */
+
+FILE * gdb_get_stdin (void);
+
+FILE *
+gdb_get_stdin ()
+{
+  return stdin;
+}
+EOF
+
+echo "Trying to compile gdb_get_stdin.c file"
+${MAKE} gdb_get_stdin.o
+res=$?
+
+if [ $res -eq 0 ] ; then
+  XM_ADD_FILES=gdb_get_stdin.o
+  has_get_stdin=1
+else
+  has_get_stdin=0
+fi
+
 
 # libgdb.a will not be built automatically anymore after
-# GDB release 7.4, so we need to explicitly make it.
-echo "Rebuilding GDB library if needed"
-${MAKE} libgdb.a ${MAKEOPT}
+# GDB release 7.4, so we need to explicitly generate it.
+if [ -f libgdb.a ] ; then
+  rm -f libgdb.a
+fi
+
+echo "Rebuilding GDB library to include gdb_get_stdin.o"
+${MAKE} libgdb.a ${MAKEOPT} XM_ADD_FILES=${XM_ADD_FILES}
 
 # version.c is an automatically generated file from gdb/version.in
 # We extract GDB version from that file.
@@ -122,21 +217,31 @@ gdb_version1=`sed -n "s:.*version.*\"\([0-9]*\)\.\([0-9]*\).*:\1:p" version.c`
 gdb_version2=`sed -n "s:.*version.*\"\([0-9]*\)\.\([0-9]*\).*:\2:p" version.c`
 gdb_version=`sed -n "s:.*version.*\"\([0-9]*\)\.\([0-9]*\).*:\1.\2:p" version.c`
 
-echo found full version is ${gdb_full_version}
-echo found version is ${gdb_version}
+echo "found GDB full version is ${gdb_full_version}"
+echo "found GDB version is ${gdb_version}"
 if [ ${gdb_version2} -lt 10 ]; then
-  gdbversion=${gdb_version1}0${gdb_version2}
+  gdbversion=GDB_V${gdb_version1}0${gdb_version2}
 else
-  gdbversion=${gdb_version1}${gdb_version2}
+  gdbversion=GDB_V${gdb_version1}${gdb_version2}
 fi
 
-cat make.log | ${AWK} '
+echo "Using macro $gdbversion"
+
+make_log_has_collect2=`grep collect2 make.log`
+
+if [ "x$make_log_has_collect2" != "x" ] ; then
+  find_cmd=collect2
+else
+  find_cmd=cc
+fi
+
+cat make.log | ${AWK} -v find_cmd=$find_cmd '
 BEGIN {
 doprint=0
 }
 # We look for the compilation line
 # either gcc or cc
-/cc / { doprint=1; }
+$0 ~ find_cmd { doprint=1; }
 
 {
 if ( doprint == 1 ) {
@@ -147,7 +252,12 @@ if ( doprint == 1 ) {
 ! /\\$/ { doprint=0; }
 ' | tee comp-cmd.log
 
-gcccompiler=`sed -n "s:\([A-Za-z0-9_-]*gcc\) .*:\1:p" comp-cmd.log`
+if [ "x$MAKE_CC" = "x" ] ; then
+  gcccompiler=`sed -n "s:\([A-Za-z0-9_-]*gcc\) .*:\1:p" comp-cmd.log`
+else
+  gcccompiler=$MAKE_CC
+fi
+
 if [ "$gcccompiler" != "" ]; then
   gcclibs=`$gcccompiler -print-search-dirs | sed -n "s#.*libraries: =\(.*\)#\1#p" `
   if [ "$gcclibs" != "" ]; then
@@ -180,7 +290,15 @@ fi
 
 # Try to locate all libraries
 echo Creating ./copy-libs.sh script
-cat comp-cmd.log | ${AWK} -v libdir="${libdir}" -v implibs="${implicitlibs}" '
+has_libgdb=`cat comp-cmd.log | grep "libgdb\.a"`
+if [  "x$has_libgdb" != "x" ] ; then
+  add_libgdb=0
+else
+  add_libgdb=1
+fi
+
+cat comp-cmd.log | ${AWK} -v libdir="${libdir}" -v implibs="${implicitlibs}" \
+  -v add_libgdb=${add_libgdb} '
 BEGIN {
   print "#!/usr/bin/env bash"
   print "# copy-libs.sh generated by awk script"
@@ -197,8 +315,13 @@ BEGIN {
   print "  echo and all other archives should be copied"
   print "  exit"
   print "fi"
+  print "libdir=\"" libdir "\""
   print "# Copy gdblib.inc file"
   print "cp -p gdblib.inc ${destdir}"
+  if (add_libgdb == 1) {
+    print "# Adding libgdb.a"
+    print "cp -p libgdb.a ${destdir}"
+  }
 }
 
 {
@@ -217,9 +340,9 @@ BEGIN {
     if ( list[i] ~ /^-l/ ) {
       print "#Looking for shared libs"
       systemlib = gensub (/-l([^ ]*)/,"lib\\1.a ","g",list[i]);
-      print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
+      print "systemlib=`find $libdir -maxdepth 1 -iname " systemlib " -print 2> /dev/null `" ;
       print "if [ \"${systemlib}\" != \"\" ]; then";
-      print "  echo System lib found: ${systemlib%%[$IFS]*}";
+      print "  echo System lib found: ${systemlib}";
       print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
       print "else";
       print "  echo Library " systemlib " not found, shared library assumed";
@@ -232,9 +355,9 @@ END {
   for (i=1;i<=nb; i++) {
     systemlib = "lib" list[i] ".a";
     print "echo Adding system library " systemlib;
-    print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
+    print "systemlib=`find $libdir -maxdepth 1 -iname " systemlib " -print 2> /dev/null `" ;
     print "if [ \"${systemlib}\" != \"\" ]; then";
-    print "  echo System lib found: ${systemlib%%[$IFS]*}";
+    print "  echo System lib found: ${systemlib}";
     print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
     print "else";
     print "  echo Library " systemlib " not found, shared library assumed";
@@ -248,44 +371,51 @@ chmod u+x ./copy-libs.sh
 echo Creating ./gdblib.inc file
 # Generate gdblib.inc file
 cat comp-cmd.log |${AWK} -v gdbcvs=${gdbcvs} -v implibs="${implicitlibs}" \
-  -v gdbversion=${gdbversion} -v forcestatic=${forcestatic} '
+  -v gdbversion=${gdbversion} -v forcestatic=${forcestatic} \
+  -v has_get_stdin=${has_get_stdin} -v add_libgdb=${add_libgdb} '
 BEGIN {
   use_mingw=0;
   print "{ libgdb.inc file generated by awk script }"
-  print "{$define GDB_V" gdbversion " }"
+  print "{$define " gdbversion " }"
   if (gdbcvs) {
     print "{$define GDB_CVS}"
   }
   print "{$ifdef COMPILING_GDBINT_UNIT }"
+  if (add_libgdb == 1) {
+    print "{$LINKLIB libgdb.a} { Added here because Makefile does not use the libgdb library anymore }"
+  }
 }
 
 {
   nb = split ($0,list);
 
   for (i=1; i<=nb; i++) {
-  if ( list[i] ~ /lib[^ ]*\.a/ ) {
-    staticlib = gensub (/([^ ]*)(lib[^ ]*\.a)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
-    print staticlib;
-    if ( list[i] ~/mingw/ ) {
-    use_mingw=1
+    if ( list[i] ~ /lib[^ ]*\.a/ ) {
+      staticlib = gensub (/([^ ]*)(lib[^ ]*\.a)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
+      print staticlib;
+      if ( list[i] ~ /mingw/ ) {
+      use_mingw=1
+      }
     }
-  }
-  if ( list[i] ~ /-D__USE_MINGW_/ ) {
-    use_mingw=1
-  }
-  if ( list[i] ~ /lib[^ ]*\.so/ ) {
-    dynamiclib = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
-    librarypath = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LIBRARYPATH \\1} { for \\2 }","g",list[i]);
-    print dynamiclib;
-    print librarypath;
-  }
-  if ( list[i] ~ /-l/ ) {
-    systemlib = gensub (/-l([^ ]*)/,"\\1","g",list[i]);
-    if (forcestatic == 1) {
-      systemlib="lib" systemlib ".a"
+    if ( list[i] ~ /-D__USE_MINGW_/ ) {
+      use_mingw=1
     }
-    print "{$LINKLIB " systemlib "} { with -l gcc option}";
-  }
+    if ( list[i] ~ /lib[^ ]*\.so/ ) {
+      dynamiclib = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
+      librarypath = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LIBRARYPATH \\1} { for \\2 }","g",list[i]);
+      print dynamiclib;
+      print librarypath;
+    }
+    if ( list[i] ~ /^-l/ ) {
+      systemlib = gensub (/-l([^ ]*)/,"\\1","g",list[i]);
+      if (forcestatic == 1) {
+        systemlib="lib" systemlib ".a"
+      }
+      if ( systemlib ~ /mingw/ ) {
+      use_mingw=1
+      }
+      print "{$LINKLIB " systemlib "} { with -l gcc option}";
+    }
   }
 }
 END {
@@ -307,7 +437,8 @@ END {
   if ( use_mingw == 1 ) {
     print "{$define USE_MINGW_GDB}"
   }
+  if ( has_get_stdin == 1 ) {
+    print "{$define LIBGDB_HAS_GET_STDIN}"
+  }
 }
 ' | tee  gdblib.inc
-
-

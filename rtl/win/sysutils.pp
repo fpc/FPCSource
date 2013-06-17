@@ -31,6 +31,8 @@ uses
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_CREATEGUID}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+{$DEFINE HAS_GETTICKCOUNT}
+{$DEFINE HAS_GETTICKCOUNT64}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -219,7 +221,7 @@ const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
     GENERIC_WRITE,
-    GENERIC_READ or GENERIC_WRITE);
+    GENERIC_READ or GENERIC_WRITE or FILE_WRITE_ATTRIBUTES);
   ShareModes: array[0..4] of Integer = (
                0,
                0,
@@ -612,7 +614,41 @@ begin
        Result := 0;
    end;
 end; 
- 
+
+
+function GetTickCount: LongWord;
+begin
+  Result := Windows.GetTickCount;
+end;
+
+
+{$IFNDEF WINCE}
+type
+  TGetTickCount64 = function : QWord; stdcall;
+
+var
+  WinGetTickCount64: TGetTickCount64 = Nil;
+{$ENDIF}
+
+function GetTickCount64: QWord;
+{$IFNDEF WINCE}
+var
+  lib: THandle;
+{$ENDIF}
+begin
+{$IFNDEF WINCE}
+  { on Vista and newer there is a GetTickCount64 implementation }
+  if Win32MajorVersion >= 6 then begin
+    if not Assigned(WinGetTickCount64) then begin
+      lib := LoadLibrary('kernel32.dll');
+      WinGetTickCount64 := TGetTickCount64(
+                             GetProcAddress(lib, 'GetTickCount64'));
+    end;
+    Result := WinGetTickCount64();
+  end else
+{$ENDIF}
+    Result := Windows.GetTickCount;
+end;
                                                                     
 
 {****************************************************************************

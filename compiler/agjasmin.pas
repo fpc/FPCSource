@@ -1228,6 +1228,7 @@ implementation
          flags : [];
          labelprefix : 'L';
          comment : ' ; ';
+         dollarsign : '$';
        );
 
 

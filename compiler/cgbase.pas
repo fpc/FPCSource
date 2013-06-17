@@ -84,10 +84,24 @@ interface
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
+         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS}
+         {$IFDEF MIPS}
+         ,
+         addr_pic_call16,  // like addr_pic, but generates call16 reloc instead of got16
+         addr_low_pic,     // for large GOT model, generate got_hi16 and got_lo16 relocs
+         addr_high_pic,
+         addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
+         addr_high_call
          {$ENDIF}
          {$IFDEF AVR}
          ,addr_lo8
          ,addr_hi8
+         {$ENDIF}
+         {$IFDEF i8086}
+         ,addr_dgroup      // the data segment group
+         ,addr_far         // used for emitting 'call/jmp far label' instructions
+         ,addr_far_ref     // used for emitting 'call far [reference]' instructions
+         ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          );
 
@@ -145,8 +159,8 @@ interface
                   OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,
-                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128);
+                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,  
+                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128,OS_MS256 );  
 
       { Register types }
       TRegisterType = (
@@ -174,7 +188,10 @@ interface
         R_SUBFQ,   { = 8; Float that allocates 4 FPU registers }
         R_SUBMMS,  { = 9; single scalar in multi media register }
         R_SUBMMD,  { = 10; double scalar in multi media register }
-        R_SUBMMWHOLE  { = 11; complete MM register, size depends on CPU }
+        R_SUBMMWHOLE,  { = 11; complete MM register, size depends on CPU }
+        { For Intel X86 AVX-Register }
+        R_SUBMMX,     { = 12; 128 BITS }
+        R_SUBMMY      { = 13; 256 BITS }
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -272,7 +289,7 @@ interface
          { floating point values }
          4,8,10,8,16,
          { multimedia values }
-         1,2,4,8,16,1,2,4,8,16);
+         1,2,4,8,16,32,1,2,4,8,16,32); 
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
          (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
@@ -283,25 +300,35 @@ interface
        tvarregable2tcgloc : array[tvarregable] of tcgloc = (LOC_VOID,
           LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER,LOC_CREGISTER);
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
        { operand size describing an unsigned value in a pair of int registers }
        OS_PAIR = OS_128;
        { operand size describing an signed value in a pair of int registers }
        OS_SPAIR = OS_S128;
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
        { operand size describing an unsigned value in a pair of int registers }
        OS_PAIR = OS_64;
        { operand size describing an signed value in a pair of int registers }
        OS_SPAIR = OS_S64;
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_32;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S32;
+{$elseif defined(cpu8bitalu)}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_16;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S16;
+{$endif}
 
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
           OS_8,OS_16,OS_32,OS_64,OS_128,OS_8,OS_16,OS_32,OS_64,OS_128,
           OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128);
+          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
+          OS_M64,OS_M128,OS_M256);
 
        tcgloc2str : array[TCGLoc] of string[12] = (
             'LOC_INVALID',

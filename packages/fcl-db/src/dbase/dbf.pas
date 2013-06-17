@@ -1,4 +1,4 @@
-unit dbf deprecated 'Abandoned by maintainer, no longer supported by FPC team. Help may be available at http://tdbf.sourceforge.net and http://sourceforge.net/projects/tdbf/forums/forum/107245';
+unit dbf;
 
 { design info in dbf_reg.pas }
 
@@ -17,9 +17,11 @@ uses
   dbf_fields,
   dbf_pgfile,
   dbf_idxfile;
+{$ifndef fpc}
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
 // dsgnintf.pas in 'C: \Program Files\Borland\Delphi5\Source\Toolsapi\dsgnintf.pas'
+{$endif}
 
 type
 
@@ -154,7 +156,9 @@ type
     FMasterLink: TDbfMasterLink;
     FParser: TDbfParser;
     FBlobStreams: PDbfBlobList;
+    FUserIndexStream: TStream;
     FUserStream: TStream;  // user stream to open
+    FUserMemoStream: TStream; // user-provided/expected stream backing memo file storage
     FTableName: string;    // table path and file name
     FRelativePath: string;
     FAbsolutePath: string;
@@ -260,7 +264,7 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer);
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
-    { virtual methods (mostly optionnal) }
+    { virtual methods (mostly optional) }
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
     function  GetRecordCount: Integer; override; {virtual}
     function  GetRecNo: Integer; override; {virtual}
@@ -290,7 +294,7 @@ type
     { abstract methods }
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean;
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
-    { virtual methods (mostly optionnal) }
+    { virtual methods (mostly optional) }
     procedure Resync(Mode: TResyncMode); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override; {virtual}
 {$ifdef SUPPORT_NEW_TRANSLATE}
@@ -308,6 +312,11 @@ type
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
     procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
+
+    function  FindFirst: Boolean; override;
+    function  FindLast: Boolean; override;
+    function  FindNext: Boolean; override;
+    function  FindPrior: Boolean; override;
 
 {$ifdef VER1_0}
     procedure DataEvent(Event: TDataEvent; Info: Longint); override;
@@ -367,7 +376,7 @@ type
 
     function  IsDeleted: Boolean;
     procedure Undelete;
-
+    // Call this after setting up fielddefs in order to store the definitions into a table
     procedure CreateTable;
     procedure CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
     procedure CopyFrom(DataSet: TDataSet; FileName: string; DateTimeAsString: Boolean; Level: Integer);
@@ -390,7 +399,12 @@ type
     property PhysicalRecordCount: Integer read GetPhysicalRecordCount;
     property KeySize: Integer read GetKeySize;
     property DbfFile: TDbfFile read FDbfFile;
+    // Storage for data file if using memory storage
     property UserStream: TStream read FUserStream write FUserStream;
+    // Storage for index file - if any - when using memory storage
+    property UserIndexStream: TStream read FUserIndexStream write FUserIndexStream;
+    // Storage for memo file - if any - when using memory storage
+    property UserMemoStream: TStream read FUserMemoStream write FUserMemoStream;
     property DisableResyncOnPost: Boolean read FDisableResyncOnPost write FDisableResyncOnPost;
   published
     property DateTimeHandling: TDateTimeHandling
@@ -492,9 +506,10 @@ const
 function TableLevelToDbfVersion(TableLevel: integer): TXBaseVersion;
 begin
   case TableLevel of
-    3:                      Result := xBaseIII;
-    7:                      Result := xBaseVII;
-    TDBF_TABLELEVEL_FOXPRO: Result := xFoxPro;
+    3:                            Result := xBaseIII;
+    7:                            Result := xBaseVII;
+    TDBF_TABLELEVEL_FOXPRO:       Result := xFoxPro;
+    TDBF_TABLELEVEL_VISUALFOXPRO: Result := xVisualFoxPro;
   else
     {4:} Result := xBaseIV;
   end;
@@ -559,7 +574,7 @@ var
 begin
   if FDirty then
   begin
-    Size := Position; // Strange but it leave tailing trash bytes if I do not write that.
+    Size := Position; // Strange but it leaves tailing trash bytes if I do not write that.
     Dbf := TDbf(FBlobField.DataSet);
     Translate(true);
     Dbf.FDbfFile.MemoFile.WriteMemo(FMemoRecNo, FReadSize, Self);
@@ -751,6 +766,30 @@ procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual a
 begin
   { calling through 'old' delphi 3 interface, use compatible/'native' format }
   SetFieldData(Field, Buffer, true);
+end;
+
+function TDbf.FindFirst: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindFirst or FindRecord(True, True);
+end;
+
+function TDbf.FindLast: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindLast or FindRecord(True, False);
+end;
+
+function TDbf.FindNext: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindNext or FindRecord(False, True);
+end;
+
+function TDbf.FindPrior: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindPrior or FindRecord(False, False);
 end;
 
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); {overload; override;}
@@ -1016,18 +1055,17 @@ end;
 
 procedure TDbf.GetFieldDefsFromDbfFieldDefs;
 var
-  I, N: Integer;
+  I: Integer;
   TempFieldDef: TDbfFieldDef;
   TempMdxFile: TIndexFile;
-  BaseName, lIndexName: string;
-begin
-  FieldDefs.Clear;
+  lIndexName: string;
+  lFieldDefCount: integer; //Counter for destination fielddefs
 
-  // get all fields
-  for I := 0 to FDbfFile.FieldDefs.Count - 1 do
+  procedure FixDuplicateNames;
+  var
+    BaseName: string;
+    N: Integer;
   begin
-    TempFieldDef := FDbfFile.FieldDefs.Items[I];
-    // handle duplicate field names
     N := 1;
     BaseName := TempFieldDef.FieldName;
     while FieldDefs.IndexOf(TempFieldDef.FieldName)>=0 do
@@ -1035,26 +1073,55 @@ begin
       Inc(N);
       TempFieldDef.FieldName:=BaseName+IntToStr(N);
     end;
-    // add field
-    if TempFieldDef.FieldType in [ftString, ftBCD, ftBytes] then
-      FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false)
+  end;
+
+begin
+  FieldDefs.Clear;
+
+  // get all fields
+  lFieldDefCount:=-1; //will be fixed by first addition
+  for I := 0 to FDbfFile.FieldDefs.Count - 1 do
+  begin
+    TempFieldDef := FDbfFile.FieldDefs.Items[I];
+    // handle duplicate field names:
+    FixDuplicateNames;
+    // add field, passing dbase native size if relevant
+    // TDbfFieldDef.Size indicates the number of bytes in the physical dbase file
+    // TFieldDef.Size is only meant to store size indicator for variable length fields
+    case TempFieldDef.FieldType of
+      ftString, ftBytes, ftVarBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
+      ftBCD:
+        begin
+          FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);;;
+        end;
     else
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);
+    end;
+    lFieldDefCount:=lFieldDefCount+1;
 
-    if TempFieldDef.FieldType = ftFloat then
-      begin
-      FieldDefs[I].Size := 0;                      // Size is not defined for float-fields
-      FieldDefs[I].Precision := TempFieldDef.Size;
-      end;
+    FieldDefs[lFieldDefCount].Precision := TempFieldDef.Precision;
 
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly
     if TempFieldDef.FieldType = ftAutoInc then
-      FieldDefs[I].Attributes := [Db.faReadOnly];
+      FieldDefs[lFieldDefCount].Attributes := [Db.faReadOnly];
 
     // if table has dbase lock field, then hide it
     if TempFieldDef.IsLockField then
-      FieldDefs[I].Attributes := [Db.faHiddenCol];
+      FieldDefs[lFieldDefCount].Attributes := [Db.faHiddenCol];
+
+    // Hide system/hidden fields (e.g. VFP's _NULLFLAGS)
+    if TempFieldDef.IsSystemField then
+      FieldDefs[lFieldDefCount].Attributes := [Db.faHiddenCol];
+{$else}
+    // Poor man's way of hiding fields that shouldn't be shown/modified:
+    // Note: Visual Foxpro seems to allow adding another _NULLFLAGS field.
+    // todo: test this with lockfield, then add this (TempFieldDef.IsLockField)
+    if (TempFieldDef.IsSystemField) then
+    begin
+      FieldDefs.Delete(lFieldDefCount);
+      lFieldDefCount:=lFieldDefCount-1;
+    end;
 {$endif}
   end;
 
@@ -1085,6 +1152,8 @@ begin
   if FStorage = stoMemory then
   begin
     FDbfFile.Stream := FUserStream;
+    FDbfFile.MemoStream := FUserMemoStream;
+    FDbfFile.IndexStream := FUserIndexStream;
     FDbfFile.Mode := FileModeToMemMode[FileOpenMode];
   end else begin
     FDbfFile.FileName := FAbsolutePath + FTableName;
@@ -1192,10 +1261,11 @@ begin
 
   // determine dbf version
   case FDbfFile.DbfVersion of
-    xBaseIII: FTableLevel := 3;
-    xBaseIV:  FTableLevel := 4;
-    xBaseVII: FTableLevel := 7;
-    xFoxPro:  FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xBaseIII:      FTableLevel := 3;
+    xBaseIV:       FTableLevel := 4;
+    xBaseVII:      FTableLevel := 7;
+    xFoxPro:       FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xVisualFoxPro: FTableLevel := TDBF_TABLELEVEL_VISUALFOXPRO;
   end;
   FLanguageID := FDbfFile.LanguageID;
 
@@ -1227,7 +1297,7 @@ begin
 
   BindFields(true);
 
-  // create array of blobstreams to store memo's in. each field is a possible blob
+  // create array of blobstreams to store memos in. each field is a possible blob
   FBlobStreams := AllocMem(FieldDefs.Count * SizeOf(TDbfBlobStream));
 
   // check codepage settings
@@ -1299,7 +1369,7 @@ begin
     Result := 0;
 end;
 
-function TDbf.GetLanguageStr: String;
+function TDbf.GetLanguageStr: string;
 begin
   if FDbfFile <> nil then
     Result := FDbfFile.LanguageStr;
@@ -1324,7 +1394,7 @@ begin
   // store recno we are editing
   FEditingRecNo := FCursor.PhysicalRecNo;
   // reread blobs, execute cancel -> clears remembered memo pageno,
-  // causing it to reread the memo contents
+  // causing it to reread the x contents
   for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Cancel;
@@ -1481,11 +1551,19 @@ begin
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
-      FDbfFile.FinishCreate(ADbfFieldDefs, 512);
+      // Default memo blocklength for FoxPro/VisualFoxpro is 64 (not 512 as specs say)
+      if FDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro] then
+        FDbfFile.FinishCreate(ADbfFieldDefs, 64)
+      else
+        FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
-      // if creating memory table, copy stream pointer
+      // if creating memory table, use user-designated stream
       if FStorage = stoMemory then
+      begin
         FUserStream := FDbfFile.Stream;
+        FUserIndexStream := FDBfFile.IndexStream;
+        FUserMemoStream := FDbfFile.MemoStream;
+      end;
 
       // create all indexes
       for I := 0 to FIndexDefs.Count-1 do
@@ -1601,6 +1679,8 @@ begin
           FieldName := lSrcField.FieldName;
         FieldType := lSrcField.DataType;
         Required := lSrcField.Required;
+
+        // Set up size/precision for all physical fields:
         if (1 <= lSrcField.FieldNo) 
             and (lSrcField.FieldNo <= lPhysFieldDefs.Count) then
         begin
@@ -1758,7 +1838,7 @@ var
   var
     sCompare: String;
   begin
-    if (Field.DataType = ftString) then
+    if (Field.DataType in [ftString,ftWideString]) then
     begin
       sCompare := VarToStr(varCompare);
       if loCaseInsensitive in Options then
@@ -1785,6 +1865,8 @@ var
       end;
     end
     else
+      // Not a string; could be date, integer etc.
+      // Follow e.g. FPC bufdataset by searching for equal  
       Result := Field.Value = varCompare;
   end;
 
@@ -1848,7 +1930,9 @@ var
   lTempBuffer: array [0..100] of Char;
   acceptable, checkmatch: boolean;
 begin
-  if loPartialKey in Options then
+  // Only honor loPartialKey for string types; for others, search for equal
+  if (loPartialKey in Options) and
+    (TIndexCursor(FCursor).IndexFile.KeyType='C') then
     searchFlag := stGreaterEqual
   else
     searchFlag := stEqual;
@@ -2013,9 +2097,9 @@ begin
   end;
   { this is a hack, we actually need to know per user who's modifying, and who is not }
   { Mode is more like: the mode of the last "creation" }
-  { if create/free is nested, then everything will be alright, i think ;-) }
+  { if create/free is nested, then everything will be alright, I think ;-) }
   lBlob.Mode := Mode;
-  { this is a hack: we actually need to know per user what it's position is }
+  { this is a hack: we actually need to know per user what its position is }
   lBlob.Position := 0;
   Result := lBlob;
 end;
@@ -2289,7 +2373,7 @@ begin
   end;
 end;
 
-procedure TDbf.SetTableName(const s: string);
+procedure TDbf.SetTableName(const S: string);
 var
   lPath: string;
 begin
@@ -2322,7 +2406,7 @@ begin
   if NewLevel <> FTableLevel then
   begin
     // check validity
-    if not ((NewLevel = 3) or (NewLevel = 4) or (NewLevel = 7) or (NewLevel = 25)) then
+    if not (NewLevel in [3,4,7,TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
       exit;
 
     // can only assign tablelevel if table is closed

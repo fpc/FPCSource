@@ -14,14 +14,16 @@
 
    { i386 FPU Controlword }
 
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui8086) or defined(cpui386) or defined(cpux86_64)}
     const
       Default8087CW : word = $1332;
 
     procedure Set8087CW(cw:word);
     function Get8087CW:word;
+  {$ifndef cpui8086}
     procedure SetSSECSR(w : dword);
     function GetSSECSR : dword;
+  {$endif not cpui8086}
 {$endif}
 
 const
@@ -47,7 +49,11 @@ Software IEC/IEEE floating-point rounding mode.
     float_round_up           = 2;
     float_round_to_zero      = 3;
 
-threadvar
+{$ifdef FPC_HAS_FEATURE_THREADING}
+ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   softfloat_exception_mask : Byte;
   softfloat_exception_flags : Byte;
   softfloat_rounding_mode : Byte;

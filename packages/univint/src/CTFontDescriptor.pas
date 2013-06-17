@@ -2,10 +2,11 @@
  *  CTFontDescriptor.h
  *  CoreText
  *
- *  Copyright (c) 2006-2008 Apple Inc. All rights reserved.
+ *  Copyright (c) 2006-2012 Apple Inc. All rights reserved.
  *
  }
-{       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,8 +177,6 @@ uses MacTypes,CTFontTraits,CFBase,CFArray,CFCharacterSet,CFData,CFDictionary,CFN
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 
@@ -195,7 +199,8 @@ uses MacTypes,CTFontTraits,CFBase,CFArray,CFCharacterSet,CFData,CFDictionary,CFN
     @discussion This is a opaque reference to a font descriptor.
 }
 type
-	CTFontDescriptorRef = ^SInt32; { an opaque type }
+	CTFontDescriptorRef = ^__CTFontDescriptor; { an opaque type }
+	__CTFontDescriptor = record end;
 	CTFontDescriptorRefPtr = ^CTFontDescriptorRef;
 
 {!
@@ -205,7 +210,7 @@ type
     @result     The identifier for the opaque type CTFontDescriptorRef.
 }
 function CTFontDescriptorGetTypeID: CFTypeID; external name '_CTFontDescriptorGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {! --------------------------------------------------------------------------
     @group Descriptor Constants
@@ -217,135 +222,139 @@ function CTFontDescriptorGetTypeID: CFTypeID; external name '_CTFontDescriptorGe
     @discussion This is the key for accessing the font URL from the font descriptor. The value associated with this key is a CFURLRef.
 }
 var kCTFontURLAttribute: CFStringRef; external name '_kCTFontURLAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 {!
     @defined    kCTFontNameAttribute
     @abstract   The PostScript name.
-    @discussion This is the key for accessing the PostScript name from the font descriptor. The value associated with this key is a CFStringRef. If unspecified, defaults to "Helvetica", if unavailable falls back to global font cascade list.
+    @discussion This is the key for retrieving the PostScript name from the font descriptor. When matching, this is treated more generically: the system first tries to find fonts with this PostScript name. If none is found, the system tries to find fonts with this family name, and, finally, if still nothing, tries to find fonts with this display name. The value associated with this key is a CFStringRef. If unspecified, defaults to "Helvetica", if unavailable falls back to global font cascade list.
 }
 var kCTFontNameAttribute: CFStringRef; external name '_kCTFontNameAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontDisplayNameAttribute
     @abstract   The display name.
     @discussion This is the key for accessing the name used to display the font. Most commonly this is the full name. The value associated with this key is a CFStringRef.
 }
 var kCTFontDisplayNameAttribute: CFStringRef; external name '_kCTFontDisplayNameAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontFamilyNameAttribute
     @abstract   The family name.
     @discussion This is the key for accessing the family name from the font descriptor. The value associated with this key is a CFStringRef.
 }
 var kCTFontFamilyNameAttribute: CFStringRef; external name '_kCTFontFamilyNameAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontStyleNameAttribute
     @abstract   The style name.
     @discussion This is the key for accessing the style name of the font. This name represents the designer's description of the font's style. The value associated with this key is a CFStringRef.
 }
 var kCTFontStyleNameAttribute: CFStringRef; external name '_kCTFontStyleNameAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontTraitsAttribute
     @abstract   The font traits dictionary.
     @discussion This is the key for accessing the dictionary of font traits for stylistic information. See CTFontTraits.h for the list of font traits. The value associated with this key is a CFDictionaryRef.
 }
 var kCTFontTraitsAttribute: CFStringRef; external name '_kCTFontTraitsAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontVariationAttribute
     @abstract   The font variation dictionary.
     @discussion This key is used to obtain the font variation instance as a CFDictionaryRef. If specified in a font descriptor, fonts with the specified axes will be primary match candidates, if no such fonts exist, this attribute will be ignored.
 }
 var kCTFontVariationAttribute: CFStringRef; external name '_kCTFontVariationAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontSizeAttribute
     @abstract   The font point size.
     @discussion This key is used to obtain or specify the font point size. Creating a font with this unspecified will default to a point size of 12.0. The value for this key is represented as a CFNumberRef.
 }
 var kCTFontSizeAttribute: CFStringRef; external name '_kCTFontSizeAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontMatrixAttribute
     @abstract   The font transformation matrix.
     @discussion This key is used to specify the font transformation matrix when creating a font. The default value is CGAffineTransformIdentity. The value for this key is a CFDataRef containing a CGAffineTransform, of which only the a, b, c, and d fields are used.
 }
 var kCTFontMatrixAttribute: CFStringRef; external name '_kCTFontMatrixAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontCascadeListAttribute
     @abstract   The font cascade list.
     @discussion This key is used to specify or obtain the cascade list used for a font reference. The cascade list is a CFArrayRef containing CTFontDescriptorRefs. If unspecified, the global cascade list is used.
 }
 var kCTFontCascadeListAttribute: CFStringRef; external name '_kCTFontCascadeListAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontCharacterSetAttribute
     @abstract   The font unicode character coverage set.
     @discussion This key is used to specify or obtain the character set for a font reference. This value for this key is a CFCharacterSetRef. If specified this can be used to restrict the font to a subset of its actual character set. If unspecified this attribute is ignored and the actual character set is used.
 }
 var kCTFontCharacterSetAttribute: CFStringRef; external name '_kCTFontCharacterSetAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontLanguagesAttribute
     @abstract   The list of supported languages.
     @discussion This key is used to specify or obtain a list of covered languages for a font reference. The value for this key is a CFArrayRef of CFStringRefs. If specified this restricts the search to matching fonts that support the specified languages. The language identifier string should conform to the BCP 47 standard. If unspecified this attribute is ignored.
 }
 var kCTFontLanguagesAttribute: CFStringRef; external name '_kCTFontLanguagesAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontBaselineAdjustAttribute
     @abstract   The baseline adjustment to apply to font metrics.
     @discussion This key is used to specify or obtain the baseline adjustment for a font reference. This is primary used when defining font descriptors for a cascade list to keep the baseline of all fonts even. The value associated with this is a float represented as a CFNumberRef.
 }
 var kCTFontBaselineAdjustAttribute: CFStringRef; external name '_kCTFontBaselineAdjustAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontMacintoshEncodingsAttribute
     @abstract   The macintosh encodings attribute.
     @discussion This key is used to specify or obtain the macintosh encodings for a font reference. The value associated with this key is a CFNumberRef containing a bitfield of the Macintosh encodings. This attribute is provided for legacy compatibility.
 }
 var kCTFontMacintoshEncodingsAttribute: CFStringRef; external name '_kCTFontMacintoshEncodingsAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontFeaturesAttribute
     @abstract   The array of font features.
     @discussion This key is used to specify or obtain the font features for a font reference. The value associated with this key is a CFArrayRef of font feature dictionaries. This features list contains the feature information from the 'feat' table of the font. See the CTFontCopyFeatures() API in   CTFont.h.
 }
 var kCTFontFeaturesAttribute: CFStringRef; external name '_kCTFontFeaturesAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontFeatureSettingsAttribute
     @abstract   The array of font settings.
     @discussion This key is used to specify or obtain the font features settings for a font reference. The value associated with this key is a CFArrayRef of font feature setting dictionaries. A setting dictionary contains a tuple of a kCTFontFeatureTypeIdentifierKey key-value pair and a kCTFontFeatureSelectorIdentifierKey key-value pair. Each setting dictionary indicates which setting should be turned on. In the case of duplicate or conflicting setting the last setting in the list will take precedence. It is the caller's responsibility to handle exclusive and non-exclusive settings as necessary.
 }
 var kCTFontFeatureSettingsAttribute: CFStringRef; external name '_kCTFontFeatureSettingsAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontFixedAdvanceAttribute
     @abstract   Specifies advance width.
     @discussion This key is used to specify a constant advance width, which affects the glyph metrics of any font instance created with this key; it overrides font values and the font transformation matrix, if any. The value associated with this key must be a CFNumberRef.
 }
 var kCTFontFixedAdvanceAttribute: CFStringRef; external name '_kCTFontFixedAdvanceAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {!
     @defined    kCTFontOrientationAttribute
     @abstract   The orientation attribute.
     @discussion This key is used to specify a particular orientation for the glyphs of the font. The value associated with this key is a int as a CFNumberRef. If you want to receive vertical metrics from a font for vertical rendering, specify kCTFontVerticalOrientation. If unspecified, the font will use its native orientation.
 }
 var kCTFontOrientationAttribute: CFStringRef; external name '_kCTFontOrientationAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @enum       CTFontOrientation
     @abstract   Specifies the intended rendering orientation of the font for obtaining glyph metrics.
 }
 const
-	kCTFontDefaultOrientation = 0;
-	kCTFontHorizontalOrientation = 1;
-	kCTFontVerticalOrientation = 2;
+	kCTFontOrientationDefault = 0;
+	kCTFontOrientationHorizontal = 1;
+	kCTFontOrientationVertical = 2;
+
+    kCTFontDefaultOrientation = kCTFontOrientationDefault;
+    kCTFontHorizontalOrientation = kCTFontOrientationHorizontal;
+    kCTFontVerticalOrientation = kCTFontOrientationVertical;
 type
 	CTFontOrientation = UInt32;
 
@@ -355,7 +364,7 @@ type
     @discussion The attribute is used to specify or obtain the format of the font. The returned value is a CFNumber containing one of the constants defined below.
 }
 var kCTFontFormatAttribute: CFStringRef; external name '_kCTFontFormatAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 
 {!
     @constant   kCTFontFormatUnrecognized
@@ -363,7 +372,7 @@ var kCTFontFormatAttribute: CFStringRef; external name '_kCTFontFormatAttribute'
     @constant   kCTFontFormatOpenTypePostScript
                 The font is an OpenType format containing PostScript data
     @constant   kCTFontFormatOpenTypeTrueType
-    			The font is an OpenType format containing TrueType data
+                The font is an OpenType format containing TrueType data
     @constant   kCTFontFormatTrueType
                 The font is a recognized TrueType format
     @constant   kCTFontFormatPostScript
@@ -387,14 +396,14 @@ type
     @discussion The attribute is used to specify or obtain the font registration scope. The value returned is a CFNumberRef containing one of the CTFontManagerScope enumerated values. A value of NULL can be returned for font descriptors that are not registered.
 }
 var kCTFontRegistrationScopeAttribute: CFStringRef; external name '_kCTFontRegistrationScopeAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 {!
     @defined    kCTFontPriorityAttribute
     @abstract   The font descriptors priority when resolving duplicates and sorting match results.
     @discussion This key is used to obtain or specify the font priority. The value returned is a CFNumberRef containing an integer value as defined below. The higher the value, the higher the priority of the font. Only registered fonts will have a priority. Unregistered font descriptors will return NULL.
 }
 var kCTFontPriorityAttribute: CFStringRef; external name '_kCTFontPriorityAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 
 {!
     @constant   kCTFontPrioritySystem
@@ -405,7 +414,7 @@ var kCTFontPriorityAttribute: CFStringRef; external name '_kCTFontPriorityAttrib
                 Priority of computer local fonts (located in /Library/Fonts).
     @constant   kCTFontPriorityUser
                 Priority of local fonts (located in user's Library/Fonts).
-    @constant   kCTFontPrioritySession
+    @constant   kCTFontPriorityDynamic
                 Priority of fonts registered dynamically, not located in a standard location (either kCTFontManagerScopeUser, or kCTFontManagerScopeSession).
     @constant   kCTFontPriorityProcess
                 Priority of fonts registered for the process (kCTFontManagerScopeProcess).
@@ -426,7 +435,7 @@ type
     @discussion This key is used to obtain the font state. The returned value is a CFNumberRef representing a boolean value. Unregistered font descriptors will return NULL, which is equivalent to false.
 }
 var kCTFontEnabledAttribute: CFStringRef; external name '_kCTFontEnabledAttribute'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 
 {! --------------------------------------------------------------------------
     @group Descriptor Creation
@@ -445,7 +454,7 @@ var kCTFontEnabledAttribute: CFStringRef; external name '_kCTFontEnabledAttribut
     @result     This function creates a new font descriptor reference with the given PostScript name and point size.
 }
 function CTFontDescriptorCreateWithNameAndSize( name: CFStringRef; size: CGFloat ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateWithNameAndSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateWithAttributes
@@ -457,7 +466,7 @@ function CTFontDescriptorCreateWithNameAndSize( name: CFStringRef; size: CGFloat
     @result     This function creates a new font descriptor with the attributes specified. This dictionary can contain arbitrary attributes that will be preserved, however unrecognized attributes will be ignored on font creation and and may not be preserved over the round trip (descriptor -> font -> descriptor).
 }
 function CTFontDescriptorCreateWithAttributes( attributes: CFDictionaryRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateWithAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateCopyWithAttributes
@@ -472,7 +481,7 @@ function CTFontDescriptorCreateWithAttributes( attributes: CFDictionaryRef ): CT
     @result     This function creates a new copy of the original font descriptor with attributes augmented by those specified. If there are conflicts between attributes, the new attributes will replace existing ones, except for kCTFontVariationAttribute and kCTFontFeatureSettingsAttribute which will be merged.
 }
 function CTFontDescriptorCreateCopyWithAttributes( original: CTFontDescriptorRef; attributes: CFDictionaryRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateCopyWithAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateCopyWithVariation
@@ -490,7 +499,7 @@ function CTFontDescriptorCreateCopyWithAttributes( original: CTFontDescriptorRef
     @result     This function returns a copy of the original font descriptor with a new variation instance. This is a convenience method for easily creating new variation font instances.
 }
 function CTFontDescriptorCreateCopyWithVariation( original: CTFontDescriptorRef; variationIdentifier: CFNumberRef; variationValue: CGFloat ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateCopyWithVariation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateCopyWithFeature
@@ -510,7 +519,7 @@ function CTFontDescriptorCreateCopyWithVariation( original: CTFontDescriptorRef;
     @result     A copy of the original font descriptor modified with the given feature settings.
 }
 function CTFontDescriptorCreateCopyWithFeature( original: CTFontDescriptorRef; featureTypeIdentifier: CFNumberRef; featureSelectorIdentifier: CFNumberRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateCopyWithFeature';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateMatchingFontDescriptors
@@ -525,7 +534,7 @@ function CTFontDescriptorCreateCopyWithFeature( original: CTFontDescriptorRef; f
     @result     This function returns a retained array of normalized font descriptors matching the attributes present in descriptor. If descriptor itself is normalized then the array will contain only one item, the original descriptor.
 }
 function CTFontDescriptorCreateMatchingFontDescriptors( descriptor: CTFontDescriptorRef; mandatoryAttributes: CFSetRef ): CFArrayRef; external name '_CTFontDescriptorCreateMatchingFontDescriptors';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCreateMatchingFontDescriptor
@@ -540,7 +549,7 @@ function CTFontDescriptorCreateMatchingFontDescriptors( descriptor: CTFontDescri
     @result     This function returns a retained normalized font descriptor matching the attributes present in descriptor. The original descriptor may be returned in normalized form.
 }
 function CTFontDescriptorCreateMatchingFontDescriptor( descriptor: CTFontDescriptorRef; mandatoryAttributes: CFSetRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateMatchingFontDescriptor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {! --------------------------------------------------------------------------
     @group Descriptor Accessors
@@ -556,7 +565,7 @@ function CTFontDescriptorCreateMatchingFontDescriptor( descriptor: CTFontDescrip
     @result     A retained reference to the font descriptor attributes dictionary. This dictionary will contain the minimum number of attributes to fully specify this particular font descriptor.
 }
 function CTFontDescriptorCopyAttributes( descriptor: CTFontDescriptorRef ): CFDictionaryRef; external name '_CTFontDescriptorCopyAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     @function   CTFontDescriptorCopyAttribute
@@ -571,7 +580,7 @@ function CTFontDescriptorCopyAttributes( descriptor: CTFontDescriptorRef ): CFDi
     @result     A retained reference to the requested attribute, or NULL if the requested attribute is not present. Refer to the attribute definitions for documentation as to how each attribute is packaged as a CFType.
 }
 function CTFontDescriptorCopyAttribute( descriptor: CTFontDescriptorRef; attribute: CFStringRef ): CFTypeRef; external name '_CTFontDescriptorCopyAttribute';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
     function    CTFontDescriptorCopyLocalizedAttribute
@@ -591,9 +600,7 @@ function CTFontDescriptorCopyAttribute( descriptor: CTFontDescriptorRef; attribu
     @result     A retained reference to the requested attribute, or NULL if the requested attribute is not present. Refer to the attribute definitions for documentation as to how each attribute is packaged as a CFType.
 }
 function CTFontDescriptorCopyLocalizedAttribute( descriptor: CTFontDescriptorRef; attribute: CFStringRef; language: CFStringRefPtr {can be null} ): CFTypeRef; external name '_CTFontDescriptorCopyLocalizedAttribute';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
-{$endc} {TARGET_OS_MAC}
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

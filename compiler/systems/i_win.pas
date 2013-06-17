@@ -139,7 +139,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_win64_gorc;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
@@ -174,7 +174,7 @@ unit i_win;
                             tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_arm;
             unit_env     : '';
-            extradefines : 'UNDER_CE;WINDOWS;UNICODE';
+            extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
@@ -239,7 +239,7 @@ unit i_win;
                             tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_i386;
             unit_env     : '';
-            extradefines : 'UNDER_CE;WINDOWS;UNICODE';
+            extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
@@ -297,7 +297,7 @@ unit i_win;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef WIN32}
     {$ifndef WDOSX}
       set_source_info(system_i386_win32_info);
@@ -306,7 +306,7 @@ initialization
   {$ifdef WINCE}
     set_source_info(system_i386_wince_info);
   {$endif WINCE}
-{$endif CPU86}
+{$endif CPUI386}
 
 {$ifdef CPUX86_64}
   {$ifdef WIN64}

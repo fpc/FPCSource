@@ -306,7 +306,7 @@ begin
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
 end;
 
-procedure localUnwind(frame,target: Pointer);[public,alias:'_FPC_local_unwind'];
+procedure _fpc_local_unwind(frame,target: Pointer);[public,alias:'_FPC_local_unwind'];compilerproc;
 var
   ctx: TContext;
 begin

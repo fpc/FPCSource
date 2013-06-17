@@ -31,6 +31,9 @@ unit rgcpu;
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cgbase,cgutils,
        cpubase,
+       {$ifdef DEBUG_SPILLING}
+       cutils,
+       {$endif}
        rgobj;
 
      type
@@ -45,6 +48,9 @@ unit rgcpu;
        end;
 
        trgcputhumb2 = class(trgobj)
+       private
+         procedure SplitITBlock(list:TAsmList;pos:tai);
+       public
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
@@ -57,20 +63,35 @@ unit rgcpu;
          procedure add_cpu_interferences(p : tai);override;
        end;
 
+       trgcputhumb = class(trgcpu)
+       end;
+
+       trgintcputhumb = class(trgcputhumb)
+         procedure add_cpu_interferences(p: tai);override;
+       end;
+
+
   implementation
 
     uses
-      verbose, cutils,globtype,globals,cpuinfo,
+      verbose,globtype,globals,cpuinfo,
       cgobj,
       procinfo;
 
     procedure trgintcputhumb2.add_cpu_interferences(p: tai);
       var
         r : tregister;
+        hr : longint;
       begin
         if p.typ=ait_instruction then
           begin
             case taicpu(p).opcode of
+              A_CBNZ,
+              A_CBZ:
+                begin
+                  for hr := RS_R8 to RS_R15 do
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg), hr);
+                end;
               A_ADD:
                 begin
                   if taicpu(p).ops = 3 then
@@ -144,7 +165,16 @@ unit rgcpu;
 
       { Lets remove the bits we can fold in later and check if the result can be easily with an add or sub }
       a:=abs(spilltemp.offset);
-      if is_shifter_const(a and not($FFF), immshift) then
+      if current_settings.cputype in cpu_thumb then
+        begin
+          {$ifdef DEBUG_SPILLING}
+          helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
+          {$endif}
+          cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
+          cg.a_op_reg_reg(helplist,OP_ADD,OS_ADDR,current_procinfo.framepointer,hreg);
+          reference_reset_base(tmpref,hreg,0,sizeof(aint));
+        end
+      else if is_shifter_const(a and not($FFF), immshift) then
         if spilltemp.offset > 0 then
           begin
             {$ifdef DEBUG_SPILLING}
@@ -188,6 +218,14 @@ unit rgcpu;
       helplist.free;
     end;
 
+
+   function fix_spilling_offset(offset : ASizeInt) : boolean;
+     begin
+       result:=(abs(offset)>4095) or
+          ((current_settings.cputype in cpu_thumb) and ((offset<0) or (offset>1020)));
+     end;
+
+
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
         { don't load spilled register between
@@ -204,7 +242,7 @@ unit rgcpu;
           (taicpu(pos).oper[1]^.reg=NR_PC) then
           pos:=tai(pos.previous);
 
-        if abs(spilltemp.offset)>4095 then
+        if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, false)
         else
           inherited do_spill_read(list,pos,spilltemp,tempreg);
@@ -213,7 +251,7 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
-        if abs(spilltemp.offset)>4095 then
+        if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
@@ -245,6 +283,69 @@ unit rgcpu;
           result:=getsubreg(r);
       end;
 
+    function GetITRemainderOp(originalOp:TAsmOp;remLevels:longint;var newOp: TAsmOp;var NeedsCondSwap:boolean) : TAsmOp;
+      const
+        remOps : array[1..3] of array[A_ITE..A_ITTTT] of TAsmOp = (
+          (A_IT,A_IT,       A_IT,A_IT,A_IT,A_IT,            A_IT,A_IT,A_IT,A_IT,A_IT,A_IT,A_IT,A_IT),
+          (A_NONE,A_NONE,   A_ITT,A_ITE,A_ITE,A_ITT,        A_ITT,A_ITT,A_ITE,A_ITE,A_ITE,A_ITE,A_ITT,A_ITT),
+          (A_NONE,A_NONE,   A_NONE,A_NONE,A_NONE,A_NONE,    A_ITTT,A_ITEE,A_ITET,A_ITTE,A_ITTE,A_ITET,A_ITEE,A_ITTT));
+        newOps : array[1..3] of array[A_ITE..A_ITTTT] of TAsmOp = (
+          (A_IT,A_IT,       A_ITE,A_ITT,A_ITE,A_ITT,        A_ITEE,A_ITTE,A_ITET,A_ITTT,A_ITEE,A_ITTE,A_ITET,A_ITTT),
+          (A_NONE,A_NONE,   A_IT,A_IT,A_IT,A_IT,            A_ITE,A_ITT,A_ITE,A_ITT,A_ITE,A_ITT,A_ITE,A_ITT),
+          (A_NONE,A_NONE,   A_NONE,A_NONE,A_NONE,A_NONE,    A_IT,A_IT,A_IT,A_IT,A_IT,A_IT,A_IT,A_IT));
+        needsSwap: array[1..3] of array[A_ITE..A_ITTTT] of Boolean = (
+          (true ,false,     true ,true ,false,false,        true ,true ,true ,true ,false,false,false,false),
+          (false,false,     true ,false,true ,false,        true ,true ,false,false,true ,true ,false,false),
+          (false,false,     false,false,false,false,        true ,false,true ,false,true ,false,true ,false));
+      begin
+        result:=remOps[remLevels][originalOp];
+        newOp:=newOps[remLevels][originalOp];
+        NeedsCondSwap:=needsSwap[remLevels][originalOp];
+      end;
+
+    procedure trgcputhumb2.SplitITBlock(list: TAsmList; pos: tai);
+      var
+        hp : tai;
+        level,itLevel : LongInt;
+        remOp,newOp : TAsmOp;
+        needsSwap : boolean;
+      begin
+        hp:=pos;
+        level := 0;
+        while assigned(hp) do
+          begin
+            if IsIT(taicpu(hp).opcode) then
+              break
+            else if hp.typ=ait_instruction then
+              inc(level);
+
+            hp:=tai(hp.Previous);
+          end;
+
+        if not assigned(hp) then
+          internalerror(2012100801); // We are supposed to have found the ITxxx instruction here
+
+        if (hp.typ<>ait_instruction) or
+          (not IsIT(taicpu(hp).opcode)) then
+          internalerror(2012100802); // Sanity check
+
+        itLevel := GetITLevels(taicpu(hp).opcode);
+        if level=itLevel then
+          exit; // pos was the last instruction in the IT block anyway
+
+        remOp:=GetITRemainderOp(taicpu(hp).opcode,itLevel-level,newOp,needsSwap);
+
+        if (remOp=A_NONE) or
+          (newOp=A_NONE) then
+          Internalerror(2012100803);
+
+        taicpu(hp).opcode:=newOp;
+
+        if needsSwap then
+          list.InsertAfter(taicpu.op_cond(remOp,inverse_cond(taicpu(hp).oper[0]^.cc)), pos)
+        else
+          list.InsertAfter(taicpu.op_cond(remOp,taicpu(hp).oper[0]^.cc), pos);
+      end;
 
     procedure trgcputhumb2.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
@@ -256,7 +357,7 @@ unit rgcpu;
         { don't load spilled register between
           mov lr,pc
           mov pc,r4
-          but befure the mov lr,pc
+          but before the mov lr,pc
         }
         if assigned(pos.previous) and
           (pos.typ=ait_instruction) and
@@ -266,6 +367,18 @@ unit rgcpu;
           (taicpu(pos).oper[1]^.typ=top_reg) and
           (taicpu(pos).oper[1]^.reg=NR_PC) then
           pos:=tai(pos.previous);
+
+        if (pos.typ=ait_instruction) and
+          (taicpu(pos).condition<>C_None) and
+          (taicpu(pos).opcode<>A_B) then
+          SplitITBlock(list, pos)
+        else if (pos.typ=ait_instruction) and
+          IsIT(taicpu(pos).opcode) then
+          begin
+            if not assigned(pos.Previous) then
+              list.InsertBefore(tai_comment.Create('Dummy'), pos);
+            pos:=tai(pos.Previous);
+          end;
 
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
@@ -313,6 +426,18 @@ unit rgcpu;
         l : tasmlabel;
         hreg : tregister;
       begin
+        if (pos.typ=ait_instruction) and
+          (taicpu(pos).condition<>C_None) and
+          (taicpu(pos).opcode<>A_B) then
+          SplitITBlock(list, pos)
+        else if (pos.typ=ait_instruction) and
+          IsIT(taicpu(pos).opcode) then
+          begin
+            if not assigned(pos.Previous) then
+              list.InsertBefore(tai_comment.Create('Dummy'), pos);
+            pos:=tai(pos.Previous);
+          end;
+
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
             helplist:=TAsmList.create;
@@ -393,5 +518,57 @@ unit rgcpu;
           end;
       end;
 
+
+    procedure trgintcputhumb.add_cpu_interferences(p: tai);
+      var
+        r : tregister;
+        i,
+        hr : longint;
+      begin
+        if p.typ=ait_instruction then
+          begin
+            { prevent that the register allocator merges registers with frame/stack pointer
+              if an instruction writes to the register }
+            if (taicpu(p).ops>=1) and (taicpu(p).oper[0]^.typ=top_reg) and
+              (taicpu(p).spilling_get_operation_type(0) in [operand_write,operand_readwrite]) then
+              begin
+                { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+                {        while compiling the compiler. }
+                r:=NR_STACK_POINTER_REG;
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(r));
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(current_procinfo.framepointer));
+              end;
+            if (taicpu(p).ops>=2) and (taicpu(p).oper[1]^.typ=top_reg) and
+              (taicpu(p).spilling_get_operation_type(1) in [operand_write,operand_readwrite]) then
+              begin
+                { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+                {        while compiling the compiler. }
+                r:=NR_STACK_POINTER_REG;
+                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(r));
+                add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(current_procinfo.framepointer));
+              end;
+            case taicpu(p).opcode of
+              A_LDRB,
+              A_STRB,
+              A_STR,
+              A_LDR,
+              A_LDRH,
+              A_STRH,
+              A_LDRSB,
+              A_LDRSH,
+              A_LDRD,
+              A_STRD:
+                 begin
+                   { add_edge handles precoloured registers already }
+                   for i:=RS_R8 to RS_R15 do
+                     begin
+                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),i);
+                       add_edge(getsupreg(taicpu(p).oper[1]^.ref^.index),i);
+                       add_edge(getsupreg(taicpu(p).oper[0]^.reg),i);
+                     end;
+                 end;
+            end;
+          end;
+      end;
 
 end.

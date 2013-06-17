@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 153;
+  CurrentPPUVersion = 161;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -183,7 +183,8 @@ const
     { 11 } 64 {'powerpc64'},
     { 12 } 16 {'avr'},
     { 13 } 32 {'mipsel'},
-    { 14 } 32 {'jvm'}
+    { 14 } 32 {'jvm'},
+    { 15 } 16 {'i8086'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -201,7 +202,8 @@ const
     { 11 } 64 {'powerpc64'},
     { 12 }  8 {'avr'},
     { 13 } 32 {'mipsel'},
-    { 14 } 64 {'jvm'}
+    { 14 } 64 {'jvm'},
+    { 15 } 16 {'i8086'}
     );
 {$endif generic_cpu}
 
@@ -788,11 +790,12 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getint64
-{$else cpu64bitalu}
-  result:=getlongint;
-{$endif cpu64bitalu}
+  case sizeof(aint) of
+    8: result:=getint64;
+    4: result:=getlongint;
+    2: result:=smallint(getword);
+    1: result:=shortint(getbyte);
+  end;
 {$endif not generic_cpu}
 end;
 
@@ -812,11 +815,13 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitaddr}
+{$if defined(cpu64bitaddr)}
   result:=getint64;
-{$else cpu64bitaddr}
+{$elseif defined(cpu32bitaddr)}
   result:=getlongint;
-{$endif cpu32bitaddr}
+{$elseif defined(cpu16bitaddr)}
+  result:=getword;
+{$endif}
 {$endif not generic_cpu}
 end;
 

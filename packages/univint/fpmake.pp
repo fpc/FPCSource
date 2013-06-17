@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('univint');
 {$ifdef ALLPACKAGES}
-    P.Directory:='univint';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
@@ -22,2688 +22,177 @@ begin
     P.Options.Add('-Mmacpas');
 
     P.SupportBuildModes:=[bmOneByOne];
-  T:=P.Targets.AddImplicitUnit('ABActions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('abaddressbook');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('ABAddressBook.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('abtypedefs');
-        AddUnit('abglobals');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('cfdata');
-      end;
-  T:=P.Targets.AddImplicitUnit('ABGlobals.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('ABPeoplePicker.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('abaddressbook');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cggeometry');
-        AddUnit('drag');
-        AddUnit('higeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('ABTypedefs.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEDataModel.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEHelpers.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('appleevents');
-        AddUnit('aedatamodel');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEInteraction.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('aedatamodel');
-        AddUnit('notification');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEMach.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('aedatamodel');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEObjects.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('osutils');
-        AddUnit('appleevents');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEPackObject.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('appleevents');
-      end;
-  T:=P.Targets.AddImplicitUnit('AERegistry.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atstypes');
-        AddUnit('macerrors');
-        AddUnit('appleevents');
-      end;
-  T:=P.Targets.AddImplicitUnit('AEUserTermTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('AIFF.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ASDebugging.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('osa');
-        AddUnit('files');
-        AddUnit('components');
-        AddUnit('appleevents');
-        AddUnit('applescript');
-      end;
-  T:=P.Targets.AddImplicitUnit('ASRegistry.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aeregistry');
-        AddUnit('aeobjects');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSFont.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfrunloop');
-        AddUnit('cfpropertylist');
-        AddUnit('atstypes');
-        AddUnit('cfstring');
-        AddUnit('files');
-        AddUnit('textcommon');
-        AddUnit('sfnttypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSLayoutTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('sfntlayouttypes');
-        AddUnit('atstypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeDirectAccess.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atslayouttypes');
-        AddUnit('atsunicodetypes');
-        AddUnit('textcommon');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeDrawing.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textcommon');
-        AddUnit('quickdraw');
-        AddUnit('atslayouttypes');
-        AddUnit('atsunicodetypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeFlattening.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atsunicodetypes');
-        AddUnit('sfnttypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeFonts.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atsunicodetypes');
-        AddUnit('sfnttypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeGlyphs.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atsunicodetypes');
-        AddUnit('textcommon');
-        AddUnit('atstypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeObjects.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atsunicodetypes');
-        AddUnit('textcommon');
-        AddUnit('sfntlayouttypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ATSUnicodeTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macmemory');
-        AddUnit('atslayouttypes');
-        AddUnit('fonts');
-        AddUnit('quickdraw');
-        AddUnit('sfnttypes');
-        AddUnit('sfntlayouttypes');
-        AddUnit('atstypes');
-        AddUnit('textcommon');
-      end;
-  T:=P.Targets.AddImplicitUnit('AVLTree.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXActionConstants.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXAttributeConstants.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXErrors.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXNotificationConstants.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXRoleConstants.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXTextAttributedString.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXUIElement.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('axerrors');
-        AddUnit('cfrunloop');
-        AddUnit('cgremoteoperation');
-        AddUnit('macosxposix');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXValue.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('AXValueConstants.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Aliases.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('Appearance.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgcontext');
-        AddUnit('collections');
-        AddUnit('processes');
-        AddUnit('quickdrawtext');
-        AddUnit('textcommon');
-        AddUnit('quickdraw');
-        AddUnit('textedit');
-        AddUnit('qdoffscreen');
-        AddUnit('macerrors');
-        AddUnit('textutils');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('AppleDiskPartitions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AppleEvents.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('aedatamodel');
-        AddUnit('aeinteraction');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cfrunloop');
-        AddUnit('cfstream');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('AppleHelp.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('files');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('AppleScript.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('components');
-        AddUnit('macerrors');
-        AddUnit('appleevents');
-        AddUnit('osa');
-        AddUnit('textedit');
-      end;
-  T:=P.Targets.AddImplicitUnit('AudioHardware.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfrunloop');
-        AddUnit('coreaudiotypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AuthSession.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('authorization');
-      end;
-  T:=P.Targets.AddImplicitUnit('Authorization.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('AuthorizationDB.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('authorization');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-        AddUnit('cfbundle');
-      end;
-  T:=P.Targets.AddImplicitUnit('AuthorizationTags.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFArray.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFAttributedString.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstring');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFBag.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFBase.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFBinaryHeap.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFBitVector.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFBundle.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFByteOrders.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFCalendar.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cflocale');
-        AddUnit('cfdate');
-        AddUnit('cftimezone');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFCharacterSet.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFData.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFDate.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFDateFormatter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdate');
-        AddUnit('cflocale');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFDictionary.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFFTPStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstream');
-        AddUnit('cfurl');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFHTTPMessage.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFHTTPStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfstream');
-        AddUnit('cfbase');
-        AddUnit('cfhttpmessage');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFHost.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfarray');
-        AddUnit('cfrunloop');
-        AddUnit('cfstream');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFLocale.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFMachPort.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfrunloop');
-        AddUnit('macosxposix');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFMessagePort.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstring');
-        AddUnit('cfrunloop');
-        AddUnit('cfdata');
-        AddUnit('cfdate');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFNetServices.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstream');
-        AddUnit('cfarray');
-        AddUnit('cfrunloop');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFNotificationCenter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFNumber.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFNumberFormatter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfnumber');
-        AddUnit('cflocale');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFPlugIn.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfbundle');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-        AddUnit('cfuuid');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFPlugInCOM.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfplugin');
-        AddUnit('cfuuid');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFPreferences.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfdictionary');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfpropertylist');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFPropertyList.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfstring');
-        AddUnit('cfstream');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFRunLoop.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdate');
-        AddUnit('cfstring');
-        AddUnit('macosxposix');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFSet.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFSocket.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfstring');
-        AddUnit('cfrunloop');
-        AddUnit('cfdate');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFSocketStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfstream');
-        AddUnit('cfbase');
-        AddUnit('cfhost');
-        AddUnit('cfnetservices');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstring');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-        AddUnit('cfrunloop');
-        AddUnit('cfsocket');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFString.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfcharacterset');
-        AddUnit('cflocale');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFStringEncodingExt.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFTimeZone.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfdate');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFTree.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFURL.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfstring');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFURLAccess.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFUUID.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFUserNotification.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdate');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-        AddUnit('cfrunloop');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFXMLNode.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('cfstring');
-        AddUnit('cftree');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CFXMLParser.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cftree');
-        AddUnit('cfurl');
-        AddUnit('cfxmlnode');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGAffineTransforms.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGBase.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGBitmapContext.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgcolorspace');
-        AddUnit('cgimage');
-        AddUnit('cgbase');
-        AddUnit('cgcontext');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGColor.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-        AddUnit('cgcolorspace');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGColorSpace.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfstring');
-        AddUnit('cgbase');
-        AddUnit('cgdataprovider');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGContext.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cggeometry');
-        AddUnit('cgbase');
-        AddUnit('cfdictionary');
-        AddUnit('cgaffinetransforms');
-        AddUnit('cgcolorspace');
-        AddUnit('cgfont');
-        AddUnit('cgimage');
-        AddUnit('cgpdfdocument');
-        AddUnit('cgpath');
-        AddUnit('cgcolor');
-        AddUnit('cgshading');
-        AddUnit('cgpdfpage');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDataConsumer.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cgbase');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDataProvider.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cgbase');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDirectDisplay.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('cgcontext');
-        AddUnit('cgbase');
-        AddUnit('cggeometry');
-        AddUnit('cgerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDirectPalette.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgdirectdisplay');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDisplayConfiguration.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgdirectdisplay');
-        AddUnit('cgerrors');
-        AddUnit('cfdictionary');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGDisplayFades.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgerrors');
-        AddUnit('cgdirectdisplay');
-        AddUnit('cgdisplayconfiguration');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGErrors.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGEvent.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfmachport');
-        AddUnit('cgbase');
-        AddUnit('cgdirectdisplay');
-        AddUnit('cgeventtypes');
-        AddUnit('cggeometry');
-        AddUnit('cgerrors');
-        AddUnit('cgremoteoperation');
-        AddUnit('cgeventsource');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGEventSource.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdate');
-        AddUnit('cgremoteoperation');
-        AddUnit('cgeventtypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGEventTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macosxposix');
-        AddUnit('cgremoteoperation');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGFont.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfarray');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGFunction.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGGLContext.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgcontext');
-        AddUnit('cggeometry');
-        AddUnit('cgcolorspace');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGGeometry.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGImage.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-        AddUnit('cggeometry');
-        AddUnit('cgcolorspace');
-        AddUnit('cgdataprovider');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGImageDestination.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-        AddUnit('cgdataconsumer');
-        AddUnit('cgimage');
-        AddUnit('cgimagesource');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGImageProperties.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGImageSource.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-        AddUnit('cgdataprovider');
-        AddUnit('cgimage');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGLayer.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('cgbase');
-        AddUnit('cggeometry');
-        AddUnit('cgcontext');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFArray.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgpdfobject');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFContentStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cgpdfobject');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFContext.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cggeometry');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-        AddUnit('cgbase');
-        AddUnit('cgcontext');
-        AddUnit('cgdataconsumer');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFDictionary.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgpdfobject');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFDocument.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-        AddUnit('cgdataprovider');
-        AddUnit('cggeometry');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFObject.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFOperatorTable.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFPage.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgaffinetransforms');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-        AddUnit('cgpdfdocument');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFScanner.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgpdfobject');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFStream.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cfdata');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPDFString.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdate');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPSConverter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('cgbase');
-        AddUnit('cgdataconsumer');
-        AddUnit('cgdataprovider');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPath.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgaffinetransforms');
-        AddUnit('cfbase');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGPattern.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cggeometry');
-        AddUnit('cgaffinetransforms');
-        AddUnit('cgbase');
-        AddUnit('cgcontext');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGRemoteOperation.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfmachport');
-        AddUnit('cgbase');
-        AddUnit('cggeometry');
-        AddUnit('cgerrors');
-        AddUnit('cfdate');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGSession.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfdictionary');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGShading.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgcolorspace');
-        AddUnit('cgfunction');
-        AddUnit('cggeometry');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CGWindowLevels.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CMCalibrator.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('CarbonEvents.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgcontext');
-        AddUnit('quickdraw');
-        AddUnit('axuielement');
-        AddUnit('drag');
-        AddUnit('cfarray');
-        AddUnit('events');
-        AddUnit('menus');
-        AddUnit('controls');
-        AddUnit('cfstring');
-        AddUnit('aeregistry');
-        AddUnit('aedatamodel');
-        AddUnit('carboneventscore');
-        AddUnit('higeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('CarbonEventsCore.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('CodeFragments.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbundle');
-        AddUnit('files');
-        AddUnit('multiprocessing');
-      end;
-  T:=P.Targets.AddImplicitUnit('Collections.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('ColorPicker.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('quickdraw');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('Components.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macerrors');
-        AddUnit('mixedmode');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('ConditionalMacros.pas');
-  T:=P.Targets.AddImplicitUnit('ControlDefinitions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textedit');
-        AddUnit('axuielement');
-        AddUnit('aedatamodel');
-        AddUnit('cfbase');
-        AddUnit('events');
-        AddUnit('quickdraw');
-        AddUnit('icons');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('datetimeutils');
-        AddUnit('drag');
-        AddUnit('textcommon');
-        AddUnit('appearance');
-        AddUnit('carbonevents');
-        AddUnit('controls');
-        AddUnit('lists');
-        AddUnit('machelp');
-        AddUnit('menus');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('Controls.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('files');
-        AddUnit('events');
-        AddUnit('cgimage');
-        AddUnit('quickdraw');
-        AddUnit('menus');
-        AddUnit('textedit');
-        AddUnit('drag');
-        AddUnit('icons');
-        AddUnit('collections');
-        AddUnit('macerrors');
-        AddUnit('appearance');
-      end;
-  T:=P.Targets.AddImplicitUnit('CoreAudioTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('CoreFoundation.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfbag');
-        AddUnit('cfcharacterset');
-        AddUnit('cfdata');
-        AddUnit('cfdate');
-        AddUnit('cfdictionary');
-        AddUnit('cfnumber');
-        AddUnit('cfpropertylist');
-        AddUnit('cfset');
-        AddUnit('cfstring');
-        AddUnit('cfstringencodingext');
-        AddUnit('cftimezone');
-        AddUnit('cftree');
-        AddUnit('cfurl');
-        AddUnit('cfxmlnode');
-        AddUnit('cfxmlparser');
-        AddUnit('cfmachport');
-        AddUnit('cfmessageport');
-        AddUnit('cfrunloop');
-        AddUnit('cfsocket');
-        AddUnit('cfbinaryheap');
-        AddUnit('cfbitvector');
-        AddUnit('cfbundle');
-        AddUnit('cfbyteorders');
-        AddUnit('cfplugin');
-        AddUnit('cfpreferences');
-        AddUnit('cfurlaccess');
-        AddUnit('cfuuid');
-        AddUnit('cflocale');
-        AddUnit('cfstream');
-        AddUnit('cfdateformatter');
-        AddUnit('cfnumberformatter');
-        AddUnit('cfcalendar');
-        AddUnit('cfusernotification');
-        AddUnit('cfnotificationcenter');
-        AddUnit('cfattributedstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('CoreGraphics.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgbase');
-        AddUnit('cgaffinetransforms');
-        AddUnit('cgbitmapcontext');
-        AddUnit('cgcolor');
-        AddUnit('cgcolorspace');
-        AddUnit('cgcontext');
-        AddUnit('cgdataconsumer');
-        AddUnit('cgdataprovider');
-        AddUnit('cgdirectdisplay');
-        AddUnit('cgdirectpalette');
-        AddUnit('cgdisplayconfiguration');
-        AddUnit('cgdisplayfades');
-        AddUnit('cgerrors');
-        AddUnit('cgevent');
-        AddUnit('cgeventsource');
-        AddUnit('cgeventtypes');
-        AddUnit('cgfont');
-        AddUnit('cgfunction');
-        AddUnit('cgglcontext');
-        AddUnit('cggeometry');
-        AddUnit('cgimage');
-        AddUnit('cglayer');
-        AddUnit('cgpdfarray');
-        AddUnit('cgpdfcontentstream');
-        AddUnit('cgpdfcontext');
-        AddUnit('cgpdfdictionary');
-        AddUnit('cgpdfdocument');
-        AddUnit('cgpdfobject');
-        AddUnit('cgpdfoperatortable');
-        AddUnit('cgpdfpage');
-        AddUnit('cgpdfscanner');
-        AddUnit('cgpdfstream');
-        AddUnit('cgpdfstring');
-        AddUnit('cgpsconverter');
-        AddUnit('cgpath');
-        AddUnit('cgpattern');
-        AddUnit('cgremoteoperation');
-        AddUnit('cgsession');
-        AddUnit('cgshading');
-        AddUnit('cgwindowlevels');
-      end;
-  T:=P.Targets.AddImplicitUnit('DHCPClientPreferences.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('DateTimeUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('Debugging.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('Dialogs.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('carboneventscore');
-        AddUnit('quickdraw');
-        AddUnit('mixedmode');
-        AddUnit('events');
-        AddUnit('macwindows');
-        AddUnit('textedit');
-        AddUnit('controls');
-        AddUnit('macerrors');
-        AddUnit('carbonevents');
-      end;
-  T:=P.Targets.AddImplicitUnit('Dictionary.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('files');
-        AddUnit('aeregistry');
-        AddUnit('codefragments');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('Displays.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('aedatamodel');
-        AddUnit('conditionalmacros');
-        AddUnit('components');
-        AddUnit('appleevents');
-        AddUnit('events');
-        AddUnit('processes');
-        AddUnit('dialogs');
-      end;
-  T:=P.Targets.AddImplicitUnit('Drag.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('cgimage');
-        AddUnit('cggeometry');
-        AddUnit('events');
-        AddUnit('files');
-        AddUnit('appleevents');
-        AddUnit('quickdraw');
-        AddUnit('pasteboard');
-        AddUnit('higeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('DrawSprocket.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-        AddUnit('quickdraw');
-        AddUnit('qdoffscreen');
-        AddUnit('displays');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('DriverSynchronization.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('Endian.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Events.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('osutils');
-        AddUnit('quickdraw');
-        AddUnit('endian');
-      end;
-  T:=P.Targets.AddUnit('MacOSAll.pas');
-  T:=P.Targets.AddImplicitUnit('FileTypesAndCreators.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('Files.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('osutils');
-        AddUnit('textcommon');
-        AddUnit('utcutils');
-        AddUnit('finder');
-      end;
-  T:=P.Targets.AddImplicitUnit('Finder.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('FinderRegistry.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aeregistry');
-        AddUnit('osa');
-      end;
-  T:=P.Targets.AddImplicitUnit('FixMath.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Folders.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('FontPanel.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('aeregistry');
-        AddUnit('atstypes');
-        AddUnit('carboneventscore');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('FontSync.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('atstypes');
-        AddUnit('files');
-        AddUnit('fonts');
-        AddUnit('sfnttypes');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('Fonts.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdrawtext');
-        AddUnit('atstypes');
-        AddUnit('files');
-        AddUnit('macerrors');
-        AddUnit('quickdraw');
-        AddUnit('textcommon');
-      end;
-  T:=P.Targets.AddImplicitUnit('GPCStrings.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('GestaltEqu.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('HFSVolumes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('finder');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIArchive.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfnumber');
-        AddUnit('hiobject');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIGeometry.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIMovieView.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('higeometry');
-        AddUnit('hiview');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIObject.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfbundle');
-        AddUnit('events');
-        AddUnit('carbonevents');
-        AddUnit('axuielement');
-        AddUnit('cfdictionary');
-        AddUnit('carboneventscore');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIShape.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgcontext');
-        AddUnit('drag');
-        AddUnit('quickdraw');
-        AddUnit('carbonevents');
-        AddUnit('higeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('HITextUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textcommon');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('HITheme.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cgbase');
-        AddUnit('appearance');
-        AddUnit('hishape');
-        AddUnit('higeometry');
-        AddUnit('drag');
-        AddUnit('cfdate');
-        AddUnit('cgcontext');
-        AddUnit('macwindows');
-        AddUnit('controls');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIToolbar.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cgimage');
-        AddUnit('icons');
-        AddUnit('menus');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIToolbox.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('hiobject');
-        AddUnit('hiarchive');
-        AddUnit('higeometry');
-        AddUnit('hitoolbar');
-        AddUnit('hiview');
-        AddUnit('hitextutils');
-        AddUnit('hishape');
-        AddUnit('events');
-        AddUnit('notification');
-        AddUnit('drag');
-        AddUnit('controls');
-        AddUnit('appearance');
-        AddUnit('hitheme');
-        AddUnit('macwindows');
-        AddUnit('textedit');
-        AddUnit('menus');
-        AddUnit('dialogs');
-        AddUnit('lists');
-        AddUnit('carboneventscore');
-        AddUnit('carbonevents');
-        AddUnit('textservices');
-        AddUnit('scrap');
-        AddUnit('mactexteditor');
-        AddUnit('machelp');
-        AddUnit('controldefinitions');
-        AddUnit('tsmte');
-        AddUnit('translationextensions');
-        AddUnit('translation');
-        AddUnit('aeinteraction');
-        AddUnit('typeselect');
-        AddUnit('macapplication');
-        AddUnit('keyboards');
-        AddUnit('ibcarbonruntime');
-      end;
-  T:=P.Targets.AddImplicitUnit('HIView.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cgcontext');
-        AddUnit('cgimage');
-        AddUnit('carboneventscore');
-        AddUnit('drag');
-        AddUnit('events');
-        AddUnit('quickdraw');
-        AddUnit('menus');
-        AddUnit('appearance');
-        AddUnit('controls');
-        AddUnit('carbonevents');
-        AddUnit('higeometry');
-        AddUnit('icons');
-        AddUnit('hishape');
-      end;
-  T:=P.Targets.AddImplicitUnit('HTMLRendering.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('quickdraw');
-        AddUnit('events');
-        AddUnit('files');
-        AddUnit('codefragments');
-        AddUnit('controls');
-        AddUnit('cfdata');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('HostTime.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('coreaudiotypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('IBCarbonRuntime.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('quickdraw');
-        AddUnit('menus');
-        AddUnit('cfstring');
-        AddUnit('cfbundle');
-        AddUnit('macwindows');
-        AddUnit('controldefinitions');
-      end;
-  T:=P.Targets.AddImplicitUnit('ICAApplication.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('files');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('ICACamera.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('ICADevice.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('icaapplication');
-      end;
-  T:=P.Targets.AddImplicitUnit('Icons.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cggeometry');
-        AddUnit('quickdraw');
-        AddUnit('files');
-        AddUnit('codefragments');
-        AddUnit('cgcontext');
-      end;
-  T:=P.Targets.AddImplicitUnit('ImageCodec.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-        AddUnit('qdoffscreen');
-        AddUnit('osutils');
-        AddUnit('dialogs');
-        AddUnit('quickdraw');
-        AddUnit('components');
-        AddUnit('imagecompression');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('ImageCompression.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('osutils');
-        AddUnit('quickdraw');
-        AddUnit('qdoffscreen');
-        AddUnit('components');
-        AddUnit('dialogs');
-      end;
-  T:=P.Targets.AddImplicitUnit('InternetConfig.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('aliases');
-        AddUnit('components');
-        AddUnit('aedatamodel');
-      end;
-  T:=P.Targets.AddImplicitUnit('IntlResources.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Keyboards.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('KeychainCore.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('aliases');
-        AddUnit('codefragments');
-        AddUnit('macerrors');
-        AddUnit('processes');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('KeychainHI.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('keychaincore');
-        AddUnit('cfstring');
-        AddUnit('cfarray');
-        AddUnit('cfdate');
-      end;
-  T:=P.Targets.AddImplicitUnit('LanguageAnalysis.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('files');
-        AddUnit('aeregistry');
-        AddUnit('dictionary');
-        AddUnit('textcommon');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('Lists.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-        AddUnit('quickdraw');
-        AddUnit('controls');
-      end;
-  T:=P.Targets.AddImplicitUnit('LowMem.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('macmemory');
-        AddUnit('osutils');
-        AddUnit('resources');
-        AddUnit('quickdraw');
-        AddUnit('controls');
-        AddUnit('events');
-        AddUnit('menus');
-        AddUnit('fonts');
-        AddUnit('macwindows');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacApplication.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgimage');
-        AddUnit('menus');
-        AddUnit('cgcontext');
-        AddUnit('quickdraw');
-        AddUnit('textcommon');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacErrors.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacHelp.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('quickdraw');
-        AddUnit('textedit');
-        AddUnit('controls');
-        AddUnit('dialogs');
-        AddUnit('events');
-        AddUnit('macwindows');
-        AddUnit('menus');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacLocales.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacMemory.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddUnit('MacOS.pas');
-    T.Install:=false;
-  T:=P.Targets.AddImplicitUnit('MacOSXPosix.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacTextEditor.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfurl');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfstring');
-        AddUnit('cfdictionary');
-        AddUnit('cgbase');
-        AddUnit('aedatamodel');
-        AddUnit('textcommon');
-        AddUnit('quickdraw');
-        AddUnit('qdoffscreen');
-        AddUnit('menus');
-        AddUnit('atsunicodetypes');
-        AddUnit('conditionalmacros');
-        AddUnit('drag');
-        AddUnit('macwindows');
-        AddUnit('files');
-        AddUnit('events');
-        AddUnit('macerrors');
-        AddUnit('carbonevents');
-        AddUnit('hiview');
-        AddUnit('higeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('MacWindows.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('files');
-        AddUnit('appearance');
-        AddUnit('carbonevents');
-        AddUnit('hitoolbar');
-        AddUnit('aliases');
-        AddUnit('appleevents');
-        AddUnit('collections');
-        AddUnit('drag');
-        AddUnit('events');
-        AddUnit('menus');
-        AddUnit('mixedmode');
-        AddUnit('qdoffscreen');
-        AddUnit('quickdraw');
-        AddUnit('textcommon');
-        AddUnit('icons');
-        AddUnit('macerrors');
-        AddUnit('cfstring');
-        AddUnit('cgwindowlevels');
-        AddUnit('higeometry');
-        AddUnit('carboneventscore');
-      end;
-  T:=P.Targets.AddImplicitUnit('MachineExceptions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('Math64.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('MediaHandlers.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('events');
-        AddUnit('imagecompression');
-        AddUnit('conditionalmacros');
-        AddUnit('components');
-        AddUnit('sound');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('Menus.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('cfbase');
-        AddUnit('cgcontext');
-        AddUnit('atstypes');
-        AddUnit('events');
-        AddUnit('quickdraw');
-        AddUnit('fonts');
-        AddUnit('textcommon');
-        AddUnit('processes');
-        AddUnit('appleevents');
-        AddUnit('collections');
-        AddUnit('macerrors');
-        AddUnit('cfstring');
-        AddUnit('cfuuid');
-        AddUnit('carboneventscore');
-      end;
-  T:=P.Targets.AddImplicitUnit('MixedMode.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Movies.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('qdoffscreen');
-        AddUnit('textedit');
-        AddUnit('controls');
-        AddUnit('dialogs');
-        AddUnit('quickdraw');
-        AddUnit('aliases');
-        AddUnit('events');
-        AddUnit('menus');
-        AddUnit('components');
-        AddUnit('sound');
-        AddUnit('imagecompression');
-      end;
-  T:=P.Targets.AddImplicitUnit('MoviesFormat.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('imagecompression');
-        AddUnit('components');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('Multiprocessing.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('NSL.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-        AddUnit('nslcore');
-      end;
-  T:=P.Targets.AddImplicitUnit('NSLCore.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('codefragments');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('Navigation.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('cfbase');
-        AddUnit('quickdraw');
-        AddUnit('finder');
-        AddUnit('events');
-        AddUnit('appleevents');
-        AddUnit('translation');
-        AddUnit('macwindows');
-        AddUnit('codefragments');
-        AddUnit('macerrors');
-        AddUnit('cfarray');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('Notification.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('osutils');
-      end;
-  T:=P.Targets.AddImplicitUnit('NumberFormatting.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-        AddUnit('intlresources');
-      end;
-  T:=P.Targets.AddImplicitUnit('OSA.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('macerrors');
-        AddUnit('appleevents');
-        AddUnit('aeobjects');
-        AddUnit('aeinteraction');
-        AddUnit('components');
-      end;
-  T:=P.Targets.AddImplicitUnit('OSAComp.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-      end;
-  T:=P.Targets.AddImplicitUnit('OSAGeneric.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-        AddUnit('components');
-        AddUnit('macerrors');
-        AddUnit('appleevents');
-        AddUnit('osa');
-      end;
-  T:=P.Targets.AddImplicitUnit('OSUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('mixedmode');
-        AddUnit('macmemory');
-        AddUnit('datetimeutils');
-        AddUnit('cfstring');
-        AddUnit('endian');
-      end;
-  T:=P.Targets.AddImplicitUnit('OpenTransport.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('OpenTransportProtocol.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-        AddUnit('files');
-        AddUnit('codefragments');
-        AddUnit('opentransport');
-      end;
-  T:=P.Targets.AddImplicitUnit('OpenTransportProviders.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('opentransport');
-      end;
-  T:=P.Targets.AddImplicitUnit('PEFBinaryFormat.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('PLStringFuncs.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('PMApplication.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('pmdefinitions');
-        AddUnit('pmcore');
-        AddUnit('dialogs');
-      end;
-  T:=P.Targets.AddImplicitUnit('PMCore.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('macerrors');
-        AddUnit('files');
-        AddUnit('cfstring');
-        AddUnit('cfurl');
-        AddUnit('quickdraw');
-        AddUnit('pmdefinitions');
-      end;
-  T:=P.Targets.AddImplicitUnit('PMDefinitions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macerrors');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('Palettes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('Pasteboard.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('PictUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('palettes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Power.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('multiprocessing');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('Processes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('quickdraw');
-        AddUnit('aedatamodel');
-        AddUnit('events');
-        AddUnit('files');
-        AddUnit('textcommon');
-        AddUnit('cfstring');
-        AddUnit('macosxposix');
-      end;
-  T:=P.Targets.AddImplicitUnit('QDOffscreen.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macerrors');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('QDPictToCGContext.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgcontext');
-        AddUnit('cggeometry');
-        AddUnit('cgdataprovider');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('QTML.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('events');
-        AddUnit('macmemory');
-        AddUnit('macwindows');
-        AddUnit('osutils');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('QTSMovie.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('components');
-        AddUnit('movies');
-        AddUnit('quicktimestreaming');
-      end;
-  T:=P.Targets.AddImplicitUnit('QTStreamingComponents.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('dialogs');
-        AddUnit('components');
-        AddUnit('movies');
-        AddUnit('quicktimestreaming');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickTimeComponents.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('events');
-        AddUnit('qdoffscreen');
-        AddUnit('menus');
-        AddUnit('dialogs');
-        AddUnit('aliases');
-        AddUnit('mixedmode');
-        AddUnit('components');
-        AddUnit('quickdraw');
-        AddUnit('sound');
-        AddUnit('imagecompression');
-        AddUnit('movies');
-        AddUnit('quicktimemusic');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickTimeMusic.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('dialogs');
-        AddUnit('files');
-        AddUnit('components');
-        AddUnit('quickdraw');
-        AddUnit('macmemory');
-        AddUnit('sound');
-        AddUnit('endian');
-        AddUnit('imagecompression');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickTimeStreaming.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('events');
-        AddUnit('imagecompression');
-        AddUnit('quickdraw');
-        AddUnit('components');
-        AddUnit('macerrors');
-        AddUnit('movies');
-        AddUnit('quicktimecomponents');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickTimeVR.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('movies');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickTimeVRFormat.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('conditionalmacros');
-        AddUnit('movies');
-        AddUnit('quicktimevr');
-      end;
-  T:=P.Targets.AddImplicitUnit('Quickdraw.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cgdirectdisplay');
-        AddUnit('components');
-        AddUnit('mixedmode');
-        AddUnit('quickdrawtext');
-        AddUnit('cgcontext');
-      end;
-  T:=P.Targets.AddImplicitUnit('QuickdrawText.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('intlresources');
-      end;
-  T:=P.Targets.AddImplicitUnit('Resources.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCDynamicStore.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfrunloop');
-        AddUnit('cfpropertylist');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCDynamicStoreCopyDHCPInfos.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scdynamicstore');
-        AddUnit('cfdictionary');
-        AddUnit('cfdata');
-        AddUnit('cfdate');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCDynamicStoreCopySpecific.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scdynamicstore');
-        AddUnit('macosxposix');
-        AddUnit('cfstring');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCDynamicStoreKey.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCNetwork.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('macosxposix');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCNetworkConnection.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfdictionary');
-        AddUnit('cfrunloop');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCNetworkReachability.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scnetwork');
-        AddUnit('macosxposix');
-        AddUnit('cfrunloop');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCPreferences.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scdynamicstore');
-        AddUnit('cfdate');
-        AddUnit('cfpropertylist');
-        AddUnit('cfarray');
-        AddUnit('cfdata');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCPreferencesPath.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scpreferences');
-        AddUnit('cfdictionary');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCPreferencesSetSpecific.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('scpreferences');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCSI.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('applediskpartitions');
-      end;
-  T:=P.Targets.AddImplicitUnit('SCSchemaDefinitions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('SFNTLayoutTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('SFNTTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('Scrap.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('mixedmode');
-        AddUnit('macerrors');
-        AddUnit('cfstring');
-      end;
-  T:=P.Targets.AddImplicitUnit('Script.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('intlresources');
-      end;
-  T:=P.Targets.AddImplicitUnit('Sound.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('components');
-        AddUnit('mixedmode');
-        AddUnit('dialogs');
-      end;
-  T:=P.Targets.AddImplicitUnit('SpeechRecognition.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('aedatamodel');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('SpeechSynthesis.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('StringCompare.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('textcommon');
-        AddUnit('script');
-        AddUnit('typeselect');
-      end;
-  T:=P.Targets.AddImplicitUnit('SystemConfiguration.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('SystemSound.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('cfbase');
-        AddUnit('cfrunloop');
-      end;
-  T:=P.Targets.AddImplicitUnit('TSMTE.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textedit');
-        AddUnit('dialogs');
-        AddUnit('appleevents');
-        AddUnit('textservices');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextCommon.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('aedatamodel');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextEdit.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextEncodingConverter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textcommon');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextEncodingPlugin.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textcommon');
-        AddUnit('textencodingconverter');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextServices.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-        AddUnit('conditionalmacros');
-        AddUnit('cfbase');
-        AddUnit('carboneventscore');
-        AddUnit('atstypes');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('events');
-        AddUnit('menus');
-        AddUnit('aedatamodel');
-        AddUnit('aeregistry');
-        AddUnit('aeinteraction');
-        AddUnit('components');
-        AddUnit('carbonevents');
-      end;
-  T:=P.Targets.AddImplicitUnit('TextUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('intlresources');
-        AddUnit('numberformatting');
-        AddUnit('stringcompare');
-        AddUnit('datetimeutils');
-      end;
-  T:=P.Targets.AddImplicitUnit('Threads.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('mixedmode');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('Timer.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-        AddUnit('osutils');
-      end;
-  T:=P.Targets.AddImplicitUnit('ToolUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('fixmath');
-        AddUnit('textutils');
-        AddUnit('icons');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('Translation.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('components');
-        AddUnit('translationextensions');
-      end;
-  T:=P.Targets.AddImplicitUnit('TranslationExtensions.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('quickdraw');
-        AddUnit('components');
-      end;
-  T:=P.Targets.AddImplicitUnit('TranslationServices.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfarray');
-        AddUnit('cfbase');
-        AddUnit('cfdata');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-        AddUnit('files');
-      end;
-  T:=P.Targets.AddImplicitUnit('TypeSelect.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('URLAccess.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('files');
-        AddUnit('codefragments');
-        AddUnit('macerrors');
-        AddUnit('events');
-      end;
-  T:=P.Targets.AddImplicitUnit('UTCUtils.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('macerrors');
-      end;
-  T:=P.Targets.AddImplicitUnit('UTCoreTypes.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('cfbase');
-      end;
-  T:=P.Targets.AddImplicitUnit('UTType.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cfbase');
-        AddUnit('cfarray');
-        AddUnit('cfdictionary');
-        AddUnit('cfurl');
-      end;
-  T:=P.Targets.AddImplicitUnit('UnicodeConverter.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('textcommon');
-        AddUnit('mixedmode');
-      end;
-  T:=P.Targets.AddImplicitUnit('UnicodeUtilities.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('maclocales');
-        AddUnit('textcommon');
-      end;
-  T:=P.Targets.AddImplicitUnit('UniversalAccess.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('cggeometry');
-      end;
-  T:=P.Targets.AddImplicitUnit('Video.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('quickdraw');
-      end;
-  T:=P.Targets.AddImplicitUnit('fenv.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
-  T:=P.Targets.AddImplicitUnit('fp.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('vBLAS.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('vDSP.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-        AddUnit('conditionalmacros');
-      end;
-  T:=P.Targets.AddImplicitUnit('xattr.pas');
-    with T.Dependencies do
-      begin
-        AddUnit('mactypes');
-      end;
 
-    T:=P.Targets.AddImplicitUnit('CoreText.pas');
-    T:=P.Targets.AddImplicitUnit('DADisk.pas');
-    T:=P.Targets.AddImplicitUnit('DASession.pas');
-    T:=P.Targets.AddImplicitUnit('FSEvents.pas');
-    T:=P.Targets.AddImplicitUnit('LSInfo.pas');
-    T:=P.Targets.AddImplicitUnit('LSOpen.pas');
-    T:=P.Targets.AddImplicitUnit('MDItem.pas');
-    T:=P.Targets.AddImplicitUnit('SecTrust.pas');
-    T:=P.Targets.AddImplicitUnit('WSTypes.pas');
-    T:=P.Targets.AddImplicitUnit('cblas.pas');
+    T:=P.Targets.AddUnit('MacOS.pas');
+      T.Install:=false;
+
+    T:=P.Targets.AddImplicitUnit('ABActions.pas');
+    T:=P.Targets.AddImplicitUnit('ABAddressBook.pas');
+    T:=P.Targets.AddImplicitUnit('ABGlobals.pas');
+    T:=P.Targets.AddImplicitUnit('ABPeoplePicker.pas');
+    T:=P.Targets.AddImplicitUnit('ABTypedefs.pas');
+    T:=P.Targets.AddImplicitUnit('AEDataModel.pas');
+    T:=P.Targets.AddImplicitUnit('AEHelpers.pas');
+    T:=P.Targets.AddImplicitUnit('AEInteraction.pas');
+    T:=P.Targets.AddImplicitUnit('AEMach.pas');
+    T:=P.Targets.AddImplicitUnit('AEObjects.pas');
+    T:=P.Targets.AddImplicitUnit('AEPackObject.pas');
+    T:=P.Targets.AddImplicitUnit('AERegistry.pas');
+    T:=P.Targets.AddImplicitUnit('AEUserTermTypes.pas');
+    T:=P.Targets.AddImplicitUnit('AIFF.pas');
+    T:=P.Targets.AddImplicitUnit('ASDebugging.pas');
+    T:=P.Targets.AddImplicitUnit('ASRegistry.pas');
+    T:=P.Targets.AddImplicitUnit('ATSFont.pas');
+    T:=P.Targets.AddImplicitUnit('ATSLayoutTypes.pas');
+    T:=P.Targets.AddImplicitUnit('ATSTypes.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeDirectAccess.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeDrawing.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeFlattening.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeFonts.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeGlyphs.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeObjects.pas');
+    T:=P.Targets.AddImplicitUnit('ATSUnicodeTypes.pas');
+    T:=P.Targets.AddImplicitUnit('AUComponent.pas');
+    T:=P.Targets.AddImplicitUnit('AVLTree.pas');
+    T:=P.Targets.AddImplicitUnit('AXActionConstants.pas');
+    T:=P.Targets.AddImplicitUnit('AXAttributeConstants.pas');
+    T:=P.Targets.AddImplicitUnit('AXConstants.pas');
+    T:=P.Targets.AddImplicitUnit('AXErrors.pas');
+    T:=P.Targets.AddImplicitUnit('AXNotificationConstants.pas');
+    T:=P.Targets.AddImplicitUnit('AXRoleConstants.pas');
+    T:=P.Targets.AddImplicitUnit('AXTextAttributedString.pas');
+    T:=P.Targets.AddImplicitUnit('AXUIElement.pas');
+    T:=P.Targets.AddImplicitUnit('AXValue.pas');
+    T:=P.Targets.AddImplicitUnit('AXValueConstants.pas');
+    T:=P.Targets.AddImplicitUnit('Accessibility.pas');
+    T:=P.Targets.AddImplicitUnit('Aliases.pas');
+    T:=P.Targets.AddImplicitUnit('Appearance.pas');
+    T:=P.Targets.AddImplicitUnit('AppleDiskPartitions.pas');
+    T:=P.Targets.AddImplicitUnit('AppleEvents.pas');
+    T:=P.Targets.AddImplicitUnit('AppleHelp.pas');
+    T:=P.Targets.AddImplicitUnit('AppleScript.pas');
+    T:=P.Targets.AddImplicitUnit('AudioCodecs.pas');
+    T:=P.Targets.AddImplicitUnit('AudioComponents.pas');
+    T:=P.Targets.AddImplicitUnit('AudioHardware.pas');
+    T:=P.Targets.AddImplicitUnit('AudioHardwareBase.pas');
+    T:=P.Targets.AddImplicitUnit('AudioHardwareDeprecated.pas');
+    T:=P.Targets.AddImplicitUnit('AudioOutputUnit.pas');
+    T:=P.Targets.AddImplicitUnit('AudioUnitCarbonViews.pas');
+    T:=P.Targets.AddImplicitUnit('AudioUnitParameters.pas');
+    T:=P.Targets.AddImplicitUnit('AudioUnitProperties.pas');
+    T:=P.Targets.AddImplicitUnit('AuthSession.pas');
+    T:=P.Targets.AddImplicitUnit('Authorization.pas');
+    T:=P.Targets.AddImplicitUnit('AuthorizationDB.pas');
+    T:=P.Targets.AddImplicitUnit('AuthorizationPlugin.pas');
+    T:=P.Targets.AddImplicitUnit('AuthorizationTags.pas');
+    T:=P.Targets.AddImplicitUnit('BackupCore.pas');
+    T:=P.Targets.AddImplicitUnit('CFArray.pas');
+    T:=P.Targets.AddImplicitUnit('CFAttributedString.pas');
+    T:=P.Targets.AddImplicitUnit('CFBag.pas');
+    T:=P.Targets.AddImplicitUnit('CFBase.pas');
+    T:=P.Targets.AddImplicitUnit('CFBinaryHeap.pas');
+    T:=P.Targets.AddImplicitUnit('CFBitVector.pas');
+    T:=P.Targets.AddImplicitUnit('CFBundle.pas');
+    T:=P.Targets.AddImplicitUnit('CFByteOrders.pas');
+    T:=P.Targets.AddImplicitUnit('CFCalendar.pas');
+    T:=P.Targets.AddImplicitUnit('CFCharacterSet.pas');
+    T:=P.Targets.AddImplicitUnit('CFData.pas');
+    T:=P.Targets.AddImplicitUnit('CFDate.pas');
+    T:=P.Targets.AddImplicitUnit('CFDateFormatter.pas');
+    T:=P.Targets.AddImplicitUnit('CFDictionary.pas');
+    T:=P.Targets.AddImplicitUnit('CFError.pas');
+    T:=P.Targets.AddImplicitUnit('CFFTPStream.pas');
+    T:=P.Targets.AddImplicitUnit('CFHTTPAuthentication.pas');
+    T:=P.Targets.AddImplicitUnit('CFHTTPMessage.pas');
+    T:=P.Targets.AddImplicitUnit('CFHTTPStream.pas');
+    T:=P.Targets.AddImplicitUnit('CFHost.pas');
+    T:=P.Targets.AddImplicitUnit('CFLocale.pas');
+    T:=P.Targets.AddImplicitUnit('CFMachPort.pas');
+    T:=P.Targets.AddImplicitUnit('CFMessagePort.pas');
+    T:=P.Targets.AddImplicitUnit('CFNetDiagnostics.pas');
+    T:=P.Targets.AddImplicitUnit('CFNetServices.pas');
+    T:=P.Targets.AddImplicitUnit('CFNetworkErrorss.pas');
+    T:=P.Targets.AddImplicitUnit('CFNotificationCenter.pas');
+    T:=P.Targets.AddImplicitUnit('CFNumber.pas');
+    T:=P.Targets.AddImplicitUnit('CFNumberFormatter.pas');
+    T:=P.Targets.AddImplicitUnit('CFPlugIn.pas');
+    T:=P.Targets.AddImplicitUnit('CFPlugInCOM.pas');
+    T:=P.Targets.AddImplicitUnit('CFPreferences.pas');
+    T:=P.Targets.AddImplicitUnit('CFPropertyList.pas');
+    T:=P.Targets.AddImplicitUnit('CFProxySupport.pas');
+    T:=P.Targets.AddImplicitUnit('CFRunLoop.pas');
+    T:=P.Targets.AddImplicitUnit('CFSet.pas');
+    T:=P.Targets.AddImplicitUnit('CFSocket.pas');
+    T:=P.Targets.AddImplicitUnit('CFSocketStream.pas');
+    T:=P.Targets.AddImplicitUnit('CFStream.pas');
+    T:=P.Targets.AddImplicitUnit('CFString.pas');
+    T:=P.Targets.AddImplicitUnit('CFStringEncodingExt.pas');
+    T:=P.Targets.AddImplicitUnit('CFStringTokenizer.pas');
+    T:=P.Targets.AddImplicitUnit('CFTimeZone.pas');
+    T:=P.Targets.AddImplicitUnit('CFTree.pas');
+    T:=P.Targets.AddImplicitUnit('CFURL.pas');
+    T:=P.Targets.AddImplicitUnit('CFURLAccess.pas');
+    T:=P.Targets.AddImplicitUnit('CFUUID.pas');
+    T:=P.Targets.AddImplicitUnit('CFUserNotification.pas');
+    T:=P.Targets.AddImplicitUnit('CFXMLNode.pas');
+    T:=P.Targets.AddImplicitUnit('CFXMLParser.pas');
+    T:=P.Targets.AddImplicitUnit('CGAffineTransforms.pas');
+    T:=P.Targets.AddImplicitUnit('CGBase.pas');
+    T:=P.Targets.AddImplicitUnit('CGBitmapContext.pas');
+    T:=P.Targets.AddImplicitUnit('CGColor.pas');
+    T:=P.Targets.AddImplicitUnit('CGColorSpace.pas');
+    T:=P.Targets.AddImplicitUnit('CGContext.pas');
+    T:=P.Targets.AddImplicitUnit('CGDataConsumer.pas');
+    T:=P.Targets.AddImplicitUnit('CGDataProvider.pas');
+    T:=P.Targets.AddImplicitUnit('CGDirectDisplay.pas');
+    T:=P.Targets.AddImplicitUnit('CGDirectPalette.pas');
+    T:=P.Targets.AddImplicitUnit('CGDisplayConfiguration.pas');
+    T:=P.Targets.AddImplicitUnit('CGDisplayFades.pas');
+    T:=P.Targets.AddImplicitUnit('CGErrors.pas');
+    T:=P.Targets.AddImplicitUnit('CGEvent.pas');
+    T:=P.Targets.AddImplicitUnit('CGEventSource.pas');
+    T:=P.Targets.AddImplicitUnit('CGEventTypes.pas');
+    T:=P.Targets.AddImplicitUnit('CGFont.pas');
+    T:=P.Targets.AddImplicitUnit('CGFunction.pas');
+    T:=P.Targets.AddImplicitUnit('CGGLContext.pas');
+    T:=P.Targets.AddImplicitUnit('CGGeometry.pas');
+    T:=P.Targets.AddImplicitUnit('CGGradient.pas');
+    T:=P.Targets.AddImplicitUnit('CGImage.pas');
+    T:=P.Targets.AddImplicitUnit('CGImageDestination.pas');
+    T:=P.Targets.AddImplicitUnit('CGImageMetadata.pas');
+    T:=P.Targets.AddImplicitUnit('CGImageProperties.pas');
+    T:=P.Targets.AddImplicitUnit('CGImageSource.pas');
+    T:=P.Targets.AddImplicitUnit('CGLCurrent.pas');
+    T:=P.Targets.AddImplicitUnit('CGLDevice.pas');
+    T:=P.Targets.AddImplicitUnit('CGLProfiler.pas');
+    T:=P.Targets.AddImplicitUnit('CGLProfilerFunctionEnums.pas');
+    T:=P.Targets.AddImplicitUnit('CGLRenderers.pas');
+    T:=P.Targets.AddImplicitUnit('CGLTypes.pas');
+    T:=P.Targets.AddImplicitUnit('CGLayer.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFArray.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFContentStream.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFContext.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFDictionary.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFDocument.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFObject.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFOperatorTable.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFPage.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFScanner.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFStream.pas');
+    T:=P.Targets.AddImplicitUnit('CGPDFString.pas');
+    T:=P.Targets.AddImplicitUnit('CGPSConverter.pas');
+    T:=P.Targets.AddImplicitUnit('CGPath.pas');
+    T:=P.Targets.AddImplicitUnit('CGPattern.pas');
+    T:=P.Targets.AddImplicitUnit('CGRemoteOperation.pas');
+    T:=P.Targets.AddImplicitUnit('CGSession.pas');
+    T:=P.Targets.AddImplicitUnit('CGShading.pas');
+    T:=P.Targets.AddImplicitUnit('CGWindow.pas');
+    T:=P.Targets.AddImplicitUnit('CGWindowLevels.pas');
+    T:=P.Targets.AddImplicitUnit('CMCalibrator.pas');
+    T:=P.Targets.AddImplicitUnit('CSIdentity.pas');
+    T:=P.Targets.AddImplicitUnit('CSIdentityAuthority.pas');
+    T:=P.Targets.AddImplicitUnit('CSIdentityBase.pas');
+    T:=P.Targets.AddImplicitUnit('CSIdentityQuery.pas');
     T:=P.Targets.AddImplicitUnit('CTFont.pas');
     T:=P.Targets.AddImplicitUnit('CTFontCollection.pas');
     T:=P.Targets.AddImplicitUnit('CTFontDescriptor.pas');
@@ -2712,34 +201,6 @@ begin
     T:=P.Targets.AddImplicitUnit('CTFontTraits.pas');
     T:=P.Targets.AddImplicitUnit('CTFrame.pas');
     T:=P.Targets.AddImplicitUnit('CTFramesetter.pas');
-    T:=P.Targets.AddImplicitUnit('AUComponent.pas');
-    T:=P.Targets.AddImplicitUnit('AXConstants.pas');
-    T:=P.Targets.AddImplicitUnit('Accessibility.pas');
-    T:=P.Targets.AddImplicitUnit('AudioCodecs.pas');
-    T:=P.Targets.AddImplicitUnit('AudioComponents.pas');
-    T:=P.Targets.AddImplicitUnit('AudioOutputUnit.pas');
-    T:=P.Targets.AddImplicitUnit('AudioUnitCarbonViews.pas');
-    T:=P.Targets.AddImplicitUnit('AudioUnitParameters.pas');
-    T:=P.Targets.AddImplicitUnit('AudioUnitProperties.pas');
-    T:=P.Targets.AddImplicitUnit('AuthorizationPlugin.pas');
-    T:=P.Targets.AddImplicitUnit('BackupCore.pas');
-    T:=P.Targets.AddImplicitUnit('CFError.pas');
-    T:=P.Targets.AddImplicitUnit('CFHTTPAuthentication.pas');
-    T:=P.Targets.AddImplicitUnit('CFNetDiagnostics.pas');
-    T:=P.Targets.AddImplicitUnit('CFNetworkErrorss.pas');
-    T:=P.Targets.AddImplicitUnit('CFProxySupport.pas');
-    T:=P.Targets.AddImplicitUnit('CFStringTokenizer.pas');
-    T:=P.Targets.AddImplicitUnit('CGGradient.pas');
-    T:=P.Targets.AddImplicitUnit('CGLCurrent.pas');
-    T:=P.Targets.AddImplicitUnit('CGLDevice.pas');
-    T:=P.Targets.AddImplicitUnit('CGLProfiler.pas');
-    T:=P.Targets.AddImplicitUnit('CGLProfilerFunctionEnums.pas');
-    T:=P.Targets.AddImplicitUnit('CGLRenderers.pas');
-    T:=P.Targets.AddImplicitUnit('CGLTypes.pas');
-    T:=P.Targets.AddImplicitUnit('CGWindow.pas');
-    T:=P.Targets.AddImplicitUnit('CSIdentity.pas');
-    T:=P.Targets.AddImplicitUnit('CSIdentityAuthority.pas');
-    T:=P.Targets.AddImplicitUnit('CSIdentityQuery.pas');
     T:=P.Targets.AddImplicitUnit('CTGlyphInfo.pas');
     T:=P.Targets.AddImplicitUnit('CTLine.pas');
     T:=P.Targets.AddImplicitUnit('CTParagraphStyle.pas');
@@ -2757,26 +218,71 @@ begin
     T:=P.Targets.AddImplicitUnit('CVOpenGLTexture.pas');
     T:=P.Targets.AddImplicitUnit('CVOpenGLTextureCache.pas');
     T:=P.Targets.AddImplicitUnit('CVPixelBuffer.pas');
+    T:=P.Targets.AddImplicitUnit('CVPixelBufferIOSurface.pas');
     T:=P.Targets.AddImplicitUnit('CVPixelBufferPool.pas');
     T:=P.Targets.AddImplicitUnit('CVPixelFormatDescription.pas');
     T:=P.Targets.AddImplicitUnit('CVReturns.pas');
+    T:=P.Targets.AddImplicitUnit('CaptiveNetwork.pas');
+    T:=P.Targets.AddImplicitUnit('CarbonEvents.pas');
+    T:=P.Targets.AddImplicitUnit('CarbonEventsCore.pas');
+    T:=P.Targets.AddImplicitUnit('CodeFragments.pas');
+    T:=P.Targets.AddImplicitUnit('Collections.pas');
+    T:=P.Targets.AddImplicitUnit('ColorPicker.pas');
     T:=P.Targets.AddImplicitUnit('ColorSyncCMM.pas');
     T:=P.Targets.AddImplicitUnit('ColorSyncDeprecated.pas');
     T:=P.Targets.AddImplicitUnit('ColorSyncDevice.pas');
     T:=P.Targets.AddImplicitUnit('ColorSyncProfile.pas');
     T:=P.Targets.AddImplicitUnit('ColorSyncTransform.pas');
+    T:=P.Targets.AddImplicitUnit('Components.pas');
+    T:=P.Targets.AddImplicitUnit('ConditionalMacros.pas');
+    T:=P.Targets.AddImplicitUnit('ControlDefinitions.pas');
+    T:=P.Targets.AddImplicitUnit('Controls.pas');
+    T:=P.Targets.AddImplicitUnit('CoreAudioTypes.pas');
+    T:=P.Targets.AddImplicitUnit('CoreFoundation.pas');
+    T:=P.Targets.AddImplicitUnit('CoreGraphics.pas');
+    T:=P.Targets.AddImplicitUnit('CoreText.pas');
+    T:=P.Targets.AddImplicitUnit('DADisk.pas');
+    T:=P.Targets.AddImplicitUnit('DASession.pas');
+    T:=P.Targets.AddImplicitUnit('DHCPClientPreferences.pas');
+    T:=P.Targets.AddImplicitUnit('DateTimeUtils.pas');
+    T:=P.Targets.AddImplicitUnit('Debugging.pas');
+    T:=P.Targets.AddImplicitUnit('Dialogs.pas');
+    T:=P.Targets.AddImplicitUnit('Dictionary.pas');
+    T:=P.Targets.AddImplicitUnit('DictionaryServices.pas');
     T:=P.Targets.AddImplicitUnit('DigitalHubRegistry.pas');
+    T:=P.Targets.AddImplicitUnit('Displays.pas');
+    T:=P.Targets.AddImplicitUnit('Drag.pas');
+    T:=P.Targets.AddImplicitUnit('DrawSprocket.pas');
     T:=P.Targets.AddImplicitUnit('DriverServices.pas');
+    T:=P.Targets.AddImplicitUnit('DriverSynchronization.pas');
+    T:=P.Targets.AddImplicitUnit('Endian.pas');
+    T:=P.Targets.AddImplicitUnit('Events.pas');
+    T:=P.Targets.AddImplicitUnit('FSEvents.pas');
+    T:=P.Targets.AddImplicitUnit('FileTypesAndCreators.pas');
+    T:=P.Targets.AddImplicitUnit('Files.pas');
+    T:=P.Targets.AddImplicitUnit('Finder.pas');
+    T:=P.Targets.AddImplicitUnit('FinderRegistry.pas');
+    T:=P.Targets.AddImplicitUnit('FixMath.pas');
+    T:=P.Targets.AddImplicitUnit('Folders.pas');
+    T:=P.Targets.AddImplicitUnit('FontPanel.pas');
+    T:=P.Targets.AddImplicitUnit('FontSync.pas');
+    T:=P.Targets.AddImplicitUnit('Fonts.pas');
+    T:=P.Targets.AddImplicitUnit('GestaltEqu.pas');
+    T:=P.Targets.AddImplicitUnit('HFSVolumes.pas');
     T:=P.Targets.AddImplicitUnit('HIAccessibility.pas');
+    T:=P.Targets.AddImplicitUnit('HIArchive.pas');
     T:=P.Targets.AddImplicitUnit('HIButtonViews.pas');
     T:=P.Targets.AddImplicitUnit('HIClockView.pas');
     T:=P.Targets.AddImplicitUnit('HIComboBox.pas');
     T:=P.Targets.AddImplicitUnit('HIContainerViews.pas');
     T:=P.Targets.AddImplicitUnit('HIDataBrowser.pas');
     T:=P.Targets.AddImplicitUnit('HIDisclosureViews.pas');
+    T:=P.Targets.AddImplicitUnit('HIGeometry.pas');
     T:=P.Targets.AddImplicitUnit('HIImageViews.pas');
     T:=P.Targets.AddImplicitUnit('HILittleArrows.pas');
     T:=P.Targets.AddImplicitUnit('HIMenuView.pas');
+    T:=P.Targets.AddImplicitUnit('HIMovieView.pas');
+    T:=P.Targets.AddImplicitUnit('HIObject.pas');
     T:=P.Targets.AddImplicitUnit('HIPopupButton.pas');
     T:=P.Targets.AddImplicitUnit('HIProgressViews.pas');
     T:=P.Targets.AddImplicitUnit('HIRelevanceBar.pas');
@@ -2784,21 +290,46 @@ begin
     T:=P.Targets.AddImplicitUnit('HISearchField.pas');
     T:=P.Targets.AddImplicitUnit('HISegmentedView.pas');
     T:=P.Targets.AddImplicitUnit('HISeparator.pas');
+    T:=P.Targets.AddImplicitUnit('HIShape.pas');
     T:=P.Targets.AddImplicitUnit('HISlider.pas');
     T:=P.Targets.AddImplicitUnit('HITabbedView.pas');
     T:=P.Targets.AddImplicitUnit('HITextLengthFilter.pas');
+    T:=P.Targets.AddImplicitUnit('HITextUtils.pas');
     T:=P.Targets.AddImplicitUnit('HITextViews.pas');
+    T:=P.Targets.AddImplicitUnit('HITheme.pas');
+    T:=P.Targets.AddImplicitUnit('HIToolbar.pas');
+    T:=P.Targets.AddImplicitUnit('HIToolbox.pas');
     T:=P.Targets.AddImplicitUnit('HIToolboxDebugging.pas');
+    T:=P.Targets.AddImplicitUnit('HIView.pas');
     T:=P.Targets.AddImplicitUnit('HIWindowViews.pas');
+    T:=P.Targets.AddImplicitUnit('HTMLRendering.pas');
+    T:=P.Targets.AddImplicitUnit('HostTime.pas');
+    T:=P.Targets.AddImplicitUnit('IBCarbonRuntime.pas');
+    T:=P.Targets.AddImplicitUnit('ICAApplication.pas');
+    T:=P.Targets.AddImplicitUnit('ICACamera.pas');
+    T:=P.Targets.AddImplicitUnit('ICADevice.pas');
     T:=P.Targets.AddImplicitUnit('IOKitReturn.pas');
     T:=P.Targets.AddImplicitUnit('IOSurfaceAPI.pas');
     T:=P.Targets.AddImplicitUnit('IconStorage.pas');
+    T:=P.Targets.AddImplicitUnit('Icons.pas');
     T:=P.Targets.AddImplicitUnit('IconsCore.pas');
-    T:=P.Targets.AddImplicitUnit('KeyEvents.pas');
+    T:=P.Targets.AddImplicitUnit('ImageCodec.pas');
+    T:=P.Targets.AddImplicitUnit('ImageCompression.pas');
+    T:=P.Targets.AddImplicitUnit('InternetConfig.pas');
+    T:=P.Targets.AddImplicitUnit('IntlResources.pas');
+    T:=P.Targets.AddImplicitUnit('Keyboards.pas');
+    T:=P.Targets.AddImplicitUnit('KeychainCore.pas');
+    T:=P.Targets.AddImplicitUnit('KeychainHI.pas');
+    T:=P.Targets.AddImplicitUnit('LSInfo.pas');
+    T:=P.Targets.AddImplicitUnit('LSOpen.pas');
     T:=P.Targets.AddImplicitUnit('LSQuarantine.pas');
     T:=P.Targets.AddImplicitUnit('LSSharedFileList.pas');
+    T:=P.Targets.AddImplicitUnit('LanguageAnalysis.pas');
+    T:=P.Targets.AddImplicitUnit('Lists.pas');
+    T:=P.Targets.AddImplicitUnit('LowMem.pas');
     T:=P.Targets.AddImplicitUnit('MDExternalDatastore.pas');
     T:=P.Targets.AddImplicitUnit('MDImporter.pas');
+    T:=P.Targets.AddImplicitUnit('MDItem.pas');
     T:=P.Targets.AddImplicitUnit('MDLineage.pas');
     T:=P.Targets.AddImplicitUnit('MDQuery.pas');
     T:=P.Targets.AddImplicitUnit('MDSchema.pas');
@@ -2806,35 +337,133 @@ begin
     T:=P.Targets.AddImplicitUnit('MIDIServices.pas');
     T:=P.Targets.AddImplicitUnit('MIDISetup.pas');
     T:=P.Targets.AddImplicitUnit('MIDIThruConnection.pas');
+    T:=P.Targets.AddImplicitUnit('MacApplication.pas');
+    T:=P.Targets.AddImplicitUnit('MacErrors.pas');
+    T:=P.Targets.AddImplicitUnit('MacHelp.pas');
+    T:=P.Targets.AddImplicitUnit('MacLocales.pas');
+    T:=P.Targets.AddImplicitUnit('MacMemory.pas');
+    T:=P.Targets.AddImplicitUnit('MacOSXPosix.pas');
     T:=P.Targets.AddImplicitUnit('MacOpenGL.pas');
+    T:=P.Targets.AddImplicitUnit('MacTextEditor.pas');
+    T:=P.Targets.AddImplicitUnit('MacTypes.pas');
+    T:=P.Targets.AddImplicitUnit('MacWindows.pas');
+    T:=P.Targets.AddImplicitUnit('MachineExceptions.pas');
+    T:=P.Targets.AddImplicitUnit('Math64.pas');
+    T:=P.Targets.AddImplicitUnit('MediaHandlers.pas');
+    T:=P.Targets.AddImplicitUnit('Menus.pas');
+    T:=P.Targets.AddImplicitUnit('MixedMode.pas');
+    T:=P.Targets.AddImplicitUnit('Movies.pas');
+    T:=P.Targets.AddImplicitUnit('MoviesFormat.pas');
     T:=P.Targets.AddImplicitUnit('MultiProcessingInfo.pas');
+    T:=P.Targets.AddImplicitUnit('Multiprocessing.pas');
     T:=P.Targets.AddImplicitUnit('MusicDevice.pas');
-    T:=P.Targets.AddImplicitUnit('ObjCRuntime.pas');
+    T:=P.Targets.AddImplicitUnit('NSL.pas');
+    T:=P.Targets.AddImplicitUnit('NSLCore.pas');
+    T:=P.Targets.AddImplicitUnit('Navigation.pas');
+    T:=P.Targets.AddImplicitUnit('Notification.pas');
+    T:=P.Targets.AddImplicitUnit('NumberFormatting.pas');
+    T:=P.Targets.AddImplicitUnit('OSA.pas');
+    T:=P.Targets.AddImplicitUnit('OSAComp.pas');
+    T:=P.Targets.AddImplicitUnit('OSAGeneric.pas');
+    T:=P.Targets.AddImplicitUnit('OSUtils.pas');
+    T:=P.Targets.AddImplicitUnit('OpenTransport.pas');
+    T:=P.Targets.AddImplicitUnit('OpenTransportProtocol.pas');
+    T:=P.Targets.AddImplicitUnit('OpenTransportProviders.pas');
+    T:=P.Targets.AddImplicitUnit('PEFBinaryFormat.pas');
+    T:=P.Targets.AddImplicitUnit('PLStringFuncs.pas');
+    T:=P.Targets.AddImplicitUnit('PMApplication.pas');
     T:=P.Targets.AddImplicitUnit('PMApplicationDeprecated.pas');
+    T:=P.Targets.AddImplicitUnit('PMCore.pas');
     T:=P.Targets.AddImplicitUnit('PMCoreDeprecated.pas');
+    T:=P.Targets.AddImplicitUnit('PMDefinitions.pas');
     T:=P.Targets.AddImplicitUnit('PMDefinitionsDeprecated.pas');
     T:=P.Targets.AddImplicitUnit('PMErrors.pas');
     T:=P.Targets.AddImplicitUnit('PMPrintAETypes.pas');
     T:=P.Targets.AddImplicitUnit('PMPrintSettingsKeys.pas');
     T:=P.Targets.AddImplicitUnit('PMPrintingDialogExtensions.pas');
+    T:=P.Targets.AddImplicitUnit('Palettes.pas');
+    T:=P.Targets.AddImplicitUnit('Pasteboard.pas');
+    T:=P.Targets.AddImplicitUnit('PictUtils.pas');
+    T:=P.Targets.AddImplicitUnit('Power.pas');
+    T:=P.Targets.AddImplicitUnit('Processes.pas');
     T:=P.Targets.AddImplicitUnit('QDCMCommon.pas');
+    T:=P.Targets.AddImplicitUnit('QDOffscreen.pas');
+    T:=P.Targets.AddImplicitUnit('QDPictToCGContext.pas');
     T:=P.Targets.AddImplicitUnit('QLBase.pas');
     T:=P.Targets.AddImplicitUnit('QLGenerator.pas');
+    T:=P.Targets.AddImplicitUnit('QLThumbnail.pas');
     T:=P.Targets.AddImplicitUnit('QLThumbnailImage.pas');
+    T:=P.Targets.AddImplicitUnit('QTML.pas');
+    T:=P.Targets.AddImplicitUnit('QTSMovie.pas');
+    T:=P.Targets.AddImplicitUnit('QTStreamingComponents.pas');
+    T:=P.Targets.AddImplicitUnit('QuickTimeComponents.pas');
     T:=P.Targets.AddImplicitUnit('QuickTimeErrors.pas');
+    T:=P.Targets.AddImplicitUnit('QuickTimeMusic.pas');
+    T:=P.Targets.AddImplicitUnit('QuickTimeStreaming.pas');
+    T:=P.Targets.AddImplicitUnit('QuickTimeVR.pas');
+    T:=P.Targets.AddImplicitUnit('QuickTimeVRFormat.pas');
+    T:=P.Targets.AddImplicitUnit('Quickdraw.pas');
+    T:=P.Targets.AddImplicitUnit('QuickdrawText.pas');
     T:=P.Targets.AddImplicitUnit('QuickdrawTypes.pas');
+    T:=P.Targets.AddImplicitUnit('Resources.pas');
+    T:=P.Targets.AddImplicitUnit('SCDynamicStore.pas');
+    T:=P.Targets.AddImplicitUnit('SCDynamicStoreCopyDHCPInfos.pas');
+    T:=P.Targets.AddImplicitUnit('SCDynamicStoreCopySpecific.pas');
+    T:=P.Targets.AddImplicitUnit('SCDynamicStoreKey.pas');
+    T:=P.Targets.AddImplicitUnit('SCNetwork.pas');
     T:=P.Targets.AddImplicitUnit('SCNetworkConfiguration.pas');
+    T:=P.Targets.AddImplicitUnit('SCNetworkConnection.pas');
+    T:=P.Targets.AddImplicitUnit('SCNetworkReachability.pas');
+    T:=P.Targets.AddImplicitUnit('SCPreferences.pas');
+    T:=P.Targets.AddImplicitUnit('SCPreferencesPath.pas');
+    T:=P.Targets.AddImplicitUnit('SCPreferencesSetSpecific.pas');
+    T:=P.Targets.AddImplicitUnit('SCSI.pas');
+    T:=P.Targets.AddImplicitUnit('SCSchemaDefinitions.pas');
+    T:=P.Targets.AddImplicitUnit('SFNTLayoutTypes.pas');
+    T:=P.Targets.AddImplicitUnit('SFNTTypes.pas');
     T:=P.Targets.AddImplicitUnit('ScalerStreamTypes.pas');
+    T:=P.Targets.AddImplicitUnit('Scrap.pas');
+    T:=P.Targets.AddImplicitUnit('Script.pas');
     T:=P.Targets.AddImplicitUnit('SecBase.pas');
+    T:=P.Targets.AddImplicitUnit('SecTrust.pas');
+    T:=P.Targets.AddImplicitUnit('Sound.pas');
+    T:=P.Targets.AddImplicitUnit('SpeechRecognition.pas');
+    T:=P.Targets.AddImplicitUnit('SpeechSynthesis.pas');
+    T:=P.Targets.AddImplicitUnit('StringCompare.pas');
+    T:=P.Targets.AddImplicitUnit('SystemConfiguration.pas');
+    T:=P.Targets.AddImplicitUnit('SystemSound.pas');
+    T:=P.Targets.AddImplicitUnit('TSMTE.pas');
+    T:=P.Targets.AddImplicitUnit('TextCommon.pas');
+    T:=P.Targets.AddImplicitUnit('TextEdit.pas');
+    T:=P.Targets.AddImplicitUnit('TextEncodingConverter.pas');
+    T:=P.Targets.AddImplicitUnit('TextEncodingPlugin.pas');
     T:=P.Targets.AddImplicitUnit('TextInputSources.pas');
+    T:=P.Targets.AddImplicitUnit('TextServices.pas');
+    T:=P.Targets.AddImplicitUnit('TextUtils.pas');
+    T:=P.Targets.AddImplicitUnit('Timer.pas');
+    T:=P.Targets.AddImplicitUnit('ToolUtils.pas');
+    T:=P.Targets.AddImplicitUnit('Translation.pas');
+    T:=P.Targets.AddImplicitUnit('TranslationExtensions.pas');
+    T:=P.Targets.AddImplicitUnit('TranslationServices.pas');
+    T:=P.Targets.AddImplicitUnit('TypeSelect.pas');
+    T:=P.Targets.AddImplicitUnit('URLAccess.pas');
+    T:=P.Targets.AddImplicitUnit('UTCUtils.pas');
+    T:=P.Targets.AddImplicitUnit('UTCoreTypes.pas');
+    T:=P.Targets.AddImplicitUnit('UTType.pas');
+    T:=P.Targets.AddImplicitUnit('UnicodeConverter.pas');
+    T:=P.Targets.AddImplicitUnit('UnicodeUtilities.pas');
+    T:=P.Targets.AddImplicitUnit('UniversalAccess.pas');
     T:=P.Targets.AddImplicitUnit('WSMethodInvocation.pas');
     T:=P.Targets.AddImplicitUnit('WSProtocolHandler.pas');
+    T:=P.Targets.AddImplicitUnit('WSTypes.pas');
+    T:=P.Targets.AddImplicitUnit('cblas.pas');
     T:=P.Targets.AddImplicitUnit('certextensions.pas');
     T:=P.Targets.AddImplicitUnit('cssmapple.pas');
     T:=P.Targets.AddImplicitUnit('cssmconfig.pas');
     T:=P.Targets.AddImplicitUnit('cssmerr.pas');
     T:=P.Targets.AddImplicitUnit('cssmkrapi.pas');
     T:=P.Targets.AddImplicitUnit('cssmtype.pas');
+    T:=P.Targets.AddImplicitUnit('fenv.pas');
     T:=P.Targets.AddImplicitUnit('gliContexts.pas');
     T:=P.Targets.AddImplicitUnit('gliDispatch.pas');
     T:=P.Targets.AddImplicitUnit('gluContext.pas');
@@ -2843,7 +472,470 @@ begin
     T:=P.Targets.AddImplicitUnit('macglext.pas');
     T:=P.Targets.AddImplicitUnit('macglu.pas');
     T:=P.Targets.AddImplicitUnit('mach_error.pas');
+    T:=P.Targets.AddImplicitUnit('vBLAS.pas');
+    T:=P.Targets.AddImplicitUnit('vDSP.pas');
     T:=P.Targets.AddImplicitUnit('x509defs.pas');
+    T:=P.Targets.AddImplicitUnit('xattr.pas');
+    T:=P.Targets.AddImplicitUnit('GPCStrings.pas');
+
+    T:=P.Targets.AddUnit('MacOSAll.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('src/AXConstants.pas');
+          AddInclude('src/Accessibility.pas');
+          AddInclude('src/ConditionalMacros.pas');
+          AddInclude('src/MacTypes.pas');
+          AddInclude('src/MachineExceptions.pas');
+          AddInclude('src/Math64.pas');
+          AddInclude('src/MixedMode.pas');
+          AddInclude('src/Multiprocessing.pas');
+          AddInclude('src/PEFBinaryFormat.pas');
+          AddInclude('src/PLStringFuncs.pas');
+          AddInclude('src/PMDefinitionsDeprecated.pas');
+          AddInclude('src/PMPrintSettingsKeys.pas');
+          AddInclude('src/PMPrintingDialogExtensions.pas');
+          AddInclude('src/QDCMCommon.pas');
+          AddInclude('src/QLBase.pas');
+          AddInclude('src/QTML.pas');
+          AddInclude('src/QuickTimeErrors.pas');
+          AddInclude('src/SFNTLayoutTypes.pas');
+          AddInclude('src/SFNTTypes.pas');
+          AddInclude('src/ScalerStreamTypes.pas');
+          AddInclude('src/TextCommon.pas');
+          AddInclude('src/Threads.pas');
+          AddInclude('src/UTCUtils.pas');
+          AddInclude('src/UnicodeConverter.pas');
+          AddInclude('src/cblas.pas');
+          AddInclude('src/cssmconfig.pas');
+          AddInclude('src/cssmerr.pas');
+          AddInclude('src/cssmtype.pas');
+          AddInclude('src/fenv.pas');
+          AddInclude('src/fp.pas');
+          AddInclude('src/gliContexts.pas');
+          AddInclude('src/kern_return.pas');
+          AddInclude('src/macgl.pas');
+          AddInclude('src/macglext.pas');
+          AddInclude('src/macglu.pas');
+          AddInclude('src/mach_error.pas');
+          AddInclude('src/vBLAS.pas');
+          AddInclude('src/vDSP.pas');
+          AddInclude('src/x509defs.pas');
+          AddInclude('src/xattr.pas');
+          AddInclude('src/ABTypedefs.pas');
+          AddInclude('src/AEDataModel.pas');
+          AddInclude('src/AEUserTermTypes.pas');
+          AddInclude('src/AIFF.pas');
+          AddInclude('src/AVLTree.pas');
+          AddInclude('src/AXActionConstants.pas');
+          AddInclude('src/AXAttributeConstants.pas');
+          AddInclude('src/AXErrors.pas');
+          AddInclude('src/AXNotificationConstants.pas');
+          AddInclude('src/AXRoleConstants.pas');
+          AddInclude('src/AXValueConstants.pas');
+          AddInclude('src/AppleDiskPartitions.pas');
+          AddInclude('src/AudioUnitParameters.pas');
+          AddInclude('src/Authorization.pas');
+          AddInclude('src/AuthorizationPlugin.pas');
+          AddInclude('src/AuthorizationTags.pas');
+          AddInclude('src/CFBase.pas');
+          AddInclude('src/CFBinaryHeap.pas');
+          AddInclude('src/CFBitVector.pas');
+          AddInclude('src/CFByteOrders.pas');
+          AddInclude('src/CFData.pas');
+          AddInclude('src/CFDate.pas');
+          AddInclude('src/CFDictionary.pas');
+          AddInclude('src/CFError.pas');
+          AddInclude('src/CFNetworkErrorss.pas');
+          AddInclude('src/CFNotificationCenter.pas');
+          AddInclude('src/CFNumber.pas');
+          AddInclude('src/CFSet.pas');
+          AddInclude('src/CFStringEncodingExt.pas');
+          AddInclude('src/CFTree.pas');
+          AddInclude('src/CGBase.pas');
+          AddInclude('src/CGErrors.pas');
+          AddInclude('src/CGFunction.pas');
+          AddInclude('src/CGGeometry.pas');
+          AddInclude('src/CGImageProperties.pas');
+          AddInclude('src/CGLProfiler.pas');
+          AddInclude('src/CGLProfilerFunctionEnums.pas');
+          AddInclude('src/CGLRenderers.pas');
+          AddInclude('src/CGLTypes.pas');
+          AddInclude('src/CGPDFObject.pas');
+          AddInclude('src/CGPDFOperatorTable.pas');
+          AddInclude('src/CGPDFScanner.pas');
+          AddInclude('src/CGPDFStream.pas');
+          AddInclude('src/CGPDFString.pas');
+          AddInclude('src/CGSession.pas');
+          AddInclude('src/CGWindowLevels.pas');
+          AddInclude('src/CSIdentityAuthority.pas');
+          AddInclude('src/CTFontManagerErrors.pas');
+          AddInclude('src/CTFontTraits.pas');
+          AddInclude('src/CVBase.pas');
+          AddInclude('src/CVHostTime.pas');
+          AddInclude('src/CVReturns.pas');
+          AddInclude('src/Collections.pas');
+          AddInclude('src/CoreAudioTypes.pas');
+          AddInclude('src/DHCPClientPreferences.pas');
+          AddInclude('src/DateTimeUtils.pas');
+          AddInclude('src/Debugging.pas');
+          AddInclude('src/DictionaryServices.pas');
+          AddInclude('src/DigitalHubRegistry.pas');
+          AddInclude('src/DriverServices.pas');
+          AddInclude('src/DriverSynchronization.pas');
+          AddInclude('src/Endian.pas');
+          AddInclude('src/FileTypesAndCreators.pas');
+          AddInclude('src/Finder.pas');
+          AddInclude('src/FixMath.pas');
+          AddInclude('src/GestaltEqu.pas');
+          AddInclude('src/HFSVolumes.pas');
+          AddInclude('src/HIGeometry.pas');
+          AddInclude('src/HITextUtils.pas');
+          AddInclude('src/HostTime.pas');
+          AddInclude('src/ICACamera.pas');
+          AddInclude('src/IOKitReturn.pas');
+          AddInclude('src/IconStorage.pas');
+          AddInclude('src/IntlResources.pas');
+          AddInclude('src/Keyboards.pas');
+          AddInclude('src/LSQuarantine.pas');
+          AddInclude('src/MIDIServices.pas');
+          AddInclude('src/MIDIThruConnection.pas');
+          AddInclude('src/MacErrors.pas');
+          AddInclude('src/MacLocales.pas');
+          AddInclude('src/MacMemory.pas');
+          AddInclude('src/MacOSXPosix.pas');
+          AddInclude('src/MultiProcessingInfo.pas');
+          AddInclude('src/NumberFormatting.pas');
+          AddInclude('src/OSAComp.pas');
+          AddInclude('src/OSUtils.pas');
+          AddInclude('src/OpenTransport.pas');
+          AddInclude('src/OpenTransportProviders.pas');
+          AddInclude('src/Power.pas');
+          AddInclude('src/QuickdrawText.pas');
+          AddInclude('src/QuickdrawTypes.pas');
+          AddInclude('src/SCDynamicStoreKey.pas');
+          AddInclude('src/SCNetwork.pas');
+          AddInclude('src/SCSI.pas');
+          AddInclude('src/SCSchemaDefinitions.pas');
+          AddInclude('src/Script.pas');
+          AddInclude('src/SecBase.pas');
+          AddInclude('src/StringCompare.pas');
+          AddInclude('src/SystemConfiguration.pas');
+          AddInclude('src/TextEdit.pas');
+          AddInclude('src/TextEncodingConverter.pas');
+          AddInclude('src/TextEncodingPlugin.pas');
+          AddInclude('src/TextUtils.pas');
+          AddInclude('src/Timer.pas');
+          AddInclude('src/UTCoreTypes.pas');
+          AddInclude('src/UnicodeUtilities.pas');
+          AddInclude('src/UniversalAccess.pas');
+          AddInclude('src/Video.pas');
+          AddInclude('src/WSTypes.pas');
+          AddInclude('src/certextensions.pas');
+          AddInclude('src/cssmapple.pas');
+          AddInclude('src/cssmkrapi.pas');
+          AddInclude('src/gliDispatch.pas');
+          AddInclude('src/gluContext.pas');
+          AddInclude('src/ABGlobals.pas');
+          AddInclude('src/AEMach.pas');
+          AddInclude('src/AXTextAttributedString.pas');
+          AddInclude('src/AXValue.pas');
+          AddInclude('src/AudioHardwareBase.pas');
+          AddInclude('src/AuthSession.pas');
+          AddInclude('src/BackupCore.pas');
+          AddInclude('src/CFArray.pas');
+          AddInclude('src/CFBag.pas');
+          AddInclude('src/CFCharacterSet.pas');
+          AddInclude('src/CFLocale.pas');
+          AddInclude('src/CFNumberFormatter.pas');
+          AddInclude('src/CFString.pas');
+          AddInclude('src/CFStringTokenizer.pas');
+          AddInclude('src/CFTimeZone.pas');
+          AddInclude('src/CFUUID.pas');
+          AddInclude('src/CGAffineTransforms.pas');
+          AddInclude('src/CGImageMetadata.pas');
+          AddInclude('src/CGLCurrent.pas');
+          AddInclude('src/CGLDevice.pas');
+          AddInclude('src/CGPDFArray.pas');
+          AddInclude('src/CGPDFContentStream.pas');
+          AddInclude('src/CGPDFDictionary.pas');
+          AddInclude('src/CGPath.pas');
+          AddInclude('src/CSIdentityBase.pas');
+          AddInclude('src/CTFontDescriptor.pas');
+          AddInclude('src/CTParagraphStyle.pas');
+          AddInclude('src/CTTextTab.pas');
+          AddInclude('src/CVBuffer.pas');
+          AddInclude('src/CaptiveNetwork.pas');
+          AddInclude('src/ColorSyncProfile.pas');
+          AddInclude('src/ColorSyncTransform.pas');
+          AddInclude('src/Events.pas');
+          AddInclude('src/HITextLengthFilter.pas');
+          AddInclude('src/IOSurfaceAPI.pas');
+          AddInclude('src/MDItem.pas');
+          AddInclude('src/MDQuery.pas');
+          AddInclude('src/MDSchema.pas');
+          AddInclude('src/MIDISetup.pas');
+          AddInclude('src/MacOpenGL.pas');
+          AddInclude('src/Notification.pas');
+          AddInclude('src/PMDefinitions.pas');
+          AddInclude('src/PMErrors.pas');
+          AddInclude('src/Palettes.pas');
+          AddInclude('src/PictUtils.pas');
+          AddInclude('src/QDOffscreen.pas');
+          AddInclude('src/Scrap.pas');
+          AddInclude('src/SecTrust.pas');
+          AddInclude('src/TypeSelect.pas');
+          AddInclude('src/ABAddressBook.pas');
+          AddInclude('src/CFAttributedString.pas');
+          AddInclude('src/CFCalendar.pas');
+          AddInclude('src/CFDateFormatter.pas');
+          AddInclude('src/CFRunLoop.pas');
+          AddInclude('src/CFSocket.pas');
+          AddInclude('src/CSIdentity.pas');
+          AddInclude('src/CSIdentityQuery.pas');
+          AddInclude('src/CTFontCollection.pas');
+          AddInclude('src/ColorSyncDevice.pas');
+          AddInclude('src/DASession.pas');
+          AddInclude('src/FSEvents.pas');
+          AddInclude('src/SCNetworkConnection.pas');
+          AddInclude('src/SCNetworkReachability.pas');
+          AddInclude('src/ABActions.pas');
+          AddInclude('src/AudioHardware.pas');
+          AddInclude('src/AudioHardwareDeprecated.pas');
+          AddInclude('src/CFMachPort.pas');
+          AddInclude('src/CFMessagePort.pas');
+          AddInclude('src/CGRemoteOperation.pas');
+          AddInclude('src/DADisk.pas');
+          AddInclude('src/Files.pas');
+          AddInclude('src/Folders.pas');
+          AddInclude('src/ICAApplication.pas');
+          AddInclude('src/ICADevice.pas');
+          AddInclude('src/LowMem.pas');
+          AddInclude('src/Processes.pas');
+          AddInclude('src/Resources.pas');
+          AddInclude('src/SpeechRecognition.pas');
+          AddInclude('src/SystemSound.pas');
+          AddInclude('src/ATSTypes.pas');
+          AddInclude('src/AXUIElement.pas');
+          AddInclude('src/Aliases.pas');
+          AddInclude('src/AppleHelp.pas');
+          AddInclude('src/CFURL.pas');
+          AddInclude('src/CFURLAccess.pas');
+          AddInclude('src/CFUserNotification.pas');
+          AddInclude('src/CFXMLNode.pas');
+          AddInclude('src/CFXMLParser.pas');
+          AddInclude('src/CGDataConsumer.pas');
+          AddInclude('src/CGDataProvider.pas');
+          AddInclude('src/CGEventTypes.pas');
+          AddInclude('src/CGFont.pas');
+          AddInclude('src/CGPDFDocument.pas');
+          AddInclude('src/CGPDFPage.pas');
+          AddInclude('src/CGPSConverter.pas');
+          AddInclude('src/CTFontManager.pas');
+          AddInclude('src/CarbonEventsCore.pas');
+          AddInclude('src/ColorSyncDeprecated.pas');
+          AddInclude('src/Components.pas');
+          AddInclude('src/Fonts.pas');
+          AddInclude('src/IconsCore.pas');
+          AddInclude('src/InternetConfig.pas');
+          AddInclude('src/LSInfo.pas');
+          AddInclude('src/LSOpen.pas');
+          AddInclude('src/LSSharedFileList.pas');
+          AddInclude('src/MDLineage.pas');
+          AddInclude('src/PMCoreDeprecated.pas');
+          AddInclude('src/Pasteboard.pas');
+          AddInclude('src/SpeechSynthesis.pas');
+          AddInclude('src/TextInputSources.pas');
+          AddInclude('src/ToolUtils.pas');
+          AddInclude('src/TranslationExtensions.pas');
+          AddInclude('src/TranslationServices.pas');
+          AddInclude('src/UTType.pas');
+          AddInclude('src/WSMethodInvocation.pas');
+          AddInclude('src/WSProtocolHandler.pas');
+          AddInclude('src/ABPeoplePicker.pas');
+          AddInclude('src/AEInteraction.pas');
+          AddInclude('src/ATSLayoutTypes.pas');
+          AddInclude('src/ATSUnicodeTypes.pas');
+          AddInclude('src/AudioComponents.pas');
+          AddInclude('src/CFBundle.pas');
+          AddInclude('src/CFHTTPMessage.pas');
+          AddInclude('src/CFPlugIn.pas');
+          AddInclude('src/CFPlugInCOM.pas');
+          AddInclude('src/CFStream.pas');
+          AddInclude('src/CGColorSpace.pas');
+          AddInclude('src/CGEventSource.pas');
+          AddInclude('src/CGGradient.pas');
+          AddInclude('src/CGImage.pas');
+          AddInclude('src/CGImageSource.pas');
+          AddInclude('src/CGShading.pas');
+          AddInclude('src/CGWindow.pas');
+          AddInclude('src/CMCalibrator.pas');
+          AddInclude('src/CVImageBuffer.pas');
+          AddInclude('src/CVOpenGLBuffer.pas');
+          AddInclude('src/CVOpenGLBufferPool.pas');
+          AddInclude('src/CVOpenGLTexture.pas');
+          AddInclude('src/CVOpenGLTextureCache.pas');
+          AddInclude('src/CVPixelBuffer.pas');
+          AddInclude('src/CVPixelBufferIOSurface.pas');
+          AddInclude('src/CVPixelBufferPool.pas');
+          AddInclude('src/CVPixelFormatDescription.pas');
+          AddInclude('src/CodeFragments.pas');
+          AddInclude('src/ColorPicker.pas');
+          AddInclude('src/ColorSyncCMM.pas');
+          AddInclude('src/FontSync.pas');
+          AddInclude('src/HIObject.pas');
+          AddInclude('src/KeychainCore.pas');
+          AddInclude('src/KeychainHI.pas');
+          AddInclude('src/MDExternalDatastore.pas');
+          AddInclude('src/MDImporter.pas');
+          AddInclude('src/MIDIDriver.pas');
+          AddInclude('src/NSLCore.pas');
+          AddInclude('src/OpenTransportProtocol.pas');
+          AddInclude('src/QLThumbnailImage.pas');
+          AddInclude('src/Translation.pas');
+          AddInclude('src/URLAccess.pas');
+          AddInclude('src/ATSUnicodeDirectAccess.pas');
+          AddInclude('src/ATSUnicodeDrawing.pas');
+          AddInclude('src/ATSUnicodeFlattening.pas');
+          AddInclude('src/ATSUnicodeFonts.pas');
+          AddInclude('src/ATSUnicodeGlyphs.pas');
+          AddInclude('src/ATSUnicodeObjects.pas');
+          AddInclude('src/AUComponent.pas');
+          AddInclude('src/AppleEvents.pas');
+          AddInclude('src/AudioCodecs.pas');
+          AddInclude('src/AudioOutputUnit.pas');
+          AddInclude('src/AudioUnitProperties.pas');
+          AddInclude('src/AuthorizationDB.pas');
+          AddInclude('src/CFFTPStream.pas');
+          AddInclude('src/CFHTTPAuthentication.pas');
+          AddInclude('src/CFHTTPStream.pas');
+          AddInclude('src/CFHost.pas');
+          AddInclude('src/CFNetDiagnostics.pas');
+          AddInclude('src/CFNetServices.pas');
+          AddInclude('src/CFPropertyList.pas');
+          AddInclude('src/CFProxySupport.pas');
+          AddInclude('src/CFSocketStream.pas');
+          AddInclude('src/CGColor.pas');
+          AddInclude('src/CGContext.pas');
+          AddInclude('src/CGDirectDisplay.pas');
+          AddInclude('src/CGDirectPalette.pas');
+          AddInclude('src/CGDisplayConfiguration.pas');
+          AddInclude('src/CGDisplayFades.pas');
+          AddInclude('src/CGEvent.pas');
+          AddInclude('src/CGGLContext.pas');
+          AddInclude('src/CGImageDestination.pas');
+          AddInclude('src/CGLayer.pas');
+          AddInclude('src/CGPDFContext.pas');
+          AddInclude('src/CGPattern.pas');
+          AddInclude('src/CTFont.pas');
+          AddInclude('src/CTFrame.pas');
+          AddInclude('src/CTGlyphInfo.pas');
+          AddInclude('src/CTLine.pas');
+          AddInclude('src/CTRun.pas');
+          AddInclude('src/CTStringAttributes.pas');
+          AddInclude('src/CTTypesetter.pas');
+          AddInclude('src/CVDisplayLink.pas');
+          AddInclude('src/Dialogs.pas');
+          AddInclude('src/Displays.pas');
+          AddInclude('src/Drag.pas');
+          AddInclude('src/DrawSprocket.pas');
+          AddInclude('src/HIArchive.pas');
+          AddInclude('src/ImageCompression.pas');
+          AddInclude('src/MusicDevice.pas');
+          AddInclude('src/NSL.pas');
+          AddInclude('src/PMApplication.pas');
+          AddInclude('src/PMApplicationDeprecated.pas');
+          AddInclude('src/PMCore.pas');
+          AddInclude('src/QDPictToCGContext.pas');
+          AddInclude('src/QLGenerator.pas');
+          AddInclude('src/QLThumbnail.pas');
+          AddInclude('src/Quickdraw.pas');
+          AddInclude('src/SCDynamicStore.pas');
+          AddInclude('src/SCDynamicStoreCopyDHCPInfos.pas');
+          AddInclude('src/SCDynamicStoreCopySpecific.pas');
+          AddInclude('src/SCPreferences.pas');
+          AddInclude('src/SCPreferencesPath.pas');
+          AddInclude('src/SCPreferencesSetSpecific.pas');
+          AddInclude('src/Sound.pas');
+          AddInclude('src/AEHelpers.pas');
+          AddInclude('src/AEObjects.pas');
+          AddInclude('src/AEPackObject.pas');
+          AddInclude('src/AERegistry.pas');
+          AddInclude('src/ASRegistry.pas');
+          AddInclude('src/ATSFont.pas');
+          AddInclude('src/Appearance.pas');
+          AddInclude('src/CFPreferences.pas');
+          AddInclude('src/CGBitmapContext.pas');
+          AddInclude('src/CTFramesetter.pas');
+          AddInclude('src/CoreFoundation.pas');
+          AddInclude('src/CoreGraphics.pas');
+          AddInclude('src/CoreText.pas');
+          AddInclude('src/Dictionary.pas');
+          AddInclude('src/FontPanel.pas');
+          AddInclude('src/LanguageAnalysis.pas');
+          AddInclude('src/Menus.pas');
+          AddInclude('src/Movies.pas');
+          AddInclude('src/MoviesFormat.pas');
+          AddInclude('src/OSA.pas');
+          AddInclude('src/OSAGeneric.pas');
+          AddInclude('src/PMPrintAETypes.pas');
+          AddInclude('src/QuickTimeMusic.pas');
+          AddInclude('src/SCNetworkConfiguration.pas');
+          AddInclude('src/AppleScript.pas');
+          AddInclude('src/CarbonEvents.pas');
+          AddInclude('src/FinderRegistry.pas');
+          AddInclude('src/HIShape.pas');
+          AddInclude('src/HIToolbar.pas');
+          AddInclude('src/Icons.pas');
+          AddInclude('src/ImageCodec.pas');
+          AddInclude('src/MacApplication.pas');
+          AddInclude('src/MacWindows.pas');
+          AddInclude('src/MediaHandlers.pas');
+          AddInclude('src/Navigation.pas');
+          AddInclude('src/QuickTimeComponents.pas');
+          AddInclude('src/QuickTimeStreaming.pas');
+          AddInclude('src/QuickTimeVR.pas');
+          AddInclude('src/QuickTimeVRFormat.pas');
+          AddInclude('src/TextServices.pas');
+          AddInclude('src/ASDebugging.pas');
+          AddInclude('src/AudioUnitCarbonViews.pas');
+          AddInclude('src/Controls.pas');
+          AddInclude('src/HIAccessibility.pas');
+          AddInclude('src/HIButtonViews.pas');
+          AddInclude('src/HIClockView.pas');
+          AddInclude('src/HIContainerViews.pas');
+          AddInclude('src/HILittleArrows.pas');
+          AddInclude('src/HIPopupButton.pas');
+          AddInclude('src/HIProgressViews.pas');
+          AddInclude('src/HIRelevanceBar.pas');
+          AddInclude('src/HISeparator.pas');
+          AddInclude('src/HITabbedView.pas');
+          AddInclude('src/HITheme.pas');
+          AddInclude('src/HIToolboxDebugging.pas');
+          AddInclude('src/HIView.pas');
+          AddInclude('src/HIWindowViews.pas');
+          AddInclude('src/HTMLRendering.pas');
+          AddInclude('src/Lists.pas');
+          AddInclude('src/MacHelp.pas');
+          AddInclude('src/MacTextEditor.pas');
+          AddInclude('src/QTSMovie.pas');
+          AddInclude('src/QTStreamingComponents.pas');
+          AddInclude('src/TSMTE.pas');
+          AddInclude('src/ControlDefinitions.pas');
+          AddInclude('src/HIComboBox.pas');
+          AddInclude('src/HIDataBrowser.pas');
+          AddInclude('src/HIDisclosureViews.pas');
+          AddInclude('src/HIImageViews.pas');
+          AddInclude('src/HIMenuView.pas');
+          AddInclude('src/HIMovieView.pas');
+          AddInclude('src/HIScrollView.pas');
+          AddInclude('src/HISearchField.pas');
+          AddInclude('src/HISegmentedView.pas');
+          AddInclude('src/HISlider.pas');
+          AddInclude('src/HITextViews.pas');
+          AddInclude('src/IBCarbonRuntime.pas');
+          AddInclude('src/HIToolbox.pas');
+          AddInclude('src/ObjCRuntime.pas');
+        end;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('controldemo.pas');

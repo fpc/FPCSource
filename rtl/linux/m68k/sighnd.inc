@@ -47,10 +47,12 @@ const
 
 Procedure ResetFPU;
 begin
+{$ifdef CPU68020}
   asm
     fmove.l fpucw,fpcr
     fmove.l fpust,fpsr
   end;
+{$endif}
 end;
 
 

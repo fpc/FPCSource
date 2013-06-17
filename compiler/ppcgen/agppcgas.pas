@@ -544,7 +544,7 @@ unit agppcgas;
          asmcmd: '-o $OBJ $ASM';
 {$endif cpu64bitaddr}
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
-         flags : [af_allowdirect,af_needar,af_smartlink_sections];
+         flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
          dollarsign: '$';
@@ -559,7 +559,7 @@ unit agppcgas;
          asmbin : 'as';
          asmcmd : '-o $OBJ $ASM -arch $ARCH';
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
-         flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+         flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
          comment : '# ';
          dollarsign : '$';

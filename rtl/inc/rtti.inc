@@ -17,12 +17,14 @@
 { the tk* constants are now declared in system.inc }
 
 type
-  TRTTIProc=procedure(Data,TypeInfo:Pointer);
-
   PRecordElement=^TRecordElement;
   TRecordElement=packed record
     TypeInfo: Pointer;
+    {$ifdef VER2_6}
     Offset: Longint;
+    {$else}
+    Offset: SizeInt;
+    {$endif}
   end;
 
   PRecordInfo=^TRecordInfo;
@@ -34,16 +36,21 @@ type
 
   PArrayInfo=^TArrayInfo;
   TArrayInfo=packed record
-    ElSize: SizeInt;
+    Size: SizeInt;
     ElCount: SizeInt;
     ElInfo: Pointer;
+    DimCount: Byte;
+    Dims:array[0..255] of Pointer;
   end;
-
 
 function RTTIArraySize(typeInfo: Pointer): SizeInt;
 begin
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
-  result:=PArrayInfo(typeInfo)^.ElSize * PArrayInfo(typeInfo)^.ElCount;
+  {$ifdef VER2_6}
+  result:=PArrayInfo(typeInfo)^.Size*PArrayInfo(typeInfo)^.ElCount;
+  {$else}
+  result:=PArrayInfo(typeInfo)^.Size;
+  {$endif}
 end;
 
 function RTTIRecordSize(typeInfo: Pointer): SizeInt;
@@ -83,23 +90,41 @@ begin
   { Process elements }
   for i:=1 to count Do
     begin
-      rttiproc (Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
+      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
       Inc(PRecordElement(typeInfo));
     end;
 end;
 
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
+{$ifdef VER2_6}
 procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 var
-  i : SizeInt;
+  i: SizeInt;
 begin
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
   { Process elements }
   for I:=0 to PArrayInfo(typeInfo)^.ElCount-1 do
-    rttiproc(Data+(I*PArrayInfo(typeInfo)^.ElSize),PArrayInfo(typeInfo)^.ElInfo);
+    rttiproc(Data+(I*PArrayInfo(typeInfo)^.Size),PArrayInfo(typeInfo)^.ElInfo);
 end;
-
+{$else}
+procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
+var  
+  i,Count,ElSize: SizeInt;
+  Info: Pointer;
+begin
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  Count:=PArrayInfo(typeInfo)^.ElCount;
+  { no elements to process => exit }
+  if Count = 0 then
+    Exit;
+  ElSize:=PArrayInfo(typeInfo)^.Size div Count;
+  Info:=PArrayInfo(typeInfo)^.ElInfo;
+  { Process elements }
+  for I:=0 to Count-1 do
+    rttiproc(Data+(I*ElSize),Info);
+end;
+{$endif}
 
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
@@ -207,14 +232,13 @@ Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external n
 
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
-  ArrayInfo: PArrayInfo;
-  Temp : pbyte;
+  Temp: pbyte;
   copiedsize,
   expectedoffset,
   count,
   offset,
-  i : SizeInt;
-  info : pointer;
+  i: SizeInt;
+  info: pointer;
 begin
   result:=sizeof(pointer);
   case PByte(TypeInfo)^ of
@@ -232,11 +256,28 @@ begin
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin
-        ArrayInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+        Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+      {$ifdef VER2_6}
         { Process elements }
-        for I:=0 to ArrayInfo^.ElCount-1 do
-          fpc_Copy_internal(Src+(I*ArrayInfo^.ElSize),Dest+(I*ArrayInfo^.ElSize),ArrayInfo^.ElInfo);
-        Result:=ArrayInfo^.ElSize*ArrayInfo^.ElCount;
+        for I:=0 to PArrayInfo(Temp)^.ElCount-1 do
+          fpc_Copy_internal(Src+(I*PArrayInfo(Temp)^.Size),Dest+(I*PArrayInfo(Temp)^.Size),PArrayInfo(Temp)^.ElInfo);
+        Result:=PArrayInfo(Temp)^.Size*PArrayInfo(Temp)^.ElCount;
+      {$else}
+        Result:=PArrayInfo(Temp)^.Size;
+        Count:=PArrayInfo(Temp)^.ElCount;
+        { no elements to process => exit }
+        if Count = 0 then
+          Exit;
+        Info:=PArrayInfo(Temp)^.ElInfo;
+        copiedsize:=Result div Count;
+        Offset:=0;
+        { Process elements }
+        for I:=1 to Count do
+          begin
+            fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+            inc(Offset,copiedsize);
+          end;
+      {$endif}
       end;
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkobject,

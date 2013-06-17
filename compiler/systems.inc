@@ -48,7 +48,8 @@
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
-             cpu_jvm                       { 14 }
+             cpu_jvm,                      { 14 }
+             cpu_i8086                     { 15 }
        );
 
        tasmmode= (asmmode_none
@@ -65,6 +66,8 @@
             ,asmmode_x86_64_intel
             ,asmmode_x86_64_att
             ,asmmode_avr_gas
+            ,asmmode_i8086_intel
+            ,asmmode_i8086_att
        );
 
      (* IMPORTANT NOTE:
@@ -153,7 +156,10 @@
              system_powerpc_aix,        { 73 }
              system_powerpc64_aix,      { 74 }
              system_jvm_java32,         { 75 }
-             system_jvm_android32       { 76 }
+             system_jvm_android32,      { 76 }
+             system_arm_android,        { 77 }
+             system_i386_android,       { 78 }
+             system_i8086_msdos         { 79 }
        );
 
      type
@@ -196,6 +202,7 @@
             ,ar_mpw_ar
             ,ar_gnu_ar_scripted
             ,ar_gnu_gar
+            ,ar_watcom_wlib_omf
        );
 
        tres = (res_none

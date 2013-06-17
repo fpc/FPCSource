@@ -177,7 +177,7 @@ end;
 
 const StackErr : boolean = false;
 
-procedure int_stackcheck(stack_size:Cardinal);[public,alias:'FPC_STACKCHECK'];
+procedure int_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve all registers

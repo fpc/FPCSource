@@ -349,12 +349,18 @@ interface
                 location.reference.base := left.location.register;
             end;
           LOC_REFERENCE,
-          LOC_CREFERENCE :
+          LOC_CREFERENCE,
+          { tricky type casting of parameters can cause these locations, see tb0593.pp on x86_64-linux }
+          LOC_SUBSETREG,
+          LOC_CSUBSETREG,
+          LOC_SUBSETREF,
+          LOC_CSUBSETREF:
             begin
               location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
-              location_freetemp(current_asmdata.CurrAsmList,left.location);
+              if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
             end;
           else
             internalerror(2002032216);
@@ -401,11 +407,12 @@ interface
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
+             left.resultdef:=resultdef;
            end;
 {$endif x86}
          { ARM VFP values are in integer registers when they are function results }
          if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-           location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+           hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -421,7 +428,7 @@ interface
                     end;
                   LOC_MMREGISTER:
                     begin
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                       cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,mms_movescalar);
                     end
@@ -436,7 +443,7 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location,location.register,mms_movescalar)
+                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
@@ -486,8 +493,44 @@ interface
         if tabstractprocdef(resultdef).is_addressonly then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+            { only a code pointer? (when taking the address of classtype.method
+              we also only get a code pointer even though the resultdef is a
+              procedure of object, and hence is_addressonly would return false)
+             }
+	    if left.location.size = OS_ADDR then
+              begin
+                case left.location.loc of
+                  LOC_REFERENCE,LOC_CREFERENCE:
+                    begin
+                      { the procedure symbol is encoded in reference.symbol -> take address }
+                      location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+                    end;
+                  else
+                    internalerror(2013031501)
+                end;
+              end
+            else
+              begin
+                { conversion from a procedure of object/nested procvar to plain procvar }
+                case left.location.loc of
+                  LOC_REFERENCE,LOC_CREFERENCE:
+                    begin
+                      location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      { code field is the first one }
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                    end;
+                  LOC_REGISTER,LOC_CREGISTER:
+                    begin
+                      if target_info.endian=endian_little then
+                        location.register:=left.location.register
+                      else
+                        location.register:=left.location.registerhi;
+                    end;
+                  else
+                    internalerror(2013031502)
+                end;
+              end;
           end
         else
           begin
@@ -497,6 +540,8 @@ interface
               begin
                 { assigning a global function to a nested procvar -> create
                   tmethodpointer record and set the "frame pointer" to nil }
+                if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                  internalerror(2013031503);
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
                 tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -513,9 +558,9 @@ interface
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
-
+    {$ifdef jvm}
     var r:Treference;
-
+    {$endif}
     begin
 {$ifdef jvm}
 {$ifndef nounsupported}

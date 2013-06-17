@@ -142,7 +142,7 @@ interface
 
 {$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
-{$WARNING TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
+{$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
 {$ELSE}
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
@@ -708,6 +708,8 @@ end;
         P: PChar;
       begin
         Result := s;
+        { make result unique since we're going to change it via a pchar }
+        uniquestring(result);
         L := Length(Result);
         if L=0 then
           exit;
@@ -1201,6 +1203,14 @@ end;
        StartPos, EndPos, L: LongInt;
      begin
        Result:=False;
+
+       if (path_absolute(f)) then
+         begin
+           Result:=FileExistsNonCase('',f, allowcache, foundfile);
+           if Result then
+             Exit;
+         end;
+
        StartPos := 1;
        L := Length(Path);
        repeat

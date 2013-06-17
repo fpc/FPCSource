@@ -231,11 +231,7 @@ procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByt
 function fpc_ansistr_setchar(const s: RawByteString; const index: longint; const ch: ansichar): RawByteString; compilerproc;
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : jlobject); compilerproc;
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
-{$endif VER2_4}
+//Procedure fpc_AnsiStr_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 
 { special declaration for the JVM }
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
@@ -280,13 +276,7 @@ procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: Ra
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
-//Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
+//Procedure fpc_UnicodeStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
@@ -350,26 +340,26 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 
 { all var rather than out, because they must not be trashed/finalized as they
   can appear inside the other arguments of writerstr }
-function fpc_SetupWriteStr_Shortstr(var s: shortstring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Shortstr(var ReadWriteStrText: text; var s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupWriteStr_Ansistr(var s: ansistring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupWriteStr_Unicodestr(var s: unicodestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Unicodestr(var ReadWriteStrText: text; var s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupWriteStr_Widestr(var s: widestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Widestr(var ReadWriteStrText: text; var s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
+procedure fpc_SetupReadStr_Shortstr(var ReadWriteStrText: text; const s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; compilerproc;
+procedure fpc_SetupReadStr_Ansistr(var ReadWriteStrText: text; const s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupReadStr_Unicodestr(const s: unicodestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
@@ -512,6 +502,7 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 function fpc_GetExceptionAddr : Pointer; compilerproc;
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
+function fpc_safecallcheck(res : hresult) : hresult; compilerproc; {$ifdef CPU86} register; {$endif}
 procedure fpc_doneexception; compilerproc;
 procedure fpc_raise_nested; compilerproc;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
@@ -524,10 +515,10 @@ procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compile
 {$endif FPC_HAS_FEATURE_OBJECTS}
 
 
-{$ifdef dummy}
-procedure fpc_check_object(obj:pointer); compilerproc;
+(*
+procedure fpc_check_object(_vmt:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
-{$endif dummy}
+*)
 
 (*
 {$ifdef FPC_HAS_FEATURE_RTTI}
@@ -636,6 +627,9 @@ procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
 (*
 procedure fpc_iocheck; compilerproc;
+{$ifndef FPC_NO_GENERIC_STACK_CHECK}
+procedure fpc_stackcheck(stack_size:SizeUInt); compilerproc;
+{$endif}
 
 procedure fpc_InitializeUnits; compilerproc;
 // not generated by compiler, called directly in system unit

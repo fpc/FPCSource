@@ -71,7 +71,7 @@ interface
        end;
 
        tasmflags = (af_none,
-         af_outputbinary,af_allowdirect,
+         af_outputbinary,
          af_needar,af_smartlink_sections,
          af_labelprefix_only_inside_procedure,
          af_supports_dwarf,
@@ -153,7 +153,10 @@ interface
             tf_safecall_clearstack,             // With this flag set, after safecall calls the caller cleans up the stack
             tf_safecall_exceptions,             // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
                                                 // The original result (if it exists) is passed as an extra parameter
-            tf_no_backquote_support
+            tf_no_backquote_support,
+            { do not generate an object file when smartlinking is turned on,
+              this is usefull for architectures which require a small code footprint }
+            tf_no_objectfiles_when_smartlinking
        );
 
        psysteminfo = ^tsysteminfo;
@@ -212,11 +215,17 @@ interface
           abi          : tabi;
        end;
 
+    tabiinfo = record
+      name: string[10];
+      supported: boolean;
+    end;
+
     const
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
        systems_wince = [system_arm_wince,system_i386_wince];
+       systems_android = [system_arm_android, system_i386_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
@@ -296,21 +305,12 @@ interface
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_ia64_win64]+systems_linux;
+                                         system_ia64_win64]+systems_linux+systems_android;
 
        { all systems for which weak linking has been tested/is supported }
-       systems_weak_linking = systems_darwin + systems_solaris + systems_linux;
+       systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
-
-       {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-       { If anyone wants to use interrupt for
-         a specific target, add a
-         $define FPC_HAS_SYSTEMS_INTERRUPT_TABLE
-         to fpcdefs.inc to reactivate
-         the corresponding code }
-       systems_interrupt_table = [{system_arm_embedded}];
-       {$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
@@ -348,10 +348,16 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm');
+             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
 
-       abi2str : array[tabi] of string[10] =
-         ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
+       abiinfo : array[tabi] of tabiinfo = (
+         (name: 'DEFAULT'; supported: true),
+         (name: 'SYSV'   ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
+         (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
+         (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif})
+       );
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
@@ -743,10 +749,10 @@ begin
   when the define is the same as the source cpu then we use the source
   os, else we pick a default }
 {$ifdef i386}
-  {$ifdef cpu86}
+  {$ifdef cpui386}
     default_target(source_info.system);
     {$define default_target_set}
-  {$else cpu86}
+  {$else cpui386}
    {$ifdef linux}
     default_target(system_i386_linux);
     {$define default_target_set}
@@ -763,7 +769,11 @@ begin
     default_target(system_i386_darwin);
     {$define default_target_set}
    {$endif}
-  {$endif cpu86}
+   {$ifdef android}
+    {$define default_target_set}
+    default_target(system_i386_android);
+   {$endif}
+  {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
    default_target(system_i386_linux);
@@ -812,7 +822,7 @@ begin
 
 {$ifdef m68k}
   {$ifdef cpu68}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpu68}
     default_target(system_m68k_linux);
   {$endif cpu68}
@@ -893,6 +903,10 @@ begin
       {$define default_target_set}
       default_target(system_arm_linux);
     {$endif}
+    {$ifdef android}
+      {$define default_target_set}
+      default_target(system_arm_android);
+    {$endif}
     {$ifdef darwin}
       {$define default_target_set}
       default_target(system_arm_darwin);
@@ -919,6 +933,10 @@ begin
 {$ifdef jvm}
   default_target(system_jvm_java32);
 {$endif jvm}
+
+{$ifdef i8086}
+  default_target(system_i8086_msdos);
+{$endif i8086}
 end;
 
 

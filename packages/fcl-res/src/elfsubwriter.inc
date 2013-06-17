@@ -424,6 +424,7 @@ begin
       EM_PPC64  : begin RelocType:=R_PPC64_ADDR64;  SectionType:=SHT_RELA; end;
       EM_ALPHA  : begin RelocType:=R_ALPHA_REFQUAD; SectionType:=SHT_RELA; end;
       EM_IA_64  : begin RelocType:=R_IA64_DIR64LSB; SectionType:=SHT_RELA; end;
+      EM_MIPS   : begin RelocType:=R_MIPS_32;      SectionType:=SHT_RELA; end;
       else
         raise EElfResourceWriterUnknownMachineException.Create('');
     end;

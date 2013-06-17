@@ -87,11 +87,11 @@ Var
      Function ParamStr(Param : Integer) : Ansistring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-     Procedure MkDir(const s:ansistring);overload;
-     Procedure RmDir(const s:ansistring);overload;
-     Procedure ChDir(const s:ansistring);overload;
-{$endif FPC_HAS_FEATURE_FILEIO}
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+     Procedure MkDir(s:ansistring);overload;
+     Procedure RmDir(s:ansistring);overload;
+     Procedure ChDir(s:ansistring);overload;
+{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 
 {****************************************************************************
                              Resource strings.
@@ -244,22 +244,28 @@ end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure MkDir(const s:ansistring);[IOCheck];
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+{ xxDirPChar procedures can adjust directory separators in supplied string (at least
+  Windows implementation does so). Therefore full copy of argument is needed,
+  just passing by value isn't enough because it won't copy a string literal. }
+Procedure MkDir(s:ansistring);[IOCheck];
 begin
+  UniqueString(s);
   mkdirpchar(pchar(s),length(s));
 end;
 
-Procedure RmDir(const s:ansistring);[IOCheck];
+Procedure RmDir(s:ansistring);[IOCheck];
 begin
+  UniqueString(s);
   RmDirpchar(pchar(s),length(s));
 end;
 
-Procedure ChDir(const s:ansistring);[IOCheck];
+Procedure ChDir(s:ansistring);[IOCheck];
 begin
+  UniqueString(s);
   ChDirpchar(pchar(s),length(s));
 end;
-{$endif FPC_HAS_FEATURE_FILEIO}
+{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 
 {$ifdef FPC_HAS_FEATURE_RESOURCES}
 { ---------------------------------------------------------------------
@@ -302,7 +308,7 @@ Type
 
    TResourceStringTableList = Packed Record
      Count : ptrint;
-     Tables : Array[Word] of record
+     Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
        TableStart,
        TableEnd   : PResourceStringRecord;
      end;
@@ -318,7 +324,7 @@ Type
 
    TResStrInitTable = packed record
      Count: longint;
-     Tables: packed array[1..32767] of PResStrInitEntry;
+     Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
 
 var

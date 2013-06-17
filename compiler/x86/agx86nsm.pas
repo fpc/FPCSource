@@ -31,8 +31,13 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
+
+      { T386NasmAssembler }
+
       T386NasmAssembler = class(texternalassembler)
       private
+        function CodeSectionName: string;
+
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; op : tasmop);
@@ -42,6 +47,7 @@ interface
         procedure WriteAsmList;override;
         procedure WriteExternals;
         procedure WriteSmartExternals;
+        procedure WriteHeader;
       end;
 
 
@@ -64,7 +70,13 @@ interface
 
       nasm_regname_table : array[tregisterindex] of string[7] = (
         {r386nasm.inc contains the Nasm name of each register.}
+{$if defined(x86_64)}
+        {$fatal nasm support not yet implemented for x86_64 }
+{$elseif defined(i386)}
         {$i r386nasm.inc}
+{$elseif defined(i8086)}
+        {$i r8086nasm.inc}
+{$endif}
       );
 
     function nasm_regname(r:Tregister):string;
@@ -281,6 +293,18 @@ interface
                                T386NasmAssembler
  ****************************************************************************}
 
+
+    function T386NasmAssembler.CodeSectionName: string;
+      begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          result:=current_module.modulename^ + '_TEXT'
+        else
+{$endif}
+          result:='.text';
+      end;
+
+
     procedure T386NasmAssembler.WriteReference(var ref : treference);
       var
         first : boolean;
@@ -352,14 +376,33 @@ interface
                           (opcode = A_LSS) or (opcode = A_LFS) or
                           (opcode = A_LES) or (opcode = A_LDS) or
                          // (opcode = A_SHR) or (opcode = A_SHL) or
-                          (opcode = A_SAR) or (opcode = A_SAL) or
+                         // (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
                     AsmWrite(sizestr(s,dest));
                   WriteReference(o.ref^);
                 end
+{$ifdef i8086}
+              else if o.ref^.refaddr=addr_dgroup then
+                begin
+                  AsmWrite('dgroup');
+                end
+{$endif i8086}
               else
                 begin
+{$ifdef x86_64}
+                  asmwrite('qword ');
+{$endif}
+{$ifdef i386}
                   asmwrite('dword ');
+{$endif i386}
+{$ifdef i8086}
+                  if o.ref^.refaddr=addr_far then
+                    asmwrite('far ')
+                  else if o.ref^.refaddr=addr_seg then
+                    asmwrite('SEG ')
+                  else
+                    asmwrite('word ');
+{$endif i8086}
                   if assigned(o.ref^.symbol) then
                    begin
                     if SmartAsm then
@@ -385,20 +428,33 @@ interface
           top_reg :
             AsmWrite(nasm_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr=addr_no then
-              WriteReference(o.ref^)
+            if o.ref^.refaddr in [addr_no{$ifdef i8086},addr_far_ref{$endif}] then
+              begin
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far_ref then
+                  AsmWrite('far ');
+{$endif i8086}
+                WriteReference(o.ref^);
+              end
             else
               begin
+{ NEAR forces NASM to emit near jumps, which are 386+ }
+{$ifndef i8086}
                 if not(
                        (op=A_JCXZ) or (op=A_JECXZ) or
-{$ifdef x86_64}
+    {$ifdef x86_64}
                        (op=A_JRCXZ) or
-{$endif x86_64}
+    {$endif x86_64}
                        (op=A_LOOP) or (op=A_LOOPE) or
                        (op=A_LOOPNE) or (op=A_LOOPNZ) or
                        (op=A_LOOPZ)
                       ) then
                   AsmWrite('NEAR ');
+{$endif i8086}
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far then
+                  AsmWrite('far ');
+{$endif i8086}
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
@@ -487,6 +543,8 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           AsmWrite('.data')
+        else if secnames[atype]='.text' then
+          AsmWrite(CodeSectionName)
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -521,6 +579,7 @@ interface
 {$ifdef cpuextended}
       e        : extended;
 {$endif cpuextended}
+      fixed_opcode: TAsmOp;
     begin
       if not assigned(p) then
        exit;
@@ -552,7 +611,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in current_settings.globalswitches) then
-                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+
+                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
                    regallocstr[tai_regalloc(hp).ratype]);
              end;
 
@@ -580,7 +639,7 @@ interface
 
            ait_datablock :
              begin
-               if tai_datablock(hp).is_global then
+               if tai_datablock(hp).is_global or SmartAsm then
                 begin
                   AsmWrite(#9'GLOBAL ');
                   AsmWriteLn(tai_datablock(hp).sym.name);
@@ -610,6 +669,28 @@ interface
                  aitconst_128bit:
                     begin
                     end;
+{$ifdef i8086}
+                 aitconst_farptr:
+                   begin
+                     AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         AsmWrite(tai_const(hp).sym.name);
+                         if tai_const(hp).value<>0 then
+                           AsmWrite(tostr_with_plus(tai_const(hp).value));
+                         AsmLn;
+                         AsmWrite(ait_const2str[aitconst_16bit]);
+                         AsmWrite('SEG ');
+                         AsmWrite(tai_const(hp).sym.name);
+                       end
+                     else
+                       AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
+                                tostr(hi(longint(tai_const(hp).value))));
+                     AsmLn;
+                   end;
+{$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
@@ -834,7 +915,14 @@ interface
            ait_label :
              begin
                if tai_label(hp).labsym.is_used then
-                AsmWriteLn(tai_label(hp).labsym.name+':');
+                 begin
+                   if SmartAsm and (tai_label(hp).labsym.bind=AB_GLOBAL) then
+                     begin
+                       AsmWrite(#9'GLOBAL ');
+                       AsmWriteLn(tai_label(hp).labsym.name);
+                     end;
+                   AsmWriteLn(tai_label(hp).labsym.name+':');
+                 end;
                if SmartAsm then
                  AddSymbol(tai_label(hp).labsym.name,true);
              end;
@@ -843,7 +931,7 @@ interface
              begin
                if tai_symbol(hp).has_value then
                  internalerror(2009090803);
-               if tai_symbol(hp).is_global then
+               if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   AsmWrite(#9'GLOBAL ');
                   AsmWriteLn(tai_symbol(hp).sym.name);
@@ -861,12 +949,12 @@ interface
 
            ait_instruction :
              begin
-               taicpu(hp).CheckNonCommutativeOpcodes;
+               fixed_opcode:=taicpu(hp).FixNonCommutativeOpcodes;
                { We need intel order, no At&t }
                taicpu(hp).SetOperandOrder(op_intel);
                s:='';
-               if ((taicpu(hp).opcode=A_FADDP) or
-                   (taicpu(hp).opcode=A_FMULP))
+               if ((fixed_opcode=A_FADDP) or
+                   (fixed_opcode=A_FMULP))
                   and (taicpu(hp).ops=0) then
                  begin
                    taicpu(hp).allocate_oper(2);
@@ -875,26 +963,28 @@ interface
                    taicpu(hp).oper[1]^.typ:=top_reg;
                    taicpu(hp).oper[1]^.reg:=NR_ST;
                  end;
-               if taicpu(hp).opcode=A_FWAIT then
+               if fixed_opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
+{$ifndef i8086}
                   { We need to explicitely set
                     word prefix to get selectors
                     to be pushed in 2 bytes  PM }
                   if (taicpu(hp).opsize=S_W) and
-                     ((taicpu(hp).opcode=A_PUSH) or
-                      (taicpu(hp).opcode=A_POP)) and
+                     ((fixed_opcode=A_PUSH) or
+                      (fixed_opcode=A_POP)) and
                       (taicpu(hp).oper[0]^.typ=top_reg) and
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
-                  AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
+{$endif not i8086}
+                  AsmWrite(#9#9+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
-                     if is_calljmp(taicpu(hp).opcode) then
+                     if is_calljmp(fixed_opcode) then
                       begin
                         AsmWrite(#9);
-                        WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opcode);
+                        WriteOper_jmp(taicpu(hp).oper[0]^,fixed_opcode);
                       end
                      else
                       begin
@@ -904,7 +994,7 @@ interface
                             AsmWrite(#9)
                            else
                             AsmWrite(',');
-                           WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,taicpu(hp).ops,(i=2));
+                           WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,taicpu(hp).ops,(i=2));
                          end;
                       end;
                    end;
@@ -933,6 +1023,7 @@ interface
                     AsmClose;
                     DoAssemble;
                     AsmCreate(tai_cutobject(hp).place);
+                    WriteHeader;
                   end;
                { avoid empty files }
                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
@@ -1009,6 +1100,45 @@ interface
           end;
       end;
 
+    procedure T386NasmAssembler.WriteHeader;
+      begin
+{$ifdef i8086}
+      AsmWriteLn('BITS 16');
+      case current_settings.cputype of
+        cpu_8086: AsmWriteLn('CPU 8086');
+        cpu_186: AsmWriteLn('CPU 186');
+        cpu_286: AsmWriteLn('CPU 286');
+        cpu_386: AsmWriteLn('CPU 386');
+        cpu_Pentium: AsmWriteLn('CPU PENTIUM');
+        cpu_Pentium2: AsmWriteLn('CPU P2');
+        cpu_Pentium3: AsmWriteLn('CPU P3');
+        cpu_Pentium4: AsmWriteLn('CPU P4');
+        cpu_PentiumM: AsmWriteLn('CPU P4');
+        else
+          internalerror(2013050101);
+      end;
+
+      AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
+      if current_settings.x86memorymodel in x86_near_data_models then
+        begin
+          { NASM complains if you put a missing section in the GROUP directive, so }
+          { we add empty declarations to make sure they exist, even if empty }
+          AsmWriteLn('SECTION .rodata');
+          AsmWriteLn('SECTION .data');
+          { WLINK requires class=bss in order to leave the BSS section out of the executable }
+          AsmWriteLn('SECTION .bss class=bss');
+          { group these sections in the same segment }
+          if current_settings.x86memorymodel=mm_tiny then
+            AsmWriteLn('GROUP dgroup text rodata data bss')
+          else
+            AsmWriteLn('GROUP dgroup rodata data bss');
+        end;
+      AsmWriteLn('SECTION ' + CodeSectionName);
+{$else i8086}
+      AsmWriteLn('BITS 32');
+{$endif i8086}
+      end;
+
 
     procedure T386NasmAssembler.WriteAsmList;
     var
@@ -1018,7 +1148,7 @@ interface
       if current_module.mainsource<>'' then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
-      AsmWriteLn('BITS 32');
+      WriteHeader;
       AsmLn;
 
       WriteExternals;
@@ -1055,7 +1185,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
             supported_targets : [system_i386_go32v2];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1068,7 +1198,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_targets : [system_i386_win32];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1080,8 +1210,8 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
-            supported_targets : [system_i386_embedded];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            supported_targets : [system_i386_embedded, system_i8086_msdos];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1094,7 +1224,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_targets : [system_i386_wdosx];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1108,7 +1238,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_linux];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1121,7 +1251,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_beos];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
@@ -1134,7 +1264,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_targets : [system_i386_haiku];
-            flags : [af_allowdirect,af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';

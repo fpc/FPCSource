@@ -1,9 +1,10 @@
 {	CFBase.h
-	Copyright (c) 1998-2009, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 { 		Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -80,6 +81,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -89,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -104,6 +107,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +117,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -276,6 +282,38 @@ const
 	kCFCoreFoundationVersionNumber10_5_5 = 476.15;
 const
 	kCFCoreFoundationVersionNumber10_5_6 = 476.17;
+const
+	kCFCoreFoundationVersionNumber10_5_7 = 476.18;
+const
+	kCFCoreFoundationVersionNumber10_5_8 = 476.19;
+const
+	kCFCoreFoundationVersionNumber10_6 = 550.00;
+const
+	kCFCoreFoundationVersionNumber10_6_1 = 550.00;
+const
+	kCFCoreFoundationVersionNumber10_6_2 = 550.13;
+const
+	kCFCoreFoundationVersionNumber10_6_3 = 550.19;
+const
+	kCFCoreFoundationVersionNumber10_6_4 = 550.29;
+const
+	kCFCoreFoundationVersionNumber10_6_5 = 550.42;
+const
+	kCFCoreFoundationVersionNumber10_6_6 = 550.42;
+const
+	kCFCoreFoundationVersionNumber10_6_7 = 550.42;
+const
+	kCFCoreFoundationVersionNumber10_6_8 = 550.43;
+const
+	kCFCoreFoundationVersionNumber10_7 = 635.00;
+const
+	kCFCoreFoundationVersionNumber10_7_1 = 635.00;
+const
+	kCFCoreFoundationVersionNumber10_7_2 = 635.15;
+const
+	kCFCoreFoundationVersionNumber10_7_3 = 635.19;
+const
+	kCFCoreFoundationVersionNumber10_7_4 = 635.21;
 {$endc}
 
 {$ifc TARGET_OS_IPHONE}
@@ -285,6 +323,24 @@ const
 	kCFCoreFoundationVersionNumber_iPhoneOS_2_1 = 478.26;
 const
 	kCFCoreFoundationVersionNumber_iPhoneOS_2_2 = 478.29;
+const
+	kCFCoreFoundationVersionNumber_iPhoneOS_3_0 = 478.47;
+const
+	kCFCoreFoundationVersionNumber_iPhoneOS_3_1 = 478.52;
+const
+	kCFCoreFoundationVersionNumber_iPhoneOS_3_2 = 478.61;
+const
+	kCFCoreFoundationVersionNumber_iOS_4_0 = 550.32;
+const
+	kCFCoreFoundationVersionNumber_iOS_4_1 = 550.38;
+const
+	kCFCoreFoundationVersionNumber_iOS_4_2 = 550.52;
+const
+	kCFCoreFoundationVersionNumber_iOS_4_3 = 550.52;
+const
+	kCFCoreFoundationVersionNumber_iOS_5_0 = 675;
+const
+	kCFCoreFoundationVersionNumber_iOS_5_1 = 690.1;
 {$endc}
 
 type
@@ -296,7 +352,7 @@ type
 
 { Base "type" of all "CF objects", and polymorphic functions on them }
 type
-	CFTypeRef = ^SInt32; { an opaque type }
+	CFTypeRef = UnivPtr; { an opaque type }
 	
 { GK: We need it for passing open arrays of CFTypes in MDQuery.pas }
 	CFTypeRefPtr = ^CFTypeRef;
@@ -368,7 +424,8 @@ var kCFNull: CFNullRef; external name '_kCFNull'; (* attribute const *)	// the s
    You should rarely use kCFAllocatorSystemDefault, the default default allocator.
 }
 type
-	CFAllocatorRef = ^SInt32; { an opaque 32-bit type }
+	CFAllocatorRef = ^__CFAllocator; { an opaque type }
+	__CFAllocator = record end;
 	CFAllocatorRefPtr = ^CFAllocatorRef;
 
 { This is a synonym for NULL, if you'd rather use a named constant. }
@@ -479,8 +536,10 @@ procedure CFRelease( cf: CFTypeRef ); external name '_CFRelease';
 
 function CFGetRetainCount( cf: CFTypeRef ): CFIndex; external name '_CFGetRetainCount';
 
+// This function is unavailable in ARC mode. Use CFBridgingRelease instead.
+{ CF_AUTOMATED_REFCOUNT_UNAVAILABLE }
 function CFMakeCollectable( cf: CFTypeRef ): CFTypeRef; external name '_CFMakeCollectable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) 
 
 function CFEqual( cf1: CFTypeRef; cf2: CFTypeRef ): Boolean; external name '_CFEqual';
 

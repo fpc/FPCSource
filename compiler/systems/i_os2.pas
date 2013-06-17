@@ -35,7 +35,7 @@ unit i_os2;
              resbin : '';
              rescmd : '';
              rcbin  : 'wrc';
-             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             rccmd  : '-r -zm -q -bt=os2 -dFPC -fo=$RES $RC';
              resourcefileclass : nil;
              resflags : [res_single_file];
           );
@@ -106,7 +106,7 @@ unit i_os2;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef os2}
     {$IFNDEF EMX}
       set_source_info(system_i386_os2_info);
@@ -115,5 +115,5 @@ initialization
       set_source_info(system_i386_os2_info);
     {$ENDIF VER1_0}
   {$endif os2}
-{$endif CPU86}
+{$endif CPUI386}
 end.

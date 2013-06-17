@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for FPDoc
+#
+
+[package]
+name=instantfpc
+version=2.7.1
+
+[install]
+fpcpackage=y
+
+[require]
+packages=fcl-process
+
+[target]
+programs=instantfpc
+
+[compiler]
+options=-S2h
+
+[default]
+fpcdir=../..
+
+[clean]
+units=instantfptools
+
+[rules]
+.NOTPARALLEL:
+fpdoc$(EXEEXT): instantfpc.pas instantfptools.pas
+

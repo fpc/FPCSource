@@ -42,6 +42,7 @@ Type
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
+	ParaIncludeCfgPath,
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
@@ -122,7 +123,7 @@ const
                         + [system_powerpc_morphos];
 
   { gprof (requires implementation of g_profilecode in the code generator) }
-  supported_targets_pg = [system_i386_linux,system_x86_64_linux]
+  supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
                         + [system_i386_win32]
                         + [system_powerpc_darwin,system_x86_64_darwin]
                         + [system_i386_GO32V2]
@@ -132,7 +133,8 @@ const
 
   suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
-                             + [system_i386_beos];
+                             + [system_i386_beos]
+                             + [system_m68k_amiga];
 
 {****************************************************************************
                                  Defines
@@ -210,36 +212,64 @@ begin
       end
      else if pos('$INSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for cpu:=low(tcputype) to high(tcputype) do
           begin
-            hs:=s;
-            hs1:=cputypestr[cpu];
-            if hs1<>'' then
+            if length(hs1+cputypestr[cpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$INSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if cputypestr[cpu]<>'' then
+              hs1:=hs1+cputypestr[cpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$INSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$FPUINSTRUCTIONSETS',s)>0 then
       begin
+        hs1:='';
         for fpu:=low(tfputype) to high(tfputype) do
           begin
-            hs:=s;
-            hs1:=fputypestr[fpu];
-            if hs1<>'' then
+            if length(hs1+fputypestr[fpu])>70 then
               begin
+                hs:=s;
                 Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
-              end;
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if fputypestr[fpu]<>'' then
+              hs1:=hs1+fputypestr[fpu];
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
           end;
       end
      else if pos('$ABITARGETS',s)>0 then
       begin
         for abi:=low(abi) to high(abi) do
           begin
+            if not abiinfo[abi].supported then
+              continue;
             hs:=s;
-            hs1:=abi2str[abi];
+            hs1:=abiinfo[abi].name;
             if hs1<>'' then
               begin
                 Replace(hs,'$ABITARGETS',hs1);
@@ -284,21 +314,29 @@ begin
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
         {$if defined(arm) or defined(avr)}
+        hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
-{           currently all whole program optimizations are platform-independent
-            if opt in supported_wpoptimizerswitches then
-}
+            if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
               begin
                 hs:=s;
-                hs1:=embedded_controllers[controllertype].ControllerTypeStr;
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$CONTROLLERTYPES',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end
+                Replace(hs,'$CONTROLLERTYPES',hs1);
+                Comment(V_Normal,hs);
+                hs1:=''
+              end
+            else
+              if hs1<>'' then
+                hs1:=hs1+',';
+            if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+              hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+          end;
+        if hs1<>'' then
+          begin
+            hs:=s;
+            Replace(hs,'$CONTROLLERTYPES',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
+          end;
         {$else defined(arm) or defined(avr)}
         {$endif defined(arm) or defined(avr)}
       end
@@ -361,6 +399,9 @@ begin
 {$endif}
 {$ifdef m68k}
       '6',
+{$endif}
+{$ifdef i8086}
+      '8',
 {$endif}
 {$ifdef arm}
       'A',
@@ -885,9 +926,9 @@ begin
                         if upper(copy(more,1,pos('=',more)-1))='PACKSET' then
                           begin
                             delete(more,1,pos('=',more));
-                            if more='0' then
+                            if (more='0') or (more='DEFAULT') or (more='NORMAL') then
                               init_settings.setalloc:=0
-                            else if (more='1') or (more='DEFAULT') or (more='NORMAL') then
+                            else if  more='1' then
                               init_settings.setalloc:=1
                             else if more='2' then
                               init_settings.setalloc:=2
@@ -941,7 +982,7 @@ begin
                          include(init_settings.moduleswitches,cs_create_smart);
                     'T' :
                       begin
-                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches) then
+                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
                           IllegalPara(opt);
                         break;
                       end;
@@ -1682,9 +1723,9 @@ begin
                         if target_info.system in systems_all_windows then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_native;
+                              SetApptype(app_native);
                           end
                         else
                           IllegalPara(opt);
@@ -1694,9 +1735,9 @@ begin
                         if target_info.system in systems_darwin then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_bundle
+                              SetApptype(app_bundle)
                           end
                         else
                           IllegalPara(opt);
@@ -1731,9 +1772,9 @@ begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_gui
+                              SetApptype(app_gui)
                             else
-                              apptype:=app_cui;
+                              SetApptype(app_cui);
                           end
                         else
                           IllegalPara(opt);
@@ -1764,9 +1805,9 @@ begin
                         if target_info.system in systems_os2 then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_fs;
+                              SetApptype(app_fs);
                           end
                         else
                           IllegalPara(opt);
@@ -1776,9 +1817,9 @@ begin
                         if target_info.system in systems_all_windows+systems_os2+systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_gui;
+                              SetApptype(app_gui);
                           end
                         else
                           IllegalPara(opt);
@@ -1800,6 +1841,25 @@ begin
                             set_target_res(res_macho);
                             target_info.resobjext:=
                               targetinfos[target_info.system]^.resobjext;
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
+                    'm':
+                      begin
+                        if (target_info.system in [system_i8086_msdos]) then
+                          begin
+                            case Upper(Copy(More,j+1,255)) of
+                              'TINY':    init_settings.x86memorymodel:=mm_tiny;
+                              'SMALL':   init_settings.x86memorymodel:=mm_small;
+                              'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
+                              'COMPACT',
+                              'LARGE',
+                              'HUGE': IllegalPara(opt); { these are not implemented yet }
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
                           end
                         else
                           IllegalPara(opt);
@@ -1864,9 +1924,9 @@ begin
                         if target_info.system in systems_macos then
                           begin
                             if UnsetBool(More, j, opt, false) then
-                              apptype:=app_cui
+                              SetApptype(app_cui)
                             else
-                              apptype:=app_tool;
+                              SetApptype(app_tool);
                           end
                         else
                           IllegalPara(opt);
@@ -1882,7 +1942,7 @@ begin
                           end
                         else
                           IllegalPara(opt);
-                      end
+                      end;
                     else
                       IllegalPara(opt);
                   end;
@@ -2101,24 +2161,31 @@ var
   line,
   level : longint;
   option_read : boolean;
+  oldfilemode : byte;
+  ConfigFile: TPathStr;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
   Option_read:=false;
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
+  if not ParaIncludeCfgPath.FindFile(fileName,true,ConfigFile) then
+    ConfigFile := ExpandFileName(filename);
 { Maybe It's Directory ?}   //Jaro Change:
-  if PathExists(filename,false) then
+  if PathExists(ConfigFile,false) then
     begin
        Message1(option_config_is_dir,filename);
        exit;
     end;
 { open file }
   Message1(option_using_file,filename);
-  assign(f,ExpandFileName(filename));
+  oldfilemode:=filemode;
+  filemode:=0;
+  assign(f,ConfigFile);
   {$push}{$I-}
    reset(f);
   {$pop}
+  filemode:=oldfilemode;
   if ioresult<>0 then
    begin
      Message1(option_unable_open_file,filename);
@@ -2225,6 +2292,14 @@ begin
                 begin
                   Delete(opts,1,1);
                   Interpret_file(opts);
+                  Option_read:=true;
+                end
+              else
+               if (s='CFGDIR') then
+                begin
+                  Delete(opts,1,1);
+                  DefaultReplacements(opts);
+                  ParaIncludeCfgPath.AddPath(opts,false);
                   Option_read:=true;
                 end;
             end;
@@ -2540,7 +2615,7 @@ begin
     system_jvm_java32,
     system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
-         f_variants,f_objects,f_threading,f_commandargs,
+         f_variants,f_objects,f_commandargs,
          f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
     else
       target_unsup_features:=[];
@@ -2594,6 +2669,7 @@ begin
   OptCPUSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
+  ParaIncludeCfgPath:=TSearchPathList.Create;
   ParaIncludePath:=TSearchPathList.Create;
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
@@ -2606,6 +2682,7 @@ end;
 
 destructor TOption.destroy;
 begin
+  ParaIncludeCfgPath.Free;
   ParaIncludePath.Free;
   ParaObjectPath.Free;
   ParaUnitPath.Free;
@@ -2687,8 +2764,8 @@ var
   abi : tabi;
 {$if defined(arm) or defined(avr)}
   cpuflag : tcpuflags;
-{$endif defined(arm) or defined(avr)}
   hs : string;
+{$endif defined(arm) or defined(avr)}
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -2727,7 +2804,9 @@ begin
 
 { target is set here, for wince the default app type is gui }
   if target_info.system in systems_wince then
-    apptype:=app_gui;
+    SetApptype(app_gui)
+  else
+    SetApptype(apptype);
 
 { default defines }
   def_system_macro(target_info.shortname);
@@ -2845,12 +2924,14 @@ begin
   def_system_macro('CPUX64');
   { not supported for now, afaik (FK)
    def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
-  { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+  { normally, win64 doesn't support the legacy fpu }
   if target_info.system=system_x86_64_win64 then
     begin
       def_system_macro('FPC_CURRENCY_IS_INT64');
       def_system_macro('FPC_COMP_IS_INT64');
     end;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 {$endif}
 {$ifdef sparc}
   def_system_macro('CPUSPARC');
@@ -2917,6 +2998,40 @@ begin
   def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
+{$ifdef i8086}
+  def_system_macro('CPU86');  { Borland compatibility }
+  def_system_macro('CPU87');  { Borland compatibility }
+  def_system_macro('CPU8086');
+  def_system_macro('CPUI8086');
+  def_system_macro('CPU16');
+  def_system_macro('FPC_HAS_TYPE_EXTENDED');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+{$endif i8086}
+
+  { Set up a default prefix for binutils when cross-compiling }
+  if source_info.system<>target_info.system then
+    case target_info.system of
+      { Use standard Android NDK prefixes }
+      system_arm_android:
+        utilsprefix:='arm-linux-androideabi-';
+      system_i386_android:
+        utilsprefix:='i686-linux-android-';
+    end;
+
+  { Set up default value for the heap }
+  if target_info.system in systems_embedded then
+    begin
+      case target_info.system of
+        system_avr_embedded:
+          heapsize:=128;
+        system_arm_embedded:
+          heapsize:=256;
+        else
+          heapsize:=256;
+      end;
+    end;
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
@@ -2970,8 +3085,8 @@ begin
 
   { define abi }
   for abi:=low(tabi) to high(tabi) do
-    undef_system_macro('FPC_ABI_'+abi2str[abi]);
-  def_system_macro('FPC_ABI_'+abi2str[target_info.abi]);
+    undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
+  def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
 
   { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
     systems since most code needs to behave the same on both}
@@ -3096,7 +3211,8 @@ begin
 
   { maybe override debug info format }
   if (paratargetdbg<>dbg_none) then
-    set_target_dbg(paratargetdbg);
+    if not set_target_dbg(paratargetdbg) then
+      Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in init_settings.globalswitches) and
@@ -3133,14 +3249,14 @@ begin
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$ifdef arm}
+{$if defined(arm) or defined (m68k)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm}
+{$endif arm or m68k}
   then
     begin
 {$ifdef cpufpemu}
       include(init_settings.moduleswitches,cs_fp_emulation);
-      { cs_fp_emulation and fpu_soft are equal on arm }
+      { cs_fp_emulation and fpu_soft are equal on arm and m68k }
       init_settings.fputype:=fpu_soft;
 {$endif cpufpemu}
     end;
@@ -3164,19 +3280,29 @@ begin
 {$endif arm}
 
 {$ifdef arm}
-{ set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
-  to VFPv2 }
-if (target_info.system=system_arm_darwin) then
-  begin
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv6;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv6;
-    if not option.FPUSetExplicitly then
-      init_settings.fputype:=fpu_vfpv2;
+  case target_info.system of
+    system_arm_darwin:
+      begin
+        { set default cpu type to ARMv6 for Darwin unless specified otherwise, and fpu
+          to VFPv2 }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv6;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv6;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_vfpv2;
+      end;
+    system_arm_android:
+      begin
+        { set default cpu type to ARMv5T for Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv5t;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv5t;
+      end;
   end;
 
-{ set default cpu type to ARMv7 for ARMHF unless specified otherwise }
+{ set default cpu type to ARMv7a for ARMHF unless specified otherwise }
 if (target_info.abi = abi_eabihf) then
   begin
 {$ifdef CPUARMV6}
@@ -3190,11 +3316,21 @@ if (target_info.abi = abi_eabihf) then
       init_settings.optimizecputype:=cpu_armv6;
 {$else CPUARMV6}
     if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv7;
+      init_settings.cputype:=cpu_armv7a;
     if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv7;
+      init_settings.optimizecputype:=cpu_armv7a;
 {$endif CPUARMV6}
   end;
+
+  if init_settings.cputype in cpu_thumb then
+    begin
+      def_system_macro('CPUTHUMB');
+      if not option.FPUSetExplicitly then
+        init_settings.fputype:=fpu_soft;
+    end;
+
+  if init_settings.cputype in cpu_thumb2 then
+    def_system_macro('CPUTHUMB2');
 {$endif arm}
 
 {$ifdef jvm}
@@ -3224,19 +3360,24 @@ if (target_info.abi = abi_eabihf) then
 
   if init_settings.fputype<>fpu_none then
     begin
-{$if defined(i386)}
+{$if defined(i386) or defined(i8086)}
       def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
+{$if defined(m68k)}
+      def_system_macro('FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE');
+{$endif}
 {$ifdef x86_64}
-      { win64 doesn't support the legacy fpu }
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+      { normally, win64 doesn't support the legacy fpu }
       if target_info.system=system_x86_64_win64 then
         undef_system_macro('FPC_HAS_TYPE_EXTENDED')
       else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
@@ -3246,10 +3387,10 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_USE_TLS_DIRECTORY');
 {$endif not DISABLE_TLS_DIRECTORY}
 
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
     if target_info.system=system_x86_64_win64 then
       def_system_macro('FPC_USE_WIN64_SEH');
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
@@ -3268,7 +3409,21 @@ if (target_info.abi = abi_eabihf) then
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
   if CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype] then
-    def_system_macro('FPC_HAS_INTERNAL_BSR');
+    begin
+      def_system_macro('FPC_HAS_INTERNAL_BSR');
+      if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
+        def_system_macro('FPC_HAS_INTERNAL_BSF');
+    end;
+{$endif}
+{$if defined(i8086)}
+  case init_settings.x86memorymodel of
+    mm_tiny:    def_system_macro('FPC_MM_TINY');
+    mm_small:   def_system_macro('FPC_MM_SMALL');
+    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+    mm_compact: def_system_macro('FPC_MM_COMPACT');
+    mm_large:   def_system_macro('FPC_MM_LARGE');
+    mm_huge:    def_system_macro('FPC_MM_HUGE');
+  end;
 {$endif}
 
 
@@ -3309,7 +3464,7 @@ if (target_info.abi = abi_eabihf) then
   Option:=nil;
 
   clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal];
-  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl];
+  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl, pocall_mwpascal];
   if (tf_safecall_clearstack in target_info.flags) then
     begin
       include (cdecl_pocalls, pocall_safecall);

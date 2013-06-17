@@ -73,6 +73,86 @@ CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
    IID_IPrint : TGUID = '{B722BCC9-4E68-101B-A2BC-00AA00404770}';
    IID_IOleCommandTarget : TGUID = '{B722BCCB-4E68-101B-A2BC-00AA00404770}';
+   LIBID_OC : TGUID = '{A6663F44-FC7D-4FC4-861A-37BA700330E3}';
+
+   IID_IEnumConnections : TGUID = '{B196B287-BAB4-101A-B69C-00AA00341D07}';
+   IID_IEnumConnectionPoints : TGUID = '{B196B285-BAB4-101A-B69C-00AA00341D07}';
+   IID_IConnectionPoint : TGUID = '{B196B286-BAB4-101A-B69C-00AA00341D07}';
+   IID_IConnectionPointContainer : TGUID = '{B196B284-BAB4-101A-B69C-00AA00341D07}';
+   IID_IClassFactory : TGUID = '{00000001-0000-0000-C000-000000000046}';
+   IID_IClassFactory2 : TGUID = '{B196B28F-BAB4-101A-B69C-00AA00341D07}';
+   IID_IProvideClassInfo : TGUID = '{B196B283-BAB4-101A-B69C-00AA00341D07}';
+   IID_ITypeInfo : TGUID = '{00020401-0000-0000-C000-000000000046}';
+   IID_ITypeComp : TGUID = '{00020403-0000-0000-C000-000000000046}';
+   IID_ITypeLib : TGUID = '{00020402-0000-0000-C000-000000000046}';
+   IID_IProvideClassInfo2 : TGUID = '{A6BC3AC0-DBAA-11CE-9DE3-00AA004BB851}';
+   IID_IProvideMultipleClassInfo : TGUID = '{A7ABA9C1-8983-11CF-8F20-00805F2CD064}';
+   IID_IOleControl : TGUID = '{B196B288-BAB4-101A-B69C-00AA00341D07}';
+   IID_IOleControlSite : TGUID = '{B196B289-BAB4-101A-B69C-00AA00341D07}';
+   IID_IPropertyPage : TGUID = '{B196B28D-BAB4-101A-B69C-00AA00341D07}';
+   IID_IPropertyPageSite : TGUID = '{B196B28C-BAB4-101A-B69C-00AA00341D07}';
+   IID_IPropertyPage2 : TGUID = '{01E44665-24AC-101B-84ED-08002B2EC713}';
+   IID_IPropertyNotifySink : TGUID = '{9BFBBC02-EFF1-101A-84ED-00AA00341D07}';
+   IID_ISpecifyPropertyPages : TGUID = '{B196B28B-BAB4-101A-B69C-00AA00341D07}';
+   IID_IPersist : TGUID = '{0000010C-0000-0000-C000-000000000046}';
+   IID_IPersistMemory : TGUID = '{BD1AE5E0-A6AE-11CE-BD37-504200C10000}';
+   IID_IPersistStreamInit : TGUID = '{7FD52380-4E07-101B-AE2D-08002B2EC713}';
+   IID_IStream : TGUID = '{0000000C-0000-0000-C000-000000000046}';
+   IID_ISequentialStream : TGUID = '{0C733A30-2A1C-11CE-ADE5-00AA0044773D}';
+   IID_IPersistPropertyBag : TGUID = '{37D84F60-42CB-11CE-8135-00AA004BB851}';
+   IID_IPropertyBag : TGUID = '{55272A00-42CB-11CE-8135-00AA004BB851}';
+   IID_IErrorLog : TGUID = '{3127CA40-446E-11CE-8135-00AA004BB851}';
+   IID_ISimpleFrameSite : TGUID = '{742B0E01-14E6-101B-914E-00AA00300CAB}';
+   IID_IFont : TGUID = '{BEF6E002-A874-101A-8BBA-00AA00300CAB}';
+   IID_IPicture : TGUID = '{7BF80980-BF32-101A-8BBB-00AA00300CAB}';
+   IID_IFontEventsDisp : TGUID = '{4EF6100A-AF88-11D0-9846-00C04FC29993}';
+   IID_IFontDisp : TGUID = '{BEF6E003-A874-101A-8BBA-00AA00300CAB}';
+   IID_IPictureDisp : TGUID = '{7BF80981-BF32-101A-8BBB-00AA00300CAB}';
+   IID_IAdviseSink : TGUID = '{0000010F-0000-0000-C000-000000000046}';
+   IID_IMoniker : TGUID = '{0000000F-0000-0000-C000-000000000046}';
+   IID_IPersistStream : TGUID = '{00000109-0000-0000-C000-000000000046}';
+   IID_IBindCtx : TGUID = '{0000000E-0000-0000-C000-000000000046}';
+   IID_IRunningObjectTable : TGUID = '{00000010-0000-0000-C000-000000000046}';
+   IID_IEnumMoniker : TGUID = '{00000102-0000-0000-C000-000000000046}';
+   IID_IEnumString : TGUID = '{00000101-0000-0000-C000-000000000046}';
+   IID_IAdviseSinkEx : TGUID = '{3AF24290-0C96-11CE-A0CF-00AA00600AB8}';
+   IID_IOleWindow : TGUID = '{00000114-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceObject : TGUID = '{00000113-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceObjectWindowless : TGUID = '{1C2056CC-5EF4-101B-8BC8-00AA003E3B29}';
+   IID_IDropTarget : TGUID = '{00000122-0000-0000-C000-000000000046}';
+   IID_IDataObject : TGUID = '{0000010E-0000-0000-C000-000000000046}';
+   IID_IEnumFORMATETC : TGUID = '{00000103-0000-0000-C000-000000000046}';
+   IID_IEnumSTATDATA : TGUID = '{00000105-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceSite : TGUID = '{00000119-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceFrame : TGUID = '{00000116-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceUIWindow : TGUID = '{00000115-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceActiveObject : TGUID = '{00000117-0000-0000-C000-000000000046}';
+   IID_IOleInPlaceSiteEx : TGUID = '{9C2CAD80-3424-11CF-B670-00AA004CD6D8}';
+   IID_IOleInPlaceSiteWindowless : TGUID = '{922EADA0-3424-11CF-B670-00AA004CD6D8}';
+   IID_IViewObject : TGUID = '{0000010D-0000-0000-C000-000000000046}';
+   IID_IViewObject2 : TGUID = '{00000127-0000-0000-C000-000000000046}';
+   IID_IViewObjectEx : TGUID = '{3AF24292-0C96-11CE-A0CF-00AA00600AB8}';
+   IID_IOleUndoUnit : TGUID = '{894AD3B0-EF97-11CE-9BC9-00AA00608E01}';
+   IID_IOleUndoManager : TGUID = '{D001F200-EF97-11CE-9BC9-00AA00608E01}';
+   IID_IOleParentUndoUnit : TGUID = '{A1FAF330-EF97-11CE-9BC9-00AA00608E01}';
+   IID_IEnumOleUndoUnits : TGUID = '{B3E7C340-EF97-11CE-9BC9-00AA00608E01}';
+   IID_IPointerInactive : TGUID = '{55980BA0-35AA-11CF-B671-00AA004CD6D8}';
+   IID_IObjectWithSite : TGUID = '{FC4801A3-2BA9-11CF-A229-00AA003D7352}';
+   IID_IPerPropertyBrowsing : TGUID = '{376BD3AA-3845-101B-84ED-08002B2EC713}';
+   IID_IPropertyBag2 : TGUID = '{22F55882-280B-11D0-A8A9-00A0C90C2004}';
+   IID_IPersistPropertyBag2 : TGUID = '{22F55881-280B-11D0-A8A9-00A0C90C2004}';
+   IID_IQuickActivate : TGUID = '{CF51ED10-62FE-11CF-BF86-00A0C9034836}';
+   IID_IOleClientSite : TGUID = '{00000118-0000-0000-C000-000000000046}';
+   IID_IOleContainer : TGUID = '{0000011B-0000-0000-C000-000000000046}';
+   IID_IParseDisplayName : TGUID = '{0000011A-0000-0000-C000-000000000046}';
+   IID_IEnumUnknown : TGUID = '{00000100-0000-0000-C000-000000000046}';
+   IID_IBindHost : TGUID = '{FC4801A1-2BA9-11CF-A229-00AA003D7352}';
+   IID_IBindStatusCallback : TGUID = '{79EAC9C1-BAF9-11CE-8C82-00AA004BA90B}';
+   IID_IBinding : TGUID = '{79EAC9C0-BAF9-11CE-8C82-00AA004BA90B}';
+   IID_IServiceProvider : TGUID = '{6D5140C1-7436-11CE-8034-00AA006009FA}';
+   IID_IOleControlTypes : TGUID = '{00000000-0000-0000-0000-000000000000}';
+   IID_IPicture2 : TGUID = '{F5185DD8-2012-4B0B-AAD9-F052C6BD482B}';
+
 
      // bit flags for IExternalConnection
 CONST
@@ -1361,6 +1441,7 @@ TYPE
 
    DVTARGETDEVICE               = TagDVTARGETDEVICE;
    PDVTARGETDEVICE              = ^tagDVTARGETDEVICE;
+   PTAGDVTARGETDEVICE           = PDVTARGETDEVICE;
    LPCLIPFORMAT                 = ^TCLIPFORMAT;
    TCLIPFORMAT                  = Word;
    CLIPFORMAT                   = TCLIPFORMAT;
@@ -2089,11 +2170,41 @@ TYPE
              end;
      PROPVARIANT=TPROPVARIANT;
      TagPROPVARIANT = TPROPVARIANT;
+
+
+     tagCONTROLINFO = packed record
+                        cb      : LongWord;
+                        hAccel  : wireHACCEL;
+                        cAccel  : Word;
+                        dwFlags : LongWord;
+                      end;
+     PtagCONTROLINFO = ^TagControlInfo;
+     PCONTROLINFO    = PtagCONTROLINFO;
+
+     PtagPOINTF = ^tagPOINTF;
+     tagPOINTF = packed record
+                  x : Single;
+                  y : Single;
+                  end;
+
+     tagPROPPAGEINFO = packed record
+                 cb : LongWord;
+                 pszTitle : PWideChar;
+                 size : tagSIZE;
+                 pszDocString : PWideChar;
+                 pszHelpFile : PWideChar;
+                 dwHelpContext : LongWord;
+                 end;
+     PtagCAUUID = ^tagCAUUID;
+
+     tagCAUUID = packed record
+                  cElems : LongWord;
+                  pElems : PGUID;
+                 end;
+
 // Unknwn.idl
 
 // IUnknown is in classesh.inc
-
-
 
    AsyncIUnknown = Interface(IUnknown)
       ['{000e0000-0000-0000-C000-000000000046}']
@@ -2211,7 +2322,7 @@ TYPE
      IEnumUnknown = Interface(IUnknown)
         ['{00000100-0000-0000-C000-000000000046}']
         //    pointer_default(unique)
-     Function Next(Celt:Ulong;out rgelt;out pCeltFetched:pulong):HRESULT;StdCall;
+     Function Next(Celt:Ulong; out rgelt;pCeltFetched:pulong):HRESULT;StdCall;
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
      Function Reset():HResult;
@@ -2280,6 +2391,32 @@ TYPE
        Function GetSizeMax(Out cbSize:ULarge_Integer):HResult; StdCall;
        End;
 
+     IPersistStreamInit = interface(IPersist)
+       ['{7FD52380-4E07-101B-AE2D-08002B2EC713}']
+       Function IsDirty:HResult;StdCall;
+       Function Load(pstm:IStream):HResult;StdCall;
+       Function Save(pstm:IStream;fClearDirty:Integer):HResult;StdCall;
+       Function GetSizeMax(out pCbSize:_ULARGE_INTEGER):HResult;StdCall;
+       Function InitNew:HResult;StdCall;
+       End;
+       // IPersistMemory :
+
+     IPersistMemory = interface(IPersist)
+       ['{BD1AE5E0-A6AE-11CE-BD37-504200C10000}']
+        // IsDirty :
+       function IsDirty:HResult;StdCall;
+        // Load :
+       function Load(var pMem:pointer;cbSize:LongWord):HResult;StdCall;
+        // Save :
+       function Save(out pMem:pointer;fClearDirty:Integer;cbSize:LongWord):HResult;StdCall;
+        // GetSizeMax :
+       function GetSizeMax(out pCbSize:LongWord):HResult;StdCall;
+        // InitNew :
+       function InitNew:HResult;StdCall;
+      end;
+
+
+
     PIMoniker = ^IMoniker;
     IMoniker = Interface (IPersistStream)
       ['{0000000f-0000-0000-C000-000000000046}']
@@ -2318,14 +2455,14 @@ TYPE
        End;
 
     ISequentialStream = Types.ISequentialStream;
-    {interface(IUnknown)
+    (*interface(IUnknown)
        ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
        function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;
        function Write(pv : Pointer;cb : ULONG;pcbWritten : PULONG): HRESULT;stdcall;
      end;
-    }
+    *)
 
-    { defined above by pulling it in from types IStream = interface(ISequentialStream)
+    (* defined above by pulling it in from types IStream = interface(ISequentialStream)
        ['{0000000C-0000-0000-C000-000000000046}']
        function Seek(dlibMove : LargeInt; dwOrigin: Longint;
             out libNewPosition : LargeInt): HResult; stdcall;
@@ -2341,7 +2478,7 @@ TYPE
        Function Stat(out statstg : TStatStg; grfStatFlag: Longint): HRESULT;stdcall;
        function Clone(out stm : IStream) : HRESULT; stdcall;
      end;
-    }
+    *)
     IEnumSTATSTG = Interface (IUnknown)
        ['{0000000d-0000-0000-C000-000000000046}']
         Function Next (Celt:ULong;Out xcelt;pceltfetched : PUlong):HResult; StdCall;
@@ -3005,7 +3142,7 @@ TYPE
       Function  LocalGetIDsOfNames():HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-     Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+     Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; pVarResult: PVARIANT; pExcepInfo: PEXCEPINFO; puArgErr: PUINT):HResult;StdCall;
      {$else}
      Function  LocalInvoke ():HResult;StdCall;
      {$endif}
@@ -3240,6 +3377,15 @@ TYPE
      Function ParseDisplayName(CONST bc: IBindCtx; pszDisplayName: POleStr;OUT chEaten: Longint; OUT mkOut: IMoniker): HResult;StdCall;
      End;
 
+const
+     // IOleContainer.EnumObjects() flags
+     OLECONTF_EMBEDDINGS    = 1;
+     OLECONTF_LINKS         = 2;
+     OLECONTF_OTHERS        = 4;
+     OLECONTF_ONLYUSER      = 8;
+     OLECONTF_ONLYIFRUNNING = 16;
+
+type
    IOleContainer = interface(IParseDisplayName)
      ['{0000011B-0000-0000-C000-000000000046}']
      Function EnumObjects(grfFlags: Longint; OUT Enum: IEnumUnknown):HResult;StdCall;
@@ -3282,6 +3428,118 @@ TYPE
     ['{A6BC3AC0-DBAA-11CE-9DE3-00AA004BB851}']
     function GetGUID(dwguid:DWord;out pguid:TGUID):HResult; StdCall;
   end;
+
+  IProvideMultipleClassInfo = interface(IProvideClassInfo2)
+   ['{A7ABA9C1-8983-11CF-8F20-00805F2CD064}']
+    // GetMultiTypeInfoCount :
+   function GetMultiTypeInfoCount(out pcti:LongWord):HResult; StdCall;
+    // GetInfoOfIndex :
+   function GetInfoOfIndex(iti:LongWord;dwFlags:LongWord;out pptiCoClass:ITypeInfo;out pdwTIFlags:LongWord;out pcdispidReserved:LongWord;out piidPrimary:GUID;out piidSource:GUID):HResult; StdCall;
+  end;
+  // IOleControl :
+
+ IOleControl = interface(IUnknown)
+   ['{B196B288-BAB4-101A-B69C-00AA00341D07}']
+    // GetControlInfo :
+   function GetControlInfo(var pCI:tagCONTROLINFO):HRESULT;stdcall;
+    // OnMnemonic :
+   function OnMnemonic(var pMsg:tagMSG):HRESULT;stdcall;
+    // OnAmbientPropertyChange :
+   function OnAmbientPropertyChange(dispID:Integer):HRESULT;stdcall;
+    // FreezeEvents :
+   function FreezeEvents(bFreeze:Integer):HRESULT;stdcall;
+  end;
+
+// IOleControlSite :
+
+ IOleControlSite = interface(IUnknown)
+   ['{B196B289-BAB4-101A-B69C-00AA00341D07}']
+    // OnControlInfoChanged :
+   function OnControlInfoChanged:HRESULT;stdcall;
+    // LockInPlaceActive :
+   function LockInPlaceActive(fLock:Integer):HRESULT;stdcall;
+    // GetExtendedControl :
+   function GetExtendedControl(out ppDisp:IDispatch):HRESULT;stdcall;
+    // TransformCoords :
+   function TransformCoords(var pPtlHimetric:_POINTL;var pPtfContainer:tagPOINTF;dwFlags:LongWord):HRESULT;stdcall;
+    // TranslateAccelerator :
+   function TranslateAccelerator(var pMsg:tagMSG;grfModifiers:LongWord):HRESULT;stdcall;
+    // OnFocus :
+   function OnFocus(fGotFocus:Integer):HRESULT;stdcall;
+    // ShowPropertyFrame :
+   function ShowPropertyFrame:HRESULT;stdcall;
+  end;
+
+// IPropertyPage :
+
+ IPropertyPageSite = interface;
+
+ IPropertyPage = interface(IUnknown)
+   ['{B196B28D-BAB4-101A-B69C-00AA00341D07}']
+    // SetPageSite :
+   function SetPageSite(pPageSite:IPropertyPageSite):HRESULT;stdcall;
+    // Activate :
+   function Activate(hWndParent:wireHWND;var pRect:TRECT;bModal:Integer):HRESULT;stdcall;
+    // Deactivate :
+   function Deactivate:HRESULT;stdcall;
+    // GetPageInfo :
+   function GetPageInfo(out pPageInfo:tagPROPPAGEINFO):HRESULT;stdcall;
+    // SetObjects :
+   function SetObjects(cObjects:LongWord;var ppUnk:IUnknown):HRESULT;stdcall;
+    // Show :
+   function Show(nCmdShow:UInt):HRESULT;stdcall;
+    // Move :
+   function Move(var pRect:TRECT):HRESULT;stdcall;
+    // IsPageDirty :
+   function IsPageDirty:HRESULT;stdcall;
+    // Apply :
+   function Apply:HRESULT;stdcall;
+    // Help :
+   function Help(pszHelpDir:PWideChar):HRESULT;stdcall;
+    // TranslateAccelerator :
+   function TranslateAccelerator(var pMsg:tagMSG):HRESULT;stdcall;
+  end;
+
+// IPropertyPageSite :
+
+ IPropertyPageSite = interface(IUnknown)
+   ['{B196B28C-BAB4-101A-B69C-00AA00341D07}']
+    // OnStatusChange :
+   function OnStatusChange(dwFlags:LongWord):HRESULT;stdcall;
+    // GetLocaleID :
+   function GetLocaleID(out pLocaleID:LongWord):HRESULT;stdcall;
+    // GetPageContainer :
+   function GetPageContainer(out ppUnk:IUnknown):HRESULT;stdcall;
+    // TranslateAccelerator :
+   function TranslateAccelerator(var pMsg:tagMSG):HRESULT;stdcall;
+  end;
+
+// IPropertyPage2 :
+
+ IPropertyPage2 = interface(IPropertyPage)
+   ['{01E44665-24AC-101B-84ED-08002B2EC713}']
+    // EditProperty :
+   function EditProperty(dispID:Integer):HRESULT;stdcall;
+  end;
+
+// IPropertyNotifySink :
+
+ IPropertyNotifySink = interface(IUnknown)
+   ['{9BFBBC02-EFF1-101A-84ED-00AA00341D07}']
+    // OnChanged :
+   function OnChanged(dispID:Integer):HRESULT;stdcall;
+    // OnRequestEdit :
+   function OnRequestEdit(dispID:Integer):HRESULT;stdcall;
+  end;
+
+  // ISpecifyPropertyPages :
+
+ ISpecifyPropertyPages = interface(IUnknown)
+   ['{B196B28B-BAB4-101A-B69C-00AA00341D07}']
+    // GetPages :
+   function GetPages(out pPages:tagCAUUID):HRESULT;stdcall;
+  end;
+
 
 { ******************************************************************************************************************
                                                           stuff from objbase.h
@@ -3510,15 +3768,15 @@ type
 
     IPrint = interface(IUnknown)
        ['{B722BCC9-4E68-101B-A2BC-00AA00404770}']
-       procedure SetInitialPageNum(nFirstPage:Integer);stdcall;
-       procedure GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer);stdcall;
-       procedure RemotePrint(grfFlags:LongWord;var pptd:PDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer);stdcall;
+       function SetInitialPageNum(nFirstPage:Integer):HRESULT;stdcall;
+       function GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer):HRESULT;stdcall;
+       function RemotePrint(grfFlags:LongWord;var pptd:PtagDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer):HRESULT;stdcall;
       end;
-
+  
     IOleCommandTarget = interface(IUnknown)
        ['{B722BCCB-4E68-101B-A2BC-00AA00404770}']
-       procedure QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT);stdcall;
-       procedure Exec(var pguidCmdGroup:GUID;nCmdID:LongWord;nCmdexecopt:LongWord;var pvaIn:OleVariant;var pvaOut:OleVariant);stdcall;
+       function QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT):HRESULT;stdcall;
+       function Exec(var pguidCmdGroup:GUID;nCmdID:LongWord;nCmdexecopt:LongWord;var pvaIn:OleVariant;var pvaOut:OleVariant):HRESULT;stdcall;
       end;
 
     IContinueCallback = interface(IUnknown)
@@ -3552,6 +3810,11 @@ type
     function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
     end;
 
+  IObjectWithSite = interface
+    ['{FC4801A3-2BA9-11CF-A229-00AA003D7352}']
+    function SetSite(const pUnkSite: IUnknown):HRESULT; stdcall;
+    function GetSite(const riid: TIID; out Site: IUnknown):HRESULT; stdcall;
+  end;
 
 
 { COMCAT}

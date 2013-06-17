@@ -14,6 +14,7 @@
 unit GdbInt;
 
 {$mode objfpc}
+{$smartlink off}
 
 {$define NotImplemented}
 
@@ -39,83 +40,56 @@ unit GdbInt;
 
 interface
 
-{$smartlink off}
 
 
 { Is create_breakpoint_hook deprecated? }
 { Seem not so for 6.1 }
 {$define GDB_HAS_DEPRECATED_CBPH}
 
-{ 6.1.x }
-{$ifdef GDB_V601}
-  {$info using gdb 6.1.x}
-  {$define GDB_V6}
-  {$undef GDB_HAS_DEPRECATED_CBPH}
-{$endif def GDB_V601}
 
-{ 6.2.x }
-{$ifdef GDB_V602}
-  {$info using gdb 6.2.x}
-  {$define GDB_V6}
-{$endif def GDB_V602}
+{
+  Excatly one
+  GDB_VXYZ macro
+  where XYZ are three numbers
+  needs to defined
+  either inside gdblib.inc or gdbver.inc
+  This corresponds to version
+  X.YZ.patch_level
+}
 
-{ 6.3.x }
-{$ifdef GDB_V603}
-  {$info using gdb 6.3.x}
-  {$define GDB_V6}
-{$endif def GDB_V603}
+{$undef GDB_VERSION_RECOGNIZED}
 
-{ 6.4.x }
-{$ifdef GDB_V604}
-  {$info using gdb 6.4.x}
-  {$define GDB_V6}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-{$endif def GDB_V604}
+{ 7.6.x }
+{$ifdef GDB_V706}
+  {$info using gdb 7.6.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_706}
+{$endif}
 
-{ 6.5.x }
-{$ifdef GDB_V605}
-  {$info using gdb 6.5.x}
-  {$define GDB_V6}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-{$endif def GDB_V605}
+{$ifdef GDB_VER_GE_706}
+  {$define GDB_VER_GE_705}
+{$endif}
+{ 7.5.x }
+{$ifdef GDB_V705}
+  {$info using gdb 7.5.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_705}
+{$endif}
 
-{ 6.6.x }
-{$ifdef GDB_V606}
-  {$info using gdb 6.6.x}
-  {$define GDB_V6}
-  {$define GDB_USES_BP_LOCATION}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-  {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V606}
-
-{ 6.7.x }
-{$ifdef GDB_V607}
-  {$info using gdb 6.7.x}
-  {$define GDB_V6}
-  {$define GDB_USES_BP_LOCATION}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-  {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V607}
-
-{ 6.8.x }
-{$ifdef GDB_V608}
-  {$info using gdb 6.8.x}
-  {$define GDB_V6}
-  {$define GDB_USES_BP_LOCATION}
-  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-  {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-  {$define GDB_USES_LIBDECNUMBER}
-  // {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
-  {$define GDB_HAS_BP_NONE}
-{$endif def GDB_V608}
+{$ifdef GDB_VER_GE_705}
+  {$define GDB_VER_GE_704}
+  {$define GDB_BP_LOCATION_HAS_COND_BYTECODE}
+  {$define GDB_BP_LOCATION_HAS_RELATED_ADDRESS}
+{$endif}
 
 { 7.4.x }
 {$ifdef GDB_V704}
   {$info using gdb 7.4.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_704}
+{$endif}
+
+{$ifdef GDB_VER_GE_704}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
@@ -128,11 +102,15 @@ interface
   {$define GDB_BP_LOCATION_HAS_REFCOUNT}
   {$define GDB_BP_LOCATION_HAS_OPS}
   {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
-{$endif def GDB_V704}
+  {$ifdef win32}
+      {$define GDB_USES_LIBADVAPI32}
+  {$endif win32}
+{$endif def GDB_VER_GE_704}
 
 { 7.3.x }
 {$ifdef GDB_V703}
   {$info using gdb 7.3.x}
+  {$define GDB_VERSION_RECOGNIZED}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
@@ -147,11 +125,13 @@ interface
     {$define GDB_BP_LOCATION_HAS_OPS}
     {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
   {$endif GDB_CVS}
+  {$define GDB_VERSION_RECOGNIZED}
 {$endif def GDB_V703}
 
 { 7.2.x }
 {$ifdef GDB_V702}
   {$info using gdb 7.2.x}
+  {$define GDB_VERSION_RECOGNIZED}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
@@ -160,6 +140,7 @@ interface
 { 7.1.x }
 {$ifdef GDB_V701}
   {$info using gdb 7.1.x}
+  {$define GDB_VERSION_RECOGNIZED}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
@@ -170,6 +151,7 @@ interface
 { 7.0.x }
 {$ifdef GDB_V700}
   {$info using gdb 7.0.x}
+  {$define GDB_VERSION_RECOGNIZED}
   {$define GDB_V7}
   {$ifdef GDB_CVS}
     {$define GDB_BP_LOCATION_HAS_GDBARCH}
@@ -194,8 +176,91 @@ interface
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
+  {$define GDB_USE_XSTRVPRINTF}
 {$endif def GDB_V7}
 
+
+{ 6.8.x }
+{$ifdef GDB_V608}
+  {$info using gdb 6.8.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {$define GDB_USES_LIBDECNUMBER}
+  // {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_HAS_BP_NONE}
+{$endif def GDB_V608}
+
+{ 6.7.x }
+{$ifdef GDB_V607}
+  {$info using gdb 6.7.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+{$endif def GDB_V607}
+
+{ 6.6.x }
+{$ifdef GDB_V606}
+  {$info using gdb 6.6.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+{$endif def GDB_V606}
+
+{ 6.5.x }
+{$ifdef GDB_V605}
+  {$info using gdb 6.5.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+{$endif def GDB_V605}
+
+{ 6.4.x }
+{$ifdef GDB_V604}
+  {$info using gdb 6.4.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+{$endif def GDB_V604}
+
+{ 6.3.x }
+{$ifdef GDB_V603}
+  {$info using gdb 6.3.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+{$endif def GDB_V603}
+
+{ 6.2.x }
+{$ifdef GDB_V602}
+  {$info using gdb 6.2.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+{$endif def GDB_V602}
+
+{ 6.1.x }
+{$ifdef GDB_V601}
+  {$info using gdb 6.1.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+  {$undef GDB_HAS_DEPRECATED_CBPH}
+{$endif def GDB_V601}
+
+{ 6.0.x }
+{$ifdef GDB_V600}
+  {$info using gdb 6.0.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_V6}
+{$endif def GDB_V600}
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
@@ -203,6 +268,10 @@ interface
   {$define GDB_SYMTAB_HAS_MACROS}
   {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
+
+{$ifdef GDB_VERSION_RECOGNIZED}
+  {$warning no recognized GDB_VXYZ conditional found, linking might fail. }
+{$endif}
 
 
 {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
@@ -290,16 +359,18 @@ interface
     {$linklib kvm}
   {$endif}
   {$undef NotImplemented}
-  {$LINKLIB gdb}
+  {$LINKLIB libgdb.a}
   {$ifdef GDB_HAS_SIM}
-    {$LINKLIB sim}
+    {$LINKLIB libsim.a}
   {$endif GDB_HAS_SIM}
-  {$LINKLIB bfd}
-  {$LINKLIB readline}
-  {$LINKLIB opcodes}
-  {$LINKLIB history}
-  {$LINKLIB iberty}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libgnu.a} // at least 7.4 generates this.
   {$LINKLIB ncurses}
+  {$LINKLIB z} // linked implictely by something on Linux
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$ifndef GDB_DISABLE_INTL}
@@ -421,9 +492,9 @@ interface
 {$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB libgdb.a}
- {$ifdef GDB_HAS_SIM}
-  {$LINKLIB libsim.a}
- {$endif GDB_HAS_SIM}
+  {$ifdef GDB_HAS_SIM}
+   {$LINKLIB libsim.a}
+  {$endif GDB_HAS_SIM}
   {$LINKLIB libbfd.a}
   {$LINKLIB libreadline.a}
   {$LINKLIB libopcodes.a}
@@ -469,7 +540,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
   {$endif not USE_MINGW_GDB}
-  {$LINKLIB advapi32}
+  {$ifdef GDB_USES_LIBADVAPI32}
+    {$LINKLIB advapi32}
+  {$endif GDB_USES_LIBADVAPI32}
   {$LINKLIB user32}
   {$LINKLIB kernel32}
 {$endif win32}
@@ -953,7 +1026,7 @@ type
      pprogram_space = pointer;
      pgdbarch = pointer;
 
-{$PACKRECORDS 4}
+{$PACKRECORDS C}
      pbreakpoint = ^breakpoint;
      breakpoint = record
 {$ifdef GDB_USES_BP_OPS}
@@ -1014,6 +1087,9 @@ type
           section : pointer; {^asection}
        end;
 
+     pagent_expr = pointer;
+     tcondition_status = (condition_unchanged, condition_modified);
+
      bp_target_info = record
           placed_address_space : pointer;{paddress_space;}
           placed_address : CORE_ADDR;
@@ -1042,6 +1118,12 @@ type
          owner : pbreakpoint;
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          cond : pointer;{pexpression;}
+{$ifdef GDB_BP_LOCATION_HAS_COND_BYTECODE}
+         cond_bytecode : pagent_expr;
+         condition_changed : tcondition_status;
+         cmd_bytecode : pagent_expr;
+         needs_update : byte;
+{$endif}
          shlib_disabled : byte;
          enabled : byte;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -1060,6 +1142,10 @@ type
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          section : pointer;{pobj_section;}
          requested_address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_RELATED_ADDRESS}
+         related_address : CORE_ADDR;
+         probe : pointer; { struct probe *probe; }
+{$endif}
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          function_name : ^char;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -1114,6 +1200,8 @@ type
             avoid stack memory corruption PM }
           explicit_pc : longint;
           explicit_line : longint;
+          { New field added in GDB 7.5 version }
+          probe : pointer;{struct probe *probe; }
        end;
 
      symtabs_and_lines = record
@@ -1559,7 +1647,7 @@ type
           to_magic : longint;
        end;
 
-{$PACKRECORDS NORMAL}
+{$PACKRECORDS C}
 
 {*****************************************************************************
                    Define external calls to libgdb.a
@@ -1608,9 +1696,17 @@ var
 var
   instream : P_C_FILE;cvar;external;
   function gdb_fopen (filename : pchar; mode : pchar) : pui_file;cdecl;external;
+{$ifdef LIBGDB_HAS_GET_STDIN}
+  { this function is generated by the gen-libgdb-inc.sh script
+    in a object called gdb_get_stdin.o added to the libgdb.a archive }
+  function gdb_get_stdin : P_C_FILE; cdecl; external;
+var
+  saved_command_line : pchar;cvar;external; { defined in top.c source }
+  saved_command_line_size : longint;cvar;external; {defined in top.c source }
+{$endif}
 {$endif GDB_NEEDS_SET_INSTREAM}
 var
-  { The four following variables are defined in defs.h 
+  { The four following variables are defined in defs.h
     and instanciated in main.c since version 5.0 }
   gdb_stdout : pui_file;cvar;public;
   gdb_stderr : pui_file;cvar;public;
@@ -1632,7 +1728,11 @@ function  xmalloc(size : longint) : pointer;cdecl;external;
 { xvasprintf is present at least from GDB 5.3
   while xstrvprintf only appears in version 6.2,
   so only use xvasprintf function }
+{$ifdef GDB_USE_XSTRVPRINTF}
+function xstrvprintf(msg : pchar) : pchar; varargs; cdecl; external;
+{$else}
 function xvasprintf(ret : ppchar; msg : pchar) : pchar; varargs; cdecl; external;
+{$endif}
 procedure xfree(p : pointer); cdecl; external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
@@ -2012,6 +2112,13 @@ begin
 {$endif}
   With Curr_gdb^ do
     stop_breakpoint_number:=num;
+end;
+
+procedure annotate_breakpoints_changed;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|breakpoints_changed|');
+{$endif}
 end;
 
 
@@ -2520,7 +2627,11 @@ begin
         QueryHook:=1
       else if pos('%',question)>0 then
         begin
+{$ifdef GDB_USE_XSTRVPRINTF}
+          local:=xstrvprintf(question,arg);
+{$else}
           xvasprintf(@local,question,arg);
+{$endif}
           { xvasprintf can failed, in that case local is set to nil }
           if not assigned(local) then
             local:=question;
@@ -3109,32 +3220,48 @@ end;
 
 {$ifdef go32v2}
 var
-  c_environ : ppchar;external name '_environ';
+  c_environ : ppchar;external name '__environ';
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
 
   procedure ReallocateEnvironUsingCMalloc;
 
   var
-    neededsize , count : longint;
+    neededsize , i, count : longint;
     penv : pchar;
     newenv : ppchar;
   begin
     if not assigned(c_environ) then
-      neededsize:=0
+      neededsize:=sizeof(pchar)
     else
       begin
         count:=0;
-        penv:=c_environ^;
+        penv:=c_environ[count];
         while assigned(penv) do
           begin
             inc(count);
-            inc(penv,sizeof(pchar));
+            penv:=c_environ[count];
           end;
+        inc(count);
         neededsize:=count*sizeof(pchar);
       end;
     newenv:=malloc(neededsize);
-    system.move(c_environ,newenv,neededsize);
+    system.move(c_environ^,newenv^,neededsize);
+    if assigned(c_environ) then
+      begin
+        for i:=0 to count-1 do
+          begin
+            penv:=c_environ[i];
+            if assigned(penv) then
+              begin
+                neededsize:=strlen(penv)+1;
+                newenv[i]:=malloc(neededsize);
+                system.move(penv^,newenv[i]^,neededsize);
+              end
+            else
+              newenv[i]:=nil;
+          end;
+      end;
     c_environ:=newenv;
   end;
 
@@ -3203,6 +3330,10 @@ begin
     ui_file_delete(gdb_stdin);
   gdb_stdin:=mem_fileopen;
   save_gdb_stdin:=gdb_stdin;
+{$ifdef LIBGDB_HAS_GET_STDIN}
+  instream:=gdb_get_stdin;
+  saved_command_line:=xmalloc(saved_command_line_size);
+{$else}
   dummy_file :=gdb_fopen('dummy.$$$','a');
   {in captured_main code, this is simply
    instream:=stdin; but stdin is a highly system dependent macro
@@ -3211,6 +3342,7 @@ begin
     instream:=pstdio_file(dummy_file^.to_data)^._file
   else
     instream:=nil;
+{$endif}
 {$endif GDB_NEEDS_SET_INSTREAM}
 
   gdb_stderr:=mem_fileopen;
@@ -3305,10 +3437,10 @@ end;
     variables that are defined in main.c source.
     We must not load main.o otherwise, we will get
     into multiply defined symbols troubles. }
-var 
+var
     gdb_sysrootc : char;
     { used locally only to provide a pchar pointing to '\0' }
-    gdb_sysroot  : pchar; cvar;public; 
+    gdb_sysroot  : pchar; cvar;public;
     { gdb_sysroot global variable is declared in defs.h and
       instanciated in main.c since version 6.0 }
     gdb_datadir  : pchar; cvar;public;

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fpmkunit');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fpmkunit';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Description:='Free Pascal Make Tool';
@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Basic library of the fpmake/fppkg build system.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     // All dependencies (including implicit) are listed
     // here to be able to update all requirements to
@@ -34,6 +34,8 @@ begin
     D:=P.Dependencies.Add('paszlib');
       D.Version:='2.7.1';
     D:=P.Dependencies.Add('fcl-process');
+      D.Version:='2.7.1';
+    D:=P.Dependencies.Add('libtar');
       D.Version:='2.7.1';
 
     with P.Targets.AddUnit('src/fpmkunit.pp') do

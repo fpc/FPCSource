@@ -52,15 +52,15 @@ interface
       visibility, then we have to create a getter and/or setter with that same
       higher visibility to make sure that using the property does not result
       in JVM verification errors }
-    procedure jvm_create_getter_for_property(p: tpropertysym);
-    procedure jvm_create_setter_for_property(p: tpropertysym);
+    procedure jvm_create_getter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
+    procedure jvm_create_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
 
 
 implementation
 
   uses
     cutils,cclasses,
-    verbose,systems,
+    verbose,globals,systems,
     fmodule,
     parabase,aasmdata,
     pdecsub,ngenutil,pparautl,
@@ -850,17 +850,22 @@ implementation
       end;
 
 
-    procedure jvm_create_getter_or_setter_for_property(p: tpropertysym; getter: boolean);
+    procedure jvm_create_getter_or_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef; getter: boolean);
       var
         obj: tabstractrecorddef;
         ps: tprocsym;
         pvs: tparavarsym;
-        pd: tprocdef;
+        sym: tsym;
+        pd, parentpd, accessorparapd: tprocdef;
         tmpaccesslist: tpropaccesslist;
         callthroughpropname,
         name: string;
         callthroughprop: tpropertysym;
         accesstyp: tpropaccesslisttypes;
+        sktype: tsynthetickind;
+        procoptions: tprocoptions;
+        paranr: word;
+        explicitwrapper: boolean;
       begin
         obj:=current_structdef;
         { if someone gets the idea to add a property to an external class
@@ -870,108 +875,245 @@ implementation
           exit;
         symtablestack.push(obj.symtable);
 
-        if getter then
-          accesstyp:=palt_read
-        else
-          accesstyp:=palt_write;
+        try
+          if getter then
+            accesstyp:=palt_read
+          else
+            accesstyp:=palt_write;
 
-        { create a property for the old symaccesslist with a new name, so that
-          we can reuse it in the implementation (rather than having to
-          translate the symaccesslist back to Pascal code) }
-        callthroughpropname:='__fpc__'+p.realname;
-        if getter then
-          callthroughpropname:=callthroughpropname+'__getter_wrapper'
-        else
-          callthroughpropname:=callthroughpropname+'__setter_wrapper';
-        callthroughprop:=tpropertysym.create(callthroughpropname);
-        callthroughprop.visibility:=p.visibility;
-        callthroughprop.default:=longint($80000000);
-        if sp_static in p.symoptions then
-          include(callthroughprop.symoptions, sp_static);
-        { copy original property target to callthrough property (and replace
-          original one with the new empty list; will be filled in later) }
-        tmpaccesslist:=callthroughprop.propaccesslist[accesstyp];
-        callthroughprop.propaccesslist[accesstyp]:=p.propaccesslist[accesstyp];
-        p.propaccesslist[accesstyp]:=tmpaccesslist;
-        p.owner.insert(callthroughprop);
+          { we can't use str_parse_method_dec here because the type of the field
+            may not be visible at the Pascal level }
 
-        { we can't use str_parse_method_dec here because the type of the field
-          may not be visible at the Pascal level }
+          explicitwrapper:=
+            { private methods are not visibile outside the current class, so
+              no use in making life harder for us by introducing potential
+              (future or current) naming conflicts }
+            (p.visibility<>vis_private) and
+            (getter and
+             (prop_auto_getter_prefix<>'')) or
+            (not getter and
+             (prop_auto_setter_prefix<>''));
+          sym:=nil;
+          procoptions:=[];
+          if explicitwrapper then
+            begin
+              if getter then
+                name:=prop_auto_getter_prefix+p.realname
+              else
+                name:=prop_auto_setter_prefix+p.realname;
+              sym:=search_struct_member_no_helper(obj,upper(name));
+              if getter then
+                sktype:=tsk_field_getter
+              else
+                sktype:=tsk_field_setter;
+              if assigned(sym) then
+                begin
+                  if ((sym.typ<>procsym) or
+                      (tprocsym(sym).procdeflist.count<>1) or
+                      (tprocdef(tprocsym(sym).procdeflist[0]).synthetickind<>sktype)) and
+                     (not assigned(orgaccesspd) or
+                      (sym<>orgaccesspd.procsym)) then
+                    begin
+                      MessagePos2(p.fileinfo,parser_e_cannot_generate_property_getter_setter,name,FullTypeName(tdef(sym.owner.defowner),nil)+'.'+name);
+                      exit;
+                    end
+                  else
+                    begin
+                      if name<>sym.realname then
+                        MessagePos2(p.fileinfo,parser_w_case_difference_auto_property_getter_setter_prefix,sym.realname,name);
+                      { is the specified getter/setter defined in the current
+                        struct and was it originally specified as the getter/
+                        setter for this property? If so, simply adjust its
+                        visibility if necessary.
+                      }
+                      if assigned(orgaccesspd) then
+                        parentpd:=orgaccesspd
+                      else
+                        parentpd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                      if parentpd.owner.defowner=p.owner.defowner then
+                        begin
+                          if parentpd.visibility<p.visibility then
+                            begin
+                              parentpd.visibility:=p.visibility;
+                              include(parentpd.procoptions,po_auto_raised_visibility);
+                            end;
+                          { we are done, no need to create a wrapper }
+                          exit
+                        end
+                      { a parent already included this getter/setter -> try to
+                        override it }
+                      else if parentpd.visibility<>vis_private then
+                        begin
+                          if po_virtualmethod in parentpd.procoptions then
+                            begin
+                              procoptions:=procoptions+[po_virtualmethod,po_overridingmethod];
+                              Message2(parser_w_overriding_property_getter_setter,name,FullTypeName(tdef(parentpd.owner.defowner),nil));
+                            end;
+                          { otherwise we can't do anything, and
+                            proc_add_definition will give an error }
+                        end
+                    end;
+                end;
+              { make the artificial getter/setter virtual so we can override it in
+                children if necessary }
+              if not(sp_static in p.symoptions) and
+                 (obj.typ=objectdef) then
+                include(procoptions,po_virtualmethod);
+              { prevent problems in Delphi mode }
+              include(procoptions,po_overload);
+            end
+          else
+            begin
+              { construct procsym name (unique for this access; reusing the same
+                helper for multiple accesses to the same field is hard because the
+                propacesslist can contain subscript nodes etc) }
+              name:=visibilityName[p.visibility];
+              replace(name,' ','_');
+              if getter then
+                name:=name+'$getter'
+              else
+                name:=name+'$setter';
+            end;
 
-        { create procdef }
-        pd:=tprocdef.create(normal_function_level);
-        if df_generic in obj.defoptions then
-          include(pd.defoptions,df_generic);
+          { create procdef }
+          if not assigned(orgaccesspd) then
+            begin
+              pd:=tprocdef.create(normal_function_level);
+              if df_generic in obj.defoptions then
+                include(pd.defoptions,df_generic);
+              { method of this objectdef }
+              pd.struct:=obj;
+              { can only construct the artificial name now, because it requires
+                pd.defid }
+              if not explicitwrapper then
+                name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
+            end
+          else
+            begin
+              { getter/setter could have parameters in case of indexed access
+                -> copy original procdef }
+              pd:=tprocdef(orgaccesspd.getcopy);
+              exclude(pd.procoptions,po_abstractmethod);
+              { can only construct the artificial name now, because it requires
+                pd.defid }
+              if not explicitwrapper then
+                name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
+              finish_copied_procdef(pd,name,obj.symtable,obj);
+              sym:=pd.procsym;
+            end;
+          { add previously collected procoptions }
+          pd.procoptions:=pd.procoptions+procoptions;
+          { visibility }
+          pd.visibility:=p.visibility;
 
-        { construct procsym name (unique for this access; reusing the same
-          helper for multiple accesses to the same field is hard because the
-          propacesslist can contain subscript nodes etc) }
-        name:=visibilityName[p.visibility];
-        replace(name,' ','_');
-        if getter then
-          name:=name+'$getter'
-        else
-          name:=name+'$setter';
-        name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
+          { new procsym? }
+          if not assigned(sym) or
+             (sym.owner<>p.owner)  then
+            begin
+              ps:=tprocsym.create(name);
+              obj.symtable.insert(ps);
+            end
+          else
+            ps:=tprocsym(sym);
+          { associate procsym with procdef}
+          pd.procsym:=ps;
 
-        { new procsym }
-        ps:=tprocsym.create(name);
-        obj.symtable.insert(ps);
-        { associate procsym with procdef}
-        pd.procsym:=ps;
 
-        { method of this objectdef }
-        pd.struct:=obj;
-        { visibility }
-        pd.visibility:=p.visibility;
-        { function/procedure }
-        if getter then
-          begin
-            pd.proctypeoption:=potype_function;
-            pd.synthetickind:=tsk_field_getter;
-            { result type }
-            pd.returndef:=p.propdef;
-          end
-        else
-          begin
-            pd.proctypeoption:=potype_procedure;
-            pd.synthetickind:=tsk_field_setter;
-            pd.returndef:=voidtype;
-            { parameter with value to set }
-            pvs:=tparavarsym.create('__fpc_newval__',10,vs_const,p.propdef,[]);
-            pd.parast.insert(pvs);
-          end;
-        pd.skpara:=callthroughprop;
-        { needs to be exported }
-        include(pd.procoptions,po_global);
-        { class property -> static class method }
-        if sp_static in p.symoptions then
-          pd.procoptions:=pd.procoptions+[po_classmethod,po_staticmethod];
-        { calling convention, self, ... }
-        if obj.typ=recorddef then
-          handle_calling_convention(pd,[hcc_check])
-        else
-          handle_calling_convention(pd,hcc_all);
-        { register forward declaration with procsym }
-        proc_add_definition(pd);
 
-        { make the property call this new function }
-        p.propaccesslist[accesstyp].addsym(sl_call,ps);
-        p.propaccesslist[accesstyp].procdef:=pd;
+          { function/procedure }
+          accessorparapd:=nil;
+          if getter then
+            begin
+              pd.proctypeoption:=potype_function;
+              pd.synthetickind:=tsk_field_getter;
+              { result type }
+              pd.returndef:=p.propdef;
+              if (ppo_hasparameters in p.propoptions) and
+                 not assigned(orgaccesspd) then
+                accessorparapd:=pd;
+            end
+          else
+            begin
+              pd.proctypeoption:=potype_procedure;
+              pd.synthetickind:=tsk_field_setter;
+              pd.returndef:=voidtype;
+              if not assigned(orgaccesspd) then
+                begin
+                  { parameter with value to set }
+                  pvs:=tparavarsym.create('__fpc_newval__',10,vs_const,p.propdef,[]);
+                  pd.parast.insert(pvs);
+                end;
+              if (ppo_hasparameters in p.propoptions) and
+                 not assigned(orgaccesspd) then
+                accessorparapd:=pd;
+            end;
 
-        symtablestack.pop(obj.symtable);
+          { create a property for the old symaccesslist with a new name, so that
+            we can reuse it in the implementation (rather than having to
+            translate the symaccesslist back to Pascal code) }
+          callthroughpropname:='__fpc__'+p.realname;
+          if getter then
+            callthroughpropname:=callthroughpropname+'__getter_wrapper'
+          else
+            callthroughpropname:=callthroughpropname+'__setter_wrapper';
+          callthroughprop:=tpropertysym.create(callthroughpropname);
+          callthroughprop.visibility:=p.visibility;
+
+          if getter then
+            p.makeduplicate(callthroughprop,accessorparapd,nil,paranr)
+          else
+            p.makeduplicate(callthroughprop,nil,accessorparapd,paranr);
+
+          callthroughprop.default:=longint($80000000);
+          callthroughprop.default:=0;
+          callthroughprop.propoptions:=callthroughprop.propoptions-[ppo_stored,ppo_enumerator_current,ppo_overrides,ppo_defaultproperty];
+          if sp_static in p.symoptions then
+            include(callthroughprop.symoptions, sp_static);
+          { copy original property target to callthrough property (and replace
+            original one with the new empty list; will be filled in later) }
+          tmpaccesslist:=callthroughprop.propaccesslist[accesstyp];
+          callthroughprop.propaccesslist[accesstyp]:=p.propaccesslist[accesstyp];
+          p.propaccesslist[accesstyp]:=tmpaccesslist;
+          p.owner.insert(callthroughprop);
+
+          pd.skpara:=callthroughprop;
+          { needs to be exported }
+          include(pd.procoptions,po_global);
+          { class property -> static class method }
+          if sp_static in p.symoptions then
+            pd.procoptions:=pd.procoptions+[po_classmethod,po_staticmethod];
+
+          { in case we made a copy of the original accessor, this has all been
+            done already }
+          if not assigned(orgaccesspd) then
+            begin
+              { calling convention, self, ... }
+              if obj.typ=recorddef then
+                handle_calling_convention(pd,[hcc_check])
+              else
+                handle_calling_convention(pd,hcc_all);
+              { register forward declaration with procsym }
+              proc_add_definition(pd);
+            end;
+
+          { make the property call this new function }
+          p.propaccesslist[accesstyp].addsym(sl_call,ps);
+          p.propaccesslist[accesstyp].procdef:=pd;
+        finally
+          symtablestack.pop(obj.symtable);
+        end;
       end;
 
 
-    procedure jvm_create_getter_for_property(p: tpropertysym);
+    procedure jvm_create_getter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
       begin
-        jvm_create_getter_or_setter_for_property(p,true);
+        jvm_create_getter_or_setter_for_property(p,orgaccesspd,true);
       end;
 
 
-    procedure jvm_create_setter_for_property(p: tpropertysym);
+    procedure jvm_create_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
       begin
-        jvm_create_getter_or_setter_for_property(p,false);
+        jvm_create_getter_or_setter_for_property(p,orgaccesspd,false);
       end;
 
 end.

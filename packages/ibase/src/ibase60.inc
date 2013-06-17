@@ -2459,12 +2459,12 @@ var
   isc_suspend_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
 {$ENDIF}
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 function InitialiseIBase60 : integer;
 procedure ReleaseIBase60;
 
-var IBaseLibraryHandle : TLibHandle;
-
+Function IBaseLibraryHandle : TLibHandle;
+Function IBaseLoadedLibrary : AnsiString;
 {$ENDIF}
 
 implementation
@@ -2479,16 +2479,29 @@ ResourceString
   
 var 
   RefCount : integer;
-  LoadedLibrary : String;
+  LoadedLibrary : AnsiString;
+  LibHandle : TLibHandle;
+  
+Function IBaseLibraryHandle : TLibHandle;
 
-Function TryInitialiseIBase60(Const LibraryName : String) : integer;
+begin
+  result:=LibHandle;
+end;
+
+Function IBaseLoadedLibrary : AnsiString;
+  
+begin
+  Result:=LoadedLibrary;
+end;  
+
+Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := 0;
   if (RefCount=0) then
     begin
-    IBaseLibraryHandle:=LoadLibrary(LibraryName);
-    if (IBaseLibraryHandle=nilhandle) then
+    LibHandle:=LoadLibrary(LibraryName);
+    if (LibHandle=nilhandle) then
       Exit;
     inc(RefCount);
     LoadedLibrary:=LibraryName;
@@ -2679,26 +2692,27 @@ begin
     end
   else
     begin
-    If (TryInitialiseIBase60(fbclib)=0) and
-       (TryInitialiseIBase60(gdslib)=0) and
+    If (TryInitialiseIBase60(fbembedlib)=0) and
+       (TryInitialiseIBase60(libem)=0) and
+       (TryInitialiseIBase60(fbclib)=0) and
        (TryInitialiseIBase60(libfc)=0) and
-       (TryInitialiseIBase60(fbembedlib)=0) then
+       (TryInitialiseIBase60(gdslib)=0) then
         Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,gdslib,fbembedlib]);
     end;    
   Result := RefCount;
 end;
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
+function InitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
 begin
   Result := TryInitialiseIBase60(LibraryName);
   If Result = 0 then
     Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>LoadedLibrary) then
+  else If (LibraryName<>IBaseLoadedLibrary) then
     begin
     Dec(RefCount);
     Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[IBaseLoadedLibrary]);
     end;
 end;
 
@@ -2708,10 +2722,10 @@ Procedure ReleaseIBase60;
 begin
   if RefCount>1 then
     Dec(RefCount)
-  else if UnloadLibrary(IBaseLibraryHandle) then 
+  else if UnloadLibrary(LibHandle) then 
     begin
     Dec(RefCount);
-    IBaseLibraryHandle := NilHandle;
+    LibHandle := NilHandle;
     LoadedLibrary:='';
     end;
 end;

@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fppkg_util;
+procedure add_fppkg_util(const ADirectory: string);
 
 const
   lnetOSes = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
@@ -26,9 +26,7 @@ begin
     P.Description := 'Free Pascal package repository utility.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fppkg';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.SourcePath.Add('lnet',lnetOSes);
@@ -88,7 +86,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fppkg_util;
+  add_fppkg_util('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

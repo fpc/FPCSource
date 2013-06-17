@@ -43,7 +43,7 @@
 {$endif}
 {$endif}
 
-{$if defined(linux) or defined(aix)}
+{$if defined(linux) or defined(aix) or defined(android)}
 {$define has_sem_timedwait}
 {$endif}
 
@@ -53,7 +53,7 @@ interface
 
 {$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
  {$linklib c}           // try adding -Xf
- {$if not defined(Darwin) and not defined(iphonesim)}
+ {$if not defined(Darwin) and not defined(iphonesim) and not defined(Android)}
    {$ifndef haiku}
      {$linklib pthread}
    {$endif haiku}
@@ -332,13 +332,13 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
-      {$ifndef HAIKU}
+      {$if not defined(HAIKU) and not defined(ANDROID)}
       {$ifdef solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
       {$else not solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
       {$endif not solaris}
-      {$endif}
+      {$ifend}
 
       // will fail under linux -- apparently unimplemented
       pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
@@ -389,7 +389,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-//      result := pthread_kill(threadHandle,SIGCONT);
       result:=dword(-1);
     end;
 
@@ -409,7 +408,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
   function  CKillThread (threadHandle : TThreadID) : dword;
     begin
       pthread_detach(pthread_t(threadHandle));
+{$ifndef android}
       CKillThread := pthread_cancel(pthread_t(threadHandle));
+{$else}
+      CKillThread := dword(-1);
+{$endif}
     end;
 
   function CCloseThread (threadHandle : TThreadID) : dword;
@@ -463,7 +466,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
             res := pthread_mutex_init(@CS,@MAttr)
           else
             { No recursive mutex support :/ }
-            res := pthread_mutex_init(@CS,NIL);
+            fpc_threaderror
         end
       else
         res:= pthread_mutex_init(@CS,NIL);
@@ -507,7 +510,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {*****************************************************************************
                            Semaphore routines
 *****************************************************************************}
-  
+
 procedure cSemaphoreWait(const FSem: Pointer);
 var
   res: cint;
@@ -776,15 +779,12 @@ end;
 procedure IntbasiceventSetEvent(state:peventstate);
 begin
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-  Try
-    plocaleventstate(state)^.Fisset:=true;
-    if not(plocaleventstate(state)^.FManualReset) then
-      pthread_cond_signal(@plocaleventstate(state)^.Fcondvar)
-    else
-      pthread_cond_broadcast(@plocaleventstate(state)^.Fcondvar);
-  finally
-    pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
-  end;
+  plocaleventstate(state)^.Fisset:=true;
+  if not(plocaleventstate(state)^.FManualReset) then
+    pthread_cond_signal(@plocaleventstate(state)^.Fcondvar)
+  else
+    pthread_cond_broadcast(@plocaleventstate(state)^.Fcondvar);
+  pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
 end;
 
 function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;

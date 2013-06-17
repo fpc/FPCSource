@@ -18,33 +18,36 @@
 Const
    // please update tkManagedTypes below if you add new
    // values
-   tkUnknown       = 0;
-   tkInteger       = 1;
-   tkChar          = 2;
-   tkEnumeration   = 3;
-   tkFloat         = 4;
-   tkSet           = 5;
-   tkMethod        = 6;
-   tkSString       = 7;
-   tkString        = tkSString;
-   tkLString       = 8;
-   tkAString       = 9;
-   tkWString       = 10;
-   tkVariant       = 11;
-   tkArray         = 12;
-   tkRecord        = 13;
-   tkInterface     = 14;
-   tkClass         = 15;
-   tkObject        = 16;
-   tkWChar         = 17;
-   tkBool          = 18;
-   tkInt64         = 19;
-   tkQWord         = 20;
-   tkDynArray      = 21;
+   tkUnknown        = 0;
+   tkInteger        = 1;
+   tkChar           = 2;
+   tkEnumeration    = 3;
+   tkFloat          = 4;
+   tkSet            = 5;
+   tkMethod         = 6;
+   tkSString        = 7;
+   tkString         = tkSString;
+   tkLString        = 8;
+   tkAString        = 9;
+   tkWString        = 10;
+   tkVariant        = 11;
+   tkArray          = 12;
+   tkRecord         = 13;
+   tkInterface      = 14;
+   tkClass          = 15;
+   tkObject         = 16;
+   tkWChar          = 17;
+   tkBool           = 18;
+   tkInt64          = 19;
+   tkQWord          = 20;
+   tkDynArray       = 21;
    tkInterfaceCorba = 22;
-   tkProcVar       = 23;
-   tkUString       = 24;
-   tkHelper        = 26;
+   tkProcVar        = 23;
+   tkUString        = 24;
+   tkHelper         = 26;
+   tkFile           = 27;
+   tkClassRef       = 28;
+   tkPointer        = 29;
 
   // all potentially managed types
   tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
@@ -157,6 +160,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpui386}
 
+{$ifdef cpui8086}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i i8086.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpui8086}
+
 {$ifdef cpum68k}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -218,10 +229,14 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i armdefines.inc}
-  {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+  {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
-    {$i arm.inc}  { Case dependent, don't change }
+    {$if defined(CPUARMV6M)}
+      {$i thumb.inc}  { Case dependent, don't change }
+    {$else}
+      {$i arm.inc}  { Case dependent, don't change }
+    {$endif}
   {$endif}
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
@@ -640,25 +655,33 @@ end;
                             Memory Management
 ****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_PTR}
 Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
+{$endif not FPC_SYSTEM_HAS_PTR}
 
+{$ifndef FPC_SYSTEM_HAS_CSEG}
 Function CSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Cseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_CSEG}
 
+{$ifndef FPC_SYSTEM_HAS_DSEG}
 Function DSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Dseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_DSEG}
 
+{$ifndef FPC_SYSTEM_HAS_SSEG}
 Function SSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Sseg:=0;
 End;
+{$endif not FPC_SYSTEM_HAS_SSEG}
 
 
 
@@ -786,7 +809,7 @@ end;
 
 {$PUSH}
 {$S-}
-procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
 var
   c : Pointer;
 begin
@@ -835,12 +858,21 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : longint;
+{$ifdef DEBUG}
+  pt : PInitFinalTable;
+{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef DEBUG}
+  pt := PInitFinalTable(EntryInformation.InitFinalTable);
+{$endif}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef DEBUG}
+  pt := @InitFinalTable;
+{$endif}
   with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
    begin
@@ -976,10 +1008,14 @@ Begin
 {$endif}
 {$ifdef LINUX}
   {sysfreemem already checks for nil}
-  sysfreemem(calculated_cmdline);
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode<>203) and (errorcode<>204) then
+    sysfreemem(calculated_cmdline);
 {$endif}
 {$ifdef BSD}
-  sysfreemem(cmdline);
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode<>203) and (errorcode<>204) then
+    sysfreemem(cmdline);
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -1023,7 +1059,7 @@ begin
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPU86} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
@@ -1163,7 +1199,7 @@ Type
   PExitProcInfo = ^TExitProcInfo;
   TExitProcInfo = Record
     Next     : PExitProcInfo;
-    SaveExit : Pointer;
+    SaveExit : CodePointer;
     Proc     : TProcedure;
   End;
 const
@@ -1311,6 +1347,11 @@ end;
 {*****************************************************************************
                           Abstract/Assert support.
 *****************************************************************************}
+
+procedure fpc_emptymethod;[public,alias : 'FPC_EMPTYMETHOD'];
+begin
+end;
+
 
 procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin

@@ -398,7 +398,10 @@ Const
        bfOffBits : DWord;
      end;
      tagBITMAPFILEHEADER = BITMAPFILEHEADER;
-  
+
+     TBitmapFileHeader = BITMAPFILEHEADER;
+     PBitmapFileHeader = ^TBitmapFileHeader;
+
      BLOB = record
           cbSize : ULONG;
           pBlobData : ^BYTE;
@@ -435,11 +438,11 @@ Const
           lpfn : BFFCALLBACK;
           lParam : LPARAM;
           iImage : longint;
-       end;
-     LPBROWSEINFO = ^BROWSEINFO;
-     _browseinfo = BROWSEINFO;
-     Tbrowseinfo = BROWSEINFO;
-     PBROWSEINFO = ^BROWSEINFO;
+       end deprecated 'Use shlobj version. Will be removed in 2.8'; 
+     LPBROWSEINFO = ^BROWSEINFO deprecated;
+     _browseinfo = BROWSEINFO deprecated;
+     Tbrowseinfo = BROWSEINFO deprecated;
+     PBROWSEINFO = ^BROWSEINFO deprecated;
 
      FILETIME = record
           dwLowDateTime : DWORD;
@@ -747,11 +750,11 @@ Const
           nShow : longint;
           dwHotKey : DWORD;
           hIcon : HANDLE;
-       end;
-     LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO;
-     _CMInvokeCommandInfo = CMINVOKECOMMANDINFO;
-     TCMInvokeCommandInfo = CMINVOKECOMMANDINFO;
-     PCMInvokeCommandInfo = ^CMINVOKECOMMANDINFO;
+       end deprecated 'Use shlobj version. Will be removed in 2.8';
+     LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO deprecated;
+     _CMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
+     TCMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
+     PCMInvokeCommandInfo = ^CMINVOKECOMMANDINFO deprecated;
 
      COLORADJUSTMENT = record
           caSize : WORD;
@@ -2027,7 +2030,7 @@ Const
      PDEVBROADCASTVOLUME = ^DEV_BROADCAST_VOLUME;
 
      DEVMODEA = record
-          dmDeviceName : array[0..(CCHDEVICENAME)-1] of BCHAR;
+          dmDeviceName : array[0..(CCHDEVICENAME)-1] of AnsiChar;
           dmSpecVersion : WORD;
           dmDriverVersion : WORD;
           dmSize : WORD;
@@ -2047,7 +2050,7 @@ Const
                 dmYResolution : SmallInt;
                 dmTTOption : SmallInt;
                 dmCollate : SmallInt;
-                dmFormName : array[0..(CCHFORMNAME)-1] of BCHAR;
+                dmFormName : array[0..(CCHFORMNAME)-1] of AnsiCHAR;
                 dmLogPixels : WORD;
                 dmBitsPerPel : DWORD;
                 dmPelsWidth : DWORD;
@@ -2084,6 +2087,8 @@ Const
                      dmSize        : WORD;
                      dmDriverExtra  : WORD;
                      dmFields       : DWORD;
+                     case byte of
+                  1: (
                      dmOrientation  : short;
                      dmPaperSize    : short;
                      dmPaperLength  : short;
@@ -2112,6 +2117,11 @@ Const
                      dmReserved2    : DWORD;
                      dmPanningWidth : DWORD;
                      dmPanningHeight: DWORD;
+                     );
+                  2: (dmPosition: POINTL;
+                      dmDisplayOrientation: DWORD;
+                      dmDisplayFixedOutput: DWORD;
+                     );
                    end;
 
      LPDEVMODEW   = ^DEVMODEW;
@@ -2707,8 +2717,8 @@ Const
 
      EXTLOGFONTA = record
           elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of AnsiCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of AnsiCHAR;
           elfVersion : DWORD;
           elfStyleSize : DWORD;
           elfMatch : DWORD;
@@ -4827,10 +4837,10 @@ Const
           tmOverhang : LONG;
           tmDigitizedAspectX : LONG;
           tmDigitizedAspectY : LONG;
-          tmFirstChar : BCHAR;
-          tmLastChar : BCHAR;
-          tmDefaultChar : BCHAR;
-          tmBreakChar : BCHAR;
+          tmFirstChar : AnsiChar;
+          tmLastChar : AnsiChar;
+          tmDefaultChar : AnsiChar;
+          tmBreakChar : AnsiChar;
           tmItalic : BYTE;
           tmUnderlined : BYTE;
           tmStruckOut : BYTE;
@@ -5208,10 +5218,10 @@ Const
           tmOverhang : LONG;
           tmDigitizedAspectX : LONG;
           tmDigitizedAspectY : LONG;
-          tmFirstChar : BCHAR;
-          tmLastChar : BCHAR;
-          tmDefaultChar : BCHAR;
-          tmBreakChar : BCHAR;
+          tmFirstChar : AnsiChar;
+          tmLastChar : AnsiChar;
+          tmDefaultChar : AnsiChar;
+          tmBreakChar : AnsiChar;
           tmItalic : BYTE;
           tmUnderlined : BYTE;
           tmStruckOut : BYTE;
@@ -6887,7 +6897,7 @@ Const
      TWINDOWPLACEMENT = WINDOWPLACEMENT;
      PWINDOWPLACEMENT = ^WINDOWPLACEMENT;
 
-     WNDCLASS = record
+     WNDCLASSA = record
           style : UINT;
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
@@ -6896,15 +6906,13 @@ Const
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
-          lpszMenuName : LPCTSTR;
-          lpszClassName : LPCTSTR;
+          lpszMenuName : LPCSTR;
+          lpszClassName : LPCSTR;
        end;
-     LPWNDCLASS = ^WNDCLASS;
-     _WNDCLASS = WNDCLASS;
-     TWNDCLASS = WNDCLASS;
-     TWNDCLASSA = WNDCLASS;
-     PWNDCLASS = ^WNDCLASS;
-
+     LPWNDCLASSA = ^WNDCLASSA;
+     _WNDCLASSA = WNDCLASSA;
+     TWNDCLASSA = WNDCLASSA;
+     PWNDCLASSA = ^WNDCLASSA;
 
      WNDCLASSW = record
           style : UINT;
@@ -6922,8 +6930,21 @@ Const
      _WNDCLASSW  = WNDCLASSW;
      TWNDCLASSW  = WNDCLASSW;
      PWNDCLASSW  = ^WNDCLASSW;
+     {$ifdef UNICODE}
+     LPWNDCLASS  = LPWNDCLASSW;
+     _WNDCLASS   = _WNDCLASSW;
+     TWNDCLASS   = TWNDCLASSW;
+     PWNDCLASS   = PWNDCLASSW;
+     WNDCLASS    = WNDCLASSW;
+     {$else}
+     LPWNDCLASS  = LPWNDCLASSA;
+     _WNDCLASS   = _WNDCLASSA;
+     TWNDCLASS   = TWNDCLASSA;
+     PWNDCLASS   = PWNDCLASSA;
+     WNDCLASS    = WNDCLASSA;
+     {$endif}
 
-     WNDCLASSEX = record
+     WNDCLASSEXA = record
           cbSize : UINT;
           style : UINT;
           lpfnWndProc : WNDPROC;
@@ -6933,15 +6954,14 @@ Const
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
-          lpszMenuName : LPCTSTR;
-          lpszClassName : LPCTSTR;
+          lpszMenuName : LPCSTR;
+          lpszClassName : LPCSTR;
           hIconSm : HANDLE;
        end;
-     LPWNDCLASSEX = ^WNDCLASSEX;
-     _WNDCLASSEX = WNDCLASSEX;
-     TWNDCLASSEX = WNDCLASSEX;
-     TWNDCLASSEXA = WNDCLASSEX;
-     PWNDCLASSEX = ^WNDCLASSEX;
+     LPWNDCLASSEXA = ^WNDCLASSEXA;
+     _WNDCLASSEXA = WNDCLASSEXA;
+     TWNDCLASSEXA = WNDCLASSEXA;
+     PWNDCLASSEXA = ^WNDCLASSEXA;
 
      WNDCLASSEXW = record
           cbSize : UINT;
@@ -6961,6 +6981,20 @@ Const
      _WNDCLASSEXW  = WNDCLASSEXW;
      TWNDCLASSEXW  = WNDCLASSEXW;
      PWNDCLASSEXW  = ^WNDCLASSEXW;
+
+     {$ifdef UNICODE}
+     LPWNDClassEx  = LPWNDClassExW;
+     _WNDClassEx   = _WNDClassExW;
+     TWNDClassEx   = TWNDClassExW;
+     PWNDClassEx   = PWNDClassExW;
+     WNDClassEx    = WNDClassExW;
+     {$ELSE}
+     LPWNDClassEx  = LPWNDClassExA;
+     _WNDClassEx   = _WNDClassExA;
+     TWNDClassEx   = TWNDClassExA;
+     PWNDClassEx   = PWNDClassExA;
+     WNDClassEx    = WNDClassExA;
+     {$endif}
 
      CONNECTDLGSTRUCT = record
           cbStructure : DWORD;

@@ -72,7 +72,7 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
   public
-    constructor Create(AStream: TStream);
+    constructor Create(AStream: TStream; ACapacity : Cardinal = 4096);
     destructor Destroy; override;
   end;
 
@@ -111,14 +111,14 @@ end;
     THTMLWriter
   ---------------------------------------------------------------------}
 
-constructor THTMLWriter.Create(AStream: TStream);
+constructor THTMLWriter.Create(AStream: TStream; ACapacity : Cardinal = 4096);
 begin
   inherited Create;
   FStream := AStream;
   // some overhead - always be able to write at least one extra UCS4
-  FBuffer := AllocMem(512+32);
+  FCapacity := ACapacity;
+  FBuffer := AllocMem(FCapacity+32);
   FBufPos := FBuffer;
-  FCapacity := 512;
   // Later on, this may be put under user control
   // for now, take OS setting
   FLineBreak := sLineBreak;

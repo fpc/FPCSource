@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
-procedure add_fppkg;
+procedure add_fppkg(const ADirectory: string);
 
 const
   TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
@@ -15,7 +15,6 @@ Var
   T : TTarget;
   P : TPackage;
   Data2Inc : string;
-  HostOS: TOS;
 begin
   AddCustomFpmakeCommandlineOption('data2inc', 'Use indicated data2inc executable.');
   AddCustomFpmakeCommandlineOption('genfpmkunit', 'Regenerate the fpmkunitsrc.inc file (fppkg).');
@@ -24,9 +23,7 @@ begin
     begin
 
     P:=AddPackage('fppkg');
-{$ifdef ALLPACKAGES}
-    P.Directory:='fppkg';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
 
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
@@ -46,7 +43,7 @@ begin
     P.Email := '';
     P.Description := 'Libraries to create fppkg package managers.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     P.SourcePath.Add('src');
 
@@ -82,8 +79,7 @@ begin
         Data2Inc:= ExpandFileName(Data2Inc);
       if Data2Inc='' then
         begin
-        HostOS:=StringToOS({$I %FPCTARGETOS%});
-        data2inc := ExeSearch(AddProgramExtension('data2inc', HostOS));
+        data2inc := ExeSearch(AddProgramExtension('data2inc', Defaults.BuildOS));
         end;
       if Data2Inc <> '' then
         P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');
@@ -93,7 +89,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fppkg;
+  add_fppkg('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

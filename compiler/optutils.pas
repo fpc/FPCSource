@@ -47,12 +47,15 @@ unit optutils;
     }
     procedure CalcDefSum(p : tnode);
 
+    { returns true, if n is a valid node and has life info }
+    function has_life_info(n : tnode) : boolean;
+
   implementation
 
     uses
       verbose,
       optbase,
-      nbas,nflw,nutils,nset;
+      ncal,nbas,nflw,nutils,nset;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -192,6 +195,7 @@ unit optutils;
                 result:=p;
                 { the successor of the last node of the for body is the for node itself }
                 DoSet(tfornode(p).t2,p);
+                p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
                 p.successor:=succ;
@@ -211,7 +215,7 @@ unit optutils;
                 Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                { the successor of the last node of the while body is the while node itself }
+                { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
                 p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
@@ -264,7 +268,8 @@ unit optutils;
               begin
                 { not sure if this is enough (FK) }
                 result:=p;
-                p.successor:=succ;
+                if not(cnf_call_never_returns in tcallnode(p).callnodeflags) then
+                  p.successor:=succ;
               end;
             inlinen:
               begin
@@ -321,6 +326,13 @@ unit optutils;
             foreachnodestatic(pm_postprocess,p,@adddef,nil);
             p.optinfo^.defsum:=sum;
           end;
+      end;
+
+
+    function has_life_info(n : tnode) : boolean;
+      begin
+        result:=assigned(n) and assigned(n.optinfo) and
+          assigned(n.optinfo^.life);
       end;
 
 end.

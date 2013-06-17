@@ -14,7 +14,7 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="2">
+    <BuildModes Count="3">
       <Item1 Name="Default" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -31,6 +31,25 @@
           </Other>
         </CompilerOptions>
       </Item2>
+      <Item3 Name="Default_no_local_ppus">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+          </SearchPaths>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -40,18 +59,22 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="FPCUnitTestRunner"/>
+        <PackageName Value="SynEdit"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="FPCUnitTestRunner"/>
       </Item2>
       <Item3>
-        <PackageName Value="FCL"/>
+        <PackageName Value="LCL"/>
       </Item3>
+      <Item4>
+        <PackageName Value="FCL"/>
+      </Item4>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
@@ -65,7 +88,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src/base;../src/sqldb/odbc;../src/sqldb/mssql;../src/sqldb/sqlite;../src/sqldb/postgres;../src/sqldb/oracle;../src/memds;../src/sqldb;../src/sqldb/interbase;../src/sqldb/mysql;../src/dbase;../src/sdf"/>
+      <OtherUnitFiles Value="../src/base;../src/sqldb/odbc;../src/sqldb/mssql;../src/sqldb/sqlite;../src/sqldb/postgres;../src/sqldb/oracle;../src/memds;../src/sqldb;../src/sqldb/interbase;../src/sqldb/mysql;../src/dbase;../src/sdf;../src/export"/>
     </SearchPaths>
     <Linking>
       <Debugging>
@@ -80,7 +103,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="7">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -93,6 +116,15 @@
       <Item4>
         <Name Value="EIBDatabaseError"/>
       </Item4>
+      <Item5>
+        <Name Value="EDatabaseError"/>
+      </Item5>
+      <Item6>
+        <Name Value="EAssertionFailedError"/>
+      </Item6>
+      <Item7>
+        <Name Value="EIgnoredTest"/>
+      </Item7>
     </Exceptions>
   </Debugging>
 </CONFIG>

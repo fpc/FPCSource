@@ -104,22 +104,15 @@ begin
   { create reference }
   reference_reset_symbol(href, table, 0, sizeof(aint));
   href.offset := (-aint(min_)) * 4;
-  basereg     := cg.getaddressregister(current_asmdata.CurrAsmList);
-  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
-
+  href.base:=indexreg;
   jmpreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-
-  reference_reset(href, sizeof(aint));
-  href.index := indexreg;
-  href.base  := basereg;
   cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_JR, jmpreg));
   { Delay slot }
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   { generate jump table }
-  if not(cs_opt_size in current_settings.optimizerswitches) then
-    jumpSegment.concat(Tai_Align.Create_Op(4, 0));
+  new_section(jumpSegment,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
   jumpSegment.concat(Tai_label.Create(table));
   last := min_;
   genitem(hp);

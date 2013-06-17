@@ -157,7 +157,7 @@ type
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
     procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
     function CheckProcedureArgs(Parent: TPasElement; Args: TFPList; Mandatory: Boolean): boolean;
-    function CheckVisibility(S: String; out AVisibility: TPasMemberVisibility): Boolean;
+    function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility): Boolean;
     procedure ParseExc(const Msg: String);
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
@@ -757,6 +757,8 @@ Var
 begin
   Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent));
   try
+    If (Result.Name='') then
+      Result.Name:='string';
     NextToken;
     if CurToken=tkSquaredBraceOpen then
       begin
@@ -791,7 +793,7 @@ Var
 begin
   Name := CurTokenString;
   NextToken;
-  if CurToken=tkDot then
+  while CurToken=tkDot do
     begin
     ExpectIdentifier;
     Name := Name+'.'+CurTokenString;
@@ -1646,9 +1648,20 @@ end;
 
 // Starts after the "unit" token
 procedure TPasParser.ParseUnit(var Module: TPasModule);
+var
+  AUnitName: String;
 begin
   Module := nil;
-  Module := TPasModule(CreateElement(TPasModule, ExpectIdentifier,
+  AUnitName := ExpectIdentifier;
+  NextToken;
+  while CurToken = tkDot do
+  begin
+    ExpectIdentifier;
+    AUnitName := AUnitName + '.' + CurTokenString;
+    NextToken;
+  end;
+  UngetToken;
+  Module := TPasModule(CreateElement(TPasModule, AUnitName,
     Engine.Package));
   FCurModule:=Module;
   try
@@ -2102,8 +2115,14 @@ begin
     Element:=CheckUnit('System'); // system always implicitely first.    
   Repeat
     AUnitName := ExpectIdentifier; 
-    Element :=CheckUnit(AUnitName);
     NextToken;
+    while CurToken = tkDot do
+    begin
+      ExpectIdentifier;
+      AUnitName := AUnitName + '.' + CurTokenString;
+      NextToken;
+    end;
+    Element := CheckUnit(AUnitName);
     if (CurToken=tkin) then
       begin
       ExpectToken(tkString);
@@ -3632,7 +3651,7 @@ begin
     end;
 end;
 
-Function IsVisibility(S : String;  Out AVisibility :TPasMemberVisibility) : Boolean;
+Function IsVisibility(S : String;  var AVisibility :TPasMemberVisibility) : Boolean;
 
 Const
   VNames : array[TPasMemberVisibility] of string =
@@ -3654,7 +3673,7 @@ begin
     end;
 end;
 
-Function TPasParser.CheckVisibility(S : String; Out AVisibility :TPasMemberVisibility) : Boolean;
+Function TPasParser.CheckVisibility(S : String; Var AVisibility :TPasMemberVisibility) : Boolean;
 
 Var
   B : Boolean;

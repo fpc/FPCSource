@@ -107,7 +107,7 @@ end;
 
 function BSTR2STRING(s : LongInt): PChar; Inline;
 begin
-  BSTR2STRING:=Pointer(Longint(BADDR(s))+1);
+  BSTR2STRING:=PChar(BADDR(s))+1;
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
@@ -681,7 +681,6 @@ end;
 
 function FSearch(path: PathStr; dirlist: String) : PathStr;
 var
-  counter: LongInt;
   p1     : LongInt;
   tmpSR  : SearchRec;
   newdir : PathStr;
@@ -727,7 +726,7 @@ begin
     DosError:=0;
     FTime := 0;
     Str := StrPas(filerec(f).name);
-    DoDirSeparators(str);
+    DoDirSeparators(Str);
     FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
@@ -906,23 +905,24 @@ begin
 end;
 
 
-
 function GetEnv(envvar : String): String;
 var
    bufarr : array[0..255] of char;
    strbuffer : array[0..255] of char;
    temp : Longint;
 begin
+   GetEnv := '';
    if UpCase(envvar) = 'PATH' then begin
        if StrOfpaths = '' then StrOfPaths := GetPathString;
-       GetEnv := StrofPaths;
+       GetEnv := StrOfPaths;
    end else begin
+      if (Pos(DriveSeparator,envvar) <> 0) or
+         (Pos(DirectorySeparator,envvar) <> 0) then exit;
       move(envvar[1],strbuffer,length(envvar));
       strbuffer[length(envvar)] := #0;
       temp := GetVar(strbuffer,bufarr,255,$100);
-      if temp = -1 then
-        GetEnv := ''
-      else GetEnv := StrPas(bufarr);
+      if temp <> -1 then
+         GetEnv := StrPas(bufarr);
    end;
 end;
 

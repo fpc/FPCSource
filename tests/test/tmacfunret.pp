@@ -1,3 +1,5 @@
+{ %fail }
+
 program tmacfunret;
   {$MODE MACPAS}
 

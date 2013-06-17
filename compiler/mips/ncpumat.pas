@@ -28,7 +28,7 @@ unit ncpumat;
 interface
 
 uses
-  node, nmat, ncgmat;
+  node, nmat, ncgmat, cgbase;
 
 type
   tMIPSELmoddivnode = class(tmoddivnode)
@@ -45,6 +45,10 @@ type
     procedure second_boolean; override;
   end;
 
+  TMIPSunaryminusnode = class(tcgunaryminusnode)
+    procedure emit_float_sign_change(r: tregister; _size : tcgsize);override;
+  end;
+
 implementation
 
 uses
@@ -54,7 +58,7 @@ uses
   aasmbase, aasmcpu, aasmtai, aasmdata,
   defutil,
   procinfo,
-  cgbase, cgobj, hlcgobj, pass_2,
+  cgobj, hlcgobj, pass_2,
   ncon,
   cpubase,
   ncgutil, cgcpu, cgutils;
@@ -261,6 +265,7 @@ procedure tMIPSELnotnode.second_boolean;
 var
   hl: tasmlabel;
   tmpreg : TRegister;
+  r64: TRegister64;
 begin
   { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -281,17 +286,38 @@ begin
   begin
     secondpass(left);
     case left.location.loc of
-      LOC_FLAGS:
+      LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE,
+      LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF:
       begin
-        internalerror(2007011501);
-      end;
-      LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
-      begin
-        tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, tmpreg, left.location.Register, NR_R0));
-        location_reset(location, LOC_REGISTER, OS_INT);
-        location.Register := tmpreg;
+        if is_64bit(resultdef) then
+          begin
+            r64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            r64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            { OR low and high parts together }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,r64.reglo,left.location.register64.reglo,left.location.register64.reghi));
+            { x=0 <=> unsigned(x)<1 }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,r64.reglo,r64.reglo,1));
+            if is_cbool(resultdef) then
+              begin
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,r64.reglo,r64.reglo);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,r64.reglo,r64.reghi);
+              end
+            else
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
+            location_reset(location,LOC_REGISTER,OS_64);
+            location.Register64:=r64;
+          end
+        else
+          begin
+            tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+            { x=0 <=> unsigned(x)<1 }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU, tmpreg, left.location.Register, 1));
+            if is_cbool(resultdef) then
+              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,tmpreg,tmpreg);
+            location_reset(location, LOC_REGISTER, OS_INT);
+            location.Register := tmpreg;
+          end;
       end;
       else
         internalerror(2003042401);
@@ -300,8 +326,26 @@ begin
 end;
 
 
+{*****************************************************************************
+                               TMIPSunaryminusnode
+*****************************************************************************}
+
+procedure TMIPSunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
+begin
+  case _size of
+    OS_F32:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_s,r,r));
+    OS_F64:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_d,r,r));
+  else
+    internalerror(2013030501);
+  end;
+end;
+
+
 begin
   cmoddivnode := tMIPSELmoddivnode;
   cshlshrnode := tMIPSELshlshrnode;
   cnotnode    := tMIPSELnotnode;
+  cunaryminusnode := TMIPSunaryminusnode;
 end.

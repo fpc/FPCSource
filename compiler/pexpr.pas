@@ -269,6 +269,7 @@ implementation
         err,
         prev_in_args : boolean;
         def : tdef;
+        exit_procinfo: tprocinfo;
       begin
         prev_in_args:=in_args;
         case l of
@@ -298,6 +299,7 @@ implementation
 
           in_exit :
             begin
+              statement_syssym:=nil;
               if try_to_consume(_LKLAMMER) then
                 begin
                   if not (m_mac in current_settings.modeswitches) then
@@ -306,8 +308,9 @@ implementation
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
-                          if (not assigned(current_procinfo) or
-                              is_void(current_procinfo.procdef.returndef)) then
+                          if not assigned(current_procinfo) or
+                             (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                             is_void(current_procinfo.procdef.returndef) then
                             begin
                               Message(parser_e_void_function);
                               { recovery }
@@ -320,8 +323,40 @@ implementation
                     end
                   else
                     begin
-                      if not (current_procinfo.procdef.procsym.name = pattern) then
-                        Message(parser_e_macpas_exit_wrong_param);
+                      { non local exit ? }
+                      if current_procinfo.procdef.procsym.name<>pattern then
+                        begin
+                          exit_procinfo:=current_procinfo.parent;
+                          while assigned(exit_procinfo) do
+                            begin
+                              if exit_procinfo.procdef.procsym.name=pattern then
+                                break;
+                              exit_procinfo:=exit_procinfo.parent;
+                            end;
+                          if assigned(exit_procinfo) then
+                            begin
+                              if not(assigned(exit_procinfo.nestedexitlabel)) then
+                                begin
+                                  include(exit_procinfo.flags,pi_has_nested_exit);
+                                  exclude(exit_procinfo.procdef.procoptions,po_inline);
+
+                                  exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
+
+                                  { the compiler is responsible to define this label }
+                                  exit_procinfo.nestedexitlabel.defined:=true;
+                                  exit_procinfo.nestedexitlabel.used:=true;
+
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=tlocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
+                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
+                                end;
+
+                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel);
+                              tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
+                            end
+                          else
+                            Message(parser_e_macpas_exit_wrong_param);
+                        end;
                       consume(_ID);
                       consume(_RKLAMMER);
                       p1:=nil;
@@ -329,7 +364,8 @@ implementation
                 end
               else
                 p1:=nil;
-              statement_syssym:=cexitnode.create(p1);
+              if not assigned(statement_syssym) then
+                statement_syssym:=cexitnode.create(p1);
             end;
 
           in_break :
@@ -480,6 +516,7 @@ implementation
                 end;
             end;
 
+          in_aligned_x,
           in_unaligned_x :
             begin
               err:=false;
@@ -487,7 +524,7 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(in_unaligned_x,false,p2);
+              p2:=geninlinenode(l,false,p2);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -731,6 +768,7 @@ implementation
                   statement_syssym:=cerrornode.create;
                 end;
             end;
+
           in_length_x:
             begin
               consume(_LKLAMMER);
@@ -884,7 +922,10 @@ implementation
                begin
                  { We are calling from the static class method which has no self node }
                  if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                   p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
+                   if st.symtabletype=recordsymtable then
+                     p1:=ctypenode.create(current_procinfo.procdef.struct)
+                   else
+                     p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -1089,7 +1130,7 @@ implementation
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              if getpropaccesslist(propsym,palt_write,propaccesslist) then
+              if propsym.getpropaccesslist(palt_write,propaccesslist) then
                 begin
                    sym:=propaccesslist.firstsym^.sym;
                    case sym.typ of
@@ -1141,7 +1182,7 @@ implementation
            end
          else
            begin
-              if getpropaccesslist(propsym,palt_read,propaccesslist) then
+              if propsym.getpropaccesslist(palt_read,propaccesslist) then
                 begin
                    sym := propaccesslist.firstsym^.sym;
                    case sym.typ of
@@ -1428,6 +1469,37 @@ implementation
 ****************************************************************************}
 
 
+    function real_const_node_from_pattern(s:string):tnode;
+      var
+        d : bestreal;
+        code : integer;
+        cur : currency;
+      begin
+        val(s,d,code);
+        if code<>0 then
+         begin
+           Message(parser_e_error_in_real);
+           d:=1.0;
+         end;
+{$ifdef FPC_REAL2REAL_FIXED}
+        if current_settings.fputype=fpu_none then
+          Message(parser_e_unsupported_real);
+        if (current_settings.minfpconstprec=s32real) and
+           (d = single(d)) then
+          result:=crealconstnode.create(d,s32floattype)
+        else if (current_settings.minfpconstprec=s64real) and
+                (d = double(d)) then
+          result:=crealconstnode.create(d,s64floattype)
+        else
+{$endif FPC_REAL2REAL_FIXED}
+          result:=crealconstnode.create(d,pbestrealtype^);
+{$ifdef FPC_HAS_STR_CURRENCY}
+        val(pattern,cur,code);
+        if code=0 then
+          trealconstnode(result).value_currency:=cur;
+{$endif FPC_HAS_STR_CURRENCY}
+      end;
+
 {---------------------------------------------
                PostFixOperators
 ---------------------------------------------}
@@ -1609,6 +1681,52 @@ implementation
           addstatement(newstatement,ctemprefnode.create(arrnode));
         end;
 
+      function try_type_helper(var node:tnode;def:tdef):boolean;
+        var
+          srsym : tsym;
+          srsymtable : tsymtable;
+          n : tnode;
+          newstatement : tstatementnode;
+          temp : ttempcreatenode;
+          extdef : tdef;
+        begin
+          result:=false;
+          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except]) then
+            begin
+              if not assigned(def) then
+                if node.nodetype=addrn then
+                  { always use the pointer type for addr nodes as otherwise
+                    we'll have an anonymous pointertype with no name }
+                  def:=voidpointertype
+                else
+                  def:=node.resultdef;
+              result:=search_objectpascal_helper(def,nil,pattern,srsym,srsymtable);
+              if result then
+                begin
+                  if not (srsymtable.symtabletype=objectsymtable) or
+                      not is_objectpascal_helper(tdef(srsymtable.defowner)) then
+                    internalerror(2013011401);
+                  { convert const node to temp node of the extended type }
+                  if node.nodetype in (nodetype_const+[niln,addrn]) then
+                    begin
+                      extdef:=tobjectdef(srsymtable.defowner).extendeddef;
+                      newstatement:=nil;
+                      n:=internalstatements(newstatement);
+                      temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false);
+                      addstatement(newstatement,temp);
+                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),node));
+                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                      addstatement(newstatement,ctemprefnode.create(temp));
+                      node:=n;
+                      do_typecheckpass(node)
+                    end;
+                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                  consume(_ID);
+                  do_member_read(nil,getaddr,srsym,node,again,[]);
+                end;
+            end;
+        end;
+
     var
      protsym  : tpropertysym;
      p2,p3  : tnode;
@@ -1618,10 +1736,17 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     found,
+     haderror,
      nodechanged    : boolean;
      calltype: tdispcalltype;
+     valstr,expstr : string;
+     intval : qword;
+     code : integer;
+     strdef : tdef;
     label
-     skipreckklammercheck;
+     skipreckklammercheck,
+     skippointdefcheck;
     begin
      result:=false;
      again:=true;
@@ -1653,7 +1778,15 @@ implementation
                    typecheckpass(p1);
                  end;
 
-               if (p1.resultdef.typ<>pointerdef) then
+               { iso file buf access? }
+               if (m_iso in current_settings.modeswitches) and
+                 (p1.resultdef.typ=filedef) and
+                 (tfiledef(p1.resultdef).filetyp=ft_text) then
+                 begin
+                   p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf',ccallparanode.create(p1,nil)));
+                   typecheckpass(p1);
+                 end
+               else if (p1.resultdef.typ<>pointerdef) then
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;
@@ -1724,8 +1857,8 @@ implementation
                        arraydef:
                          begin
                            p2:=comp_expr(true,false);
-                           { support SEG:OFS for go32v2 Mem[] }
-                           if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                           { support SEG:OFS for go32v2/msdos Mem[] }
+                           if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                               (p1.nodetype=loadn) and
                               assigned(tloadnode(p1).symtableentry) and
                               assigned(tloadnode(p1).symtableentry.owner.name) and
@@ -1734,6 +1867,24 @@ implementation
                                (tloadnode(p1).symtableentry.name='MEMW') or
                                (tloadnode(p1).symtableentry.name='MEML')) then
                              begin
+{$if defined(i8086)}
+                               consume(_COLON);
+                               inserttypeconv(p2,u16inttype);
+                               inserttypeconv_internal(p2,u32inttype);
+                               p3:=cshlshrnode.create(shln,p2,cordconstnode.create($10,s16inttype,false));
+                               p2:=comp_expr(true,false);
+                               inserttypeconv(p2,u16inttype);
+                               inserttypeconv_internal(p2,u32inttype);
+                               p2:=caddnode.create(addn,p2,p3);
+                               case tloadnode(p1).symtableentry.name of
+                                 'MEM': p2:=ctypeconvnode.create_internal(p2,bytefarpointertype);
+                                 'MEMW': p2:=ctypeconvnode.create_internal(p2,wordfarpointertype);
+                                 'MEML': p2:=ctypeconvnode.create_internal(p2,longintfarpointertype);
+                                 else
+                                   internalerror(2013053102);
+                               end;
+                               p1:=cderefnode.create(p2);
+{$elseif defined(i386)}
                                if try_to_consume(_COLON) then
                                 begin
                                   p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
@@ -1754,6 +1905,9 @@ implementation
                                   p1:=cvecnode.create(p1,p2);
                                   include(tvecnode(p1).flags,nf_memindex);
                                 end;
+{$else}
+                               internalerror(2013053101);
+{$endif}
                              end
                            else
                              begin
@@ -1797,6 +1951,120 @@ implementation
                  try to call it in case it returns a record/object/... }
                maybe_call_procvar(p1,false);
 
+               if (p1.nodetype=ordconstn) and
+                   not is_boolean(p1.resultdef) and
+                   not is_enum(p1.resultdef) then
+                 begin
+                   { type helpers are checked first }
+                   if (token=_ID) and try_type_helper(p1,nil) then
+                     goto skippointdefcheck;
+                   { only an "e" or "E" can follow an intconst with a ".", the
+                     other case (another intconst) is handled by the scanner }
+                   if (token=_ID) and (pattern[1]='E') then
+                     begin
+                       haderror:=false;
+                       if length(pattern)>1 then
+                         begin
+                           expstr:=copy(pattern,2,length(pattern)-1);
+                           val(expstr,intval,code);
+                           if code<>0 then
+                             haderror:=true;
+                         end
+                       else
+                         expstr:='';
+                       consume(token);
+                       if tordconstnode(p1).value.signed then
+                         str(tordconstnode(p1).value.svalue,valstr)
+                       else
+                         str(tordconstnode(p1).value.uvalue,valstr);
+                       valstr:=valstr+'.0E';
+                       if expstr='' then
+                         case token of
+                           _MINUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+'-'+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _PLUS:
+                             begin
+                               consume(token);
+                               if token=_INTCONST then
+                                 begin
+                                   valstr:=valstr+pattern;
+                                   consume(token);
+                                 end
+                               else
+                                 haderror:=true;
+                             end;
+                           _INTCONST:
+                             begin
+                               valstr:=valstr+pattern;
+                               consume(_INTCONST);
+                             end;
+                           else
+                             haderror:=true;
+                         end
+                       else
+                         valstr:=valstr+expstr;
+                       if haderror then
+                         begin
+                           Message(parser_e_error_in_real);
+                           p2:=cerrornode.create;
+                         end
+                       else
+                         p2:=real_const_node_from_pattern(valstr);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end
+                   else
+                     begin
+                       { just convert the ordconst to a realconst }
+                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^);
+                       p1.free;
+                       p1:=p2;
+                       again:=false;
+                       goto skippointdefcheck;
+                     end;
+                 end;
+
+               if (p1.nodetype=stringconstn) and (token=_ID) then
+                 begin
+                   { the def of a string const is an array }
+                   case tstringconstnode(p1).cst_type of
+                     cst_conststring:
+                       if cs_refcountedstrings in current_settings.localswitches then
+                         if m_default_unicodestring in current_settings.modeswitches then
+                           strdef:=cunicodestringtype
+                         else
+                           strdef:=cansistringtype
+                       else
+                         strdef:=cshortstringtype;
+                     cst_shortstring:
+                       strdef:=cshortstringtype;
+                     cst_ansistring:
+                       { use getansistringdef? }
+                       strdef:=cansistringtype;
+                     cst_widestring:
+                       strdef:=cwidestringtype;
+                     cst_unicodestring:
+                       strdef:=cunicodestringtype;
+                     cst_longstring:
+                       { let's see when someone stumbles upon this...}
+                       internalerror(201301111);
+                   end;
+                   if try_type_helper(p1,strdef) then
+                     goto skippointdefcheck;
+                 end;
+
+               { this is skipped if label skippointdefcheck is used }
                case p1.resultdef.typ of
                  recorddef:
                    begin
@@ -1827,25 +2095,28 @@ implementation
                      if token=_ID then
                        begin
                          srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
-                         p1.destroy;
                          if assigned(srsym) and (srsym.typ=enumsym) then
                            begin
+                             p1.destroy;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                              p1:=genenumnode(tenumsym(srsym));
+                             consume(_ID);
                            end
                          else
-                           begin
-                             Message1(sym_e_id_no_member,orgpattern);
-                             p1:=cerrornode.create;
-                           end;
+                           if not try_type_helper(p1,nil) then
+                             begin
+                               p1.destroy;
+                               Message1(sym_e_id_no_member,orgpattern);
+                               p1:=cerrornode.create;
+                               consume(_ID);
+                             end;
                        end;
-                     consume(_ID);
                    end;
                  arraydef:
                    begin
                      if is_dynamic_array(p1.resultdef) then
                        begin
-                         if token=_ID then
+                         if (token=_ID) and not try_type_helper(p1,nil) then
                            begin
                              if pattern='CREATE' then
                                begin
@@ -1880,39 +2151,42 @@ implementation
                         v.ident(parameters) := rhs -> also property put }
                       if token=_ID then
                         begin
-                          dispatchstring:=orgpattern;
-                          consume(_ID);
-                          calltype:=dct_method;
-                          if try_to_consume(_LKLAMMER) then
+                          if not try_type_helper(p1,nil) then
                             begin
-                              p2:=parse_paras(false,true,_RKLAMMER);
-                              consume(_RKLAMMER);
-                            end
-                          else if try_to_consume(_LECKKLAMMER) then
-                            begin
-                              p2:=parse_paras(false,true,_RECKKLAMMER);
-                              consume(_RECKKLAMMER);
-                              calltype:=dct_propget;
-                            end
-                          else
-                            p2:=nil;
-                          { property setter? }
-                          if (token=_ASSIGNMENT) and not(afterassignment) then
-                            begin
-                              consume(_ASSIGNMENT);
-                              { read the expression }
-                              p3:=comp_expr(true,false);
-                              { concat value parameter too }
-                              p2:=ccallparanode.create(p3,p2);
-                              p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
-                            end
-                          else
-                          { this is only an approximation
-                            setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                          if afterassignment or in_args or (token<>_SEMICOLON) then
-                            p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
-                          else
-                            p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
+                              dispatchstring:=orgpattern;
+                              consume(_ID);
+                              calltype:=dct_method;
+                              if try_to_consume(_LKLAMMER) then
+                                begin
+                                  p2:=parse_paras(false,true,_RKLAMMER);
+                                  consume(_RKLAMMER);
+                                end
+                              else if try_to_consume(_LECKKLAMMER) then
+                                begin
+                                  p2:=parse_paras(false,true,_RECKKLAMMER);
+                                  consume(_RECKKLAMMER);
+                                  calltype:=dct_propget;
+                                end
+                              else
+                                p2:=nil;
+                              { property setter? }
+                              if (token=_ASSIGNMENT) and not(afterassignment) then
+                                begin
+                                  consume(_ASSIGNMENT);
+                                  { read the expression }
+                                  p3:=comp_expr(true,false);
+                                  { concat value parameter too }
+                                  p2:=ccallparanode.create(p3,p2);
+                                  p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
+                                end
+                              else
+                              { this is only an approximation
+                                setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                              if afterassignment or in_args or (token<>_SEMICOLON) then
+                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
+                              else
+                                p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
+                            end;
                         end
                       else { Error }
                         Consume(_ID);
@@ -1989,21 +2263,30 @@ implementation
                         end
                       else
                         begin
-                          Message(parser_e_invalid_qualifier);
-                          if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
-                            Message(parser_h_maybe_deref_caret_missing);
+                          if not try_type_helper(p1,nil) then
+                            begin
+                              Message(parser_e_invalid_qualifier);
+                              if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
+                                Message(parser_h_maybe_deref_caret_missing);
+                            end;
                         end
                     end;
                   else
                     begin
-                      if p1.resultdef.typ<>undefineddef then
-                        Message(parser_e_invalid_qualifier);
-                      p1.destroy;
-                      p1:=cerrornode.create;
-                      { Error }
-                      consume(_ID);
+                      found:=try_type_helper(p1,nil);
+                      if not found then
+                        begin
+                          if p1.resultdef.typ<>undefineddef then
+                            Message(parser_e_invalid_qualifier);
+                          p1.destroy;
+                          p1:=cerrornode.create;
+                          { Error }
+                          consume(_ID);
+                        end;
                     end;
                end;
+               { processing an ordconstnode avoids the resultdef check }
+               skippointdefcheck:
              end;
 
           else
@@ -2104,6 +2387,22 @@ implementation
          ---------------------------------------------}
 
        procedure factor_read_id(out p1:tnode;var again:boolean);
+
+         function findwithsymtable : boolean;
+           var
+             hp : psymtablestackitem;
+           begin
+             result:=true;
+             hp:=symtablestack.stack;
+             while assigned(hp) do
+               begin
+                 if hp^.symtable.symtabletype=withsymtable then
+                   exit;
+                 hp:=hp^.next;
+               end;
+             result:=false;
+           end;
+
          var
            srsym : tsym;
            srsymtable : TSymtable;
@@ -2183,9 +2482,21 @@ implementation
                            symbol }
                    not (sp_explicitrename in srsym.symoptions) then
                  begin
-                   identifier_not_found(orgstoredpattern);
-                   srsym:=generrorsym;
-                   srsymtable:=nil;
+                   { if a generic is parsed and when we are inside an with block,
+                     a symbol might not be defined }
+                   if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) and
+                      findwithsymtable then
+                     begin
+                       { create dummy symbol, it will be freed later on }
+                       srsym:=tsym.create(undefinedsym,'$undefinedsym');
+                       srsymtable:=nil;
+                     end
+                   else
+                     begin
+                       identifier_not_found(orgstoredpattern);
+                       srsym:=generrorsym;
+                       srsymtable:=nil;
+                     end;
                  end;
              end;
 
@@ -2197,7 +2508,7 @@ implementation
               (
                (token=_LKLAMMER) or
                (
-                (([m_tp7,m_delphi,m_mac] * current_settings.modeswitches) <> []) and
+                (([m_tp7,m_delphi,m_mac,m_iso] * current_settings.modeswitches) <> []) and
                 (afterassignment or in_args)
                )
               ) then
@@ -2250,7 +2561,10 @@ implementation
                           if assigned(current_structdef) and
                               (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                                (sp_static in srsym.symoptions)) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                            if srsymtable.symtabletype=recordsymtable then
+                              p1:=ctypenode.create(hdef)
+                            else
+                              p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
@@ -2402,6 +2716,14 @@ implementation
                       end;
                   end;
 
+                undefinedsym :
+                  begin
+                    p1:=cnothingnode.Create;
+                    p1.resultdef:=tundefineddef.create;
+                    { clean up previously created dummy symbol }
+                    srsym.free;
+                  end;
+
                 errorsym :
                   begin
                     p1:=cerrornode.create;
@@ -2482,7 +2804,6 @@ implementation
          pd         : tprocdef;
          hclassdef  : tobjectdef;
          d          : bestreal;
-         cur        : currency;
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
@@ -2734,34 +3055,22 @@ implementation
                  else
                    { the necessary range checking has already been done by val }
                    tordconstnode(p1).rangecheck:=false;
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _REALNUMBER :
                begin
-                 val(pattern,d,code);
-                 if code<>0 then
-                  begin
-                    Message(parser_e_error_in_real);
-                    d:=1.0;
-                  end;
+                 p1:=real_const_node_from_pattern(pattern);
                  consume(_REALNUMBER);
-{$ifdef FPC_REAL2REAL_FIXED}
-                 if current_settings.fputype=fpu_none then
-                   Message(parser_e_unsupported_real);
-                 if (current_settings.minfpconstprec=s32real) and
-                    (d = single(d)) then
-                   p1:=crealconstnode.create(d,s32floattype)
-                 else if (current_settings.minfpconstprec=s64real) and
-                         (d = double(d)) then
-                   p1:=crealconstnode.create(d,s64floattype)
-                 else
-{$endif FPC_REAL2REAL_FIXED}
-                   p1:=crealconstnode.create(d,pbestrealtype^);
-{$ifdef FPC_HAS_STR_CURRENCY}
-                 val(pattern,cur,code);
-                 if code=0 then
-                   trealconstnode(p1).value_currency:=cur;
-{$endif FPC_HAS_STR_CURRENCY}
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _STRING :
@@ -2805,24 +3114,44 @@ implementation
                begin
                  p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern));
                  consume(_CSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CCHAR :
                begin
                  p1:=cordconstnode.create(ord(pattern[1]),cansichartype,true);
                  consume(_CCHAR);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CWSTRING:
                begin
                  p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
+                 if token in postfixoperator_tokens then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _CWCHAR:
                begin
                  p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype,true);
                  consume(_CWCHAR);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _KLAMMERAFFE :
@@ -2833,7 +3162,7 @@ implementation
                  if try_to_consume(_LKLAMMER) then
                   begin
                     p1:=factor(true,false);
-                    if token in [_CARET,_POINT,_LECKKLAMMER] then
+                    if token in postfixoperator_tokens then
                      begin
                        again:=true;
                        postfixoperators(p1,again,getaddr);
@@ -2843,7 +3172,7 @@ implementation
                   end
                  else
                   p1:=factor(true,false);
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -2866,9 +3195,9 @@ implementation
                  consume(_LKLAMMER);
                  p1:=comp_expr(true,false);
                  consume(_RKLAMMER);
-                 { it's not a good solution     }
-                 { but (a+b)^ makes some problems  }
-                 if token in [_CARET,_POINT,_LECKKLAMMER] then
+                 { it's not a good solution
+                   but (a+b)^ makes some problems  }
+                 if token in postfixoperator_tokens then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -2940,12 +3269,22 @@ implementation
                begin
                  consume(_TRUE);
                  p1:=cordconstnode.create(1,pasbool8type,false);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _FALSE :
                begin
                  consume(_FALSE);
                  p1:=cordconstnode.create(0,pasbool8type,false);
+                 if token=_POINT then
+                   begin
+                     again:=true;
+                     postfixoperators(p1,again,getaddr);
+                   end;
                end;
 
              _NIL :
@@ -2953,7 +3292,7 @@ implementation
                  consume(_NIL);
                  p1:=cnilnode.create;
                  { It's really ugly code nil^, but delphi allows it }
-                 if token in [_CARET] then
+                 if token in [_CARET,_POINT] then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -3162,7 +3501,7 @@ implementation
                        check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',parseddef,gensym.RealName);
+                       generate_specialization(gendef,false,'',parseddef,gensym.RealName,p2.fileinfo);
 
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
@@ -3253,7 +3592,7 @@ implementation
                          Internalerror(2011071401);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,'',nil,'');
+                       generate_specialization(gendef,false,'');
 
                        { we don't need the old p2 anymore }
                        p2.Free;

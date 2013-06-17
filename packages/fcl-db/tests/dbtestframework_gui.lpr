@@ -2,15 +2,19 @@ program dbtestframework_gui;
 
 {$mode objfpc}{$H+}
 
-// Note that this Lazarus project by default re-compiles all DB-units! This eases
-// developing, but asks some attention from the developer.
-// If you want to use the default, installed db-units, simply clear the search path
-// in the compiler-options.
-// It could also be that after compiling this project, you have to manually clean
+// Note that this Lazarus project by default re-compiles all DB units! This eases
+// developing, but requires some attention from the developer.
+// It could very well be that after compiling this project, you have to manually clean
 // the .ppu files before you can build fcl-db in the regular way. (Using fpmake)
 
+// If you want to use the default installed db units, use the
+// Default_no_local_ppus build mode which clears the search path in the compiler
+// options.
+
 uses
-  Interfaces, Forms, GuiTestRunner,
+  Interfaces, Forms,
+  // GUI:
+  GuiTestRunner, inieditor,
   // Generic DB test framework units
   ToolsUnit,
   // Connectors for different database-types
@@ -26,13 +30,36 @@ uses
   TestDBBasics,
   TestDatasources,
   TestBufDatasetStreams,
-  TestSpecificTBufDataset;
+  TestSQLDB,
+  TestSpecificTBufDataset,
+  TestSpecificTDBF,
+  TestDBExport;
 
 {$R *.res}
 
+var
+  DBSelectForm: TFormIniEditor;
+  TestRunForm: TGUITestRunner;
 begin
   Application.Initialize;
-  Application.CreateForm(TGuiTestRunner, TestRunner);
-  Application.Run;
+  DBSelectForm:=TFormIniEditor.Create(nil);
+  try
+    DBSelectForm.INIFile:='database.ini';
+    DBSelectForm.ProfileSelectSection:='Database';
+    DBSelectForm.ProfileSelectKey:='type';
+    // We can ignore resulting db selection as the file is saved already:
+    DBSelectForm.ShowModal;
+  finally
+    DBSelectForm.Free;
+  end;
+  // Manually run this form because autocreation could have loaded an old
+  // database.ini file (if the user changed it using DBSelectForm)
+  TestRunForm:=TGUITestRunner.Create(nil);
+  try
+    TestRunForm.Show;
+    Application.Run;
+  finally
+    TestRunForm.Free;
+  end;
 end.
 

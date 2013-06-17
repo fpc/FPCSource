@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -52,8 +52,6 @@ begin
 end;
 
 destructor TX11Console.Destroy;
-var
-  I: Integer;
 begin
   Close;
   FreeAndNil(FX11Display);
@@ -221,9 +219,22 @@ begin
     Result := False;
 end;
 
+function TX11Console.GetOpenGL_Enabled: Boolean;
+begin
+  Result := PTC_X11_USE_OPENGL in FFlags;
+end;
+
+procedure TX11Console.SetOpenGL_Enabled(AValue: Boolean);
+begin
+  if (FX11Display <> nil) and FX11Display.IsOpen then
+    raise TPTCError.Create('Value of UseOpenGL cannot be modified while the console is open');
+  if AValue then
+    FFlags := FFlags + [PTC_X11_USE_OPENGL]
+  else
+    FFlags := FFlags - [PTC_X11_USE_OPENGL];
+end;
+
 function TX11Console.Modes: TPTCModeList;
-var
-  I: Integer;
 begin
   if FX11Display = nil then
     FX11Display := CreateDisplay;
@@ -255,17 +266,24 @@ function TX11Console.CreateDisplay: TX11Display;
 var
   display: PDisplay;
   screen: Integer;
+  DetectableAutoRepeatSupported: Boolean;
 begin
   { Check if we can open an X display }
-  display := XOpenDisplay(Nil);
+  display := XOpenDisplay(nil);
   if display = nil then
     raise TPTCError.Create('Cannot open X display');
 
   { DefaultScreen should be fine }
   screen := DefaultScreen(display);
 
+  if not XkbSetDetectableAutoRepeat(display, True, @DetectableAutoRepeatSupported) then
+    LOG('DetectableAutoRepeat not supported')
+  else
+    if not DetectableAutoRepeatSupported then
+      LOG('DetectableAutoRepeat not supported');
+
   {$IFDEF ENABLE_X11_EXTENSION_XF86DGA2}
-  if PTC_X11_TRY_DGA2 In FFlags then
+  if (PTC_X11_TRY_DGA2 in FFlags) and not (PTC_X11_USE_OPENGL in FFlags) then
   begin
     try
       Result := TX11DGA2Display.Create(display, screen, FFlags + [PTC_X11_LEAVE_DISPLAY]);
@@ -278,7 +296,7 @@ begin
   {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}
 
   {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
-  if PTC_X11_TRY_DGA1 In FFlags then
+  if (PTC_X11_TRY_DGA1 in FFlags) and not (PTC_X11_USE_OPENGL in FFlags) then
   begin
     try
       Result := TX11DGA1Display.Create(display, screen, FFlags + [PTC_X11_LEAVE_DISPLAY]);
@@ -300,7 +318,7 @@ begin
 
   if FX11Display = nil then
     FX11Display := CreateDisplay;
-  FX11Display.Open(ATitle, AWidth, AHeight, AFormat);
+  FX11Display.Open(ATitle, AWidth, AHeight, AFormat, FOpenGLAttributes);
 
   UpdateCursor;
 end;
@@ -533,4 +551,19 @@ procedure TX11Console.UpdateMouseGrab;
 begin
   if Assigned(FX11Display) then
     FX11Display.SetMouseGrab(PTC_X11_GRAB_MOUSE in FFlags);
+end;
+
+procedure TX11Console.OpenGL_SwapBuffers;
+begin
+  FX11Display.OpenGL_SwapBuffers;
+end;
+
+procedure TX11Console.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  FX11Display.OpenGL_SetSwapInterval(AInterval);
+end;
+
+function TX11Console.OpenGL_GetSwapInterval: Integer;
+begin
+  Result := FX11Display.OpenGL_GetSwapInterval;
 end;

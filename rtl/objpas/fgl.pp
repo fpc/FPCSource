@@ -89,7 +89,11 @@ type
   end;
 
 const
+{$ifdef cpu16}
+  MaxGListSize = {MaxInt div} 1024;
+{$else cpu16}
   MaxGListSize = MaxInt div 1024;
+{$endif cpu16}
 
 type
   generic TFPGListEnumerator<T> = class(TObject)
@@ -526,7 +530,7 @@ end;
 
 class procedure TFPSList.Error(const Msg: string; Data: PtrInt);
 begin
-  raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPSList.Exchange(Index1, Index2: Integer);
@@ -1241,7 +1245,7 @@ end;
 
 function TFPSMap.Find(AKey: Pointer; out Index: Integer): Boolean;
 { Searches for the first item <= Key, returns True if exact match,
-  sets index to the index f the found string. }
+  sets index to the index of the found string. }
 var
   I,L,R,Dir: Integer;
 begin

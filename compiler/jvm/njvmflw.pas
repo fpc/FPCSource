@@ -35,6 +35,7 @@ interface
 
        tjvmraisenode = class(traisenode)
           function pass_typecheck: tnode; override;
+          function pass_1: tnode; override;
           procedure pass_generate_code;override;
        end;
 
@@ -55,7 +56,7 @@ implementation
     uses
       verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,jvmdef,
-      procinfo,cgbase,pass_2,parabase,
+      procinfo,cgbase,pass_1,pass_2,parabase,
       cpubase,cpuinfo,
       nbas,nld,ncon,ncnv,
       tgobj,paramgr,
@@ -131,6 +132,15 @@ implementation
          { Java exceptions cannot be raised "at" a specific location }
          if assigned(right) then
            MessagePos(right.fileinfo,parser_e_illegal_expression);
+      end;
+
+
+    function tjvmraisenode.pass_1: tnode;
+      begin
+         result:=nil;
+         expectloc:=LOC_VOID;
+         if assigned(left) then
+           firstpass(left);
       end;
 
 

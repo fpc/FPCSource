@@ -1,4 +1,4 @@
-{
+ {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
@@ -38,7 +38,6 @@ interface
           procedure generate_nested_access(vs: tsym);virtual;
          public
           procedure pass_generate_code;override;
-          procedure generate_picvaraccess;virtual;
           procedure changereflocation(const ref: treference);
        end;
 
@@ -214,15 +213,6 @@ implementation
                              SecondLoad
 *****************************************************************************}
 
-    procedure tcgloadnode.generate_picvaraccess;
-      begin
-{$ifndef sparc}
-        location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname+'@GOT');
-{$endif sparc}
-      end;
-
-
     procedure tcgloadnode.changereflocation(const ref: treference);
       var
         oldtemptype: ttemptype;
@@ -266,6 +256,7 @@ implementation
         endrelocatelab,
         norelocatelab : tasmlabel;
         paraloc1 : tcgpara;
+        pvd : tdef;
       begin
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
@@ -329,21 +320,41 @@ implementation
                  begin
                     if (tf_section_threadvars in target_info.flags) then
                       begin
-                        if gvs.localloc.loc=LOC_INVALID then
-                          if not(vo_is_weak_external in gvs.varoptions) then
-                            reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                          else
-                            reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                        if target_info.system in [system_i386_win32,system_x86_64_win64] then
+                          begin
+                            paraloc1.init;
+                            pd:=search_system_proc('fpc_tls_add');
+                            paramanager.getintparaloc(pd,1,paraloc1);
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+                            cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href,paraloc1);
+                            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                            paraloc1.done;
+
+                            cg.g_call(current_asmdata.CurrAsmList,'FPC_TLS_ADD');
+                            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                            hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+                            location.reference.base:=hregister;
+                          end
                         else
-                          location:=gvs.localloc;
+                          begin
+                            if gvs.localloc.loc=LOC_INVALID then
+                              if not(vo_is_weak_external in gvs.varoptions) then
+                                reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                              else
+                                reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                            else
+                              location:=gvs.localloc;
 {$ifdef i386}
-                        case target_info.system of
-                          system_i386_linux:
-                            location.reference.segment:=NR_GS;
-                          system_i386_win32:
-                            location.reference.segment:=NR_FS;
-                        end;
+                            case target_info.system of
+                              system_i386_linux,system_i386_android:
+                                location.reference.segment:=NR_GS;
+                            end;
 {$endif i386}
+                          end;
                       end
                     else
                       begin
@@ -360,8 +371,11 @@ implementation
                         current_asmdata.getjumplabel(norelocatelab);
                         current_asmdata.getjumplabel(endrelocatelab);
                         { make sure hregister can't allocate the register necessary for the parameter }
+                        pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
+                        if pvd.typ<>procvardef then
+                          internalerror(2012120901);
                         paraloc1.init;
-                        paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+                        paramanager.getintparaloc(tprocvardef(pvd),1,paraloc1);
                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,sizeof(pint));
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
@@ -457,13 +471,7 @@ implementation
                    internalerror(200312011);
                  if assigned(left) then
                    begin
-                     {$if sizeof(pint) = 4}
-                        location_reset(location,LOC_CREGISTER,OS_64);
-                     {$else} {$if sizeof(pint) = 8}
-                        location_reset(location,LOC_CREGISTER,OS_128);
-                     {$else}
-                        internalerror(20020520);
-                     {$endif} {$endif}
+                     location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -542,7 +550,13 @@ implementation
                    end
                  else
                    begin
+                      { def_cgsize does not work for procdef }
+                      location.size:=OS_ADDR;
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
+{$ifdef i8086}
+                      if po_far in pd.procoptions then
+                        location.size:=OS_32;
+{$endif i8086}
                       if not(po_weakexternal in pd.procoptions) then
                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
                       else
@@ -798,11 +812,12 @@ implementation
                             releaseright:=true;
                             location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                             right.location.reference:=href;
+                            right.resultdef:=left.resultdef;
                           end;
 {$endif}
-                        cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
-                          right.location.size,
-                          left.location.size,
+                        hlcg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,
+                          left.resultdef,
                           right.location.reference,
                           left.location.register,mms_movescalar);
                       end;
@@ -842,10 +857,10 @@ implementation
                       case left.location.loc of
                         LOC_CMMREGISTER,
                         LOC_MMREGISTER:
-                          cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar);
+                          hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register,mms_movescalar);
                         LOC_REFERENCE,
                         LOC_CREFERENCE:
-                          cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                          hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference,mms_movescalar);
                         else
                           internalerror(2009112601);
                       end;
@@ -879,15 +894,16 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef, left.resultdef.size,tt_normal,href);
+                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
+                          right.resultdef:=left.resultdef;
                         end;
 {$endif}
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,false);
-                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
-                          right.location.size,left.location.size,
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,left.resultdef,
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
@@ -1260,7 +1276,7 @@ implementation
                   end
                  else
                   { todo: proper type information for hlcg }
-                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,voidpointertype,hp.left.location,href);
+                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,{$ifdef cpu16bitaddr}u32inttype{$else}voidpointertype{$endif},hp.left.location,href);
                  { update href to the vtype field and write it }
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
@@ -1275,7 +1291,7 @@ implementation
                  case hp.left.location.loc of
                    LOC_MMREGISTER,
                    LOC_CMMREGISTER:
-                     cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,
+                     hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.resultdef,
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :

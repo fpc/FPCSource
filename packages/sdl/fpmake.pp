@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('sdl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='sdl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
@@ -23,7 +23,7 @@ begin
     P.Dependencies.Add('pthreads',AllUnixOSes);
     if Defaults.CPU=arm then
        P.OSes := P.OSes - [darwin];
-    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent];
+    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent,embedded,android];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do
@@ -98,4 +98,4 @@ end.
 
 
 
- 
+

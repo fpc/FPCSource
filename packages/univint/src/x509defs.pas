@@ -22,7 +22,8 @@
  *
  * x509defs.h -- Data structures for X509 Certificate Library field values
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -98,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -107,6 +109,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +125,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -141,6 +146,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -264,6 +270,7 @@ type
 		algorithm: CSSM_OID;
 		parameters: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { X509 Distinguished name structure }
 type
@@ -275,6 +282,7 @@ type
     {this value is BER encoded }
 		value: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_RDN_PTR = ^cssm_x509_rdn;
@@ -283,6 +291,7 @@ type
 		numberOfPairs: UInt32;
 		AttributeTypeAndValue: CSSM_X509_TYPE_VALUE_PAIR_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_NAME_PTR = ^cssm_x509_name;
@@ -291,6 +300,7 @@ type
 		numberOfRDNs: UInt32;
 		RelativeDistinguishedName: CSSM_X509_RDN_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Public key info struct }
 type
@@ -300,6 +310,7 @@ type
 		algorithm: CSSM_X509_ALGORITHM_IDENTIFIER;
 		subjectPublicKey: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_TIME_PTR = ^cssm_x509_time;
@@ -308,6 +319,7 @@ type
 		timeType: CSSM_BER_TAG;
 		time: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Validity struct }
 type
@@ -317,6 +329,7 @@ type
 		notBefore: CSSM_X509_TIME;
 		notAfter: CSSM_X509_TIME;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
   CSSM_X509_OPTION_PRESENT = CSSM_TRUE;
@@ -333,6 +346,7 @@ type
 		pathLenConstraintPresent: CSSM_X509_OPTION;
 		pathLenConstraint: UInt32;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
   CSSM_X509EXT_DATA_FORMAT = UInt32;
@@ -349,6 +363,7 @@ type
 		typ: CSSM_BER_TAG;
 		value: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509EXT_PAIR_PTR = ^cssm_x509ext_pair;
@@ -357,6 +372,7 @@ type
 		tagAndValue: CSSM_X509EXT_TAGandVALUE;
 		parsedValue: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Extension structure }
 type
@@ -376,6 +392,7 @@ type
 		value: __embedded_cssm_x509_extension;
     BERvalue: CSSM_DATA ;
   end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_EXTENSIONS_PTR = ^cssm_x509_extensions;
@@ -384,6 +401,7 @@ type
 		numberOfExtensions: UInt32;
 		extensions: CSSM_X509_EXTENSION_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { X509V3 certificate structure }
 type
@@ -401,6 +419,7 @@ type
 		subjectUniqueIdentifier: CSSM_DATA;
 		extensions: CSSM_X509_EXTENSIONS;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Signature structure }
 type
@@ -410,6 +429,7 @@ type
 		algorithmIdentifier: CSSM_X509_ALGORITHM_IDENTIFIER;
 		encrypted: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Signed certificate structure }
 type
@@ -419,6 +439,7 @@ type
 		certificate: CSSM_X509_TBS_CERTIFICATE;
 		signature: CSSM_X509_SIGNATURE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509EXT_POLICYQUALIFIERINFO_PTR = ^cssm_x509ext_policyQualifierInfo;
@@ -427,6 +448,7 @@ type
 		policyQualifierId: CSSM_OID;
 		value: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509EXT_POLICYQUALIFIERS_PTR = ^cssm_x509ext_policyQualifiers;
@@ -435,6 +457,7 @@ type
 		numberOfPolicyQualifiers: UInt32;
 		policyQualifier: CSSM_X509EXT_POLICYQUALIFIERINFOPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509EXT_POLICYINFO_PTR = ^cssm_x509ext_policyInfo;
@@ -443,6 +466,7 @@ type
 		policyIdentifier: CSSM_OID;
 		policyQualifiers: CSSM_X509EXT_POLICYQUALIFIERS;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Data Structures for X.509 Certificate Revocations Lists }
@@ -456,6 +480,7 @@ type
 		revocationDate: CSSM_X509_TIME;
 		extensions: CSSM_X509_EXTENSIONS;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_REVOKED_CERT_LIST_PTR = ^cssm_x509_revoked_cert_list;
@@ -464,6 +489,7 @@ type
 		numberOfRevokedCertEntries: UInt32;
 		revokedCertEntry: CSSM_X509_REVOKED_CERT_ENTRY_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { x509v2 Certificate Revocation List (CRL) (unsigned) structure }
 type
@@ -478,6 +504,7 @@ type
 		revokedCertificates: CSSM_X509_REVOKED_CERT_LIST_PTR;
 		extensions: CSSM_X509_EXTENSIONS;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_X509_SIGNED_CRL_PTR = ^cssm_x509_signed_crl;
@@ -486,6 +513,7 @@ type
 		tbsCertList: CSSM_X509_TBS_CERTLIST;
 		signature: CSSM_X509_SIGNATURE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

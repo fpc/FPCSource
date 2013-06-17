@@ -112,6 +112,9 @@ unit procinfo;
           { label to leave the sub routine }
           CurrExitLabel : tasmlabel;
 
+          { label for nested exits }
+          nestedexitlabel : tlabelsym;
+
           { The code for the routine itself, excluding entry and
             exit code. This is a linked list of tai classes.
           }
@@ -121,6 +124,10 @@ unit procinfo;
 
           { max. of space need for parameters }
           maxpushedparasize : aint;
+
+          { some architectures need to know a stack size before the first compilation pass
+            estimatedtempsize contains an estimated value how big temps will get }
+          estimatedtempsize : longint;
 
           { is this a constructor that calls another constructor on itself
             (either inherited, or another constructor of the same class)?

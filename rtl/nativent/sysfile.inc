@@ -329,7 +329,7 @@ begin
   if ((filemode and fmshareExclusive) = fmshareExclusive) then
     { no sharing }
   else
-    if (filemode = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
+    if ((filemode and $F0) = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
       shflags := FILE_SHARE_READ
   else
     if ((filemode and fmshareDenyRead) = fmshareDenyRead) then

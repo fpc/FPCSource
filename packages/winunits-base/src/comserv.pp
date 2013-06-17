@@ -113,7 +113,7 @@ begin
 {$endif}
 end;
 
-{
+(*
     //FROM MSDN (Error messages are different in MSDN.DllGetClassObject)
 
     HRESULT hres = E_OUTOFMEMORY;
@@ -125,7 +125,7 @@ end;
         pClassFactory->Release();
     }
     return hRes;
-}
+*)
 
 function DllGetClassObject(const rclsid: REFIID {should be REFCLSID}; const riid: REFIID; out ppv: Pointer): HResult; stdcall;
 var
@@ -207,7 +207,7 @@ begin
   //http://www.experts-exchange.com/Programming/Misc/Q_20634807.html
   OleCheck(TypeLib.GetLibAttr(ptla));
   try
-    OleCheck(ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind));
+    ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind);
   finally
     TypeLib.ReleaseTLibAttr(ptla);
   end;

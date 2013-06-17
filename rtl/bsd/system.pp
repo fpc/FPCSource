@@ -77,7 +77,7 @@ Implementation
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
 
-{$I sysunix.inc}
+{$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -314,7 +314,12 @@ begin
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+var
+  stackpointer: ptruint;
 begin
+  stackpointer := (ptruint(sptr) + 4095) and not(4095);
+  if stklen > stackpointer then
+    stklen := stackpointer-4096;
   result := stklen;
 end;
 
@@ -335,7 +340,7 @@ Begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  InitUnixStrings;
+  initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Reset IO Error }

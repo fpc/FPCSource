@@ -25,6 +25,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -523,8 +524,9 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
+// TODO
 end;
 
 
@@ -634,6 +636,12 @@ begin
    else
     CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+procedure Sleep(Milliseconds: cardinal);
+begin
+  // Amiga dos.library Delay() has precision of 1/50 seconds
+  Delay(Milliseconds div 20);
 end;
 
 

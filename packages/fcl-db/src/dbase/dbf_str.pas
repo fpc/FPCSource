@@ -19,6 +19,7 @@ initialization
                                          'Index: %s'+#13+#10+'Record=%d Key=''%s''.';
 
   STRING_INVALID_DBF_FILE             := 'Invalid DBF file.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Invalid DBF file. Invalid field definition.';
   STRING_FIELD_TOO_LONG               := 'Value is too long: %d characters (it can''t be more than %d).';
   STRING_INVALID_FIELD_COUNT          := 'Invalid field count: %d (must be between 1 and 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Invalid field type ''%s'' for field ''%s''.';

@@ -14,11 +14,11 @@ begin
 
     P:=AddPackage('unzip');
 {$ifdef ALLPACKAGES}
-    P.Directory:='unzip';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     T:=P.Targets.AddUnit('unzip51g.pp');
       with T.Dependencies do

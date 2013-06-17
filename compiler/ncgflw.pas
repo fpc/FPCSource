@@ -73,7 +73,6 @@ interface
        end;
 
        tcgraisenode = class(traisenode)
-          procedure pass_generate_code;override;
        end;
 
        tcgtryexceptnode = class(ttryexceptnode)
@@ -950,87 +949,6 @@ implementation
 
 
 {*****************************************************************************
-                             SecondRaise
-*****************************************************************************}
-
-    procedure tcgraisenode.pass_generate_code;
-
-      var
-         a : tasmlabel;
-         href2: treference;
-         paraloc1,paraloc2,paraloc3 : tcgpara;
-      begin
-         location_reset(location,LOC_VOID,OS_NO);
-
-         if assigned(left) then
-           begin
-              paraloc1.init;
-              paraloc2.init;
-              paraloc3.init;
-              paramanager.getintparaloc(pocall_default,1,class_tobject,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
-              paramanager.getintparaloc(pocall_default,3,voidpointertype,paraloc3);
-
-              { multiple parameters? }
-              if assigned(right) then
-                begin
-                  { frame tree }
-                  if assigned(third) then
-                    secondpass(third);
-                  secondpass(right);
-                end;
-              secondpass(left);
-              if codegenerror then
-                exit;
-
-              { Push parameters }
-              if assigned(right) then
-                begin
-                  { frame tree }
-                  if assigned(third) then
-                    cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
-                  else
-                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
-                  { push address }
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-                end
-              else
-                begin
-                   { get current address }
-                   current_asmdata.getaddrlabel(a);
-                   cg.a_label(current_asmdata.CurrAsmList,a);
-                   reference_reset_symbol(href2,a,0,1);
-                   { push current frame }
-                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
-                   { push current address }
-                   if target_info.system <> system_powerpc_macos then
-                     cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
-                   else
-                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
-                end;
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
-              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
-              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RAISEEXCEPTION',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-
-              paraloc1.done;
-              paraloc2.done;
-              paraloc3.done;
-           end
-         else
-           begin
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-           end;
-       end;
-
-
-{*****************************************************************************
                              SecondTryExcept
 *****************************************************************************}
 
@@ -1320,6 +1238,7 @@ implementation
          href2: treference;
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
+         pd : tprocdef;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
@@ -1329,8 +1248,9 @@ implementation
          current_asmdata.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
+         pd:=search_system_proc('fpc_catches');
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
-         paramanager.getintparaloc(pocall_default,1,search_system_type('TCLASS').typedef,paraloc1);
+         paramanager.getintparaloc(pd,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
@@ -1442,11 +1362,13 @@ implementation
       var
         cgpara: tcgpara;
         selfsym: tparavarsym;
+        pd: tprocdef;
       begin
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
+        pd:=search_system_proc('fpc_safecallhandler');
         cgpara.init;
-        paramanager.getintparaloc(pocall_default,1,class_tobject,cgpara);
+        paramanager.getintparaloc(pd,1,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
@@ -1459,6 +1381,7 @@ implementation
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
         cgpara.done;
         cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG, NR_FUNCTION_RETURN_REG);
       end;
 
     procedure tcgtryfinallynode.pass_generate_code;
@@ -1561,13 +1484,11 @@ implementation
                CGMessage(cg_e_control_flow_outside_finally);
              if codegenerror then
                exit;
-{$if defined(x86) or defined(arm)}
              if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                handle_safecall_exception
              else
-{$endif}
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
            end
          else
            begin
@@ -1660,3 +1581,4 @@ begin
    ctryfinallynode:=tcgtryfinallynode;
    connode:=tcgonnode;
 end.
+

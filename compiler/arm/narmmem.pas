@@ -27,10 +27,14 @@ interface
 
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem;
+      cgbase,cpubase,nmem,ncgmem;
 
     type
+      tarmloadparentfpnode = class(tcgloadparentfpnode)
+        procedure pass_generate_code; override;
+      end;
+
+
       tarmvecnode = class(tcgvecnode)
         procedure update_reference_reg_mul(maybe_const_reg: tregister; l: aint);override;
       end;
@@ -38,12 +42,29 @@ interface
 implementation
 
     uses
-      systems,
-      cutils,verbose,
-      symdef,paramgr,
-      aasmtai,aasmdata,aasmcpu,
-      nld,ncon,nadd,
-      cgutils,cgobj;
+      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,
+      cpuinfo,
+      cgutils,
+      procinfo;
+
+{*****************************************************************************
+                        TARMLOADPARENTFPNODE
+*****************************************************************************}
+
+    procedure tarmloadparentfpnode.pass_generate_code;
+      begin
+        { normally, we cannot use the stack pointer as normal register on arm thumb }
+        if (current_settings.cputype in cpu_thumb) and
+          (getsupreg(current_procinfo.framepointer) in [RS_R8..RS_R15]) and
+          (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
+          begin
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,current_procinfo.framepointer,location.register);
+          end
+        else
+          inherited pass_generate_code;
+      end;
 
 {*****************************************************************************
                              TARMVECNODE
@@ -55,6 +76,7 @@ implementation
          hl : longint;
        begin
          if ((location.reference.base=NR_NO) and (location.reference.index=NR_NO)) or
+            (current_settings.cputype in cpu_thumb) or
             { simple constant? }
             (l=1) or ispowerof2(l,hl) or ispowerof2(l+1,hl) or ispowerof2(l-1,hl) then
            inherited update_reference_reg_mul(maybe_const_reg,l)
@@ -88,4 +110,5 @@ implementation
 
 begin
   cvecnode:=tarmvecnode;
+  cloadparentfpnode:=tarmloadparentfpnode;
 end.

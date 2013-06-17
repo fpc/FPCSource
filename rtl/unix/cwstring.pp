@@ -27,15 +27,25 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+// Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if defined(linux) or defined(solaris)}
+  {$define iconv_is_in_libc}
+{$endif}
+
+{$ifdef netbsd}
+  {$ifdef TEST_ICONV_LIBC}
+    {$define iconv_is_in_libc}
+  {$endif}
+{$endif}
+
+{$ifndef iconv_is_in_libc}
  {$if defined(haiku)}
    {$linklib textencoding}
-   {$linklib locale}
  {$else}
    {$linklib iconv}
  {$endif}
  {$define useiconv}
-{$endif linux}
+{$endif not iconv_is_in_libc}
 
 {$i rtldefs.inc}
 
@@ -45,7 +55,8 @@ Uses
   unix,
   unixtype,
   initc,
-  dynlibs;
+  dynlibs,
+  unixcp;
 
 Const
 {$ifndef useiconv}
@@ -72,7 +83,13 @@ function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
 function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll';
+{$ifdef netbsd}
+  { NetBSD has a new setlocale function defined in /usr/include/locale.h
+    that should be used }
+function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale_mb_len_max_32';
+{$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
+{$endif}
 {$ifndef beos}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
@@ -164,14 +181,14 @@ type
   nl_item = cint;
 
 {$ifdef haiku}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'root' name 'nl_langinfo';
 {$else}
   {$ifndef beos}
   function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
   {$endif}
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32))}
+{$if (not defined(bsd) and not defined(beos)) or defined(iconv_is_in_libc) or (defined(darwin) and not defined(cpupowerpc32))}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
@@ -202,8 +219,6 @@ threadvar
   current_DefaultSystemCodePage: TSystemCodePage;
 
 
-{$i winiconv.inc}
-
 procedure InitThread;
 var
   transliterate: cint;
@@ -214,9 +229,9 @@ var
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
-  iconvindex:=win2iconv(DefaultSystemCodePage);
+  iconvindex:=GetCodepageData(DefaultSystemCodePage);
   if iconvindex<>-1 then
-    iconvname:=win2iconv_arr[iconvindex].name
+    iconvname:=UnixCpMap[iconvindex].name
   else
     { default to UTF-8 on Unix platforms }
     iconvname:='UTF-8';
@@ -273,18 +288,18 @@ function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_
         unsafe normally, but these are constant strings -> no
         problem }
     open_iconv_for_cps:=iconv_t(-1);
-    iconvindex:=win2iconv(cp);
+    iconvindex:=GetCodepageData(cp);
     if iconvindex=-1 then
       exit;
     repeat
       if cp_is_from then
-        open_iconv_for_cps:=iconv_open(otherencoding,pchar(win2iconv_arr[iconvindex].name))
+        open_iconv_for_cps:=iconv_open(otherencoding,pchar(UnixCpMap[iconvindex].name))
       else
-        open_iconv_for_cps:=iconv_open(pchar(win2iconv_arr[iconvindex].name),otherencoding);
+        open_iconv_for_cps:=iconv_open(pchar(UnixCpMap[iconvindex].name),otherencoding);
       inc(iconvindex);
     until (open_iconv_for_cps<>iconv_t(-1)) or
-          (iconvindex>high(win2iconv_arr)) or
-          (win2iconv_arr[iconvindex].cp<>cp);
+          (iconvindex>high(UnixCpMap)) or
+          (UnixCpMap[iconvindex].cp<>cp);
   end;
 
 
@@ -991,7 +1006,7 @@ begin
   if not assigned(langinfo) or
      (langinfo^=#0) then
     langinfo:='UTF-8';
-  Result := iconv2win(ansistring(langinfo));
+  Result := GetCodepageByName(ansistring(langinfo));
 end;
 
 {$ifdef FPC_HAS_CPSTRING}

@@ -6,18 +6,21 @@
 
 
 type
-  IPersistenceCapable = interface;
-
-  TPersistenceCapable = class(TInterfacedObject, IPersistenceCapable)
-   function nonsense:boolean;
-  end;
-
-    IPersistenceCapable = interface
+  IPersistenceCapable = interface
     ['{A7F3DA50-93BF-4EAF-B40C-8F5020E5D890}']
     function GetSelf: TObject;
     property Self: TObject read GetSelf;
   end;
 
+  TPersistenceCapable = class(TInterfacedObject, IPersistenceCapable)
+   function GetSelf: TObject;
+   function nonsense:boolean;
+  end;
+
+function TPersistenceCapable.GetSelf: TObject;
+begin
+  result:=nil;
+end;
 
 function TPersistenceCapable.nonsense:boolean;
 {this works fine if it isn't a method....}

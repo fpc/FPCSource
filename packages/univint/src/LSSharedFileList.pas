@@ -1,19 +1,17 @@
 {
-     File:       LaunchServices/LSSharedFileList.h
+     File:       LSSharedFileList.h
  
      Contains:   Services to load and share file lists.
  
-     Version:    LaunchServices-360.3~1
- 
-     Copyright:  © 2005-2008 by Apple Computer, Inc., all rights reserved.
+     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://www.freepascal.org/bugs.html
- 
 }
 {	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -90,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -193,8 +196,10 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL,CFRunLoop,Files,IconsCore,Author
    Each list can also have various properties attached.
 }
 type
-	LSSharedFileListRef = ^SInt32; { an opaque type }
-	LSSharedFileListItemRef = ^SInt32; { an opaque type }
+	LSSharedFileListRef = ^OpaqueLSSharedFileListRef; { an opaque type }
+	OpaqueLSSharedFileListRef = record end;
+	LSSharedFileListItemRef = ^OpaqueLSSharedFileListItemRef; { an opaque type }
+	OpaqueLSSharedFileListItemRef = record end;
 
 { list types }
 
@@ -207,7 +212,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListFavoriteVolumes: CFStringRef; external name '_kLSSharedFileListFavoriteVolumes'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -219,7 +224,7 @@ var kLSSharedFileListFavoriteVolumes: CFStringRef; external name '_kLSSharedFile
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListFavoriteItems: CFStringRef; external name '_kLSSharedFileListFavoriteItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -231,7 +236,7 @@ var kLSSharedFileListFavoriteItems: CFStringRef; external name '_kLSSharedFileLi
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListRecentApplicationItems: CFStringRef; external name '_kLSSharedFileListRecentApplicationItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -243,7 +248,7 @@ var kLSSharedFileListRecentApplicationItems: CFStringRef; external name '_kLSSha
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListRecentDocumentItems: CFStringRef; external name '_kLSSharedFileListRecentDocumentItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -255,7 +260,7 @@ var kLSSharedFileListRecentDocumentItems: CFStringRef; external name '_kLSShared
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListRecentServerItems: CFStringRef; external name '_kLSSharedFileListRecentServerItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -267,7 +272,7 @@ var kLSSharedFileListRecentServerItems: CFStringRef; external name '_kLSSharedFi
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListSessionLoginItems: CFStringRef; external name '_kLSSharedFileListSessionLoginItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -279,7 +284,7 @@ var kLSSharedFileListSessionLoginItems: CFStringRef; external name '_kLSSharedFi
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListGlobalLoginItems: CFStringRef; external name '_kLSSharedFileListGlobalLoginItems'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 { LSSharedFileList property keys }
@@ -298,7 +303,7 @@ var kLSSharedFileListGlobalLoginItems: CFStringRef; external name '_kLSSharedFil
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListRecentItemsMaxAmount: CFStringRef; external name '_kLSSharedFileListRecentItemsMaxAmount'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {
  *  kLSSharedFileListVolumesComputerVisible
@@ -313,7 +318,7 @@ var kLSSharedFileListRecentItemsMaxAmount: CFStringRef; external name '_kLSShare
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListVolumesComputerVisible: CFStringRef; external name '_kLSSharedFileListVolumesComputerVisible'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {
  *  kLSSharedFileListVolumesIDiskVisible
@@ -328,7 +333,7 @@ var kLSSharedFileListVolumesComputerVisible: CFStringRef; external name '_kLSSha
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListVolumesIDiskVisible: CFStringRef; external name '_kLSSharedFileListVolumesIDiskVisible'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  kLSSharedFileListVolumesNetworkVisible
@@ -343,7 +348,7 @@ var kLSSharedFileListVolumesIDiskVisible: CFStringRef; external name '_kLSShared
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListVolumesNetworkVisible: CFStringRef; external name '_kLSSharedFileListVolumesNetworkVisible'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 { item default positions }
 
@@ -361,7 +366,7 @@ var kLSSharedFileListVolumesNetworkVisible: CFStringRef; external name '_kLSShar
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListItemBeforeFirst: LSSharedFileListItemRef; external name '_kLSSharedFileListItemBeforeFirst'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {
  *  kLSSharedFileListItemLast
@@ -376,7 +381,7 @@ var kLSSharedFileListItemBeforeFirst: LSSharedFileListItemRef; external name '_k
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListItemLast: LSSharedFileListItemRef; external name '_kLSSharedFileListItemLast'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 { LSSharedFileListItem property keys }
@@ -394,7 +399,7 @@ var kLSSharedFileListItemLast: LSSharedFileListItemRef; external name '_kLSShare
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListItemHidden: CFStringRef; external name '_kLSSharedFileListItemHidden'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSSharedFileListLoginItemHidden
  *  
@@ -408,7 +413,7 @@ var kLSSharedFileListItemHidden: CFStringRef; external name '_kLSSharedFileListI
  *    Non-Carbon CFM:   not available
  }
 var kLSSharedFileListLoginItemHidden: CFStringRef; external name '_kLSSharedFileListLoginItemHidden'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
 { LSSharedFileListItemResolve flags }
 const
@@ -445,7 +450,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListGetTypeID: CFTypeID; external name '_LSSharedFileListGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -467,7 +472,7 @@ function LSSharedFileListGetTypeID: CFTypeID; external name '_LSSharedFileListGe
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemGetTypeID: CFTypeID; external name '_LSSharedFileListItemGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -508,7 +513,7 @@ function LSSharedFileListItemGetTypeID: CFTypeID; external name '_LSSharedFileLi
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListCreate( inAllocator: CFAllocatorRef; inListType: CFStringRef; listOptions: CFTypeRef ): LSSharedFileListRef; external name '_LSSharedFileListCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -541,7 +546,7 @@ function LSSharedFileListCreate( inAllocator: CFAllocatorRef; inListType: CFStri
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListSetAuthorization( inList: LSSharedFileListRef; inAuthorization: AuthorizationRef ): OSStatus; external name '_LSSharedFileListSetAuthorization';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -581,7 +586,7 @@ function LSSharedFileListSetAuthorization( inList: LSSharedFileListRef; inAuthor
  *    Non-Carbon CFM:   not available
  }
 procedure LSSharedFileListAddObserver( inList: LSSharedFileListRef; inRunloop: CFRunLoopRef; inRunloopMode: CFStringRef; callback: LSSharedFileListChangedProcPtr; context: UnivPtr ); external name '_LSSharedFileListAddObserver';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -619,7 +624,7 @@ procedure LSSharedFileListAddObserver( inList: LSSharedFileListRef; inRunloop: C
  *    Non-Carbon CFM:   not available
  }
 procedure LSSharedFileListRemoveObserver( inList: LSSharedFileListRef; inRunloop: CFRunLoopRef; inRunloopMode: CFStringRef; callback: LSSharedFileListChangedProcPtr; context: UnivPtr ); external name '_LSSharedFileListRemoveObserver';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -645,7 +650,7 @@ procedure LSSharedFileListRemoveObserver( inList: LSSharedFileListRef; inRunloop
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListGetSeedValue( inList: LSSharedFileListRef ): UInt32; external name '_LSSharedFileListGetSeedValue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -679,7 +684,7 @@ function LSSharedFileListGetSeedValue( inList: LSSharedFileListRef ): UInt32; ex
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListCopyProperty( inList: LSSharedFileListRef; inPropertyName: CFStringRef ): CFTypeRef; external name '_LSSharedFileListCopyProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -711,7 +716,7 @@ function LSSharedFileListCopyProperty( inList: LSSharedFileListRef; inPropertyNa
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListSetProperty( inList: LSSharedFileListRef; inPropertyName: CFStringRef; inPropertyData: CFTypeRef ): OSStatus; external name '_LSSharedFileListSetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -745,7 +750,7 @@ function LSSharedFileListSetProperty( inList: LSSharedFileListRef; inPropertyNam
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListCopySnapshot( inList: LSSharedFileListRef; var outSnapshotSeed: UInt32 ): CFArrayRef; external name '_LSSharedFileListCopySnapshot';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -800,7 +805,7 @@ function LSSharedFileListCopySnapshot( inList: LSSharedFileListRef; var outSnaps
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListInsertItemURL( inList: LSSharedFileListRef; insertAfterThisItem: LSSharedFileListItemRef; inDisplayName: CFStringRef; inIconRef: IconRef; inURL: CFURLRef; inPropertiesToSet: CFDictionaryRef; inPropertiesToClear: CFArrayRef ): LSSharedFileListItemRef; external name '_LSSharedFileListInsertItemURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -855,7 +860,7 @@ function LSSharedFileListInsertItemURL( inList: LSSharedFileListRef; insertAfter
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListInsertItemFSRef( inList: LSSharedFileListRef; insertAfterThisItem: LSSharedFileListItemRef; inDisplayName: CFStringRef; inIconRef: IconRef; const (*var*) inFSRef: FSRef; inPropertiesToSet: CFDictionaryRef; inPropertiesToClear: CFArrayRef ): LSSharedFileListItemRef; external name '_LSSharedFileListInsertItemFSRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -889,7 +894,7 @@ function LSSharedFileListInsertItemFSRef( inList: LSSharedFileListRef; insertAft
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemMove( inList: LSSharedFileListRef; inItem: LSSharedFileListItemRef; inMoveAfterItem: LSSharedFileListItemRef ): OSStatus; external name '_LSSharedFileListItemMove';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -918,7 +923,7 @@ function LSSharedFileListItemMove( inList: LSSharedFileListRef; inItem: LSShared
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemRemove( inList: LSSharedFileListRef; inItem: LSSharedFileListItemRef ): OSStatus; external name '_LSSharedFileListItemRemove';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -944,7 +949,7 @@ function LSSharedFileListItemRemove( inList: LSSharedFileListRef; inItem: LSShar
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListRemoveAllItems( inList: LSSharedFileListRef ): OSStatus; external name '_LSSharedFileListRemoveAllItems';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -965,7 +970,7 @@ function LSSharedFileListRemoveAllItems( inList: LSSharedFileListRef ): OSStatus
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemGetID( inItem: LSSharedFileListItemRef ): UInt32; external name '_LSSharedFileListItemGetID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -990,7 +995,7 @@ function LSSharedFileListItemGetID( inItem: LSSharedFileListItemRef ): UInt32; e
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemCopyIconRef( inItem: LSSharedFileListItemRef ): IconRef; external name '_LSSharedFileListItemCopyIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1012,7 +1017,7 @@ function LSSharedFileListItemCopyIconRef( inItem: LSSharedFileListItemRef ): Ico
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemCopyDisplayName( inItem: LSSharedFileListItemRef ): CFStringRef; external name '_LSSharedFileListItemCopyDisplayName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1048,7 +1053,7 @@ function LSSharedFileListItemCopyDisplayName( inItem: LSSharedFileListItemRef ):
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemResolve( inItem: LSSharedFileListItemRef; inFlags: UInt32; var outURL: CFURLRef; var outRef: FSRef ): OSStatus; external name '_LSSharedFileListItemResolve';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1070,7 +1075,7 @@ function LSSharedFileListItemResolve( inItem: LSSharedFileListItemRef; inFlags: 
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemCopyProperty( inItem: LSSharedFileListItemRef; inPropertyName: CFStringRef ): CFTypeRef; external name '_LSSharedFileListItemCopyProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -1091,8 +1096,7 @@ function LSSharedFileListItemCopyProperty( inItem: LSSharedFileListItemRef; inPr
  *    Non-Carbon CFM:   not available
  }
 function LSSharedFileListItemSetProperty( inItem: LSSharedFileListItemRef; inPropertyName: CFStringRef; inPropertyData: CFTypeRef ): OSStatus; external name '_LSSharedFileListItemSetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

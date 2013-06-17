@@ -14,6 +14,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$pointermath on}
 unit charset;
 
   interface
@@ -36,12 +37,21 @@ unit charset;
           reserved : byte;
        end;
 
+       preversecharmapping = ^treversecharmapping;
+       treversecharmapping = record
+          unicode : tunicodechar;
+          char1   : Byte;
+          char2   : Byte;
+       end;
+
        punicodemap = ^tunicodemap;
        tunicodemap = record
           cpname : string[20];
           cp : word;
           map : punicodecharmapping;
           lastchar : longint;
+          reversemap : preversecharmapping;
+          reversemaplength : longint;
           next : punicodemap;
           internalmap : boolean;
        end;
@@ -53,15 +63,207 @@ unit charset;
     procedure registermapping(p : punicodemap);
     function getmap(const s : string) : punicodemap; 
     function getmap(cp : word) : punicodemap;   
-    function mappingavailable(const s : string) : boolean;
-    function mappingavailable(cp :word) : boolean;
-    function getunicode(c : char;p : punicodemap) : tunicodechar;
+    function mappingavailable(const s : string) : boolean;inline;
+    function mappingavailable(cp :word) : boolean;inline;
+    function getunicode(c : char;p : punicodemap) : tunicodechar;inline;
+    function getunicode(
+      AAnsiStr : pansichar;
+      AAnsiLen : LongInt;
+      AMap     : punicodemap; 
+      ADest    : tunicodestring
+    ) : LongInt;
     function getascii(c : tunicodechar;p : punicodemap) : string;
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : LongInt) : LongInt;
 
   implementation
 
+    const
+      UNKNOW_CHAR_A = ansichar(63);
+      UNKNOW_CHAR_W = tunicodechar(63);
     var
        mappings : punicodemap;
+
+
+    procedure QuickSort(AList: preversecharmapping; L, R : Longint);
+    var
+      I, J : Longint;
+      P, Q : treversecharmapping;
+    begin
+      repeat
+        I:=L;
+        J:=R;
+        P:=AList[(L + R) div 2];
+        repeat
+          while (P.unicode-AList[I].unicode) > 0 do
+            I:=I+1;
+          while (P.unicode-AList[J].unicode) < 0 do
+            J:=J-1;
+          if I<=J then
+            begin
+              Q:=AList[I];
+              AList[I]:=AList[J];
+              AList[J]:=Q;
+              I:=I+1;
+              J:=J-1;
+            end;
+        until I > J;
+        if J-L < R-I then
+          begin
+            if L<J then
+              QuickSort(AList, L, J);
+            L:=I;
+          end
+        else
+          begin
+            if I < R then
+              QuickSort(AList, I, R);
+            R:=J;
+          end;
+      until L>=R;
+    end;
+
+    function find(
+      const c     : tunicodechar;
+      const AData : preversecharmapping;
+      const ALen  : LongInt
+    ) : preversecharmapping;overload;
+    var
+       l, h, m : longint;
+       r:preversecharmapping;
+    begin
+      if ALen=0 then
+        exit(nil);
+      r:=AData;
+      l:=0;
+      h:=ALen-1;
+      while l<h do begin
+        m:=(l+h) div 2;
+        if r[m].unicode<c then
+          l:=m+1
+        else
+          h:=m;
+      end;
+      if (l=h) and (r[l].unicode=c) then
+        Result:=@r[l]
+      else
+        Result:=nil;
+    end;
+
+    function find(
+      const c : tunicodechar;
+      const p : punicodemap
+    ) : preversecharmapping;overload;inline;
+    begin
+      Result:=find(c,p^.reversemap,p^.reversemaplength);
+    end;
+
+    function RemoveDuplicates(
+      const AData      : preversecharmapping;
+      const ALen       : LongInt;
+      out   AResultLen : LongInt
+    ) : preversecharmapping;
+    var
+      r0, r, p, t : preversecharmapping;
+      i, c, actualCount : LongInt;
+    begin
+      c:=ALen;
+      GetMem(r0,c*SizeOf(treversecharmapping));
+      r:=r0;
+      p:=AData;
+      actualCount:=0;
+      i:=0;
+      while i<c do
+        begin
+          t:=find(p^.unicode,r0,actualCount);
+          if t=nil then
+            begin
+              r^:=p^;
+              actualCount:=actualCount+1;
+              Inc(r);
+            end
+          else
+            begin
+              if (p^.char1<t^.char1) or
+                 ((p^.char1=t^.char1) and (p^.char2<t^.char2))
+              then
+                t^:=p^;//keep the first mapping
+            end;
+          i:=i+1;
+          Inc(p);
+        end;
+      if c<>actualCount then
+        ReAllocMem(r0,actualCount*SizeOf(treversecharmapping));
+      AResultLen:=actualCount;
+      Result:=r0;
+    end;
+
+    function buildreversemap(
+      const AMapping   : punicodecharmapping;
+      const ALen       : LongInt;
+      out   AResultLen : LongInt
+    ) : preversecharmapping;
+    var
+      r0, r, t : preversecharmapping;
+      i, c, actualCount, ti : LongInt;
+      p : punicodecharmapping;
+    begin
+      if (ALen<1) then
+        exit(nil);
+      p:=AMapping;
+      c:=ALen;
+      GetMem(r0,c*SizeOf(treversecharmapping));
+      r:=r0;
+      actualCount:=0;
+      i:=0;
+      while i<c do
+        begin
+          if (p^.flag=umf_noinfo) then
+            begin
+              r^.unicode:=p^.unicode;
+              if i<=High(Byte) then
+                begin
+                  r^.char1:=i;
+                  r^.char2:=0;
+                end
+              else
+                begin
+                  r^.char1:=i div 256;
+                  r^.char2:=i mod 256;
+                end;
+              actualCount:=actualCount+1;
+              Inc(r);
+            end;
+          Inc(p);
+          i:=i+1;
+        end;
+      if c<>actualCount then
+        ReAllocMem(r0,actualCount*SizeOf(treversecharmapping));
+      if actualCount>1 then
+        begin
+          QuickSort(r0,0,(actualCount-1));
+          t:=RemoveDuplicates(r0,actualCount,ti);
+          FreeMem(r0,actualCount*SizeOf(treversecharmapping));
+          r0:=t;
+          actualCount:=ti;
+        end;
+      AResultLen:=actualCount;
+      Result:=r0;
+    end;
+
+    procedure inititems(const p : punicodecharmapping; const ALen : LongInt);
+    const
+      INIT_ITEM : tunicodecharmapping = (unicode:0; flag:umf_unused; reserved:0);
+    var
+      x : punicodecharmapping;
+      i : LongInt;
+    begin
+      x:=p;
+      for i:=0 to ALen-1 do
+        begin
+          x^:=INIT_ITEM;
+          Inc(x);
+        end;
+    end;
 
     function loadunicodemapping(const cpname,f : string; cp :word) : punicodemap;
 
@@ -74,13 +276,14 @@ unit charset;
          code : word;
          flag : tunicodecharmappingflag;
          p : punicodemap;
-         lastchar : longint;
+         lastchar, i : longint;
 
       begin
          lastchar:=-1;
          loadunicodemapping:=nil;
          datasize:=256;
-         getmem(data,sizeof(tunicodecharmapping)*datasize);
+         GetMem(data,sizeof(tunicodecharmapping)*datasize);
+         inititems(data,datasize);
          assign(t,f);
          {$I-}
          reset(t);
@@ -143,8 +346,10 @@ unit charset;
                              { if we need more than 256 entries it's    }
                              { probably a mbcs with a lot of            }
                              { entries                                  }
-                             datasize:=charpos+1024;
+                             i:=datasize;
+                             datasize:=charpos+8*1024;
                              reallocmem(data,sizeof(tunicodecharmapping)*datasize);
+                             inititems(@data[i],(datasize-i));
                           end;
                         flag:=umf_noinfo;
                      end;
@@ -162,6 +367,7 @@ unit charset;
          p^.internalmap:=false;
          p^.next:=nil;
          p^.map:=data;
+         p^.reversemap:=buildreversemap(p^.map,(p^.lastchar+1),p^.reversemaplength);
          loadunicodemapping:=p;
       end;
 
@@ -172,19 +378,22 @@ unit charset;
          mappings:=p;
       end;
 
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+    threadvar
+    {$else FPC_HAS_FEATURE_THREADING}
+    var
+    {$endif FPC_HAS_FEATURE_THREADING}
+      strmapcache : string;
+      strmapcachep : punicodemap;
     function getmap(const s : string) : punicodemap;
 
       var
          hp : punicodemap;
 
-      const
-         mapcache : string = '';
-         mapcachep : punicodemap = nil;
-
       begin
-         if (mapcache=s) and assigned(mapcachep) and (mapcachep^.cpname=s) then
+         if (strmapcache=s) and assigned(strmapcachep) and (strmapcachep^.cpname=s) then
            begin
-              getmap:=mapcachep;
+              getmap:=strmapcachep;
               exit;
            end;
          hp:=mappings;
@@ -193,8 +402,8 @@ unit charset;
               if hp^.cpname=s then
                 begin
                    getmap:=hp;
-                   mapcache:=s;
-                   mapcachep:=hp;
+                   strmapcache:=s;
+                   strmapcachep:=hp;
                    exit;
                 end;
               hp:=hp^.next;
@@ -202,19 +411,23 @@ unit charset;
          getmap:=nil;
       end;////////
 
+
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+    threadvar
+    {$else FPC_HAS_FEATURE_THREADING}
+    var
+    {$endif FPC_HAS_FEATURE_THREADING}
+      intmapcache : word;
+      intmapcachep : punicodemap;
     function getmap(cp : word) : punicodemap;
 
       var
          hp : punicodemap;
 
-      const
-         mapcache : word = 0;
-         mapcachep : punicodemap = nil;
-
       begin
-         if (mapcache=cp) and assigned(mapcachep) and (mapcachep^.cp=cp) then
+         if (intmapcache=cp) and assigned(intmapcachep) and (intmapcachep^.cp=cp) then
            begin
-              getmap:=mapcachep;
+              getmap:=intmapcachep;
               exit;
            end;
          hp:=mappings;
@@ -223,8 +436,8 @@ unit charset;
               if hp^.cp=cp then
                 begin
                    getmap:=hp;
-                   mapcache:=cp;
-                   mapcachep:=hp;
+                   intmapcache:=cp;
+                   intmapcachep:=hp;
                    exit;
                 end;
               hp:=hp^.next;
@@ -253,23 +466,143 @@ unit charset;
            getunicode:=0;
       end;
 
-    function getascii(c : tunicodechar;p : punicodemap) : string;
+    function getunicode(
+      AAnsiStr : pansichar;
+      AAnsiLen : LongInt;
+      AMap     : punicodemap; 
+      ADest    : tunicodestring
+    ) : LongInt;
 
       var
-         i : longint;
-
+         i, c, k, destLen : longint;
+         ps : pansichar;
+         pd : ^tunicodechar;
+         
       begin
-         { at least map to '?' }
-         getascii:=#63;
-         for i:=0 to p^.lastchar do
-           if p^.map[i].unicode=c then
-             begin
-                if i<256 then
-                  getascii:=chr(i)
+        if (AAnsiStr=nil) or (AAnsiLen<=0) then
+          exit(0);
+        ps:=AAnsiStr;   
+        if (ADest=nil) then
+          begin
+            c:=AAnsiLen-1;
+            destLen:=0;
+            i:=0;
+            while (i<=c) do
+              begin
+                if (ord(ps^)<=AMap^.lastchar) then
+                  begin
+                    if (AMap^.map[ord(ps^)].flag=umf_leadbyte) and (i<c) then
+                      begin
+                        Inc(ps);
+                        i:=i+1;
+                      end;
+                  end;  
+                i:=i+1;  
+                Inc(ps);
+                destLen:=destLen+1;
+              end; 
+            exit(destLen);  
+          end;
+
+        pd:=ADest;
+        c:=AAnsiLen-1;
+        i:=0;
+        while (i<=c) do
+          begin
+            if (ord(ps^)<=AMap^.lastchar) then
+              begin
+                if (AMap^.map[ord(ps^)].flag=umf_leadbyte) then
+                  begin
+                    if (i<c) then 
+                      begin
+                        k:=(Ord(ps^)*256);
+                        Inc(ps);
+                        i:=i+1;
+                        k:=k+Ord(ps^);
+                        if (k<=AMap^.lastchar) then
+                          pd^:=AMap^.map[k].unicode
+                        else
+                          pd^:=UNKNOW_CHAR_W;
+                      end
+                    else
+                      pd^:=UNKNOW_CHAR_W;
+                  end                       
+                else   
+                  pd^:=AMap^.map[ord(ps^)].unicode
+              end  
+            else
+              pd^:=UNKNOW_CHAR_W;
+            i:=i+1;  
+            Inc(ps);
+            Inc(pd);
+          end; 
+        result:=((PtrUInt(pd)-PtrUInt(ADest)) div SizeOf(tunicodechar));
+      end;
+
+    function getascii(c : tunicodechar;p : punicodemap) : string;
+      var
+         rm : preversecharmapping;
+      begin
+        rm:=find(c,p);
+        if rm<>nil then
+          begin
+            if rm^.char2=0 then
+              begin
+                SetLength(Result,1);
+                Byte(Result[1]):=rm^.char1;
+              end
+            else
+              begin
+                SetLength(Result,2);
+                Byte(Result[1]):=rm^.char1;
+                Byte(Result[2]):=rm^.char2;
+              end;
+          end
+        else
+          Result:=UNKNOW_CHAR_A;
+      end;
+
+    function getascii(c : tunicodechar;p : punicodemap; ABuffer : PAnsiChar; ABufferLen : LongInt) : LongInt;
+      var
+         rm : preversecharmapping;
+      begin
+         if (ABuffer<>nil) and (ABufferLen<=0) then
+           exit(-1);
+        rm:=find(c,p);
+        if rm<>nil then
+          begin
+            if (ABuffer=nil) then
+              begin
+                if rm^.char2=0 then
+                  Result:=1
                 else
-                  getascii:=chr(i div 256)+chr(i mod 256);
-                exit;
-             end;
+                  Result:=2;
+              end
+            else
+              begin
+                if rm^.char2=0 then
+                  begin
+                    Byte(ABuffer^):=rm^.char1;
+                    Result:=1;
+                  end
+                else
+                  begin
+                    if (ABufferLen<2) then
+                      Result:=-1
+                    else
+                      begin
+                        Byte(ABuffer^):=rm^.char1;
+                        Byte((ABuffer+1)^):=rm^.char2;
+                        Result:=2;
+                      end
+                  end;
+              end;
+          end
+        else
+          begin
+            ABuffer^:=UNKNOW_CHAR_A;
+            Result:=1;
+          end;
       end;
 
   var
@@ -284,6 +617,7 @@ finalization
        if not(mappings^.internalmap) then
          begin
             freemem(mappings^.map);
+            freemem(mappings^.reversemap);
             dispose(mappings);
          end;
        mappings:=hp;

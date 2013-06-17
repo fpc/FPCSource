@@ -89,7 +89,9 @@ begin
   
     pressed := keysDown();  // buttons pressed this loop
     held := keysHeld();     // buttons currently held
-  
+
+		if (pressed and KEY_START) <> 0 then 
+      exit;  
     // Right Shoulder button toggles the mode
 		if ( pressed and KEY_R) <> 0 then Inc(TouchType);
 

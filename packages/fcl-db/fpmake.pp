@@ -5,16 +5,17 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fcl_db;
+procedure add_fcl_db(const ADirectory: string);
 
 const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
-  DatadictOSes        = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,aix];
-  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
-  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince,aix];
-  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince,aix];
-  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
-  SqldbWithoutPostgresOSes = [win64];
+  DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince,android];
+  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android];
+  SqldbWithoutOracleOSes   = [win64];
+
 
 Var
   P : TPackage;
@@ -31,22 +32,21 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fcl-db';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox', ParadoxOSes);
     P.SourcePath.Add('src/sqldb');
-    P.SourcePath.Add('src/sqldb/postgres', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.SourcePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/sqlite', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/interbase', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/odbc', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/examples', SqldbConnectionOSes);
-    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
     P.SourcePath.Add('src/sqldb/mssql', MSSQLOSes);
     P.SourcePath.Add('src/sdf');
     P.SourcePath.Add('src/json');
@@ -58,10 +58,10 @@ begin
     P.SourcePath.Add('src/dbase');
     P.IncludePath.Add('src/base');
     P.IncludePath.Add('src/sqldb');
-    P.IncludePath.Add('src/sqldb/postgres', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.IncludePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
     P.IncludePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.IncludePath.Add('src/sdf');
-    P.IncludePath.Add('src/memds');  
+    P.IncludePath.Add('src/memds');
     P.IncludePath.Add('src/sqlite',SqliteOSes);
     P.IncludePath.Add('src/dbase');
     P.SourcePath.Add('src/sql');
@@ -71,8 +71,8 @@ begin
     P.Dependencies.Add('ibase', SqldbConnectionOSes);
     P.Dependencies.Add('mysql', SqldbConnectionOSes);
     P.Dependencies.Add('odbc', SqldbConnectionOSes);
-    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
-    P.Dependencies.Add('postgres', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    P.Dependencies.Add('postgres', SqldbConnectionOSes);
     P.Dependencies.Add('sqlite', SqldbConnectionOSes+SqliteOSes);
     P.Dependencies.Add('dblib', MSSQLOSes);
     P.Dependencies.Add('pxlib',ParadoxOSes);
@@ -411,6 +411,22 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('mysql50conn');
         end;
+    T:=P.Targets.AddUnit('fpddmysql51.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql51conn');
+        end;
+    T:=P.Targets.AddUnit('fpddmysql55.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql55conn');
+        end;
     T:=P.Targets.AddUnit('fpddodbc.pp', DatadictOSes);
       with T.Dependencies do
         begin
@@ -419,7 +435,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('odbcconn');
         end;
-    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -427,7 +443,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('oracleconnection');
         end;
-    T:=P.Targets.AddUnit('fpddpq.pp', DatadictOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('fpddpq.pp', DatadictOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -435,7 +451,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('pqconnection');
         end;
-    T:=P.Targets.AddUnit('fpddregstd.pp', DatadictOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('fpddregstd.pp', DatadictOSes-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('fpdatadict');
@@ -455,6 +471,7 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
+
     T:=P.Targets.AddUnit('fpddsqldb.pp', DatadictOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -637,7 +654,7 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes-SqldbWithoutOracleOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -652,7 +669,7 @@ begin
           AddUnit('db');
           AddUnit('bufdataset_parser');
         end;
-    T:=P.Targets.AddUnit('pqconnection.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('pqconnection.pp', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -661,7 +678,7 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
-    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -715,7 +732,11 @@ begin
           AddUnit('customsqliteds');
           AddUnit('db');
         end;
-
+    T:=P.Targets.AddUnit('sqlite3backup.pas', SqldbConnectionOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqlite3conn');
+        end;
     // SQL
     T:=P.Targets.AddUnit('fpsqltree.pp');
     T:=P.Targets.AddUnit('fpsqlscanner.pp');
@@ -751,7 +772,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fcl_db;
+  add_fcl_db('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

@@ -914,10 +914,15 @@ implementation
         expectloc:=LOC_VOID;
         if (tempinfo^.typedef.needs_inittable) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           is_rtti_managed_type(tempinfo^.typedef) then
+          include(current_procinfo.flags,pi_needs_got);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
+        inc(current_procinfo.estimatedtempsize,size);;
       end;
 
 
@@ -950,6 +955,8 @@ implementation
         inherited printnodedata(t);
         writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        writeln(t,printnodeindention,'tempinit =');
+        printnode(t,tempinfo^.tempinitcode);
       end;
 
 {*****************************************************************************

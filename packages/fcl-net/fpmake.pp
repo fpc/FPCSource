@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-net');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-net';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
@@ -28,6 +28,7 @@ begin
     P.Email := '';
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=P.OSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

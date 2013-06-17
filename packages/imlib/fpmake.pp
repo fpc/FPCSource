@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('imlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='imlib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 
@@ -25,7 +25,7 @@ begin
     P.Description := 'Headers to imlib, an efficient bitmap manipulation program';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes+[OS2,EMX]-[darwin,iphonesim];
+    P.OSes:=AllUnixOSes+[OS2,EMX]-[darwin,iphonesim,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 

@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('chm');
 {$ifdef ALLPACKAGES}
-    P.Directory:='chm';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 
@@ -25,12 +25,12 @@ begin
     P.Email := '';
     P.Description := 'Standalone CHM reader and writer library';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');
     D.Version:='2.7.1';
-    
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('chmbase.pas');
@@ -104,7 +104,7 @@ begin
         end;
    T:=P.Targets.AddUnit('itolitlsreader.pas');
       with T.Dependencies do
-        begin  //chmreader, itolitlstypes, Sysutils, chmbase, itsftransform; 
+        begin  //chmreader, itolitlstypes, Sysutils, chmbase, itsftransform;
           AddUnit('chmbase');
           AddUnit('chmreader');
           AddUnit('itolitlstypes');

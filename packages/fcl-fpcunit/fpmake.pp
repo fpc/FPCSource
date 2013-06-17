@@ -14,12 +14,13 @@ begin
 
     P:=AddPackage('fcl-fpcunit');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-fpcunit';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('libtar');
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
 
     P.Author := ' Dean Zobec, Michael van Canneyt';
@@ -28,7 +29,7 @@ begin
     P.Email := '';
     P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

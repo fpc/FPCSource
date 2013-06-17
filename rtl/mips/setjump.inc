@@ -27,6 +27,8 @@ procedure fpc_longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Pub
     lw $23,36($4)   // S7,$16
     lw $fp,40($4)   // FP
     lw $gp,44($4)   // GP
+    // Put value into register $2 as in setjmp
+    move $2, $5
 
     j $31
     nop

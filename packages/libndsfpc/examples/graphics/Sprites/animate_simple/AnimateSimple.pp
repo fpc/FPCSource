@@ -199,7 +199,10 @@ begin
     scanKeys();
 
     keys := keysHeld();
-
+		
+    if (keys and KEY_START) <> 0 then 
+      exit;
+      
     if keys <> 0 then
     begin
       if (keys and KEY_UP) <> 0 then

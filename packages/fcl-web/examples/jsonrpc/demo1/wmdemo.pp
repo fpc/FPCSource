@@ -12,7 +12,6 @@ type
   { TFPWebModule1 }
 
   TFPWebModule1 = class(TFPWebModule)
-    procedure DataModuleCreate(Sender: TObject);
     procedure TFPWebActions0Request(Sender: TObject; ARequest: TRequest;
       AResponse: TResponse; var Handled: Boolean);
     procedure TFPWebActions1Request(Sender: TObject; ARequest: TRequest;
@@ -43,10 +42,6 @@ implementation
 Uses fpjson,jsonparser,fpjsonrpc,webjsonrpc, fpextdirect;
 
 { TFPWebModule1 }
-
-procedure TFPWebModule1.DataModuleCreate(Sender: TObject);
-begin
-end;
 
 procedure TFPWebModule1.TFPWebActions0Request(Sender: TObject;
   ARequest: TRequest; AResponse: TResponse; var Handled: Boolean);
@@ -128,7 +123,7 @@ procedure TFPWebModule1.TFPWebActions1Request(Sender: TObject;
 {
   Demo 2. Use a dispatcher to dispatch the requests.
   The handler is located on the owner module
-  (it is created run-time, though)
+  (it is created run-time, though).
 }
 
 Var
@@ -181,9 +176,9 @@ end;
 procedure TFPWebModule1.TFPWebActions2Request(Sender: TObject;
   ARequest: TRequest; AResponse: TResponse; var Handled: Boolean);
 {
-  Demo 3. Use a dispatcher to dispatch the requests,
-  The handler is registered in the JSONFPCHandlerManager.
-  (it is created run-time, though)
+  Demo 3. Use a dispatcher to dispatch the requests.
+  The handler is registered in the JSONFPCHandlerManager
+  (it is created run-time, though).
 }
 
 Var
@@ -235,8 +230,8 @@ procedure TFPWebModule1.TFPWebActions3Request(Sender: TObject;
 
 {
   Demo 4. Ext.Direct dispatcher
-  The handler is registered in the JSONFPCHandlerManager.
-  (it is created run-time, though)
+  The handler is registered in the JSONFPCHandlerManager
+  (it is created run-time, though).
 }
 
 Var
@@ -289,8 +284,8 @@ procedure TFPWebModule1.TFPWebActions4Request(Sender: TObject;
 
 {
   Demo 5. Using a TJSONRPCContentProducer.
-  The handler is registered in the JSONFPCHandlerManager.
-  (it is created run-time, though)
+  The handler is registered in the JSONFPCHandlerManager
+  (it is created run-time, though).
 }
 
 Var
@@ -325,9 +320,9 @@ end;
 procedure TFPWebModule1.TFPWebActions5Request(Sender: TObject;
   ARequest: TRequest; AResponse: TResponse; var Handled: Boolean);
 {
-  Demo 6. creating an API response for Ext.Direct
-  The handler is registered in the JSONFPCHandlerManager.
-  (it is created run-time, though)
+  Demo 6. Creating an API response for Ext.Direct
+  The handler is registered in the JSONFPCHandlerManager
+  (it is created run-time, though).
 }
 
 Var
@@ -356,7 +351,7 @@ procedure TFPWebModule1.TFPWebActions6Request(Sender: TObject;
 {
   Demo 6. Using a TJSONRPCModule instance to handle the request.
   The handler is registered in the JSONFPCHandlerManager.
-  (it is created run-time, though)
+  (it is created run-time, though).
 }
 
 Var

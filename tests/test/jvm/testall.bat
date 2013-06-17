@@ -248,3 +248,17 @@ ppcjvm -O2 -g -B tw22807
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw22807
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B ttincdec.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa ttincdec
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B -CTautogetterprefix=Get tprop3.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B -CTautogetterprefix=Get tprop4.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tprop4
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tw24089
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw24089
+if %errorlevel% neq 0 exit /b %errorlevel%

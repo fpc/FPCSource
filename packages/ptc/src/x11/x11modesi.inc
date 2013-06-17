@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -184,6 +184,9 @@ begin
       end;
     end;
 
+  if found_mode <> -1 then
+    exit(found_mode);
+
   raise TPTCError.Create('Cannot find matching video mode');
 end;
 
@@ -193,7 +196,6 @@ var
   ScreenSizesNum: cint;
   BestMode: Integer;
   CurrentRotation: TRotation;
-  I: Integer;
 begin
   CreateScreenConfig;
   try

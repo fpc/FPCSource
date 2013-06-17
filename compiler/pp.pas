@@ -25,6 +25,7 @@ program pp;
   possible compiler switches:
   -----------------------------------------------------------------
   CMEM                use cmem unit for better memory debugging
+  I8086               generate a compiler for the Intel 8086+
   I386                generate a compiler for the Intel i386+
   x86_64              generate a compiler for the AMD x86-64 architecture
   M68K                generate a compiler for the M68000
@@ -62,6 +63,12 @@ program pp;
 {$endif}
 
 { exactly one target CPU must be defined }
+{$ifdef I8086}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif I8086}
 {$ifdef I386}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -140,6 +147,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif}
+{$ifdef AARCH64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif AARCH64}
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}
 {$endif CPUDEFINED}

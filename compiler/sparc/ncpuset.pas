@@ -27,6 +27,7 @@ unit ncpuset;
 
     uses
        globtype,
+       node,
        nset,
        ncgset;
 
@@ -36,6 +37,8 @@ unit ncpuset;
            procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
            function has_jumptable : boolean;override;
            procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+         public
+           function pass_1:tnode;override;
        end;
 
 
@@ -59,6 +62,16 @@ unit ncpuset;
     function tcpucasenode.has_jumptable : boolean;
       begin
         has_jumptable:=true;
+      end;
+
+
+    function tcpucasenode.pass_1:tnode;
+      begin
+        result:=inherited pass_1;
+        { TODO: ABI-compliant position-independent case code does not involve GOT }
+        if (cs_create_pic in current_settings.moduleswitches) and
+          (tf_pic_uses_got in target_info.flags) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 

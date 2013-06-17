@@ -879,6 +879,7 @@ implementation
         WriteLn('LockServer: ', fLock);
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -888,6 +889,7 @@ implementation
         WriteLn('GetLicInfo');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -897,6 +899,7 @@ implementation
         WriteLn('RequestLicKey');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -908,6 +911,7 @@ implementation
         WriteLn('CreateInstanceLic');
 {$endif}
         RunError(217);
+        Result:=0;
       end;
 
 
@@ -996,9 +1000,6 @@ HKCR
 
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
-        {$ifndef DUMMY_REG}
-        reg: TRegistry;
-        {$endif}
         classidguid: String;
 
         function ThreadModelToString(model: TThreadingModel): String;
@@ -1022,43 +1023,47 @@ HKCR
         if Register then
         begin
           classidguid := GUIDToString(ClassID);
-          CreateRegKey('CLSID\' + classidguid, '', Description);
-          if ClassVersion <> '' then
-          begin
-            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
-            CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID + '.' + ClassVersion);
-          end
-          else
-            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
-
           CreateRegKey('CLSID\' + classidguid + '\InprocServer32', '', FComServer.ServerFileName);
-
           //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
           CreateRegKey('CLSID\' + classidguid + '\InprocServer32', 'ThreadingModel', ThreadModelToString(ThreadingModel));
-
-          CreateRegKey(ProgID, '', Description);
-          CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
-          if ClassVersion <> '' then
+          CreateRegKey('CLSID\' + classidguid, '', Description);
+          if ClassName <> '' then
           begin
-            CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
-            CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
-            CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
-          end;
+            if ClassVersion <> '' then
+            begin
+              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
+              CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID);
+            end
+            else
+              CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
 
+            CreateRegKey(ProgID, '', Description);
+            CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
+            if ClassVersion <> '' then
+            begin
+              CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
+              CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
+              CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
+            end;
+          end;
         end else
         begin
           classidguid := GUIDToString(ClassID);
           DeleteRegKey('CLSID\' + classidguid + '\InprocServer32');
           DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
-          DeleteRegKey('CLSID\' + classidguid + '\ProgID');
-          DeleteRegKey('CLSID\' + classidguid);
-          DeleteRegKey(ProgID + '\CLSID');
-          DeleteRegKey(ProgID);
-          if ClassVersion <> '' then
+          if ClassName <> '' then
           begin
-            DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
-            DeleteRegKey(ProgID + '.' + ClassVersion);
+            DeleteRegKey('CLSID\' + classidguid + '\ProgID');
+            DeleteRegKey(ProgID + '\CLSID');
+            if ClassVersion <> '' then
+            begin
+              DeleteRegKey(ProgID + '\CurVer');
+              DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
+              DeleteRegKey(ProgID + '.' + ClassVersion);
+            end;
+            DeleteRegKey(ProgID);
           end;
+          DeleteRegKey('CLSID\' + classidguid);
         end;
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry end');
@@ -1598,7 +1603,7 @@ HKCR
         else
       //  Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
       //  Result := fTypeInfo.Invoke(IDispatch(Self), DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
-          Result := fTypeInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+          Result := fTypeInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), VarResult, ExcepInfo, ArgErr);
       end;
 
     function TAutoIntfObject.InterfaceSupportsErrorInfo(const riid: TIID): HResult;
@@ -1687,8 +1692,6 @@ HKCR
     function TAutoObject.Invoke(DispID: LongInt; const iid: TGUID;
       LocaleID: longint; Flags: Word; var params; VarResult, ExcepInfo,
       ArgErr: pointer): HResult; stdcall;
-      var
-        fInterfacePointer: Pointer;
       begin
 {$ifdef DEBUG_COM}
         WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', GUIDToString(iid));
@@ -1700,7 +1703,7 @@ HKCR
         begin
           Result := TAutoObjectFactory(Factory).DispTypeInfo.Invoke(Pointer(
             PtrUint(Self) + TAutoObjectFactory(Factory).DispIntfEntry^.IOffset),
-            DispID, Flags, TDispParams(Params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+            DispID, Flags, TDispParams(Params), VarResult, ExcepInfo, ArgErr);
         end;
       end;
 

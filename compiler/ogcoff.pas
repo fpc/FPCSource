@@ -121,6 +121,7 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+         function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
@@ -142,7 +143,7 @@ interface
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
-         procedure section_set_reloc_datapos(p:TObject;arg:pointer);
+         procedure section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
          procedure section_write_header(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
@@ -178,7 +179,7 @@ interface
        public
          constructor createcoff(awin32:boolean);
          destructor destroy;override;
-         function  ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;override;
+         function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
        end;
 
        TDJCoffObjInput = class(TCoffObjInput)
@@ -220,10 +221,19 @@ interface
 
        TPECoffexeoutput = class(TCoffexeoutput)
        private
+         FImports: TFPHashObjectList;
+         textobjsection,
+         idata2objsection,
+         idata4objsection,
+         idata5objsection,
+         idata6objsection,
+         idata7objsection : TObjSection;
          FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
          constructor create;override;
+         procedure MarkTargetSpecificSections(WorkList:TFPObjectList);override;
+         procedure AfterUnusedSectionRemoval;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
@@ -481,7 +491,7 @@ implementation
        StrsMaxGrow   = 8192;
 
        coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
-          '.text','.data','.data','.data','.bss','.tls',
+          '.text','.data','.rdata','.rdata','.bss','.tls',
           '.pdata',{pdata}
           '.text', {stub}
           '.data',
@@ -724,24 +734,20 @@ const pemagic : array[0..3] of byte = (
 
     function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:shortint):longword;
       begin
-        result:=0;
-        if (oso_load in aoptions) then
-          begin
-            if oso_executable in aoptions then
-              result:=result or PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
-            else
-              begin
-                if (oso_data in aoptions) then
-                  result:=result or PE_SCN_CNT_INITIALIZED_DATA
-                else
-                  result:=result or PE_SCN_CNT_UNINITIALIZED_DATA;
-              end;
-            if oso_write in aoptions then
-              result:=result or PE_SCN_MEM_WRITE or PE_SCN_MEM_READ
-            else
-              result:=result or PE_SCN_MEM_READ;
-          end
+        if oso_executable in aoptions then
+          result:=PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
         else
+          begin
+            if (oso_data in aoptions) then
+              result:=PE_SCN_CNT_INITIALIZED_DATA
+            else
+              result:=PE_SCN_CNT_UNINITIALIZED_DATA;
+          end;
+        if oso_write in aoptions then
+          result:=result or PE_SCN_MEM_WRITE or PE_SCN_MEM_READ
+        else
+          result:=result or PE_SCN_MEM_READ;
+        if not (oso_load in aoptions) then
           result:=result or PE_SCN_MEM_DISCARDABLE;
         case aalign of
            1 : result:=result or PE_SCN_ALIGN_1BYTES;
@@ -811,6 +817,10 @@ const pemagic : array[0..3] of byte = (
         write(offset,len);
       end;
 
+{ We don't want overflow nor range checks here,
+  wrapping is accepted in the address computation below }
+{$r-}
+{$q-}
 
     procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
       var
@@ -997,6 +1007,11 @@ const pemagic : array[0..3] of byte = (
           result:=aname
         else
           begin
+            { non-PECOFF targets lack rodata support.
+              TODO: WinCE likely supports it, but needs testing. }
+            if (atype in [sec_rodata,sec_rodata_norel]) and
+               not (target_info.system in systems_windows) then
+              atype:=sec_data;
             secname:=coffsecnames[atype];
             if create_smartlink_sections and
                (aname<>'') then
@@ -1014,6 +1029,20 @@ const pemagic : array[0..3] of byte = (
             else
               result:=secname;
           end;
+      end;
+
+
+    function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
+      begin
+        if (aType in [sec_rodata,sec_rodata_norel]) then
+          begin
+            { TODO: WinCE needs testing }
+            if (target_info.system in systems_windows) then
+              aType:=sec_rodata_norel
+            else
+              aType:=sec_data;
+          end;
+        result:=inherited sectiontype2options(aType);
       end;
 
 
@@ -1189,7 +1218,10 @@ const pemagic : array[0..3] of byte = (
             { AUX }
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=Size;
-            secrec.nrelocs:=ObjRelocations.count;
+            if ObjRelocations.count<65535 then
+              secrec.nrelocs:=ObjRelocations.count
+            else
+              secrec.nrelocs:=65535;
             inc(symidx);
             FCoffSyms.write(secrec,sizeof(secrec));
           end;
@@ -1202,6 +1234,13 @@ const pemagic : array[0..3] of byte = (
         rel  : coffreloc;
         objreloc : TObjRelocation;
       begin
+        if (TObjSection(p).ObjRelocations.Count>65535) then
+          begin
+            rel.address:=TObjSection(p).ObjRelocations.Count+1;
+            rel.sym:=0;
+            rel.reloctype:=0;
+            FWriter.Write(rel,sizeof(rel));
+          end;
         for i:=0 to TObjSection(p).ObjRelocations.Count-1 do
           begin
             objreloc:=TObjRelocation(TObjSection(p).ObjRelocations[i]);
@@ -1337,10 +1376,17 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.section_set_reloc_datapos(p:TObject;arg:pointer);
+    procedure TCoffObjOutput.section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
       begin
-        TCoffObjSection(p).coffrelocpos:=paint(arg)^;
-        inc(paint(arg)^,sizeof(coffreloc)*TObjSection(p).ObjRelocations.count);
+        p.coffrelocpos:=datapos;
+        inc(datapos,sizeof(coffreloc)*p.ObjRelocations.count);
+        if p.ObjRelocations.count>65535 then
+          begin
+            if win32 then
+              inc(datapos,sizeof(coffreloc))
+            else
+              Message1(asmw_f_too_many_relocations,p.fullname);
+          end;
       end;
 
 
@@ -1376,10 +1422,17 @@ const pemagic : array[0..3] of byte = (
             if (Size>0) and
                (oso_data in secoptions) then
               sechdr.datapos:=datapos;
-            sechdr.nrelocs:=ObjRelocations.count;
+            if ObjRelocations.count<65535 then
+              sechdr.nrelocs:=ObjRelocations.count
+            else
+              sechdr.nrelocs:=65535;
             sechdr.relocpos:=coffrelocpos;
             if win32 then
-              sechdr.flags:=peencodesechdrflags(secoptions,secalign)
+              begin
+                sechdr.flags:=peencodesechdrflags(secoptions,secalign);
+                if ObjRelocations.count>65535 then
+                  sechdr.flags:=sechdr.flags or PE_SCN_LNK_NRELOC_OVFL;
+              end
             else
               sechdr.flags:=djencodesechdrflags(secoptions);
             FWriter.write(sechdr,sizeof(sechdr));
@@ -1407,7 +1460,8 @@ const pemagic : array[0..3] of byte = (
            { Sections first }
            layoutsections(datapos);
            { relocs }
-           ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
+           for i:=0 to ObjSectionList.Count-1 do
+             section_set_reloc_datapos(TCoffObjSection(ObjSectionList[i]),datapos);
            { Symbols }
            sympos:=datapos;
 
@@ -1517,6 +1571,15 @@ const pemagic : array[0..3] of byte = (
         i         : longint;
         p         : TObjSymbol;
       begin
+        if s.coffrelocs=high(aword) then
+          begin
+            { If number of relocations exceeds 65535, it is stored in address field
+              of the first record, and includes this first fake relocation. }
+            FReader.read(rel,sizeof(rel));
+            s.coffrelocs:=rel.address-1;
+            if s.coffrelocs<=65535 then
+              InternalError(2013012503);
+          end;
         for i:=1 to s.coffrelocs do
          begin
            FReader.read(rel,sizeof(rel));
@@ -1726,7 +1789,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function  TCoffObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
+    function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
         secalign : shortint;
         strpos,
@@ -1741,6 +1804,7 @@ const pemagic : array[0..3] of byte = (
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
+        objdata:=CObjData.Create(InputFileName);
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         with TCoffObjData(objdata) do
@@ -1840,6 +1904,11 @@ const pemagic : array[0..3] of byte = (
                  objsec.mempos:=sechdr.rvaofs;
                objsec.orgmempos:=sechdr.rvaofs;
                objsec.coffrelocs:=sechdr.nrelocs;
+               if win32 then
+                 begin
+                   if (sechdr.flags and PE_SCN_LNK_NRELOC_OVFL)<>0 then
+                     objsec.coffrelocs:=high(aword);
+                 end;
                objsec.coffrelocpos:=sechdr.relocpos;
                objsec.datapos:=sechdr.datapos;
                objsec.Size:=sechdr.dataSize;
@@ -1924,7 +1993,10 @@ const pemagic : array[0..3] of byte = (
           internalerror(200603053);
         with texesymbol(p).objsymbol do
           begin
-            exesec:=TExeSection(objsection.exesection);
+            if assigned(objsection) then
+              exesec:=TExeSection(objsection.exesection)
+            else
+              exesec:=nil;
             { There is no exesection defined for special internal symbols
               like __image_base__ }
             if assigned(exesec) then
@@ -2284,7 +2356,12 @@ const pemagic : array[0..3] of byte = (
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
-            peoptheader.DllCharacteristics:=0;
+
+            if SetPEOptFlagsSetExplicity then
+              peoptheader.DllCharacteristics:=peoptflags
+            else
+              peoptheader.DllCharacteristics:=0;
+
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
             if MinStackSizeSetExplicity then
@@ -2392,14 +2469,52 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TPECoffexeoutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
+    procedure TPECoffexeoutput.MarkTargetSpecificSections(WorkList:TFPObjectList);
       var
-        textobjsection,
-        idata2objsection,
-        idata4objsection,
-        idata5objsection,
-        idata6objsection,
-        idata7objsection : TObjSection;
+        exesec:TExeSection;
+        objsec,textsec:TObjSection;
+        objsym:TObjSymbol;
+        objreloc:TObjRelocation;
+        i,j:longint;
+      begin
+        if target_info.system<>system_x86_64_win64 then
+          exit;
+        exesec:=FindExeSection('.pdata');
+        if exesec=nil then
+          exit;
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(exesec.ObjSectionList[i]);
+            if objsec.Used then
+              continue;
+            j:=0;
+            while j<objsec.ObjRelocations.Count do
+              begin
+                objreloc:=TObjRelocation(objsec.ObjRelocations[j]);
+                if objreloc.symbol=nil then
+                  InternalError(2013041201);
+                textsec:=objreloc.symbol.objsection;
+                if textsec.used then
+                  begin
+                    WorkList.Add(objsec);
+                    objsec.used:=true;
+                    { The exact algorithm for non-smartlinked .pdata sections
+                      is subject for refinement. Extreme cases are:
+                      - several disjoint .pdata entries for a function, if function
+                        is complex or if compiler splits it into chunks,
+                      - single .pdata section referencing several .text sections,
+                        may need to remove irrelevant parts like BFD does for
+                        .eh_frame sections. }
+                    break;
+                  end;
+                inc(j,3);
+              end;
+          end;
+      end;
+
+
+    procedure TPECoffexeoutput.AfterUnusedSectionRemoval;
+      var
         basedllname : string;
 
         procedure StartImport(const dllname:string);
@@ -2410,26 +2525,17 @@ const pemagic : array[0..3] of byte = (
               exemap.Add('Importing from DLL '+dllname);
             end;
           basedllname:=ExtractFileName(dllname);
-          idata2objsection:=internalobjdata.createsection(sec_idata2,basedllname);
-          idata4objsection:=internalobjdata.createsection(sec_idata4,basedllname);
-          idata5objsection:=internalobjdata.createsection(sec_idata5,basedllname);
-          idata7objsection:=internalobjdata.createsection(sec_idata7,basedllname);
           { idata2 }
-          idata2objsection.writereloc_internal(idata4objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata4objsection,idata4objsection.size,sizeof(longint),RELOC_RVA);
           idata2objsection.writezeros(2*sizeof(longint));
-          idata2objsection.writereloc_internal(idata7objsection,0,sizeof(longint),RELOC_RVA);
-          idata2objsection.writereloc_internal(idata5objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata7objsection,idata7objsection.size,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata5objsection,idata5objsection.size,sizeof(longint),RELOC_RVA);
           { idata7 }
           idata7objsection.writestr(basedllname);
         end;
 
         procedure EndImport;
         begin
-          { These are referenced from idata2, oso_keep is not necessary. }
-          idata4objsection:=internalobjdata.createsection(sec_idata4, basedllname+'_z_');
-          idata5objsection:=internalobjdata.createsection(sec_idata5, basedllname+'_z_');
-          idata2objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
-          idata2objsection.writereloc_internal(idata5objsection,0,0,RELOC_NONE);
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
           if target_info.system=system_x86_64_win64 then
@@ -2456,25 +2562,13 @@ const pemagic : array[0..3] of byte = (
             $90,$90
           );
         var
-          secname: string;
+          ordint: dword;
 
           procedure WriteTableEntry(objsec:TObjSection);
-          var
-            ordint: dword;
           begin
             if AOrdNr <= 0 then
               begin
-                { import by name }
-                if idata6objsection=nil then
-                  begin
-                    idata6objsection:=internalobjdata.createsection(sec_idata6,secname);
-                    ordint:=Abs(AOrdNr);
-                    { index hint, function name, null terminator and align }
-                    idata6objsection.write(ordint,2);
-                    idata6objsection.writestr(afuncname);
-                    idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
-                  end;
-                objsec.writereloc_internal(idata6objsection,0,sizeof(longint),RELOC_RVA);
+                objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
                 if target_info.system=system_x86_64_win64 then
                   objsec.writezeros(sizeof(longint));
               end
@@ -2498,8 +2592,6 @@ const pemagic : array[0..3] of byte = (
 
         begin
           result:=nil;
-          textobjsection:=nil;
-          idata6objsection:=nil;
           if assigned(exemap) then
             begin
               if AOrdNr <= 0 then
@@ -2508,35 +2600,36 @@ const pemagic : array[0..3] of byte = (
                 exemap.Add(' Importing Function '+afuncname+' (OrdNr='+tostr(AOrdNr)+')');
             end;
 
-          secname:=basedllname+'_i_'+amangledname;
-          idata4objsection:=internalobjdata.createsection(sec_idata4, secname);
-          idata5objsection:=internalobjdata.createsection(sec_idata5, secname);
-
           { idata4, import lookup table }
           WriteTableEntry(idata4objsection);
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
-          { dummy back links }
-          idata5objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
-          idata5objsection.writereloc_internal(idata2objsection,0,0,RELOC_NONE);
           if isvar then
             result:=internalobjdata.SymbolDefine(amangledname,AB_GLOBAL,AT_DATA)
           else
             begin
-              textobjsection:=internalobjdata.createsection(internalobjdata.sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,
-                internalobjdata.sectiontype2options(sec_code) - [oso_keep]);
+              internalobjdata.SetSection(textobjsection);
+              textobjsection.writezeros(align_aword(textobjsection.size,16)-textobjsection.size);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               textobjsection.write(jmpopcode,sizeof(jmpopcode));
 {$ifdef x86_64}
-              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_RELATIVE);
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_RELATIVE);
 {$else}
-              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_ABSOLUTE32);
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
 {$endif x86_64}
 
               textobjsection.write(nopopcodes,align(textobjsection.size,sizeof(nopopcodes))-textobjsection.size);
             end;
           { idata5 section data }
           WriteTableEntry(idata5objsection);
+          if (AOrdNr<=0) then
+            begin
+              { index hint, function name, null terminator and align }
+              ordint:=abs(AOrdNr);
+              idata6objsection.write(ordint,2);
+              idata6objsection.writestr(afuncname);
+              idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
+            end;
         end;
 
       var
@@ -2544,15 +2637,58 @@ const pemagic : array[0..3] of byte = (
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TImportSymbol;
         exesym     : TExeSymbol;
+        newdll : boolean;
       begin
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+            newdll:=False;
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=ImportSymbol.CachedExeSymbol;
+                if assigned(exesym) and
+                   exesym.Used then
+                  begin
+                    if (not newdll) then
+                      StartImport(ImportLibrary.Name);
+                    newdll:=True;
+                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                  end;
+              end;
+            if newdll then
+              EndImport;
+          end;
+        FixupSymbols;
+      end;
+
+
+    procedure TPECoffexeoutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
+      var
+        i,j: longint;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        { Here map import symbols to exe symbols and create necessary sections.
+          Actual import generation is done after unused sections (and symbols) are removed. }
+        FImports:=ImportLibraryList;
+        textobjsection:=internalObjData.CreateSection(sec_code);
+        textobjsection.SecOptions:=[oso_keep];
+        idata2objsection:=internalObjData.CreateSection(sec_idata2);
+        idata2objsection.SecOptions:=[oso_keep];
+        idata4objsection:=internalObjData.CreateSection(sec_idata4);
+        idata4objsection.SecOptions:=[oso_keep];
+        idata5objsection:=internalObjData.CreateSection(sec_idata5);
+        idata5objsection.SecOptions:=[oso_keep];
+        idata6objsection:=internalObjData.CreateSection(sec_idata6);
+        idata6objsection.SecOptions:=[oso_keep];
+        idata7objsection:=internalObjData.CreateSection(sec_idata7);
+        idata7objsection.SecOptions:=[oso_keep];
+
         for i:=0 to ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
-            idata2objsection:=nil;
-            idata4objsection:=nil;
-            idata5objsection:=nil;
-            idata6objsection:=nil;
-            idata7objsection:=nil;
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
@@ -2560,14 +2696,10 @@ const pemagic : array[0..3] of byte = (
                 if assigned(exesym) and
                    (exesym.State<>symstate_defined) then
                   begin
-                    if not assigned(idata2objsection) then
-                      StartImport(ImportLibrary.Name);
-                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                    ImportSymbol.CachedExeSymbol:=exesym;
                     exesym.State:=symstate_defined;
                   end;
               end;
-            if assigned(idata2objsection) then
-              EndImport;
           end;
         PackUnresolvedExeSymbols('after DLL imports');
       end;
@@ -2606,7 +2738,7 @@ const pemagic : array[0..3] of byte = (
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_load,oso_keep]);
+        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_keep]);
         exesec.AddObjSection(objsec);
         pgaddr:=longword(-1);
         hdrpos:=longword(-1);
@@ -2661,7 +2793,7 @@ const pemagic : array[0..3] of byte = (
             exesec:=FindExeSection('.reloc');
             if exesec=nil then
               InternalError(2012072401);
-            exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+            exesec.Disabled:=false;
           end;
         inherited;
       end;

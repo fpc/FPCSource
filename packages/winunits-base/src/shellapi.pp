@@ -22,6 +22,10 @@
 {$calling stdcall}
 {$mode objfpc}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 Unit ShellApi;
 
 //+-------------------------------------------------------------------------

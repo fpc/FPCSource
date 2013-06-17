@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-process');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-process';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Michael van Canneyt and Free Pascal Development team';
@@ -24,6 +24,7 @@ begin
     P.Description := 'Process (execution) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.Options.Add('-S2h');
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

@@ -168,6 +168,7 @@ interface
 
        tguidconstnode = class(tnode)
           value : tguid;
+          lab_set : tasmsymbol;
           constructor create(const g:tguid);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -572,6 +573,7 @@ implementation
          n : trealconstnode;
       begin
          n:=trealconstnode(inherited dogetcopy);
+         n.typedef:=typedef;
          n.value_real:=value_real;
          n.value_currency:=value_currency;
          n.lab_real:=lab_real;
@@ -596,10 +598,23 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value_real = trealconstnode(p).value_real) and
-          { floating point compares for non-numbers give strange results usually }
-          is_number_float(value_real) and
-          is_number_float(trealconstnode(p).value_real);
+          { this should be always true }
+          (trealconstnode(p).typedef.typ=floatdef) and (typedef.typ=floatdef) and
+          (tfloatdef(typedef).floattype = tfloatdef(trealconstnode(p).typedef).floattype) and
+          (
+           (
+            (tfloatdef(typedef).floattype=s64currency) and
+            (value_currency=trealconstnode(p).value_currency)
+           )
+           or
+           (
+            (tfloatdef(typedef).floattype<>s64currency) and
+            (value_real = trealconstnode(p).value_real) and
+            { floating point compares for non-numbers give strange results usually }
+            is_number_float(value_real) and
+            is_number_float(trealconstnode(p).value_real)
+           )
+          );
       end;
 
 
@@ -709,6 +724,11 @@ implementation
 
       begin
          inherited create(pointerconstn);
+{$ifdef i8086}
+         { truncate near pointers }
+         if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+           v := Word(v);
+{$endif i8086}
          value:=v;
          typedef:=def;
       end;
@@ -1130,6 +1150,7 @@ implementation
            value_set:=nil;
       end;
 
+
     destructor tsetconstnode.destroy;
       begin
         if assigned(value_set) then
@@ -1199,12 +1220,9 @@ implementation
       end;
 
 
-
     function tsetconstnode.dogetcopy : tnode;
-
       var
          n : tsetconstnode;
-
       begin
          n:=tsetconstnode(inherited dogetcopy);
          if assigned(value_set) then
@@ -1219,11 +1237,13 @@ implementation
          dogetcopy:=n;
       end;
 
+
     function tsetconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=typedef;
       end;
+
 
     function tsetconstnode.pass_1 : tnode;
       begin
@@ -1293,15 +1313,15 @@ implementation
 
 
     function tguidconstnode.dogetcopy : tnode;
-
       var
          n : tguidconstnode;
-
       begin
          n:=tguidconstnode(inherited dogetcopy);
          n.value:=value;
+         n.lab_set:=lab_set;
          dogetcopy:=n;
       end;
+
 
     function tguidconstnode.pass_typecheck:tnode;
       begin
@@ -1309,11 +1329,16 @@ implementation
         resultdef:=rec_tguid;
       end;
 
+
     function tguidconstnode.pass_1 : tnode;
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
+        if (cs_create_pic in current_settings.moduleswitches) and
+          (tf_pic_uses_got in target_info.flags) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
+
 
     function tguidconstnode.docompare(p: tnode): boolean;
       begin

@@ -3,7 +3,7 @@
  
      Contains:   HIView routines
  
-     Version:    HIToolbox-437~1
+     Version:    HIToolbox-624~3
  
      Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
  
@@ -49,6 +49,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -124,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -133,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -148,6 +151,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -157,6 +161,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -167,6 +172,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -2780,7 +2786,8 @@ function HIViewTrackMouseShape( inView: HIViewRef; inShape: HIShapeRef; var ioWa
 {$endc} {not TARGET_CPU_64}
 
 type
-	HIViewTrackingAreaRef = ^SInt32; { an opaque type }
+	HIViewTrackingAreaRef = ^OpaqueHIViewTrackingAreaRef; { an opaque type }
+	OpaqueHIViewTrackingAreaRef = record end;
 	HIViewTrackingAreaRefPtr = ^HIViewTrackingAreaRef;
 const
 	kEventParamHIViewTrackingArea = FourCharCode('ctra'); { typeHIViewTrackingAreaRef}
@@ -4761,6 +4768,24 @@ function HIViewChangeAttributes( inView: HIViewRef; inAttrsToSet: OptionBits; in
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
+
+{
+ *  Summary:
+ *    Option bits for use with HIViewCreateOffscreenImage.
+ }
+const
+{
+   * Requests that the offscreen image should use the resolution of the
+   * window's backing store. If the window is using crisp HiDPI mode,
+   * the image size will therefore be equal to the view bounds
+   * multiplied by the result of HIWindowGetBackingScaleFactor on the
+   * view's window. Available in Mac OS X 10.8 and later.
+   }
+	kHIViewOffscreenImageUseWindowBackingResolution = 1 shl 0;
+
+{$ifc not TARGET_CPU_64}
 {
  *  HIViewCreateOffscreenImage()
  *  
@@ -4784,7 +4809,9 @@ function HIViewChangeAttributes( inView: HIViewRef; inAttrsToSet: OptionBits; in
  *      The view you wish to create an image of.
  *    
  *    inOptions:
- *      Options. Currently you must pass 0.
+ *      Options. In Mac OS X 10.8 and later, you may pass
+ *      kHIViewOffscreenImageUseWindowBackingResolution. Otherwise this
+ *      parameter must be 0.
  *    
  *    outFrame:
  *      The frame of the view within the resultant image. It is in the

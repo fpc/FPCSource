@@ -59,6 +59,24 @@ user=root
 password=
 hostname=127.0.0.1
 
+; MySQL 5.1 database:
+[mysql51]
+connector=sql
+connectorparams=mysql51
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+; MySQL 5.5 database:
+[mysql55]
+connector=sql
+connectorparams=mysql55
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
 ; Oracle database:
 [oracle]
 connector=sql
@@ -78,6 +96,23 @@ name=/opt/firebird/data/testdb.fdb
 user=sysdba
 password=masterkey
 hostname=localhost
+
+; Firebird embedded
+; Same as Firebird, except we leave the host name blank
+; and specify a db without path.
+; Make sure your Firebird embedded library files (.dll/.so/.dylib)
+; are installed; e.g. on Windows, you can put them in this
+; directory.
+; Test code will create db if it doesn't exist; you can
+; delete an existing db file before the test to start
+; fresh.
+[firebirdembedded]
+connector=sql
+connectorparams=interbase
+name=fbembedtest.fdb
+user=sysdba
+password=masterkey
+hostname=
 
 ; ODBC database:
 [odbc]
@@ -99,16 +134,67 @@ name=test.db
 connector=sql
 connectorparams=mssql
 name=pubs
+; If you want to use trusted authentication/SSPI, leave
+; user and password blank
 user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=mssqlserver:1433
+; You can also specify the instance after a backslash, e.g.
+; hostname=127.0.0.1\SQLEXPRESS
+; See mssqlconn documentation
+hostname=127.0.0.1
+
+; Sybase ASE database
+[sybase]
+connector=sql
+connectorparams=sybase
+name=testdb
+user=sa
+password=
+; You can specify the port after a colon, e.g.
+; hostname=bigbadserver:5000
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; TDBf: DBase/FoxPro database:
 [dbf]
 connector=dbf
+; Connectorparams specifies table level/compatibility level:
+; 3=DBase III
+; 4=DBase IV
+; 7=Visual DBase 7 for Windows
+; 25=FoxPro
+; 30=Visual FoxPro
+connectorparams=4
 
-; Give here the path where the *.dbf file can be generated
-name=/tmp
+; TDBf: DBase/FoxPro database:
+[dbase3]
+connector=dbf
+connectorparams=3
+
+; TDBf: DBase/FoxPro database:
+[dbase4]
+connector=dbf
+connectorparams=4
+
+; TDBf: DBase/FoxPro database:
+[dbase7]
+connector=dbf
+; 7=Visual DBase 7 for Windows
+connectorparams=7
+
+; TDBf: DBase/FoxPro database:
+[foxpro]
+connector=dbf
+; 25=FoxPro
+connectorparams=25
+
+; TDBf: DBase/FoxPro database:
+[visualfoxpro]
+connector=dbf
+; 30=Visual FoxPro
+connectorparams=25
 
 ; MemDS in memory dataset:
 [memds]

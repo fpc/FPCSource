@@ -18,7 +18,7 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
+procedure mkdir(s : pchar; len : sizeuint); [IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 var
   tmpStr : array[0..255] of char;
   tmpLock: LongInt;
@@ -34,7 +34,7 @@ begin
   UnLock(tmpLock);
 end;
 
-procedure rmdir(const s : string);[IOCheck];
+procedure rmdir(s : pchar; len : sizeuint); [IOCheck, public, alias : 'FPC_SYS_RMDIR'];
 var
   tmpStr : array[0..255] of Char;
 begin
@@ -46,7 +46,7 @@ begin
     dosError2InOut(IoErr);
 end;
 
-procedure chdir(const s : string);[IOCheck];
+procedure sys_chdir(s : pchar);
 var
   tmpStr : array[0..255] of Char;
   tmpLock: LongInt;
@@ -79,6 +79,13 @@ begin
 
   if tmpLock<>0 then Unlock(tmpLock);
   if assigned(FIB) then dispose(FIB);
+end;
+
+Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+begin
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
+    exit;
+  sys_chdir(s);
 end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);

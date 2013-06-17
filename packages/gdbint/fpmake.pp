@@ -17,24 +17,27 @@ var
   GdbLibDir, GdbLibFile: string;
   GdbLibFound: boolean;
   GdbVerTarget: TTarget;
-  HostOS: TOS;
-  HostCPU: TCpu;
 begin
   P := Sender as TPackage;
-  HostOS:=StringToOS({$I %FPCTARGETOS%});
-  HostCPU:=StringToCPU({$I %FPCTARGETCPU%});
   // Search for a libgdb file.
   GdbLibFound:=false;
 
   // First try the environment setting GDBLIBDIR
   GdbLibDir := GetEnvironmentVariable('GDBLIBDIR');
-  if (GdbLibDir<>'') and DirectoryExists(GdbLibDir) then
+  if (GdbLibDir<>'') then
     begin
-      GdbLibFile:=IncludeTrailingPathDelimiter(GdbLibDir)+GdbLibName;
-      if not FileExists(GdbLibFile) then
-        Installer.BuildEngine.Log(vlCommand,'GDBLIBDIR environment variable set, but libgdb not found. ('+GdbLibFile+')')
+      if DirectoryExists(GdbLibDir) then
+        begin
+          GdbLibFile:=IncludeTrailingPathDelimiter(GdbLibDir)+GdbLibName;
+          if not FileExists(GdbLibFile) then
+            Installer.BuildEngine.Log(vlCommand,
+              'GDBLIBDIR environment variable set, but libgdb not found. ('+GdbLibFile+')')
+          else
+            GdbLibFound:=true;
+        end
       else
-        GdbLibFound:=true;
+        Installer.BuildEngine.Log(vlCommand,
+          'GDBLIBDIR environment variable set, but directory does not exist. ('+GdbLibDir+')');
     end;
 
   // Try the default locations
@@ -58,12 +61,16 @@ begin
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
 
+  if GdbLibFound then
+    Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
+  else
+    Installer.BuildEngine.Log(vlCommand,'File libgdb.a not found');
   // When we're cross-compiling, running the gdbver executable to detect the
   // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
   // is performed.
   if GdbLibFound and
-     (((Defaults.CPU=HostCPU) and (Defaults.OS=HostOS))
-       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (HostOS=win32) and (HostCPU=i386))) then
+     (not Defaults.IsBuildDifferentFromTarget
+       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (Defaults.BuildOS=win32) and (Defaults.BuildCPU=i386))) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
       Installer.BuildEngine.CreateOutputDir(p);
@@ -71,7 +78,7 @@ begin
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.
         GetBinOutputDir(Defaults.CPU, Defaults.OS))+PathDelim+
-        AddProgramExtension('gdbver',HostOS),'-o ' +
+        AddProgramExtension('gdbver',Defaults.BuildOS),'-o ' +
         Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
 
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
@@ -126,7 +133,7 @@ begin
   end;
 end;
 
-procedure add_gdbint;
+procedure add_gdbint(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -135,9 +142,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('gdbint');
-{$ifdef ALLPACKAGES}
-    P.Directory:='gdbint';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
@@ -172,12 +177,15 @@ begin
         begin
           AddInclude('gdbver.inc');
         end;
+    P.ExamplePath.add('tests');
+    P.Targets.AddExampleProgram('testgdb.pp');
+    P.Targets.AddExampleProgram('simify.pp');
     end;
 end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_gdbint;
+  add_gdbint('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

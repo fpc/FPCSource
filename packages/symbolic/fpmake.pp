@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('symbolic');
 {$ifdef ALLPACKAGES}
-    P.Directory:='symbolic';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Marco van de Voort';
@@ -22,6 +22,7 @@ begin
     P.Email := '';
     P.Description := 'Expression parser with support for fast evaluation';
     P.NeedLibC:= false;
+    P.OSes:=P.OSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

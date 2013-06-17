@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('zlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='zlib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := AllUnixOSes+AllWindowsOSes+[os2,emx,netware,netwlibc]-[qnx];

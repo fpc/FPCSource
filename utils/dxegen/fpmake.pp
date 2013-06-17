@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_dxegen;
+procedure add_dxegen(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -26,9 +26,7 @@ begin
 
     P.OSes:=[go32v2];
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fprcp';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     T:=P.Targets.AddProgram('dxegen.pas');
@@ -40,7 +38,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_dxegen;
+  add_dxegen('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

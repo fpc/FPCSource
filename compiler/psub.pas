@@ -117,6 +117,9 @@ implementation
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
+{$if defined(arm)}
+       ,cpuinfo
+{$endif arm}
        {$ifndef NOOPT}
          {$ifdef i386}
            ,aopt386
@@ -141,6 +144,12 @@ implementation
         if pi_has_global_goto in current_procinfo.flags then
           begin
             Message1(parser_h_not_supported_for_inline,'global goto');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
+        if pi_has_nested_exit in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'nested exit');
             Message(parser_h_inlining_disabled);
             exit;
           end;
@@ -248,9 +257,16 @@ implementation
 
     procedure check_finalize_paras(p:TObject;arg:pointer);
       begin
-        if (tsym(p).typ=paravarsym) and
-           tparavarsym(p).needs_finalization then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+        if (tsym(p).typ=paravarsym) then
+          begin
+            if tparavarsym(p).needs_finalization then
+              include(current_procinfo.flags,pi_needs_implicit_finally);
+            if (tparavarsym(p).varspez in [vs_value,vs_out]) and
+               (cs_create_pic in current_settings.moduleswitches) and
+               (tf_pic_uses_got in target_info.flags) and
+               is_rtti_managed_type(tparavarsym(p).vardef) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 
@@ -261,7 +277,13 @@ implementation
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
            is_managed_type(tlocalvarsym(p).vardef) then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+          begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
+            if is_rtti_managed_type(tlocalvarsym(p).vardef) and
+              (cs_create_pic in current_settings.moduleswitches) and
+              (tf_pic_uses_got in target_info.flags) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 
@@ -468,13 +490,18 @@ implementation
                           ccallnode.createintern('fpc_help_constructor',para)));
                     end
                 else
-                  if is_javaclass(current_structdef) then
+                  if is_javaclass(current_structdef) or
+                     ((target_info.system in systems_jvm) and
+                      is_record(current_structdef)) then
                     begin
                       if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                          not current_procinfo.ConstructorCallingConstructor then
                        begin
                          { call inherited constructor }
-                         srsym:=search_struct_member(tobjectdef(current_structdef).childof,'CREATE');
+                         if is_javaclass(current_structdef) then
+                           srsym:=search_struct_member_no_helper(tobjectdef(current_structdef).childof,'CREATE')
+                         else
+                           srsym:=search_struct_member_no_helper(java_fpcbaserecordtype,'CREATE');
                          if assigned(srsym) and
                             (srsym.typ=procsym) then
                            begin
@@ -487,13 +514,17 @@ implementation
                        end;
                     end
                 else
-                  if not is_record(current_structdef) then
-                  internalerror(200305103);
+                  if not is_record(current_structdef) and
+                     not (
+                            is_objectpascal_helper(current_structdef) and
+                            (tobjectdef(current_structdef).extendeddef.typ<>objectdef)
+                         ) then
+                    internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
-                addstatement(newstatement,cifnode.create(
+                  addstatement(newstatement,cifnode.create(
                     caddnode.create(equaln,
                         load_self_pointer_node,
                         cnilnode.create),
@@ -630,7 +661,7 @@ implementation
             { must be the return value finalized before reraising the exception? }
             if (not is_void(current_procinfo.procdef.returndef)) and
                is_managed_type(current_procinfo.procdef.returndef) and
-               (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
+               (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
           end;
@@ -861,6 +892,8 @@ implementation
             maybe_add_constructor_wrapper(code,
               cs_implicit_exceptions in current_settings.moduleswitches);
             addstatement(newstatement,code);
+            if assigned(nestedexitlabel) then
+              addstatement(newstatement,clabelnode.create(cnothingnode.create,nestedexitlabel));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
@@ -890,7 +923,11 @@ implementation
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin
              if not(cs_no_regalloc in current_settings.globalswitches) then
-               cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+               begin
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+                 if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
+                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+               end;
              if cs_asm_source in current_settings.globalswitches then
                begin
                  if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
@@ -916,64 +953,77 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(x86) or defined(arm)}
-        { try to strip the stack frame }
-        { set the framepointer to esp if:
-          - no assembler directive, those are handled in assembler_block
-            in pstatment.pas (for cases not caught by the Delphi
-            exception below)
-          - no exceptions are used
-          - no pushes are used/esp modifications, could be:
-            * outgoing parameters on the stack
-            * incoming parameters on the stack
-            * open arrays
-          - no inline assembler
-         or
-          - Delphi mode
-          - assembler directive
-          - no pushes are used/esp modifications, could be:
-            * outgoing parameters on the stack
-            * incoming parameters on the stack
-            * open arrays
-          - no local variables
-
-          - stack frame cannot be optimized if using Win64 SEH
-            (at least with the current state of our codegenerator).
-        }
-        if ((po_assembler in procdef.procoptions) and
-           (m_delphi in current_settings.modeswitches) and
-           { localst at main_program_level is a staticsymtable }
-            (procdef.localst.symtablelevel<>main_program_level) and
-            (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
-           ((cs_opt_stackframe in current_settings.optimizerswitches) and
-            not(cs_generate_stackframes in current_settings.localswitches) and
-            not(po_assembler in procdef.procoptions) and
-            ((flags*([pi_has_assembler_block,pi_is_assembler,
-                    pi_has_stackparameter,pi_needs_stackframe]+
-                    exception_flags[(target_info.cpu=cpu_i386)
-{$ifdef TEST_WIN64_SEH}
-                    or (target_info.system=system_x86_64_win64)
-{$endif TEST_WIN64_SEH}
-                    ]))=[])
-           )
-        then
+{$if defined(i386) or defined(x86_64) or defined(arm)}
+{$if defined(arm)}
+        { frame and stack pointer must be always the same on arm thumb so it makes no
+          sense to fiddle with a frame pointer }
+        if current_settings.cputype in cpu_thumb then
           begin
-            { we need the parameter info here to determine if the procedure gets
-              parameters on the stack
+            framepointer:=NR_STACK_POINTER_REG;
+            tg.direction:=1;
+          end
+        else
+{$endif defined(arm)}
+          begin
+            { try to strip the stack frame }
+            { set the framepointer to esp if:
+              - no assembler directive, those are handled in assembler_block
+                in pstatment.pas (for cases not caught by the Delphi
+                exception below)
+              - no exceptions are used
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no inline assembler
+             or
+              - Delphi mode
+              - assembler directive
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no local variables
 
-              calling generate_parameter_info doesn't hurt but it costs time
-              (necessary to init para_stack_size)
+              - stack frame cannot be optimized if using Win64 SEH
+                (at least with the current state of our codegenerator).
             }
-            generate_parameter_info;
-            if not(procdef.stack_tainting_parameter(calleeside)) and
-               not(has_assembler_child) and (para_stack_size=0) then
+            if ((po_assembler in procdef.procoptions) and
+               (m_delphi in current_settings.modeswitches) and
+               { localst at main_program_level is a staticsymtable }
+                (procdef.localst.symtablelevel<>main_program_level) and
+                (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
+               ((cs_opt_stackframe in current_settings.optimizerswitches) and
+                not(cs_generate_stackframes in current_settings.localswitches) and
+                not(cs_profile in current_settings.moduleswitches) and
+                not(po_assembler in procdef.procoptions) and
+                ((flags*([pi_has_assembler_block,pi_is_assembler,
+                        pi_has_stackparameter,pi_needs_stackframe]+
+                        exception_flags[(target_info.cpu=cpu_i386)
+{$ifndef DISABLE_WIN64_SEH}
+                        or (target_info.system=system_x86_64_win64)
+{$endif DISABLE_WIN64_SEH}
+                        ]))=[])
+               )
+            then
               begin
-                { Only need to set the framepointer }
-                framepointer:=NR_STACK_POINTER_REG;
-                tg.direction:=1;
+                { we need the parameter info here to determine if the procedure gets
+                  parameters on the stack
+
+                  calling generate_parameter_info doesn't hurt but it costs time
+                  (necessary to init para_stack_size)
+                }
+                generate_parameter_info;
+                if not(procdef.stack_tainting_parameter(calleeside)) and
+                   not(has_assembler_child) and (para_stack_size=0) then
+                  begin
+                    { Only need to set the framepointer }
+                    framepointer:=NR_STACK_POINTER_REG;
+                    tg.direction:=1;
+                  end;
               end;
           end;
-{$endif}
+{$endif defined(x86) or defined(arm)}
 {$ifdef MIPS}
         framepointer:=NR_STACK_POINTER_REG;
         tg.direction:=1;
@@ -1172,7 +1222,7 @@ implementation
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
         procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
 
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
         { set implicit_finally flag for if procedure is safecall }
         if (tf_safecall_exceptions in target_info.flags) and
            (procdef.proccalloption=pocall_safecall) then
@@ -1181,11 +1231,12 @@ implementation
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
-{$ifdef i386}
+
+{$if defined(i386) or defined(i8086)}
         procdef.fpu_used:=node_resources_fpu(code);
         if procdef.fpu_used>0 then
           include(flags,pi_uses_fpu);
-{$endif i386}
+{$endif i386 or i8086}
 
         { Print the node to tree.log }
         if paraprintnodetree=1 then
@@ -1245,6 +1296,11 @@ implementation
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
           do_optcse(code);
+
+        if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
+          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
+          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
+          procdef.isempty:=true;
 
         { add implicit entry and exit code }
         add_entry_exit_code;
@@ -1464,7 +1520,7 @@ implementation
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
-{$if defined(x86) or defined(arm)}
+{$ifdef SUPPORT_SAFECALL}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
                (tf_safecall_exceptions in target_info.flags) and
@@ -1512,7 +1568,7 @@ implementation
 
 {$ifdef AVR}
             { because of the limited branch distance of cond. branches, they must be replaced
-              somtimes by normal jmps and an inverse branch }
+              sometimes by normal jmps and an inverse branch }
             finalizeavrcode(aktproccode);
 {$endif AVR}
 
@@ -1779,7 +1835,7 @@ implementation
       }
 
       var
-        oldfailtokenmode : tmodeswitch;
+        oldfailtokenmode : tmodeswitches;
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
@@ -1814,7 +1870,7 @@ implementation
         if (pd.proctypeoption=potype_constructor) then
          begin
            oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
-           tokeninfo^[_FAIL].keyword:=m_all;
+           tokeninfo^[_FAIL].keyword:=alllanguagemodes;
          end;
 
         tcgprocinfo(current_procinfo).parse_body;

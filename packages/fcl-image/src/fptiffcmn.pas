@@ -94,6 +94,10 @@ const
   TiffCompressionSGILog = 34676; { SGILOG }
   TiffCompressionSGILog24 = 34677; { SGILOG24 }
   TiffCompressionJPEG2000 = 34712; { JP2000 }
+
+  // Planar configuration - TIFF 6.0 spec p. 38
+  TiffPlanarConfigurationChunky = 1; //Chunky format
+  TiffPlanarConfigurationPlanar = 2; //Planar format
 type
   TTiffChunkType = (
     tctStrip,
@@ -160,6 +164,7 @@ type
     procedure Assign(IFD: TTiffIFD);
     procedure ReadFPImgExtras(Src: TFPCustomImage);
     function ImageLength: DWord; inline;
+    constructor Create;
     destructor Destroy; override;
   end;
 
@@ -258,7 +263,7 @@ begin
   IFDStart:=0;
   IFDNext:=0;
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
-  PlanarConfiguration:=0;
+  PlanarConfiguration:=TiffPlanarConfigurationChunky;
   Compression:=TiffCompressionNone;
   Predictor:=1;
   ImageHeight:=0;
@@ -406,6 +411,11 @@ end;
 function TTiffIFD.ImageLength: DWord;
 begin
   Result:=ImageHeight;
+end;
+
+constructor TTiffIFD.Create;
+begin
+  PlanarConfiguration:=TiffPlanarConfigurationChunky;
 end;
 
 destructor TTiffIFD.Destroy;

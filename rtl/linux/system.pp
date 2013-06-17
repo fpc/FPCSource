@@ -75,7 +75,7 @@ const calculated_cmdline:Pchar=nil;
 
 {$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
 
-{$I sysunix.inc}
+{$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -355,7 +355,6 @@ begin
   StackBottom := initialstkptr - StackLength;
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
-
 {$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
 {$endif cpui386}
@@ -363,7 +362,7 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  InitUnixStrings;
+  initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Arguments }

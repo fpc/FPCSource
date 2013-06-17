@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('unixutil');
 {$ifdef ALLPACKAGES}
-    P.Directory:='unixutil';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=[Linux];

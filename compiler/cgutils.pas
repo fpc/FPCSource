@@ -105,11 +105,15 @@ unit cgutils;
 {$endif cpuflags}
             LOC_CONSTANT : (
               case longint of
-{$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : aint);
-{$else FPC_BIG_ENDIAN}
-                1 : (value : aint);
-{$endif FPC_BIG_ENDIAN}
+{$ifdef cpu64bitalu}
+                1 : (value : Int64);
+{$else cpu64bitalu}
+    {$ifdef FPC_BIG_ENDIAN}
+                1 : (_valuedummy,value : longint);
+    {$else FPC_BIG_ENDIAN}
+                1 : (value : longint);
+    {$endif FPC_BIG_ENDIAN}
+{$endif cpu64bitalu}
                 2 : (value64 : Int64);
               );
             LOC_CREFERENCE,

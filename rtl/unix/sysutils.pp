@@ -34,6 +34,7 @@ interface
 {$DEFINE HASCREATEGUID}
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+{$DEFINE HAS_GETTICKCOUNT64}
 uses
   Unix,errors,sysconst,Unixtype;
 
@@ -322,6 +323,14 @@ Begin
 End;
 
 
+function GetTickCount64: QWord;
+var
+  tp: TTimeVal;
+begin
+  fpgettimeofday(@tp, nil);
+  Result := (Int64(tp.tv_sec) * 1000) + (tp.tv_usec div 1000);
+end;
+
 
 
 {****************************************************************************
@@ -536,17 +545,6 @@ begin
     end;
 end;
 
-{$ifndef FPUNONE}
-Function UnixToWinAge(UnixAge : time_t): Longint;
-
-Var
-  Y,M,D,hh,mm,ss : word;
-
-begin
-  EpochToLocal(UnixAge,y,m,d,hh,mm,ss);
-  Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
-end;
-
 
 Function FileAge (Const FileName : String): Longint;
 
@@ -556,9 +554,8 @@ begin
   If  (fpstat (pointer(FileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
   else 
-    Result:=UnixToWinAge(info.st_mtime);
+    Result:=info.st_mtime;
 end;
-{$endif}
 
 
 Function FileExists (Const FileName : String) : Boolean;
@@ -736,9 +733,7 @@ begin
      f.Attr:=WinAttr;
      f.Size:=st.st_Size;
      f.Mode:=st.st_mode;
-{$ifndef FPUNONE}
-     f.Time:=UnixToWinAge(st.st_mtime);
-{$endif}
+     f.Time:=st.st_mtime;
      FindGetFileInfo:=true;
    End
   else

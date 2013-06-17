@@ -1,19 +1,17 @@
 {
-     File:       LaunchServices/LSOpen.h
+     File:       LSOpen.h
  
      Contains:   Public interfaces for LaunchServices.framework
  
-     Version:    LaunchServices-360.3~1
- 
-     Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
+     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://www.freepascal.org/bugs.html
- 
 }
 {	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 
 {
@@ -91,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -210,7 +213,7 @@ const
 	kLSLaunchNewInstance = $00080000; { Instantiate app even if it is already running.}
 	kLSLaunchAndHide = $00100000; { Send child a "hide" request as soon as it checks in.}
 	kLSLaunchAndHideOthers = $00200000; { Hide all other apps when the app checks in.}
-	kLSLaunchHasUntrustedContents = $00400000; { Mark items to be opened as untrusted}
+	kLSLaunchHasUntrustedContents = $00400000;  { Mark items to be opened as untrusted}
 
 type
 	LSLaunchFSRefSpec = record
@@ -268,7 +271,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function LSOpenFSRef( const (*var*) inRef: FSRef; outLaunchedRef: FSRefPtr { can be NULL } ): OSStatus; external name '_LSOpenFSRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -305,7 +308,7 @@ function LSOpenFSRef( const (*var*) inRef: FSRef; outLaunchedRef: FSRefPtr { can
  *    Non-Carbon CFM:   not available
  }
 function LSOpenCFURLRef( inURL: CFURLRef; outLaunchedURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSOpenCFURLRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -336,7 +339,7 @@ function LSOpenCFURLRef( inURL: CFURLRef; outLaunchedURL: CFURLRefPtr { can be N
  *    Non-Carbon CFM:   not available
  }
 function LSOpenFromRefSpec( const (*var*) inLaunchSpec: LSLaunchFSRefSpec; outLaunchedRef: FSRefPtr { can be NULL } ): OSStatus; external name '_LSOpenFromRefSpec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -369,7 +372,7 @@ function LSOpenFromRefSpec( const (*var*) inLaunchSpec: LSLaunchFSRefSpec; outLa
  *    Non-Carbon CFM:   not available
  }
 function LSOpenFromURLSpec( const (*var*) inLaunchSpec: LSLaunchURLSpec; outLaunchedURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSOpenFromURLSpec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { ================================================================================== }
@@ -429,7 +432,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; outPSN: ProcessSerialNumberPtr { can be NULL } ): OSStatus; external name '_LSOpenApplication';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -471,7 +474,7 @@ function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; ou
  *    Non-Carbon CFM:   not available
  }
 function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex; inRole: LSRolesMask; {const} inAEParam: AEKeyDescPtr { can be NULL }; {const} inAppParams: LSApplicationParametersPtr { can be NULL }; outPSNs: ProcessSerialNumberPtr { can be NULL }; inMaxPSNCount: CFIndex ): OSStatus; external name '_LSOpenItemsWithRole';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -516,7 +519,7 @@ function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex
  *    Non-Carbon CFM:   not available
  }
 function LSOpenURLsWithRole( inURLs: CFArrayRef; inRole: LSRolesMask; {const} inAEParam: AEKeyDescPtr { can be NULL }; {const} inAppParams: LSApplicationParametersPtr { can be NULL }; outPSNs: ProcessSerialNumberPtr { can be NULL }; inMaxPSNCount: CFIndex ): OSStatus; external name '_LSOpenURLsWithRole';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {$endc} {TARGET_OS_MAC}

@@ -6,10 +6,10 @@ uses fpmkunit;
 
 {$endif not ALLPACKAGES}
 
-procedure add_dblib;
+procedure add_dblib(const ADirectory: string);
 
 Const
-  DBLibOSes         = [linux,freebsd,netbsd,openbsd,win32,win64,haiku];
+  DBLibOSes         = [linux,freebsd,netbsd,openbsd,solaris,win32,win64,haiku,android];
 
 Var
   P : TPackage;
@@ -18,9 +18,7 @@ begin
   With Installer do
     begin
       P:=AddPackage('dblib');
-{$ifdef ALLPACKAGES}
-      P.Directory:='dblib';
-{$endif ALLPACKAGES}
+      P.Directory:=ADirectory;
       P.Version:='1.0';
       P.Author := 'Library: (FreeTDS/Microsoft), header: Ladislav Karrach';
       P.License := 'Library: FreeTDS License, header: LGPL with modification, ';
@@ -38,7 +36,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_dblib;
+  add_dblib('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

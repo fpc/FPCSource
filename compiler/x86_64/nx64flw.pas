@@ -30,7 +30,7 @@ interface
 
   type
     tx64raisenode=class(tcgraisenode)
-      procedure pass_generate_code;override;
+      function pass_1 : tnode;override;
     end;
 
     tx64onnode=class(tcgonnode)
@@ -66,14 +66,22 @@ implementation
 
 { tx64raisenode }
 
-procedure tx64raisenode.pass_generate_code;
+function tx64raisenode.pass_1 : tnode;
+  var
+    statements : tstatementnode;
+    raisenode : tcallnode;
   begin
     { difference from generic code is that address stack is not popped on reraise }
     if (target_info.system<>system_x86_64_win64) or assigned(left) then
-      inherited pass_generate_code
+      result:=inherited pass_1
     else
-      cg.g_call(current_asmdata.CurrAsmList,'FPC_RERAISE');
-  end;
+      begin
+        result:=internalstatements(statements);
+        raisenode:=ccallnode.createintern('fpc_reraise',nil);
+        include(raisenode.callnodeflags,cnf_call_never_returns);
+        addstatement(statements,raisenode);
+      end;
+end;
 
 { tx64onnode }
 
@@ -91,7 +99,7 @@ procedure tx64onnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
 
     { RTL will put exceptobject into RAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -186,7 +194,14 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_x86_64_win64) then
+    if (target_info.system<>system_x86_64_win64) or (
+      { Don't create child procedures for generic methods, their nested-like
+        behavior causes compilation errors because real nested procedures
+        aren't allowed for generics. Not creating them doesn't harm because
+        generic node tree is discarded without generating code. }
+        assigned(current_procinfo.procdef.struct) and
+        (df_generic in current_procinfo.procdef.struct.defoptions)
+      ) then
       exit;
     finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
     finalizepi.force_nested;
@@ -205,6 +220,11 @@ constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
     inherited create_implicit(l, r, _t1);
     if (target_info.system<>system_x86_64_win64) then
       exit;
+
+    if assigned(current_procinfo.procdef.struct) and
+      (df_generic in current_procinfo.procdef.struct.defoptions) then
+      InternalError(2013012501);
+
     finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
     finalizepi.force_nested;
     finalizepi.procdef:=create_pd;
@@ -407,7 +427,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
     { this can be called recursivly }
     oldBreakLabel:=nil;
     oldContinueLabel:=nil;
@@ -456,7 +476,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
-    flowcontrol:=[fc_inflowcontrol];
+    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
       begin
@@ -512,21 +532,30 @@ procedure tx64tryexceptnode.pass_generate_code;
         { do some magic for exit in the try block }
         cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
       end;
 
     if fc_break in exceptflowcontrol then
       begin
         cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
 
     if fc_continue in exceptflowcontrol then
       begin
         cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+        if (fc_unwind in flowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        else
+          cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
     emit_nop;

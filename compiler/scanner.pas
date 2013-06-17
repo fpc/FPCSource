@@ -261,6 +261,7 @@ interface
     { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
+    procedure SetAppType(NewAppType:tapptype);
 
 
 implementation
@@ -315,7 +316,7 @@ implementation
             low:=mid;
          end;
         is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
-                    (tokeninfo^[ttoken(high)].keyword in current_settings.modeswitches);
+                    ((tokeninfo^[ttoken(high)].keyword*current_settings.modeswitches)<>[]);
       end;
 
 
@@ -324,7 +325,7 @@ implementation
         { turn ansi/unicodestrings on by default ? (only change when this
           particular setting is changed, so that a random modeswitch won't
           change the state of $h+/$h-) }
-        if switch in [m_all,m_default_ansistring,m_default_unicodestring] then
+        if switch in [m_none,m_default_ansistring,m_default_unicodestring] then
           begin
             if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
               begin
@@ -345,17 +346,24 @@ implementation
                 include(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   include(init_settings.localswitches,cs_refcountedstrings);
+                if m_default_unicodestring in current_settings.modeswitches then
+                  begin
+                    def_system_macro('FPC_UNICODESTRINGS');
+                    def_system_macro('UNICODE');
+                  end;
               end
             else
               begin
                 exclude(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
+                undef_system_macro('FPC_UNICODESTRINGS');
+                undef_system_macro('UNICODE');
               end;
           end;
 
         { turn inline on by default ? }
-        if switch in [m_all,m_default_inline] then
+        if switch in [m_none,m_default_inline] then
           begin
             if (m_default_inline in current_settings.modeswitches) then
              begin
@@ -372,7 +380,7 @@ implementation
           end;
 
         { turn on system codepage by default }
-        if switch in [m_all,m_systemcodepage] then
+        if switch in [m_none,m_systemcodepage] then
           begin
             if m_systemcodepage in current_settings.modeswitches then
               begin
@@ -455,7 +463,7 @@ implementation
            { resolve all postponed switch changes }
            flushpendingswitchesstate;
 
-           HandleModeSwitches(m_all,changeinit);
+           HandleModeSwitches(m_none,changeinit);
 
            { turn on bitpacking for mode macpas and iso pascal }
            if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
@@ -500,15 +508,18 @@ implementation
            else
              current_settings.packenum:=4;
            if changeinit then
-             init_settings.packenum:=current_settings.packenum;
-{$ifdef i386}
-           { Default to intel assembler for delphi/tp7 on i386 }
+             begin
+               init_settings.packenum:=current_settings.packenum;
+               init_settings.setalloc:=current_settings.setalloc;
+             end;
+{$if defined(i386) or defined(i8086)}
+           { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
              current_settings.asmmode:=asmmode_i386_intel;
            if changeinit then
              init_settings.asmmode:=current_settings.asmmode;
-{$endif i386}
+{$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
            { compensate for lack of interprocedural goto support)          }
@@ -621,6 +632,14 @@ implementation
             end;
       end;
 
+    procedure SetAppType(NewAppType:tapptype);
+      begin
+        if apptype=app_cui then
+          undef_system_macro('CONSOLE');
+        apptype:=NewAppType;
+        if apptype=app_cui then
+          def_system_macro('CONSOLE');
+      end;
 {*****************************************************************************
                            Conditional Directives
 *****************************************************************************}
@@ -922,7 +941,7 @@ In case not, the value returned can be arbitrary.
 
         function read_factor(var factorType: TCTETypeSet; eval : Boolean) : string;
         var
-           hs : string;
+           hs,countstr : string;
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
@@ -933,6 +952,7 @@ In case not, the value returned can be arbitrary.
            setElemType : TCTETypeSet;
 
         begin
+           read_factor:='';
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
@@ -1165,13 +1185,52 @@ In case not, the value returned can be arbitrary.
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := upper(current_scanner.preproc_pattern);
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                        if current_scanner.preproc_token in [_LT,_LSHARPBRACKET] then
+                          begin
+                            l:=1;
+                            preproc_consume(current_scanner.preproc_token);
+                            current_scanner.skipspace;
+                            while current_scanner.preproc_token=_COMMA do
+                              begin
+                                inc(l);
+                                preproc_consume(_COMMA);
+                                current_scanner.skipspace;
+                              end;
+                            if not (current_scanner.preproc_token in [_GT,_RSHARPBRACKET]) then
+                              Message(scan_e_error_in_preproc_expr)
+                            else
+                              preproc_consume(current_scanner.preproc_token);
+                            str(l,countstr);
+                            hs:=hs+'$'+countstr;
+                          end
+                        else
+                          { special case: <> }
+                          if current_scanner.preproc_token=_NE then
+                            begin
+                              hs:=hs+'$1';
+                              preproc_consume(_NE);
+                            end;
+                        current_scanner.skipspace;
                         if searchsym(hs,srsym,srsymtable) then
-                          hs := '1'
+                          begin
+                            { TSomeGeneric<...> also adds a TSomeGeneric symbol }
+                            if (sp_generic_dummy in srsym.symoptions) and
+                                (srsym.typ=typesym) and
+                                (
+                                  { mode delphi}
+                                  (ttypesym(srsym).typedef.typ in [undefineddef,errordef]) or
+                                  { non-delphi modes }
+                                  (df_generic in ttypesym(srsym).typedef.defoptions)
+                                ) then
+                              hs:='0'
+                            else
+                              hs:='1';
+                          end
                         else
                           hs := '0';
                         read_factor := hs;
-                        preproc_consume(_ID);
-                        current_scanner.skipspace;
                       end
                     else
                       Message(scan_e_error_in_preproc_expr);
@@ -1857,7 +1916,7 @@ In case not, the value returned can be arbitrary.
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
-           if (ExtractFileExt(name)='') then
+           if (not found) and (ExtractFileExt(name)='') then
             begin
               { try default extensions .inc , .pp and .pas }
               if (not found) then
@@ -1876,6 +1935,7 @@ In case not, the value returned can be arbitrary.
                current_scanner.tempcloseinputfile;
                { load new file }
                hp:=do_openinputfile(foundfile);
+               hp.inc_path:=path;
                current_scanner.addfile(hp);
                current_module.sourcefiles.register_file(hp);
                if (not found) then
@@ -2540,7 +2600,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_LINE;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
+            tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
           end;
         if current_tokenpos.column<>last_filepos.column then
@@ -2556,7 +2616,7 @@ In case not, the value returned can be arbitrary.
             else
               begin
                 recordtokenbuf.write(s,1);
-                recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+                tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
           end;
@@ -2565,7 +2625,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_FILEINDEX;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+            tokenwriteword(current_tokenpos.fileindex);
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
@@ -2577,13 +2637,15 @@ In case not, the value returned can be arbitrary.
           _CWSTRING :
             begin
               tokenwritesizeint(patternw^.len);
-              recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+              if patternw^.len>0 then
+                recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
               tokenwritesizeint(len);
-              recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
+              if len>0 then
+                recordtokenbuf.write(cstringpattern[1],len);
             end;
           _CCHAR,
           _INTCONST,
@@ -2679,7 +2741,8 @@ In case not, the value returned can be arbitrary.
               begin
                 wlen:=tokenreadsizeint;
                 setlengthwidestring(patternw,wlen);
-                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                if wlen>0 then
+                  replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
                 pattern:='';
                 cstringpattern:='';
@@ -2687,8 +2750,13 @@ In case not, the value returned can be arbitrary.
             _CSTRING:
               begin
                 wlen:=tokenreadsizeint;
-                setlength(cstringpattern,wlen);
-                replaytokenbuf.read(cstringpattern[1],wlen);
+                if wlen>0 then
+                  begin
+                    setlength(cstringpattern,wlen);
+                    replaytokenbuf.read(cstringpattern[1],wlen);
+                  end
+                else
+                  cstringpattern:='';
                 orgpattern:='';
                 pattern:='';
               end;
@@ -3961,7 +4029,7 @@ In case not, the value returned can be arbitrary.
               with tokeninfo^[ttoken(high)] do
                 if pattern=str then
                   begin
-                    if keyword in current_settings.modeswitches then
+                    if (keyword*current_settings.modeswitches)<>[] then
                       if op=NOTOKEN then
                         token:=ttoken(high)
                       else
@@ -4075,14 +4143,23 @@ In case not, the value returned can be arbitrary.
                              nexttoken:=_RECKKLAMMER;
                              goto exit_label;
                            end;
+                         '0'..'9' :
+                           begin
+                             { insert the number after the . }
+                             pattern:=pattern+'.';
+                             while c in ['0'..'9'] do
+                              begin
+                                pattern:=pattern+c;
+                                readchar;
+                              end;
+                           end;
+                         else
+                           begin
+                             token:=_INTCONST;
+                             nexttoken:=_POINT;
+                             goto exit_label;
+                           end;
                        end;
-                       { insert the number after the . }
-                       pattern:=pattern+'.';
-                       while c in ['0'..'9'] do
-                        begin
-                          pattern:=pattern+c;
-                          readchar;
-                        end;
                       end;
                   { E can also follow after a point is scanned }
                     if c in ['e','E'] then

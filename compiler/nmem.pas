@@ -168,30 +168,39 @@ implementation
         case left.resultdef.typ of
           classrefdef :
             resultdef:=left.resultdef;
-          objectdef,
-          recorddef:
-            { access to the classtype while specializing? }
-            if (df_generic in left.resultdef.defoptions) then
-              begin
-                defaultresultdef:=true;
-                if assigned(current_structdef) then
-                  begin
-                    if assigned(current_structdef.genericdef) then
-                      if current_structdef.genericdef=left.resultdef then
+          recorddef,
+          objectdef:
+            begin
+              if (left.resultdef.typ=objectdef) or
+                 ((target_info.system in systems_jvm) and
+                  (left.resultdef.typ=recorddef)) then
+                begin
+                  { access to the classtype while specializing? }
+                  if (df_generic in left.resultdef.defoptions) then
+                    begin
+                      defaultresultdef:=true;
+                      if assigned(current_structdef) then
                         begin
-                          resultdef:=tclassrefdef.create(current_structdef);
-                          defaultresultdef:=false;
+                          if assigned(current_structdef.genericdef) then
+                            if current_structdef.genericdef=left.resultdef then
+                              begin
+                                resultdef:=tclassrefdef.create(current_structdef);
+                                defaultresultdef:=false;
+                              end
+                            else
+                              CGMessage(parser_e_cant_create_generics_of_this_type);
                         end
                       else
-                        CGMessage(parser_e_cant_create_generics_of_this_type);
-                  end
-                else
-                  message(parser_e_cant_create_generics_of_this_type);
-                if defaultresultdef then
-                  resultdef:=tclassrefdef.create(left.resultdef);
-              end
-            else
-              resultdef:=tclassrefdef.create(left.resultdef);
+                        message(parser_e_cant_create_generics_of_this_type);
+                      if defaultresultdef then
+                        resultdef:=tclassrefdef.create(left.resultdef);
+                    end
+                  else
+                    resultdef:=tclassrefdef.create(left.resultdef);
+                end
+              else
+                CGMessage(parser_e_pointer_to_class_expected);
+            end
           else
             CGMessage(parser_e_pointer_to_class_expected);
         end;
@@ -467,6 +476,7 @@ implementation
          hp  : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
+         offset: asizeint;
       begin
         result:=nil;
         typecheckpass(left);
@@ -516,7 +526,14 @@ implementation
               begin
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
+{$ifdef i8086}
+                    if po_far in tabstractprocdef(left.resultdef).procoptions then
+                      result:=ctypeconvnode.create_internal(left,voidfarpointertype)
+                    else
+                      result:=ctypeconvnode.create_internal(left,voidnearpointertype);
+{$else i8086}
                     result:=ctypeconvnode.create_internal(left,voidpointertype);
+{$endif i8086}
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -562,9 +579,9 @@ implementation
                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
               begin
                 if not(nf_typedaddr in flags) then
-                  resultdef:=voidfarpointertype
+                  resultdef:=voidnearfspointertype
                 else
-                  resultdef:=tpointerdef.createfar(left.resultdef);
+                  resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
               end
             else
 {$endif i386}
@@ -575,10 +592,26 @@ implementation
 {$endif i386}
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
+                 offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
+                 hp:=left;
+                 while assigned(hp)and(hp.nodetype=subscriptn) do
+                   begin
+                     hsym:=tsubscriptnode(hp).vs;
+                     if tabstractrecordsymtable(hsym.owner).is_packed then
+                       begin
+                         { can't calculate the address of a non-byte aligned field }
+                         if (hsym.fieldoffset mod 8)<>0 then
+                           exit;
+                         inc(offset,hsym.fieldoffset div 8)
+                       end
+                     else
+                       inc(offset,hsym.fieldoffset);
+                     hp:=tunarynode(hp).left;
+                   end;
                  if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,getpointerdef(left.resultdef))
+                   result:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
                  else
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
+                   result:=cpointerconstnode.create(offset,voidpointertype);
                  exit;
                end
               else if (nf_internal in flags) or
@@ -624,11 +657,10 @@ implementation
 *****************************************************************************}
 
     constructor tderefnode.create(l : tnode);
-
       begin
          inherited create(derefn,l);
-
       end;
+
 
     function tderefnode.pass_typecheck:tnode;
       begin
@@ -996,10 +1028,12 @@ implementation
                   end
                 else
                  begin
-                   { indexed access to 0 element is only allowed for shortstrings }
+                   { indexed access to 0 element is only allowed for shortstrings or if
+                     zero based strings is turned on }
                    if (right.nodetype=ordconstn) and
                       (Tordconstnode(right).value.svalue=0) and
-                      not is_shortstring(left.resultdef) then
+                      not is_shortstring(left.resultdef) and
+                      not(cs_zerobasedstrings in current_settings.localswitches) then
                      CGMessage(cg_e_can_access_element_zero);
                    resultdef:=elementdef;
                  end;

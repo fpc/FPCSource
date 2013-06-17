@@ -210,7 +210,7 @@ begin
     WriteLn('Failed');
 end;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$if defined(FPC_HAS_TYPE_EXTENDED) and (sizeof(double)<>sizeof(cextended))}
 procedure verify(val1, val2 : cextended; nr : Integer); overload;
 begin
   success := success and (val1 = val2);

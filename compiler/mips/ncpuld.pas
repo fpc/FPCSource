@@ -31,7 +31,6 @@ uses
 type
   tmipsloadnode = class(tcgloadnode)
     function pass_1 : tnode; override;
-    procedure generate_picvaraccess; override;
   end;
 
 implementation
@@ -59,12 +58,6 @@ begin
   end;
 end;
 
-procedure tmipsloadnode.generate_picvaraccess;
-begin
-  location.reference.base:=current_procinfo.got;
-  location.reference.refaddr:=addr_pic;
-  location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
-end;
 
 begin
   cloadnode := tmipsloadnode;

@@ -41,9 +41,9 @@ interface
        date_string = {$I %DATE%};
 
        { source cpu string }
-{$ifdef cpu86}
+{$ifdef cpui386}
         source_cpu_string = 'i386';
-{$endif cpu86}
+{$endif cpui386}
 {$ifdef cpupowerpc32}
         source_cpu_string = 'powerpc';
 {$endif cpupowerpc32}

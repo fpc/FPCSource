@@ -557,6 +557,40 @@ begin
 end;
 {$endif Set_i386_Exception_handler}
 
+{$ifdef FPC_SECTION_THREADVARS}
+function fpc_tls_add(addr: pointer): pointer; assembler; nostackframe;
+  [public,alias: 'FPC_TLS_ADD']; compilerproc;
+  asm
+      sub   $tls_data_start,%eax
+      cmpb  $0,IsLibrary
+      mov   _tls_index,%ecx
+      jnz   .L1
+      mov   %fs:(0x2c),%edx
+      add   (%edx,%ecx,4),%eax
+      ret
+.L1:
+      push  %ebx
+      mov   %eax,%ebx
+      call  GetLastError
+      push  %eax                      { save LastError }
+      push  _tls_index
+      call  TlsGetValue
+      test  %eax,%eax
+      jnz   .L2
+      { This can happen when a thread existed before DLL was loaded,
+        or if DisableThreadLibraryCalls was called. }
+      call  SysAllocateThreadVars
+      mov   $0x1000000,%eax
+      call  InitThread
+      push  _tls_index
+      call  TlsGetValue
+.L2:
+      add   %eax,%ebx
+      call  SetLastError              { restore (value is on stack) }
+      mov   %ebx,%eax
+      pop   %ebx
+  end;
+{$endif FPC_SECTION_THREADVARS}
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
   type

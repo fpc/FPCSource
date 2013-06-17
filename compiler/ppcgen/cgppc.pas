@@ -138,7 +138,7 @@ unit cgppc;
     uses
        {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
-       symconst,symsym,fmodule,
+       symconst,symsym,symtable,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
 { We know that macos_direct_globals is a const boolean
@@ -159,8 +159,8 @@ unit cgppc;
          cgsize_strings : array[TCgSize] of string[8] = (
            'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
            'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
-           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_MS8', 'OS_MS16', 'OS_MS32',
-           'OS_MS64', 'OS_MS128');
+           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_MS8', 'OS_MS16', 'OS_MS32',
+           'OS_MS64', 'OS_MS128', 'OS_MS256');
        begin
          result := cgsize_strings[size];
        end;
@@ -653,11 +653,13 @@ unit cgppc;
   procedure tcgppcgen.g_profilecode(list: TAsmList);
     var
       paraloc1 : tcgpara;
+      pd : tprocdef;
     begin
       if (target_info.system in [system_powerpc_darwin]) then
         begin
+          pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(pocall_cdecl,1,voidpointertype,paraloc1);
+          paramanager.getintparaloc(pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;

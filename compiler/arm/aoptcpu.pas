@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptcpub, aoptobj;
+uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -41,6 +41,9 @@ Type
     procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
+    { returns true if reg reaches it's end of life at p, this means it is either
+      reloaded with a new value or it is deallocated afterwards }
+    function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
     { gets the next tai object after current that contains info relevant
       to the optimizer in p1 which used the given register or does a 
       change in program flow.
@@ -51,7 +54,10 @@ Type
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
 
+  private
+   function SkipEntryExitMarker(current: tai; var next: tai): boolean;
   protected
+    function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
   End;
 
@@ -62,13 +68,16 @@ Type
 
   TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
     { uses the same constructor as TAopObj }
+    function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
   End;
+
+  function MustBeLast(p : tai) : boolean;
 
 Implementation
 
   uses
-    cutils,verbose,globals,
+    cutils,verbose,globtype,globals,
     systems,
     cpuinfo,
     cgobj,cgutils,procinfo,
@@ -77,8 +86,12 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
+        not(current_settings.cputype in cpu_thumb) and
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
+        ((taicpu(p).opcode<A_IT) or (taicpu(p).opcode>A_ITTTT)) and
+        (taicpu(p).opcode<>A_CBZ) and
+        (taicpu(p).opcode<>A_CBNZ) and
         (taicpu(p).opcode<>A_PLD) and
         ((taicpu(p).opcode<>A_BLX) or
          (taicpu(p).oper[0]^.typ=top_reg));
@@ -167,10 +180,14 @@ Implementation
         exit;
       {Take care of post/preincremented store and loads, they will change their base register}
       A_STR, A_LDR:
-        regLoadedWithNewValue :=
-          (taicpu(p).oper[1]^.typ=top_ref) and
-          (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-          (taicpu(p).oper[1]^.ref^.base = reg);
+        begin
+          regLoadedWithNewValue :=
+            (taicpu(p).oper[1]^.typ=top_ref) and
+            (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+            (taicpu(p).oper[1]^.ref^.base = reg);
+          {STR does not load into it's first register}
+          if p.opcode = A_STR then exit;
+        end;
       { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
       A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
         regLoadedWithNewValue :=
@@ -265,6 +282,15 @@ Implementation
       end;
   end;
 
+  function isValidConstLoadStoreOffset(const aoffset: longint; const pf: TOpPostfix) : boolean;
+    begin
+      if current_settings.cputype in cpu_thumb2 then
+        result := (aoffset<4096) and (aoffset>-256)
+      else
+        result := ((pf in [PF_None,PF_B]) and
+                   (abs(aoffset)<4096)) or
+                  (abs(aoffset)<256);
+    end;
 
   function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
     var AllUsedRegs: TAllUsedRegs): Boolean;
@@ -281,13 +307,20 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.RegEndOfLife(reg : TRegister;p : taicpu) : boolean;
+    begin
+       Result:=assigned(FindRegDealloc(reg,tai(p.Next))) or
+         RegLoadedWithNewValue(reg,p);
+    end;
+
+
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     var Next: tai; reg: TRegister): Boolean;
     begin
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-      until not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
+      until not(cs_opt_level3 in current_settings.optimizerswitches) or not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
     end;
 
@@ -317,11 +350,23 @@ Implementation
          (taicpu(movp).oper[0]^.reg<>NR_R14) and
          { the destination register of the mov might not be used beween p and movp }
          not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
+         { cb[n]z are thumb instructions which require specific registers, with no wide forms }
+         (taicpu(p).opcode<>A_CBZ) and
+         (taicpu(p).opcode<>A_CBNZ) and
          {There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same}
          not (
            (taicpu(p).opcode in [A_MLA, A_MUL]) and
-           (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg)
-         ) then
+           (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg) and
+           (current_settings.cputype < cpu_armv6)
+         ) and
+         { Take care to only do this for instructions which REALLY load to the first register.
+           Otherwise
+             str reg0, [reg1]
+             mov reg2, reg0
+           will be optimized to
+             str reg2, [reg1]
+         }
+         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, p) then
         begin
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
@@ -361,6 +406,60 @@ Implementation
         end;
     end;
 
+  {
+    optimize
+      add/sub reg1,reg1,regY/const
+      ...
+      ldr/str regX,[reg1]
+
+      into
+
+      ldr/str regX,[reg1, regY/const]!
+  }
+  function TCpuAsmOptimizer.LookForPreindexedPattern(p: taicpu): boolean;
+    var
+      hp1: tai;
+    begin
+      if (p.ops=3) and
+        MatchOperand(p.oper[0]^, p.oper[1]^.reg) and
+        GetNextInstructionUsingReg(p, hp1, p.oper[0]^.reg) and
+        (not RegModifiedBetween(p.oper[0]^.reg, p, hp1)) and
+        MatchInstruction(hp1, [A_LDR,A_STR], [C_None], [PF_None,PF_B,PF_H,PF_SH,PF_SB]) and
+        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+        (taicpu(hp1).oper[1]^.ref^.base=p.oper[0]^.reg) and
+        (taicpu(hp1).oper[0]^.reg<>p.oper[0]^.reg) and
+        (taicpu(hp1).oper[1]^.ref^.offset=0) and
+        (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
+        (((p.oper[2]^.typ=top_reg) and
+          (not RegModifiedBetween(p.oper[2]^.reg, p, hp1))) or
+         ((p.oper[2]^.typ=top_const) and
+          ((abs(p.oper[2]^.val) < 256) or
+           ((abs(p.oper[2]^.val) < 4096) and
+            (taicpu(hp1).oppostfix in [PF_None,PF_B]))))) then
+        begin
+          taicpu(hp1).oper[1]^.ref^.addressmode:=AM_PREINDEXED;
+
+          if p.oper[2]^.typ=top_reg then
+            begin
+              taicpu(hp1).oper[1]^.ref^.index:=p.oper[2]^.reg;
+              if p.opcode=A_ADD then
+                taicpu(hp1).oper[1]^.ref^.signindex:=1
+              else
+                taicpu(hp1).oper[1]^.ref^.signindex:=-1;
+            end
+          else
+            begin
+              if p.opcode=A_ADD then
+                taicpu(hp1).oper[1]^.ref^.offset:=p.oper[2]^.val
+              else
+                taicpu(hp1).oper[1]^.ref^.offset:=-p.oper[2]^.val;
+            end;
+
+          result:=true;
+        end
+      else
+        result:=false;
+    end;
 
   {
     optimize
@@ -399,7 +498,8 @@ Implementation
         not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
         { don't apply the optimization if the (new) index register is loaded }
         (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
-        not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
+        not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) and
+        not(current_settings.cputype in cpu_thumb) then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
@@ -425,9 +525,25 @@ Implementation
     end;
 
 
+  { skip harmless marker marking entry/exit code, so it can be optimized as well }
+  function TCpuAsmOptimizer.SkipEntryExitMarker(current : tai;var next : tai) : boolean;
+    begin
+      result:=true;
+      if current.typ<>ait_marker then
+        exit;
+      next:=current;
+      while GetNextInstruction(next,next) do
+        begin
+          if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
+            exit;
+        end;
+      result:=false;
+    end;
+
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
-      hp1,hp2: tai;
+      hp1,hp2,hp3,hp4: tai;
       i, i2: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
@@ -609,6 +725,30 @@ Implementation
                           end;
                       end;
 
+                    {
+                      Change
+
+                        ldrb dst1, [REF]
+                        and  dst2, dst1, #255
+
+                      into
+
+                        ldrb dst2, [ref]
+                    }
+                    if (taicpu(p).oppostfix=PF_B) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_NONE]) and
+                       (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
+                       (taicpu(hp1).oper[2]^.typ = top_const) and
+                       (taicpu(hp1).oper[2]^.val = $FF) and
+                       not(RegUsedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)) and
+                       RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                       begin
+                         DebugMsg('Peephole LdrbAnd2Ldrb done', p);
+                         taicpu(p).oper[0]^.reg := taicpu(hp1).oper[0]^.reg;
+                         asml.remove(hp1);
+                         hp1.free;
+                       end;
                     LookForPostindexedPattern(taicpu(p));
                     { Remove superfluous mov after ldr
                       changes
@@ -714,38 +854,60 @@ Implementation
                           mov reg1,reg0, shift imm1
                           mov reg1,reg1, shift imm2
                           mov reg1,reg1, shift imm3 ...
+                          mov reg2,reg1, shift imm3 ...
                         }
-                        else if getnextinstruction(hp1,hp2) and
+                        else if GetNextInstructionUsingReg(hp1,hp2, taicpu(hp1).oper[0]^.reg) and
                           MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
                           (taicpu(hp2).ops=3) and
-                          MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                           MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                          RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp2)) and
                           (taicpu(hp2).oper[2]^.typ = top_shifterop) and
                           (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) then
                           begin
                             { mov reg1,reg0, lsl imm1
                               mov reg1,reg1, lsr/asr imm2
-                              mov reg1,reg1, lsl imm3 ...
-
-                              if imm3<=imm1 and imm2>=imm3
+                              mov reg2,reg1, lsl imm3 ...
                               to
                               mov reg1,reg0, lsl imm1
-                              mov reg1,reg1, lsr/asr imm2-imm3
+                              mov reg2,reg1, lsr/asr imm2-imm3
+                              if
+                              imm1>=imm2
                             }
                             if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSL) and
                               (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
-                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm<=taicpu(p).oper[2]^.shifterop^.shiftimm) and
-                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(hp2).oper[2]^.shifterop^.shiftimm) then
+                              (taicpu(p).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm) then
                               begin
-                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
-                                DebugMsg('Peephole ShiftShiftShift2ShiftShift 1 done', p);
-                                asml.remove(hp2);
-                                hp2.free;
-                                result := true;
-                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                if (taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(hp1).oper[2]^.shifterop^.shiftimm) then
                                   begin
-                                    asml.remove(hp1);
-                                    hp1.free;
+                                    if not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,p,hp1)) and
+                                      not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2)) then
+                                      begin
+                                        DebugMsg('Peephole ShiftShiftShift2ShiftShift 1a done', p);
+                                        inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm-taicpu(hp1).oper[2]^.shifterop^.shiftimm);
+                                        taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                        asml.remove(hp1);
+                                        asml.remove(hp2);
+                                        hp1.free;
+                                        hp2.free;
+
+                                        if taicpu(p).oper[2]^.shifterop^.shiftimm>=32 then
+                                          begin
+                                            taicpu(p).freeop(1);
+                                            taicpu(p).freeop(2);
+                                            taicpu(p).loadconst(1,0);
+                                          end;
+                                        result := true;
+                                      end;
+                                  end
+                                else if not(RegUsedBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2)) then
+                                  begin
+                                    DebugMsg('Peephole ShiftShiftShift2ShiftShift 1b done', p);
+
+                                    dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
+                                    taicpu(hp1).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                    asml.remove(hp2);
+                                    hp2.free;
+                                    result := true;
                                   end;
                               end
                             { mov reg1,reg0, lsr/asr imm1
@@ -780,10 +942,10 @@ Implementation
                           end;
                       end;
                     { Change the common
-                      mov r0, r0, lsr #24
-                      and r0, r0, #255
+                      mov r0, r0, lsr #xxx
+                      and r0, r0, #yyy/bic r0, r0, #xxx
 
-                      and remove the superfluous and
+                      and remove the superfluous and/bic if possible
 
                       This could be extended to handle more cases.
                     }
@@ -791,27 +953,46 @@ Implementation
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
                        (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
                        (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
-                       (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
-                       getnextinstruction(p,hp1) and
-                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
-                       (taicpu(hp1).ops=3) and
-                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
-                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
-                       (taicpu(hp1).oper[2]^.typ = top_const) and
-                       { Check if the AND actually would only mask out bits beeing already zero because of the shift
-                         For LSR #25 and an AndConst of 255 that whould go like this:
-                         255 and ((2 shl (32-25))-1)
-                         which results in 127, which is one less a power-of-2, meaning all lower bits are set.
+                       GetNextInstructionUsingReg(p,hp1, taicpu(p).oper[0]^.reg) and
+                       (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                       begin
+                         if (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
+                           MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                           (taicpu(hp1).ops=3) and
+                           MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+                           (taicpu(hp1).oper[2]^.typ = top_const) and
+                           { Check if the AND actually would only mask out bits beeing already zero because of the shift
+                             For LSR #25 and an AndConst of 255 that whould go like this:
+                             255 and ((2 shl (32-25))-1)
+                             which results in 127, which is one less a power-of-2, meaning all lower bits are set.
 
-                         LSR #25 and AndConst of 254:
-                         254 and ((2 shl (32-25))-1) = 126 -> lowest bit is clear, so we can't remove it.
-                       }
-                       ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
-                      begin
-                        DebugMsg('Peephole LsrAnd2Lsr done', hp1);
-                        asml.remove(hp1);
-                        hp1.free;
-                      end;
+                             LSR #25 and AndConst of 254:
+                             254 and ((2 shl (32-25))-1) = 126 -> lowest bit is clear, so we can't remove it.
+                           }
+                           ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
+                           begin
+                             DebugMsg('Peephole LsrAnd2Lsr done', hp1);
+                             taicpu(p).oper[0]^.reg:=taicpu(hp1).oper[0]^.reg;
+                             asml.remove(hp1);
+                             hp1.free;
+                             result:=true;
+                           end
+                         else if MatchInstruction(hp1, A_BIC, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                           (taicpu(hp1).ops=3) and
+                           MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+                           (taicpu(hp1).oper[2]^.typ = top_const) and
+                           { Check if the BIC actually would only mask out bits beeing already zero because of the shift }
+                           (taicpu(hp1).oper[2]^.val<>0) and
+                           (BsfDWord(taicpu(hp1).oper[2]^.val)>=32-taicpu(p).oper[2]^.shifterop^.shiftimm) then
+                           begin
+                             DebugMsg('Peephole LsrBic2Lsr done', hp1);
+                             taicpu(p).oper[0]^.reg:=taicpu(hp1).oper[0]^.reg;
+                             asml.remove(hp1);
+                             hp1.free;
+                             result:=true;
+                           end;
+                       end;
 
                     {
                       optimize
@@ -887,10 +1068,13 @@ Implementation
                                               A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
                                         [taicpu(p).condition], []) and
                        {MOV and MVN might only have 2 ops}
-                       (taicpu(hp1).ops = 3) and
+                       (taicpu(hp1).ops >= 2) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp1).oper[1]^.typ = top_reg) and
-                       (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop]) then
+                       (
+                         (taicpu(hp1).ops = 2) or
+                         (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop])
+                       ) then
                       begin
                       { When we get here we still don't know if the registers match}
                         for I:=1 to 2 do
@@ -899,7 +1083,8 @@ Implementation
                             The checks will still be ok, because all required information
                             will also be in hp1 then.
                           }
-                          if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                          if (taicpu(hp1).ops > I) and
+                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                             begin
                               DebugMsg('Peephole RedundantMovProcess done', hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
@@ -925,74 +1110,158 @@ Implementation
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
                        (taicpu(p).oppostfix = PF_NONE) and
-                       GetNextInstruction(p, hp1) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
                                               A_CMP, A_CMN],
                                         [taicpu(p).condition], [PF_None]) and
-                       (taicpu(hp1).ops >= 2) and {Currently we can't fold into another shifterop}
+                       (not ((current_settings.cputype in cpu_thumb2) and
+                             (taicpu(hp1).opcode in [A_SBC]) and
+                             (((taicpu(hp1).ops=3) and 
+                               MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^.reg)) or
+                              ((taicpu(hp1).ops=2) and 
+                               MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg))))) and
+                       (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) and
+                       (taicpu(hp1).ops >= 2) and
+                       {Currently we can't fold into another shifterop}
                        (taicpu(hp1).oper[taicpu(hp1).ops-1]^.typ = top_reg) and
+                       {Folding rrx is problematic because of the C-Flag, as we currently can't check
+                        NR_DEFAULTFLAGS for modification}
+                       (
+                         {Everything is fine if we don't use RRX}
+                         (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) or
+                         (
+                           {If it is RRX, then check if we're just accessing the next instruction}
+                           GetNextInstruction(p, hp2) and
+                           (hp1 = hp2)
+                         )
+                       ) and
+                       { reg1 might not be modified inbetween }
+                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+                       { The shifterop can contain a register, might not be modified}
+                       (
+                         (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) or
+                         not(RegModifiedBetween(taicpu(p).oper[2]^.shifterop^.rs, p, hp1))
+                       ) and
                        (
                          {Only ONE of the two src operands is allowed to match}
                          MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-2]^) xor
                          MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-1]^)
                        ) then
                       begin
-                        CopyUsedRegs(TmpUsedRegs);
-                        UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                         if taicpu(hp1).opcode in [A_TST, A_TEQ, A_CMN] then
                           I2:=0
                         else
                           I2:=1;
-                        if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
-                          for I:=I2 to taicpu(hp1).ops-1 do
-                            if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
-                              begin
-                                { If the parameter matched on the second op from the RIGHT
-                                  we have to switch the parameters, this will not happen for CMP
-                                  were we're only evaluating the most right parameter
-                                }
-                                if I <> taicpu(hp1).ops-1 then
-                                  begin
-                                    {The SUB operators need to be changed when we swap parameters}
-                                    case taicpu(hp1).opcode of
-                                      A_SUB: tempop:=A_RSB;
-                                      A_SBC: tempop:=A_RSC;
-                                      A_RSB: tempop:=A_SUB;
-                                      A_RSC: tempop:=A_SBC;
-                                      else tempop:=taicpu(hp1).opcode;
-                                    end;
-                                    if taicpu(hp1).ops = 3 then
-                                      hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
-                                           taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
-                                           taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
-                                    else
-                                      hp2:=taicpu.op_reg_reg_shifterop(tempop,
-                                           taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
-                                           taicpu(p).oper[2]^.shifterop^);
-                                  end
-                                else
+                        for I:=I2 to taicpu(hp1).ops-1 do
+                          if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                            begin
+                              { If the parameter matched on the second op from the RIGHT
+                                we have to switch the parameters, this will not happen for CMP
+                                were we're only evaluating the most right parameter
+                              }
+                              if I <> taicpu(hp1).ops-1 then
+                                begin
+                                  {The SUB operators need to be changed when we swap parameters}
+                                  case taicpu(hp1).opcode of
+                                    A_SUB: tempop:=A_RSB;
+                                    A_SBC: tempop:=A_RSC;
+                                    A_RSB: tempop:=A_SUB;
+                                    A_RSC: tempop:=A_SBC;
+                                    else tempop:=taicpu(hp1).opcode;
+                                  end;
                                   if taicpu(hp1).ops = 3 then
-                                    hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
-                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
+                                    hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
                                          taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
                                   else
-                                    hp2:=taicpu.op_reg_reg_shifterop(taicpu(hp1).opcode,
+                                    hp2:=taicpu.op_reg_reg_shifterop(tempop,
                                          taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
                                          taicpu(p).oper[2]^.shifterop^);
-                                asml.insertbefore(hp2, p);
-                                asml.remove(p);
-                                asml.remove(hp1);
-                                p.free;
-                                hp1.free;
-                                p:=hp2;
-                                GetNextInstruction(p,hp1);
-                                DebugMsg('Peephole FoldShiftProcess done', p);
-                                break;
-                              end;
-                        ReleaseUsedRegs(TmpUsedRegs);
+                                end
+                              else
+                                if taicpu(hp1).ops = 3 then
+                                  hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
+                                       taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
+                                       taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
+                                else
+                                  hp2:=taicpu.op_reg_reg_shifterop(taicpu(hp1).opcode,
+                                       taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
+                                       taicpu(p).oper[2]^.shifterop^);
+                              asml.insertbefore(hp2, hp1);
+                              asml.remove(p);
+                              asml.remove(hp1);
+                              p.free;
+                              hp1.free;
+                              p:=hp2;
+                              GetNextInstruction(p,hp1);
+                              DebugMsg('Peephole FoldShiftProcess done', p);
+                              break;
+                            end;
                       end;
+                    {
+                      Fold
+                        mov r1, r1, lsl #2
+                        ldr/ldrb r0, [r0, r1]
+                      to
+                        ldr/ldrb r0, [r0, r1, lsl #2]
 
+                      XXX: This still needs some work, as we quite often encounter something like
+                             mov r1, r2, lsl #2
+                             add r2, r3, #imm
+                             ldr r0, [r2, r1]
+                           which can't be folded because r2 is overwritten between the shift and the ldr.
+                           We could try to shuffle the registers around and fold it into.
+                             add r1, r3, #imm
+                             ldr r0, [r1, r2, lsl #2]
+                    }
+                    if (taicpu(p).opcode = A_MOV) and
+                       (taicpu(p).ops = 3) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_shifterop) and
+                       { RRX is tough to handle, because it requires tracking the C-Flag,
+                         it is also extremly unlikely to be emitted this way}
+                       (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
+                       (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
+                       (taicpu(p).oppostfix = PF_NONE) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
+                       MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition],
+                                             [PF_None, PF_B]) and
+                       (
+                         {If this is address by offset, one of the two registers can be used}
+                         ((taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                           (
+                             (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) xor
+                             (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg)
+                           )
+                         ) or
+                         {For post and preindexed only the index register can be used}
+                         ((taicpu(hp1).oper[1]^.ref^.addressmode in [AM_POSTINDEXED, AM_PREINDEXED]) and
+                           (
+                             (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) and
+                             (taicpu(hp1).oper[1]^.ref^.base <> taicpu(p).oper[0]^.reg)
+                           )
+                         )
+                       ) and
+                       { Only fold if there isn't another shifterop already. }
+                       (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_None) and
+                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+                       (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
+                         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) then
+                       begin
+                         { If the register we want to do the shift for resides in base, we need to swap that}
+                         if (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg) then
+                           taicpu(hp1).oper[1]^.ref^.base := taicpu(hp1).oper[1]^.ref^.index;
+                         taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+                         taicpu(hp1).oper[1]^.ref^.shiftmode := taicpu(p).oper[2]^.shifterop^.shiftmode;
+                         taicpu(hp1).oper[1]^.ref^.shiftimm := taicpu(p).oper[2]^.shifterop^.shiftimm;
+                         DebugMsg('Peephole FoldShiftLdrStr done', hp1);
+                         asml.remove(p);
+                         p.free;
+                         p:=hp1;
+                       end;
                     {
                       Often we see shifts and then a superfluous mov to another register
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
@@ -1020,40 +1289,55 @@ Implementation
                           ...
                         }
                     if (taicpu(p).opcode = A_AND) and
+                       (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
                       begin
                         {
                           change
                           and reg2,reg1,const1
+                          ...
                           and reg3,reg2,const2
                           to
                           and reg3,reg1,(const1 and const2)
                         }
-                        if GetNextInstruction(p, hp1) and
+                        if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                         MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
-                        { either reg3 and reg2 are equal or reg2 is deallocated after the and }
-                        (MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^.reg) or
-                         assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next)))) and
+                        RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                         MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                         (taicpu(hp1).oper[2]^.typ = top_const) then
                           begin
-                            DebugMsg('Peephole AndAnd2And done', p);
-                            taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                            taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
-                            taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
-                            asml.remove(hp1);
-                            hp1.free;
+                            if not(RegUsedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) then
+                              begin
+                                DebugMsg('Peephole AndAnd2And done', p);
+                                taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                                taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                                taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
+                                asml.remove(hp1);
+                                hp1.free;
+                                Result:=true;
+                              end
+                            else if not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                              begin
+                                DebugMsg('Peephole AndAnd2And done', hp1);
+                                taicpu(hp1).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                                taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
+                                taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp1;
+                                Result:=true;
+                              end;
                           end
                         {
                           change
-                          and reg2,reg1,255
+                          and reg2,reg1,$xxxxxxFF
                           strb reg2,[...]
                           dealloc reg2
                           to
                           strb reg1,[...]
                         }
-                        else if (taicpu(p).oper[2]^.val = 255) and
+                        else if ((taicpu(p).oper[2]^.val and $FF) = $FF) and
                           MatchInstruction(p, A_AND, [C_None], [PF_None]) and
                           GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                           MatchInstruction(hp1, A_STR, [C_None], [PF_B]) and
@@ -1068,6 +1352,99 @@ Implementation
                             asml.remove(p);
                             p.free;
                             p:=hp1;
+                            result:=true;
+                          end
+                        {
+                          change
+                          and reg2,reg1,255
+                          uxtb/uxth reg3,reg2
+                          dealloc reg2
+                          to
+                          and reg3,reg1,x
+                        }
+                        else if (taicpu(p).oper[2]^.val = $FF) and
+                          MatchInstruction(p, A_AND, [C_None], [PF_None]) and
+                          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                          MatchInstruction(hp1, [A_UXTB,A_UXTH], [C_None], [PF_None]) and
+                          RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                          { reg1 might not be modified inbetween }
+                          not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                          begin
+                            DebugMsg('Peephole AndUxt2And done', p);
+                            taicpu(hp1).opcode:=A_AND;
+                            taicpu(hp1).ops:=3;
+                            taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                            taicpu(hp1).loadconst(2,255);
+                            GetNextInstruction(p,hp1);
+                            asml.remove(p);
+                            p.Free;
+                            p:=hp1;
+                            result:=true;
+                          end
+                        {
+                          from
+                          and reg1,reg0,2^n-1
+                          mov reg2,reg1, lsl imm1
+                          (mov reg3,reg2, lsr/asr imm1)
+                          remove either the and or the lsl/xsr sequence if possible
+                        }
+
+                        else if cutils.ispowerof2(taicpu(p).oper[2]^.val+1,i) and
+                          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                          MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and
+                          (taicpu(hp1).ops=3) and
+                          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                          (taicpu(hp1).oper[2]^.typ = top_shifterop) and
+                          (taicpu(hp1).oper[2]^.shifterop^.rs = NR_NO) and
+                          (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                          RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) then
+                          begin
+                            {
+                              and reg1,reg0,2^n-1
+                              mov reg2,reg1, lsl imm1
+                              mov reg3,reg2, lsr/asr imm1
+                              =>
+                              and reg1,reg0,2^n-1
+                              if lsr and 2^n-1>=imm1 or asr and 2^n-1>imm1
+                            }
+                            if GetNextInstructionUsingReg(hp1,hp2,taicpu(p).oper[0]^.reg) and
+                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
+                              (taicpu(hp2).ops=3) and
+                              MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                              (taicpu(hp2).oper[2]^.typ = top_shifterop) and
+                              (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm=taicpu(hp2).oper[2]^.shifterop^.shiftimm) and
+                              RegEndOfLife(taicpu(hp1).oper[0]^.reg,taicpu(hp2)) and
+                              ((i<32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) or
+                              ((i=32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
+                               (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSR))) then
+                              begin
+                                DebugMsg('Peephole AndLslXsr2And done', p);
+                                taicpu(p).oper[0]^.reg:=taicpu(hp2).oper[0]^.reg;
+                                asml.Remove(hp1);
+                                asml.Remove(hp2);
+                                hp1.free;
+                                hp2.free;
+                                result:=true;
+                              end
+                            {
+                              and reg1,reg0,2^n-1
+                              mov reg2,reg1, lsl imm1
+                              =>
+                              mov reg2,reg1, lsl imm1
+                              if imm1>i
+                            }
+                            else if i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm then
+                              begin
+                                DebugMsg('Peephole AndLsl2Lsl done', p);
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
+                                asml.Remove(p);
+                                p.free;
+                                p:=hp1;
+                                result:=true;
+                              end
                           end;
                       end;
                     {
@@ -1079,6 +1456,7 @@ Implementation
                       str/ldr reg3,[reg1,const2+/-const1]
                     }
                     if (taicpu(p).opcode in [A_ADD,A_SUB]) and
+                       (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
                       begin
@@ -1094,16 +1472,10 @@ Implementation
                           { new offset must be valid: either in the range of 8 or 12 bit, depend on the
                             ldr postfix }
                           (((taicpu(p).opcode=A_ADD) and
-                            (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
-                              (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<4096)) or
-                             (abs(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val)<256)
-                            )
+                           isValidConstLoadStoreOffset(taicpu(hp1).oper[1]^.ref^.offset+taicpu(p).oper[2]^.val, taicpu(hp1).oppostfix)
                            ) or
                            ((taicpu(p).opcode=A_SUB) and
-                             (((taicpu(hp1).oppostfix in [PF_None,PF_B]) and
-                               (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<4096)) or
-                              (abs(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val)<256)
-                             )
+                            isValidConstLoadStoreOffset(taicpu(hp1).oper[1]^.ref^.offset-taicpu(p).oper[2]^.val, taicpu(hp1).oppostfix)
                            )
                           ) do
                           begin
@@ -1146,7 +1518,259 @@ Implementation
                       add reg2, ...
                     }
                     if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
+                      begin
+                        if (taicpu(p).ops=3) then
+                          RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
+                      end;
+
+                    if MatchInstruction(p, [A_ADD,A_SUB], [C_None], [PF_None]) and
+                      LookForPreindexedPattern(taicpu(p)) then
+                      begin
+                        GetNextInstruction(p,hp1);
+                        DebugMsg('Peephole Add/Sub to Preindexed done', p);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                      end;
+                  end;
+{$ifdef dummy}                  
+                A_MVN:
+                  begin
+                    {
+                      change
+                      mvn reg2,reg1
+                      and reg3,reg4,reg2
+                      dealloc reg2
+                      to
+                      bic reg3,reg4,reg1
+                    }
+                    if (taicpu(p).oper[1]^.typ = top_reg) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1,A_AND,[],[]) and
+                      (((taicpu(hp1).ops=3) and
+                        (taicpu(hp1).oper[2]^.typ=top_reg) and
+                        (MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) or
+                         MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) or
+                       ((taicpu(hp1).ops=2) and
+                        (taicpu(hp1).oper[1]^.typ=top_reg) and
+                        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) and
+                      assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole MvnAnd2Bic done', p);
+                        taicpu(hp1).opcode:=A_BIC;
+
+                        if taicpu(hp1).ops=3 then
+                          begin
+                            if MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) then
+                              taicpu(hp1).loadReg(1,taicpu(hp1).oper[2]^.reg); // Swap operands
+
+                            taicpu(hp1).loadReg(2,taicpu(p).oper[1]^.reg);
+                          end
+                        else
+                          taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                      end;
+                  end;
+{$endif dummy}                                    
+                A_UXTB:
+                  begin
+                    {
+                      change
+                      uxtb reg2,reg1
+                      strb reg2,[...]
+                      dealloc reg2
+                      to
+                      strb reg1,[...]
+                    }
+                    if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_STR, [C_None], [PF_B]) and
+                      assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+                      { the reference in strb might not use reg2 }
+                      not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxtbStrb2Strb done', p);
+                        taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p,hp2);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp2;
+                        result:=true;
+                      end
+                    {
+                      change
+                      uxtb reg2,reg1
+                      uxth reg3,reg2
+                      dealloc reg2
+                      to
+                      uxtb reg3,reg1
+                    }
+                    else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxtbUxth2Uxtb done', p);
+                        taicpu(hp1).opcode:=A_UXTB;
+                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p,hp2);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp2;
+                        result:=true;
+                      end
+                    {
+                      change
+                      uxtb reg2,reg1
+                      uxtb reg3,reg2
+                      dealloc reg2
+                      to
+                      uxtb reg3,reg1
+                    }
+                    else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_UXTB, [C_None], [PF_None]) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxtbUxtb2Uxtb done', p);
+                        taicpu(hp1).opcode:=A_UXTB;
+                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p,hp2);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp2;
+                        result:=true;
+                      end
+                    {
+                      change
+                      uxtb reg2,reg1
+                      and reg3,reg2,#0x*FF
+                      dealloc reg2
+                      to
+                      uxtb reg3,reg1
+                    }
+                    else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
+                      (taicpu(hp1).ops=3) and
+                      (taicpu(hp1).oper[2]^.typ=top_const) and
+                      ((taicpu(hp1).oper[2]^.val and $FF)=$FF) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxtbAndImm2Uxtb done', p);
+                        taicpu(hp1).opcode:=A_UXTB;
+                        taicpu(hp1).ops:=2;
+                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p,hp2);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp2;
+                        result:=true;
+                      end
+                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
+                      begin
+                        //if (taicpu(p).ops=3) then
+                          RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data');
+                      end;
+                  end;
+                A_UXTH:
+                  begin
+                    {
+                      change
+                      uxth reg2,reg1
+                      strh reg2,[...]
+                      dealloc reg2
+                      to
+                      strh reg1,[...]
+                    }
+                    if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_STR, [C_None], [PF_H]) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { the reference in strb might not use reg2 }
+                      not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UXTHStrh2Strh done', p);
+                        taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
+                      end
+                    {
+                      change
+                      uxth reg2,reg1
+                      uxth reg3,reg2
+                      dealloc reg2
+                      to
+                      uxth reg3,reg1
+                    }
+                    else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxthUxth2Uxth done', p);
+                        taicpu(hp1).opcode:=A_UXTH;
+                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
+                      end
+                    {
+                      change
+                      uxth reg2,reg1
+                      and reg3,reg2,#65535
+                      dealloc reg2
+                      to
+                      uxth reg3,reg1
+                    }
+                    else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
+                      (taicpu(hp1).ops=3) and
+                      (taicpu(hp1).oper[2]^.typ=top_const) and
+                      ((taicpu(hp1).oper[2]^.val and $FFFF)=$FFFF) and
+                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                      { reg1 might not be modified inbetween }
+                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                      begin
+                        DebugMsg('Peephole UxthAndImm2Uxth done', p);
+                        taicpu(hp1).opcode:=A_UXTH;
+                        taicpu(hp1).ops:=2;
+                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
+                      end
+                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
+                      begin
+                        //if (taicpu(p).ops=3) then
+                          RemoveSuperfluousMove(p, hp1, 'UxthMov2Data');
+                      end;
                   end;
                 A_CMP:
                   begin
@@ -1171,6 +1795,67 @@ Implementation
                         RemoveRedundantMove(p, hp2, asml);
                       end;
                   end;
+                A_STM:
+                  begin
+                    {
+                      change
+	              stmfd	r13!,[r14]
+	              sub	r13,r13,#4
+	              bl	abc
+	              add	r13,r13,#4
+	              ldmfd	r13!,[r15]
+                      into
+                      b         abc
+                    }
+                    if not(ts_thumb_interworking in current_settings.targetswitches) and
+                       MatchInstruction(p, A_STM, [C_None], [PF_FD]) and
+                      GetNextInstruction(p, hp1) and
+                      GetNextInstruction(hp1, hp2) and
+                      SkipEntryExitMarker(hp2, hp2) and
+                      GetNextInstruction(hp2, hp3) and
+                      SkipEntryExitMarker(hp3, hp3) and
+                      GetNextInstruction(hp3, hp4) and
+                      (taicpu(p).oper[0]^.typ = top_ref) and
+                      (taicpu(p).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                      (taicpu(p).oper[0]^.ref^.base=NR_NO) and
+                      (taicpu(p).oper[0]^.ref^.offset=0) and
+                      (taicpu(p).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                      (taicpu(p).oper[1]^.typ = top_regset) and
+                      (taicpu(p).oper[1]^.regset^ = [RS_R14]) and
+
+                      MatchInstruction(hp1, A_SUB, [C_None], [PF_NONE]) and
+                      (taicpu(hp1).oper[0]^.typ = top_reg) and
+                      (taicpu(hp1).oper[0]^.reg = NR_STACK_POINTER_REG) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) and
+                      (taicpu(hp1).oper[2]^.typ = top_const) and
+
+                      MatchInstruction(hp3, A_ADD, [C_None], [PF_NONE]) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp3).oper[0]^) and
+                      MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp3).oper[1]^) and
+                      MatchOperand(taicpu(hp1).oper[2]^,taicpu(hp3).oper[2]^) and
+
+                      MatchInstruction(hp2, [A_BL,A_BLX], [C_None], [PF_NONE]) and
+                      (taicpu(hp2).oper[0]^.typ = top_ref) and
+
+                      MatchInstruction(hp4, A_LDM, [C_None], [PF_FD]) and
+                      MatchOperand(taicpu(p).oper[0]^,taicpu(hp4).oper[0]^) and
+                      (taicpu(hp4).oper[1]^.typ = top_regset) and
+                      (taicpu(hp4).oper[1]^.regset^ = [RS_R15]) then
+                      begin
+                        asml.Remove(p);
+                        asml.Remove(hp1);
+                        asml.Remove(hp3);
+                        asml.Remove(hp4);
+                        taicpu(hp2).opcode:=A_B;
+                        p.free;
+                        hp1.free;
+                        hp3.free;
+                        hp4.free;
+                        p:=hp2;
+                        DebugMsg('Peephole Bl2B done', p);
+                      end;
+                  end;
+
               end;
           end;
       end;
@@ -1207,7 +1892,8 @@ Implementation
               begin
                 case taicpu(p).opcode Of
                   A_B:
-                    if taicpu(p).condition<>C_None then
+                    if (taicpu(p).condition<>C_None) and
+                      not(current_settings.cputype in cpu_thumb) then
                       begin
                          { check for
                                 Bxx   xxx
@@ -1460,7 +2146,7 @@ Implementation
     begin
       result:=true;
 
-      list:=TAsmList.Create;
+      list:=TAsmList.create_without_marker;
       p:=BlockStart;
       while p<>BlockEnd Do
         begin
@@ -1562,9 +2248,491 @@ Implementation
     end;
 
 
-  procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
+  procedure DecrementPreceedingIT(list: TAsmList; p: tai);
+    var
+      hp : tai;
+      l : longint;
     begin
-      { TODO: Add optimizer code }
+      hp := tai(p.Previous);
+      l := 1;
+
+      while assigned(hp) and
+        (l <= 4) do
+        begin
+          if hp.typ=ait_instruction then
+            begin
+              if (taicpu(hp).opcode>=A_IT) and
+                (taicpu(hp).opcode <= A_ITTTT) then
+                begin
+                  if (taicpu(hp).opcode = A_IT) and
+                     (l=1) then
+                    list.Remove(hp)
+                  else
+                    case taicpu(hp).opcode of
+                      A_ITE:
+                        if l=2 then taicpu(hp).opcode := A_IT;
+                      A_ITT:
+                        if l=2 then taicpu(hp).opcode := A_IT;
+                      A_ITEE:
+                        if l=3 then taicpu(hp).opcode := A_ITE;
+                      A_ITTE:
+                        if l=3 then taicpu(hp).opcode := A_ITT;
+                      A_ITET:
+                        if l=3 then taicpu(hp).opcode := A_ITE;
+                      A_ITTT:
+                        if l=3 then taicpu(hp).opcode := A_ITT;
+                      A_ITEEE:
+                        if l=4 then taicpu(hp).opcode := A_ITEE;
+                      A_ITTEE:
+                        if l=4 then taicpu(hp).opcode := A_ITTE;
+                      A_ITETE:
+                        if l=4 then taicpu(hp).opcode := A_ITET;
+                      A_ITTTE:
+                        if l=4 then taicpu(hp).opcode := A_ITTT;
+                      A_ITEET:
+                        if l=4 then taicpu(hp).opcode := A_ITEE;
+                      A_ITTET:
+                        if l=4 then taicpu(hp).opcode := A_ITTE;
+                      A_ITETT:
+                        if l=4 then taicpu(hp).opcode := A_ITET;
+                      A_ITTTT:
+                        if l=4 then taicpu(hp).opcode := A_ITTT;
+                    end;
+
+                  break;
+                end;
+              {else if (taicpu(hp).condition<>taicpu(p).condition) or
+                (taicpu(hp).condition<>inverse_cond(taicpu(p).condition)) then
+                break;}
+
+              inc(l);
+            end;
+          hp := tai(hp.Previous);
+        end;
+    end;
+
+  function TCpuThumb2AsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
+    var
+      hp : taicpu;
+      hp1,hp2 : tai;
+    begin
+      result:=false;
+      if inherited PeepHoleOptPass1Cpu(p) then
+        result:=true
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_STM, [C_None], [PF_FD,PF_DB]) and
+        (taicpu(p).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+        (taicpu(p).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+        ((taicpu(p).oper[1]^.regset^*[8..13,15])=[]) then
+        begin
+          DebugMsg('Peephole Stm2Push done', p);
+          hp := taicpu.op_regset(A_PUSH, R_INTREGISTER, R_SUBWHOLE, taicpu(p).oper[1]^.regset^);
+          AsmL.InsertAfter(hp, p);
+          asml.Remove(p);
+          p:=hp;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_STR, [C_None], [PF_None]) and
+        (taicpu(p).oper[1]^.ref^.addressmode=AM_PREINDEXED) and
+        (taicpu(p).oper[1]^.ref^.index=NR_STACK_POINTER_REG) and
+        (taicpu(p).oper[1]^.ref^.offset=-4) and
+        (getsupreg(taicpu(p).oper[0]^.reg) in [0..7,14]) then
+        begin
+          DebugMsg('Peephole Str2Push done', p);
+          hp := taicpu.op_regset(A_PUSH, R_INTREGISTER, R_SUBWHOLE, [getsupreg(taicpu(p).oper[0]^.reg)]);
+          asml.InsertAfter(hp, p);
+          asml.Remove(p);
+          p.Free;
+          p:=hp;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_LDM, [C_None], [PF_FD,PF_IA]) and
+        (taicpu(p).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+        (taicpu(p).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+        ((taicpu(p).oper[1]^.regset^*[8..14])=[]) then
+        begin
+          DebugMsg('Peephole Ldm2Pop done', p);
+          hp := taicpu.op_regset(A_POP, R_INTREGISTER, R_SUBWHOLE, taicpu(p).oper[1]^.regset^);
+          asml.InsertBefore(hp, p);
+          asml.Remove(p);
+          p.Free;
+          p:=hp;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_LDR, [C_None], [PF_None]) and
+        (taicpu(p).oper[1]^.ref^.addressmode=AM_POSTINDEXED) and
+        (taicpu(p).oper[1]^.ref^.index=NR_STACK_POINTER_REG) and
+        (taicpu(p).oper[1]^.ref^.offset=4) and
+        (getsupreg(taicpu(p).oper[0]^.reg) in [0..7,15]) then
+        begin
+          DebugMsg('Peephole Ldr2Pop done', p);
+          hp := taicpu.op_regset(A_POP, R_INTREGISTER, R_SUBWHOLE, [getsupreg(taicpu(p).oper[0]^.reg)]);
+          asml.InsertBefore(hp, p);
+          asml.Remove(p);
+          p.Free;
+          p:=hp;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_MOV, [C_None], [PF_None]) and
+        (taicpu(p).oper[1]^.typ=top_const) and
+        (taicpu(p).oper[1]^.val >= 0) and
+        (taicpu(p).oper[1]^.val < 256) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          DebugMsg('Peephole Mov2Movs done', p);
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).oppostfix:=PF_S;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, A_MVN, [C_None], [PF_None]) and
+        (taicpu(p).oper[1]^.typ=top_reg) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          DebugMsg('Peephole Mvn2Mvns done', p);
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).oppostfix:=PF_S;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_ADD,A_SUB], [C_None], [PF_None]) and
+        (taicpu(p).ops = 3) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
+        (not MatchOperand(taicpu(p).oper[0]^, NR_STACK_POINTER_REG)) and
+        (taicpu(p).oper[2]^.typ=top_const) and
+        (taicpu(p).oper[2]^.val >= 0) and
+        (taicpu(p).oper[2]^.val < 256) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          DebugMsg('Peephole AddSub2*s done', p);
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).loadconst(1,taicpu(p).oper[2]^.val);
+          taicpu(p).oppostfix:=PF_S;
+          taicpu(p).ops := 2;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_ADD], [C_None], [PF_None]) and
+        (taicpu(p).ops = 3) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
+        (taicpu(p).oper[2]^.typ=top_reg) then
+        begin
+          DebugMsg('Peephole AddRRR2AddRR done', p);
+          taicpu(p).ops := 2;
+          taicpu(p).loadreg(1,taicpu(p).oper[2]^.reg);
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND,A_ORR,A_EOR,A_BIC,A_LSL,A_LSR,A_ASR,A_ROR], [C_None], [PF_None]) and
+        (taicpu(p).ops = 3) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
+        (taicpu(p).oper[2]^.typ=top_reg) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).ops := 2;
+          taicpu(p).loadreg(1,taicpu(p).oper[2]^.reg);
+          taicpu(p).oppostfix:=PF_S;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND,A_ORR,A_EOR,A_BIC,A_LSL,A_LSR,A_ASR,A_ROR], [C_None], [PF_S]) and
+        (taicpu(p).ops = 3) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
+        (taicpu(p).oper[2]^.typ in [top_reg,top_const]) then
+        begin
+          taicpu(p).ops := 2;
+          if taicpu(p).oper[2]^.typ=top_reg then
+            taicpu(p).loadreg(1,taicpu(p).oper[2]^.reg)
+          else
+            taicpu(p).loadconst(1,taicpu(p).oper[2]^.val);
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND,A_ORR,A_EOR], [C_None], [PF_None,PF_S]) and
+        (taicpu(p).ops = 3) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[2]^) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).oppostfix:=PF_S;
+          taicpu(p).ops := 2;
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_MOV], [C_None], [PF_None]) and
+        (taicpu(p).ops=3) and
+        (taicpu(p).oper[2]^.typ=top_shifterop) and
+        (taicpu(p).oper[2]^.shifterop^.shiftmode in [SM_LSL,SM_LSR,SM_ASR,SM_ROR]) and
+        //MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^) and
+        (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        begin
+          DebugMsg('Peephole Mov2Shift done', p);
+          asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
+          asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,p), p);
+          IncludeRegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs);
+          taicpu(p).oppostfix:=PF_S;
+          //taicpu(p).ops := 2;
+
+          case taicpu(p).oper[2]^.shifterop^.shiftmode of
+            SM_LSL: taicpu(p).opcode:=A_LSL;
+            SM_LSR: taicpu(p).opcode:=A_LSR;
+            SM_ASR: taicpu(p).opcode:=A_ASR;
+            SM_ROR: taicpu(p).opcode:=A_ROR;
+          end;
+
+          if taicpu(p).oper[2]^.shifterop^.rs<>NR_NO then
+            taicpu(p).loadreg(2, taicpu(p).oper[2]^.shifterop^.rs)
+          else
+            taicpu(p).loadconst(2, taicpu(p).oper[2]^.shifterop^.shiftimm);
+          result:=true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND], [], [PF_None]) and
+        (taicpu(p).ops = 2) and
+        (taicpu(p).oper[1]^.typ=top_const) and
+        ((taicpu(p).oper[1]^.val=255) or
+         (taicpu(p).oper[1]^.val=65535)) then
+        begin
+          DebugMsg('Peephole AndR2Uxt done', p);
+          if taicpu(p).oper[1]^.val=255 then
+            taicpu(p).opcode:=A_UXTB
+          else
+            taicpu(p).opcode:=A_UXTH;
+
+          taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
+
+          result := true;
+        end
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_AND], [], [PF_None]) and
+        (taicpu(p).ops = 3) and
+        (taicpu(p).oper[2]^.typ=top_const) and
+        ((taicpu(p).oper[2]^.val=255) or
+         (taicpu(p).oper[2]^.val=65535)) then
+        begin
+          DebugMsg('Peephole AndRR2Uxt done', p);
+          if taicpu(p).oper[2]^.val=255 then
+            taicpu(p).opcode:=A_UXTB
+          else
+            taicpu(p).opcode:=A_UXTH;
+
+          taicpu(p).ops:=2;
+
+          result := true;
+        end
+      {
+       Turn
+       mul reg0, z,w
+       sub/add x, y, reg0
+       dealloc reg0
+
+       into
+
+       mls/mla x,y,z,w
+       }
+      {
+      According to Jeppe Johansen this currently uses operands in the wrong order.
+
+      else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_MUL], [C_None], [PF_None]) and
+        (taicpu(p).ops=3) and
+        (taicpu(p).oper[0]^.typ = top_reg) and
+        (taicpu(p).oper[1]^.typ = top_reg) and
+        (taicpu(p).oper[2]^.typ = top_reg) and
+        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+        MatchInstruction(hp1,[A_ADD,A_SUB],[C_None],[PF_None]) and
+        (((taicpu(hp1).ops=3) and
+          (taicpu(hp1).oper[2]^.typ=top_reg) and
+          (MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) or
+           (MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+            (taicpu(hp1).opcode=A_ADD)))) or
+         ((taicpu(hp1).ops=2) and
+          (taicpu(hp1).oper[1]^.typ=top_reg) and
+          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) and
+        assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
+        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+        not(RegModifiedBetween(taicpu(p).oper[2]^.reg,p,hp1)) then
+        begin
+          if taicpu(hp1).opcode=A_ADD then
+            begin
+              taicpu(hp1).opcode:=A_MLA;
+
+              if taicpu(hp1).ops=3 then
+                if MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^) then
+                  taicpu(hp1).loadreg(1,taicpu(hp1).oper[2]^.reg);
+
+              taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+              taicpu(hp1).loadreg(3,taicpu(p).oper[2]^.reg);
+
+              DebugMsg('MulAdd2MLA done', p);
+
+              taicpu(hp1).ops:=4;
+
+              asml.remove(p);
+              p.free;
+              p:=hp1;
+            end
+          else
+            begin
+              taicpu(hp1).opcode:=A_MLS;
+
+              if taicpu(hp1).ops=2 then
+                taicpu(hp1).loadreg(1,taicpu(hp1).oper[0]^.reg);
+
+              taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+              taicpu(hp1).loadreg(3,taicpu(p).oper[2]^.reg);
+
+              DebugMsg('MulSub2MLS done', p);
+
+              taicpu(hp1).ops:=4;
+
+              asml.remove(p);
+              p.free;
+              p:=hp1;
+            end;
+
+          result:=true;
+        end
+      }
+      {else if (p.typ=ait_instruction) and
+        MatchInstruction(p, [A_CMP], [C_None], [PF_None]) and
+        (taicpu(p).oper[1]^.typ=top_const) and
+        (taicpu(p).oper[1]^.val=0) and
+        GetNextInstruction(p,hp1) and
+        (taicpu(hp1).opcode=A_B) and
+        (taicpu(hp1).condition in [C_EQ,C_NE]) then
+        begin
+          if taicpu(hp1).condition = C_EQ then
+            hp2:=taicpu.op_reg_ref(A_CBZ, taicpu(p).oper[0]^.reg, taicpu(hp1).oper[0]^.ref^)
+          else
+            hp2:=taicpu.op_reg_ref(A_CBNZ, taicpu(p).oper[0]^.reg, taicpu(hp1).oper[0]^.ref^);
+
+          taicpu(hp2).is_jmp := true;
+
+          asml.InsertAfter(hp2, hp1);
+
+          asml.Remove(hp1);
+          hp1.Free;
+          asml.Remove(p);
+          p.Free;
+
+          p := hp2;
+
+          result := true;
+        end}
+    end;
+
+  procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
+    var
+      p,hp1,hp2: tai;
+      l,l2 : longint;
+      condition : tasmcond;
+      hp3: tai;
+      WasLast: boolean;
+      { UsedRegs, TmpUsedRegs: TRegSet; }
+
+    begin
+      p := BlockStart;
+      { UsedRegs := []; }
+      while (p <> BlockEnd) Do
+        begin
+          { UpdateUsedRegs(UsedRegs, tai(p.next)); }
+          case p.Typ Of
+            Ait_Instruction:
+              begin
+                case taicpu(p).opcode Of
+                  A_B:
+                    if taicpu(p).condition<>C_None then
+                      begin
+                         { check for
+                                Bxx   xxx
+                                <several instructions>
+                             xxx:
+                         }
+                         l:=0;
+                         GetNextInstruction(p, hp1);
+                         while assigned(hp1) and
+                           (l<=4) and
+                           CanBeCond(hp1) and
+                           { stop on labels }
+                           not(hp1.typ=ait_label) do
+                           begin
+                              inc(l);
+                              if MustBeLast(hp1) then
+                                begin
+                                  //hp1:=nil;
+                                  GetNextInstruction(hp1,hp1);
+                                  break;
+                                end
+                              else
+                                GetNextInstruction(hp1,hp1);
+                           end;
+                         if assigned(hp1) then
+                           begin
+                              if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
+                                begin
+                                  if (l<=4) and (l>0) then
+                                    begin
+                                      condition:=inverse_cond(taicpu(p).condition);
+                                      hp2:=p;
+                                      GetNextInstruction(p,hp1);
+                                      p:=hp1;
+                                      repeat
+                                        if hp1.typ=ait_instruction then
+                                          taicpu(hp1).condition:=condition;
+                                        if MustBeLast(hp1) then
+                                          begin
+                                            GetNextInstruction(hp1,hp1);
+                                            break;
+                                          end
+                                        else
+                                          GetNextInstruction(hp1,hp1);
+                                      until not(assigned(hp1)) or
+                                        not(CanBeCond(hp1)) or
+                                        (hp1.typ=ait_label);
+                                      { wait with removing else GetNextInstruction could
+                                        ignore the label if it was the only usage in the
+                                        jump moved away }
+
+                                      asml.InsertAfter(tai_comment.create(strpnew('Collapsed')), hp2);
+
+                                      DecrementPreceedingIT(asml, hp2);
+
+                                      case l of
+                                        1: asml.InsertAfter(taicpu.op_cond(A_IT,condition), hp2);
+                                        2: asml.InsertAfter(taicpu.op_cond(A_ITT,condition), hp2);
+                                        3: asml.InsertAfter(taicpu.op_cond(A_ITTT,condition), hp2);
+                                        4: asml.InsertAfter(taicpu.op_cond(A_ITTTT,condition), hp2);
+                                      end;
+
+                                      tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
+                                      asml.remove(hp2);
+                                      hp2.free;
+                                      continue;
+                                    end;
+                                end;
+                           end;
+                      end;
+                end;
+              end;
+          end;
+          p := tai(p.next)
+        end;
     end;
 
 begin

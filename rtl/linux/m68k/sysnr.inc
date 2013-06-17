@@ -258,8 +258,8 @@ Const
         syscall_nr_fremovexattr         = 234;
         syscall_nr_futex                = 235;
         syscall_nr_sendfile64           = 236;
-        syscall_nr_mincore              = 237;
-        syscall_nr_madvise              = 238;
+        //syscall_nr_mincore              = 237;
+        //syscall_nr_madvise              = 238;
         syscall_nr_fcntl64              = 239;
         syscall_nr_readahead            = 240;
         syscall_nr_io_setup             = 241;
@@ -322,8 +322,8 @@ Const
         syscall_nr_readlinkat           = 298;
         syscall_nr_fchmodat             = 299;
         syscall_nr_faccessat            = 300;
-        syscall_nr_ni_syscall           = 301;
-        syscall_nr_ni_syscall           = 302;
+        //syscall_nr_ni_syscall           = 301;
+        //syscall_nr_ni_syscall           = 302;
         syscall_nr_unshare              = 303;
         syscall_nr_set_robust_list      = 304;
         syscall_nr_get_robust_list      = 305;

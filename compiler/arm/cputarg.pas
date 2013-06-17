@@ -35,6 +35,9 @@ implementation
              Targets
 **************************************}
 
+    {$ifndef NOTARGETANDROID}
+      ,t_android
+    {$endif}
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
@@ -69,6 +72,8 @@ implementation
     {$endif}
 
       ,ogcoff
+      ,ogelf
+      ,cpuelf
 
 {**************************************
         Assembler Readers

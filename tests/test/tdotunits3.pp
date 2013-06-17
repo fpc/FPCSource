@@ -4,21 +4,21 @@ program tdotunits3;
 {$mode delphi}
 
 uses
-  udots.dot.next, udots;
+  tudots.dot.next, tudots;
 
 type
   TDot = record
     test: string;
   end;
 
-  TUdots = record
+  TUdots1 = record
     dot: TDot;
   end;
 
 var
-  udots: TUdots;
+  tudots: TUdots1;
 begin
   // this identifier should be resolved to local udots variable
-  udots.dot.test := 'test';
+  tudots.dot.test := 'test';
 end.
 

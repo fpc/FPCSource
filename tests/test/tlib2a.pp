@@ -1,4 +1,4 @@
-{ %target=linux }
+{ %target=linux,android }
 { %norun }
 
 library lib2a;

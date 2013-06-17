@@ -5,57 +5,50 @@
 
 constructor TRegIniFile.Create(const FN: String);
 begin
-  inherited Create;
-  fFileName := FN;
-  if fFileName<>'' then
-   fPath := fFileName + '\'
-  else
-   fPath := '';
+  Create(FN, KEY_ALL_ACCESS);
 end;
 
 constructor TRegIniFile.Create(const FN: String;aaccess:longword);
 begin
   inherited Create(aaccess);
   fFileName := FN;
-  if fFileName<>'' then
-   fPath := fFileName + '\'
+  if fFileName<>'' then begin
+    fPath := fFileName + '\';
+    OpenKey(fFileName, aaccess <> KEY_READ);
+  end
   else
-   fPath := '';
+    fPath := '';
+  fPreferStringValues:=True; // Delphi compatibility
 end;
 
 procedure TRegIniFile.DeleteKey(const Section, Ident: String);
 begin
-	if not OpenKey(fPath+Section,true) then Exit;
-	try
-	 DeleteValue(Ident);
-	finally
-	 CloseKey;
-	end;
+  if OpenSection(Section) then
+  try
+    DeleteValue(Ident);
+  finally
+    CloseSection;
+  end;
 end;
 
 procedure TRegIniFile.EraseSection(const Section: string);
 begin
- inherited DeleteKey(fPath+Section);
+  inherited DeleteKey(Section);
 end;
 
 procedure TRegIniFile.ReadSection(const Section: string; Strings: TStrings);
 begin
-	if not OpenKey(fPath+Section,false) then Exit;
-	try
-	 GetValueNames(Strings);
-	finally
-	 CloseKey;
-	end;
+  if OpenSection(Section) then
+  try
+    GetValueNames(Strings);
+  finally
+    CloseSection;
+  end;
 end;
 
 procedure TRegIniFile.ReadSections(Strings: TStrings);
 begin
-	if not OpenKey(fFileName,false) then Exit;
-	try
-	 GetKeyNames(Strings);
-	finally
-	 CloseKey;
-	end;
+  GetKeyNames(Strings);
 end;
 
 procedure TRegIniFile.ReadSectionValues(const Section: string; Strings: TStrings);
@@ -64,24 +57,27 @@ var
  V : String;
  i : Integer;
 begin
-	if not OpenKey(fPath+Section,false) then Exit;
-	ValList := TStringList.Create;
-	try
-	 GetValueNames(ValList);
-	 for i:=0 to ValList.Count-1 do
-	 begin
-	   V := inherited ReadString(ValList.Strings[i]);
-	   Strings.Add(ValList.Strings[i] + '=' + V);
-	 end;
-	finally
-	 ValList.Free;
-	 CloseKey;
-	end;
+  if OpenSection(Section) then
+  try
+ 	  ValList := TStringList.Create;
+ 	  try
+      GetValueNames(ValList);
+      for i:=0 to ValList.Count-1 do
+      begin
+        V := inherited ReadString(ValList.Strings[i]);
+        Strings.Add(ValList.Strings[i] + '=' + V);
+      end;
+ 	  finally
+      ValList.Free;
+ 	  end;
+  finally
+    CloseSection;
+  end;
 end;
 
 procedure TRegIniFile.WriteBool(const Section, Ident: string; Value: Boolean);
 begin
-	if not OpenKey(fPath+Section,true) then Exit;
+  if OpenSection(Section) then
 	try
     if not fPreferStringValues then
   	  inherited WriteBool(Ident,Value)
@@ -92,13 +88,13 @@ begin
         inherited WriteString(Ident,BoolToStr(Value));
     end;
   finally
-	  CloseKey;
+    CloseSection;
 	end;
 end;
 
 procedure TRegIniFile.WriteInteger(const Section, Ident: string; Value: LongInt);
 begin
-  if not OpenKey(fPath+Section,true) then Exit;
+  if OpenSection(Section) then
   try
     if not fPreferStringValues then
       inherited WriteInteger(Ident,Value)
@@ -109,24 +105,24 @@ begin
         inherited WriteString(Ident,IntToStr(Value));
     end;
   finally
-    CloseKey;
+    CloseSection;
   end;
 end;
 
 procedure TRegIniFile.WriteString(const Section, Ident, Value: String);
 begin
-  if not OpenKey(fPath+Section,true) then Exit;
+  if OpenSection(Section) then
   try
-   inherited WriteString(Ident,Value);
+    inherited WriteString(Ident,Value);
   finally
-   CloseKey;
+    CloseSection;
   end;
 end;
 
 function TRegIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
 begin
 	Result := Default;
-	if not OpenKey(fPath+Section,false) then Exit;
+  if OpenSection(Section) then
 	try
     if ValueExists(Ident) then
       if (not fPreferStringValues) or (GetDataType(Ident)=rdInteger) then
@@ -134,14 +130,14 @@ begin
       else
         Result := StrToBool(inherited ReadString(Ident));
 	finally
-	  CloseKey;
+    CloseSection;
 	end;
 end;
 
 function TRegIniFile.ReadInteger(const Section, Ident: string; Default: LongInt): LongInt;
 begin
   Result := Default;
-  if not OpenKey(fPath+Section,false) then Exit;
+  if OpenSection(Section) then
   try
     if ValueExists(Ident) then
       if (not fPreferStringValues) or (GetDataType(Ident)=rdInteger) then
@@ -149,18 +145,45 @@ begin
       else
         Result := StrToInt(inherited ReadString(Ident));
   finally
-    CloseKey;
+    CloseSection;
   end;
 end;
 
 function TRegIniFile.ReadString(const Section, Ident, Default: String): String;
 begin
   Result := Default;
-  if not OpenKey(fPath+Section,false) then Exit;
+  if OpenSection(Section) then
   try
     if ValueExists(Ident) then
       Result := inherited ReadString(Ident);
   finally
-    CloseKey;
+    CloseSection;
   end;
 end;
+
+function TRegIniFile.OpenSection(const Section: string): boolean;
+var
+  k: HKEY;
+begin
+  ASSERT(fOldCurKey = 0);
+  if Section <> '' then begin
+    k:=GetKey(Section);
+    if k = 0 then begin
+      Result:=False;
+      exit;
+    end;
+    fOldCurKey:=CurrentKey;
+    SetCurrentKey(k);
+  end;
+  Result:=True;
+end;
+
+procedure TRegIniFile.CloseSection;
+begin
+  if fOldCurKey <> 0 then begin
+    CloseKey(CurrentKey);
+    SetCurrentKey(fOldCurKey);
+    fOldCurKey:=0;
+  end;
+end;
+

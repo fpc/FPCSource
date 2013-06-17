@@ -14,11 +14,11 @@ begin
 
     P:=AddPackage('libgd');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libgd';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
-    P.OSes := P.OSes - [nativent];
+    P.OSes := P.OSes - [embedded,nativent];
 
     T:=P.Targets.AddUnit('gd.pas');
 

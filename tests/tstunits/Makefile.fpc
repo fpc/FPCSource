@@ -23,6 +23,23 @@ fpcdir=../..
 .PHONY: cleanfpcunit distcleanfpcunit
 .PHONY: cleanpackages distcleanpackages
 
+ifeq ($(OS_TARGET),msdos)
+override OPT=-CX
+endif
+
+TESTOPT:=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
+ifeq ($(CPU_TARGET),armeb)
+override TESTOPT+=-Cb
+endif
+ifneq ($(BINUTILSPREFIX),)
+override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
+endif
+TESTCOMPILER:=$(FPC) $(TESTOPT)
+
+ifdef CROSSCOMPILE
+override CROSSOPT:=$(OPT)
+override OPT=
+endif
 
 #############################
 # RTL
@@ -32,8 +49,8 @@ DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 
 rtl-stamp.$(FULL_TARGET):
-        $(MAKE) -C ../../rtl all 'OPT=$(OPT) -n'
-        $(MAKE) -C ../../rtl install $(INSTALLOPT)
+        $(MAKE) -C ../../rtl all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+        $(MAKE) -C ../../rtl install $(INSTALLOPT) OPT= CROSSOPT=
         $(ECHO) Compiled > rtl-stamp.$(FULL_TARGET)
 
 cleanrtl:
@@ -55,8 +72,10 @@ INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPIL
 FPCUNITDIR=../../packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
+ifneq ($(OS_TARGET),msdos)
  	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/testutils
         $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/fpcunit
+endif
         $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
 
 cleanfpcunit:
@@ -79,8 +98,8 @@ INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPIL
 PACKAGESDIR=../../packages
 
 packages-stamp.$(FULL_TARGET):
-        $(MAKE) -C ../../packages all 'OPT=$(OPT) -n'
-        $(MAKE) -C ../../packages install $(INSTALLOPT)
+        $(MAKE) -C ../../packages all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+        $(MAKE) -C ../../packages install $(INSTALLOPT) OPT= CROSSOPT=
         $(ECHO) Compiled > packages-stamp.$(FULL_TARGET)
 
 cleanpackages:
@@ -98,20 +117,13 @@ packages : packages-stamp.$(FULL_TARGET)
 #
 
 
-TESTOPT=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
-ifeq ($(CPU_TARGET),armeb)
-override TESTOPT+=-Cb
-endif
-ifneq ($(BINUTILSPREFIX),)
-override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
-endif
-TESTCOMPILER=$(FPC) $(TESTOPT)
-
 erroru$(PPUEXT) : erroru.pp
         $(TESTCOMPILER) erroru.pp
 
 ptest$(PPUEXT) : ../test/cg/ptest.pp
+ifneq ($(OS_TARGET),msdos)
         $(TESTCOMPILER) ../test/cg/ptest.pp
+endif
 
 popuperr$(PPUEXT) : popuperr.pp
         $(TESTCOMPILER) popuperr.pp

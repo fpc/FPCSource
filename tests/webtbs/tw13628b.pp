@@ -1,4 +1,5 @@
 { %needlibrary }
+{ %delfiles=tw13628a }
 
 program loadmodule;
 

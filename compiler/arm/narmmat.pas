@@ -39,6 +39,7 @@ interface
       end;
 
       tarmunaryminusnode = class(tcgunaryminusnode)
+        function pass_1: tnode; override;
         procedure second_float;override;
       end;
 
@@ -50,15 +51,16 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
+      symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
-      ncon,
+      ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
-      ncgutil,cgcpu,
+      ncgutil,
       nadd,pass_1,symdef;
 
 {*****************************************************************************
@@ -77,11 +79,11 @@ implementation
           ) and
           not(is_64bitint(resultdef)) then
           result:=nil
-        else if (current_settings.cputype in [cpu_armv7m]) and
+        else if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
           (nodetype=divn) and
           not(is_64bitint(resultdef)) then
           result:=nil
-        else if (current_settings.cputype in [cpu_armv7m]) and
+        else if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
           (nodetype=modn) and
           not(is_64bitint(resultdef)) then
           begin
@@ -95,6 +97,17 @@ implementation
                 result:=caddnode.create(subn,left,caddnode.create(muln,right.getcopy, cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
                 right:=nil;
               end;
+            left:=nil;
+          end
+        else if (nodetype=modn) and
+          (is_signed(left.resultdef)) and
+          (right.nodetype=ordconstn) and
+          (tordconstnode(right).value=2) then
+          begin
+            // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
+            result:=caddnode.create(andn,caddnode.create(subn,cordconstnode.create(0,sinttype,false),caddnode.create(andn,left,cordconstnode.create(1,sinttype,false))),
+                                         caddnode.create(addn,cordconstnode.create(1,sinttype,false),
+                                                              cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,ccallparanode.create(cordconstnode.create(31,sinttype,false),ccallparanode.Create(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
             left:=nil;
           end
         else
@@ -133,18 +146,23 @@ implementation
                  begin
                     helper1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                     helper2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ASR;
-                    so.shiftimm:=31;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_MOV,helper1,numerator,so));
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_LSR;
-                    so.shiftimm:=32-power;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,helper2,numerator,helper1,so));
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ASR;
-                    so.shiftimm:=power;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_MOV,resultreg,helper2,so));
+                    if power = 1 then
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,numerator,helper1)
+                    else
+                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
+                    if current_settings.cputype in cpu_thumb then
+                      begin
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
+                      end
+                    else
+                      begin
+                        shifterop_reset(so);
+                        so.shiftmode:=SM_LSR;
+                        so.shiftimm:=32-power;
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,helper2,numerator,helper1,so));
+                      end;
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,power,helper2,resultreg);
                   end
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
@@ -196,7 +214,7 @@ implementation
         secondpass(left);
         secondpass(right);
 
-        if (current_settings.cputype in [cpu_armv7m]) and
+        if (current_settings.cputype in [cpu_armv7m,cpu_armv7em]) and
            (nodetype=divn) and
            not(is_64bitint(resultdef)) then
           begin
@@ -326,6 +344,46 @@ implementation
                                TARMUNARYMINUSNODE
 *****************************************************************************}
 
+    function tarmunaryminusnode.pass_1: tnode;
+      var
+        procname: string[31];
+        fdef : tdef;
+      begin
+        if (current_settings.fputype<>fpu_fpv4_s16) or
+          (tfloatdef(resultdef).floattype=s32real) then
+          exit(inherited pass_1);
+
+        result:=nil;
+        firstpass(left);
+        if codegenerror then
+          exit;
+
+        if (left.resultdef.typ=floatdef) then
+          begin
+            case tfloatdef(resultdef).floattype of
+              s64real:
+                begin
+                  procname:='float64_sub';
+                  fdef:=search_system_type('FLOAT64').typedef;
+                end;
+              else
+                internalerror(2005082801);
+            end;
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+              ctypeconvnode.create_internal(left,fDef),
+              ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+
+            left:=nil;
+          end
+        else
+          begin
+            if (left.resultdef.typ=floatdef) then
+              expectloc:=LOC_FPUREGISTER
+             else if (left.resultdef.typ=orddef) then
+               expectloc:=LOC_REGISTER;
+          end;
+      end;
+
     procedure tarmunaryminusnode.second_float;
       var
         op: tasmop;
@@ -346,7 +404,7 @@ implementation
           fpu_vfpv3,
           fpu_vfpv3_d16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -357,6 +415,15 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
                 location.register,left.location.register));
             end;
+          fpu_fpv4_s16:
+            begin
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              location:=left.location;
+              if (left.location.loc=LOC_CMMREGISTER) then
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
+                location.register,left.location.register), PF_F32));
+            end
           else
             internalerror(2009112602);
         end;
@@ -364,7 +431,7 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        if (current_settings.cputype in cpu_thumb2) then
+        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
           result:=inherited
         else
           result := nil;
@@ -439,7 +506,7 @@ implementation
         end;
 
       begin
-        if (current_settings.cputype in cpu_thumb2) then
+        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
         begin
           inherited;
           exit;

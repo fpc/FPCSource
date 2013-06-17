@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TX11DGA2Display.open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat);
+procedure TX11DGA2Display.Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes);
 
   function ModeFlagsToString(AFlags: cint): string;
   begin
@@ -150,7 +150,7 @@ procedure TX11DGA2Display.open(ATitle: string; AWidth, AHeight: Integer; AFormat
 
 var
   i: Integer;
-  e: TXEvent;
+//  e: TXEvent;
   r, g, b: Single;
   found_mode: Integer;
 begin
@@ -310,6 +310,8 @@ begin
 
   FillChar(FXDGADevice^.data^,
     FXDGADevice^.mode.bytesPerScanline * FXDGADevice^.mode.imageHeight, 0);
+
+  FOpen := True;
 end;
 
 { not in DGA mode }
@@ -329,6 +331,7 @@ procedure TX11DGA2Display.close;
 var
   tmp: Pointer;
 begin
+  FOpen := False;
   if FModeIsSet then
   begin
     FModeIsSet := False;
@@ -414,34 +417,9 @@ var
   var
     XDGAKeyEvent: TXDGAKeyEvent absolute e;
     XKeyEvent: TXKeyEvent;
-    sym: TKeySym;
-    sym_modded: TKeySym; { modifiers like shift are taken into account here }
-    press: Boolean;
-    alt, shift, ctrl: Boolean;
-    uni: Integer;
-    key: TPTCKeyEvent;
-    buf: array [1..16] of Char;
   begin
     XDGAKeyEventToXKeyEvent(@XDGAKeyEvent, @XKeyEvent);
-    sym := XLookupKeySym(@XKeyEvent, 0);
-    XLookupString(@XKeyEvent, @buf, SizeOf(buf), @sym_modded, nil);
-    uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (XDGAKeyEvent.state and Mod1Mask) <> 0;
-    shift := (XDGAKeyEvent.state and ShiftMask) <> 0;
-    ctrl := (XDGAKeyEvent.state and ControlMask) <> 0;
-    if XDGAKeyEvent._type = (KeyPress + FXDGAEventBase) then
-      press := True
-    else
-      press := False;
-
-    key := nil;
-    case sym shr 8 of
-      0: key := TPTCKeyEvent.Create(FNormalKeys[sym and $FF], uni, alt, shift, ctrl, press);
-      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym and $FF], uni, alt, shift, ctrl, press);
-      else
-        key := TPTCKeyEvent.Create;
-    end;
-    FEventQueue.AddEvent(key);
+    HandleKeyEvent(XKeyEvent);
   end;
 
 begin
@@ -565,6 +543,11 @@ function TX11DGA2Display.isFullScreen: Boolean;
 begin
   { DGA is always fullscreen }
   Result := True;
+end;
+
+function TX11DGA2Display.IsOpen: Boolean;
+begin
+  Result := FOpen;
 end;
 
 procedure TX11DGA2Display.SetCursor(visible: Boolean);

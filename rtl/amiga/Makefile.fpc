@@ -8,10 +8,12 @@ main=rtl
 [target]
 loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      dos heaptrc \
+      dos heaptrc lineinfo \
       sysutils fgl classes strutils math typinfo varutils fmtbcd \
-      charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil objects 
+      charset cpall ucomplex getopts matrix \
+      variants types rtlconsts sysconst dateutil objects
+implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
 # \
 #      exec timer doslib utility hardware inputevent graphics layers \
 #      intuition aboxlib mui \
@@ -185,6 +187,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 #
 # Other system-dependent RTL Units

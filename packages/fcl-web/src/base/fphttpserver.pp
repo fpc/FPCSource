@@ -20,7 +20,7 @@ unit fphttpserver;
 interface
 
 uses
-  Classes, SysUtils, ssockets, httpdefs;
+  Classes, SysUtils, sockets, ssockets, resolve, httpdefs;
 
 Const
   ReadBufLen = 4096;
@@ -29,12 +29,15 @@ Type
   TFPHTTPConnection = Class;
   TFPHTTPConnectionThread = Class;
   TFPCustomHttpServer = Class;
+  TRequestErrorHandler = Procedure (Sender : TObject; E : Exception) of object;
 
   { TFPHTTPConnectionRequest }
 
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
+    FRemoteAddress: String;
+    FServerPort: String;
     FQueryString : String;
   protected
     function GetFieldValue(Index: Integer): String; override;
@@ -61,14 +64,18 @@ Type
 
   TFPHTTPConnection = Class(TObject)
   private
+    FOnError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
     FBuffer : Ansistring;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
+    Function GetLookupHostNames : Boolean;
   Protected
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
     procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
+    procedure HandleRequestError(E : Exception); virtual;
+    Procedure SetupSocket; virtual;
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
   Public
     Constructor Create(AServer : TFPCustomHTTPServer; ASocket : TSocketStream);
@@ -76,6 +83,8 @@ Type
     Procedure HandleRequest; virtual;
     Property Socket : TSocketStream Read FSocket;
     Property Server : TFPCustomHTTPServer Read FServer;
+    Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
+    Property LookupHostNames : Boolean Read GetLookupHostNames;
   end;
 
   { TFPHTTPConnectionThread }
@@ -102,11 +111,13 @@ Type
     FAdminName: string;
     FOnAllowConnect: TConnectQuery;
     FOnRequest: THTTPServerRequestHandler;
+    FOnRequestError: TRequestErrorHandler;
     FPort: Word;
     FQueueSize: Word;
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
+    FLookupHostNames,
     FThreaded: Boolean;
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
@@ -114,6 +125,8 @@ Type
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    procedure SetupSocket;
+    procedure StartServerSocket;
   Protected
     // Override these to create descendents of the request/response instead.
     Function CreateRequest : TFPHTTPConnectionRequest; virtual;
@@ -135,6 +148,8 @@ Type
     // Handle request. This calls OnRequest. It can be overridden by descendants to provide standard handling.
     procedure HandleRequest(Var ARequest: TFPHTTPConnectionRequest;
                             Var AResponse : TFPHTTPConnectionResponse); virtual;
+    // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
+    procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
   public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -151,12 +166,14 @@ Type
     property Threaded : Boolean read FThreaded Write SetThreaded;
     // Called to handle the request. If Threaded=True, it is called in a the connection thread.
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
-
+    // Called when an unexpected error occurs during handling of the request. Sender is the TFPHTTPConnection.
+    Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
   published
     //aditional server information
     property AdminMail: string read FAdminMail write FAdminMail;
     property AdminName: string read FAdminName write FAdminName;
     property ServerBanner: string read FServerBanner write FServerBanner;
+    Property LookupHostNames : Boolean Read FLookupHostNames Write FLookupHostNames;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -167,6 +184,7 @@ Type
     Property OnAllowConnect;
     property Threaded;
     Property OnRequest;
+    Property OnRequestError;
   end;
 
   EHTTPServer = Class(Exception);
@@ -174,6 +192,7 @@ Type
   Function GetStatusCode (ACode: Integer) : String;
 
 implementation
+
 
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
@@ -230,6 +249,11 @@ begin
   end;
 end;
 
+procedure HandleRequestError(Sender: TObject; E: Exception);
+begin
+
+end;
+
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
@@ -240,6 +264,30 @@ begin
   inherited InitRequestVars;
 end;
 
+Function SocketAddrToString(ASocketAddr: TSockAddr): String;
+begin
+  if ASocketAddr.sa_family = AF_INET then
+    Result := NetAddrToStr(ASocketAddr.sin_addr)
+  else // no ipv6 support yet
+    Result := '';
+end;
+
+Function GetHostNameByAddress(const AnAddress: String): String;
+var
+  Resolver: THostResolver;
+begin
+  Result := '';
+  if AnAddress = '' then exit;
+
+  Resolver := THostResolver.Create(nil);
+  try
+    if Resolver.AddressLookup(AnAddress) then
+      Result := Resolver.ResolvedName
+  finally
+    FreeAndNil(Resolver);
+  end;
+end;
+
 procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
 
 begin
@@ -247,22 +295,34 @@ begin
   FContentRead:=true;
 end;
 
+
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
 
 begin
-  if Index=33 then
-    FQueryString:=Value
+  case Index of
+    27 : FRemoteAddress := Value;
+    30 : FServerPort := Value;
+    33 : FQueryString:=Value
   else
     Inherited SetFieldValue(Index,Value);
+  end;  
 end;
 
 Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
 
 begin
-  if Index=33 then
-    Result:=FQueryString
+  case Index of
+    27 : Result := FRemoteAddress;
+    28 : // Remote server name
+         if Assigned(FConnection) and FConnection.LookupHostNames then
+           Result := GetHostNameByAddress(FRemoteAddress) 
+         else
+           Result:='';  
+    30 : Result := FServerPort;
+    33 : Result:=FQueryString
   else
     Result:=Inherited GetFieldValue(Index);
+  end; 
 end;
 
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
@@ -357,6 +417,24 @@ begin
   // Do nothing
 end;
 
+procedure TFPHTTPConnection.HandleRequestError(E: Exception);
+begin
+  If Assigned(FOnError) then
+    try
+      FOnError(Self,E);
+    except
+      // We really cannot handle this...
+    end;
+end;
+
+procedure TFPHTTPConnection.SetupSocket;
+begin
+{$if defined(FreeBSD) or defined(Linux)}
+  FSocket.ReadFlags:=MSG_NOSIGNAL;
+  FSocket.WriteFlags:=MSG_NOSIGNAL;
+{$endif}
+end;
+
 Procedure TFPHTTPConnection.InterPretHeader(ARequest : TFPHTTPConnectionRequest; Const AHeader : String);
 
 Var
@@ -438,6 +516,7 @@ begin
       end;  
     end;
   ARequest.SetContent(S);
+
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
@@ -446,15 +525,22 @@ Var
   StartLine,S : String;
 begin
   Result:=Server.CreateRequest;
-  Server.InitRequest(Result);
-  Result.FConnection:=Self;
-  StartLine:=ReadString;
-  ParseStartLine(Result,StartLine);
-  Repeat
-    S:=ReadString;
-    if (S<>'') then
-      InterPretHeader(Result,S);
-  Until (S='');
+  try
+    Server.InitRequest(Result);
+    Result.FConnection:=Self;
+    StartLine:=ReadString;
+    ParseStartLine(Result,StartLine);
+    Repeat
+      S:=ReadString;
+      if (S<>'') then
+        InterPretHeader(Result,S);
+    Until (S='');
+    Result.RemoteAddress := SocketAddrToString(FSocket.RemoteAddress);
+    Result.ServerPort := FServer.Port;
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
 end;
 
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
@@ -469,6 +555,15 @@ begin
   Inherited;
 end;
 
+Function TFPHTTPConnection.GetLookupHostNames : Boolean;
+
+begin
+  if Assigned(FServer) then
+    Result:=FServer.LookupHostNames
+  else
+    Result:=False;  
+end;
+
 procedure TFPHTTPConnection.HandleRequest;
 
 Var
@@ -476,30 +571,36 @@ Var
   Resp : TFPHTTPConnectionResponse;
 
 begin
-  // Read headers.
-  Req:=ReadRequestHeaders;
-  //set port
-  Req.ServerPort := Server.Port;
-  try
-    // Read content, if any
-    If Req.ContentLength>0 then
-      ReadRequestContent(Req);
-    Req.InitRequestVars;
-    // Create Response
-    Resp:= Server.CreateResponse(Req);
+  Try
+    SetupSocket;
+    // Read headers.
+    Req:=ReadRequestHeaders;
     try
-      Server.InitResponse(Resp);
-      Resp.FConnection:=Self;
-      // And dispatch
-      if Server.Active then
-        Server.HandleRequest(Req,Resp);
-      if Assigned(Resp) and (not Resp.ContentSent) then
-        Resp.SendContent;
-    finally
-      FreeAndNil(Resp);
+      //set port
+      Req.ServerPort := Server.Port;
+      // Read content, if any
+      If Req.ContentLength>0 then
+        ReadRequestContent(Req);
+      Req.InitRequestVars;
+      // Create Response
+      Resp:= Server.CreateResponse(Req);
+      try
+        Server.InitResponse(Resp);
+        Resp.FConnection:=Self;
+        // And dispatch
+        if Server.Active then
+          Server.HandleRequest(Req,Resp);
+        if Assigned(Resp) and (not Resp.ContentSent) then
+          Resp.SendContent;
+      finally
+        FreeAndNil(Resp);
+      end;
+    Finally
+      FreeAndNil(Req);
     end;
-  Finally
-    FreeAndNil(Req);
+  Except
+    On E : Exception do
+      HandleRequestError(E);
   end;
 end;
 
@@ -528,6 +629,18 @@ end;
 
 { TFPCustomHttpServer }
 
+procedure TFPCustomHttpServer.HandleRequestError(Sender: TObject; E: Exception);
+begin
+  If Assigned(FOnRequestError) then
+    try
+      FOnRequestError(Sender,E);
+    except
+      // Do not let errors in user code escape.
+    end
+  else
+    Writeln('Unhandled exception : ',E.ClassName,' : ',E.Message);
+end;
+
 function TFPCustomHttpServer.GetActive: Boolean;
 begin
   if (csDesigning in ComponentState) then
@@ -542,7 +655,11 @@ begin
   FLoadActivate:=AValue;
   if not (csDesigning in Componentstate) then
     if AValue then
-      CreateServerSocket
+      begin
+      CreateServerSocket;
+      SetupSocket;
+      StartServerSocket;
+      end
     else
       FreeServerSocket;
 end;
@@ -622,6 +739,7 @@ begin
   Con:=CreateConnection(Data);
   try
     Con.FServer:=Self;
+    Con.OnRequestError:=@HandleRequestError;
     if Threaded then
       CreateConnectionThread(Con)
     else
@@ -634,13 +752,23 @@ begin
   end;
 end;
 
+procedure TFPCustomHttpServer.SetupSocket;
+
+begin
+  FServer.QueueSize:=Self.QueueSize;
+  FServer.ReuseAddress:=true;
+end;
+
 procedure TFPCustomHttpServer.CreateServerSocket;
 begin
   FServer:=TInetServer.Create(FPort);
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
-  FServer.QueueSize:=Self.QueueSize;
+end;
+
+procedure TFPCustomHttpServer.StartServerSocket;
+begin
   FServer.Bind;
   FServer.Listen;
   FServer.StartAccepting;

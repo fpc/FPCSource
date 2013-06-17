@@ -125,6 +125,19 @@ implementation
 var
   SysInstance : qword;public;
 
+{$ifdef FPC_USE_WIN64_SEH}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
+asm
+    subq   $40, %rsp
+.seh_stackalloc 40
+.seh_endprologue
+    call   %rdx             { "arg" is passed in %rcx }
+    nop                     { this nop is critical for exception handling }
+    addq   $40, %rsp
+.seh_handler __FPC_default_handler,@except,@unwind
+end;
+{$endif FPC_USE_WIN64_SEH}
+
 { include system independent routines }
 {$I system.inc}
 
@@ -179,18 +192,6 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-{$ifdef FPC_USE_WIN64_SEH}
-procedure main_wrapper(p: TProcedure); assembler; nostackframe;
-asm
-    subq   $40, %rsp
-.seh_stackalloc 40
-.seh_endprologue
-    call   %rcx
-    nop                     { this nop is critical for exception handling }
-    addq   $40, %rsp
-.seh_handler __FPC_default_handler,@except,@unwind
-end;
-{$endif FPC_USE_WIN64_SEH}
 
 
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
@@ -209,7 +210,8 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movq %rbp,%rsi
         xorq %rbp,%rbp
 {$ifdef FPC_USE_WIN64_SEH}
-        lea  PASCALMAIN(%rip),%rcx
+        xor  %rcx,%rcx
+        lea  PASCALMAIN(%rip),%rdx
         call main_wrapper
 {$else FPC_USE_WIN64_SEH}
         call PASCALMAIN
@@ -490,6 +492,46 @@ begin
   Exe_entry;
 end;
 
+{$ifdef FPC_SECTION_THREADVARS}
+function fpc_tls_add(addr: pointer): pointer; assembler; nostackframe;
+  [public,alias: 'FPC_TLS_ADD']; compilerproc;
+  asm
+      sub   $56,%rsp                  { 32 spill area + 16 local vars + 8 misalignment }
+  .seh_stackalloc 56
+  .seh_endprologue
+      lea   tls_data_start(%rip),%rax
+      sub   %rax,%rcx
+      cmpb  $0,IsLibrary(%rip)
+      mov   _tls_index(%rip),%eax
+      jnz   .L1
+      mov   %gs:(88),%rdx
+      add   (%rdx,%rax,8),%rcx
+      mov   %rcx,%rax
+      jmp   .L3
+.L1:
+      mov   %rcx,32(%rsp)
+      call  GetLastError
+      mov   %rax,40(%rsp)             { save LastError }
+      mov   _tls_index(%rip),%ecx
+      call  TlsGetValue
+      test  %rax,%rax
+      jnz   .L2
+      { This can happen when a thread existed before DLL was loaded,
+        or if DisableThreadLibraryCalls was called. }
+      call  SysAllocateThreadVars
+      mov   $0x1000000,%rcx
+      call  InitThread
+      mov   _tls_index(%rip),%ecx
+      call  TlsGetValue
+.L2:
+      add   %rax,32(%rsp)
+      mov   40(%rsp),%rcx
+      call  SetLastError
+      mov   32(%rsp),%rax
+.L3:
+      add   $56,%rsp
+  end;
+{$endif FPC_SECTION_THREADVARS}
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
   type
@@ -562,15 +604,13 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
   end;
 
 
-var
-  st : Pointer;
+function GetExceptionPointer : Pointer; assembler;nostackframe;
+asm
+  movq %gs:(8),%rax
+end;
 
 begin
-  asm
-    movq %gs:(8),%rax
-    movq %rax,st
-  end;
-  StackTop:=st;
+  StackTop:=GetExceptionPointer;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
@@ -586,7 +626,7 @@ begin
   begin
     InitHeap;
     InitSystemThreads;
-  end;  
+  end;
   SysInitExceptions;
   initwidestringmanager;
   initunicodestringmanager;

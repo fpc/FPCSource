@@ -59,6 +59,7 @@ interface
           procedure second_setlength; virtual; abstract;
           procedure second_box; virtual; abstract;
           procedure second_popcnt; virtual;
+          procedure second_seg; virtual; abstract;
        end;
 
 implementation
@@ -144,6 +145,13 @@ implementation
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
+            in_aligned_x:
+              begin
+                secondpass(tcallparanode(left).left);
+                location:=tcallparanode(left).left.location;
+                if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+                  location.reference.alignment:=0;
+              end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
@@ -180,6 +188,8 @@ implementation
                second_box;
             in_popcnt_x:
                second_popcnt;
+            in_seg_x:
+               second_seg;
             else internalerror(9);
          end;
       end;
@@ -441,13 +451,8 @@ implementation
                          TYPEINFO GENERIC HANDLING
 *****************************************************************************}
       procedure tcginlinenode.second_typeinfo;
-        var
-         href : treference;
         begin
-          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0,sizeof(pint));
-          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+          internalerror(2013060301);
         end;
 
 
@@ -723,7 +728,7 @@ implementation
 
       if (left.location.loc <> LOC_REGISTER) or
          (left.location.size <> opsize) then
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(opsize),true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
       location_reset(location,LOC_REGISTER,opsize);
       location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);

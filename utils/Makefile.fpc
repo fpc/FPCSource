@@ -1,84 +1,104 @@
 #
-#   Makefile.fpc for Free Pascal Utils
+#   Makefile.fpc for running fpmake
 #
-
-[package]
-name=utils
-version=2.7.1
-
-[target]
-dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm
-programs=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
-programs_linux=grab_vcsa
-dirs_win32=fpmc fpcres rmwait instantfpc importtl
-dirs_win64=fpmc fpcres rmwait instantfpc importtl
-dirs_wince=fpcres rmwait instantfpc
-dirs_haiku=fpcres instantfpc
-dirs_linux=fpcres instantfpc
-dirs_freebsd=fpcres instantfpc
-dirs_openbsd=fpcres instantfpc
-dirs_netbsd=fpcres instantfpc
-dirs_darwin=fpcres fpcreslipo instantfpc
-dirs_iphonesim=fpcres fpcreslipo instantfpc
-dirs_solaris=fpcres instantfpc
-dirs_os2=fpmc fpcres rmwait
-dirs_emx=fpmc fpcres rmwait
-dirs_go32v2=rmwait
-dirs_aix=fpcres instantfpc
-rsts=rstconv
-
 [require]
-packages=fcl-base paszlib hash
-packages_darwin=univint
-packages_iphonesim=univint
-
-[clean]
-units=ptopu
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
+fpcsubdir=utils
 
 [default]
 fpcdir=..
 
+[prerules]
+# Translate INSTALL_UNITDIR to fpmake's --unitinstalldir parameter
+ifdef INSTALL_UNITDIR
+FPMAKE_INSTALL_OPT+=--unitinstalldir=$(INSTALL_UNITDIR)
+endif
+# Translate OS_TARGET and CPU_TARGET to fpmake's --os and --cpu parameters
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
-#
-# Pascal beautifier
-#
-ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
-
-ptopu$(PPUEXT): ptopu.pp
-
-#
-# Other
-#
-
-ppdep$(EXEEXT): ppdep.pp
-
-#
-# Don't export some tools, which are found in the current dir if it's in
-# the path, so are not valid for the subdirs
-#
-
-unexport DATA2INC
-
-# order dependencies to avoid link.res clashes
-# -- only supported as of Make 3.80, which is not available for go32v2 ->
-#    no parallel making here...
-#
-#grab_vcsa$(EXEEXT): | ppdep$(EXEEXT)
-#
-#ppdep$(EXEEXT): | ptop$(EXEEXT)
-#
-#ptop$(EXEEXT): | postw32$(EXEEXT)
-#
-#postw32$(EXEEXT): | rstconv$(EXEEXT)
-#
-#rstconv$(EXEEXT): | data2inc$(EXEEXT)
-#
-#data2inc$(EXEEXT): | delp$(EXEEXT)
-#
-#delp$(EXEEXT): | bin2obj$(EXEEXT)
-
+# Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+# Compose general fpmake-parameters
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=..
+FPMAKE_OPT+=--globalunitdir=../packages
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
+ifndef BUILDFULLNATIVE
+FPMAKE_OPT+=-sp
+endif
 .NOTPARALLEL:
+
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+
+CLEAN_TARGET_DIRS=$(subst /Makefile.fpc, ,$(wildcard */Makefile.fpc))
+%_distclean:
+	$(MAKE) -C $* distclean
+
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	fpc_cleanall $(addsuffix _distclean,$(CLEAN_TARGET_DIRS))
+else
+distclean:
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+	-$(DEL) fpmake.o
+	-$(DEL) fpmake.dbg
+endif
+cleanall: distclean
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
+endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
+endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie

@@ -19,6 +19,10 @@ uses
 
 {$PACKRECORDS C}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 // IME_Codes
 // bit field for conversion mode
 const

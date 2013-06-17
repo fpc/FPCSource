@@ -1,4 +1,5 @@
 {%skiptarget=wince}
+{%delfiles=targ1a}
 
 { This file is to check if there is some memory corruption
   due to startup code with argument loading

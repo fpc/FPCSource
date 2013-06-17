@@ -85,7 +85,10 @@ interface
 {$endif m68k}
 {$ifdef arm}
           ait_thumb_func,
+          ait_thumb_set,
 {$endif arm}
+          ait_set,
+          ait_weak,
           { used to split into tiny assembler files }
           ait_cutobject,
           ait_regalloc,
@@ -94,11 +97,13 @@ interface
           ait_marker,
           { used to describe a new location of a variable }
           ait_varloc,
-          { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive,
+{$ifdef JVM}
           { JVM only }
           ait_jvar,    { debug information for a local variable }
-          ait_jcatch   { exception catch clause }
+          ait_jcatch,  { exception catch clause }
+{$endif JVM}
+          { SEH directives used in ARM,MIPS and x86_64 COFF targets }
+          ait_seh_directive
           );
 
         taiconst_type = (
@@ -129,21 +134,36 @@ interface
           aitconst_darwin_dwarf_delta64,
           aitconst_darwin_dwarf_delta32,
           { ARM Thumb-2 only }
-          aitconst_half16bit { used for table jumps. The actual value is the 16bit value shifted left once }
+          aitconst_half16bit, { used for table jumps. The actual value is the 16bit value shifted left once }
+          { for use by dwarf debugger information }
+          aitconst_16bit_unaligned,
+          aitconst_32bit_unaligned,
+          aitconst_64bit_unaligned,
+          { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
+          aitconst_farptr
         );
 
     const
-{$ifdef cpu64bitaddr}
+{$if defined(cpu64bitaddr)}
        aitconst_ptr = aitconst_64bit;
-{$else cpu64bitaddr}
+       aitconst_ptr_unaligned = aitconst_64bit_unaligned;
+{$elseif defined(cpu32bitaddr)}
        aitconst_ptr = aitconst_32bit;
-{$endif cpu64bitaddr}
+       aitconst_ptr_unaligned = aitconst_32bit_unaligned;
+{$elseif defined(cpu16bitaddr)}
+       aitconst_ptr = aitconst_16bit;
+       aitconst_ptr_unaligned = aitconst_16bit_unaligned;
+{$endif}
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
        aitconst_aint = aitconst_64bit;
-{$else cpu64bitaddr}
+{$elseif defined(cpu32bitalu)}
        aitconst_aint = aitconst_32bit;
-{$endif cpu64bitaddr}
+{$elseif defined(cpu16bitalu)}
+       aitconst_aint = aitconst_16bit;
+{$elseif defined(cpu8bitalu)}
+       aitconst_aint = aitconst_8bit;
+{$endif}
 
        taitypestr : array[taitype] of string[24] = (
           '<none>',
@@ -181,15 +201,20 @@ interface
 {$endif m68k}
 {$ifdef arm}
           'thumb_func',
+          'thumb_set',
 {$endif arm}
+          'set',
+          'weak',
           'cut',
           'regalloc',
           'tempalloc',
           'marker',
           'varloc',
-          'seh_directive',
+{$ifdef JVM}
           'jvar',
-          'jcatch'
+          'jcatch',
+{$endif JVM}
+          'seh_directive'
           );
 
     type
@@ -198,10 +223,13 @@ interface
 {$ifdef arm}
        { ARM only }
        ,top_regset
-       ,top_shifterop
        ,top_conditioncode
        ,top_modeflags
+       ,top_specialreg
 {$endif arm}
+{$if defined(arm) or defined(aarch64)}
+       ,top_shifterop
+{$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
        { m68k only }
        ,top_regset
@@ -241,11 +269,14 @@ interface
           { local varsym that will be inserted in pass_generate_code }
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
-          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister);
-          top_shifterop : (shifterop : pshifterop);
+          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
           top_conditioncode : (cc : TAsmCond);
           top_modeflags : (modeflags : tcpumodeflags);
+          top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
       {$endif arm}
+      {$if defined(arm) or defined(aarch64)}
+          top_shifterop : (shifterop : pshifterop);
+      {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
@@ -265,10 +296,13 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end 
-				   ,ait_ent, ait_ent_end, ait_directive
-                   ,ait_varloc,ait_seh_directive
-                   ,ait_jvar, ait_jcatch];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end
+                   ,ait_ent, ait_ent_end, ait_directive
+                   ,ait_varloc,
+{$ifdef JVM}
+                   ait_jvar, ait_jcatch,
+{$endif JVM}
+                   ait_seh_directive];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -277,14 +311,18 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
-					 ait_ent, ait_ent_end,
+                     ait_ent, ait_ent_end,
 {$ifdef arm}
                      ait_thumb_func,
+                     ait_thumb_set,
 {$endif arm}
+                     ait_set,ait_weak,
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
                      ait_symbol,
-                     ait_seh_directive,
-                     ait_jvar,ait_jcatch
+{$ifdef JVM}
+                     ait_jvar, ait_jcatch,
+{$endif JVM}
+                     ait_seh_directive
                     ];
 
 
@@ -452,6 +490,9 @@ interface
           { set to true when the label has been moved by insertpcrelativedata to the correct location
             so one label can be used multiple times }
           moved     : boolean;
+          { true, if a label has been already inserted, this is important for arm thumb where no negative
+            pc relative offsets are allowed }
+          inserted  : boolean;
 {$endif arm}
           constructor Create(_labsym : tasmlabel);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
@@ -518,6 +559,9 @@ interface
           constructor Create_64bit(_value : int64);
           constructor Create_32bit(_value : longint);
           constructor Create_16bit(_value : word);
+          constructor Create_64bit_unaligned(_value : int64);
+          constructor Create_32bit_unaligned(_value : longint);
+          constructor Create_16bit_unaligned(_value : word);
           constructor Create_8bit(_value : byte);
           constructor Create_char(size: integer; _value: dword);
           constructor Create_sleb128bit(_value : int64);
@@ -738,6 +782,8 @@ interface
         tai_align_class = class of tai_align_abstract;
 
         tai_varloc = class(tai)
+           oldlocation,
+           oldlocationhi,
            newlocation,
            newlocationhi : tregister;
            varsym : tsym;
@@ -777,6 +823,7 @@ interface
         end;
         tai_seh_directive_class=class of tai_seh_directive;
 
+{$ifdef JVM}
         { JVM variable live range description }
         tai_jvar = class(tai)
           stackslot: longint;
@@ -801,6 +848,30 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
         end;
         tai_jcatch_class = class of tai_jcatch;
+{$endif JVM}
+
+        tai_set = class(tai)
+          sym,
+          value: pshortstring;
+          constructor create(const asym, avalue: string);
+          destructor destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+
+{$ifdef arm}
+        tai_thumb_set = class(tai_set)
+          constructor create(const asym, avalue: string);
+        end;
+{$endif arm}
+
+        tai_weak = class(tai)
+          sym: pshortstring;
+          constructor create(const asym: string);
+          destructor destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
 
     var
       { array with all class types for tais }
@@ -914,6 +985,69 @@ implementation
       end;
 
 
+    constructor tai_weak.create(const asym: string);
+      begin
+        inherited create;
+        typ:=ait_weak;
+        sym:=stringdup(asym);
+      end;
+
+    destructor tai_weak.destroy;
+      begin
+        stringdispose(sym);
+        inherited destroy;
+      end;
+
+    constructor tai_weak.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        sym:=stringdup(ppufile.getstring);
+      end;
+
+    procedure tai_weak.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(sym^);
+      end;
+
+{$ifdef arm}
+    constructor tai_thumb_set.create(const asym, avalue: string);
+      begin
+        inherited create(asym, avalue);
+        typ:=ait_thumb_set;
+      end;
+{$endif arm}
+
+    constructor tai_set.create(const asym, avalue: string);
+      begin
+        inherited create;
+        typ:=ait_set;
+        sym:=stringdup(asym);
+        value:=stringdup(avalue);
+      end;
+
+    destructor tai_set.destroy;
+      begin
+        stringdispose(sym);
+        stringdispose(value);
+        inherited destroy;
+      end;
+
+    constructor tai_set.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        sym:=stringdup(ppufile.getstring);
+        value:=stringdup(ppufile.getstring);
+      end;
+
+    procedure tai_set.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(sym^);
+        ppufile.putstring(value^);
+      end;
+
+
     constructor tai_varloc.create(sym: tsym; loc: tregister);
       begin
         inherited Create;
@@ -921,6 +1055,7 @@ implementation
         newlocation:=loc;
         newlocationhi:=NR_NO;
         varsym:=sym;
+        oldlocationhi:=NR_NO;
       end;
 
 
@@ -1362,6 +1497,38 @@ implementation
          endsym:=nil;
       end;
 
+    constructor tai_const.Create_64bit_unaligned(_value : int64);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_64bit_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_32bit_unaligned(_value : longint);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_32bit_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_16bit_unaligned(_value : word);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_16bit_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
 
     constructor tai_const.Create_8bit(_value : byte);
       begin
@@ -1463,7 +1630,12 @@ implementation
       begin
          inherited Create;
          typ:=ait_const;
-         consttype:=aitconst_ptr;
+{$ifdef i8086}
+         if current_settings.x86memorymodel in x86_far_code_models then
+           consttype:=aitconst_farptr
+         else
+{$endif i8086}
+           consttype:=aitconst_ptr;
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
@@ -1528,7 +1700,8 @@ implementation
       begin
         getcopy:=inherited getcopy;
         { we need to increase the reference number }
-        sym.increfs;
+        if assigned(sym) then
+          sym.increfs;
         if assigned(endsym) then
           endsym.increfs;
       end;
@@ -1539,11 +1712,13 @@ implementation
         case consttype of
           aitconst_8bit :
             result:=1;
-          aitconst_16bit :
+          aitconst_16bit,aitconst_16bit_unaligned :
             result:=2;
-          aitconst_32bit,aitconst_darwin_dwarf_delta32:
+          aitconst_32bit,aitconst_darwin_dwarf_delta32,
+	  aitconst_32bit_unaligned:
             result:=4;
-          aitconst_64bit,aitconst_darwin_dwarf_delta64:
+          aitconst_64bit,aitconst_darwin_dwarf_delta64,
+	  aitconst_64bit_unaligned:
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
@@ -1727,7 +1902,8 @@ implementation
           typ:=ait_string;
           len:=length(_str);
           getmem(str,len+1);
-          strpcopy(str,_str);
+          move(_str[1],str^,len);
+          str[len]:=#0;
        end;
 
 
@@ -1780,7 +1956,7 @@ implementation
                                TAI_LABEL
  ****************************************************************************}
 
-    constructor tai_label.create(_labsym : tasmlabel);
+        constructor tai_label.Create(_labsym : tasmlabel);
       begin
         inherited Create;
         typ:=ait_label;
@@ -1810,7 +1986,6 @@ implementation
       begin
         labsym.is_set:=true;
       end;
-
 
 {****************************************************************************
           tai_comment  comment to be inserted in the assembler file
@@ -2416,14 +2591,14 @@ implementation
         { When the generic RA is used this needs to be overridden, we don't use
           virtual;abstract; to prevent a lot of warnings of unimplemented abstract methods
           when tai_cpu is created (PFV) }
-        internalerror(200404091);
+        internalerror(2004040901);
         result:=false;
       end;
 
 
     function tai_cpu_abstract.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        internalerror(200404091);
+        internalerror(2004040902);
         result:=operand_readwrite;
       end;
 
@@ -2775,6 +2950,7 @@ implementation
       begin
       end;
 
+{$ifdef JVM}
 
 {****************************************************************************
                               tai_jvar
@@ -2865,6 +3041,7 @@ implementation
         ppufile.putasmsymbol(handlerlab);
       end;
 
+{$endif JVM}
 
 begin
 {$push}{$warnings off}

@@ -1,7 +1,10 @@
+{ %skiptarget=android }
 program tcpstr19;
 
 // test conversions from and to rawbytestring
 // test that copy function returns the same def as argument
+// this test can be only run with the compiler built right now on the
+// same system
 
 {$APPTYPE CONSOLE}
 {$ifdef fpc}
@@ -9,6 +12,7 @@ program tcpstr19;
 {$endif}
 
 uses
+  {$ifdef unix} cwstring, {$endif}
   SysUtils;
 var
   S: AnsiString;

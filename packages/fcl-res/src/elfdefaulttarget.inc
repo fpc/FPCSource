@@ -45,6 +45,13 @@
   {$IFDEF CPUIA64}
   fMachineType:=emtia64;
   {$ENDIF}
+  {$IFDEF CPUMIPS}
+    {$IFDEF ENDIAN_LITTLE}
+    fMachineType:=emtmipsel;
+    {$ELSE}
+    fMachineType:=emtmips;
+    {$ENDIF}
+  {$ENDIF}
 
   fBits:=ELFCLASSNONE;
   {$IFDEF CPU32}

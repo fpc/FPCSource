@@ -72,15 +72,15 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG);
 
   TOprRec = record
     case typ:TOprType of
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
-      OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
+      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
+      OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (regset : tcpuregisterset);
@@ -92,10 +92,11 @@ type
       OPR_COND      : (cond : tasmcond);
 {$endif POWERPC64}
 {$ifdef arm}
-      OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister);
+      OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister; usermode: boolean);
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
       OPR_MODEFLAGS : (flags : tcpumodeflags);
+      OPR_SPECIALREG: (specialreg : tregister; specialregflags : tspecialregflags);
 {$endif arm}
   end;
 
@@ -124,6 +125,7 @@ type
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
+    filepos  : tfileposinfo;
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
@@ -204,7 +206,6 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
                   Instruction generation routines
 ---------------------------------------------------------------------}
 
-  Procedure ConcatPasString(p : TAsmList;s:string);
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
   Procedure ConcatConstant(p : TAsmList;value: aint; constsize:byte);
   Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
@@ -690,7 +691,7 @@ begin
       begin
         if (m_tp7 in current_settings.modeswitches) and
           not (df_generic in defoptions) and
-          (not paramanager.ret_in_param(returndef,proccalloption)) then
+          (not paramanager.ret_in_param(returndef,current_procinfo.procdef)) then
           begin
             message(asmr_e_cannot_use_RESULT_here);
             exit;
@@ -872,16 +873,32 @@ Begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
               harrdef:=tarraydef(tabstractvarsym(sym).vardef);
+
+              { calc array size }
+              if is_special_array(harrdef) then
+                 l := -1
+               else
+                 l := harrdef.size;
+
+              case opr.typ of
+                OPR_REFERENCE: opr.varsize := l;
+                    OPR_LOCAL: opr.localvarsize := l;
+              end;
+
+
               while assigned(harrdef.elementdef) and
                     (harrdef.elementdef.typ=arraydef) do
                harrdef:=tarraydef(harrdef.elementdef);
               if not is_packed_array(harrdef) then
                 SetSize(harrdef.elesize,false)
                else
-                 begin
                    if (harrdef.elepackedbitsize mod 8) = 0 then
-                     SetSize(harrdef.elepackedbitsize div 8,false)
-                 end;
+                     SetSize(harrdef.elepackedbitsize div 8,false);
+            end;
+          recorddef:
+            case opr.typ of
+              OPR_REFERENCE: opr.varsize := tabstractvarsym(sym).getsize;
+                  OPR_LOCAL: opr.localvarsize := tabstractvarsym(sym).getsize;
             end;
         end;
         hasvar:=true;
@@ -952,16 +969,22 @@ Begin
         opr.typ:=OPR_REFERENCE;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.Offset:=l;
+        opr.varsize:=0;
+        opr.constoffset:=0;
       end;
     OPR_NONE :
       begin
         opr.typ:=OPR_REFERENCE;
+        opr.varsize:=0;
+        opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
     OPR_REGISTER :
       begin
         reg:=opr.reg;
         opr.typ:=OPR_REFERENCE;
+        opr.varsize:=0;
+        opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.base:=reg;
       end;
@@ -970,6 +993,8 @@ Begin
         hsymbol:=opr.symbol;
         hsymofs:=opr.symofs;
         opr.typ:=OPR_REFERENCE;
+        opr.varsize:=0;
+        opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.ref.symbol:=hsymbol;
         opr.ref.offset:=hsymofs;
@@ -979,6 +1004,8 @@ Begin
         Message(asmr_e_invalid_operand_type);
         { Recover }
         opr.typ:=OPR_REFERENCE;
+        opr.varsize:=0;
+        opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
   end;
@@ -1007,6 +1034,7 @@ constructor TInstruction.create(optype : tcoperand);
     Condition:=C_NONE;
     Ops:=0;
     }
+    filepos:=current_filepos;
     for i:=1 to max_operands do
       Operands[i]:=optype.create;
     Labeled:=false;
@@ -1069,6 +1097,7 @@ end;
         operands[i].CheckOperand;
 
       ai:=taicpu.op_none(opcode);
+      ai.fileinfo:=filepos;
       ai.Ops:=Ops;
       ai.Allocate_oper(Ops);
       for i:=1 to Ops do
@@ -1088,13 +1117,15 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef ARM}
               OPR_REGSET:
-                ai.loadregset(i-1,regtype,subreg,regset);
+                ai.loadregset(i-1,regtype,subreg,regset,usermode);
               OPR_SHIFTEROP:
                 ai.loadshifterop(i-1,shifterop);
               OPR_COND:
                 ai.loadconditioncode(i-1,cc);
               OPR_MODEFLAGS:
                 ai.loadmodeflags(i-1,flags);
+              OPR_SPECIALREG:
+                ai.loadspecialreg(i-1,specialreg,specialregflags);
 {$endif ARM}
               { ignore wrong operand }
               OPR_NONE:
@@ -1495,20 +1526,6 @@ end;
   { PROCEDURE ConcatString(s:string);                                   }
   {  Description: This routine adds the character chain pointed to in   }
   {  s to the instruction linked list.                                  }
-  {*********************************************************************}
-  Var
-   pc: PChar;
-  Begin
-     getmem(pc,length(s)+1);
-     p.concat(Tai_string.Create_pchar(strpcopy(pc,s),length(s)));
-  end;
-
-  Procedure ConcatPasString(p : TAsmList;s:string);
-  {*********************************************************************}
-  { PROCEDURE ConcatPasString(s:string);                                }
-  {  Description: This routine adds the character chain pointed to in   }
-  {  s to the instruction linked list, contrary to ConcatString it      }
-  {  uses a pascal style string, so it conserves null characters.       }
   {*********************************************************************}
   Begin
      p.concat(Tai_string.Create(s));

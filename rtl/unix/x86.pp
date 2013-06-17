@@ -446,7 +446,7 @@ begin
   end;
 end;
 
-{$ifdef linux}
+{$if defined(linux) or defined(android)}
 Function  fpIOperm (From,Num : Cardinal; Value : cint) : cint;
 {
   Set permissions on NUM ports starting with port FROM to VALUE

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 buildrtl lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinfo lnfodwrf
 implicitunits=ctypes strings \
       heaptrc matrix \
       dos crt objects messages \
@@ -15,10 +15,15 @@ implicitunits=ctypes strings \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils \
       varutils variants typinfo fgl classes getopts \
-      stdconvs sockets printer charset character ucomplex fmtbcd \
+      stdconvs sockets printer charset character ucomplex fmtbcd fpwidestring \
       winevent video mouse keyboard \
       sharemem exeinfo fpintres windirs \
-      cpu signals
+      cpu signals \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
+      unicodedata unicodeducet unicodenumtable \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+
 # mmx
 #      fpcmemdll
 #     winsysut signals
@@ -36,6 +41,7 @@ nortl=y
 
 [install]
 fpcpackage=y
+buildunit=buildcollations$(PPUEXT) buildrtl
 
 [default]
 fpcdir=../..
@@ -108,6 +114,12 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(WINDIR) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp

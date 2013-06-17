@@ -621,7 +621,7 @@ begin
   GetLongName:=n;
 {$ifdef Windows}
   hs:=n+#0;
-  i:=Windows.GetFullPathName(@hs[1],256,hs2,j);
+  i:=Windows.GetFullPathNameA(@hs[1],256,hs2,j);
   if (i>0) and (i<=high(hs)) then
     begin
       hs:=strpas(hs2);

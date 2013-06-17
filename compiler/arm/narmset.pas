@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,
-      symtype,symdef,
+      symtype,
       cgbase,
       node,nset,pass_1,ncgset;
 
@@ -51,13 +51,9 @@ interface
 implementation
 
     uses
-      systems,
-      verbose,globals,constexp,
-      symconst,defutil,
+      globals,constexp,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      pass_2,
-      ncon,
-      cpubase,cpuinfo,procinfo,
+      cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
       cgcpu,hlcgobj;
 
@@ -88,7 +84,7 @@ implementation
       begin
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=F_NE;
-        if left.location.loc=LOC_CONSTANT then
+        if (left.location.loc=LOC_CONSTANT) and not(current_settings.cputype in cpu_thumb) then
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
               right.resultdef, right.resultdef, true);
@@ -108,11 +104,20 @@ implementation
             hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
-            shifterop_reset(so);
-            so.rs:=left.location.register;
-            so.shiftmode:=SM_LSL;
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_TST,right.location.register,hregister,so));
+            if current_settings.cputype in cpu_thumb then
+              begin
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_LSL,hregister,left.location.register));
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_TST,right.location.register,hregister));
+              end
+            else
+              begin
+                shifterop_reset(so);
+                so.rs:=left.location.register;
+                so.shiftmode:=SM_LSL;
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_TST,right.location.register,hregister,so));
+              end;
           end;
       end;
 
@@ -136,6 +141,7 @@ implementation
     procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         last : TConstExprInt;
+        basereg,
         indexreg : tregister;
         href : treference;
         tablelabel: TAsmLabel;
@@ -203,6 +209,26 @@ implementation
             last:=min_;
             genitem_thumb2(current_asmdata.CurrAsmList,hp);
           end
+        else if current_settings.cputype in cpu_thumb then
+          begin
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
+            current_asmdata.getaddrlabel(tablelabel);
+
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
+
+            basereg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
+            reference_reset_symbol(href,tablelabel,0,4);
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
+
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_ADDr, indexreg, basereg);
+
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_BX, basereg));
+
+            cg.a_label(current_asmdata.CurrAsmList,tablelabel);
+            { generate jump table }
+            last:=min_;
+            genitem(current_asmdata.CurrAsmList,hp);
+          end
         else
           begin
             { adjust index }
@@ -244,11 +270,11 @@ implementation
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
-                      tcgarm(cg).cgsetflags:=true;
+                      tbasecgarm(cg).cgsetflags:=true;
                       { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be used }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tcgarm(cg).cgsetflags:=false;
+                      tbasecgarm(cg).cgsetflags:=false;
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
@@ -264,11 +290,11 @@ implementation
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
-                           tcgarm(cg).cgsetflags:=true;
+                           tbasecgarm(cg).cgsetflags:=true;
                            { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                              then genlinearlist wouldn't be use }
                            cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low)), hregister);
-                           tcgarm(cg).cgsetflags:=false;
+                           tbasecgarm(cg).cgsetflags:=false;
                          end;
                     end
                   else
@@ -277,22 +303,22 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      tcgarm(cg).cgsetflags:=true;
+                      tbasecgarm(cg).cgsetflags:=true;
                       { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be use }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
-                      tcgarm(cg).cgsetflags:=false;
+                      tbasecgarm(cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
-                  tcgarm(cg).cgsetflags:=true;
+                  tbasecgarm(cg).cgsetflags:=true;
                   { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
                     then genlinearlist wouldn't be use }
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_32,aint(int64(t^._high-t^._low)),hregister);
-                  tcgarm(cg).cgsetflags:=false;
+                  tbasecgarm(cg).cgsetflags:=false;
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
                   last:=t^._high;

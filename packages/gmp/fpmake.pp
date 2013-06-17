@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gmp');
 {$ifdef ALLPACKAGES}
-    P.Directory:='gmp';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

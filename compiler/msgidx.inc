@@ -113,6 +113,9 @@ const
   scanner_f_illegal_utf8_bom=02089;
   scanner_w_directive_ignored_on_target=02090;
   scan_w_unavailable_system_codepage=02091;
+  scan_w_setpeoptflags_not_support=02092;
+  scan_e_illegal_peflag=02093;
+  scan_e_illegal_peoptflag=02094;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -396,7 +399,7 @@ const
   parser_e_no_record_published=03299;
   parser_e_no_destructor_in_records=03300;
   parser_e_class_methods_only_static_in_records=03301;
-  parser_e_no_constructor_in_records=03302;
+  parser_e_no_parameterless_constructor_in_records=03302;
   parser_e_at_least_one_argument_must_be_of_type=03303;
   parser_e_cant_use_type_parameters_here=03304;
   parser_e_externals_no_section=03305;
@@ -417,6 +420,18 @@ const
   parser_e_feature_unsupported_for_vm=03320;
   parser_e_jvm_invalid_virtual_constructor_call=03321;
   parser_e_method_lower_visibility=03322;
+  parser_e_nostackframe_without_assembler=03323;
+  parser_e_nostackframe_with_locals=03324;
+  parser_e_cannot_generate_property_getter_setter=03325;
+  parser_w_overriding_property_getter_setter=03326;
+  parser_w_case_difference_auto_property_getter_setter_prefix=03327;
+  parser_e_no_consts_in_local_anonymous_records=03328;
+  parser_e_no_methods_in_local_anonymous_records=03329;
+  parser_e_no_properties_in_local_anonymous_records=03330;
+  parser_e_no_class_in_local_anonymous_records=03331;
+  parser_e_not_allowed_in_record=03332;
+  parser_e_proc_dir_not_allowed=03333;
+  parser_e_no_assembler_in_generic=03334;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -527,6 +542,7 @@ const
   type_e_interface_lower_visibility=04117;
   type_e_typeof_requires_vmt=04118;
   type_e_invalid_default_value=04119;
+  type_e_type_not_allowed_for_type_helper=04120;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -600,6 +616,7 @@ const
   sym_w_library_overload=05084;
   sym_e_duplicate_id_create_java_constructor=05085;
   sym_e_no_matching_inherited_parameterless_constructor=05086;
+  sym_d_adding_helper_for=05087;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -748,6 +765,12 @@ const
   asmr_e_wrong_gotpcrel_intel_syntax=07117;
   asmr_e_no_gotpcrel_support=07118;
   asmr_w_global_access_without_got=07119;
+  asmr_w_check_mem_operand_size=07120;
+  asmr_w_check_mem_operand_size3=07121;
+  asmr_w_check_mem_operand_size_offset=07122;
+  asmr_w_check_mem_operand_negative_offset=07123;
+  asmr_w_check_mem_operand_automap_multiple_size=07124;
+  asmr_e_invalid_ref_register=07125;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -774,6 +797,7 @@ const
   asmw_e_missing_endprologue=08023;
   asmw_e_prologue_too_large=08024;
   asmw_e_handlerdata_no_handler=08025;
+  asmw_f_too_many_relocations=08026;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -808,6 +832,7 @@ const
   exec_e_cant_open_resource_file=09031;
   exec_e_cant_write_resource_file=09032;
   exec_n_backquote_cat_file_not_found=09033;
+  exec_w_init_file_not_found=09034;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -926,6 +951,7 @@ const
   option_invalid_macosx_deployment_target=11050;
   option_invalid_iphoneos_deployment_target=11051;
   option_illegal_fpu_eabihf=11052;
+  option_w_unsupported_debug_format=11053;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -950,9 +976,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 66541;
+  MsgTxtSize = 69123;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,323,120,87,56,120,26,202,63,
-    53,20,1,1,1,1,1,1,1,1
+    26,95,335,121,88,56,126,27,202,63,
+    54,20,1,1,1,1,1,1,1,1
   );

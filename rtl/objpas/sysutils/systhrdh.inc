@@ -14,14 +14,17 @@
 
 type
    IReadWriteSync = interface
+{$ifdef FPC_HAS_FEATURE_THREADING}
      ['{7B108C52-1D8F-4CDB-9CDF-57E071193D3F}']
      procedure BeginRead;
      procedure EndRead;
      function BeginWrite : boolean;
      procedure EndWrite;
+{$endif FPC_HAS_FEATURE_THREADING}
    end;
 
    TSimpleRWSync = class(TInterfacedObject,IReadWriteSync)
+{$ifdef FPC_HAS_FEATURE_THREADING}
    private
       crit : TRtlCriticalSection;
    public
@@ -31,9 +34,11 @@ type
       procedure Endwrite;
       procedure Beginread;
       procedure Endread;
+{$endif FPC_HAS_FEATURE_THREADING}
    end;
 
    TMultiReadExclusiveWriteSynchronizer = class(TInterfacedObject,IReadWriteSync)
+{$ifdef FPC_HAS_FEATURE_THREADING}
    private
       freaderqueue: peventstate;
       fwritelock : TRtlCriticalSection;
@@ -47,4 +52,5 @@ type
       procedure Endwrite;
       procedure Beginread;
       procedure Endread;
+{$endif FPC_HAS_FEATURE_THREADING}
    end;

@@ -52,8 +52,10 @@ unit cgobj;
           by Free Pascal. For 32-bit processors, the base class
           should be @link(tcg64f32) and not @var(tcg).
        }
+
+       { tcg }
+
        tcg = class
-       public
           { how many times is this current code executed }
           executionweight : longint;
           alignment : talignment;
@@ -271,6 +273,9 @@ unit cgobj;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
+          procedure a_opmm_loc_reg_reg(list: TAsmList;Op : TOpCG;size : tcgsize;const loc : tlocation;src,dst : tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src1,src2,dst: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_ref_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; src,dst: tregister;shuffle : pmmshuffle); virtual;
 
           procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle); virtual;
           procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual;
@@ -574,7 +579,7 @@ implementation
 
     uses
        globals,systems,
-       verbose,paramgr,symsym,
+       verbose,paramgr,symtable,symsym,
        tgobj,cutils,procinfo;
 
 {*****************************************************************************
@@ -697,14 +702,14 @@ implementation
     procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$if not(defined(i386)) and not(defined(avr))}
+{$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         if uses_registers(R_MMREGISTER) then
           alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif not(defined(i386)) and not(defined(avr))}
+{$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
 
@@ -720,14 +725,14 @@ implementation
     procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$if not(defined(i386)) and not(defined(avr))}
+{$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         if uses_registers(R_MMREGISTER) then
           dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif not(defined(i386)) and not(defined(avr))}
+{$endif not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
       end;
 
 
@@ -1146,6 +1151,7 @@ implementation
                if paraloc.shiftval<0 then
                  a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER:
                    a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
                  R_MMREGISTER:
@@ -1157,6 +1163,7 @@ implementation
            LOC_MMREGISTER :
              begin
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER:
                    a_loadmm_reg_intreg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
                  R_MMREGISTER:
@@ -1183,6 +1190,7 @@ implementation
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
                case getregtype(reg) of
+                 R_ADDRESSREGISTER,
                  R_INTREGISTER :
                    a_load_ref_reg(list,paraloc.size,regsize,href,reg);
                  R_FPUREGISTER :
@@ -1699,7 +1707,6 @@ implementation
 
     procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                      a:tcgint;src,dst:Tregister);
-
     begin
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
@@ -1845,8 +1852,6 @@ implementation
 
 
     procedure tcg.a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
-      var
-        tmpreg: tregister;
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -2061,6 +2066,33 @@ implementation
       end;
 
 
+    procedure tcg.a_opmm_loc_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; src,dst: tregister;shuffle : pmmshuffle);
+      begin
+        case loc.loc of
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            a_opmm_reg_reg_reg(list,op,size,loc.register,src,dst,shuffle);
+          LOC_CREFERENCE,LOC_REFERENCE:
+            a_opmm_ref_reg_reg(list,op,size,loc.reference,src,dst,shuffle);
+          else
+            internalerror(200312232);
+        end;
+      end;
+
+
+    procedure tcg.a_opmm_reg_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;
+      src1,src2,dst : tregister;shuffle : pmmshuffle);
+      begin
+        internalerror(2013061102);
+      end;
+
+
+    procedure tcg.a_opmm_ref_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;
+      const ref : treference;src,dst : tregister;shuffle : pmmshuffle);
+      begin
+        internalerror(2013061101);
+      end;
+
+
     procedure tcg.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);
       begin
         g_concatcopy(list,source,dest,len);
@@ -2090,29 +2122,41 @@ implementation
       var
         hrefvmt : treference;
         cgpara1,cgpara2 : TCGPara;
+        pd: tprocdef;
       begin
         cgpara1.init;
         cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
         if (cs_check_object in current_settings.localswitches) then
          begin
-           paramanager.getintparaloc(pocall_default,2,voidpointertype,cgpara2);
+           pd:=search_system_proc('fpc_check_object_ext');
+           paramanager.getintparaloc(pd,1,cgpara1);
+           paramanager.getintparaloc(pd,2,cgpara2);
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
-           a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-           a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+           if pd.is_pushleftright then
+             begin
+               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
+             end
+           else
+             begin
+               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
+               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
+             end;
            paramanager.freecgpara(list,cgpara1);
            paramanager.freecgpara(list,cgpara2);
            allocallcpuregisters(list);
-           a_call_name(list,'FPC_CHECK_OBJECT_EXT',false);
+           a_call_name(list,'fpc_check_object_ext',false);
            deallocallcpuregisters(list);
          end
         else
          if (cs_check_range in current_settings.localswitches) then
           begin
+            pd:=search_system_proc('fpc_check_object');
+            paramanager.getintparaloc(pd,1,cgpara1);
             a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_CHECK_OBJECT',false);
+            a_call_name(list,'fpc_check_object',false);
             deallocallcpuregisters(list);
           end;
         cgpara1.done;
@@ -2182,7 +2226,7 @@ implementation
                       begin
                         if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                           begin
-                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),href,nil);
                             inc(href.offset,tcgsize2size[OS_VECTOR]);
                           end;
                         include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
@@ -2222,7 +2266,7 @@ implementation
               begin
                 if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                   begin
-                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE);
+                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE);
                     { Allocate register so the optimizer does not remove the load }
                     a_reg_alloc(list,hreg);
                     a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
@@ -2708,8 +2752,8 @@ implementation
     procedure tcg128.a_load128_const_reg(list: TAsmList; valuelo,
      valuehi: int64; reg: tregister128);
      begin
-       cg.a_load_const_reg(list,OS_32,aint(valuelo),reg.reglo);
-       cg.a_load_const_reg(list,OS_32,aint(valuehi),reg.reghi);
+       cg.a_load_const_reg(list,OS_64,aint(valuelo),reg.reglo);
+       cg.a_load_const_reg(list,OS_64,aint(valuehi),reg.reghi);
      end;
 
 

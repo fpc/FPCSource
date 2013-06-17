@@ -48,30 +48,32 @@ uses
 
       function def2regtyp(def: tdef): tregistertype; override;
 
-      procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : aint;const cgpara : TCGPara);override;
+      procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
       procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
       procedure a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister); override;
 
-      procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
-      procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);override;
+      procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
+      procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
       procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
       procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list : TAsmList;fromsize, tosize : tdef;const sref : treference;const dref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
-      procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister); override;
-      procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister); override;
-      procedure a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference); override;
+      procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+      procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister); override;
+      procedure a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); override;
 
       procedure a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister); override;
       procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister); override;
       procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister); override;
+      procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
+      procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
 
-      procedure a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel); override;
-      procedure a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel); override;
+      procedure a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel); override;
+      procedure a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
       procedure a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel); override;
       procedure a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel); override;
       procedure a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
@@ -97,6 +99,9 @@ uses
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
+      procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
+      procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
+
       procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
@@ -108,7 +113,13 @@ uses
 
       { unimplemented/unnecessary routines }
       procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
-      procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle); override;
+      procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+      procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tdef; mmreg, intreg: tregister; shuffle: pmmshuffle); override;
       procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
       procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
@@ -124,7 +135,7 @@ uses
       { extra_slots are the slots that are used by the reference, and that
         will be removed by the load operation }
       procedure a_load_ref_stack(list : TAsmList;size: tdef;const ref: treference;extra_slots: longint);
-      procedure a_load_const_stack(list : TAsmList;size: tdef;a :aint; typ: TRegisterType);
+      procedure a_load_const_stack(list : TAsmList;size: tdef;a :tcgint; typ: TRegisterType);
 
       procedure a_load_stack_loc(list : TAsmList;size: tdef;const loc: tlocation);
       procedure a_load_loc_stack(list : TAsmList;size: tdef;const loc: tlocation);
@@ -132,7 +143,7 @@ uses
       procedure a_loadfpu_const_stack(list : TAsmList;size: tdef;a :double);
 
       procedure a_op_stack(list : TAsmList;op: topcg; size: tdef; trunc32: boolean);
-      procedure a_op_const_stack(list : TAsmList;op: topcg; size: tdef;a : aint);
+      procedure a_op_const_stack(list : TAsmList;op: topcg; size: tdef;a : tcgint);
       procedure a_op_reg_stack(list : TAsmList;op: topcg; size: tdef;reg: tregister);
       procedure a_op_ref_stack(list : TAsmList;op: topcg; size: tdef;const ref: treference);
       procedure a_op_loc_stack(list : TAsmList;op: topcg; size: tdef;const loc: tlocation);
@@ -153,7 +164,7 @@ uses
       procedure a_cmp_stack_label(list : TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
       { these 2 routines perform the massaging expected by the previous one }
       procedure maybe_adjust_cmp_stackval(list : TAsmlist; size: tdef; cmp_op: topcmp);
-      function maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: aint): aint;
+      function maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: tcgint): tcgint;
       { truncate/sign extend after performing operations on values < 32 bit
         that may have overflowed outside the range }
       procedure maybe_adjust_op_result(list: TAsmList; op: TOpCg; size: tdef);
@@ -170,14 +181,13 @@ uses
         slots used for parameters and the provided resultdef }
       procedure g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
 
-
       property maxevalstackheight: longint read fmaxevalstackheight;
 
       procedure gen_initialize_fields_code(list:TAsmList);
 
       procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
      protected
-      procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : aint; typ: TRegisterType; legalize_const: boolean);
+      procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
 
       function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
 
@@ -202,11 +212,11 @@ uses
       { return the load/store opcode to load/store from/to ref; if the result
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
-      function loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
+      function loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
       { return the load/store opcode to load/store from/to reg; if the result
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
-      function loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: aint): tasmop;
+      function loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
       procedure resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
       { in case of an OS_32 OP_DIV, we have to use an OS_S64 OP_IDIV because the
         JVM does not support unsigned divisions }
@@ -294,7 +304,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: aint; const cgpara: TCGPara);
+  procedure thlcgjvm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
       tosize:=get_para_push_size(tosize);
       if tosize=s8inttype then
@@ -321,7 +331,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : aint; typ: TRegisterType; legalize_const: boolean);
+  procedure thlcgjvm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
     begin
       if legalize_const and
          (typ=R_INTREGISTER) and
@@ -340,7 +350,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.a_load_const_stack(list : TAsmList;size : tdef;a : aint; typ: TRegisterType);
+  procedure thlcgjvm.a_load_const_stack(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType);
     const
       int2opc: array[-1..5] of tasmop = (a_iconst_m1,a_iconst_0,a_iconst_1,
         a_iconst_2,a_iconst_3,a_iconst_4,a_iconst_5);
@@ -526,7 +536,7 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: aint);
+  procedure thlcgjvm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
     var
       trunc32: boolean;
     begin
@@ -845,11 +855,11 @@ implementation
           OS_32,OS_S32:
             a_op_const_stack(list,OP_XOR,size,cardinal($80000000));
           OS_64,OS_S64:
-            a_op_const_stack(list,OP_XOR,size,aint($8000000000000000));
+            a_op_const_stack(list,OP_XOR,size,tcgint($8000000000000000));
         end;
       end;
 
-    function thlcgjvm.maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: aint): aint;
+    function thlcgjvm.maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: tcgint): tcgint;
       begin
         result:=a;
         { use cmp_op because eventually that's what indicates the
@@ -861,7 +871,7 @@ implementation
           OS_32,OS_S32:
             result:=a xor cardinal($80000000);
           OS_64,OS_S64:
-            result:=a xor aint($8000000000000000);
+            result:=a xor tcgint($8000000000000000);
         end;
       end;
 
@@ -1046,13 +1056,13 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);
+  procedure thlcgjvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
       a_load_const_stack(list,tosize,a,def2regtyp(tosize));
       a_load_stack_reg(list,tosize,register);
     end;
 
-  procedure thlcgjvm.a_load_const_ref(list: TAsmList; tosize: tdef; a: aint; const ref: treference);
+  procedure thlcgjvm.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
       extra_slots: longint;
     begin
@@ -1117,19 +1127,19 @@ implementation
       a_load_ref_reg(list,java_jlobject,java_jlobject,ref,r);
     end;
 
-  procedure thlcgjvm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister);
+  procedure thlcgjvm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
     begin
       a_op_const_reg_reg(list,op,size,a,reg,reg);
     end;
 
-  procedure thlcgjvm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: aint; src, dst: tregister);
+  procedure thlcgjvm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
       a_load_reg_stack(list,size,src);
       a_op_const_stack(list,op,size,a);
       a_load_stack_reg(list,size,dst);
     end;
 
-  procedure thlcgjvm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; const ref: TReference);
+  procedure thlcgjvm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     var
       extra_slots: longint;
     begin
@@ -1164,7 +1174,106 @@ implementation
       a_op_reg_reg_reg(list,op,size,reg1,reg2,reg2);
     end;
 
-  procedure thlcgjvm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
+  procedure thlcgjvm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      tmpreg: tregister;
+    begin
+      if not setflags then
+        begin
+          inherited;
+          exit;
+        end;
+      tmpreg:=getintregister(list,size);
+      a_load_const_reg(list,size,a,tmpreg);
+      a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,true,ovloc);
+    end;
+
+  procedure thlcgjvm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      orgsrc1, orgsrc2: tregister;
+      docheck: boolean;
+      lab: tasmlabel;
+    begin
+      if not setflags then
+        begin
+          inherited;
+          exit;
+        end;
+      { anything else cannot overflow }
+      docheck:=size.size in [4,8];
+      if docheck then
+        begin
+          orgsrc1:=src1;
+          orgsrc2:=src2;
+          if src1=dst then
+            begin
+              orgsrc1:=getintregister(list,size);
+              a_load_reg_reg(list,size,size,src1,orgsrc1);
+            end;
+          if src2=dst then
+            begin
+              orgsrc2:=getintregister(list,size);
+              a_load_reg_reg(list,size,size,src2,orgsrc2);
+            end;
+        end;
+      a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+      if docheck then
+        begin
+          { * signed overflow for addition iff
+             - src1 and src2 are negative and result is positive (excep in case of
+               subtraction, then sign of src1 has to be inverted)
+             - src1 and src2 are positive and result is negative
+              -> Simplified boolean equivalent (in terms of sign bits):
+                 not(src1 xor src2) and (src1 xor dst)
+
+             for subtraction, multiplication: invert src1 sign bit
+             for division: handle separately (div by zero, low(inttype) div -1),
+               not supported by this code
+
+            * unsigned overflow iff carry out, aka dst < src1 or dst < src2
+          }
+          location_reset(ovloc,LOC_REGISTER,OS_S32);
+          { not pasbool8, because then we'd still have to convert the integer to
+            a boolean via branches for Dalvik}
+          ovloc.register:=getintregister(list,s32inttype);
+          if not ((size.typ=pointerdef) or
+                 ((size.typ=orddef) and
+                  (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                            pasbool8,pasbool16,pasbool32,pasbool64]))) then
+            begin
+              a_load_reg_stack(list,size,src1);
+              if op in [OP_SUB,OP_IMUL] then
+                a_op_stack(list,OP_NOT,size,false);
+              a_op_reg_stack(list,OP_XOR,size,src2);
+              a_op_stack(list,OP_NOT,size,false);
+              a_load_reg_stack(list,size,src1);
+              a_op_reg_stack(list,OP_XOR,size,dst);
+              a_op_stack(list,OP_AND,size,false);
+              a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
+              if size.size=8 then
+                begin
+                  list.concat(taicpu.op_none(a_l2i));
+                  decstack(list,1);
+                end;
+            end
+          else
+            begin
+              a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+              current_asmdata.getjumplabel(lab);
+              { can be optimized by removing duplicate xor'ing to convert dst from
+                signed to unsigned quadrant }
+              a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
+              a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
+              a_op_const_stack(list,OP_XOR,s32inttype,1);
+              a_label(list,lab);
+            end;
+          a_load_stack_reg(list,s32inttype,ovloc.register);
+        end
+      else
+        ovloc.loc:=LOC_VOID;
+    end;
+
+  procedure thlcgjvm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     begin
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
@@ -1173,7 +1282,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+  procedure thlcgjvm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
@@ -1468,7 +1577,6 @@ implementation
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
       retdef: tdef;
-      cgsize: tcgsize;
       opc: tasmop;
     begin
       if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
@@ -1620,6 +1728,24 @@ implementation
       // do nothing
     end;
 
+  procedure thlcgjvm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
+    begin
+      { not possible, need the original operands }
+      internalerror(2012102101);
+    end;
+
+  procedure thlcgjvm.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
+    var
+      hl : tasmlabel;
+    begin
+      if not(cs_check_overflow in current_settings.localswitches) then
+        exit;
+      current_asmdata.getjumplabel(hl);
+      a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
+      g_call_system_proc(list,'fpc_overflow',nil);
+      a_label(list,hl);
+    end;
+
   procedure thlcgjvm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
     var
       tmploc: tlocation;
@@ -1756,9 +1882,39 @@ implementation
       internalerror(2012090201);
     end;
 
-  procedure thlcgjvm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tcgsize; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+  procedure thlcgjvm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012090202);
+    end;
+
+  procedure thlcgjvm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060130);
+    end;
+
+  procedure thlcgjvm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060131);
+    end;
+
+  procedure thlcgjvm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060132);
+    end;
+
+  procedure thlcgjvm.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060133);
+    end;
+
+  procedure thlcgjvm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060134);
+    end;
+
+  procedure thlcgjvm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tdef; mmreg, intreg: tregister; shuffle: pmmshuffle);
+    begin
+      internalerror(2012060135);
     end;
 
   procedure thlcgjvm.g_stackpointer_alloc(list: TAsmList; size: longint);
@@ -1784,7 +1940,7 @@ implementation
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
-      finishandval: aint;
+      finishandval: tcgint;
     begin
       opc:=loadstoreopc(size,false,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
@@ -1797,7 +1953,7 @@ implementation
   procedure thlcgjvm.a_load_stack_ref(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
     var
       opc: tasmop;
-      finishandval: aint;
+      finishandval: tcgint;
     begin
       { fake location that indicates the value has to remain on the stack }
       if ref.base=NR_EVAL_STACK_BASE then
@@ -1816,7 +1972,7 @@ implementation
   procedure thlcgjvm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
-      finishandval: aint;
+      finishandval: tcgint;
     begin
       opc:=loadstoreopc(size,true,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
@@ -1831,7 +1987,7 @@ implementation
   procedure thlcgjvm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
     var
       opc: tasmop;
-      finishandval: aint;
+      finishandval: tcgint;
     begin
       { fake location that indicates the value is already on the stack? }
       if (ref.base=NR_EVAL_STACK_BASE) then
@@ -1851,7 +2007,7 @@ implementation
         gen_typecheck(list,a_checkcast,size);
     end;
 
-  function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
+  function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
     const
                      { isload  static }
       getputopc: array[boolean,boolean] of tasmop =
@@ -1882,7 +2038,7 @@ implementation
         result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
     end;
 
-  function thlcgjvm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: aint): tasmop;
+  function thlcgjvm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
     var
       size: longint;
     begin

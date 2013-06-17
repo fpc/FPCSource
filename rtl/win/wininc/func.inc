@@ -256,6 +256,7 @@ function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; e
 function FileTimeToDosDateTime(lpFileTime:LPFILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
+function GetTickCount64:ULONGLONG; external 'kernel32' name 'GetTickCount64';
 function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
 function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
 function CreatePipe(hReadPipe:PHANDLE; hWritePipe:PHANDLE; lpPipeAttributes:LPSECURITY_ATTRIBUTES; nSize:DWORD):WINBOOL; external 'kernel32' name 'CreatePipe';
@@ -500,8 +501,8 @@ function GetCapture:HWND; external 'user32' name 'GetCapture';
 function SetCapture(hWnd:HWND):HWND; external 'user32' name 'SetCapture';
 function ReleaseCapture:WINBOOL; external 'user32' name 'ReleaseCapture';
 function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD; external 'user32' name 'MsgWaitForMultipleObjects';
-function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT; external 'user32' name 'SetTimer';
-function KillTimer(hWnd:HWND; uIDEvent:UINT):WINBOOL; external 'user32' name 'KillTimer';
+function SetTimer(hWnd:HWND; nIDEvent:UINT_PTR; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT_PTR; external 'user32' name 'SetTimer';
+function KillTimer(hWnd:HWND; uIDEvent:UINT_PTR):WINBOOL; external 'user32' name 'KillTimer';
 function IsWindowUnicode(hWnd:HWND):WINBOOL; external 'user32' name 'IsWindowUnicode';
 function EnableWindow(hWnd:HWND; bEnable:WINBOOL):WINBOOL; external 'user32' name 'EnableWindow';
 function IsWindowEnabled(hWnd:HWND):WINBOOL; external 'user32' name 'IsWindowEnabled';
@@ -1286,14 +1287,14 @@ function GetMenuBarInfo(_hwnd:HWND; idObject:longint; idItem:longint; pmbi:LPMEN
 
 function Internal_MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreenX, ptScreenY : LONG):longint; external 'user32' name 'MenuItemFromPoint';
 
-function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; {external 'user32' name 'MenuItemFromPoint';}
+function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint;
 begin
   MenuItemFromPoint:=Internal_MenuItemFromPoint(hWnd, hMenu, ptScreen.X, ptScreen.Y);
 end;
 
 function Internal_DragDetect(hwnd:HWND; ptX, ptY : LONG):WINBOOL; external 'user32' name 'DragDetect';
 
-function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; {external 'user32' name 'DragDetect';}
+function DragDetect(hwnd:HWND; pt:POINT):WINBOOL;
 begin
   DragDetect:=Internal_DragDetect(hWnd, pt.X, pt.Y);
 end;
@@ -1333,7 +1334,7 @@ end;
 
 function Internal_LBItemFromPt(hLB:HWND; ptX, ptY : LONG; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
 
-function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; { external 'comctl32' name 'LBItemFromPt';}
+function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint;
 begin
   LBItemFromPt:=Internal_LBItemFromPt(hLB, pt.X, pt.Y, bAutoScroll);
 end;
@@ -1421,7 +1422,7 @@ end;
 
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
 begin
-  Animate_Create:=CreateWindow(LPCSTR(ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
+  Animate_Create:=CreateWindow(LPCTSTR(ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
 end;
 
 

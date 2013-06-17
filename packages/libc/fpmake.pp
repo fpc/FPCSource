@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

@@ -29,7 +29,7 @@ type
 
   TltvInitTablesTable = packed record
     count  : dword;
-    tables : packed array [1..32767] of pltvInitEntry;
+    tables : packed array [1..{$ifdef cpu16}16{$else}32767{$endif}] of pltvInitEntry;
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;
 
@@ -50,7 +50,7 @@ end;
 
 procedure init_all_unit_threadvars;
 var
-  i : integer;
+  i : longint;
 begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
@@ -84,7 +84,7 @@ end;
 
 procedure copy_all_unit_threadvars;
 var
-  i : integer;
+  i: longint;
 begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
@@ -100,7 +100,7 @@ begin
   end;
 end;
 
-procedure InitThreadVars(RelocProc : Pointer);
+procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 
 begin
    { initialize threadvars }

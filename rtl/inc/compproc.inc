@@ -40,7 +40,7 @@ procedure fpc_zeromem(p:pointer;len:ptruint);compilerproc;
 procedure fpc_fillmem(out data;len:ptruint;b : byte);compilerproc;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer); compilerproc;
+procedure fpc_shortstr_assign(len:{$ifdef cpu16}smallint{$else}longint{$endif};sstr,dstr:pointer); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
@@ -125,6 +125,25 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
     procedure fpc_UnicodeStr_int64(v : int64;len : SizeInt;out s : UnicodeString); compilerproc;
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU64}
+{$if defined(CPU16) or defined(CPU8)}
+  procedure fpc_shortstr_longword(v : longword;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_shortstr_longint(v : longint;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_chararray_longword(v : longword;len : SizeInt;out a : array of char); compilerproc;
+  procedure fpc_chararray_longint(v : longint;len : SizeInt;out a : array of char); compilerproc;
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  procedure fpc_ansistr_longword(v : longword;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  procedure fpc_ansistr_longint(v : longint;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_widestr_longword(v : longword;len : SizeInt;out s : widestring); compilerproc;
+    procedure fpc_widestr_longint(v : longint;len : SizeInt;out s : widestring); compilerproc;
+    {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_UnicodeStr_longword(v : longword;len : SizeInt;out s : UnicodeString); compilerproc;
+    procedure fpc_UnicodeStr_longint(v : longint;len : SizeInt;out s : UnicodeString); compilerproc;
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$endif CPU16 or CPU8}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     {$ifndef FPUNONE}
@@ -211,6 +230,24 @@ Function fpc_Val_int64_UnicodeStr (Const S : UnicodeString; out Code : ValSInt):
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+Function fpc_val_longint_shortstr(Const S: ShortString; out Code: ValSInt): LongInt; compilerproc;
+Function fpc_val_longword_shortstr(Const S: ShortString; out Code: ValSInt): LongWord; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_Val_longword_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongWord;compilerproc;
+Function fpc_Val_longint_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongInt; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_longword_WideStr (Const S : WideString; out Code : ValSInt): LongWord; compilerproc;
+Function fpc_Val_longint_WideStr (Const S : WideString; out Code : ValSInt): LongInt; compilerproc;
+{$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_longword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongWord; compilerproc;
+Function fpc_Val_longint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongInt; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$endif CPU16 or CPU8}
+
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
@@ -232,13 +269,7 @@ Function fpc_CharArray_To_AnsiStr(const arr: array of AnsiChar; {$ifdef FPC_HAS_
 procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByteString)compilerproc;
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
-Procedure fpc_AnsiStr_CheckRange(p : Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
+Procedure fpc_AnsiStr_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
@@ -273,13 +304,7 @@ procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString
 procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
-Procedure fpc_WideStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
+Procedure fpc_WideStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
@@ -323,13 +348,7 @@ procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: Ra
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
-{$ifdef VER2_4}
-// obsolete but needed for bootstrapping with 2.4
-Procedure fpc_UnicodeStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt); compilerproc;
-{$else VER2_4}
-Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
-{$endif VER2_4}
+Procedure fpc_UnicodeStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
@@ -376,6 +395,12 @@ procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerpr
 procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); compilerproc;
 procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); compilerproc;
 {$endif CPU64}
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_write_text_longword(len : longint;var t : text;q : longword); compilerproc;
+procedure fpc_write_text_longint(len : longint;var t : text;i : longint); compilerproc;
+procedure fpc_write_text_longword_iso(len : longint;var t : text;q : longword); compilerproc;
+procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); compilerproc;
+{$endif CPU16 or CPU8}
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 Procedure fpc_Write_Text_Float_Iso(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
@@ -394,26 +419,26 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 
 { all var rather than out, because they must not be trashed/finalized as they
   can appear inside the other arguments of writerstr }
-function fpc_SetupWriteStr_Shortstr(var s: shortstring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Shortstr(var ReadWriteStrText: text; var s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupWriteStr_Ansistr(var s: ansistring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupWriteStr_Unicodestr(var s: unicodestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Unicodestr(var ReadWriteStrText: text; var s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupWriteStr_Widestr(var s: widestring): PText; compilerproc;
+procedure fpc_SetupWriteStr_Widestr(var ReadWriteStrText: text; var s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
+procedure fpc_SetupReadStr_Shortstr(var ReadWriteStrText: text; const s: shortstring); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; compilerproc;
+procedure fpc_SetupReadStr_Ansistr(var ReadWriteStrText: text; const s: ansistring); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupReadStr_Unicodestr(const s: unicodestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unicodestring); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
+procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 { $endif FPC_HAS_FEATURE_TEXTIO}
 
@@ -461,16 +486,27 @@ procedure fpc_Read_Text_WideChar(var f : Text; out wc: widechar); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Read_Text_Char_Iso(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
+Procedure fpc_Read_Text_SInt_Iso(var f : Text; out l : ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
+Procedure fpc_Read_Text_UInt_Iso(var f : Text; out u : ValUInt); compilerproc;
 {$ifndef FPUNONE}
 Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
+Procedure fpc_Read_Text_Float_Iso(var f : Text; out v : ValReal); compilerproc;
 {$endif}
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); compilerproc;
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
+procedure fpc_Read_Text_Currency_Iso(var f : Text; out v : Currency); compilerproc;
 {$ifndef CPU64}
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
+procedure fpc_Read_Text_QWord_Iso(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
+procedure fpc_Read_Text_Int64_Iso(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
+{$if defined(CPU16) or defined(CPU8)}
+Procedure fpc_Read_Text_LongWord(var f : text; out q : longword); compilerproc;
+Procedure fpc_Read_Text_LongInt(var f : text; out i : longint); compilerproc;
+{$endif CPU16 or CPU8}
+function fpc_GetBuf(var f : Text) : pchar; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -551,7 +587,7 @@ procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: 
 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
+Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject; compilerproc;
 Procedure fpc_PopAddrStack; compilerproc;
 function fpc_PopObjectStack : TObject; compilerproc;
@@ -561,6 +597,7 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 function fpc_GetExceptionAddr : Pointer; compilerproc;
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
+function fpc_safecallcheck(res : hresult) : hresult; compilerproc; {$ifdef CPU86} register; {$endif}
 procedure fpc_doneexception; compilerproc;
 procedure fpc_raise_nested; compilerproc;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
@@ -570,13 +607,10 @@ procedure fpc_raise_nested; compilerproc;
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);compilerproc;
 procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compilerproc;
-{$endif FPC_HAS_FEATURE_OBJECTS}
 
-
-{$ifdef dummy}
-procedure fpc_check_object(obj:pointer); compilerproc;
+procedure fpc_check_object(_vmt:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
-{$endif dummy}
+{$endif FPC_HAS_FEATURE_OBJECTS}
 
 
 {$ifdef FPC_HAS_FEATURE_RTTI}
@@ -624,6 +658,9 @@ procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
 procedure fpc_iocheck; compilerproc;
+{$ifndef FPC_NO_GENERIC_STACK_CHECK}
+procedure fpc_stackcheck(stack_size:SizeUInt); compilerproc;
+{$endif}
 
 procedure fpc_InitializeUnits; compilerproc;
 // not generated by compiler, called directly in system unit
@@ -652,6 +689,9 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compiler
 function fpc_int64_to_double(i: int64): double; compilerproc;
 function fpc_qword_to_double(q: qword): double; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+{$ifdef FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
+function fpc_longword_to_double(i: longword): double; compilerproc;
+{$endif FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
 
-function fpc_setjmp(var s : jmp_buf) : longint; compilerproc;
-procedure fpc_longjmp(var s : jmp_buf; value : longint); compilerproc;
+function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$endif}; compilerproc;
+procedure fpc_longjmp(var s : jmp_buf; value : {$ifdef CPU16}smallint{$else}longint{$endif}); compilerproc;

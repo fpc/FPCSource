@@ -46,7 +46,7 @@ implementation
 
     procedure tsparccallnode.extra_post_call_code;
       begin
-        if paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
+        if paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
           current_asmdata.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.returndef.size and $fff));
       end;
 

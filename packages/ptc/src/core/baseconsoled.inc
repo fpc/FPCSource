@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -37,6 +37,10 @@ type
     function GetTitle: string;
     function GetInformation: string;
 
+    function GetOpenGL_Enabled: Boolean;
+    procedure SetOpenGL_Enabled(AValue: Boolean);
+    function GetOpenGL_Attributes: IPTCOpenGLAttributes;
+
     procedure Configure(const AFileName: string);
     function Modes: TPTCModeList;
     procedure Open(const ATitle: string; APages: Integer = 0); overload;
@@ -69,5 +73,12 @@ type
     property Name: string read GetName;
     property Title: string read GetTitle;
     property Information: string read GetInformation;
+
+    { OpenGL support }
+    property OpenGL_Enabled: Boolean read GetOpenGL_Enabled write SetOpenGL_Enabled;
+    property OpenGL_Attributes: IPTCOpenGLAttributes read GetOpenGL_Attributes;
+    procedure OpenGL_SwapBuffers;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer);
+    function OpenGL_GetSwapInterval: Integer;
   end;
 

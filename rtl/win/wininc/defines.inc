@@ -222,6 +222,9 @@
      DISP_CHANGE_FAILED = -(1);
      DISP_CHANGE_BADMODE = -(2);
      DISP_CHANGE_NOTUPDATED = -(3);
+     DISP_CHANGE_BADPARAM = -5;
+     DISP_CHANGE_BADDUALVIEW = -6;
+ 
   { ChangeServiceConfig  }
      SERVICE_NO_CHANGE = -(1);
      SERVICE_WIN32_OWN_PROCESS = 16;
@@ -1097,6 +1100,8 @@
      KEY_QUERY_VALUE = 1;
      KEY_READ = $20019;
      KEY_SET_VALUE = 2;
+     KEY_WOW64_64KEY = $0100;
+     KEY_WOW64_32KEY = $0200;
      KEY_WRITE = $20006;
      PROCESS_ALL_ACCESS = $1f0fff;
      PROCESS_CREATE_PROCESS = 128;
@@ -1183,6 +1188,10 @@
   { EnumProtocols  }
   { EnumResLangProc  }
 
+  // DEVMODE dmDisplayFixedOutput 
+     DMDFO_DEFAULT = 0;
+     DMDFO_STRETCH = 1;
+     DMDFO_CENTER  = 2;
 
   //
   // Predefined Resource Types
@@ -1705,6 +1714,7 @@
 
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
+     INVALID_FILE_SIZE    = DWORD(-1);
 
   { GetStockObject  }
 
@@ -2337,13 +2347,13 @@
      RDW_ALLCHILDREN = 128;
      RDW_NOCHILDREN = 64;
   { RegCreateKey  }
-     HKEY_CLASSES_ROOT = HKEY($80000000);
-     HKEY_CURRENT_USER = HKEY($80000001);
-     HKEY_LOCAL_MACHINE = HKEY($80000002);
-     HKEY_USERS = HKEY($80000003);
-     HKEY_PERFORMANCE_DATA = HKEY($80000004);
-     HKEY_CURRENT_CONFIG = HKEY($80000005);	
-     HKEY_DYN_DATA = HKEY($80000006);
+     HKEY_CLASSES_ROOT = HKEY(longint($80000000));
+     HKEY_CURRENT_USER = HKEY(longint($80000001));
+     HKEY_LOCAL_MACHINE = HKEY(longint($80000002));
+     HKEY_USERS = HKEY(longint($80000003));
+     HKEY_PERFORMANCE_DATA = HKEY(longint($80000004));
+     HKEY_CURRENT_CONFIG = HKEY(longint($80000005));
+     HKEY_DYN_DATA = HKEY(longint($80000006));
 
 Type
     SE_OBJECT_TYPE = (   // enum in Delphi apparantly.
@@ -3335,6 +3345,9 @@ Type
      DM_PAPERLENGTH = $4;
      DM_PAPERWIDTH = $8;
      DM_SCALE = $10;
+     DM_POSITION = $00000020;
+     DM_NUP = $00000040;
+
      DM_COPIES = $100;
      DM_DEFAULTSOURCE = $200;
      DM_PRINTQUALITY = $400;
@@ -3354,6 +3367,9 @@ Type
      DM_ICMINTENT = $1000000;
      DM_MEDIATYPE = $2000000;
      DM_DITHERTYPE = $4000000;
+     DM_PANNINGWIDTH = $08000000;
+     DM_PANNINGHEIGHT = $10000000;
+
      DMORIENT_PORTRAIT = 1;
      DMORIENT_LANDSCAPE = 2;
      DMPAPER_LETTER                        = 1  ; // US Letter 8 1/2 x 11 in

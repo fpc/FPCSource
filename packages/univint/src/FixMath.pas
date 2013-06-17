@@ -2,18 +2,12 @@
      File:       CarbonCore/FixMath.h
  
      Contains:   Fixed Math Interfaces.
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -200,7 +199,7 @@ const
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FixRatio( numer: SInt16; denom: SInt16 ): Fixed; external name '_FixRatio';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -212,7 +211,7 @@ function FixRatio( numer: SInt16; denom: SInt16 ): Fixed; external name '_FixRat
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FixMul( a: Fixed; b: Fixed ): Fixed; external name '_FixMul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -224,7 +223,7 @@ function FixMul( a: Fixed; b: Fixed ): Fixed; external name '_FixMul';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FixRound( x: Fixed ): SInt16; external name '_FixRound';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -236,7 +235,7 @@ function FixRound( x: Fixed ): SInt16; external name '_FixRound';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Fix2Frac( x: Fixed ): Fract; external name '_Fix2Frac';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -248,7 +247,7 @@ function Fix2Frac( x: Fixed ): Fract; external name '_Fix2Frac';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Fix2Long( x: Fixed ): SInt32; external name '_Fix2Long';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -260,7 +259,7 @@ function Fix2Long( x: Fixed ): SInt32; external name '_Fix2Long';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Long2Fix( x: SInt32 ): Fixed; external name '_Long2Fix';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -272,7 +271,7 @@ function Long2Fix( x: SInt32 ): Fixed; external name '_Long2Fix';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Frac2Fix( x: Fract ): Fixed; external name '_Frac2Fix';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -284,7 +283,7 @@ function Frac2Fix( x: Fract ): Fixed; external name '_Frac2Fix';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FracMul( x: Fract; y: Fract ): Fract; external name '_FracMul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -296,7 +295,7 @@ function FracMul( x: Fract; y: Fract ): Fract; external name '_FracMul';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FixDiv( x: Fixed; y: Fixed ): Fixed; external name '_FixDiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -308,7 +307,7 @@ function FixDiv( x: Fixed; y: Fixed ): Fixed; external name '_FixDiv';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FracDiv( x: Fract; y: Fract ): Fract; external name '_FracDiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -320,7 +319,7 @@ function FracDiv( x: Fract; y: Fract ): Fract; external name '_FracDiv';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FracSqrt( x: Fract ): Fract; external name '_FracSqrt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -332,7 +331,7 @@ function FracSqrt( x: Fract ): Fract; external name '_FracSqrt';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FracSin( x: Fixed ): Fract; external name '_FracSin';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -344,7 +343,7 @@ function FracSin( x: Fixed ): Fract; external name '_FracSin';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FracCos( x: Fixed ): Fract; external name '_FracCos';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -356,7 +355,7 @@ function FracCos( x: Fixed ): Fract; external name '_FracCos';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FixATan2( x: SInt32; y: SInt32 ): Fixed; external name '_FixATan2';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -377,7 +376,7 @@ function FixATan2( x: SInt32; y: SInt32 ): Fixed; external name '_FixATan2';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Frac2X( x: Fract ): Float64; external name '_Frac2X';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -389,7 +388,7 @@ function Frac2X( x: Fract ): Float64; external name '_Frac2X';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Fix2X( x: Fixed ): Float64; external name '_Fix2X';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -401,7 +400,7 @@ function Fix2X( x: Fixed ): Float64; external name '_Fix2X';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function X2Fix( x: Float64 ): Fixed; external name '_X2Fix';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -413,7 +412,7 @@ function X2Fix( x: Float64 ): Fixed; external name '_X2Fix';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function X2Frac( x: Float64 ): Fract; external name '_X2Frac';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -437,7 +436,7 @@ function X2Frac( x: Float64 ): Fract; external name '_X2Frac';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideCompare( const (*var*) target: wide; const (*var*) source: wide ): SInt16; external name '_WideCompare';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -464,7 +463,7 @@ function WideCompare( const (*var*) target: wide; const (*var*) source: wide ): 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideAdd( var target: wide; const (*var*) source: wide ): widePtr; external name '_WideAdd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -491,7 +490,7 @@ function WideAdd( var target: wide; const (*var*) source: wide ): widePtr; exter
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideSubtract( var target: wide; const (*var*) source: wide ): widePtr; external name '_WideSubtract';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -514,7 +513,7 @@ function WideSubtract( var target: wide; const (*var*) source: wide ): widePtr; 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideNegate( var target: wide ): widePtr; external name '_WideNegate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -539,7 +538,7 @@ function WideNegate( var target: wide ): widePtr; external name '_WideNegate';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideShift( var target: wide; shift: SInt32 ): widePtr; external name '_WideShift';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -563,7 +562,7 @@ function WideShift( var target: wide; shift: SInt32 ): widePtr; external name '_
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideSquareRoot( const (*var*) source: wide ): UInt32; external name '_WideSquareRoot';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -591,7 +590,7 @@ function WideSquareRoot( const (*var*) source: wide ): UInt32; external name '_W
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideMultiply( multiplicand: SInt32; multiplier: SInt32; var target: wide ): widePtr; external name '_WideMultiply';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -627,7 +626,7 @@ function WideMultiply( multiplicand: SInt32; multiplier: SInt32; var target: wid
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideDivide( const (*var*) dividend: wide; divisor: SInt32; var remainder: SInt32 ): SInt32; external name '_WideDivide';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -659,7 +658,7 @@ function WideDivide( const (*var*) dividend: wide; divisor: SInt32; var remainde
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideWideDivide( var dividend: wide; divisor: SInt32; var remainder: SInt32 ): widePtr; external name '_WideWideDivide';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -687,7 +686,7 @@ function WideWideDivide( var dividend: wide; divisor: SInt32; var remainder: SIn
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WideBitShift( var target: wide; shift: SInt32 ): widePtr; external name '_WideBitShift';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -699,7 +698,7 @@ function WideBitShift( var target: wide; shift: SInt32 ): widePtr; external name
  *    Non-Carbon CFM:   not available
  }
 function UnsignedFixedMulDiv( value: UnsignedFixed; multiplier: UnsignedFixed; divisor: UnsignedFixed ): UnsignedFixed; external name '_UnsignedFixedMulDiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

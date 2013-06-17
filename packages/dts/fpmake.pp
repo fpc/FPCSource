@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('dts');
 {$ifdef ALLPACKAGES}
-    P.Directory:='dts';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

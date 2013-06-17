@@ -1,8 +1,9 @@
 { CoreGraphics - CGDisplayConfiguration.h
-   Copyright (c) 2002-2009 Apple Inc.
+   Copyright (c) 2002-2011 Apple Inc.
    All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -180,10 +186,10 @@ uses MacTypes,CGBase,CGDirectDisplay,CGColorSpace,CGErrors,CFDictionary,CGGeomet
    requested layout, if needed. }
 
 type
-	CGDisplayConfigRef = ^SInt32; { an opaque type }
+	CGDisplayConfigRef = ^_CGDisplayConfigRef; { an opaque type }
+	_CGDisplayConfigRef = record end;
 
 {$ifc TARGET_OS_MAC}
-
 { Begin a new set of display configuration changes. This function creates a
    display configuration which provides a context for a set of display
    configuration changes. Use `CGCompleteDisplayConfiguration' to apply the
@@ -368,7 +374,7 @@ const
 type
 	CGDisplayChangeSummaryFlags = UInt32;
 
-{ A client-supplied callback function that’s invoked whenever the
+{ A client-supplied callback function thatís invoked whenever the
    configuration of a local display is changed. }
 
 type
@@ -506,8 +512,9 @@ function CGDisplayModelNumber( display: CGDirectDisplayID ): UInt32; external na
 { Return the serial number of a display's monitor. }
 
 function CGDisplaySerialNumber( display: CGDirectDisplayID ): UInt32; external name '_CGDisplaySerialNumber';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
-{ Returns the IOKit service port for a display device }
+{ Return the IOKit service port of a display. }
 // uncomment when IOKit translated:
 // function CGDisplayIOServicePort( display: CGDirectDisplayID ): io_service_t;
 // CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA);
@@ -528,7 +535,7 @@ function CGDisplayScreenSize( display: CGDirectDisplayID ): CGSize; external nam
 
 { Return the rotation angle of a display in degrees clockwise.
 
-   A display rotation of 90° implies the display is rotated clockwise 90°,
+   A display rotation of 90∞ implies the display is rotated clockwise 90∞,
    such that what was the physical bottom of the display is now the left
    side, and what was the physical top is now the right side.
 

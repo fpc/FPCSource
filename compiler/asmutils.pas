@@ -62,7 +62,7 @@ uses
         if NewSection then
           begin
             maybe_new_object_file(list);
-            new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
+            new_section(list,sec_rodata_norel,result.lab.name,const_align(sizeof(pint)));
           end;
         { put label before header on Darwin, because there the linker considers
           a global symbol to be the start of a new subsection }
@@ -105,7 +105,7 @@ uses
         current_asmdata.getdatalabel(result.lab);
         result.ofs:=0;
         maybe_new_object_file(list);
-        new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
+        new_section(list,sec_rodata_norel,result.lab.name,const_align(sizeof(pint)));
         strlength := getlengthwidestring(pcompilerwidestring(data));
         if Winlike then
           begin

@@ -31,6 +31,10 @@ end;
 Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
   xchgl %edx,%eax
+  testl %eax,%eax
+  jnz   .L1
+  incl  %eax
+.L1:
   movl Jmp_buf.ebx(%edx),%ebx
   movl Jmp_buf.esi(%edx),%esi
   movl Jmp_buf.edi(%edx),%edi

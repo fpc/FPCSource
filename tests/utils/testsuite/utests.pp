@@ -21,7 +21,7 @@ uses
 {$else not USE_FPCGI}
      cgiapp,
 {$endif not USE_FPCGI}
-     sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
+     sysutils,mysql55conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
@@ -128,6 +128,7 @@ Const
   OldTestResultsTableName = 'OLDTESTRESULTS';
   NewTestResultsTableName = 'TESTRESULTS';
   LastOldTestRun = 91178;
+  MaxLimit = 1000;
 
   Function TestResultsTableName(const RunId : String) : string;
   var
@@ -303,6 +304,8 @@ begin
   if Length(S) = 0 then
     S:=RequestVariables['TESTLIMIT'];
   FLimit:=StrToIntDef(S,50);
+  if FLimit > MaxLimit then
+    FLimit:=MaxLimit;
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
@@ -370,7 +373,7 @@ Function TTestSuite.ConnectToDB : Boolean;
 
 begin
   Result:=False;
-  FDB:=TMySQl50Connection.Create(Self);
+  FDB:=TMySQl55Connection.Create(Self);
   FDB.HostName:=DefHost;
   FDB.DatabaseName:=DefDatabase;
   FDB.UserName:=DefDBUser;
@@ -793,8 +796,8 @@ end;
 Procedure TTestSuite.ShowRunOverview;
 Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
-               'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
-               'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION as SvnCompRev,'+
+               'TV_VERSION as Version,count(*) as Count,'+
+               'TU_SVNCOMPILERREVISION as SvnCompRev,'+
                'TU_SVNRTLREVISION as SvnRTLRev,'+
                'TU_SVNPACKAGESREVISION as SvnPackRev,TU_SVNTESTSREVISION as SvnTestsRev,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
@@ -802,14 +805,10 @@ Const
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
                'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment %s '+
-              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION,TESTCATEGORY '+
-              'WHERE '+
-               '(TC_ID=TU_CPU_FK) AND '+
-               '(TO_ID=TU_OS_FK) AND '+
-               '(TV_ID=TU_VERSION_FK) AND '+
-               '(TCAT_ID=TU_CATEGORY_FK) AND '+
-               '(TR_TESTRUN_FK=TU_ID) '+
-               '%s '+
+              'FROM TESTRUN left join TESTCPU on (TC_ID=TU_CPU_FK) left join TESTOS on (TO_ID=TU_OS_FK) '+
+              'left join TESTVERSION on (TV_ID=TU_VERSION_FK) left join TESTCATEGORY on (TCAT_ID=TU_CATEGORY_FK) '+
+              'left join TESTRESULTS on (TR_TESTRUN_FK=TU_ID) '+
+              '%s'+
               'GROUP BY TU_ID '+
               'ORDER BY TU_ID DESC LIMIT %d';
 
@@ -845,7 +844,7 @@ begin
           'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
    else
      SC:='';
-   If GetCategoryName(FCategory)='All' then
+   If (FCategory='') or (GetCategoryName(FCategory)='All') then
      SC:=SC+', TCAT_NAME as Cat';
 
    A:=SDetailsURL;
@@ -853,6 +852,12 @@ begin
      A:=A+'&failedonly=1';
    If FNoSkipped then
      A:=A+'&noskipped=1';
+     
+  if S <> '' then
+  begin
+    Delete(S, 1, 4);
+    S:='WHERE '+ S + ' ';
+  end;
   Qry:=Format(SOverview,[SC,S,FLimit]);
   If FDebug then
     Writeln('Query : '+Qry);
@@ -1526,7 +1531,7 @@ Type
   PStatusLA = ^AStatusLA;
   PStatusDTA = ^AStatusDTA;
 Var
-  S,FL,cpu,version,os : String;
+  S,SS,FL,cpu,version,os : String;
   date : TDateTime;
   Qry : String;
   Base, Category : string;
@@ -1555,6 +1560,7 @@ Var
   Res : Boolean;
   ver : known_versions;
 begin
+  Res:=False;
   os_count:=nil;
   cpu_count:=nil;
   version_count:=nil;
@@ -1562,8 +1568,10 @@ begin
   ContentType:='text/html';
   EmitContentType;
   if (FTestFileID='') and (FTestFileName<>'') then
+  begin
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
      FTestFileName+'%''');
+  end;
   if FTestFileID<>'' then
     FTestFileName:=GetTestFileName(FTestFileID);
   if FTestFileName<>'' then
@@ -1596,6 +1604,16 @@ begin
         //EmitCheckBox('noskipped','1',FNoSkipped);
         Res:=true;
         EmitHistoryForm;
+        if FTestFileID = '' then
+          with FHTMLWriter do begin
+            HeaderStart(2);
+            if Trim(FTestFileName) <> '' then
+              Write(Format('Error: No test files matching "%s" found.', [FTestFileName]))
+            else
+              Write('Error: Please specify a test file.');
+            HeaderEnd(2);
+            Res:=False;
+          end;
       end;
     If Res then
       begin
@@ -1642,7 +1660,7 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
+      SS:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
         +', TR_SKIP As Skip,TR_RESULT  As Result'
       //S:='SELECT * '
         +',TC_NAME AS CPU, TV_VERSION AS Version, TO_NAME AS OS'
@@ -1655,12 +1673,16 @@ begin
         +',TU_SVNCOMPILERREVISION AS Compiler_rev'
         +',TU_SVNPACKAGESREVISION AS Packages_rev'
         +',TO_ID,TC_ID,TV_ID'
-        +' FROM TESTRUN '
-        +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
+        +' FROM TESTRESULTS '
+        +' LEFT JOIN TESTRUN ON  (TR_TESTRUN_FK=TU_ID)'
         +' LEFT JOIN TESTOS ON  (TU_OS_FK=TO_ID)'
         +' LEFT JOIN TESTCPU ON  (TU_CPU_FK=TC_ID)'
-        +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)'
-        +' WHERE  (TR_TEST_FK='+FTestFileID+')';
+        +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)';
+      S:='';
+      if FTestFileID<>'' then
+        S:=S+' AND (TR_TEST_FK='+FTestFileID+')';
+      if FRunID<>'' then
+        S:=S+' AND (TR_TESTRUN_FK='+FRunID+')';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
@@ -1740,9 +1762,19 @@ begin
       if FDATE<>0 then
         S:=S+' AND (TU_DATE >= '''+FormatDateTime('YYYY-MM-DD',FDate)+''')';
 
-      S:=S+' ORDER BY TU_ID DESC';
+      if S <> '' then
+      begin
+        Delete(S, 1, 4);
+        S:=SS + ' WHERE '+ S;
+      end
+      else
+        S:=SS;
+
+      S:=S+' ORDER BY TR_ID DESC';
       if FDATE=0 then
-        S:=S+' LIMIT '+IntToStr(FLimit);
+        S:=S+' LIMIT '+IntToStr(FLimit)
+      else
+        S:=S+' LIMIT '+IntToStr(MaxLimit);
       Qry:=S;
       If FDebug then
       begin
@@ -2140,16 +2172,19 @@ begin
               Write('After log.');
             Source:='';
             Try
-            Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
-            if Source<>'' then
+              if ftestfileid <> '' then
               begin
-                HeaderStart(2);
-                Write('Source:');
-                HeaderEnd(2);
-                PreformatStart;
-                system.Write(Source);
-                system.flush(output);
-                PreformatEnd;
+                Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
+                if Source<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Source:');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Source);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
               end;
             Finally
             Base:='trunk';
@@ -2194,9 +2229,7 @@ begin
             end;
              if FDebug then
               Write('After Source.');
-    end
-    else
-      Write(Format('No data for test file with ID: %s',[FTestFileID]));
+    end;
 
     end;
   if assigned(os_count) then

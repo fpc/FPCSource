@@ -51,7 +51,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
-       symsym,defutil,paramgr,fmodule,cpupi,
+       symsym,symtable,defutil,paramgr,fmodule,cpupi,
        rgobj,tgobj,rgcpu;
 
 
@@ -160,7 +160,7 @@ unit cgcpu;
                 if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
                   begin
                     templist.concat(cai_seh_directive.create_reg_offset(ash_savexmm,
-                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),
+                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),
                       href.offset+frame_offset));
                     inc(href.offset,tcgsize2size[OS_VECTOR]);
                   end;
@@ -289,17 +289,19 @@ unit cgcpu;
     procedure tcgx86_64.g_local_unwind(list: TAsmList; l: TAsmLabel);
       var
         para1,para2: tcgpara;
-        href:treference;
+        href: treference;
+        pd: tprocdef;
       begin
         if (target_info.system<>system_x86_64_win64) then
           begin
             inherited g_local_unwind(list,l);
             exit;
           end;
+        pd:=search_system_proc('_fpc_local_unwind');
         para1.init;
         para2.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,para1);
-        paramanager.getintparaloc(pocall_default,2,voidpointertype,para2);
+        paramanager.getintparaloc(pd,1,para1);
+        paramanager.getintparaloc(pd,2,para2);
         reference_reset_symbol(href,l,0,1);
         { TODO: using RSP is correct only while the stack is fixed!!
           (true now, but will change if/when allocating from stack is implemented) }

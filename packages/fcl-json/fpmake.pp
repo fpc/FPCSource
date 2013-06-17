@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-json');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-json';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Json interfacing, part of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
 

@@ -1,0 +1,51 @@
+#
+#   Makefile.fpc for Pascal lex/yacc
+#
+
+[package]
+name=lexyacc
+version=2.7.1
+
+[target]
+programs=plex pyacc
+units=lexlib yacclib
+
+[clean]
+units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
+      yaccbase yaccmsgs yaccclos yaccpars yacclook yaccsem yacclr0 yacctabl
+
+[compiler]
+options=-Sg
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+pyacc$(EXEEXT): pyacc.pas $(wildcard yacc*.pas)
+        $(COMPILER) pyacc.pas
+
+plex$(EXEEXT): plex.pas $(wildcard lex*.pas)
+        $(COMPILER) plex.pas
+
+lexlib$(PPUEXT): lexlib.pas
+
+yacclib$(PPUEXT): yacclib.pas
+
+ifdef UNIXHier
+CODPATH=$(INSTALL_PREFIX)/lib/fpc/lexyacc
+else
+CODPATH=$(INSTALL_BINDIR)
+endif
+
+install: fpc_install
+ifndef CROSSINSTALL
+        $(MKDIR) $(CODPATH)
+        $(COPY) yylex.cod yyparse.cod $(CODPATH)
+endif

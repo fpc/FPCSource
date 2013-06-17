@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('oggvorbis');
 {$ifdef ALLPACKAGES}
-    P.Directory:='oggvorbis';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

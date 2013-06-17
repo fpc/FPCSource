@@ -1090,11 +1090,16 @@ begin
 end;
 
 procedure TDebugController.Reset;
+var
+  old_reset : boolean;
 begin
   inherited Reset;
   { we need to free the executable
     if we want to recompile it }
+  old_reset:=reset_command;
+  reset_command:=true;
   SetExe('');
+  reset_command:=old_reset;
   NoSwitch:=false;
   { In case we have something that the compiler touched }
   If IDEApp.IsRunning then
@@ -3732,6 +3737,9 @@ begin
 {$endif def GDBWINDOW}
 end;
 
+const
+  Invalid_gdb_file_handle: boolean = false;
+
 
 procedure DoneDebugger;
 begin
@@ -3752,7 +3760,20 @@ begin
   If Use_gdb_file then
     begin
       Use_gdb_file:=false;
+{$IFOPT I+}
+  {$I-}
+  {$DEFINE REENABLE_I}
+{$ENDIF}
       Close(GDB_file);
+      if ioresult<>0 then
+        begin
+          { This handle seems to get lost for DJGPP
+            don't bother too much about this. }
+          Invalid_gdb_file_handle:=true;
+        end;
+{$IFDEF REENABLE_I}
+  {$I+}
+{$ENDIF}
     end;
   If IDEApp.IsRunning then
     PopStatus;
