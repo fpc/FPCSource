@@ -96,7 +96,7 @@ else
   EXEEXT=
   if [ "$libdir" == "" ]; then
     # Do not add /lib, if -print-search-dirs can be used
-    if [ CC_is_gxx -eq 1 ] ; then
+    if [ $CC_is_gcc -eq 1 ] ; then
       libdir=
     else
       libdir=/lib
