@@ -401,7 +401,7 @@ implementation
                  { variable. The start value also doesn't matter.          }
 
                  { loop var }
-                 get_used_regvars(right,usedregvars);
+                 get_used_regvars(left,usedregvars);
                  { loop body }
                  get_used_regvars(t2,usedregvars);
                  { end value (t1) is not necessary (it cannot be a regvar, }
@@ -818,6 +818,8 @@ implementation
          hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
 
          sync_regvars(false);
+         if temptovalue then
+           hlcg.a_reg_sync(current_asmdata.CurrAsmList,t1.location.register);
 
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
