@@ -4895,7 +4895,7 @@ Const
 
      MULTIKEYHELPA = record
           mkSize : DWORD;
-          mkKeylist : TCHAR;
+          mkKeylist : AnsiCHAR;
           szKeyphrase : array[0..0] of AnsiCHAR;
        end;
      tagMULTIKEYHELPA = MULTIKEYHELPA;
@@ -4904,7 +4904,7 @@ Const
 
      MULTIKEYHELPW = record
           mkSize : DWORD;
-          mkKeylist : TCHAR;
+          mkKeylist : WideCHAR;
           szKeyphrase : array[0..0] of WideCHAR;
        end;
      tagMULTIKEYHELPW = MULTIKEYHELPW;
@@ -6101,37 +6101,102 @@ Const
      TQUERYSERVICELOCKSTATUS = QUERY_SERVICE_LOCK_STATUS;
      PQUERYSERVICELOCKSTATUS = ^QUERY_SERVICE_LOCK_STATUS;
 
-     RASAMB = record
+     RASAMBA = record
           dwSize : DWORD;
           dwError : DWORD;
-          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of TCHAR;
+          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of AnsiCHAR;
           bLana : BYTE;
        end;
-     _RASAMB = RASAMB;
-     TRASAMB = RASAMB;
-     PRASAMB = ^RASAMB;
+     _RASAMBA = RASAMBA;
+     TRASAMBA = RASAMBA;
+     PRASAMBA = ^RASAMBA;
 
-     RASCONN = record
+     RASAMBW = record
+          dwSize : DWORD;
+          dwError : DWORD;
+          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of WideCHAR;
+          bLana : BYTE;
+       end;
+     _RASAMBW = RASAMBW;
+     TRASAMBW = RASAMBW;
+     PRASAMBW = ^RASAMBW;
+     {$ifdef Unicode}
+       _RASAMB = RASAMBW;
+       TRASAMB = RASAMBW;
+       PRASAMB = PRASAMBW;
+       RASAMB  = RASAMBW;
+     {$else}
+       _RASAMB = RASAMBA;
+       TRASAMB = RASAMBA;
+       RASAMB  = RASAMBA;
+       PRASAMB = PRASAMBA;
+     {$endif}
+
+     RASCONNA = record
           dwSize : DWORD;
           hrasconn : HRASCONN;
-          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of TCHAR;
-          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of CHAR;
-          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of CHAR;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of AnsiCHAR;
+          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of AnsiCHAR;
+          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of AnsiCHAR;
        end;
-     _RASCONN = RASCONN;
-     TRASCONN = RASCONN;
-     PRASCONN = ^RASCONN;
+     _RASCONNA = RASCONNA;
+     TRASCONNA = RASCONNA;
+     PRASCONNA = ^RASCONNA;
 
-     RASCONNSTATUS = record
+     RASCONNW = record
+          dwSize : DWORD;
+          hrasconn : HRASCONN;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of WideCHAR;
+          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of WideCHAR;
+          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of WideCHAR;
+       end;
+     _RASCONNW = RASCONNW;
+     TRASCONNW = RASCONNW;
+     PRASCONNW = ^RASCONNW;
+     {$ifdef Unicode}
+        _RASCONN = RASCONNW;
+        TRASCONN = RASCONNW;
+        PRASCONN = PRASCONNW;
+        RASCONN  = RASCONNW;
+     {$else}
+        _RASCONN = RASCONNA;
+        TRASCONN = RASCONNA;
+        PRASCONN = PRASCONNA;
+        RASCONN  = RASCONNA;
+     {$endif}
+
+     RASCONNSTATUSA = record
           dwSize : DWORD;
           rasconnstate : RASCONNSTATE;
           dwError : DWORD;
-          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of TCHAR;
-          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of TCHAR;
+          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of AnsiCHAR;
+          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of AnsiCHAR;
        end;
-     _RASCONNSTATUS = RASCONNSTATUS;
-     TRASCONNSTATUS = RASCONNSTATUS;
-     PRASCONNSTATUS = ^RASCONNSTATUS;
+     _RASCONNSTATUSA = RASCONNSTATUSA;
+     TRASCONNSTATUSA = RASCONNSTATUSA;
+     PRASCONNSTATUSA = ^RASCONNSTATUSA;
+
+     RASCONNSTATUSW = record
+          dwSize : DWORD;
+          rasconnstate : RASCONNSTATE;
+          dwError : DWORD;
+          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of WideCHAR;
+          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of WideCHAR;
+       end;
+     _RASCONNSTATUSW = RASCONNSTATUSW;
+     TRASCONNSTATUSW = RASCONNSTATUSW;
+     PRASCONNSTATUSW = ^RASCONNSTATUSW;
+     {$ifdef Unicode}
+       _RASCONNSTATUS = RASCONNSTATUSW;
+       TRASCONNSTATUS = RASCONNSTATUSW;
+       PRASCONNSTATUS = PRASCONNSTATUSW;
+       RASCONNSTATUS  = RASCONNSTATUSW;
+     {$else}
+       _RASCONNSTATUS = RASCONNSTATUSA;
+       TRASCONNSTATUS = RASCONNSTATUSA;
+       PRASCONNSTATUS = PRASCONNSTATUSA;
+       RASCONNSTATUS  = RASCONNSTATUSA;
+     {$endif}
 
      RASDIALEXTENSIONS = record
           dwSize : DWORD;
@@ -6143,57 +6208,163 @@ Const
      TRASDIALEXTENSIONS = RASDIALEXTENSIONS;
      PRASDIALEXTENSIONS = ^RASDIALEXTENSIONS;
 
-     RASDIALPARAMS = record
+     RASDIALPARAMSA = record
           dwSize : DWORD;
-          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of TCHAR;
-          szPhoneNumber : array[0..(RAS_MaxPhoneNumber + 1)-1] of TCHAR;
-          szCallbackNumber : array[0..(RAS_MaxCallbackNumber + 1)-1] of TCHAR;
-          szUserName : array[0..(UNLEN + 1)-1] of TCHAR;
-          szPassword : array[0..(PWLEN + 1)-1] of TCHAR;
-          szDomain : array[0..(DNLEN + 1)-1] of TCHAR;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of AnsiCHAR;
+          szPhoneNumber : array[0..(RAS_MaxPhoneNumber + 1)-1] of AnsiCHAR;
+          szCallbackNumber : array[0..(RAS_MaxCallbackNumber + 1)-1] of AnsiCHAR;
+          szUserName : array[0..(UNLEN + 1)-1] of AnsiCHAR;
+          szPassword : array[0..(PWLEN + 1)-1] of AnsiCHAR;
+          szDomain : array[0..(DNLEN + 1)-1] of AnsiCHAR;
        end;
-     _RASDIALPARAMS = RASDIALPARAMS;
-     TRASDIALPARAMS = RASDIALPARAMS;
-     PRASDIALPARAMS = ^RASDIALPARAMS;
+     _RASDIALPARAMSA = RASDIALPARAMSA;
+     TRASDIALPARAMSA = RASDIALPARAMSA;
+     PRASDIALPARAMSA = ^RASDIALPARAMSA;
 
-     RASENTRYNAME = record
+     RASDIALPARAMSW = record
           dwSize : DWORD;
-          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of TCHAR;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of WCHAR;
+          szPhoneNumber : array[0..(RAS_MaxPhoneNumber + 1)-1] of WCHAR;
+          szCallbackNumber : array[0..(RAS_MaxCallbackNumber + 1)-1] of WCHAR;
+          szUserName : array[0..(UNLEN + 1)-1] of WCHAR;
+          szPassword : array[0..(PWLEN + 1)-1] of WCHAR;
+          szDomain : array[0..(DNLEN + 1)-1] of WCHAR;
        end;
-     _RASENTRYNAME = RASENTRYNAME;
-     TRASENTRYNAME = RASENTRYNAME;
-     PRASENTRYNAME = ^RASENTRYNAME;
+     _RASDIALPARAMSW = RASDIALPARAMSW;
+     TRASDIALPARAMSW = RASDIALPARAMSW;
+     PRASDIALPARAMSW = ^RASDIALPARAMSW;
+     {$ifdef Unicode}
+        _RASDIALPARAMS = RASDIALPARAMSW;
+        TRASDIALPARAMS = RASDIALPARAMSW;
+        PRASDIALPARAMS = PRASDIALPARAMSW;
+        RASDIALPARAMS  = RASDIALPARAMSW;
+     {$else}
+        _RASDIALPARAMS = RASDIALPARAMSA;
+        TRASDIALPARAMS = RASDIALPARAMSA;
+        PRASDIALPARAMS = PRASDIALPARAMSA;
+        RASDIALPARAMS  = RASDIALPARAMSA;
+     {$endif}
 
-     RASPPPIP = record
+     RASENTRYNAMEA = record
+          dwSize : DWORD;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of AnsiCHAR;
+       end;
+     _RASENTRYNAMEA = RASENTRYNAMEA;
+     TRASENTRYNAMEA = RASENTRYNAMEA;
+     PRASENTRYNAMEA = ^RASENTRYNAMEA;
+
+     RASENTRYNAMEW = record
+          dwSize : DWORD;
+          szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of WCHAR;
+       end;
+     _RASENTRYNAMEW = RASENTRYNAMEW;
+     TRASENTRYNAMEW = RASENTRYNAMEW;
+     PRASENTRYNAMEW = ^RASENTRYNAMEW;
+     {$ifdef Unicode}
+         _RASENTRYNAME = RASENTRYNAMEW;
+         TRASENTRYNAME = RASENTRYNAMEW;
+         PRASENTRYNAME = ^RASENTRYNAMEW;
+         RASENTRYNAME  = RASENTRYNAMEW;
+     {$else}
+         _RASENTRYNAME = RASENTRYNAMEA;
+         TRASENTRYNAME = RASENTRYNAMEA;
+         PRASENTRYNAME = ^RASENTRYNAMEA;
+         RASENTRYNAME  = RASENTRYNAMEA;
+     {$endif}
+
+     RASPPPIPA = record
           dwSize : DWORD;
           dwError : DWORD;
-          szIpAddress : array[0..(RAS_MaxIpAddress + 1)-1] of TCHAR;
+          szIpAddress : array[0..(RAS_MaxIpAddress + 1)-1] of AnsiCHAR;
        end;
-     _RASPPPIP = RASPPPIP;
-     TRASPPPIP = RASPPPIP;
-     PRASPPPIP = ^RASPPPIP;
+     _RASPPPIPA = RASPPPIPA;
+     TRASPPPIPA = RASPPPIPA;
+     PRASPPPIPA = ^RASPPPIPA;
 
-     RASPPPIPX = record
+     RASPPPIPW = record
           dwSize : DWORD;
           dwError : DWORD;
-          szIpxAddress : array[0..(RAS_MaxIpxAddress + 1)-1] of TCHAR;
+          szIpAddress : array[0..(RAS_MaxIpAddress + 1)-1] of WCHAR;
        end;
-     _RASPPPIPX = RASPPPIPX;
-     TRASPPPIPX = RASPPPIPX;
-     PRASPPPIPX = ^RASPPPIPX;
+     _RASPPPIPW = RASPPPIPW;
+     TRASPPPIPW = RASPPPIPW;
+     PRASPPPIPW = ^RASPPPIPW;
+     {$ifdef Unicode}
+        _RASPPPIP  = RASPPPIPW;
+        TRASPPPIP  = RASPPPIPW;
+        PRASPPPIP  = PRASPPPIPW;
+        RASPPPIP   = RASPPPIPW;
+     {$else}
+        _RASPPPIP  = RASPPPIPA;
+        TRASPPPIP  = RASPPPIPA;
+        PRASPPPIP  = PRASPPPIPA;
+        RASPPPIP   = RASPPPIPA;
+     {$endif}
 
-     RASPPPNBF = record
+     RASPPPIPXA = record
+          dwSize : DWORD;
+          dwError : DWORD;
+          szIpxAddress : array[0..(RAS_MaxIpxAddress + 1)-1] of AnsiCHAR;
+       end;
+     _RASPPPIPXA = RASPPPIPXA;
+     TRASPPPIPXA = RASPPPIPXA;
+     PRASPPPIPXA = ^RASPPPIPXA;
+
+     RASPPPIPXW = record
+          dwSize : DWORD;
+          dwError : DWORD;
+          szIpxAddress : array[0..(RAS_MaxIpxAddress + 1)-1] of WCHAR;
+       end;
+     _RASPPPIPXW = RASPPPIPXW;
+     TRASPPPIPXW = RASPPPIPXW;
+     PRASPPPIPXW = ^RASPPPIPXW;
+
+     {$ifdef Unicode}
+        _RASPPPIPX  = RASPPPIPXW;
+        TRASPPPIPX  = RASPPPIPXW;
+        PRASPPPIPX  = PRASPPPIPXW;
+        RASPPPIPX   = RASPPPIPXW;
+     {$else}
+        _RASPPPIPX  = RASPPPIPXA;
+        TRASPPPIPX  = RASPPPIPXA;
+        PRASPPPIPX  = PRASPPPIPXA;
+        RASPPPIPX   = RASPPPIPXA;
+      {$endif}
+
+     RASPPPNBFA = record
           dwSize : DWORD;
           dwError : DWORD;
           dwNetBiosError : DWORD;
-          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of TCHAR;
-          szWorkstationName : array[0..(NETBIOS_NAME_LEN + 1)-1] of TCHAR;
+          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of AnsiCHAR;
+          szWorkstationName : array[0..(NETBIOS_NAME_LEN + 1)-1] of AnsiCHAR;
           bLana : BYTE;
        end;
-     _RASPPPNBF = RASPPPNBF;
-     TRASPPPNBF = RASPPPNBF;
-     PRASPPPNBF = ^RASPPPNBF;
+     _RASPPPNBFA = RASPPPNBFA;
+     TRASPPPNBFA = RASPPPNBFA;
+     PRASPPPNBFA = ^RASPPPNBFA;
 
+     RASPPPNBFW = record
+          dwSize : DWORD;
+          dwError : DWORD;
+          dwNetBiosError : DWORD;
+          szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of WCHAR;
+          szWorkstationName : array[0..(NETBIOS_NAME_LEN + 1)-1] of WCHAR;
+          bLana : BYTE;
+       end;
+     _RASPPPNBFW = RASPPPNBFW;
+     TRASPPPNBFW = RASPPPNBFW;
+     PRASPPPNBFW = ^RASPPPNBFW;
+     {$ifdef Unicode}
+        _RASPPPNBF  = RASPPPNBFW;
+        TRASPPPNBF  = RASPPPNBFW;
+        PRASPPPNBF  = PRASPPPNBFW;
+        RASPPPNBF   = RASPPPNBFW;
+     {$else}
+        _RASPPPNBF  = RASPPPNBFA;
+        TRASPPPNBF  = RASPPPNBFA;
+        PRASPPPNBF  = PRASPPPNBFA;
+        RASPPPNBF   = RASPPPNBFA;
+     {$endif}
      RASTERIZER_STATUS = record
           nSize : short;
           wFlags : short;
@@ -6267,7 +6438,7 @@ Const
 
      RGNDATA = record
           rdh : RGNDATAHEADER;
-          Buffer : array[0..0] of char;
+          Buffer : array[0..0] of Ansichar;
        end;
      LPRGNDATA = ^RGNDATA;
      _RGNDATA = RGNDATA;
@@ -7045,7 +7216,7 @@ Const
      TVSFIXEDFILEINFO = VS_FIXEDFILEINFO;
      PVSFIXEDFILEINFO = ^VS_FIXEDFILEINFO;
 
-     WIN32_FIND_DATA = record
+     WIN32_FIND_DATAA = record
           dwFileAttributes : DWORD;
           ftCreationTime : FILETIME;
           ftLastAccessTime : FILETIME;
@@ -7054,16 +7225,15 @@ Const
           nFileSizeLow : DWORD;
           dwReserved0 : DWORD;
           dwReserved1 : DWORD;
-          cFileName : array[0..(MAX_PATH)-1] of TCHAR;
-          cAlternateFileName : array[0..13] of TCHAR;
+          cFileName : array[0..(MAX_PATH)-1] of AnsiCHAR;
+          cAlternateFileName : array[0..13] of AnsiCHAR;
        end;
-     LPWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-     PWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-     _WIN32_FIND_DATA = WIN32_FIND_DATA;
-     TWIN32FINDDATA = WIN32_FIND_DATA;
-     TWIN32FINDDATAA = WIN32_FIND_DATA;
-     WIN32FINDDATAA = WIN32_FIND_DATA;
-     PWIN32FINDDATA = ^WIN32_FIND_DATA;
+     LPWIN32_FIND_DATAA = ^WIN32_FIND_DATAA;
+     PWIN32_FIND_DATAA = ^WIN32_FIND_DATAA;
+     _WIN32_FIND_DATAA = WIN32_FIND_DATAA;
+     TWIN32FINDDATAA = WIN32_FIND_DATAA;
+     WIN32FINDDATAA = WIN32_FIND_DATAA;
+     PWIN32FINDDATAA = ^WIN32_FIND_DATAA;
 
      WIN32_FIND_DATAW = record
           dwFileAttributes : DWORD;
@@ -7083,6 +7253,23 @@ Const
      TWIN32FINDDATAW = WIN32_FIND_DATAW;
      PWIN32FINDDATAW = ^WIN32_FIND_DATAW;
 
+     {$ifdef Unicode}
+        LPWIN32_FIND_DATA = PWIN32_FIND_DATAW;
+        PWIN32_FIND_DATA  = PWIN32_FIND_DATAW;
+        _WIN32_FIND_DATA  = WIN32_FIND_DATAW;
+        WIN32_FIND_DATA   = WIN32_FIND_DATAW;
+        TWIN32FINDDATA    = WIN32_FIND_DATAW;
+        WIN32FINDDATA     = WIN32_FIND_DATAW;
+        PWIN32FINDDATA    = PWIN32_FIND_DATAW;
+     {$else}
+        LPWIN32_FIND_DATA = PWIN32_FIND_DATAA;
+        PWIN32_FIND_DATA  = PWIN32_FIND_DATAA;
+        _WIN32_FIND_DATA  = WIN32_FIND_DATAA;
+        WIN32_FIND_DATA   = WIN32_FIND_DATAA;
+        TWIN32FINDDATA    = WIN32_FIND_DATAA;
+        WIN32FINDDATA     = WIN32_FIND_DATAA;
+        PWIN32FINDDATA    = PWIN32_FIND_DATAA;
+     {$endif}
      WIN32_STREAM_ID = record
           dwStreamId : DWORD;
           dwStreamAttributes : DWORD;
