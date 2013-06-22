@@ -57,7 +57,6 @@ type
     procedure TestNonNullableParams;
     procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
-    procedure TestInt;
     procedure TestScript;
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
@@ -76,12 +75,13 @@ type
     procedure TestBlobSize;
 
     procedure TestLargeRecordSize;
+    procedure TestInt;
     procedure TestNumeric;
     procedure TestFloat;
+    procedure TestDate;
     procedure TestDateTime;       // bug 6925
     procedure TestString;
     procedure TestUnlVarChar;
-    procedure TestDate;
 
     procedure TestNullValues;
     procedure TestParamQuery;
@@ -231,30 +231,6 @@ begin
   end;
 end;
 
-procedure TTestFieldTypes.TestInt;
-
-var
-  i          : byte;
-
-begin
-  CreateTableWithFieldType(ftInteger,'INT');
-  TestFieldDeclaration(ftInteger,4);
-
-  for i := 0 to testIntValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testIntValues[i]) + ')');
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    Open;
-    for i := 0 to testIntValuesCount-1 do
-      begin
-      AssertEquals(testIntValues[i],fields[0].AsInteger);
-      Next;
-      end;
-    close;
-    end;
-end;
-
 procedure TTestFieldTypes.TestLargeRecordSize;
 
 begin
@@ -278,6 +254,56 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.CreateTableWithFieldType(ADatatype: TFieldType;
+  ASQLTypeDecl: string);
+begin
+  with TSQLDBConnector(DBConnector) do
+  begin
+    Connection.ExecuteDirect('create table FPDEV2 (FT ' +ASQLTypeDecl+ ')');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    CommitDDL;
+  end;
+end;
+
+procedure TTestFieldTypes.TestFieldDeclaration(ADatatype: TFieldType;
+  ADataSize: integer);
+begin
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Clear;
+    SQL.Add('select * from FPDEV2');
+    Open;
+    AssertEquals(1,FieldCount);
+    AssertTrue(CompareText('FT',fields[0].FieldName)=0);
+    AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
+    AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
+    Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestInt;
+
+var
+  i          : byte;
+
+begin
+  CreateTableWithFieldType(ftInteger,'INT');
+  TestFieldDeclaration(ftInteger,4);
+
+  for i := 0 to testIntValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testIntValues[i]) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testIntValuesCount-1 do
+      begin
+      AssertEquals(testIntValues[i],fields[0].AsInteger);
+      Next;
+      end;
+    close;
+    end;
+end;
 
 procedure TTestFieldTypes.TestNumeric;
 
@@ -356,6 +382,32 @@ begin
   end;
 end;
 
+procedure TTestFieldTypes.TestFloat;
+const
+  testValuesCount = 21;
+  testValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
+
+var
+  i          : byte;
+
+begin
+  CreateTableWithFieldType(ftFloat,'FLOAT');
+  TestFieldDeclaration(ftFloat,sizeof(double));
+
+  for i := 0 to testValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i],DBConnector.FormatSettings) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      AssertEquals(testValues[i],fields[0].AsFloat);
+      Next;
+      end;
+    close;
+    end;
+end;
 
 procedure TTestFieldTypes.TestString;
 
@@ -486,6 +538,73 @@ begin
 
 end;
 
+procedure TTestFieldTypes.TestDateTime;
+
+const
+  testValuesCount = 31;
+  testValues : Array[0..testValuesCount-1] of string = (
+    '2000-01-01',
+    '1999-12-31',
+    '2004-02-29',
+    '2004-03-01',
+    '1991-02-28',
+    '1991-03-01',
+    '1977-09-29',
+    '2000-01-01 10:00:00',
+    '2000-01-01 23:59:59',
+    '1994-03-06 11:54:30',
+    '2040-10-16',                   // MySQL 4.0 doesn't support datetimes before 1970 or after 2038
+    '2100-01-01 01:01:01',
+    '1903-04-02 01:04:02',
+    '1900-01-01',
+    '1899-12-31',
+    '1899-12-30',
+    '1899-12-29',
+    '1899-12-30 18:00:51',
+    '1899-12-30 04:00:51',
+    '1899-12-29 04:00:51',
+    '1899-12-29 18:00:51',
+    '1815-09-24 03:47:22',
+    '1800-03-30',
+    '1754-06-04',
+    '1650-05-10',                   // MS SQL 2005 doesn't support datetimes before 1753
+    '1400-02-03 12:21:53',
+    '1333-02-03 21:44:21',
+    '0904-04-12',
+    '0354-11-20 21:25:15',
+    '0199-07-09',
+    '0001-01-01'
+  );
+
+var
+  i : byte;
+
+begin
+  CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
+  TestFieldDeclaration(ftDateTime,8);
+
+  for i := 0 to testValuesCount-1 do
+    if SQLConnType=oracle then
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
+    else
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      if length(testValues[i]) < 12 then
+        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd', fields[0].AsDateTime, DBConnector.FormatSettings))
+      else
+        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd hh:mm:ss', fields[0].AsDateTime, DBConnector.FormatSettings));
+      Next;
+      end;
+    close;
+    end;
+end;
+
+
 procedure TTestFieldTypes.TestChangeBlob;
 
 var s : string;
@@ -580,100 +699,6 @@ begin
     begin
     Open;
     AssertEquals('Test deze blob',fields[0].AsString);
-    close;
-    end;
-end;
-
-
-procedure TTestFieldTypes.TestDateTime;
-
-const
-  testValuesCount = 31;
-  testValues : Array[0..testValuesCount-1] of string = (
-    '2000-01-01',
-    '1999-12-31',
-    '2004-02-29',
-    '2004-03-01',
-    '1991-02-28',
-    '1991-03-01',
-    '1977-09-29',
-    '2000-01-01 10:00:00',
-    '2000-01-01 23:59:59',
-    '1994-03-06 11:54:30',
-    '2040-10-16',                   // MySQL 4.0 doesn't support datetimes before 1970 or after 2038
-    '2100-01-01 01:01:01',
-    '1903-04-02 01:04:02',
-    '1900-01-01',
-    '1899-12-31',
-    '1899-12-30',
-    '1899-12-29',
-    '1899-12-30 18:00:51',
-    '1899-12-30 04:00:51',
-    '1899-12-29 04:00:51',
-    '1899-12-29 18:00:51',
-    '1815-09-24 03:47:22',
-    '1800-03-30',
-    '1754-06-04',
-    '1650-05-10',                   // MS SQL 2005 doesn't support datetimes before 1753
-    '1400-02-03 12:21:53',
-    '1333-02-03 21:44:21',
-    '0904-04-12',
-    '0354-11-20 21:25:15',
-    '0199-07-09',
-    '0001-01-01'
-  );
-
-var
-  i : byte;
-
-begin
-  CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
-  TestFieldDeclaration(ftDateTime,8);
-
-  for i := 0 to testValuesCount-1 do
-    if SQLConnType=oracle then
-      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
-    else
-      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    Open;
-    for i := 0 to testValuesCount-1 do
-      begin
-      if length(testValues[i]) < 12 then
-        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd', fields[0].AsDateTime, DBConnector.FormatSettings))
-      else
-        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd hh:mm:ss', fields[0].AsDateTime, DBConnector.FormatSettings));
-      Next;
-      end;
-    close;
-    end;
-end;
-
-procedure TTestFieldTypes.TestFloat;
-const
-  testValuesCount = 21;
-  testValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
-
-var
-  i          : byte;
-
-begin
-  CreateTableWithFieldType(ftFloat,'FLOAT');
-  TestFieldDeclaration(ftFloat,sizeof(double));
-
-  for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i],DBConnector.FormatSettings) + ')');
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    Open;
-    for i := 0 to testValuesCount-1 do
-      begin
-      AssertEquals(testValues[i],fields[0].AsFloat);
-      Next;
-      end;
     close;
     end;
 end;
@@ -1028,33 +1053,6 @@ begin
 
 end;
 
-procedure TTestFieldTypes.CreateTableWithFieldType(ADatatype: TFieldType;
-  ASQLTypeDecl: string);
-begin
-  with TSQLDBConnector(DBConnector) do
-  begin
-    Connection.ExecuteDirect('create table FPDEV2 (FT ' +ASQLTypeDecl+ ')');
-    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    CommitDDL;
-  end;
-end;
-
-procedure TTestFieldTypes.TestFieldDeclaration(ADatatype: TFieldType;
-  ADataSize: integer);
-begin
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    SQL.Clear;
-    SQL.Add('select * from FPDEV2');
-    Open;
-    AssertEquals(1,FieldCount);
-    AssertTrue(CompareText('FT',fields[0].FieldName)=0);
-    AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
-    AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
-    Close;
-    end;
-end;
-
 procedure TTestFieldTypes.TestQueryAfterReconnect;
 var DS: TDataset;
 begin
@@ -1186,7 +1184,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestStringLargerThen8192;
-
+// See also: TestInsertLargeStrFields
 var
   s             : string;
   i             : integer;
@@ -1515,9 +1513,13 @@ begin
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;
+// See also: TestStringLargerThen8192
 const
-  FieldValue='test1';
+  FieldValue1='test1';
+var
+  FieldValue2: string;
 begin
+  FieldValue2:=StringOfChar('t', 16000);
   with TSQLDBConnector(DBConnector) do
     begin
     Connection.ExecuteDirect('create table FPDEV2 (  ' +
@@ -1530,11 +1532,15 @@ begin
 
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
-    Query.InsertRecord([1,FieldValue]);
+    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
+    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(FieldValue, Query.FieldByName('NAME').AsString);
+    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
+    Query.Next;
+    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
+    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
     Query.Close;
     end;
 end;

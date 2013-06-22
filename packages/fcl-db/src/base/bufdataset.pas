@@ -1233,11 +1233,9 @@ end;
 procedure TCustomBufDataset.InternalFirst;
 begin
   with FCurrentIndex do
-    begin
-// if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
-// in which case InternalFirst should do nothing (bug 7211)
+    // if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
+    // in which case InternalFirst should do nothing (bug 7211)
     SetToFirstRecord;
-    end;
 end;
 
 procedure TCustomBufDataset.InternalLast;
@@ -3609,7 +3607,8 @@ end;
 
 procedure TUniDirectionalBufIndex.SetToFirstRecord;
 begin
-  DatabaseError(SUniDirectional);
+  // for UniDirectional datasets should be [Internal]First valid method call
+  // do nothing
 end;
 
 procedure TUniDirectionalBufIndex.SetToLastRecord;

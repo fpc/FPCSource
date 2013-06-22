@@ -30,7 +30,13 @@ TYpe
   TVisitorOption = (voRead,voReadList,voCreate,voDelete,voUpdate,
                     voCommonSetupParams,voSingleSaveVisitor,voRegisterVisitors);
   TVisitorOptions = set of TVisitorOption;
-  
+
+  { TTiOPFFieldPropDef }
+
+  TTiOPFFieldPropDef = Class(TFieldPropDef)
+  Public
+    Constructor Create(ACollection : TCollection); override;
+  end;
   { TTiOPFCodeOptions }
 
   TTiOPFCodeOptions = Class (TClassCodeGeneratorOptions)
@@ -100,6 +106,7 @@ TYpe
     // Not to be overridden.
     procedure WriteListAddObject(Strings: TStrings; const ListClassName, ObjectClassName: String);
     // Overrides of parent objects
+    Function CreateFieldPropDefs : TFieldPropDefs; override;
     function AllowPropertyDeclaration(F: TFieldPropDef; AVisibility: TVisibilities): Boolean; override;
     Function GetInterfaceUsesClause : string; override;
     procedure WriteVisibilityStart(V: TVisibility; Strings: TStrings); override;
@@ -132,6 +139,14 @@ begin
   Result:=S;
   If (Result<>'') and (Result[1]='T') then
     Delete(Result,1,1);
+end;
+
+{ TTiOPFFieldPropDef }
+
+constructor TTiOPFFieldPropDef.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  PropSetters:=[psWrite];
 end;
 
 { TTiOPFCodeOptions }
@@ -872,7 +887,7 @@ begin
       ptSingle, ptDouble, ptExtended, ptComp :
         S:='AsFloat';
       ptCurrency :
-        S:='AsCurrency';
+        S:='AsFloat';
       ptDateTime :
         S:='AsDateTime';
       ptEnumerated :
@@ -1139,7 +1154,7 @@ begin
       AddLn(Strings,'Public');
     IncIndent;
     Try
-      AddLn(Strings,'Property Items[Index : Integer] : %s Read GetObj Write SetObj; Default;',[ObjectClassname]);
+      AddLn(Strings,'Property Items[AIndex : Integer] : %s Read GetObj Write SetObj; Default;',[ObjectClassname]);
     Finally
       DecIndent;
     end;
@@ -1176,6 +1191,11 @@ begin
    end;
    EndMethod(Strings,S);
    Addln(Strings);
+end;
+
+function TTiOPFCodeGenerator.CreateFieldPropDefs: TFieldPropDefs;
+begin
+  Result:=TFieldPropDefs.Create(TTiOPFFieldPropDef);
 end;
 
 function TTiOPFCodeGenerator.AllowPropertyDeclaration(F: TFieldPropDef;

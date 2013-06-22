@@ -2008,7 +2008,6 @@ packages/fcl-db/tests/Makefile.fpc -text
 packages/fcl-db/tests/README.txt svneol=native#text/plain
 packages/fcl-db/tests/bufdatasettoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/database.ini.txt svneol=native#text/plain
-packages/fcl-db/tests/dbfexporttestcase1.pas svneol=native#text/plain
 packages/fcl-db/tests/dbftoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/dbtestframework.pas svneol=native#text/plain
 packages/fcl-db/tests/dbtestframework_gui.lpi svneol=native#text/plain
