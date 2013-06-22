@@ -2379,6 +2379,17 @@ begin
     DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
 end;
 
+function TBCDField.GetAsBCD: TBCD;
+Var
+  c:system.Currency;
+
+begin
+  If GetData(@c) then
+    Result:=CurrToBCD(c)
+  else
+    Result:=NullBCD;
+end;
+
 function TBCDField.GetAsCurrency: Currency;
 
 begin
@@ -2462,6 +2473,14 @@ begin
       TheText := FloatToStrF(C, ffGeneral, FPrecision, 0{digits?});
   end else
     TheText := '';
+end;
+
+procedure TBCDField.SetAsBCD(const AValue: TBCD);
+var
+  c:system.currency;
+begin
+  if BCDToCurr(AValue,c) then  //always returns true !!
+    SetAsCurrency(c);
 end;
 
 procedure TBCDField.SetAsCurrency(AValue: Currency);

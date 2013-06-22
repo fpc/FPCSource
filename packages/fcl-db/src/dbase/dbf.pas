@@ -17,9 +17,11 @@ uses
   dbf_fields,
   dbf_pgfile,
   dbf_idxfile;
+{$ifndef fpc}
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
 // dsgnintf.pas in 'C: \Program Files\Borland\Delphi5\Source\Toolsapi\dsgnintf.pas'
+{$endif}
 
 type
 
@@ -372,7 +374,7 @@ type
 
     function  IsDeleted: Boolean;
     procedure Undelete;
-
+    // Call this after setting up fielddefs in order to store the definitions into a table
     procedure CreateTable;
     procedure CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
     procedure CopyFrom(DataSet: TDataSet; FileName: string; DateTimeAsString: Boolean; Level: Integer);
@@ -565,7 +567,7 @@ var
 begin
   if FDirty then
   begin
-    Size := Position; // Strange but it leave tailing trash bytes if I do not write that.
+    Size := Position; // Strange but it leaves tailing trash bytes if I do not write that.
     Dbf := TDbf(FBlobField.DataSet);
     Translate(true);
     Dbf.FDbfFile.MemoFile.WriteMemo(FMemoRecNo, FReadSize, Self);
@@ -1046,18 +1048,17 @@ end;
 
 procedure TDbf.GetFieldDefsFromDbfFieldDefs;
 var
-  I, N: Integer;
+  I: Integer;
   TempFieldDef: TDbfFieldDef;
   TempMdxFile: TIndexFile;
-  BaseName, lIndexName: string;
-begin
-  FieldDefs.Clear;
+  lIndexName: string;
+  lFieldDefCount: integer; //Counter for destination fielddefs
 
-  // get all fields
-  for I := 0 to FDbfFile.FieldDefs.Count - 1 do
+  procedure FixDuplicateNames;
+  var
+    BaseName: string;
+    N: Integer;
   begin
-    TempFieldDef := FDbfFile.FieldDefs.Items[I];
-    // handle duplicate field names
     N := 1;
     BaseName := TempFieldDef.FieldName;
     while FieldDefs.IndexOf(TempFieldDef.FieldName)>=0 do
@@ -1065,31 +1066,55 @@ begin
       Inc(N);
       TempFieldDef.FieldName:=BaseName+IntToStr(N);
     end;
+  end;
+
+begin
+  FieldDefs.Clear;
+
+  // get all fields
+  lFieldDefCount:=-1; //will be fixed by first addition
+  for I := 0 to FDbfFile.FieldDefs.Count - 1 do
+  begin
+    TempFieldDef := FDbfFile.FieldDefs.Items[I];
+    // handle duplicate field names:
+    FixDuplicateNames;
     // add field, passing dbase native size if relevant
     // TDbfFieldDef.Size indicates the number of bytes in the physical dbase file
     // TFieldDef.Size is only meant to store size indicator for variable length fields
     case TempFieldDef.FieldType of
-      ftString, ftBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
+      ftString, ftBytes, ftVarBytes: FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, TempFieldDef.Size, false);
       ftBCD:
         begin
-          // todo: we should calculate number of digits after decimal place in some way, but how?
           FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);;;
         end;
     else
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);
     end;
+    lFieldDefCount:=lFieldDefCount+1;
 
-    FieldDefs[I].Precision := TempFieldDef.Precision;
-
+    FieldDefs[lFieldDefCount].Precision := TempFieldDef.Precision;
 
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly
     if TempFieldDef.FieldType = ftAutoInc then
-      FieldDefs[I].Attributes := [Db.faReadOnly];
+      FieldDefs[lFieldDefCount].Attributes := [Db.faReadOnly];
 
     // if table has dbase lock field, then hide it
     if TempFieldDef.IsLockField then
-      FieldDefs[I].Attributes := [Db.faHiddenCol];
+      FieldDefs[lFieldDefCount].Attributes := [Db.faHiddenCol];
+
+    // Hide system/hidden fields (e.g. VFP's _NULLFLAGS)
+    if TempFieldDef.IsSystemField then
+      FieldDefs[lFieldDefCount].Attributes := [Db.faHiddenCol];
+{$else}
+    // Poor man's way of hiding fields that shouldn't be shown/modified:
+    // Note: Visual Foxpro seems to allow adding another _NULLFLAGS field.
+    // todo: test this with lockfield, then add this (TempFieldDef.IsLockField)
+    if (TempFieldDef.IsSystemField) then
+    begin
+      FieldDefs.Delete(lFieldDefCount);
+      lFieldDefCount:=lFieldDefCount-1;
+    end;
 {$endif}
   end;
 
@@ -1360,7 +1385,7 @@ begin
   // store recno we are editing
   FEditingRecNo := FCursor.PhysicalRecNo;
   // reread blobs, execute cancel -> clears remembered memo pageno,
-  // causing it to reread the memo contents
+  // causing it to reread the x contents
   for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Cancel;
@@ -1517,7 +1542,11 @@ begin
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
-      FDbfFile.FinishCreate(ADbfFieldDefs, 512);
+      // Default memo blocklength for FoxPro/VisualFoxpro is 64 (not 512 as specs say)
+      if FDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro] then
+        FDbfFile.FinishCreate(ADbfFieldDefs, 64)
+      else
+        FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
       // if creating memory table, copy stream pointer
       if FStorage = stoMemory then

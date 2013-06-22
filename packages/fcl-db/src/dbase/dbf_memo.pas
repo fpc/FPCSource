@@ -12,10 +12,16 @@ uses
 type
 
 //====================================================================
+
+  { TMemoFile }
+
   TMemoFile = class(TPagedFile)
+  private
+    procedure SetDBFVersion(AValue: TXBaseVersion);
   protected
     FDbfFile: pointer;
     FDbfVersion: TXBaseVersion;
+    FEmptySpaceFiller: Char; //filler for unused header and memo data
     FMemoRecordSize: Integer;
     FOpened: Boolean;
     FBuffer: PChar;
@@ -35,10 +41,12 @@ type
     procedure ReadMemo(BlockNo: Integer; DestStream: TStream);
     procedure WriteMemo(var BlockNo: Integer; ReadSize: Integer; Src: TStream);
 
-    property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
+    property DbfVersion: TXBaseVersion read FDbfVersion write SetDBFVersion;
     property MemoRecordSize: Integer read FMemoRecordSize write FMemoRecordSize;
   end;
 
+  { TFoxProMemoFile }
+  // (Visual) Foxpro memo file support
   TFoxProMemoFile = class(TMemoFile)
   protected
     function  GetBlockLen: Integer; override;
@@ -48,6 +56,7 @@ type
     procedure SetBlockLen(BlockLen: Integer); override;
   end;
 
+  // DBaseIII+ memo file support:
   TDbaseMemoFile = class(TMemoFile)
   protected
     function  GetBlockLen: Integer; override;
@@ -141,6 +150,17 @@ type
   end;
 
 
+procedure TMemoFile.SetDBFVersion(AValue: TXBaseVersion);
+begin
+  if FDbfVersion=AValue then Exit;
+  FDbfVersion:=AValue;
+  if AValue in [xFoxPro, xVisualFoxPro] then
+    // Visual Foxpro writes 0s itself, so mimic it
+    FEmptySpaceFiller:=#0
+  else
+    FEmptySpaceFiller:=' ';
+end;
+
 //==========================================================
 //============ Dbtfile
 //==========================================================
@@ -149,6 +169,8 @@ begin
   // init vars
   FBuffer := nil;
   FOpened := false;
+
+  FEmptySpaceFiller:=' '; //default
 
   // call inherited
   inherited Create;
@@ -200,8 +222,9 @@ begin
     if (RecordSize = 0) and
       ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
     begin
-      SetBlockLen(512);
-      RecordSize := 512;
+      SetBlockLen(64); //(Visual) FoxPro docs suggest 512 is default; however it is 64: see
+      //http://technet.microsoft.com/en-us/subscriptions/d6e1ah7y%28v=vs.90%29.aspx
+      RecordSize := 64;
       WriteHeader;
     end;
 
@@ -282,10 +305,10 @@ begin
       end;
     end;
   end else begin
-    // dbase III memo
+    // e.g. dbase III memo
     done := false;
     repeat
-      // scan for EOF marker
+      // scan for EOF marker/field terminator
       endMemo := MemScan(FBuffer, $1A, RecordSize);
       // EOF found?
       if endMemo <> nil then
@@ -294,10 +317,10 @@ begin
         if (endMemo-FBuffer < RecordSize - 1) and
           ((endMemo[1] = #$1A) or (endMemo[1] = #0)) then
         begin
-          done := true;
+          done := true; //found the end
           numBytes := endMemo - FBuffer;
         end else begin
-          // no, fake
+          // no, fake ending
           numBytes := RecordSize;
         end;
       end else begin
@@ -381,8 +404,9 @@ begin
     end;
     tmpRecNo := BlockNo;
     Src.Position := 0;
-    FillChar(FBuffer[0], RecordSize, ' ');
-    if bytesBefore=8 then
+    FillChar(FBuffer[0], RecordSize, FEmptySpaceFiller);
+
+    if bytesBefore=8 then //Field header
     begin
       totsize := Src.Size + bytesBefore + bytesAfter;
       if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
@@ -400,15 +424,16 @@ begin
       // end of input data reached? check if we need to write block terminators
       while (readBytes < RecordSize - bytesBefore) and (bytesAfter > 0) do
       begin
-        FBuffer[readBytes] := #$1A;
+        FBuffer[readBytes] := #$1A; //block terminator
         Inc(readBytes);
         Dec(bytesAfter);
       end;
-      // have we read anything that is to be written?
+      // have we read anything that needs to be written?
       if readBytes > 0 then
       begin
         // clear any unused space
-        FillChar(FBuffer[bytesBefore+readBytes], RecordSize-readBytes-bytesBefore, ' ');
+        FillChar(FBuffer[bytesBefore+readBytes], RecordSize-readBytes-bytesBefore, FEmptySpaceFiller);
+
         // write to disk
         WriteRecord(tmpRecNo, @FBuffer[0]);
         Inc(tmpRecNo);
@@ -433,7 +458,7 @@ end;
 function  TDbaseMemoFile.GetBlockLen: Integer;
 begin
   // Can you tell me why the header of dbase3 memo contains 1024 and is 512 ?
-  // answer: it is not a valid field in memo db3 header
+  // answer: BlockLen is not a valid field in memo db3 header
   if FDbfVersion = xBaseIII then
     Result := 512
   else
@@ -443,7 +468,7 @@ end;
 function  TDbaseMemoFile.GetMemoSize: Integer;
 begin
   // dBase4 memofiles contain a small 'header'
-  if PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF)) then
+  if (FDbfVersion<>xBaseIII) and (PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF))) then
     Result := SwapIntLE(PBlockHdr(FBuffer)^.MemoSize)-8
   else
     Result := -1;
@@ -461,7 +486,9 @@ end;
 
 procedure TDbaseMemoFile.SetBlockLen(BlockLen: Integer);
 begin
-  PDbtHdr(Header)^.BlockLen := SwapWordLE(BlockLen);
+  // DBase III does not support block sizes<>512 bytes
+  if (FDbfVersion<>xBaseIII) then
+    PDbtHdr(Header)^.BlockLen := SwapWordLE(BlockLen);
 end;
 
 // ------------------------------------------------------------------

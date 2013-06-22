@@ -408,7 +408,9 @@ function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 var
   I: Integer;
 begin
-  I := System.IndexByte(Buffer, Length, Chr);
+  // Make sure we pass a buffer of bytes instead of a pchar otherwise
+  // the call will always fail
+  I := System.IndexByte(PByte(Buffer)^, Length, Chr);
   if I = -1 then
     Result := nil
   else

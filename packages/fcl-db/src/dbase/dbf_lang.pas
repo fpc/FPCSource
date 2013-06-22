@@ -85,7 +85,7 @@ const
   FoxLangId_Iceland_861   = $67; // DOS
   FoxLangId_Czech_895     = $68; // DOS Kamenicky
 // ...
-  DbfLangId_POL_620       = $69; // DOS Mazovia
+  DbfLangId_POL_620       = $69; // DOS Polish Mazovia
 // ...
   FoxLangId_Greek_737     = $6A; // DOS (437G)
   FoxLangId_Turkish_857   = $6B; // DOS
@@ -123,7 +123,7 @@ const
   DbfLocale_Bul868     = $020000;
 
 //*************************************************************************//
-// DB3/DB4/FoxPro/Visual Foxpro Language ID to CodePage convert table
+// DB3/DB4/FoxPro Language ID to CodePage conversion table
 // Visual FoxPro docs call language ID "code page mark"
 // or "code page identifier"
 //*************************************************************************//
@@ -164,6 +164,7 @@ const
 {E8}       0,    0,    0,    0,    0,    0,    0,    0,
 {F0}       0,    0,    0,    0,    0,    0,    0,    0,
 {F8}       0,    0,    0,    0,    0,    0,    0,    0);
+
 
 {$ifdef FPC_VERSION}
 {$ifdef VER1_0}
@@ -469,6 +470,7 @@ const
 // reverse convert routines
 //*************************************************************************//
 
+// Visual DBaseVII specific; the IsFoxPro means a FoxPro codepage, which DB7 supports
 function ConstructLangName(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): string;
 
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
@@ -521,8 +523,7 @@ begin
 end;
 
 const
-  // range of Dbase / FoxPro locale; these are INCLUSIVE
-
+  // range of Dbase locales; these are INCLUSIVE (the rest are FoxPro)
   dBase_RegionCount = 4;
   dBase_Regions: array[0..dBase_RegionCount*2-1] of Byte =
    ($00, $00,
@@ -530,31 +531,34 @@ const
     $69, $69, // a lonely dbf entry :-)
     $80, $90);
 
-function FindLangId(CodePage, Info2: Cardinal; Info2Table: PCardinal; IsFoxPro: Boolean): Byte;
+function FindLangId(CodePage, DesiredLocale: Cardinal; LanguageIDToLocaleTable: PCardinal; IsFoxPro: Boolean): Byte;
+// DesiredLocale: pointer to lookup array: language ID=>locale
 var
-  I, Region, FoxRes, DbfRes: Integer;
+  LangID, Region, FoxRes, DbfRes: Integer;
 begin
   Region := 0;
   DbfRes := 0;
   FoxRes := 0;
-  // scan
-  for I := 0 to $FF do
+  // scan for a language ID matching the given codepage
+  for LangID := 0 to $FF do
   begin
     // check if need to advance to next region
     if Region + 2 < dBase_RegionCount then
-      if I >= dBase_Regions[Region + 2] then
+      if LangID >= dBase_Regions[Region + 2] then
         Inc(Region, 2);
     // it seems delphi does not properly understand pointers?
     // what a mess :-(
-    if ((LangId_To_CodePage[I] = CodePage) or (CodePage = 0)) and (PCardinal(PChar(Info2Table)+(I*4))^ = Info2) then
-      if I <= dBase_Regions[Region+1] then
-        DbfRes := Byte(I)
+    //todo: verify this for visual foxpro; we never seem to get a result
+    if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
+      (PCardinal(PChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
+      if LangID <= dBase_Regions[Region+1] then
+        DbfRes := Byte(LangID)
       else
-        FoxRes := Byte(I);
+        FoxRes := Byte(LangID);
   end;
   // if we can find langid in other set, use it
   if (DbfRes <> 0) and (not IsFoxPro or (FoxRes = 0)) then
-    Result := DbfRes
+    Result := DbfRes //... not using foxpro
   else  {(DbfRes = 0) or (IsFoxPro and (FoxRes <> 0)}
   if (FoxRes <> 0) {and (IsFoxPro or (DbfRes = 0)} then
     Result := FoxRes
@@ -562,48 +566,9 @@ begin
     Result := 0;
 end;
 
-{
-function FindLangId(CodePage, Info2: Cardinal; Info2Table: PCardinal; IsFoxPro: Boolean): Byte;
-var
-  I, Region, lEnd: Integer;
-  EndReached: Boolean;
-begin
-  Region := 0;
-  Result := 0;
-  repeat
-    // determine region to scan
-    if IsFoxPro then
-    begin
-      // foxpro, in between dbase regions
-      I := dBase_Regions[Region+1] + 1;
-      lEnd := dBase_Regions[Region+2] - 1;
-      EndReached := Region = dBase_RegionCount*2-4;
-    end else begin
-      // dBase, select regions
-      I := dBase_Regions[Region];
-      lEnd := dBase_Regions[Region+1];
-      EndReached := Region = dBase_RegionCount*2-2;
-    end;
-    // scan
-    repeat
-      // it seems delphi does not properly understand pointers?
-      // what a mess :-(
-      if (LangId_To_CodePage[I] = CodePage) and (PCardinal(PChar(Info2Table)+(I*4))^ = Info2) then
-        Result := Byte(I);
-      Inc(I);
-      // lEnd is included in range
-    until (Result <> 0) or (I > lEnd);
-    // goto next region
-    if (Result = 0) then
-      Inc(Region, 2);
-    // found or end?
-  until (Result <> 0) or EndReached;
-end;
-}
-
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
 begin
-  // locale: lower 16bits only
+  // locale: lower 16bits only, with default sorting
   Locale := (Locale and $FFFF) or (SORT_DEFAULT shl 16);
   Result := FindLangId(CodePage, Locale, @LangId_To_Locale[0], IsFoxPro);
   // not found? try any codepage
@@ -636,6 +601,12 @@ begin
   else
     CodePage := StrToInt(CodePageStr);
   // find lang id
+  //todo: debug, remove
+  writeln('');
+  writeln('getlangid_fromLangName');
+  writeln('codepagestr ',codepagestr);
+  writeln('subtype: ',subtype);
+  writeln('codepage: ',codepage);
   Result := FindLangId(CodePage, SubType, @LangId_To_LocaleStr[0], IsFoxPro);
 end;
 

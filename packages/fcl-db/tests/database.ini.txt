@@ -169,6 +169,16 @@ connector=dbf
 connectorparams=4
 
 ; TDBf: DBase/FoxPro database:
+[dbase3]
+connector=dbf
+connectorparams=3
+
+; TDBf: DBase/FoxPro database:
+[dbase4]
+connector=dbf
+connectorparams=4
+
+; TDBf: DBase/FoxPro database:
 [dbase7]
 connector=dbf
 ; 7=Visual DBase 7 for Windows
