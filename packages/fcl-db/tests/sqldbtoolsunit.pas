@@ -25,11 +25,11 @@ uses
   ;
 
 type
-  TSQLDBType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
-const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
-      DBTypesNames : Array [TSQLDBType] of String[19] =
+const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
+      SQLConnTypesNames : Array [TSQLConnType] of String[19] =
         ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
@@ -106,7 +106,7 @@ type
     property Query : TSQLQuery read FQuery;
   end;
 
-var SQLDbType : TSQLDBType;
+var SQLConnType : TSQLConnType;
     SQLServerType : TSQLServerType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
     
@@ -133,35 +133,35 @@ const
     (s: 'ASE'; t: ssSybase)
   );
 
-  // fall back mapping
-  SQLDBTypeToServerTypeMap : array[TSQLDbType] of TSQLServerType =
-    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssInterbase,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+  // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
+  SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
 { TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFConnection;
-var t : TSQLDBType;
+var t : TSQLConnType;
     i : integer;
     s : string;
 begin
-  for t := low(DBTypesNames) to high(DBTypesNames) do
-    if UpperCase(dbconnectorparams) = DBTypesNames[t] then SQLDbType := t;
+  for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
+    if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
 
-  if SQLDbType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
-  if SQLDbType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
-  if SQLDbType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
-  if SQLDbType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
-  if SQLDbType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
-  if SQLDbType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
-  if SQLDbType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
-  if SQLDbType = INTERBASE then Fconnection := TIBConnection.Create(nil);
-  if SQLDbType = ODBC then Fconnection := TODBCConnection.Create(nil);
+  if SQLConnType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
+  if SQLConnType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
+  if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
+  if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
+  if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
+  if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
+  if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
+  if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
+  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
-  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  if SQLDbType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
-  if SQLDbType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
+  if SQLConnType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
+  if SQLConnType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
 
   if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
@@ -171,7 +171,7 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
-    if (dbhostname='') and (SQLDbType=interbase) then
+    if (dbhostname='') and (SQLConnType=interbase) then
     begin
       // Firebird embedded: create database file if it doesn't yet exist
       // Note: pagesize parameter has influence on behavior. We're using
@@ -191,7 +191,7 @@ begin
   // determine remote SQL Server to which we are connected
   s := Fconnection.GetConnectionInfo(citServerType);
   if s = '' then
-    SQLServerType := SQLDbTypeToServerTypeMap[SQLDbType] // if citServerType isn't implemented
+    SQLServerType := SQLConnTypeToServerTypeMap[SQLConnType] // if citServerType isn't implemented
   else
     for i := low(SQLServerTypesMap) to high(SQLServerTypesMap) do
       if SQLServerTypesMap[i].s = s then
@@ -251,10 +251,12 @@ begin
       FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
+      FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
   end;
 
-  if SQLDbType in [mysql40,mysql41] then
+  if SQLConnType in [mysql40,mysql41] then
     begin
     // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
     // fields on insertion. So to test properly, we have to do the same
@@ -286,6 +288,14 @@ begin
       testValues[ftTime,2]:='23:00:00.000';
       end;
     end;
+
+  if SQLServerType in [ssMSSQL, ssSybase] then
+    // Some DB's do not support datetime values before 1753-01-01
+    for i := 18 to testValuesCount-1 do
+      begin
+      testValues[ftDate,i] := testValues[ftDate,0];
+      testValues[ftDateTime,i] := testValues[ftDateTime,0];
+      end;
 
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
@@ -466,14 +476,14 @@ begin
   // exists. And while this exeption is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
-    if SQLDbType = INTERBASE then
+    if SQLConnType = INTERBASE then
       begin
       // This only works with Firebird 2+
       FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
         'then execute statement ''drop table ' + ATAbleName + ';'';end');
       FTransaction.CommitRetaining;
       end;
-    if SQLDBType = mssql then
+    if SQLConnType = mssql then
       begin
       // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
       // which leads to the rollback not referring to the right transaction=>SQL error
@@ -485,7 +495,7 @@ begin
         'end');
       FTransaction.CommitRetaining;
       end;
-    if SQLDbType = sybase then
+    if SQLConnType = sybase then
       begin
       // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
       // which leads to the rollback not referring to the right transaction=>SQL error

@@ -76,7 +76,7 @@ type
  
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-           //if bufsize < 0 -> buffer was to small, should be -bufsize
+           //if bufsize < 0 -> buffer was too small, should be -bufsize
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
