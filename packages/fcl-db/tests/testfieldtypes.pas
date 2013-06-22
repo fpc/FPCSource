@@ -1266,7 +1266,7 @@ begin
       Query.Open;
       AssertEquals(1, Query.Fields[0].AsInteger);
       Query.Next;
-      if not(SQLConnType in [interbase]) then
+      if not(SQLServerType in [ssFirebird, ssInterbase]) then
       begin
         AssertFalse('Eof after 1st row', Query.Eof);
         AssertEquals(2, Query.Fields[0].AsInteger);
@@ -1329,7 +1329,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLConnType in MySQLConnTypes) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLServerType in [ssMySQL]) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
@@ -1932,9 +1932,9 @@ begin
     datatype:=FieldtypeDefinitions[ftTime];
     if datatype = '' then
       Ignore(STestNotApplicable);
-    if SQLConnType = sqlite3 then
+    if SQLServerType = ssSQLite then
       testIntervalValuesCount := 5
-    else if SQLConnType in MySQLConnTypes then
+    else if SQLServerType = ssMySQL then
       testIntervalValuesCount := 4
     else
       testIntervalValuesCount := 3;
@@ -1948,37 +1948,41 @@ var datatype, values: string;
     i: integer;
     updatable: boolean;
 begin
-  if SQLConnType in MySQLConnTypes then
-  begin
-    datatype:='INT AUTO_INCREMENT PRIMARY KEY';
-    values:='VALUES(DEFAULT)';
-    fieldtype:=ftAutoInc;
-    updatable:=true;
-  end
-  else if SQLConnType = sqlite3 then
-  begin
-    datatype:='INTEGER PRIMARY KEY';
-    values:='DEFAULT VALUES';
-    fieldtype:=ftInteger;
-    updatable:=true;
-  end
-  else if SQLConnType = postgresql then
-  begin
-    datatype:='SERIAL';
-    values:='DEFAULT VALUES';
-    fieldtype:=ftInteger;
-    updatable:=true;
-  end
-  else if SQLConnType = mssql then
-  begin
-    datatype:='INTEGER IDENTITY';
-    values:='DEFAULT VALUES';
-    fieldtype:=ftAutoInc;
-    updatable:=false;
-  end
-  else
-    Ignore(STestNotApplicable);
-
+  case SQLServerType of
+    ssMySQL:
+      begin
+      datatype:='INT AUTO_INCREMENT PRIMARY KEY';
+      values:='VALUES(DEFAULT)';
+      fieldtype:=ftAutoInc;
+      updatable:=true;
+      end;
+    ssSQLite:
+      begin
+      datatype:='INTEGER PRIMARY KEY';
+      values:='DEFAULT VALUES';
+      fieldtype:=ftInteger;
+      updatable:=true;
+      end;
+    ssPostgreSQL:
+      begin
+      datatype:='SERIAL';
+      values:='DEFAULT VALUES';
+      if SQLConnType = ODBC then
+        fieldtype:=ftAutoInc
+      else
+        fieldtype:=ftInteger;
+      updatable:=true;
+      end;
+    ssMSSQL, ssSybase:
+      begin
+      datatype:='INTEGER IDENTITY';
+      values:='DEFAULT VALUES';
+      fieldtype:=ftAutoInc;
+      updatable:=false;
+      end
+    else
+      Ignore(STestNotApplicable);
+  end;
   CreateTableWithFieldType(fieldtype, datatype);
   TestFieldDeclaration(fieldtype, sizeof(longint));
 
@@ -2074,7 +2078,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLConnType=interbase then
+    if SQLServerType in [ssFirebird, ssInterbase] then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2093,7 +2097,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLConnType=interbase then
+      if SQLServerType in [ssFirebird, ssInterbase] then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;
@@ -2144,7 +2148,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if not(SQLConnType in [postgresql,odbc,oracle]) then
+  if not(SQLServerType in [ssPostgreSQL, ssOracle]) then
     Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
