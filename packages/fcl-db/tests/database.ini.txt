@@ -160,9 +160,13 @@ hostname=127.0.0.1
 ; TDBf: DBase/FoxPro database:
 [dbf]
 connector=dbf
-
-; Give here the path where the *.dbf file can be generated
-name=/tmp
+; Connectorparams specifies table level/compatibility level:
+; 3=DBase III
+; 4=DBase IV
+; 7=Visual DBase 7 for Windows
+; 25=FoxPro
+; 30=Visual FoxPro
+connectorparams=4
 
 ; MemDS in memory dataset:
 [memds]

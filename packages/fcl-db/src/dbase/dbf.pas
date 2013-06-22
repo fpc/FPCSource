@@ -1,4 +1,4 @@
-unit dbf deprecated 'Abandoned by maintainer, no longer supported by FPC team. Help may be available at http://tdbf.sourceforge.net and http://sourceforge.net/projects/tdbf/forums/forum/107245';
+unit dbf;
 
 { design info in dbf_reg.pas }
 
@@ -260,7 +260,11 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer);
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
-    { virtual methods (mostly optionnal) }
+    { virtual methods (mostly optional) }
+    function  FindFirst: Boolean; override;
+    function  FindLast: Boolean; override;
+    function  FindNext: Boolean; override;
+    function  FindPrior: Boolean; override;
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
     function  GetRecordCount: Integer; override; {virtual}
     function  GetRecNo: Integer; override; {virtual}
@@ -492,9 +496,10 @@ const
 function TableLevelToDbfVersion(TableLevel: integer): TXBaseVersion;
 begin
   case TableLevel of
-    3:                      Result := xBaseIII;
-    7:                      Result := xBaseVII;
-    TDBF_TABLELEVEL_FOXPRO: Result := xFoxPro;
+    3:                            Result := xBaseIII;
+    7:                            Result := xBaseVII;
+    TDBF_TABLELEVEL_FOXPRO:       Result := xFoxPro;
+    TDBF_TABLELEVEL_VISUALFOXPRO: Result := xVisualFoxPro;
   else
     {4:} Result := xBaseIV;
   end;
@@ -751,6 +756,30 @@ procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual a
 begin
   { calling through 'old' delphi 3 interface, use compatible/'native' format }
   SetFieldData(Field, Buffer, true);
+end;
+
+function TDbf.FindFirst: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindFirst or FindRecord(True, True);
+end;
+
+function TDbf.FindLast: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindLast or FindRecord(True, False);
+end;
+
+function TDbf.FindNext: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindNext or FindRecord(False, True);
+end;
+
+function TDbf.FindPrior: Boolean;
+begin
+  // Use inherited function; if failed use FindRecord
+  Result:=inherited FindPrior or FindRecord(False, False);
 end;
 
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); {overload; override;}
@@ -1043,7 +1072,7 @@ begin
 
     if TempFieldDef.FieldType = ftFloat then
       begin
-      FieldDefs[I].Size := 0;                      // Size is not defined for float-fields
+      FieldDefs[I].Size := 0; // Size is not defined for float fields
       FieldDefs[I].Precision := TempFieldDef.Size;
       end;
 
@@ -1192,10 +1221,11 @@ begin
 
   // determine dbf version
   case FDbfFile.DbfVersion of
-    xBaseIII: FTableLevel := 3;
-    xBaseIV:  FTableLevel := 4;
-    xBaseVII: FTableLevel := 7;
-    xFoxPro:  FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xBaseIII:      FTableLevel := 3;
+    xBaseIV:       FTableLevel := 4;
+    xBaseVII:      FTableLevel := 7;
+    xFoxPro:       FTableLevel := TDBF_TABLELEVEL_FOXPRO;
+    xVisualFoxPro: FTableLevel := TDBF_TABLELEVEL_VISUALFOXPRO;
   end;
   FLanguageID := FDbfFile.LanguageID;
 
@@ -1299,7 +1329,7 @@ begin
     Result := 0;
 end;
 
-function TDbf.GetLanguageStr: String;
+function TDbf.GetLanguageStr: string;
 begin
   if FDbfFile <> nil then
     Result := FDbfFile.LanguageStr;
@@ -2293,7 +2323,7 @@ begin
   end;
 end;
 
-procedure TDbf.SetTableName(const s: string);
+procedure TDbf.SetTableName(const S: string);
 var
   lPath: string;
 begin
@@ -2326,7 +2356,7 @@ begin
   if NewLevel <> FTableLevel then
   begin
     // check validity
-    if not ((NewLevel = 3) or (NewLevel = 4) or (NewLevel = 7) or (NewLevel = 25)) then
+    if not (NewLevel in [3,4,7,TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
       exit;
 
     // can only assign tablelevel if table is closed

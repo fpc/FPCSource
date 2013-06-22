@@ -2031,6 +2031,7 @@ packages/fcl-db/tests/testdddiff.pp svneol=native#text/plain
 packages/fcl-db/tests/testfieldtypes.pas svneol=native#text/plain
 packages/fcl-db/tests/testjsondataset.pp svneol=native#text/plain
 packages/fcl-db/tests/testspecifictbufdataset.pas svneol=native#text/plain
+packages/fcl-db/tests/testspecifictdbf.pas svneol=native#text/plain
 packages/fcl-db/tests/testsqlfiles.lpi svneol=native#text/plain
 packages/fcl-db/tests/testsqlfiles.lpr svneol=native#text/plain
 packages/fcl-db/tests/testsqlscanner.lpi svneol=native#text/plain

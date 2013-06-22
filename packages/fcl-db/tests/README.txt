@@ -8,7 +8,8 @@ Simply add the test* units in this directory to the uses statement of the
 test runner and all tests will get registered and executed.
 
 A simple test runner (dbtestframework.pas) which generates XML output is
-included in this directory.
+included in this directory. 
+Additionally, a GUI Lazarus unit (dbtestframework_gui.lpr) is included for convenience.
 
 DBTestframework architecture
 ============================
@@ -31,11 +32,11 @@ They call InternalGetNDataset and InternalGetFieldDataset which should be implem
 Toolsunit.pas defines some variables for use, e.g.
 - testValuesCount is the number of records/test values in the FieldDataset dataset
 - MaxDataset is the same for NDataset.
-See e.g. the SQLDBToolsUnit for the implementation for SQL Databases.
+See e.g. the SQLDBToolsUnit for the implementation for SQL databases.
 
 Tests
 =====
-In your test units, you can specify that you only want to run for certain groups/connectors.
+In your test units, you can specify that you only want it to run for certain groups/connectors.
 E.g. this example to only run for Bufdataset tests:
   TTestSpecificTBufDataset = class(TTestCase)
   ...
@@ -58,9 +59,9 @@ The database can be empty: the test suite will create and delete tables etc. in 
 
 Specifying databases, connector names
 =====================================
-Which connector is currently used is dependent on the 'database.ini'
+Which connector is currently used is determined by the 'database.ini'
 configuration file. Also some settings which are connector-dependent can be set
-in that file. See 'database.ini.txt' for an example.
+in that file. See 'database.ini.txt' for a template/example.
 
 The connector names to be used are derived from the connector classes.
 
@@ -68,7 +69,7 @@ For example, the SQL RDBMS connector defined in sqldbtoolsunit:
 - it has this class definition
 TSQLDBConnector = class(TDBConnector)
 - its name in database.ini is sqldb
-- incidentally, in databases.ini, more parameter such as
+- incidentally, in databases.ini, more parameters such as
 connectorparams=postgresql (which specify db type) are needed
 The parameters used depend on the connector type (sql,...)
 

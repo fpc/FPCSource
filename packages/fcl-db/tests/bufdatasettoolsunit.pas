@@ -1,10 +1,11 @@
 unit BufDatasetToolsUnit;
 
 { Sets up bufdataset for testing.
-Tests expect Get*Dataset tho return a dataset with structure and test data, but closed.
+Tests expect Get*Dataset to return a dataset with structure and test data, but closed.
 A closed BufDataset normally has no data, so these tests won't work.
 
-To circumvent this, this unit saves the dataset contents to file and reloads them on opening using BufDataset persistence mechanism.
+To circumvent this, this unit saves the dataset contents to file and reloads them on opening
+using the BufDataset persistence mechanism.
 
 }
 {$mode objfpc}{$H+}
@@ -64,7 +65,7 @@ end;
 
 procedure TbufdatasetDBConnector.CreateNDatasets;
 begin
-// All datasets are created in InternalGet*Dataset
+  // All datasets are created in InternalGet*Dataset
 end;
 
 procedure TbufdatasetDBConnector.CreateFieldDataset;

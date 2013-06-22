@@ -29,12 +29,14 @@ uses
   TestDatasources,
   TestBufDatasetStreams,
   TestSpecificTBufDataset,
+  TestSpecificTDBF,
   TestDBExport;
 
 {$R *.res}
 
 var
   DBSelectForm: TFormIniEditor;
+  TestRunForm: TGUITestRunner;
 begin
   Application.Initialize;
   DBSelectForm:=TFormIniEditor.Create(nil);
@@ -47,7 +49,14 @@ begin
   finally
     DBSelectForm.Free;
   end;
-  Application.CreateForm(TGuiTestRunner, TestRunner);
-  Application.Run;
+  // Manually run this form because autocreation could have loaded an old
+  // database.ini file (if the user changed it using DBSelectForm)
+  TestRunForm:=TGUITestRunner.Create(nil);
+  try
+    TestRunForm.Show;
+    Application.Run;
+  finally
+    TestRunForm.Free;
+  end;
 end.
 

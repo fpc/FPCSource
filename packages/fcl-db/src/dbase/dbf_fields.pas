@@ -55,6 +55,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignDb(DbSource: TFieldDef);
 
+    // Checks and adjusts field size & precision
     procedure CheckSizePrecision;
     procedure SetDefaultSize;
     procedure AllocBuffers;
@@ -365,7 +366,7 @@ begin
     'D' : FFieldType := ftDate;
     'M' : FFieldType := ftMemo;
     'B' : 
-      if DbfVersion = xFoxPro then
+      if (DbfVersion = xFoxPro) or (DbfVersion=xVisualFoxPro) then
         FFieldType := ftFloat
       else
         FFieldType := ftBlob;
@@ -375,7 +376,15 @@ begin
         FFieldType := ftBCD
       else
         FFieldType := ftCurrency;
-    '0' : FFieldType := ftBytes;	{ Visual FoxPro ``_NullFlags'' }
+    '0' : FFieldType := ftBytes; { Visual FoxPro ``_NullFlags'' }
+    {
+    To do: add support for Visual Foxpro types
+    http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
+    P Picture (in at least Visual FoxPro)
+    V Varchar/varchar binary (in at least Visual FoxPro) 1 byte up to 255 bytes (or perhaps 254)
+    W Blob (in at least Visual FoxPro), 4 bytes in a table; stored in .fpt
+    Q Varbinary (in at least Visual Foxpro)
+    }
   else
     FNativeFieldType := #0;
     FFieldType := ftUnknown;
@@ -391,7 +400,7 @@ begin
       if DbfVersion = xBaseVII then
         FNativeFieldType := '@'
       else
-      if DbfVersion = xFoxPro then
+      if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
         FNativeFieldType := 'T'
       else
         FNativeFieldType := 'D';
@@ -416,7 +425,7 @@ begin
       else
         FNativeFieldType := 'N';
     ftBCD, ftCurrency: 
-      if DbfVersion = xFoxPro then
+      if (DbfVersion = xFoxPro) or (DBFVersion = xVisualFoxPro) then
         FNativeFieldType := 'Y';
   end;
   if FNativeFieldType = #0 then
@@ -471,11 +480,11 @@ end;
 procedure TDbfFieldDef.CheckSizePrecision;
 begin
   case FNativeFieldType of
-    'C':
+    'C': // Character
       begin
         if FSize < 0 then 
           FSize := 0;
-        if DbfVersion = xFoxPro then
+        if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
         begin
           if FSize >= $FFFF then 
             FSize := $FFFF;
@@ -485,35 +494,34 @@ begin
         end;
         FPrecision := 0;
       end;
-    'L':
+    'L': // Logical/boolean
       begin
         FSize := 1;
         FPrecision := 0;
       end;
-    'N','F':
+    'N','F': // Binary code decimal numeric, floating point binary numeric
       begin
-        // floating point
         if FSize < 1   then FSize := 1;
         if FSize >= 20 then FSize := 20;
         if FPrecision > FSize-2 then FPrecision := FSize-2;
         if FPrecision < 0       then FPrecision := 0;
       end;
-    'D':
+    'D': // Date
       begin
         FSize := 8;
         FPrecision := 0;
       end;
-    'B':
+    'B': // Double
       begin
-        if DbfVersion <> xFoxPro then
+        if (DbfVersion <> xFoxPro) and (DbfVersion <> xVisualFoxPro) then
         begin
           FSize := 10;
           FPrecision := 0;
         end;
       end;
-    'M','G':
+    'M','G': // Memo, general
       begin
-        if DbfVersion = xFoxPro then
+        if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
         begin
           if (FSize <> 4) and (FSize <> 10) then
             FSize := 4;
@@ -521,31 +529,38 @@ begin
           FSize := 10;
         FPrecision := 0;
       end;
-    '+','I':
+    '+','I': // Autoincrement, integer
       begin
         FSize := 4;
         FPrecision := 0;
       end;
-    '@', 'O':
+    '@', 'O': //Timestamp, double (both DBase 7)
       begin
         FSize := 8;
         FPrecision := 0;
       end;
-    'T':
+    'T': // DateTime
       begin
-        if DbfVersion = xFoxPro then
+        if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
           FSize := 8
         else
           FSize := 14;
         FPrecision := 0;
       end;
-    'Y':
+    'Y': // Currency
       begin
         FSize := 8;
         FPrecision := 4;
       end;
   else
-    // Nothing
+    {
+    No check, includes:
+    http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
+    P Picture (in at least Visual FoxPro)
+    V Varchar/varchar binary (in at least Visual FoxPro) 1 byte up to 255 bytes (or perhaps 254)
+    W Blob (in at least Visual FoxPro), 4 bytes in a table; stored in .fpt
+    Q Varbinary (in at least Visual Foxpro)
+    }
   end; // case
 end;
 

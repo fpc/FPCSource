@@ -59,7 +59,8 @@ type
        Function GetNDataset(AChange : Boolean; n : integer) : TDataset;  overload;
        Function GetFieldDataset : TDataSet; overload;
        Function GetFieldDataset(AChange : Boolean) : TDataSet; overload;
-       
+
+       // Gets a dataset that tracks calculation of calculated fields etc.
        Function GetTraceDataset(AChange : Boolean) : TDataset; virtual;
 
        procedure StartTest;

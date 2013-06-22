@@ -31,6 +31,11 @@ BUGS & WARNINGS
     - storedefs is not updated automatically when fielddefs are changed
 
 
+FreePascal trunk:
+- split out existing support for Visual FoxPro and Foxpro (r24109) 
+  so future Visual FoxPro only features can be implemented
+- implemented FindFirst,FindNext,FindPrior,FindLast (r24107)
+- compile fix for FPC 2.6.2 (r24069), possibly useful for Delphi
 
 ------------------------
 V6.9.2

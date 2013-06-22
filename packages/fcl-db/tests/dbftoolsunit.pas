@@ -1,5 +1,10 @@
 unit DBFToolsUnit;
 
+{ Sets up dbf datasets for testing
+Tests expect Get*Dataset to return a dataset with structure and test data, but closed.
+Because of this, we use file-backed dbfs instead of memory backed dbfs
+}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
 {$ENDIF}
@@ -8,10 +13,10 @@ interface
 
 uses
   Classes, SysUtils, toolsunit,
-  db, Dbf;
+  DB, Dbf, dbf_common;
 
 type
-{ TDBFDBConnector }
+  { TDBFDBConnector }
 
   TDBFDBConnector = class(TDBConnector)
   protected
@@ -19,80 +24,162 @@ type
     procedure CreateFieldDataset; override;
     procedure DropNDatasets; override;
     procedure DropFieldDataset; override;
-    Function InternalGetNDataset(n : integer) : TDataset; override;
-    Function InternalGetFieldDataset : TDataSet; override;
+    function InternalGetNDataset(n: integer): TDataset; override;
+    function InternalGetFieldDataset: TDataSet; override;
   public
-    function GetTraceDataset(AChange : Boolean) : TDataset; override;
+    function GetTraceDataset(AChange: boolean): TDataset; override;
   end;
 
   { TDbfTraceDataset }
 
   TDbfTraceDataset = class(Tdbf)
   protected
-    procedure SetCurrentRecord(Index: Longint); override;
+    procedure SetCurrentRecord(Index: longint); override;
     procedure RefreshInternalCalcFields(Buffer: PChar); override;
     procedure InternalInitFieldDefs; override;
     procedure CalculateFields(Buffer: PChar); override;
     procedure ClearCalcFields(Buffer: PChar); override;
   end;
 
+  { TDBFAutoClean }
+  // DBF descendant that saves to a temp file and removes file when closed
+  TDBFAutoClean = class(TDBF)
+  private
+    function GetUserRequestedTableLevel: integer;
+  public
+    constructor Create;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
 implementation
 
-procedure TDBFDBConnector.CreateNDatasets;
-var countID,n : integer;
+
+
+{ TDBFAutoClean }
+
+function TDBFAutoClean.GetUserRequestedTableLevel: integer;
+  // User can specify table level as a connector param, e.g.:
+  // connectorparams=4
+  // If none given, default to DBase IV
+var
+  TableLevelProvided: integer;
 begin
-  for n := 0 to MaxDataSet do
-    begin
-    with TDbf.Create(nil) do
+  TableLevelProvided := StrToIntDef(dbconnectorparams, 4);
+  if not (TableLevelProvided in [3, 4, 5, 7, TDBF_TABLELEVEL_FOXPRO,
+    TDBF_TABLELEVEL_VISUALFOXPRO]) then
+  begin
+    Result := -1; // hope this crashes the tests so user is alerted.
+    //Invalid tablelevel specified in connectorparams= field. Aborting
+    exit;
+  end;
+  Result := TableLevelProvided;
+end;
+
+constructor TDBFAutoClean.Create;
+var
+  DBFFileName: string;
+  TableLevelProvided: integer;
+begin
+  DBFFileName := GetTempFileName;
+  FilePathFull := ExtractFilePath(DBFFileName);
+  TableName := ExtractFileName(DBFFileName);
+  TableLevelProvided := GetUserRequestedTableLevel;
+  TableLevel := TableLevelProvided;
+  CreateTable; //write out header to disk
+end;
+
+constructor TDBFAutoClean.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Self.Create;
+end;
+
+destructor TDBFAutoClean.Destroy;
+var
+  FileName: string;
+begin
+  FileName := AbsolutePath + TableName;
+  inherited Destroy;
+  deletefile(FileName);
+end;
+
+
+procedure TDBFDBConnector.CreateNDatasets;
+begin
+  // All datasets are created in InternalGet*Dataset
+end;
+
+procedure TDBFDBConnector.CreateFieldDataset;
+begin
+  // All datasets are created in InternalGet*Dataset
+end;
+
+procedure TDBFDBConnector.DropNDatasets;
+begin
+  // Nothing to be done here; the dataset is cleaned up in TDBFAutoClean.Destroy
+end;
+
+procedure TDBFDBConnector.DropFieldDataset;
+begin
+  // Nothing to be done here; the dataset is cleaned up in TDBFAutoClean.Destroy
+end;
+
+function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
+var
+  countID: integer;
+begin
+  Result := (TDBFAutoClean.Create(nil) as TDataSet);
+  with (Result as TDBFAutoclean) do
+  begin
+    FieldDefs.Add('ID', ftInteger);
+    FieldDefs.Add('NAME', ftString, 50);
+    CreateTable;
+    Open;
+    if n > 0 then
+      for countId := 1 to n do
       begin
-      FilePath := dbname;
-      TableName := 'fpdev_'+inttostr(n)+'.db';
-      FieldDefs.Add('ID',ftInteger);
-      FieldDefs.Add('NAME',ftString,50);
-      CreateTable;
-      Open;
-      if n > 0 then for countId := 1 to n do
-        begin
         Append;
         FieldByName('ID').AsInteger := countID;
-        FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
+        FieldByName('NAME').AsString := 'TestName' + IntToStr(countID);
         // Explicitly call .post, since there could be a bug which disturbs
         // the automatic call to post. (example: when TDataset.DataEvent doesn't
         // work properly)
         Post;
-        end;
-      if state = dsinsert then
-        Post;
-      Close;
-      Free;
       end;
-    end;
+    if state = dsinsert then
+      Post;
+    Close;
+  end;
 end;
 
-procedure TDBFDBConnector.CreateFieldDataset;
-var i : integer;
+function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
+var
+  i: integer;
 begin
-  with TDbf.Create(nil) do
-    begin
-    FilePath := dbname;
-    TableName := 'fpdev_field.db';
-    FieldDefs.Add('ID',ftInteger);
-    FieldDefs.Add('FSTRING',ftString,10);
-    FieldDefs.Add('FSMALLINT',ftSmallint);
-    FieldDefs.Add('FINTEGER',ftInteger);
-//    FieldDefs.Add('FWORD',ftWord);
-    FieldDefs.Add('FBOOLEAN',ftBoolean);
-    FieldDefs.Add('FFLOAT',ftFloat);
-//    FieldDefs.Add('FCURRENCY',ftCurrency);
-//    FieldDefs.Add('FBCD',ftBCD);
-    FieldDefs.Add('FDATE',ftDate);
-//    FieldDefs.Add('FTIME',ftTime);
-    FieldDefs.Add('FDATETIME',ftDateTime);
-    FieldDefs.Add('FLARGEINT',ftLargeint);
+  Result := (TDbfAutoClean.Create(nil) as TDataSet);
+  with (Result as TDBFAutoClean) do
+  begin
+    FieldDefs.Add('ID', ftInteger);
+    FieldDefs.Add('FSTRING', ftString, 10);
+    FieldDefs.Add('FSMALLINT', ftSmallint);
+    FieldDefs.Add('FINTEGER', ftInteger);
+    FieldDefs.Add('FWORD', ftWord);
+    FieldDefs.Add('FBOOLEAN', ftBoolean);
+    FieldDefs.Add('FFLOAT', ftFloat);
+    if (Result as TDBF).TableLevel >= 25 then
+      FieldDefs.Add('FCURRENCY', ftCurrency);
+    if (Result as TDBF).TableLevel >= 25 then
+      FieldDefs.Add('FBCD', ftBCD);
+    FieldDefs.Add('FDATE', ftDate);
+    //    FieldDefs.Add('FTIME',ftTime);
+    FieldDefs.Add('FDATETIME', ftDateTime);
+    FieldDefs.Add('FLARGEINT', ftLargeint);
+    FieldDefs.Add('FMEMO', ftMemo);
     CreateTable;
     Open;
-    for i := 0 to testValuesCount-1 do
-      begin
+    for i := 0 to testValuesCount - 1 do
+    begin
       Append;
       FieldByName('ID').AsInteger := i;
       FieldByName('FSTRING').AsString := testStringValues[i];
@@ -103,56 +190,25 @@ begin
       FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
-      end;
+    end;
     Close;
-    end;
+  end;
 end;
 
-procedure TDBFDBConnector.DropNDatasets;
-var n : integer;
+function TDBFDBConnector.GetTraceDataset(AChange: boolean): TDataset;
+var
+  ADS, AResDS: TDbf;
 begin
-  for n := 0 to MaxDataSet do
-    DeleteFile(ExtractFilePath(dbname)+'fpdev_'+inttostr(n)+'.db');
-end;
-
-procedure TDBFDBConnector.DropFieldDataset;
-begin
-  DeleteFile(ExtractFilePath(dbname)+'fpdev_field.db');
-end;
-
-function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
-begin
-  Result := TDbf.Create(nil);
-  with (result as TDbf) do
-    begin
-    FilePath := dbname;
-    TableName := 'fpdev_'+inttostr(n)+'.db';
-    end;
-end;
-
-function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
-begin
-  Result := TDbf.Create(nil);
-  with (result as TDbf) do
-    begin
-    FilePath := dbname;
-    TableName := 'fpdev_field.db';
-    end;
-end;
-
-function TDBFDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
-var ADS, AResDS : TDbf;
-begin
-  ADS := GetNDataset(AChange,15) as TDbf;
+  ADS := GetNDataset(AChange, 15) as TDbf;
   AResDS := TDbfTraceDataset.Create(nil);
-  AResDS.FilePath:=ADS.FilePath;
-  AResDs.TableName:=ADS.TableName;
-  Result:=AResDS;
+  AResDS.FilePath := ADS.FilePath;
+  AResDs.TableName := ADS.TableName;
+  Result := AResDS;
 end;
 
 { TDbfTraceDataset }
 
-procedure TDbfTraceDataset.SetCurrentRecord(Index: Longint);
+procedure TDbfTraceDataset.SetCurrentRecord(Index: longint);
 begin
   DataEvents := DataEvents + 'SetCurrentRecord' + ';';
   inherited SetCurrentRecord(Index);
@@ -165,20 +221,23 @@ begin
 end;
 
 procedure TDbfTraceDataset.InternalInitFieldDefs;
-var i : integer;
-    IntCalcFieldName : String;
+var
+  i: integer;
+  IntCalcFieldName: string;
 begin
-  // To fake a internal calculated field, set it's fielddef InternalCalcField
+  // To fake an internal calculated field, set its fielddef InternalCalcField
   // property to true, before the dataset is opened.
   // This procedure takes care of setting the automatically created fielddef's
   // InternalCalcField property to true. (works for only one field)
-  IntCalcFieldName:='';
-  for i := 0 to FieldDefs.Count -1 do
-    if fielddefs[i].InternalCalcField then IntCalcFieldName := FieldDefs[i].Name;
+  IntCalcFieldName := '';
+  for i := 0 to FieldDefs.Count - 1 do
+    if fielddefs[i].InternalCalcField then
+      IntCalcFieldName := FieldDefs[i].Name;
   inherited InternalInitFieldDefs;
-  if IntCalcFieldName<>'' then with FieldDefs.find(IntCalcFieldName) do
+  if IntCalcFieldName <> '' then
+    with FieldDefs.find(IntCalcFieldName) do
     begin
-    InternalCalcField := True;
+      InternalCalcField := True;
     end;
 end;
 
@@ -197,4 +256,3 @@ end;
 initialization
   RegisterClass(TDBFDBConnector);
 end.
-

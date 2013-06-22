@@ -83,7 +83,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="7">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -96,6 +96,15 @@
       <Item4>
         <Name Value="EIBDatabaseError"/>
       </Item4>
+      <Item5>
+        <Name Value="EDatabaseError"/>
+      </Item5>
+      <Item6>
+        <Name Value="EAssertionFailedError"/>
+      </Item6>
+      <Item7>
+        <Name Value="EIgnoredTest"/>
+      </Item7>
     </Exceptions>
   </Debugging>
 </CONFIG>

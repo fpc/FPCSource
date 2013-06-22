@@ -25,6 +25,7 @@ uses
   TestDBBasics,
   TestBufDatasetStreams,
   TestSpecificTBufDataset,
+  TestSpecificTDBF,
   TestDBExport,
   consoletestrunner;
 

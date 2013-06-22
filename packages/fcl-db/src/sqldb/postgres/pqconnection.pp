@@ -1124,7 +1124,7 @@ begin
                         'where (a.attnum>0) and (not a.attisdropped) and (upper(c.relname)=''' + Uppercase(SchemaObjectName) + ''') '+
                         'order by a.attname';
   else
-    DatabaseError(SMetadataUnavailable)
+    s := inherited;
   end; {case}
   result := s;
 end;

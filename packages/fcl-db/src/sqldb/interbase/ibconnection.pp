@@ -972,11 +972,18 @@ var ParNr,SQLVarNr : integer;
 {$R+}
   end;
 
+Const
+  DateF = 'yyyy-mm-dd';
+  TimeF = 'hh:nn:ss';
+  DateTimeF = DateF+' '+TimeF;
+
 var
   // This should be a pointer, because the ORIGINAL variables must
   // be modified.
   VSQLVar: ^XSQLVAR;
-
+  P: TParam;
+  ft : TFieldType;
+  D : TDateTime;
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
@@ -1011,7 +1018,20 @@ begin
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
           begin
-          s := AParams[ParNr].AsString;
+          P:=AParams[ParNr];
+          ft:=P.DataType;
+          if Not (ft in [ftDate,ftTime,ftDateTime,ftTimeStamp]) then
+            S:=P.AsString
+          else
+            begin
+            Case ft of
+              ftDate : S:=DateF;
+              ftTime : S:=TimeF;
+              ftDateTime,
+              ftTimeStamp : S:=DateTimeF;
+            end;
+            S:=FormatDateTime(S,P.AsDateTime);
+            end;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
             begin
