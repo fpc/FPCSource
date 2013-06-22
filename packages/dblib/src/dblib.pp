@@ -69,19 +69,32 @@ const
   DBTDS_72     = 10; // Microsoft SQL Server 2005
   DBTDS_73     = 11; // Microsoft SQL Server 2008
 
-  //from sqlfront.h:
+  //from sqlfront.h ,   sybdb.h for freetds
   DBSETHOST=1;
   DBSETUSER=2;
   DBSETPWD=3;
-  DBSETAPP=4;
+  DBSETAPP={$IFDEF freetds}5{$ELSE}4{$ENDIF};
+  {$IFDEF freetds}
+  DBSETHID=     4;
+  DBSETBCP=	6;
+  DBSETNATLANG=	7;
+  DBSETNOSHORT=	8;
+  DBSETHIER=	9;
+  DBSETCHARSET=	10;
+  DBSETPACKET=	11;
+  DBSETENCRYPT=	12;
+  DBSETLABELED=	13;
+  DBSETDBNAME=	14;
+   {$ELSE}
   DBSETID=5;
   DBSETLANG=6;
   DBSETSECURE=7;
+  DBSET_LOGINTIME=10;
+  DBSETFALLBACK=12;
+  {$ENDIF}
   //These two are defined by Microsoft for dbsetlversion():
   DBVER42={$IFDEF freetds}DBVERSION_42{$ELSE}8{$ENDIF};
   DBVER60={$IFDEF freetds}DBVERSION_71{$ELSE}9{$ENDIF};
-  DBSET_LOGINTIME=10;
-  DBSETFALLBACK=12;
   //dboptions:
   DBNOAUTOFREE = {$IFDEF freetds}15{$ELSE}8{$ENDIF};
   DBTEXTLIMIT  = {$IFDEF freetds}7{$ELSE}4{$ENDIF};

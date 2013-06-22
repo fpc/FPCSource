@@ -30,7 +30,8 @@
       CharSet - if you use Microsoft DB-Lib and set to 'UTF-8' then char/varchar fields will be UTF8Encoded/Decoded
                 if you use FreeTDS DB-Lib then you must compile with iconv support (requires libiconv2.dll) or cast char/varchar to nchar/nvarchar in SELECTs
       Params - "AutoCommit=true" - if you don't want explicitly commit/rollback transactions
-               "TextSize=16777216 - set maximum size of text/image data returned
+               "TextSize=16777216" - set maximum size of text/image data returned
+               "ApplicationName=YourAppName" Set the app name for the connection. MSSQL 2000 and higher only
 }
 unit mssqlconn;
 
@@ -193,6 +194,7 @@ const
   SBeginTransaction = 'BEGIN TRANSACTION';
   SAutoCommit = 'AUTOCOMMIT';
   STextSize   = 'TEXTSIZE';
+  SAppName   = 'APPLICATIONNAME';
 
 
 var
@@ -427,6 +429,9 @@ begin
     dbsetlcharset(FDBLogin, 'UTF-8')
   else
     dbsetlcharset(FDBLogin, PChar(CharSet));
+
+  if Params.IndexOfName(SAppName) <> -1 then
+    dbsetlname(FDBLogin, PChar(Params.Values[SAppName]), DBSETAPP);
 
   //dbsetlname(FDBLogin, PChar(TIMEOUT_IGNORE), DBSET_LOGINTIME);
   dbsetlogintime(10);
