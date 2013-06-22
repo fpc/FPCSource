@@ -1160,6 +1160,7 @@ begin
       SQL_VARBINARY:     begin FieldType:=ftVarBytes;   FieldSize:=ColumnSize; end;
       SQL_LONGVARBINARY: begin FieldType:=ftBlob;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_TYPE_DATE:     begin FieldType:=ftDate;       FieldSize:=0; end;
+      SQL_SS_TIME2,
       SQL_TYPE_TIME:     begin FieldType:=ftTime;       FieldSize:=0; end;
       SQL_TYPE_TIMESTAMP:begin FieldType:=ftDateTime;   FieldSize:=0; end;
 {      SQL_TYPE_UTCDATETIME:FieldType:=ftUnknown;}

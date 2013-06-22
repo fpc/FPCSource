@@ -56,11 +56,13 @@ type
     // Tests like TestMemo, but closes and reopens in memory file
     // in between. Data should still be there.
     procedure TestMemoClose;
+    // Same as TestMemoClose except added index stream
+    procedure TestIndexClose;
     // Tests string field with
     // 254 characters (max for DBase IV)
     // 32767 characters (FoxPro, Visual FoxPro)
     procedure TestLargeString;
-    // Tests codepage in created dbf
+    // Tests codepage in created dbf equals requested codepage
     procedure TestCodePage;
   end;
 
@@ -423,6 +425,68 @@ begin
   
   ds.free;
   DBFStream.Free;
+  MemoStream.Free;
+end;
+
+procedure TTestSpecificTDBF.TestIndexClose;
+const
+  MaxRecs = 10;
+var
+  ds : TDBF;
+  i: integer;
+  DBFStream: TMemoryStream;
+  IndexStream: TMemoryStream;
+  MemoStream: TMemoryStream;
+begin
+  ds := TDBF.Create(nil);
+  DBFStream:=TMemoryStream.Create;
+  IndexStream:=TMemoryStream.Create;
+  MemoStream:=TMemoryStream.Create;
+  DS.Storage:=stoMemory;
+  DS.UserStream:=DBFStream;
+  DS.UserIndexStream:=IndexStream;
+  DS.UserMemoStream:=MemoStream;
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftMemo);
+  DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
+  DS.CreateTable;
+
+  DS.Exclusive:=true;//needed for index
+  DS.Open;
+  DS.AddIndex('idxID','ID', [ixPrimary, ixUnique]);
+  DS.Close;
+  DS.Exclusive:=false;
+
+  DS.Open;
+  for i := 1 to MaxRecs do
+    begin
+    DS.Append;
+    DS.FieldByName('ID').AsInteger := i;
+    DS.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    DS.Post;
+    end;
+  DS.Close; //in old implementations, this erased memo memory
+
+  // Check streams have content
+  CheckNotEquals(0,DBFStream.Size,'DBF stream should have content');
+  CheckNotEquals(0,IndexStream.Size,'Index stream should have content');
+  CheckNotEquals(0,MemoStream.Size,'Memo stream should have content');
+
+  DS.Open;
+  DS.First;
+  for i := 1 to MaxRecs do
+    begin
+    CheckEquals(i,DS.fieldbyname('ID').asinteger);
+    CheckEquals('TestName' + inttostr(i),DS.fieldbyname('NAME').AsString);
+    DS.next;
+    end;
+  CheckTrue(DS.EOF,'After reading all records the dataset should show EOF');
+  DS.Close;
+
+  ds.free;
+
+  DBFStream.Free;
+  IndexStream.Free;
   MemoStream.Free;
 end;
 

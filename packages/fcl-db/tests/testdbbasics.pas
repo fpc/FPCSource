@@ -32,6 +32,7 @@ type
 
     procedure TestSupportIntegerFields;
     procedure TestSupportSmallIntFields;
+    procedure TestSupportWordFields;
     procedure TestSupportStringFields;
     procedure TestSupportBooleanFields;
     procedure TestSupportFloatFields;
@@ -2297,8 +2298,17 @@ procedure TTestDBBasics.TestSupportIntegerFields;
 var i          : byte;
     ds         : TDataset;
     Fld        : TField;
+    DbfTableLevel: integer;
 
 begin
+  DbfTableLevel:=4;
+  if (uppercase(dbconnectorname)='DBF') then
+  begin
+    DbfTableLevel:=strtointdef(dbconnectorparams,4);
+    if not(DBFTableLevel in [7,30]) then
+      Ignore('TDBF: only Visual Foxpro and DBase7 support full integer range.');
+  end;
+
   TestfieldDefinition(ftInteger,4,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
@@ -2316,11 +2326,29 @@ var i          : byte;
     Fld        : TField;
 
 begin
+  if (uppercase(dbconnectorname)='DBF') then
+    Ignore('TDBF Smallint support only from -999 to 9999');
   TestfieldDefinition(ftSmallint,2,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testSmallIntValues[i],Fld.AsInteger);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportWordFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftWord,2,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    CheckEquals(testWordValues[i],Fld.AsInteger);
     ds.Next;
     end;
   ds.close;
@@ -2338,7 +2366,10 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(testStringValues[i],Fld.AsString);
+    if (uppercase(dbconnectorname)<>'DBF') then
+      CheckEquals(testStringValues[i],Fld.AsString)
+    else {DBF right-trims spaces in string fields }
+      CheckEquals(TrimRight(testStringValues[i]),Fld.AsString);
     ds.Next;
     end;
   ds.close;
