@@ -572,7 +572,16 @@ begin
       C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
       end;
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
-      MySQLError(FMYSQL,SErrExecuting,Self)
+      begin
+      if not ForcedClose then
+        MySQLError(FMYSQL,SErrExecuting,Self)
+      else //don't return a resulset. We are shutting down, not opening.
+        begin
+        C.RowsAffected:=0;
+        C.FSelectable:= False;
+        C.FRes:=nil;
+        end;
+      end
     else
       begin
       C.RowsAffected := mysql_affected_rows(FMYSQL);
@@ -581,7 +590,17 @@ begin
       repeat
         Res:=mysql_store_result(FMySQL); //returns a null pointer also if the statement didn't return a result set
         if mysql_errno(FMySQL)<>0 then
-          MySQLError(FMySQL, SErrGettingResult, Self);
+          begin
+          if not ForcedClose then
+            MySQLError(FMySQL, SErrGettingResult, Self)
+          else
+            begin
+            C.RowsAffected:=0;
+            C.FSelectable:= False;
+            C.FRes:=nil;
+            break;
+            end;
+          end;
         if Res<>nil then
           begin
           mysql_free_result(C.FRes);
@@ -1145,7 +1164,7 @@ end;
 function TConnectionName.Commit(trans: TSQLHandle): boolean;
 begin
   //mysql_commit(FMySQL);
-  Result := mysql_query(FMySQL, 'COMMIT') = 0;
+  Result := (mysql_query(FMySQL, 'COMMIT') = 0) or ForcedClose;
   if not Result then
     MySQLError(FMySQL, SErrExecuting, Self);
 end;
@@ -1153,7 +1172,7 @@ end;
 function TConnectionName.RollBack(trans: TSQLHandle): boolean;
 begin
   //mysql_rollback(FMySQL);
-  Result := mysql_query(FMySQL, 'ROLLBACK') = 0;
+  Result := (mysql_query(FMySQL, 'ROLLBACK') = 0) or ForcedClose;
   if not Result then
     MySQLError(FMySQL, SErrExecuting, Self);
 end;

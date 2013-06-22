@@ -541,9 +541,14 @@ begin
   end;
 end;
 
-procedure TCustomConnection.Close;
+procedure TCustomConnection.Close(ForceClose : Boolean = False);
 begin
-  Connected := False;
+  try
+    ForcedClose:=ForceClose;
+    Connected := False;
+  finally
+    ForcedClose:=false;
+  end;
 end;
 
 destructor TCustomConnection.Destroy;

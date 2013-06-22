@@ -328,7 +328,8 @@ var
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
   NumericVal: SQL_NUMERIC_STRUCT;
-  ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
+  ColumnSize: SQLULEN;
+  BufferLength, StrLenOrInd: SQLLEN;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
   APD: SQLHDESC;
 begin
@@ -489,12 +490,12 @@ begin
     if AParams[ParamIndex].IsNull then
        StrLenOrInd:=SQL_NULL_DATA;
 
-    Buf:=GetMem(Size+SizeOf(SQLINTEGER));
+    Buf:=GetMem(Size+SizeOf(StrLenOrInd));
     Move(PVal^, Buf^, Size);
     if StrLenOrInd<>0 then
        begin
        PStrLenOrInd:=Buf + Size;
-       Move(StrLenOrInd, PStrLenOrInd^, SizeOf(SQLINTEGER));
+       Move(StrLenOrInd, PStrLenOrInd^, SizeOf(StrLenOrInd));
        end
     else
        PStrLenOrInd:=nil;
@@ -779,7 +780,7 @@ end;
 
 function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
 var
-  RowCount: SQLINTEGER;
+  RowCount: SQLLEN;
 begin
   if assigned(cursor) then
     if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
@@ -816,7 +817,7 @@ function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buff
 {$ENDIF}
 var
   ODBCCursor:TODBCCursor;
-  StrLenOrInd:SQLINTEGER;
+  StrLenOrInd:SQLLEN;
   ODBCDateStruct:SQL_DATE_STRUCT;
   ODBCTimeStruct:SQL_TIME_STRUCT;
   ODBCTimeStampStruct:SQL_TIMESTAMP_STRUCT;
@@ -962,7 +963,7 @@ procedure TODBCConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBuf
 var
   ODBCCursor: TODBCCursor;
   Res: SQLRETURN;
-  StrLenOrInd:SQLINTEGER;
+  StrLenOrInd:SQLLEN;
   BlobBuffer:pointer;
   BlobBufferSize,BytesRead:SQLINTEGER;
   BlobMemoryStream:TMemoryStream;
@@ -1084,11 +1085,11 @@ var
   ColumnCount:SQLSMALLINT;
   i:integer;
   ColNameLength,TypeNameLength,DataType,DecimalDigits,Nullable:SQLSMALLINT;
-  ColumnSize:SQLUINTEGER;
+  ColumnSize:SQLULEN;
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
-  AutoIncAttr, Updatable, FixedPrecScale: SQLINTEGER;
+  AutoIncAttr, Updatable, FixedPrecScale: SQLLEN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -1276,7 +1277,7 @@ begin
     // add FieldDef
     with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
     begin
-      if Updatable = 0{SQL_ATTR_READONLY} then Attributes := Attributes + [faReadonly];
+      if Updatable = SQL_ATTR_READONLY then Attributes := Attributes + [faReadonly];
     end;
   end;
 end;
@@ -1288,13 +1289,13 @@ var
   IndexDef: TIndexDef;
   KeyName: String;
   // variables for binding
-  NonUnique :SQLSMALLINT; NonUniqueIndOrLen :SQLINTEGER;
-  IndexName :string;      IndexNameIndOrLen :SQLINTEGER;
-  _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLINTEGER;
-  OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLINTEGER;
-  ColName   :string;      ColNameIndOrLen   :SQLINTEGER;
-  AscOrDesc :char;        AscOrDescIndOrLen :SQLINTEGER;
-  PKName    :string;      PKNameIndOrLen    :SQLINTEGER;
+  NonUnique :SQLSMALLINT; NonUniqueIndOrLen :SQLLEN;
+  IndexName :string;      IndexNameIndOrLen :SQLLEN;
+  _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLLEN;
+  OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLLEN;
+  ColName   :string;      ColNameIndOrLen   :SQLLEN;
+  AscOrDesc :char;        AscOrDescIndOrLen :SQLLEN;
+  PKName    :string;      PKNameIndOrLen    :SQLLEN;
 const
   DEFAULT_NAME_LEN = 255;
 begin
@@ -1463,14 +1464,14 @@ var i,l: SQLSMALLINT;
 begin
   case InfoType of
     citServerType:
-      i:=17{SQL_DBMS_NAME};
+      i:=SQL_DBMS_NAME;
     citServerVersion,
     citServerVersionString:
-      i:=18{SQL_DBMS_VER};
+      i:=SQL_DBMS_VER;
     citClientName:
-      i:=6{SQL_DRIVER_NAME};
+      i:=SQL_DRIVER_NAME;
     citClientVersion:
-      i:=7{SQL_DRIVER_VER};
+      i:=SQL_DRIVER_VER;
   else
     Result:=inherited GetConnectionInfo(InfoType);
     Exit;

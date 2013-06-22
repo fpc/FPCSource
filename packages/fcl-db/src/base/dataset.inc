@@ -1834,7 +1834,7 @@ begin
   FFieldList.GetFieldNames(List);
 end;
 
-Procedure TDataset.GotoBookmark(ABookmark: TBookmark);
+Procedure TDataset.GotoBookmark(const ABookmark: TBookmark);
 
 
 begin
@@ -2296,7 +2296,7 @@ begin
     FieldByName(Fieldname).Value := Value;
 end;
 
-Function TDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
+Function TDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
 
 begin
   CheckBiDirectional;

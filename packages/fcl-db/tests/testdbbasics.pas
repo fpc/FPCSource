@@ -2111,6 +2111,7 @@ procedure TTestBufDatasetDBBasics.TestIndexAppendRecord;
 var i: integer;
     LastValue: string;
 begin
+  // start with empty dataset
   with DBConnector.GetNDataset(true,0) as TCustomBufDataset do
   begin
     MaxIndexesCount:=4;
@@ -2125,19 +2126,20 @@ begin
     // append data at end
     for i:=20 downto 0 do
       AppendRecord([i, inttostr(i)]);
-    First;
     // insert data at begining
+    IndexName:='';
+    First;
     for i:=21 to 22 do
       InsertRecord([i, inttostr(i)]);
 
-    // ATM new records are not ordered as they are added ?
+    // swith to index and check if records are ordered
+    IndexName := 'testindex';
     LastValue := '';
     First;
     for i:=22 downto 0 do
     begin
       CheckEquals(23-i, RecNo, 'testindex.RecNo:');
-      CheckEquals(inttostr(i), Fields[1].AsString, 'testindex.Fields[1].Value:');
-      //CheckTrue(AnsiCompareStr(LastValue,Fields[1].AsString) < 0, 'testindex.LastValue>CurrValue');
+      CheckTrue(AnsiCompareStr(LastValue,Fields[1].AsString) < 0, 'testindex.LastValue>=CurrValue');
       LastValue := Fields[1].AsString;
       Next;
     end;
