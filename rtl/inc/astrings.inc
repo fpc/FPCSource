@@ -1386,11 +1386,9 @@ function StringRefCount(const S: RawByteString): SizeInt; overload;
 
 {$ifndef FPC_HAS_ANSISTR_SETCODEPAGE}
 {$define FPC_HAS_ANSISTR_SETCODEPAGE}
-procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
   begin
-    if (S='') or (StringCodePage(S)=CodePage) then
-      exit
-    else if Convert then
+    if Convert then
       begin
 {$ifdef FPC_HAS_CPSTRING}
         s:=fpc_AnsiStr_To_AnsiStr(s,CodePage);
@@ -1404,6 +1402,15 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
         UniqueString(s);
         PAnsiRec(pointer(s)-AnsiFirstOff)^.CodePage:=CodePage;
       end;
+  end;
+
+
+{ use this wrapper for the simple case to avoid the generation of a temp. ansistring which causes
+  extra exception frames }
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+  begin
+    if (S<>'') and (StringCodePage(S)<>CodePage) then
+      InternalSetCodePage(s,CodePage,Convert);
   end;
 {$endif FPC_HAS_ANSISTR_SETCODEPAGE}
 
