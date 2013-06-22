@@ -1016,8 +1016,8 @@ begin
     Open;
     AssertEquals(1,FieldCount);
     AssertTrue(CompareText('FT',fields[0].FieldName)=0);
-    AssertEquals(ADataSize,fields[0].DataSize);
-    AssertTrue(ADatatype=fields[0].DataType);
+    AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
+    AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
     Close;
     end;
 end;
@@ -1036,7 +1036,7 @@ end;
 
 procedure TTestFieldTypes.RunTest;
 begin
-//  if (SQLDbType in TSQLDBTypes) then
+//  if (SQLDbType in TSQLDBType) then
     inherited RunTest;
 end;
 
@@ -1517,8 +1517,8 @@ begin
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(query.FieldByName('NAME').AsString,FieldValue);
-    query.Close;
+    AssertEquals(FieldValue, Query.FieldByName('NAME').AsString);
+    Query.Close;
     end;
 end;
 
@@ -2107,21 +2107,21 @@ var ds : TSQLQuery;
 begin
   ds := DBConnector.GetNDataset(1) as TSQLQuery;
   ds.Open;
-  AssertEquals(1,ds.ServerIndexDefs.count);
+  AssertEquals('ServerIndexDefs.Count', 1, ds.ServerIndexDefs.Count);
   inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary]);
-  AssertEquals(1,inddefs.count);
+  AssertEquals('ixPrimary', 1, inddefs.count);
   AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
-  Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
   inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary,ixUnique]);
-  AssertEquals(1,inddefs.count);
+  AssertEquals('ixPrimary,ixUnique', 1, inddefs.count);
   AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
-  Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  AssertTrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
   inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixDescending]);
-  AssertEquals(0,inddefs.count);
+  AssertEquals('ixDescending', 0, inddefs.count);
   inddefs.Free;
 end;
 

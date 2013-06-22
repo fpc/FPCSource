@@ -76,7 +76,7 @@ type
     procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
     procedure TestClientDatasetAsMemDataset;
-    procedure TestSafeAsXML;
+    procedure TestSaveAsXML;
     procedure TestIsEmpty;
     procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestBufDatasetCancelUpd1;
@@ -1310,7 +1310,7 @@ begin
   bufds.CompareBookmarks(nil,nil);
 end;
 
-procedure TTestBufDatasetDBBasics.TestSafeAsXML;
+procedure TTestBufDatasetDBBasics.TestSaveAsXML;
 var ds    : TDataset;
     LoadDs: TCustomBufDataset;
 begin
@@ -1532,7 +1532,7 @@ begin
   CheckEquals(2,ADataset.Fields.Count);
   CheckTrue(SameText('ID',ADataset.Fields[0].FieldName));
   CheckTrue(SameText('NAME',ADataset.Fields[1].FieldName));
-  CheckTrue(ADataset.fields[1].DataType=ftString,'Incorrect fieldtype');
+  CheckEquals(ord(ftString), ord(ADataset.Fields[1].DataType), 'Incorrect FieldType');
   i := 1;
   while not ADataset.EOF do
     begin
@@ -2212,8 +2212,8 @@ begin
   if not assigned (AFld) then
     Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
 {$endif fpc}
-  CheckTrue(Afld.DataType = AFieldType);
-  CheckEquals(ADatasize,Afld.DataSize );
+  CheckEquals(ord(AFieldType), ord(AFld.DataType), 'DataType');
+  CheckEquals(ADatasize, AFld.DataSize, 'DataSize');
 end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
@@ -2481,7 +2481,7 @@ begin
     open;
     AField := fieldbyname('name');
     AParam.AssignField(AField);
-    CheckTrue(ftString=AParam.DataType);
+    CheckEquals(ord(ftString), ord(AParam.DataType), 'DataType');
     close;
     end;
   AParam.Free;
@@ -2498,7 +2498,7 @@ begin
     AField := fieldbyname('name');
     (AField as tstringfield).FixedChar := true;
     AParam.AssignField(AField);
-    CheckTrue(ftFixedChar=AParam.DataType);
+    CheckEquals(ord(ftFixedChar), ord(AParam.DataType), 'DataType');
     close;
     end;
   AParam.Free;
