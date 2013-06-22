@@ -38,17 +38,17 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           'VARCHAR(10)',
           'SMALLINT',
           'INTEGER',
-          '',
+          '',             // ftWord
           'BOOLEAN',
-          'FLOAT',
+          'DOUBLE PRECISION', // ftFloat
           '',             // ftCurrency
           'DECIMAL(18,4)',// ftBCD
           'DATE',
           'TIME',
           'TIMESTAMP',    // ftDateTime
-          '',
-          '',
-          '',
+          '',             // ftBytes
+          '',             // ftVarBytes
+          '',             // ftAutoInc
           'BLOB',         // ftBlob
           'BLOB',         // ftMemo
           'BLOB',         // ftGraphic
@@ -58,7 +58,7 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           '',
           '',
           'CHAR(10)',     // ftFixedChar
-          '',
+          '',             // ftWideString
           'BIGINT',       // ftLargeInt
           '',
           '',
@@ -72,8 +72,8 @@ const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           '',             // ftGuid
           'TIMESTAMP',    // ftTimestamp
           'NUMERIC(18,6)',// ftFmtBCD
-          '',
-          ''
+          '',             // ftFixedWideChar
+          ''              // ftWideMemo
         );
              
 
@@ -101,6 +101,7 @@ type
   public
     destructor Destroy; override;
     constructor Create; override;
+    procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
     property Query : TSQLQuery read FQuery;
@@ -181,9 +182,7 @@ begin
     end;
 
     if length(dbQuoteChars)>1 then
-      begin
-      FieldNameQuoteChars:=dbquotechars;
-      end;
+      FieldNameQuoteChars:=dbQuoteChars;
 
     Open;
   end;
@@ -200,15 +199,21 @@ begin
   FieldtypeDefinitions := FieldtypeDefinitionsConst;
 
   case SQLServerType of
-    ssFirebird, ssInterbase:
+    ssFirebird:
       begin
       FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
+      FieldtypeDefinitions[ftMemo]    := 'BLOB SUB_TYPE TEXT';
+      end;
+    ssInterbase:
+      begin
+      FieldtypeDefinitions[ftMemo]     := 'BLOB SUB_TYPE TEXT';
+      FieldtypeDefinitions[ftLargeInt] := 'NUMERIC(18,0)';
       end;
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
+      FieldtypeDefinitions[ftFloat]   := 'FLOAT';
       FieldtypeDefinitions[ftCurrency]:= 'MONEY';
       FieldtypeDefinitions[ftDate]    := 'DATETIME';
       FieldtypeDefinitions[ftTime]    := '';
@@ -222,15 +227,14 @@ begin
     ssMySQL:
       begin
       //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
-      FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftFloat] := 'DOUBLE';
+      FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
       // Downside is that fields defined as 'TIMESTAMP' aren't tested
       FieldtypeDefinitions[ftDateTime] := 'DATETIME';
-      FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+      FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
-      FieldtypeDefinitions[ftMemo] := 'TEXT';
+      FieldtypeDefinitions[ftMemo]     := 'TEXT';
       end;
     ssOracle:
       begin
@@ -476,39 +480,48 @@ begin
   // exists. And while this exeption is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
-    if SQLConnType = INTERBASE then
-      begin
-      // This only works with Firebird 2+
-      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
-        'then execute statement ''drop table ' + ATAbleName + ';'';end');
-      FTransaction.CommitRetaining;
-      end;
-    if SQLConnType = mssql then
-      begin
-      // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
-      // which leads to the rollback not referring to the right transaction=>SQL error
-      // Use SQL92 ISO standard INFORMATION_SCHEMA:
-      FConnection.ExecuteDirect(
-        'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
-        'begin '+
-        'drop table ' + ATAbleName + ' '+
-        'end');
-      FTransaction.CommitRetaining;
-      end;
-    if SQLConnType = sybase then
-      begin
-      // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
-      // which leads to the rollback not referring to the right transaction=>SQL error
-      // Can't use SQL standard information_schema; instead query sysobjects for User tables
-      FConnection.ExecuteDirect(
-        'if exists (select * from sysobjects where type = ''U'' and name=''' + ATableName + ''') '+
-        'begin '+
-        'drop table ' + ATAbleName + ' '+
-        'end');
-      end;
+    case SQLServerType of
+      ssFirebird:
+        begin
+        // This only works with Firebird 2+
+        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+          'then execute statement ''drop table ' + ATableName + ';'';end');
+        FTransaction.CommitRetaining;
+        end;
+      ssMSSQL:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Use SQL92 ISO standard INFORMATION_SCHEMA:
+        FConnection.ExecuteDirect(
+          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        end;
+      ssSybase:
+        begin
+        // Checking is needed here to avoid getting "auto rollback" of a subsequent CREATE TABLE statement
+        // which leads to the rollback not referring to the right transaction=>SQL error
+        // Can't use SQL standard information_schema; instead query sysobjects for User tables
+        FConnection.ExecuteDirect(
+          'if exists (select * from sysobjects where type = ''U'' and name=''' + ATableName + ''') '+
+          'begin '+
+          'drop table ' + ATableName + ' '+
+          'end');
+        end;
+    end;
   except
     FTransaction.RollbackRetaining;
   end;
+end;
+
+procedure TSQLDBConnector.CommitDDL;
+begin
+  // Commits schema definition and manipulation statements;
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  if SQLServerType in [ssFirebird, ssInterbase] then
+    Transaction.CommitRetaining;
 end;
 
 destructor TSQLDBConnector.Destroy;
@@ -521,7 +534,7 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      if Ftransaction.Active then Ftransaction.Rollback;
     end; // try
     end;
   inherited Destroy;

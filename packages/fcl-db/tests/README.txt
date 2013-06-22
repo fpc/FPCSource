@@ -14,8 +14,8 @@ DBTestframework architecture
 ============================
 To test a TDataset descendent, a 'connector' is needed to test the database.
 To add a new connector, create a new *toolsunit.pas file, then add it to 
-the uses section in 'dbtestframework.pas'. Several connectors are available 
-in the '*toolsunit.pas' files.
+the uses section in 'dbtestframework.pas' and 'dbtestframework_gui.lpr'.
+Several connectors are available in the '*toolsunit.pas' files.
 
 The connector must inherit from TDBConnector in toolsunit.pas.
 The connector implements two different kinds of datasets: 
@@ -28,7 +28,9 @@ The corresponding Drop*Dataset procedures must drop the tables/delete the data.
 GetNDataset and GetFieldsDataset should return the relevant dataset in closed state so the tests can open them and work with them.
 They call InternalGetNDataset and InternalGetFieldDataset which should be implemented in all descendents and returns the relevant dataset, closed, with all data.
 
-Toolsunit.pas defines some variables for use, e.g. testValuesCount is the number of records/test values in the FieldDataset dataset; MaxDataset is the same for NDataset.
+Toolsunit.pas defines some variables for use, e.g.
+- testValuesCount is the number of records/test values in the FieldDataset dataset
+- MaxDataset is the same for NDataset.
 See e.g. the SQLDBToolsUnit for the implementation for SQL Databases.
 
 Tests
@@ -68,7 +70,7 @@ TSQLDBConnector = class(TDBConnector)
 - its name in database.ini is sqldb
 - incidentally, in databases.ini, more parameter such as
 connectorparams=postgresql (which specify db type) are needed
-The parameters use depend on the connector type (sql,...)
+The parameters used depend on the connector type (sql,...)
 
 If you specify the wrong (or no) name (or don't have database.ini), you will get an exception in your test runner:
 Unknown db connector specified
