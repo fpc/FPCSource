@@ -84,6 +84,9 @@ implementation
 
 uses toolsunit, SQLDBToolsUnit, sqldb, XMLDatapacketReader;
 
+const TestXMLFileName = 'test.xml';
+      TestBINFileName = 'test.dat';
+
 procedure TTestBufDatasetStreams.CompareDatasets(ADataset1,
   ADataset2: TDataset);
 begin
@@ -461,10 +464,10 @@ var SaveDs: TCustomBufDataset;
 begin
   SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
   SaveDs.Open;
-  SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+  SaveDs.SaveToFile(TestXMLFileName,dfXML);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('FieldsDS.xml');
+  LoadDs.LoadFromFile(TestXMLFileName);
 
   LoadDS.First;
   SaveDS.First;
@@ -513,12 +516,12 @@ begin
     SaveDs.Post;
 
     // Save this dataset to file.
-    SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+    SaveDs.SaveToFile(TestXMLFileName,dfXML);
 
     // Load this file in another dataset
     LoadDs := TCustomBufDataset.Create(nil);
     try
-      LoadDs.LoadFromFile('FieldsDS.xml');
+      LoadDs.LoadFromFile(TestXMLFileName);
       LoadDS.First;
 
       // Compare the content of the blob-field with the file on disc
@@ -564,10 +567,10 @@ begin
   f.dataset := ADataset;
 
   ADataset.Open;
-  ADataset.SaveToFile('FieldsDS.xml',dfXML);
+  ADataset.SaveToFile(TestXMLFileName,dfXML);
   ADataset.Close;
 
-  ADataset.LoadFromFile('FieldsDS.xml',dfXML);
+  ADataset.LoadFromFile(TestXMLFileName,dfXML);
   AssertEquals(ADataset.FieldByName('ID').AsInteger,1);
   AssertEquals(ADataset.FieldByName('NAME').AsString,'TestName1');
   ADataset.Close;
@@ -585,11 +588,11 @@ begin
   ds := DBConnector.GetNDataset(true,5);
 
   ds.open;
-  TCustomBufDataset(ds).FileName:='test.dat';
+  TCustomBufDataset(ds).FileName:=TestBINFileName;
   ds.close;
 
   LoadDs := DBConnector.GetNDataset(True,2);
-  TCustomBufDataset(LoadDs).FileName:='test.dat';
+  TCustomBufDataset(LoadDs).FileName:=TestBINFileName;
   LoadDs.Open;
 
   ds := DBConnector.GetNDataset(true,4);
@@ -606,11 +609,11 @@ begin
   ds := DBConnector.GetNDataset(true,5);
 
   ds.open;
-  TCustomBufDataset(ds).SaveToFile('test.xml',dfXML);
+  TCustomBufDataset(ds).SaveToFile(TestXMLFileName,dfXML);
   ds.close;
 
   LoadDs := DBConnector.GetNDataset(True,2);
-  TCustomBufDataset(LoadDs).FileName:='test.xml';
+  TCustomBufDataset(LoadDs).FileName:=TestXMLFileName;
   LoadDs.Open;
 
   ds := DBConnector.GetNDataset(true,4);
@@ -627,13 +630,13 @@ var SaveDs: TCustomBufDataset;
 begin
   SaveDs := DBConnector.GetNDataset(true,15) as TSQLQuery;
   SaveDs.Open;
-  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.SaveToFile(TestXMLFileName,dfXML);
   SaveDs.Close;
 
   Conn := TSQLConnectionClass(TSQLDBConnector(DBConnector).Connection.ClassType).Create(nil);
   LoadDs := TSQLQuery.Create(nil);
   LoadDs.DataBase:=Conn;
-  LoadDs.LoadFromFile('Basics.xml');
+  LoadDs.LoadFromFile(TestXMLFileName);
   LoadDs.Next;
   LoadDs.Close;
   LoadDs.Free;

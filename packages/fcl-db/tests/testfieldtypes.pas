@@ -998,10 +998,12 @@ end;
 procedure TTestFieldTypes.CreateTableWithFieldType(ADatatype: TFieldType;
   ASQLTypeDecl: string);
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FT ' +ASQLTypeDecl+ ')');
-
-// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  with TSQLDBConnector(DBConnector) do
+  begin
+    Connection.ExecuteDirect('create table FPDEV2 (FT ' +ASQLTypeDecl+ ')');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    Transaction.CommitRetaining;
+  end;
 end;
 
 procedure TTestFieldTypes.TestFieldDeclaration(ADatatype: TFieldType;
@@ -1011,7 +1013,6 @@ begin
     begin
     SQL.Clear;
     SQL.Add('select * from FPDEV2');
-
     Open;
     AssertEquals(1,FieldCount);
     AssertTrue(CompareText('FT',fields[0].FieldName)=0);
@@ -1941,24 +1942,35 @@ procedure TTestFieldTypes.TestSQLIdentity;
 var datatype, values: string;
     fieldtype: TFieldType;
     i: integer;
+    updatable: boolean;
 begin
   if sqlDBType in MySQLdbTypes then
   begin
     datatype:='INT AUTO_INCREMENT PRIMARY KEY';
     values:='VALUES(DEFAULT)';
     fieldtype:=ftAutoInc;
+    updatable:=true;
   end
   else if sqlDBType = sqlite3 then
   begin
     datatype:='INTEGER PRIMARY KEY';
     values:='DEFAULT VALUES';
     fieldtype:=ftInteger;
+    updatable:=true;
+  end
+  else if sqlDBType = postgresql then
+  begin
+    datatype:='SERIAL';
+    values:='DEFAULT VALUES';
+    fieldtype:=ftInteger;
+    updatable:=true;
   end
   else if sqlDBType = mssql then
   begin
     datatype:='INTEGER IDENTITY';
     values:='DEFAULT VALUES';
     fieldtype:=ftAutoInc;
+    updatable:=false;
   end
   else
     Ignore(STestNotApplicable);
@@ -1975,8 +1987,29 @@ begin
     AssertTrue(Locate('FT',1,[])); // bug 17624
     for i := 1 to 3 do
     begin
-      AssertEquals(Fields[0].AsInteger, i);
+      AssertEquals(i, Fields[0].AsInteger);
       Next;
+    end;
+    // some databases (like MS SQL Server) do not allow updating identity columns
+    AssertEquals('ReadOnly', Fields[0].ReadOnly, not updatable);
+    // some databases (like PostgreSQL, MySQL) allow inserting explicit values and updating auto incrementing columns
+    if updatable then
+    begin
+      UpdateMode:=upWhereAll; // if there is no PK for FPDEV2 table
+      // updating:
+      Last;
+      while not Bof do
+      begin
+        Edit;
+        Fields[0].AsInteger:=Fields[0].AsInteger+2;
+        Post;
+        Prior;
+      end;
+      // inserting:
+      Append;
+      Fields[0].AsInteger:=6;
+      Post;
+      ApplyUpdates;
     end;
     Close;
   end;
