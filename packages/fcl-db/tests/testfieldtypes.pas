@@ -933,6 +933,11 @@ begin
       end;
       ExecSQL;
       end;
+    // test NULL parameter value
+    Params.ParamByName('id').AsInteger := testValuesCount;
+    Params.ParamByName('field1').Clear;
+    ExecSQL;
+
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
     sql.clear;
@@ -962,6 +967,8 @@ begin
       end;
       Next;
       end;
+    AssertTrue('Expected IsNull', FieldByName('FIELD1').IsNull);
+    AssertTrue('Expected Null Variant', VarIsNull(FieldByName('FIELD1').AsVariant));
     close;
     end;
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;

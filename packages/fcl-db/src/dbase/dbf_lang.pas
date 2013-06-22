@@ -181,7 +181,6 @@ const
 //*************************************************************************//
 
 // table
-
   LangId_To_Locale: array[Byte] of LCID =
       (
       DbfLocale_NotFound,
@@ -290,6 +289,41 @@ const
 {E0}  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 {F0}  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       );
+
+  //*************************************************************************//
+  // Visual FoxPro CodePage<>Language ID conversion table
+  //*************************************************************************//
+  // table: note layout is different:
+    VFPCodePage_LangID: array[0..51] of integer =
+//        Code page|Codepage identifier/LangID
+        (
+        437,$01,// U.S. MS-DOS
+        620,$69,// Mazovia (Polish) MS-DOS
+        737,$6A,// Greek MS-DOS (437G)
+        850,$02,// International MS-DOS
+        852,$64,// Eastern European MS-DOS
+        857,$6B,// Turkish MS-DOS
+        861,$67,// Icelandic MS-DOS
+        865,$66,// Nordic MS-DOS //todo: verify this. not 65?
+        866,$64,// Russian MS-DOS //todo: verify this. not 66?
+        874,$7C,// Thai Windows
+        895,$68,// Kamenicky (Czech) MS-DOS
+        932,$7B,// Japanese Windows
+        936,$7A,// Chinese Simplified (PRC, Singapore) Windows
+        949,$79,// Korean Windows
+        950,$78,// Traditional Chinese (Hong Kong SAR, Taiwan) Windows
+        1250,$C8,// Eastern European Windows
+        1251,$C9,// Russian Windows
+        1252,$03,// Windows ANSI
+        1253,$CB,// Greek Windows
+        1254,$CA,// Turkish Windows
+        1255,$7D,// Hebrew Windows
+        1256,$7E,// Arabic Windows
+        10000,$04,// Standard Macintosh
+        10006,$98,// Greek Macintosh
+        10007,$96,// Russian Macintosh
+        10029,$97// Macintosh EE (=Eastern European?)
+        );
 
 //*************************************************************************//
 // DB7 LangID Locale substrings
@@ -475,6 +509,7 @@ function ConstructLangName(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): 
 
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
 
+// Visual DBaseVII specific
 function GetLangId_From_LangName(LocaleStr: string): Byte;
 
 implementation
@@ -534,46 +569,65 @@ const
 function FindLangId(CodePage, DesiredLocale: Cardinal; LanguageIDToLocaleTable: PCardinal; IsFoxPro: Boolean): Byte;
 // DesiredLocale: pointer to lookup array: language ID=>locale
 var
-  LangID, Region, FoxRes, DbfRes: Integer;
+  i, LangID, Region: Integer;
 begin
   Region := 0;
-  DbfRes := 0;
-  FoxRes := 0;
-  // scan for a language ID matching the given codepage
-  for LangID := 0 to $FF do
+  if IsFoxPro then
   begin
-    // check if need to advance to next region
-    if Region + 2 < dBase_RegionCount then
-      if LangID >= dBase_Regions[Region + 2] then
-        Inc(Region, 2);
-    // it seems delphi does not properly understand pointers?
-    // what a mess :-(
-    //todo: verify this for visual foxpro; we never seem to get a result
-    if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
-      (PCardinal(PChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
-      if LangID <= dBase_Regions[Region+1] then
-        DbfRes := Byte(LangID)
-      else
-        FoxRes := Byte(LangID);
-  end;
-  // if we can find langid in other set, use it
-  if (DbfRes <> 0) and (not IsFoxPro or (FoxRes = 0)) then
-    Result := DbfRes //... not using foxpro
-  else  {(DbfRes = 0) or (IsFoxPro and (FoxRes <> 0)}
-  if (FoxRes <> 0) {and (IsFoxPro or (DbfRes = 0)} then
-    Result := FoxRes
+    // scan for a language ID matching the given codepage;
+    // default to Win1252 Western European codepage
+    result:=$03;
+    for i := 0 to high(VFPCodePage_LangID) div 2 do
+    begin
+      if CodePage=VFPCodePage_LangID[i*2] then
+      begin
+        result := Byte(VFPCodePage_LangID[1+i*2]);
+        break;
+      end;
+    end;
+  end
   else
-    Result := 0;
+  begin
+    // DBase
+    // scan for a language ID matching the given codepage
+    result:=0;
+    for LangID := 0 to $FF do
+    begin
+      // check if need to advance to next region
+      if Region + 2 < dBase_RegionCount then
+        if LangID >= dBase_Regions[Region + 2] then
+          Inc(Region, 2);
+      // it seems delphi does not properly understand pointers?
+      // what a mess :-(
+      if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
+        (PCardinal(PChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
+        // Ignore (V)FP results
+        if LangID <= dBase_Regions[Region+1] then
+          result := Byte(LangID);
+    end;
+  end;
 end;
 
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
 begin
   // locale: lower 16bits only, with default sorting
   Locale := (Locale and $FFFF) or (SORT_DEFAULT shl 16);
-  Result := FindLangId(CodePage, Locale, @LangId_To_Locale[0], IsFoxPro);
+  if IsFoxPro then
+    Result := FindLangID(CodePage, Locale, @VFPCodePage_LangID[0], true)
+  else
+    Result := FindLangId(CodePage, Locale, @LangId_To_Locale[0], false);
   // not found? try any codepage
   if Result = 0 then
-    Result := FindLangId(0, Locale, @LangId_To_Locale[0], IsFoxPro);
+    if IsFoxPro then
+      Result := FindLangID(0, Locale, @VFPCodePage_LangID[0], true)
+    else
+    begin
+      Result := FindLangId(0, Locale, @LangId_To_Locale[0], false);
+      // Dbase: last resort; include foxpro codepages;
+      // compatible with older tdbf but unknow whether this actually works
+      if Result = 0 then
+        Result := FindLangID(0, Locale, @VFPCodePage_LangID[0], true)
+    end;
 end;
 
 function GetLangId_From_LangName(LocaleStr: string): Byte;
@@ -596,17 +650,11 @@ begin
   // convert codepage string to codepage id
   if CodePageStr = 'WIN' then
     CodePage := 1252
-  else if CodePageStr = 'REW' then    // hebrew
+  else if CodePageStr = 'REW' then    // Hebrew
     CodePage := 1255
   else
-    CodePage := StrToInt(CodePageStr);
+    CodePage := StrToIntDef(CodePageStr,0); //fail to codepage 0
   // find lang id
-  //todo: debug, remove
-  writeln('');
-  writeln('getlangid_fromLangName');
-  writeln('codepagestr ',codepagestr);
-  writeln('subtype: ',subtype);
-  writeln('codepage: ',codepage);
   Result := FindLangId(CodePage, SubType, @LangId_To_LocaleStr[0], IsFoxPro);
 end;
 

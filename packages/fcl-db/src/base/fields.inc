@@ -648,7 +648,7 @@ procedure TField.SetAlignment(const AValue: TAlignMent);
 begin
   if FAlignment <> AValue then
     begin
-    FAlignment := Avalue;
+    FAlignment := AValue;
     PropertyChanged(false);
     end;
 end;
@@ -817,9 +817,9 @@ begin
   Raise AccessError(SString);
 end;
 
-procedure TField.SetAsWideString(const aValue: WideString);
+procedure TField.SetAsWideString(const AValue: WideString);
 begin
-  SetAsString(aValue);
+  SetAsString(AValue);
 end;
 
 
@@ -953,9 +953,9 @@ end;
 
 procedure TField.SetDisplayLabel(const AValue: string);
 begin
-  if FDisplayLabel<>Avalue then
+  if FDisplayLabel<>AValue then
     begin
-    FDisplayLabel:=Avalue;
+    FDisplayLabel:=AValue;
     PropertyChanged(true);
     end;
 end;
@@ -986,7 +986,7 @@ end;
 
 procedure TField.SetReadOnly(const AValue: Boolean);
 begin
-  if (FReadOnly<>Avalue) then
+  if (FReadOnly<>AValue) then
     begin
     FReadOnly:=AValue;
     PropertyChanged(True);
@@ -995,7 +995,7 @@ end;
 
 procedure TField.SetVisible(const AValue: Boolean);
 begin
-  if FVisible<>Avalue then
+  if FVisible<>AValue then
     begin
     FVisible:=AValue;
     PropertyChanged(True);
@@ -1208,7 +1208,7 @@ end;
     TWideStringField
   ---------------------------------------------------------------------}
 
-class procedure TWideStringField.CheckTypeSize(aValue: Integer);
+class procedure TWideStringField.CheckTypeSize(AValue: Integer);
 begin
 // A size of 0 is allowed, since for example Firebird allows
 // a query like: 'select '' as fieldname from table' which
@@ -1229,7 +1229,7 @@ begin
     SetDataType(AValue);
 end;
 
-function TWideStringField.GetValue(var aValue: WideString): Boolean;
+function TWideStringField.GetValue(var AValue: WideString): Boolean;
 var
   FixBuffer : array[0..dsMaxStringSize div 2] of WideChar;
   DynBuffer : array of WideChar;
@@ -1238,14 +1238,14 @@ begin
   if DataSize <= dsMaxStringSize then begin
     Result := GetData(@FixBuffer, False);
     FixBuffer[Size]:=#0;     //limit string to Size
-    aValue := FixBuffer;
+    AValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
     Result := GetData(Buffer, False);
     Buffer[Size]:=#0;     //limit string to Size
     if Result then
-      aValue := Buffer;
+      AValue := Buffer;
   end;
 end;
 
@@ -1254,9 +1254,9 @@ begin
   Result := GetAsWideString;
 end;
 
-procedure TWideStringField.SetAsString(const aValue: string);
+procedure TWideStringField.SetAsString(const AValue: string);
 begin
-  SetAsWideString(aValue);
+  SetAsWideString(AValue);
 end;
 
 function TWideStringField.GetAsVariant: Variant;
@@ -1269,9 +1269,9 @@ begin
     Result := Null;
 end;
 
-procedure TWideStringField.SetVarValue(const aValue: Variant);
+procedure TWideStringField.SetVarValue(const AValue: Variant);
 begin
-  SetAsWideString(aValue);
+  SetAsWideString(AValue);
 end;
 
 function TWideStringField.GetAsWideString: WideString;
@@ -1280,14 +1280,14 @@ begin
     Result := '';
 end;
 
-procedure TWideStringField.SetAsWideString(const aValue: WideString);
+procedure TWideStringField.SetAsWideString(const AValue: WideString);
 const
   NullWideChar : WideChar = #0;
 var
   Buffer : PWideChar;
 begin
-  if Length(aValue)>0 then
-    Buffer := PWideChar(@aValue[1])
+  if Length(AValue)>0 then
+    Buffer := PWideChar(@AValue[1])
   else
     Buffer := @NullWideChar;
   SetData(Buffer, False);
@@ -1340,9 +1340,9 @@ end;
 procedure TNumericField.SetEditFormat(const AValue: string);
 
 begin
-  If FEDitFormat<>AValue then
+  If FEditFormat<>AValue then
     begin
-    FEDitFormat:=AVAlue;
+    FEditFormat:=AValue;
     PropertyChanged(True);
     end;
 end;
@@ -1446,9 +1446,9 @@ begin
   Result:=GetData(P);
   If Result then
     Case Datatype of
-      ftInteger,ftautoinc  : AValue:=Plongint(P)^;
-      ftword               : Avalue:=Pword(P)^;
-      ftsmallint           : AValue:=PSmallint(P)^;
+      ftInteger,ftAutoinc  : AValue:=Plongint(P)^;
+      ftWord               : AValue:=Pword(P)^;
+      ftSmallint           : AValue:=PSmallint(P)^;
     end;
 end;
 
@@ -1463,7 +1463,7 @@ end;
 procedure TLongintField.SetAsFloat(AValue: Double);
 
 begin
-  SetAsLongint(Round(Avalue));
+  SetAsLongint(Round(AValue));
 end;
 
 procedure TLongintField.SetAsLongint(AValue: Longint);
@@ -1472,7 +1472,7 @@ begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    RangeError(Avalue,FMinrange,FMaxRange);
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetVarValue(const AValue: Variant);
@@ -1489,11 +1489,11 @@ begin
     Clear
   else
     begin
-    Val(AVAlue,L,Code);
+    Val(AValue,L,Code);
     If Code=0 then
       SetAsLongint(L)
     else
-      DatabaseErrorFMT(SNotAnInteger,[Avalue]);
+      DatabaseErrorFMT(SNotAnInteger,[AValue]);
     end;
 end;
 
@@ -1629,7 +1629,7 @@ end;
 procedure TLargeintField.SetAsFloat(AValue: Double);
 
 begin
-  SetAsLargeint(Round(Avalue));
+  SetAsLargeint(Round(AValue));
 end;
 
 procedure TLargeintField.SetAsLargeint(AValue: Largeint);
@@ -1638,13 +1638,13 @@ begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    RangeError(Avalue,FMinrange,FMaxRange);
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLargeintField.SetAsLongint(AValue: Longint);
 
 begin
-  SetAsLargeint(Avalue);
+  SetAsLargeint(AValue);
 end;
 
 procedure TLargeintField.SetAsString(const AValue: string);
@@ -1657,11 +1657,11 @@ begin
     Clear
   else
     begin
-    Val(AVAlue,L,Code);
+    Val(AValue,L,Code);
     If Code=0 then
       SetAsLargeint(L)
     else
-      DatabaseErrorFMT(SNotAnInteger,[Avalue]);
+      DatabaseErrorFMT(SNotAnInteger,[AValue]);
     end;
 end;
 
@@ -1864,7 +1864,7 @@ procedure TFloatField.SetAsFloat(AValue: Double);
 
 begin
   If CheckRange(AValue) then
-    SetData(@Avalue)
+    SetData(@AValue)
   else
     RangeError(AValue,FMinValue,FMaxValue);
 end;
@@ -1877,7 +1877,7 @@ end;
 procedure TFloatField.SetAsLongint(AValue: Longint);
 
 begin
-  SetAsFloat(Avalue);
+  SetAsFloat(AValue);
 end;
 
 procedure TFloatField.SetAsString(const AValue: string);
@@ -1898,7 +1898,7 @@ end;
 
 procedure TFloatField.SetVarValue(const AValue: Variant);
 begin
-  SetAsFloat(Avalue);
+  SetAsFloat(AValue);
 end;
 
 constructor TFloatField.Create(AOwner: TComponent);
@@ -1913,8 +1913,8 @@ end;
 Function TFloatField.CheckRange(AValue : Double) : Boolean;
 
 begin
-  If (FMinValue<>0) or (FmaxValue<>0) then
-    Result:=(AValue>=FMinValue) and (AVAlue<=FMAxValue)
+  If (FMinValue<>0) or (FMaxValue<>0) then
+    Result:=(AValue>=FMinValue) and (AValue<=FMaxValue)
   else
     Result:=True;
 end;
@@ -1958,7 +1958,7 @@ function TBooleanField.GetAsString: string;
 Var B : wordbool;
 
 begin
-  If Getdata(@B) then
+  If GetData(@B) then
     Result:=FDisplays[False,B]
   else
     result:='';
@@ -2073,7 +2073,7 @@ function TDateTimeField.GetAsVariant: Variant;
 Var d : tDateTime;
 
 begin
-  If Getdata(@d,False) then
+  If GetData(@d,False) then
     Result := d
   else
     Result:=Null;
@@ -2106,7 +2106,7 @@ Var R : TDateTime;
     F : String;
 
 begin
-  If Not Getdata(@R,False) then
+  If Not GetData(@R,False) then
     TheText:=''
   else
     begin
@@ -2127,7 +2127,7 @@ end;
 procedure TDateTimeField.SetAsDateTime(AValue: TDateTime);
 
 begin
-  SetData(@Avalue,False);
+  SetData(@AValue,False);
 end;
 
 
@@ -2145,7 +2145,7 @@ Var R : TDateTime;
 begin
   if AValue<>'' then
     begin
-    R:=StrToDateTime(AVAlue);
+    R:=StrToDateTime(AValue);
     SetData(@R,False);
     end
   else
@@ -2187,7 +2187,7 @@ begin
     Clear    // set to NULL
   else
     begin
-    R:=StrToTime(AVAlue);
+    R:=StrToTime(AValue);
     SetData(@R,False);
     end;
 end;
@@ -2206,26 +2206,16 @@ begin
 end;
 
 function TBinaryField.GetAsBytes: TBytes;
-var B: TBytes;
 begin
-  SetLength(B, DataSize);
-  if not assigned(B) or not GetData(Pointer(B), True) then
-    SetLength(Result, 0)
-  else if DataType = ftVarBytes then
-  begin
-    SetLength(Result, PWord(B)^);
-    Move(B[sizeof(Word)], Result[0], Length(Result));
-  end
-  else // ftBytes
-    Result := B;
+  if not GetValue(Result) then
+    SetLength(Result, 0);
 end;
 
 
 function TBinaryField.GetAsString: string;
 var B: TBytes;
 begin
-  B := GetAsBytes;
-  if length(B) = 0 then
+  if not GetValue(B) then
     Result := ''
   else
     SetString(Result, @B[0], length(B) div SizeOf(Char));
@@ -2236,13 +2226,17 @@ function TBinaryField.GetAsVariant: Variant;
 var B: TBytes;
     P: Pointer;
 begin
-  B := GetAsBytes;
-  Result := VarArrayCreate([0, length(B)-1], varByte);
-  P := VarArrayLock(Result);
-  try
-    Move(B[0], P^, length(B));
-  finally
-    VarArrayUnlock(Result);
+  if not GetValue(B) then
+    Result := Null
+  else
+  begin
+    Result := VarArrayCreate([0, length(B)-1], varByte);
+    P := VarArrayLock(Result);
+    try
+      Move(B[0], P^, length(B));
+    finally
+      VarArrayUnlock(Result);
+    end;
   end;
 end;
 
@@ -2251,6 +2245,22 @@ procedure TBinaryField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
   TheText:=GetAsString;
+end;
+
+
+function TBinaryField.GetValue(var AValue: TBytes): Boolean;
+var B: TBytes;
+begin
+  SetLength(B, DataSize);
+  Result := assigned(B) and GetData(Pointer(B), True);
+  if Result then
+    if DataType = ftVarBytes then
+      begin
+      SetLength(AValue, PWord(B)^);
+      Move(B[sizeof(Word)], AValue[0], Length(AValue));
+      end
+    else // ftBytes
+      AValue := B;
 end;
 
 
@@ -2301,7 +2311,7 @@ end;
 procedure TBinaryField.SetText(const AValue: string);
 
 begin
-  SetAsString(Avalue);
+  SetAsString(AValue);
 end;
 
 procedure TBinaryField.SetVarValue(const AValue: Variant);
@@ -2376,7 +2386,7 @@ class procedure TBCDField.CheckTypeSize(AValue: Longint);
 
 begin
   If not (AValue in [0..4]) then
-    DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
+    DatabaseErrorfmt(SInvalidFieldSize,[AValue]);
 end;
 
 function TBCDField.GetAsBCD: TBCD;
@@ -2479,7 +2489,7 @@ procedure TBCDField.SetAsBCD(const AValue: TBCD);
 var
   c:system.currency;
 begin
-  if BCDToCurr(AValue,c) then  //always returns true !!
+  if BCDToCurr(AValue,c) then
     SetAsCurrency(c);
 end;
 
@@ -2489,7 +2499,7 @@ begin
   If CheckRange(AValue) then
     setdata(@AValue)
   else
-    RangeError(AValue,FMinValue,FMaxvalue);
+    RangeError(AValue,FMinValue,FMaxValue);
 end;
 
 procedure TBCDField.SetVarValue(const AValue: Variant);
@@ -2500,8 +2510,8 @@ end;
 Function TBCDField.CheckRange(AValue : Currency) : Boolean;
 
 begin
-  If (FMinValue<>0) or (FmaxValue<>0) then
-    Result:=(AValue>=FMinValue) and (AVAlue<=FMaxValue)
+  If (FMinValue<>0) or (FMaxValue<>0) then
+    Result:=(AValue>=FMinValue) and (AValue<=FMaxValue)
   else
     Result:=True;
 end;
@@ -2533,8 +2543,8 @@ constructor TBCDField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  FMaxvalue := 0;
-  FMinvalue := 0;
+  FMaxValue := 0;
+  FMinValue := 0;
   FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
   FPrecision := 15;
@@ -2838,9 +2848,9 @@ var
 begin
   With GetBlobStream(bmwrite) do
     try
-      Len := Length(Avalue);
+      Len := Length(AValue);
       if Len > 0 then
-        WriteBuffer(aValue[1], Len);
+        WriteBuffer(AValue[1], Len);
     finally
       Free;
     end;
@@ -2853,9 +2863,9 @@ var
 begin
   With GetBlobStream(bmwrite) do
     try
-      Len := Length(Avalue) * 2;
+      Len := Length(AValue) * 2;
       if Len > 0 then
-        WriteBuffer(aValue[1], Len);
+        WriteBuffer(AValue[1], Len);
     finally
       Free;
     end;
@@ -2954,7 +2964,7 @@ procedure TBlobField.SetFieldType(AValue: TFieldType);
 
 begin
   If AValue in [Low(TBlobType)..High(TBlobType)] then
-    SetDatatype(Avalue);
+    SetDatatype(AValue);
 end;
 
 { TMemoField }
@@ -2971,9 +2981,9 @@ begin
   Result := GetAsString;
 end;
 
-procedure TMemoField.SetAsWideString(const aValue: WideString);
+procedure TMemoField.SetAsWideString(const AValue: WideString);
 begin
-  SetAsString(aValue);
+  SetAsString(AValue);
 end;
 
 { TWideMemoField }
@@ -2989,9 +2999,9 @@ begin
   Result := GetAsWideString;
 end;
 
-procedure TWideMemoField.SetAsString(const aValue: string);
+procedure TWideMemoField.SetAsString(const AValue: string);
 begin
-  SetAsWideString(aValue);
+  SetAsWideString(AValue);
 end;
 
 function TWideMemoField.GetAsVariant: Variant;
@@ -3032,7 +3042,7 @@ end;
 
 class procedure TGuidField.CheckTypeSize(AValue: LongInt);
 begin
-  if aValue <> 38 then
+  if AValue <> 38 then
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
@@ -3054,9 +3064,9 @@ begin
   Result := 38;
 end;
 
-procedure TGuidField.SetAsGuid(const aValue: TGUID);
+procedure TGuidField.SetAsGuid(const AValue: TGUID);
 begin
-  SetAsString(GuidToString(aValue));
+  SetAsString(GuidToString(AValue));
 end;
 
 function TVariantField.GetDefaultWidth: Integer;

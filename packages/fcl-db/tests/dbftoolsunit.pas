@@ -38,7 +38,7 @@ type
   end;
 
   { TDBFAutoClean }
-  // DBF descendant that saves to a temp file and removes file when closed
+  // DBF descendant that saves to a memory stream instead of file
   TDBFAutoClean = class(TDBF)
   private
     FBackingStream: TMemoryStream;

@@ -66,6 +66,7 @@ type
     procedure CheckSizePrecision;
     procedure SetDefaultSize;
     procedure AllocBuffers;
+    // Yes if field is a blob/memo type field (storage in external file)
     function  IsBlob: Boolean;
 
     property DefaultBuf: PChar read FDefaultBuf;

@@ -47,6 +47,7 @@ type
   protected
     FMdxFile: TIndexFile;
     FMemoFile: TMemoFile;
+    FMemoStream: TStream;
     FFieldDefs: TDbfFieldDefs;
     FIndexNames: TStringList;
     FIndexFiles: TList;
@@ -68,8 +69,10 @@ type
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
     FOnIndexMissing: TDbfIndexMissingEvent;
-
+    // Yes if table has blob/memo type field(s) (storage in external file)
     function  HasBlob: Boolean;
+    // File extension for memo field; uppercase if FFileName is uppercase
+    // (useful for *nix case-sensitive filesystems)
     function  GetMemoExt: string;
 
     function GetLanguageId: Integer;
@@ -105,6 +108,7 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
+
     // Inserts new record
     function  Insert(Buffer: TRecordBuffer): integer;
     // Write dbf header as well as EOF marker at end of file if necessary
@@ -135,6 +139,8 @@ type
     procedure RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer);
 
     property MemoFile: TMemoFile read FMemoFile;
+    // Backing stream for stream/memory-based memo "files"
+    property MemoStream: TStream read FMemoStream write FMemoStream;
     property FieldDefs: TDbfFieldDefs read FFieldDefs;
     property IndexNames: TStringList read FIndexNames;
     property IndexFiles: TList read FIndexFiles;
@@ -186,8 +192,10 @@ type
     FDefaultCreateLangId: Byte;
     FUserName: string;
     FUserNameLen: DWORD;
-	
+
+    // Translates FDefaultCreateLangId back to codepage
     function  GetDefaultCreateCodePage: Integer;
+    // Takes codepage and sets FDefaultCreateLangId
     procedure SetDefaultCreateCodePage(NewCodePage: Integer);
     procedure InitUserName;
   public
@@ -489,17 +497,21 @@ begin
       lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
       if HasBlob then
       begin
-        // open blob file
-        if not FileExists(lMemoFileName) then
+        // open blob file; if it doesn't exist yet create it
+        // using AutoCreate as long as we're not running read-only
+        // If needed, fake a memo file:
+        if (Mode=pfReadOnly) and (not FileExists(lMemoFileName)) then
           MemoFileClass := TNullMemoFile
         else if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           MemoFileClass := TFoxProMemoFile
         else
-          MemoFileClass := TDbaseMemoFile;
+          MemoFileClass := TDbaseMemoFile; //fallback/default
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
+        if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          FMemoFile.Stream:=FMemoStream;
         FMemoFile.Mode := Mode;
-        FMemoFile.AutoCreate := false;
+        FMemoFile.AutoCreate := true;
         FMemoFile.MemoRecordSize := 0;
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
@@ -520,6 +532,9 @@ begin
       begin
         // open mdx file if present
         lMdxFileName := ChangeFileExt(FileName, '.mdx');
+        // Deal with case-sensitive filesystems:
+        if (FileName<>'') and (UpperCase(FileName)=FileName) then
+          lMdxFileName := UpperCase(lMdxFileName);
         if FileExists(lMdxFileName) then
         begin
           // open file
@@ -630,7 +645,8 @@ begin
     if FDbfVersion in [xFoxPro, xVisualFoxPro] then
     begin
       // Don't use DbfGlobals default language ID as it is dbase-based
-      FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
+      if FFileLangId = 0 then
+        FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
     end
     else
     begin
@@ -683,7 +699,7 @@ begin
     end;
     // begin writing field definitions
     FFieldDefs.Clear;
-    // deleted mark 1 byte
+    // deleted mark takes 1 byte, so skip over that
     lFieldOffset := 1;
     for I := 1 to AFieldDefs.Count do
     begin
@@ -858,6 +874,8 @@ begin
     else
       FMemoFile := TDbaseMemoFile.Create(Self);
     FMemoFile.FileName := lMemoFileName;
+    if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      FMemoFile.Stream:=FMemoStream;
     FMemoFile.Mode := Mode;
     FMemoFile.AutoCreate := AutoCreate;
     FMemoFile.MemoRecordSize := MemoSize;
@@ -872,8 +890,11 @@ var
 begin
   Result := false;
   for I := 0 to FFieldDefs.Count-1 do
-    if FFieldDefs.Items[I].IsBlob then 
+    if FFieldDefs.Items[I].IsBlob then
+    begin
       Result := true;
+      break;
+    end;
 end;
 
 function TDbfFile.GetMemoExt: string;
@@ -882,6 +903,8 @@ begin
     xFoxPro, xVisualFoxPro: Result := '.fpt'
     else Result := '.dbt';
   end;
+  if (FFileName<>'') and (FFileName=UpperCase(FFileName)) then
+    Result := UpperCase(Result);
 end;
 
 procedure TDbfFile.Zap;
@@ -1263,6 +1286,7 @@ var
   NewBaseName: string;
   I: integer;
 begin
+  // todo: verify if this works with memo files
   // get memory for index file list
   lIndexFileNames := TStringList.Create;
   try 
@@ -1369,7 +1393,10 @@ begin
   if FMemoFile <> nil then
     DestDbfFile.FinishCreate(DestFieldDefs, FMemoFile.RecordSize)
   else
-    DestDbfFile.FinishCreate(DestFieldDefs, 512);
+    if (DestDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro]) then
+      DestDbfFile.FinishCreate(DestFieldDefs, 64) {VFP default}
+    else
+      DestDbfFile.FinishCreate(DestFieldDefs, 512);
 
   // adjust size and offsets of fields
   GetMem(RestructFieldInfo, sizeof(TRestructFieldInfo)*DestFieldDefs.Count);
@@ -1738,7 +1765,7 @@ begin
           SaveDateToDst;
         end;
       end;
-    'Y':
+    'Y': // currency
       begin
 {$ifdef SUPPORT_INT64}
         Result := true;
@@ -1754,10 +1781,14 @@ begin
       begin
         if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
-          Result := true;
-          if Dst <> nil then
-            PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
-        end else
+        {$ifdef SUPPORT_INT64}
+          Result := Unaligned(PInt64(Src)^) <> 0;
+          if Result and (Dst <> nil) then
+          begin
+            SwapInt64LE(Src, Dst);
+            PDouble(Dst)^ := PDouble(Dst)^;
+          end;
+        {$endif} end else
           asciiContents := true;
       end;
     'M':
@@ -2779,7 +2810,6 @@ begin
   // error occurred while writing?
   if WriteError then
   begin
-    // -- Tobias --
     // The record couldn't be written, so
     // the written index records and the
     // change to the header have to be
@@ -2789,7 +2819,7 @@ begin
     Dec(PDbfHdr(Header)^.RecordCount);
     WriteHeader;
     UnlockPage(0);
-    // roll back indexes too
+    // roll back indexes, too
     RollbackIndexesAndRaise(FIndexFiles.Count, ecWriteDbf);
   end else
     Result := newRecord;

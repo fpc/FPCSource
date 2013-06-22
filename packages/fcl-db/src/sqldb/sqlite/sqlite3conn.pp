@@ -374,7 +374,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 26;
+  FieldMapCount = 27;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -390,6 +390,7 @@ Const
    (n:'DATE'; t: ftDate),
    (n:'TIME'; t: ftTime),
    (n:'CURRENCY'; t: ftCurrency),
+   (n:'MONEY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
    (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),

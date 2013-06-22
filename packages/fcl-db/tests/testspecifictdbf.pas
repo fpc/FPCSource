@@ -53,8 +53,15 @@ type
     procedure TestFindPrior;
     // Tests writing and reading a memo field
     procedure TestMemo;
-    // Tests string field with 254 characters (max for DBase IV)
+    // Tests like TestMemo, but closes and reopens in memory file
+    // in between. Data should still be there.
+    procedure TestMemoClose;
+    // Tests string field with
+    // 254 characters (max for DBase IV)
+    // 32767 characters (FoxPro, Visual FoxPro)
     procedure TestLargeString;
+    // Tests codepage in created dbf
+    procedure TestCodePage;
   end;
 
 
@@ -69,11 +76,13 @@ uses
 
 procedure TTestSpecificTDBF.WriteReadbackTest(ADBFDataset: TDbf;
   AutoInc: boolean);
+const
+  MaxRecs = 10;
 var
   i  : integer;
 begin
   // Add sample data
-  for i := 1 to 10 do
+  for i := 1 to MaxRecs do
     begin
     ADBFDataset.Append;
     if not AutoInc then
@@ -82,13 +91,13 @@ begin
     ADBFDataset.Post;
     end;
   ADBFDataset.first;
-  for i := 1 to 10 do
+  for i := 1 to MaxRecs do
     begin
     CheckEquals(i,ADBFDataset.fieldbyname('ID').asinteger);
     CheckEquals('TestName' + inttostr(i),ADBFDataset.fieldbyname('NAME').AsString);
     ADBFDataset.next;
     end;
-  CheckTrue(ADBFDataset.EOF);
+  CheckTrue(ADBFDataset.EOF,'After reading all records the dataset should show EOF');
 end;
 
 
@@ -106,9 +115,9 @@ procedure TTestSpecificTDBF.TestTableLevel;
 var
   ds : TDBF;
 begin
+  ds := TDBFAutoClean.Create(nil);
   if ((DS as TDBFAutoClean).UserRequestedTableLevel=25) then
     ignore('Foxpro (tablelevel 25) may write data out in dBase IV (tablelevel 4) format.');
-  ds := TDBFAutoClean.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.CreateTable;
   DS.Open;
@@ -363,11 +372,58 @@ begin
   ds := TDBFAutoClean.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftMemo);
+  DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
   DS.CreateTable;
   DS.Open;
   WriteReadbackTest(ds);
   DS.Close;
   ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestMemoClose;
+const
+  MaxRecs = 10;
+var
+  ds : TDBF;
+  i: integer;
+  DBFStream: TMemoryStream;
+  MemoStream: TMemoryStream;
+begin
+  ds := TDBF.Create(nil);
+  DBFStream:=TMemoryStream.Create;
+  MemoStream:=TMemoryStream.Create;
+  DS.Storage:=stoMemory;
+  DS.UserStream:=DBFStream;
+  DS.UserMemoStream:=MemoStream;
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftMemo);
+  DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
+  DS.CreateTable;
+  
+  DS.Open;  
+  for i := 1 to MaxRecs do
+    begin
+    DS.Append;
+    DS.FieldByName('ID').AsInteger := i;
+    DS.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    DS.Post;
+    end;  
+  DS.Close; //in old implementations, this erased memo memory
+  
+  DS.Open;
+  DS.First;
+  for i := 1 to MaxRecs do
+    begin
+    CheckEquals(i,DS.fieldbyname('ID').asinteger);
+    CheckEquals('TestName' + inttostr(i),DS.fieldbyname('NAME').AsString);
+    DS.next;
+    end;
+  CheckTrue(DS.EOF,'After reading all records the dataset should show EOF');  
+  DS.Close;
+  
+  ds.free;
+  DBFStream.Free;
+  MemoStream.Free;
 end;
 
 procedure TTestSpecificTDBF.TestLargeString;
@@ -386,7 +442,7 @@ begin
   TestValue:=StringOfChar('a',MaxStringSize);
 
   DS.FieldDefs.Add('ID',ftInteger);
-  DS.FieldDefs.Add('NAME',ftString,254);
+  DS.FieldDefs.Add('NAME',ftString,MaxStringSize);
   DS.CreateTable;
   DS.Open;
 
@@ -404,6 +460,40 @@ begin
   DS.next;
   CheckTrue(DS.EOF,'Dataset EOF must be true');
 
+  DS.Close;
+  ds.free;
+end;
+
+procedure TTestSpecificTDBF.TestCodePage;
+const
+  // Chose non-default (i.e. 437,850,1252) cps
+  DOSCodePage=865; //Nordic ms dos
+  DOSLanguageID=$66; //... corresponding language ID (according to VFP docs; other sources say $65)
+  WindowsCodePage=1251; //Russian windows
+  WindowsLanguageID=$C9; //.... corresponding language ID
+var
+  RequestLanguageID: integer; //dbf language ID marker (byte 29)
+  CorrespondingCodePage: integer;
+  ds : TDBF;
+begin
+  ds := TDBFAutoClean.Create(nil);
+  if ((DS as TDBFAutoClean).UserRequestedTableLevel=25) then
+    ignore('Foxpro (tablelevel 25) may write data out in dBase IV (tablelevel 4) format.');
+  DS.FieldDefs.Add('ID',ftInteger);
+  if ((DS as TDBFAutoClean).UserRequestedTableLevel in [7,30]) then
+  begin
+    RequestLanguageID:=WindowsLanguageID;
+    CorrespondingCodePage:=WindowsCodePage //Visual FoxPro, DBase7
+  end
+  else
+  begin
+    RequestLanguageID:=DOSLanguageID;
+    CorrespondingCodePage:=DOSCodePage;
+  end;
+  (DS as TDBFAutoClean).LanguageID:=RequestLanguageID;
+  DS.CreateTable;
+  DS.Open;
+  CheckEquals(CorrespondingCodePage,DS.CodePage,'DBF codepage should match requested codeapage.');
   DS.Close;
   ds.free;
 end;
