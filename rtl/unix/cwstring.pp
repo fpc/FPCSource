@@ -26,7 +26,18 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+// Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if defined(linux) or defined(solaris)}
+  {$define iconv_is_in_libc}
+{$endif}
+
+{$ifdef netbsd}
+  {$ifdef TEST_ICONV_LIBC}
+    {$define iconv_is_in_libc}
+  {$endif}
+{$endif}
+
+{$ifndef iconv_is_in_libc}
  {$if defined(haiku)}
    {$linklib textencoding}
    {$linklib locale}
@@ -34,7 +45,7 @@ implementation
    {$linklib iconv}
  {$endif}
  {$define useiconv}
-{$endif linux}
+{$endif not iconv_is_in_libc}
 
 Uses
   BaseUnix,
@@ -60,7 +71,13 @@ function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
 function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll';
+{$ifdef netbsd}
+  { NetBSD has a new setlocale function defined in /usr/include/locale.h
+    that should be used }
+function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale_mb_len_max_32';
+{$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
+{$endif}
 {$ifndef beos}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
@@ -152,7 +169,7 @@ type
   {$endif}
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32))}
+{$if (not defined(bsd) and not defined(beos)) or defined(iconv_is_in_libc) or (defined(darwin) and not defined(cpupowerpc32))}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
