@@ -18,4 +18,14 @@ Development notes/additions to end user documentation
 
 property RecNo: approximate record number. Does not take deleted records into account. Used mainly in grids.
 
+File format references:
+Visual FoxPro:
+http://msdn.microsoft.com/en-us/library/d863bcf2%28v=vs.80%29.aspx
 
+especially this for table structure:
+http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
+note however that the file type/magic number at offset 0 is incorrect.
+A community member amended these. See bottom of page
+
+ftp://fship.com/pub/multisoft/flagship/docu/dbfspecs.txt
+Flagship/FoxPro/Clipper/DBase III..V .dbf file format description

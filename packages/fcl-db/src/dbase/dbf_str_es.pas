@@ -19,6 +19,7 @@ initialization
                                          'Indice: %s'+#13+#10+'Registro=%d Clave=''%s''.';
 
   STRING_INVALID_DBF_FILE             := 'Archivo DBF inválido.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Archivo DBF inválido. Tipo de campo inválido.'; //todo: check for correctness
   STRING_FIELD_TOO_LONG               := 'Valor demasiado largo: %d caracteres (no puede ser mayor de %d).';
   STRING_INVALID_FIELD_COUNT          := 'Cantidad de campos inválida: %d (debe estar entre 1 y 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Tipo de campo inválido ''%s'' para el campo ''%s''.';

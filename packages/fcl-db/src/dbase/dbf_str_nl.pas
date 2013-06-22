@@ -18,6 +18,7 @@ initialization
                                          'Index: %s'+#13+#10+'Record=%d Sleutel=''%s''';
 
   STRING_INVALID_DBF_FILE             := 'Ongeldig DBF bestand.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Ongeldig DBF bestand. Ongeldige velddefinitie.';
   STRING_FIELD_TOO_LONG               := 'Waarde is te lang: %d karakters (maximum is %d).';
   STRING_INVALID_FIELD_COUNT          := 'Ongeldig aantal velden: %d (moet tussen 1 en 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Veldtype ''%s'' is ongeldig voor veld ''%s''.';

@@ -101,16 +101,23 @@ uses
 //=== Memo and binary fields support
 //====================================================================
 type
-
+  // DBase III+ dbt memo file
+  // (Visual) FoxPro note: integers are in Big Endian: high byte first
+  // http://msdn.microsoft.com/en-us/library/aa975374%28VS.71%29.aspx
   PDbtHdr = ^rDbtHdr;
   rDbtHdr = record
-    NextBlock : dword;
-    Dummy     : array [4..7] of Byte;
+    NextBlock : dword;                  // 0..3
+    // Dummy in DBaseIII; size of blocks in memo file; default 512 bytes
+    // (Visual) FoxPro: 4..5 unused; use only bytes 6..7
+    BlockSize : dword;                  // 4..7
+    // DBF file name without extension
     DbfFile   : array [0..7] of Byte;   // 8..15
+    // DBase III only: version number $03
     bVer      : Byte;                   // 16
-    Dummy2    : array [17..19] of Byte;
+    Dummy2    : array [17..19] of Byte; // 17..19
+    // Block length in bytes; DBaseIII: always $01
     BlockLen  : Word;                   // 20..21
-    Dummy3    : array [22..511] of Byte;
+    Dummy3    : array [22..511] of Byte;// 22..511 First block; garbage contents
   end;
 
   PFptHdr = ^rFptHdr;
@@ -121,10 +128,16 @@ type
     Dummy3    : array [8..511] of Byte;
   end;
 
+  // Header of a memo data block:
+  // (Visual) FoxPro note: integers are in Big Endian: high byte first
   PBlockHdr = ^rBlockHdr;
   rBlockHdr = record
-    MemoType  : Cardinal;
-    MemoSize  : Cardinal;
+    // DBase IV(+) identifier: $FF $FF $08 $00
+    // (Visual) FoxPro: $00 picture, $01 text/memo, $02 object
+    MemoType  : Cardinal; // 0..3
+    // Length of memo field
+    MemoSize  : Cardinal; // 4..7
+    // memo data             8..N
   end;
 
 
@@ -184,7 +197,8 @@ begin
     RecordSize := GetBlockLen;
     // checking for right blocksize not needed for foxpro?
     // mod 128 <> 0 <-> and 0x7F <> 0
-    if (RecordSize = 0) and ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
+    if (RecordSize = 0) and
+      ((FDbfVersion in [xFoxPro,xVisualFoxPro]) or ((RecordSize and $7F) <> 0)) then
     begin
       SetBlockLen(512);
       RecordSize := 512;
@@ -271,15 +285,15 @@ begin
     // dbase III memo
     done := false;
     repeat
-      // scan for EOF
+      // scan for EOF marker
       endMemo := MemScan(FBuffer, $1A, RecordSize);
       // EOF found?
       if endMemo <> nil then
       begin
-        // really EOF?
-        if (endMemo-FBuffer < RecordSize - 1) and ((endMemo[1] = #$1A) or (endMemo[1] = #0)) then
+        // really EOF? expect another 1A or null character
+        if (endMemo-FBuffer < RecordSize - 1) and
+          ((endMemo[1] = #$1A) or (endMemo[1] = #0)) then
         begin
-          // yes, EOF found
           done := true;
           numBytes := endMemo - FBuffer;
         end else begin
@@ -344,7 +358,7 @@ begin
     begin
       bytesBefore := SizeOf(rBlockHdr);
       bytesAfter := 0;
-    end else begin                      // dBase3 type
+    end else begin                      // dBase3 type, Clipper?
       bytesBefore := 0;
       bytesAfter := 2;
     end;
@@ -383,7 +397,7 @@ begin
     repeat
       // read bytes, don't overwrite header
       readBytes := Src.Read(FBuffer[bytesBefore], RecordSize{PDbtHdr(Header).BlockLen}-bytesBefore);
-      // end of input data reached ? check if need to write block terminators
+      // end of input data reached? check if we need to write block terminators
       while (readBytes < RecordSize - bytesBefore) and (bytesAfter > 0) do
       begin
         FBuffer[readBytes] := #$1A;
@@ -428,7 +442,7 @@ end;
 
 function  TDbaseMemoFile.GetMemoSize: Integer;
 begin
-  // dBase4 memofiles contain small 'header'
+  // dBase4 memofiles contain a small 'header'
   if PInteger(@FBuffer[0])^ = Integer(SwapIntLE($0008FFFF)) then
     Result := SwapIntLE(PBlockHdr(FBuffer)^.MemoSize)-8
   else

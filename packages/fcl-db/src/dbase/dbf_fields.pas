@@ -40,7 +40,9 @@ type
     procedure SetFieldType(lFieldType: TFieldType);
     procedure SetSize(lSize: Integer);
     procedure SetPrecision(lPrecision: Integer);
+    // Converts VCL/LCL field types to dbf native field type markers ('C' etc)
     procedure VCLToNative;
+    // Converts dbf native field type markers ('C' etc) to VCL/LCL field types
     procedure NativeToVCL;
     procedure FreeBuffers;
   protected
@@ -73,10 +75,14 @@ type
     property CopyFrom: Integer read FCopyFrom write FCopyFrom;
   published
     property FieldName: string     read FFieldName write FFieldName;
+    // VCL/LCL field type mapped to this field
     property FieldType: TFieldType read FFieldType write SetFieldType;
+    // Native dbf field type
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
+    // Size in physical dbase file.
+    // Note: this often differs from the VCL field sizes
+    property Size: Integer         read FSize write SetSize;
     property NullPosition: integer read FNullPosition write FNullPosition;
-    property Size: Integer         read FSize      write SetSize;
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
   end;
@@ -85,7 +91,6 @@ type
   private
     FOwner: TPersistent;
     FDbfVersion: TXBaseVersion;
-
     function GetItem(Idx: Integer): TDbfFieldDef;
   protected
     function GetOwner: TPersistent; override;
@@ -110,12 +115,9 @@ uses
 
 {$I dbf_struct.inc}
 
-// I keep changing that fields...
-// Last time has been asked by Venelin Georgiev
-// Is he going to be the last ?
 const
 (*
-The theory until now was :
+The theory for Delphi/FPC is:
     ftSmallint  16 bits = -32768 to 32767
                           123456 = 6 digit max theorically
                           DIGITS_SMALLINT = 6;
@@ -127,20 +129,20 @@ The theory until now was :
                          DIGITS_LARGEINT = 20;
 
 But in fact if I accept 6 digits into a ftSmallInt then tDbf will not
-being able to handles fields with 999999 (6 digits).
+be able to handles fields with 999999 (6 digits).
 
-So I now oversize the field type in order to accept anithing coming from the
+So I oversize the field type in order to accept anything coming from the
 database.
     ftSmallint  16 bits = -32768 to 32767
-                           -999  to  9999
-                           4 digits max theorically
-                          DIGITS_SMALLINT = 4;
+    ... dbf supports:       -999 to  9999
+                           4 digits max in practice
+        therefore         DIGITS_SMALLINT = 4;
     ftInteger  32 bits = -2147483648 to 2147483647
-                           -99999999 to  999999999                                        12345678901 = 11 digits max
-                         DIGITS_INTEGER = 9;
+    ... dbf supports:      -99999999 to  999999999                                        12345678901 = 11 digits max
+        therefore        DIGITS_INTEGER = 9;
     ftLargeInt 64 bits = -9223372036854775808 to 9223372036854775807
-                           -99999999999999999 to  999999999999999999
-                         DIGITS_LARGEINT = 18;
+    ... dbf supports:      -99999999999999999 to  999999999999999999
+        therefore        DIGITS_LARGEINT = 18;
  *)
   DIGITS_SMALLINT = 4;
   DIGITS_INTEGER = 9;
@@ -247,7 +249,9 @@ begin
   // copy from Db.TFieldDef
   FFieldName := DbSource.Name;
   FFieldType := DbSource.DataType;
-  FSize := DbSource.Size;
+  // We do NOT copy over size if TFieldDef size is different from our native size
+  if not(DBSource.DataType in [ftBCD,ftCurrency]) then
+    FSize := DbSource.Size;
   FPrecision := DbSource.Precision;
   FRequired := DbSource.Required;
 {$ifdef SUPPORT_FIELDDEF_INDEX}
@@ -256,7 +260,7 @@ begin
   FIsLockField := false;
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
-  // for integer / float fields try fill in size/precision
+  // for integer / float fields try to fill in Size/precision
   if FSize = 0 then
     SetDefaultSize
   else
@@ -308,7 +312,7 @@ end;
 
 procedure TDbfFieldDef.SetNativeFieldType(lFieldType: tDbfFieldType);
 begin
-  // get uppercase field type
+  // convert lowercase to uppercase
   if (lFieldType >= 'a') and (lFieldType <= 'z') then
     lFieldType := Chr(Ord(lFieldType)-32);
   FNativeFieldType := lFieldType;
@@ -331,9 +335,7 @@ end;
 procedure TDbfFieldDef.NativeToVCL;
 begin
   case FNativeFieldType of
-// OH 2000-11-15 dBase7 support.
-// Add the new fieldtypes
-    '+' : 
+    '+' :
       if DbfVersion = xBaseVII then
         FFieldType := ftAutoInc;
     'I' : FFieldType := ftInteger;
@@ -380,10 +382,10 @@ begin
     {
     To do: add support for Visual Foxpro types
     http://msdn.microsoft.com/en-US/library/ww305zh2%28v=vs.80%29.aspx
-    P Picture (in at least Visual FoxPro)
-    V Varchar/varchar binary (in at least Visual FoxPro) 1 byte up to 255 bytes (or perhaps 254)
-    W Blob (in at least Visual FoxPro), 4 bytes in a table; stored in .fpt
-    Q Varbinary (in at least Visual Foxpro)
+    P Picture (perhaps also in FoxPro)
+    V Varchar/varchar binary (perhaps also in FoxPro) 1 byte up to 255 bytes (or perhaps 254)
+    W Blob (perhaps also in FoxPro), 4 bytes in a table; stored in .fpt
+    Q Varbinary (perhaps also in Foxpro)
     }
   else
     FNativeFieldType := #0;
@@ -434,7 +436,7 @@ end;
 
 procedure TDbfFieldDef.SetDefaultSize;
 begin
-  // choose default values for variable size fields
+  // choose default values for variable Size fields
   case FFieldType of
     ftFloat:
       begin
@@ -443,8 +445,9 @@ begin
       end;
     ftCurrency, ftBCD:
       begin
-        FSize := 8;
-        FPrecision := 4;
+        FSize := 8; // Stored in dbase as 8 bytes; up to 18 (or 20) characters including .-
+        // FPC ftBCD/ftCurrency TFieldDef.Size has max 4 which is 4 bytes after decimal
+        FPrecision := 4; //Total number of digits
       end;
     ftSmallInt, ftWord:
       begin
@@ -473,7 +476,7 @@ begin
       end;
   end; // case fieldtype
 
-  // set sizes for fields that are restricted to single size/precision
+  // set sizes for fields that are restricted to single Size/precision
   CheckSizePrecision;
 end;
 
@@ -482,14 +485,14 @@ begin
   case FNativeFieldType of
     'C': // Character
       begin
-        if FSize < 0 then 
+        if FSize < 0 then
           FSize := 0;
         if (DbfVersion = xFoxPro) or (DbfVersion = xVisualFoxPro) then
         begin
-          if FSize >= $FFFF then 
+          if FSize >= $FFFF then
             FSize := $FFFF;
         end else begin
-          if FSize >= $FF then 
+          if FSize >= $FF then
             FSize := $FF;
         end;
         FPrecision := 0;
@@ -501,9 +504,12 @@ begin
       end;
     'N','F': // Binary code decimal numeric, floating point binary numeric
       begin
+        // ftBCD: precision=total number of digits; Delphi supports max 32
+        // Note: this field can be stored as BCD or integer, depending on FPrecision;
+        // that's why we allow 0 precision
         if FSize < 1   then FSize := 1;
         if FSize >= 20 then FSize := 20;
-        if FPrecision > FSize-2 then FPrecision := FSize-2;
+        if FPrecision > FSize-2 then FPrecision := FSize-2; //Leave space for . and -
         if FPrecision < 0       then FPrecision := 0;
       end;
     'D': // Date
@@ -511,11 +517,16 @@ begin
         FSize := 8;
         FPrecision := 0;
       end;
-    'B': // Double
+    'B': // (Visual)Foxpro double, DBase binary
       begin
-        if (DbfVersion <> xFoxPro) and (DbfVersion <> xVisualFoxPro) then
+        if not(DbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           FSize := 10;
+          FPrecision := 0;
+        end
+        else
+        begin
+          FSize := 8; //Foxpro double
           FPrecision := 0;
         end;
       end;
@@ -571,7 +582,11 @@ end;
 
 function TDbfFieldDef.IsBlob: Boolean; {override;}
 begin
-  Result := FNativeFieldType in ['M','G','B'];
+  // 'B' is float in (V)FP
+  if (DbfVersion in [xFoxPro,xVisualFoxPro]) then
+    Result := FNativeFieldType in ['M','G']
+  else
+    Result := FNativeFieldType in ['M','G','B'];
 end;
 
 procedure TDbfFieldDef.FreeBuffers;
@@ -588,7 +603,7 @@ end;
 
 procedure TDbfFieldDef.AllocBuffers;
 begin
-  // size changed?
+  // Size changed?
   if FAllocSize <> FSize then
   begin
     // free old buffers
@@ -597,7 +612,7 @@ begin
     GetMem(FDefaultBuf, FSize*3);
     FMinBuf := FDefaultBuf + FSize;
     FMaxBuf := FMinBuf + FSize;
-    // store allocated size
+    // store allocated Size
     FAllocSize := FSize;
   end;
 end;
