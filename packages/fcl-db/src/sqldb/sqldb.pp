@@ -628,8 +628,8 @@ begin
 
     Cursor := AllocateCursorHandle;
     Cursor.FStatementType := stUnknown;
-    PrepareStatement(cursor,ATransaction,SQL,Nil);
-    execute(cursor,ATransaction, Nil);
+    PrepareStatement(Cursor,ATransaction,SQL,Nil);
+    Execute(Cursor,ATransaction, Nil);
     UnPrepareStatement(Cursor);
   finally;
     DeAllocateCursorHandle(Cursor);
@@ -644,7 +644,7 @@ end;
 procedure TSQLConnection.SetPort(const AValue: cardinal);
 begin
   if AValue<>0 then
-    params.Values['Port']:=IntToStr(AValue)
+    Params.Values['Port']:=IntToStr(AValue)
   else with params do if IndexOfName('Port') > -1 then
     Delete(IndexOfName('Port'));
 end;
@@ -1051,7 +1051,7 @@ begin
 
   if ServerFiltered then s := AddFilter(s);
 
-  TSQLConnection(Database).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
+  TSQLConnection(Database).PrepareStatement(FCursor,(Transaction as TSQLTransaction),S,FParams);
 
   Execute;
   inherited InternalOpen;
@@ -1123,22 +1123,22 @@ begin
     // and thus calls unprepare.
     // A call to unprepare while the cursor is not prepared at all can lead to
     // unpredictable results.
-    if not assigned(fcursor) then
+    if not assigned(FCursor) then
       FCursor := Db.AllocateCursorHandle;
     FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
     FCursor.FStatementType:=StmType;
     FCursor.FSchemaType := FSchemaType;
     if ServerFiltered then
       begin
-      If LogEvent(detprepare) then
+      If LogEvent(detPrepare) then
         Log(detPrepare,AddFilter(FSQLBuf));
-      Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
+      Db.PrepareStatement(FCursor,sqltr,AddFilter(FSQLBuf),FParams)
       end
     else
       begin
-      If LogEvent(detprepare) then
+      If LogEvent(detPrepare) then
         Log(detPrepare,FSQLBuf);
-      Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
+      Db.PrepareStatement(FCursor,sqltr,FSQLBuf,FParams);
       end;
     FCursor.FInitFieldDef := FCursor.FSelectable;
     end;
@@ -1167,7 +1167,7 @@ begin
   if not FCursor.FSelectable then
     Exit;
 
-  if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
+  if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(FCursor);
   Result := not FIsEOF;
 end;
 
@@ -1177,7 +1177,7 @@ begin
     FMasterLink.CopyParamsFromMaster(False);
   If LogEvent(detExecute) then
     Log(detExecute,FSQLBuf);
-  TSQLConnection(Database).execute(Fcursor,Transaction as tsqltransaction, FParams);
+  TSQLConnection(Database).Execute(FCursor,Transaction as TSQLTransaction, FParams);
 end;
 
 function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
@@ -1227,7 +1227,7 @@ begin
   try
     FieldDefs.Clear;
     if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
-    TSQLConnection(Database).AddFieldDefs(fcursor,FieldDefs);
+    TSQLConnection(Database).AddFieldDefs(FCursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
     if Assigned(FCursor) then FCursor.FInitFieldDef := false;
@@ -1421,7 +1421,7 @@ begin
   ReadFromFile:=IsReadFromPacket;
   if ReadFromFile then
     begin
-    if not assigned(fcursor) then
+    if not assigned(FCursor) then
       FCursor := TSQLConnection(Database).AllocateCursorHandle;
     FCursor.FSelectable:=True;
     FCursor.FStatementType:=stSelect;
@@ -1499,7 +1499,7 @@ begin
   finally
     // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     // called, so UnPrepareStatement shoudn't be called either
-    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(Fcursor);
+    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
   end;
 end;
 
@@ -1765,7 +1765,7 @@ end;
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
-  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
+  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as TSQLTransaction));
 end;
 
 procedure TCustomSQLQuery.BeforeRefreshOpenCursor;
@@ -1817,7 +1817,7 @@ begin
   FInsertSQL.Assign(AValue);
 end;
 
-Procedure TCustomSQLQuery.SetDataSource(AVAlue : TDatasource);
+Procedure TCustomSQLQuery.SetDataSource(AValue : TDatasource);
 
 Var
   DS : TDatasource;

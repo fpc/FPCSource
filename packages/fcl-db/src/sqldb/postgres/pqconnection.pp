@@ -49,7 +49,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    procedure CheckResultError(res: PPGresult; conn:PPGconn; ErrMsg: string);
+    procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function GetPQDatabaseError(res : PPGresult;ErrMsg: string):EPQDatabaseError;
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
@@ -117,6 +117,7 @@ ResourceString
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
   SErrPrepareFailed = 'Preparation of query failed.';
+  SErrUnPrepareFailed = 'Unpreparation of query failed.';
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
@@ -348,7 +349,7 @@ begin
 
 end;
 
-procedure TPQConnection.CheckResultError(res: PPGresult; conn: PPGconn;
+procedure TPQConnection.CheckResultError(var res: PPGresult; conn: PPGconn;
   ErrMsg: string);
 var
   E: EPQDatabaseError;
@@ -357,7 +358,8 @@ begin
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     E:=GetPQDatabaseError(res,ErrMsg);
-    pqclear(res);
+    PQclear(res);
+    res:=nil;
     if assigned(conn) then
       PQFinish(conn);
     raise E;
@@ -481,7 +483,6 @@ begin
 end;
 
 Procedure TPQConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
-
 begin
   FreeAndNil(cursor);
 end;
@@ -497,7 +498,7 @@ procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
-      'text',     // ftString
+      'text',      // ftString
       'smallint',  // ftSmallint
       'int',       // ftInteger
       'int',       // ftWord
@@ -556,10 +557,10 @@ begin
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
       s := 'prepare '+StmtName+' ';
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         s := s + '(';
-        for i := 0 to AParams.count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+        for i := 0 to AParams.Count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
           s := s + TypeStrings[AParams[i].DataType] + ','
         else
           begin
@@ -572,7 +573,7 @@ begin
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      res := pqexec(tr.PGConn,pchar(s));
+      res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
       // override the statement type derrived by parsing the query.
@@ -586,31 +587,27 @@ begin
       FPrepared := True;
       end
     else
-      statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
     end;
 end;
 
 procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
-var
-  E: EPQDatabaseError;
-
 begin
-  with (cursor as TPQCursor) do if FPrepared then
+  with (cursor as TPQCursor) do
     begin
-    if not tr.ErrorOccured then
+    PQclear(res);
+    res:=nil;
+    if FPrepared then
       begin
-      PQclear(res);
-      res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+      if not tr.ErrorOccured then
         begin
-          E:=GetPQDatabaseError(res,SErrPrepareFailed);
-          pqclear(res);
-          raise E;
-        end
-      else
-        pqclear(res);
+        res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
+        CheckResultError(res,nil,SErrUnPrepareFailed);
+        PQclear(res);
+        res:=nil;
+        end;
+      FPrepared := False;
       end;
-    FPrepared := False;
     end;
 end;
 
@@ -623,21 +620,20 @@ var ar  : array of pchar;
     ParamNames,
     ParamValues : array of string;
     cash: int64;
-    E: EPQDatabaseError;
 
 begin
   with cursor as TPQCursor do
     begin
+    PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
-      pqclear(res);
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
-        l:=Aparams.count;
+        l:=AParams.Count;
         setlength(ar,l);
         setlength(lengths,l);
         setlength(formats,l);
-        for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
+        for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
             ftDateTime:
@@ -669,8 +665,8 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar(StmtName),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
-        for i := 0 to AParams.count -1 do
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
+        for i := 0 to AParams.Count -1 do
           FreeMem(ar[i]);
         end
       else
@@ -680,37 +676,36 @@ begin
       begin
       tr := TPQTrans(aTransaction.Handle);
 
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         setlength(ParamNames,AParams.Count);
         setlength(ParamValues,AParams.Count);
-        for i := 0 to AParams.count -1 do
+        for i := 0 to AParams.Count -1 do
           begin
-          ParamNames[AParams.count-i-1] := '$'+inttostr(AParams[i].index+1);
-          ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+          ParamNames[AParams.Count-i-1] := '$'+inttostr(AParams[i].index+1);
+          ParamValues[AParams.Count-i-1] := GetAsSQLText(AParams[i]);
           end;
-        s := stringsreplace(statement,ParamNames,ParamValues,[rfReplaceAll]);
+        s := stringsreplace(Statement,ParamNames,ParamValues,[rfReplaceAll]);
         end
       else
         s := Statement;
-      res := pqexec(tr.PGConn,pchar(s));
-      if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+      res := PQexec(tr.PGConn,pchar(s));
+      if (PQresultStatus(res) in [PGRES_COMMAND_OK]) then
         begin
-          pqclear(res); 
-          res:=nil;
+        PQclear(res);
+        res:=nil;
         end;
       end;
+
     if assigned(res) and not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
-      E:=GetPQDatabaseError(res,SErrExecuteFailed);
-      pqclear(res);
-
       tr.ErrorOccured := True;
 // Don't perform the rollback, only make it possible to do a rollback.
 // The other databases also don't do this.
 //      atransaction.Rollback;
-      raise E;
+      CheckResultError(res,nil,SErrExecuteFailed);
       end;
+
     FSelectable := assigned(res) and (PQresultStatus(res)=PGRES_TUPLES_OK);
     end;
 end;
@@ -1010,25 +1005,25 @@ begin
     stTables     : s := 'select '+
                           'relfilenode              as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'nspname                  as schema_name, '+
                           'relname                  as table_name, '+
                           '0                        as table_type '+
                         'from '+
-                          'pg_class '+
+                          'pg_class c left join pg_namespace n on c.relnamespace=n.oid '+
                         'where '+
-                          '(relowner > 1) and relkind=''r''' +
+                          'relkind=''r''' +
                         'order by relname';
 
     stSysTables  : s := 'select '+
                           'relfilenode              as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'nspname                  as schema_name, '+
                           'relname                  as table_name, '+
                           '0                        as table_type '+
                         'from '+
-                          'pg_class '+
+                          'pg_class c left join pg_namespace n on c.relnamespace=n.oid '+
                         'where '+
-                          'relkind=''r''' +
+                          'relkind=''r'' and nspname=''pg_catalog'' ' + // only system tables
                         'order by relname';
     stColumns    : s := 'select '+
                           'a.attnum                 as recno, '+
