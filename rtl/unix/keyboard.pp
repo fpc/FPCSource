@@ -491,6 +491,13 @@ const
     Action : 0;
   );
 
+  procedure GenFakeReleaseEvent(MouseEvent : TMouseEvent);
+  begin
+    MouseEvent.action := MouseActionUp;
+    MouseEvent.buttons := 0;
+    PutMouseEvent(MouseEvent);
+  end;
+  
   procedure GenMouseEvent;
   var MouseEvent: TMouseEvent;
       ch : char;
@@ -510,7 +517,7 @@ const
      bit  5   : mouse movement while button down.
      bit  6   : interpret button 1 as button 4
                 interpret button 2 as button 5}
-    case buttonval and 3 of
+    case buttonval and 67 of
       0 : {left button press}
         MouseEvent.buttons:=1;
       1 : {middle button pressed }
@@ -519,6 +526,10 @@ const
         MouseEvent.buttons:=4;
       3 : { no button pressed }
         MouseEvent.buttons:=0;
+      64: { button 4 pressed }
+          MouseEvent.buttons:=8;
+      65: { button 5 pressed }
+          MouseEvent.buttons:=16;
     end;
      if inhead=intail then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -552,6 +563,8 @@ const
        end;
 *)
      PutMouseEvent(MouseEvent);
+     if (MouseEvent.buttons and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+       GenFakeReleaseEvent(MouseEvent);
 {$ifdef DebugMouse}
      if MouseEvent.Action=MouseActionDown then
        Write(system.stderr,'Button down : ')

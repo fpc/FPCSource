@@ -42,7 +42,7 @@ type
 {$endif}
 
 const
-{$ifdef Win32}
+{$ifdef Windows}
   MagickExport = 'CORE_RL_magick_.dll';
   WandExport = 'CORE_RL_wand_.dll';
 {$else}

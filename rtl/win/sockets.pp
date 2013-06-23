@@ -53,6 +53,10 @@ const
 {$i socketsh.inc}
 {$i fpwinsockh.inc}
 
+// finalizing Winsock2 stack might upset other DLLS. Mantis #22597
+var 
+  NoWinsockCleanupCall : Boolean = false;
+
 Implementation
 
 { Include filerec and textrec structures }
@@ -276,5 +280,6 @@ var
 initialization
   WSAStartUp(WINSOCK_VERSION,wsadata);
 finalization
-  WSACleanUp;
+  If Not NoWinsockCleanupCall Then 
+   WSACleanUp;
 end.
