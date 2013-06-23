@@ -995,7 +995,7 @@ begin
     ReadValue;
     Result := FDriver.ReadFloat
   end else
-    Result := ReadInteger;
+    Result := ReadInt64;
 end;
 
 function TReader.ReadSingle: Single;
