@@ -147,14 +147,19 @@ Var
   I : integer;
   E : String;
 begin
-  E:=LowerCase(AExt);
-  If (E[1]='.') then
-    Delete(E,1,1);
-  I:=FExtensions.FindIndexOf(E);
-  If (I<>-1) then
-    Result:=TMimeType(FExtensions.Items[I])
-  else
-    Result:=Nil;
+  if Length(AExt) = 0 then 
+    Result:=Nil
+  else 
+    begin
+    E:=LowerCase(AExt);
+    If (E[1]='.') then
+      Delete(E,1,1);
+    I:=FExtensions.FindIndexOf(E);
+    If (I<>-1) then
+      Result:=TMimeType(FExtensions.Items[I])
+    else
+      Result:=Nil;
+    end
 end;
 
 constructor TFPMimeTypes.Create(AOwner: TComponent);
