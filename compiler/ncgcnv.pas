@@ -652,28 +652,9 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          current_asmdata.getjumplabel(l1);
-         case left.location.loc of
-            LOC_CREGISTER,LOC_REGISTER:
-              begin
-               {$ifdef cpu_uses_separate_address_registers}
-                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
-                   begin
-                     location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
-                              left.location.register,location.register);
-                   end
-                 else
-               {$endif}
-                    location.register := left.location.register;
-              end;
-            LOC_CREFERENCE,LOC_REFERENCE:
-              begin
-                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
-              end;
-            else
-              internalerror(2002032214);
-         end;
+         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,
+           left.location,location.register);
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
