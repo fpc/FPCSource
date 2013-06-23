@@ -118,6 +118,10 @@ interface
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
 
+    { returns true, if the value described by node is constant/immutable, this approximation is safe
+      if no dirty tricks like buffer overflows or pointer magic are used }
+    function is_const(node : tnode) : boolean;
+
 implementation
 
     uses
@@ -1127,7 +1131,6 @@ implementation
       end;
 
 
-    { rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
       begin
         nodecount:=0;
@@ -1135,5 +1138,10 @@ implementation
         result:=nodecount;
       end;
 
+
+    function is_const(node : tnode) : boolean;
+      begin
+        result:=(node.nodetype=temprefn) and (ti_const in ttemprefnode(node).tempinfo^.flags)
+      end;
 
 end.

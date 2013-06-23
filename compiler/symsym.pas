@@ -1484,7 +1484,7 @@ implementation
             not(cs_create_pic in current_settings.moduleswitches)
            ) then
           begin
-            if tstoreddef(vardef).is_intregable and
+            if (tstoreddef(vardef).is_intregable and
               { we could keep all aint*2 records in registers, but this causes
                 too much spilling for CPUs with 8-16 registers so keep only
                 parameters and function results of this type in register because they are normally
@@ -1494,7 +1494,12 @@ implementation
               ((typ=paravarsym) or
                 (vo_is_funcret in varoptions) or
                 (tstoreddef(vardef).typ<>recorddef) or
-                (tstoreddef(vardef).size<=sizeof(aint))) then
+                (tstoreddef(vardef).size<=sizeof(aint)))) or
+
+               { const parameters can be put into registers if the def fits into a register }
+               (tstoreddef(vardef).is_const_intregable and
+                (typ=paravarsym) and
+                (varspez=vs_const)) then
               varregable:=vr_intreg
             else
 { $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }

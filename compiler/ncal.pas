@@ -3904,12 +3904,27 @@ implementation
                       begin
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
                           tt_persistent,tparavarsym(para.parasym).is_regvar(false));
+
+                        { inherit const }
+                        if tabstractvarsym(para.parasym).varspez=vs_const then
+                          begin
+                            include(tempnode.tempinfo^.flags,ti_const);
+
+                            { apply less strict rules for the temp. to be a register than
+                              ttempcreatenode does
+
+                              this way, dyn. array, ansistrings etc. can be put into registers as well }
+                            if tparavarsym(para.parasym).is_regvar(false) then
+                              include(tempnode.tempinfo^.flags,ti_may_be_in_reg);
+                          end;
+
                         addstatement(inlineinitstatement,tempnode);
 
                         if localvartrashing <> -1 then
                           cnodeutils.maybe_trash_variable(inlineinitstatement,para.parasym,ctemprefnode.create(tempnode));
 
                         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+
                         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                             para.left));
                         para.left := ctemprefnode.create(tempnode);
@@ -3956,6 +3971,9 @@ implementation
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           include(tempnode.tempinfo^.flags,ti_addr_taken);
+        { inherit read only }
+        if tabstractvarsym(para.parasym).varspez=vs_const then
+          include(tempnode.tempinfo^.flags,ti_const);
         paraaddr:=caddrnode.create_internal(para.left);
         include(paraaddr.flags,nf_typedaddr);
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),

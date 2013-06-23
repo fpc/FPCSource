@@ -415,13 +415,11 @@ interface
         if not(ti_reference in tempinfo^.flags) then
           begin
             { get a (persistent) temp }
-            if is_managed_type(tempinfo^.typedef) then
+            if is_managed_type(tempinfo^.typedef) and
+              not(ti_const in tempinfo^.flags) then
               begin
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
                 tg.gethltemptyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
-                { the temp could have been used previously either because the memory location was reused or
-                  because we're in a loop. In case it's used as a function result, that doesn't matter
-                  because it will be finalized when assigned to. }
                 if not(ti_nofini in tempinfo^.flags) then
                   hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end

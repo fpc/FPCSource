@@ -588,12 +588,13 @@ implementation
          r64 : tregister64;
          oldflowcontrol : tflowcontrol;
       begin
+        { previously, managed types were handled in firstpass
+          newer FPCs however can identify situations when
+          assignments of managed types require no special code and the
+          value could be just copied so this could should be able also to handle
+          managed types without any special "managing code"}
+
         location_reset(location,LOC_VOID,OS_NO);
-        { managed types should be handled in firstpass }
-        if not(target_info.system in systems_garbage_collected_managed_types) and
-           (is_managed_type(left.resultdef) or
-            is_managed_type(right.resultdef)) then
-          InternalError(2012011901);
 
         otlabel:=current_procinfo.CurrTrueLabel;
         oflabel:=current_procinfo.CurrFalseLabel;
