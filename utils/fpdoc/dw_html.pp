@@ -539,8 +539,10 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
   Function HaveClasses(AModule: TPasModule) : Boolean;
 
   begin
-    with AModule do
-      Result:=InterfaceSection.Classes.Count>0;
+    result:=assigned(AModule)
+           and assigned(AModule.InterfaceSection)
+           and assigned(AModule.InterfaceSection.Classes)
+           and (AModule.InterfaceSection.Classes.Count>0);
   end;
 
   procedure ScanModule(AModule: TPasModule; LinkList : TObjectList);
