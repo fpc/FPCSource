@@ -949,14 +949,18 @@ Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,A
 Var
   Temp : Pointer;
   movelen: SizeInt;
-  lens, lena : SizeUInt;
+  nl,lens, lena : SizeUInt;
 begin
+  nl:=l;
+{$IFDEF VER2_6}
+  nl:=nl*2;
+{$ENDIF}
    if (l>0) then
     begin
       if Pointer(S)=nil then
         begin
           { Need a complete new string...}
-          Pointer(s):=NewUnicodeString(l);
+          Pointer(s):=NewUnicodeString(nl);
         end
       else
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
@@ -973,7 +977,7 @@ begin
       else
         begin
           { Reallocation is needed... }
-          Temp:=NewUnicodeString(L);
+          Temp:=NewUnicodeString(nL);
           if Length(S)>0 then
             begin
               if l < succ(length(s)) then
@@ -988,7 +992,7 @@ begin
         end;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(UnicodeChar))^:=0;
-      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l;
+      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=nl;
     end
   else  { length=0, deallocate the string }
     fpc_unicodestr_decr_ref (Pointer(S));
