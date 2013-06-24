@@ -154,7 +154,7 @@ function GetFileVersion(const AFileName:string):Cardinal;
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
 { used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
 function ConvertEraYearString(Count ,Year,Month,Day : integer) : string; forward;
 function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
@@ -229,33 +229,28 @@ const
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
 
-Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
-Var
-  SystemFileName: RawByteString;
+
+Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin
-  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
-  result := CreateFile(PChar(SystemFileName), dword(AccessMode[Mode and 3]),
+  result := CreateFileW(PWideChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareModes[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
 
-Function FileCreate (Const FileName : RawByteString) : THandle;
+Function FileCreate (Const FileName : UnicodeString) : THandle;
 begin
   FileCreate:=FileCreate(FileName, fmShareExclusive, 0);
 end;
 
-Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName, fmShareExclusive, Rights);
 end;
 
-Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
-Var
-  SystemFileName: RawByteString;
+Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
 begin
-  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
-  Result := CreateFile(PChar(SystemFileName), GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFileW(PwideChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        dword(ShareModes[(ShareMode and $F0) shr 4]), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
