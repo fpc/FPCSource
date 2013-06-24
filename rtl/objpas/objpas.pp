@@ -214,33 +214,23 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-Function ParamStr(Param : Integer) : Ansistring;
-
-Var Len : longint;
-
-begin
-{
-  Paramstr(0) should return the name of the binary.
-  Since this functionality is included in the system unit,
-  we fetch it from there.
-  Normally, pathnames are less than 255 chars anyway,
-  so this will work correct in 99% of all cases.
-  In time, the system unit should get a GetExeName call.
-}
-  if (Param=0) then
-    Result:=System.Paramstr(0)
-  else if (Param>0) and (Param<argc) then
-    begin
-    Len:=0;
-    While Argv[Param][Len]<>#0 do
-      Inc(len);
-    SetLength(Result,Len);
-    If Len>0 then
-      Move(Argv[Param][0],Result[1],Len);
-    end
-  else
-    paramstr:='';
-end;
+Function ParamStr(Param : Integer) : ansistring;
+  begin
+  {
+    Paramstr(0) should return the name of the binary.
+    Since this functionality is included in the system unit,
+    we fetch it from there.
+    Normally, pathnames are less than 255 chars anyway,
+    so this will work correct in 99% of all cases.
+    In time, the system unit should get a GetExeName call.
+  }
+    if (Param=0) then
+      Result:=System.Paramstr(0)
+    else if (Param>0) and (Param<argc) then
+      Result:=Argv[Param]
+    else
+      Result:='';
+  end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
