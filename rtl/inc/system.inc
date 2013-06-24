@@ -57,18 +57,6 @@ Const
                                 Local types
 ****************************************************************************}
 
-{
-  TextRec and FileRec are put in a separate file to make it available to other
-  units without putting it explicitly in systemh.
-  This way we keep TP compatibility, and the TextRec definition is available
-  for everyone who needs it.
-}
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-{$i filerec.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-{$i textrec.inc}
-
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
     {$if High(errorcode)<>maxExitCode}

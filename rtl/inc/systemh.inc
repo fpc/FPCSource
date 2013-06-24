@@ -495,8 +495,6 @@ type
 
   TSystemCodePage     = Word;
 
-  { Needed for fpc_get_output }
-  PText               = ^Text;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
@@ -509,7 +507,21 @@ type
 { platform-dependent defines }
 {$i rtldefs.inc}
 
+{*****************************************************************************
+                   TextRec/FileRec exported to allow compiler to take size
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$i textrec.inc}
+
+
 type
+  { Needed for fpc_get_output }
+  PText               = ^Text;
+
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
