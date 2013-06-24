@@ -2281,3 +2281,16 @@ procedure initunicodestringmanager;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
+
+Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
+Begin
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(Str),Result,
+    DefaultFileSystemCodePage,Length(Str));
+End;
+
+
+Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
+Begin
+  Result:=Str;
+  SetCodePage(Result,DefaultFileSystemCodePage,True);
+End;

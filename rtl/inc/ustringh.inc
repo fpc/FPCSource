@@ -145,3 +145,6 @@ Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: T
 function StringElementSize(const S : UnicodeString): Word; overload;
 function StringRefCount(const S : UnicodeString): SizeInt; overload;
 function StringCodePage(const S : UnicodeString): TSystemCodePage; overload;
+
+Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
+Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;

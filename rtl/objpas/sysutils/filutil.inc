@@ -13,18 +13,6 @@
 
  **********************************************************************}
 
-Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
-Begin
-  widestringmanager.Unicode2AnsiMoveProc(punicodechar(Str),Result,
-    DefaultFileSystemCodePage,Length(Str));
-End;
-
-
-Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
-Begin
-  Result:=Str;
-  SetCodePage(Result,DefaultFileSystemCodePage,True);
-End;
 
 
 {$ifndef SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
