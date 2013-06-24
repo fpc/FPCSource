@@ -433,6 +433,7 @@ type
 
      const
        dynamicblockbasesize = sizeof(tdynamicblock)-sizeof(tdynamicblockdata);
+       mindynamicblocksize = 8*sizeof(pointer);
 
      type
        tdynamicarray = class
@@ -2347,6 +2348,12 @@ end;
         FFirstblock:=nil;
         FLastblock:=nil;
         FCurrBlockSize:=0;
+        { Every block needs at least a header and alignment slack,
+          therefore its size cannot be arbitrarily small. However,
+          the blocksize argument is often confused with data size.
+          See e.g. Mantis #20929. }
+        if Ablocksize<mindynamicblocksize then
+          Ablocksize:=mindynamicblocksize;
         FMaxBlockSize:=Ablocksize;
         grow;
       end;
@@ -2400,7 +2407,7 @@ end;
       begin
         if CurrBlockSize<FMaxBlocksize then
           begin
-            IncSize := sizeof(ptrint)*8;
+            IncSize := mindynamicblocksize;
             if FCurrBlockSize > 255 then
               Inc(IncSize, FCurrBlockSize shr 2);
             inc(FCurrBlockSize,IncSize);
