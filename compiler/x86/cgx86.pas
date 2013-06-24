@@ -1221,8 +1221,13 @@ unit cgx86;
           begin
             op:=get_scalar_mm_op(fromsize,tosize);
 
+            { MOVAPD/MOVAPS are normally faster }
+            if op=A_MOVSD then
+              op:=A_MOVAPD
+            else if op=A_MOVSS then
+              op:=A_MOVAPS
             { VMOVSD/SS is not available with two register operands }
-            if op=A_VMOVSD then
+            else if op=A_VMOVSD then
               op:=A_VMOVAPD
             else if op=A_VMOVSS then
               op:=A_VMOVAPS;
@@ -1233,12 +1238,14 @@ unit cgx86;
             else
               instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
 
-            case get_scalar_mm_op(fromsize,tosize) of
+            case op of
               A_VMOVAPD,
               A_VMOVAPS,
               A_VMOVSS,
               A_VMOVSD,
               A_VMOVQ,
+              A_MOVAPD,
+              A_MOVAPS,
               A_MOVSS,
               A_MOVSD,
               A_MOVQ:
