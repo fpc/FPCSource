@@ -1299,7 +1299,7 @@ implementation
     procedure TRTTIWriter.write_rtti_reference(def:tdef;rt:trttitype);
       begin
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(nil))
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr)
         else
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def,rt)));
       end;
