@@ -15,17 +15,12 @@
 {$H+}
 
 
-{$IFDEF VER2_0}
-// Sanity check
-{$UNDEF FPC_TESTGENERICS}
-{$ENDIF}
-
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
 
 
 type
    { extra types to compile with FPC }
-   HRSRC =  TFPResourceHandle {$ifndef ver2_2} deprecated {$endif};
+   HRSRC =  TFPResourceHandle deprecated;
    TComponentName = string;
    THandle = System.THandle;
 
