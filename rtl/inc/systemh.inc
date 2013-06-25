@@ -1270,7 +1270,7 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
+Procedure Dump_Stack(var f : text;fp:pointer;addr : pointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
