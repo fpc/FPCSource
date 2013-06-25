@@ -574,6 +574,8 @@ interface
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
+          constructor Create_nil_codeptr;
+          constructor Create_nil_dataptr;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1680,6 +1682,40 @@ implementation
     constructor tai_const.Createname(const name:string;ofs:aint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name),ofs);
+      end;
+
+
+    constructor tai_const.Create_nil_codeptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
+      end;
+
+
+    constructor tai_const.Create_nil_dataptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
       end;
 
 
