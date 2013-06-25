@@ -1631,11 +1631,23 @@ implementation
          inherited Create;
          typ:=ait_const;
 {$ifdef i8086}
-         if current_settings.x86memorymodel in x86_far_code_models then
-           consttype:=aitconst_farptr
+         if assigned(_sym) and (_sym.typ=AT_DATA) then
+           begin
+             if current_settings.x86memorymodel in x86_far_data_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end
          else
+           begin
+             if current_settings.x86memorymodel in x86_far_code_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end;
+{$else i8086}
+         consttype:=aitconst_ptr;
 {$endif i8086}
-           consttype:=aitconst_ptr;
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
