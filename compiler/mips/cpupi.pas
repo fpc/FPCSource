@@ -41,9 +41,6 @@ interface
       intregssave,
       floatregssave : byte;
       register_used : tparasupregsused;
-      register_size : tparasupregsize;
-      register_name : tparasuprename;
-      register_offset : tparasupregsoffset;
       computed_local_size : longint;
       save_gp_ref: treference;
       //intparareg,
@@ -66,20 +63,12 @@ implementation
       tgobj,paramgr,symconst;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
-      var
-        i : longint;
       begin
         inherited create(aparent);
         { if (cs_generate_stackframes in current_settings.localswitches) or
            not (cs_opt_stackframe in current_settings.optimizerswitches) then }
           include(flags,pi_needs_stackframe);
-        for i:=low(tparasupregs)  to high(tparasupregs) do
-          begin
-            register_used[i]:=false;
-            register_size[i]:=OS_NO;
-            register_name[i]:='invalid';
-            register_offset[i]:=-1;
-          end;
+
         floatregssave:=12; { f20-f31 }
         intregssave:=10;   { r16-r23,r30,r31 }
         computed_local_size:=-1;

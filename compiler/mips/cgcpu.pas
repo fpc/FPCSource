@@ -1157,6 +1157,20 @@ end;
 
 { *********** entry/exit code and address loading ************ }
 
+procedure FixupOffsets(p:TObject;arg:pointer);
+var
+  sym: tabstractnormalvarsym absolute p;
+begin
+  if (tsym(p).typ=paravarsym) and
+    (sym.localloc.loc=LOC_REFERENCE) and
+    (sym.localloc.reference.base=NR_FRAME_POINTER_REG) then
+    begin
+      sym.localloc.reference.base:=NR_STACK_POINTER_REG;
+      Inc(sym.localloc.reference.offset,PLongint(arg)^);
+    end;
+end;
+
+
 procedure TCGMIPS.g_proc_entry(list: tasmlist; localsize: longint; nostackframe: boolean);
 var
   lastintoffset,lastfpuoffset,
@@ -1283,28 +1297,20 @@ begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
 
-  with TMIPSProcInfo(current_procinfo) do
-    begin
-      href.offset:=0;
-      //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-        href.base:=NR_FRAME_POINTER_REG;
+  href.base:=NR_STACK_POINTER_REG;
 
-      for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
-        if (register_used[i]) then
-          begin
-            reg:=parasupregs[i];
-            if register_offset[i]=-1 then
-              comment(V_warning,'Register parameter has offset -1 in TCGMIPS.g_proc_entry');
+  for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
+    if TMIPSProcInfo(current_procinfo).register_used[i] then
+      begin
+        reg:=parasupregs[i];
+        href.offset:=i*sizeof(aint)+LocalSize;
+        list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
+      end;
 
-            //if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-            //  href.offset:=register_offset[i]+Localsize
-            //else
-            href.offset:=register_offset[i];
-            list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
-        end;
-    end;
   list.concatList(helplist);
   helplist.Free;
+  if current_procinfo.has_nestedprocs then
+    current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@LocalSize);
 end;
 
 
