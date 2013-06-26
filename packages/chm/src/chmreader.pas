@@ -109,16 +109,15 @@ type
     fDefaultWindow: String;
   private
     FSearchReader: TChmSearchReader;
+  public
     procedure ReadCommonData;
     function  ReadStringsEntry(APosition: DWord): String;
     function  ReadStringsEntryFromStream ( strm:TStream ) : String;
     function  ReadURLSTR(APosition: DWord): String;
     function  CheckCommonStreams: Boolean;
     procedure ReadWindows(mem:TMemoryStream);
-  public
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
-  public
     function GetContextUrl(Context: THelpContext): String;
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
     function GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
@@ -1079,9 +1078,32 @@ begin
 end;
 
 procedure parselistingblock(p:pbyte);
+var
+    itemstack:TObjectStack;
+    curitemdepth : integer;
+    parentitem:TChmSiteMap;
+
+procedure updateparentitem(entrydepth:integer);
+begin
+  if entrydepth>curitemdepth then
+    begin
+      if curitemdepth<>0 then
+        itemstack.push(parentitem);
+      curitemdepth:=entrydepth;
+    end
+  else
+   if entrydepth>curitemdepth then
+    begin
+      if curitemdepth<>0 then
+        itemstack.push(parentitem);
+      curitemdepth:=entrydepth;
+    end
+end;
+
 var hdr:PBTreeBlockHeader;
     head,tail : pbyte;
     isseealso,
+    entrydepth,
     nrpairs : Integer;
     i : integer;
     PE : PBtreeBlockEntry;
@@ -1091,8 +1113,8 @@ var hdr:PBTreeBlockHeader;
     seealsostr,
     topic,
     Name : AnsiString;
-    item : TChmSiteMapItem;
 begin
+  //setlength (curitem,10);
   hdr:=PBTreeBlockHeader(p);
   hdr^.Length          :=LEToN(hdr^.Length);
   hdr^.NumberOfEntries :=LEToN(hdr^.NumberOfEntries);
@@ -1102,10 +1124,12 @@ begin
   tail:=p+(2048-hdr^.length);
   head:=p+sizeof(TBtreeBlockHeader);
 
+  itemstack:=TObjectStack.create;
   {$ifdef binindex}
   writeln('previndex  : ',hdr^.IndexOfPrevBlock);
   writeln('nextindex  : ',hdr^.IndexOfNextBlock);
   {$endif}
+  curitemdepth:=0;
   while head<tail do
     begin
       if not ReadWCharString(Head,Tail,Name) Then
@@ -1118,13 +1142,14 @@ begin
       PE :=PBtreeBlockEntry(head);
       NrPairs  :=LEToN(PE^.nrpairs);
       IsSeealso:=LEToN(PE^.isseealso);
+      EntryDepth:=LEToN(PE^.entrydepth);
       CharIndex:=LEToN(PE^.CharIndex);
       {$ifdef binindex}
-        Writeln('seealso:     ',IsSeeAlso);
-        Writeln('entrydepth:  ',LEToN(PE^.entrydepth));
+        Writeln('seealso   :  ',IsSeeAlso);
+        Writeln('entrydepth:  ',EntryDepth);
         Writeln('charindex :  ',charindex );
         Writeln('Nrpairs   :  ',NrPairs);
-        writeln('seealso data : ');
+        Writeln('CharIndex :  ',charindex);
       {$endif}
 
       inc(head,sizeof(TBtreeBlockEntry));
@@ -1133,10 +1158,22 @@ begin
           if not ReadWCharString(Head,Tail,SeeAlsoStr) Then
             Break;
           // have to figure out first what to do with it.
+          // is See Also really mutually exclusive with pairs?
+          // or is the number of pairs equal to the number of seealso
+          // strings?
+          {$ifdef binindex}
+            writeln('seealso: ',seealsostr);
+          {$endif}
+
         end
       else
         begin
          if NrPairs>0 Then
+          begin
+            {$ifdef binindex}
+             writeln('Pairs   : ');
+            {$endif}
+
             for i:=0 to nrpairs-1 do
               begin
                 if head<tail Then
@@ -1151,6 +1188,7 @@ begin
                   end;
               end;
           end;
+         end;
       if nrpairs<>0 Then
         createentry(Name,CharIndex,Topic,Title);
       inc(head,4); // always 1
@@ -1183,9 +1221,10 @@ begin
    SiteMap:=TChmSitemap.Create(StIndex);
    Item   :=Nil;  // cached last created item, in case we need to make
                   // a child.
+
    TryTextual:=True;
    BHdr.LastLstBlock:=0;
-   if LoadBtreeHeader(index,BHdr) and (BHdr.LastLstBlock>0) Then
+   if LoadBtreeHeader(index,BHdr) and (BHdr.LastLstBlock>=0) Then
     begin
        if BHdr.BlockSize=defblocksize then
          begin

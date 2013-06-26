@@ -240,6 +240,8 @@ type
 
 function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 
+Const defvalidflags = [valid_Navigation_pane_style,valid_Window_style_flags,valid_Initial_window_position,valid_Navigation_pane_width,valid_Buttons,valid_Tab_position];
+
 implementation
 uses chmbase;
 
@@ -485,22 +487,20 @@ var ind,len,
     arr     : array[0..3] of integer;
     s2      : string;
 begin
-  flags:=[];
   j:=pos('=',txt);
   if j>0 then
     txt[j]:=',';
   ind:=1; len:=length(txt);
   window_type       :=getnext(txt,ind,len);
   Title_bar_text    :=getnext(txt,ind,len);
-  index_file        :=getnext(txt,ind,len);
   Toc_file          :=getnext(txt,ind,len);
+  index_file        :=getnext(txt,ind,len);
   Default_File      :=getnext(txt,ind,len);
   Home_button_file  :=getnext(txt,ind,len);
   Jumpbutton_1_File :=getnext(txt,ind,len);
   Jumpbutton_1_Text :=getnext(txt,ind,len);
   Jumpbutton_2_File :=getnext(txt,ind,len);
   Jumpbutton_2_Text :=getnext(txt,ind,len);
-
   nav_style         :=getnextint(txt,ind,len,flags,valid_navigation_pane_style);
   navpanewidth      :=getnextint(txt,ind,len,flags,valid_navigation_pane_width);
   buttons           :=getnextint(txt,ind,len,flags,valid_buttons);
@@ -588,6 +588,7 @@ end;
 Constructor TCHMWindow.create(s:string='');
 
 begin
+ flags:=defvalidflags;
  if s<>'' then
    load_from_ini(s);
 end;
