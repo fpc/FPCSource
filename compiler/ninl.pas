@@ -4004,7 +4004,7 @@ implementation
          paras:=tcallparanode(tcallparanode(left).right);
          paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
          paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
          paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil),paras);
 {$else}
          paras:=ccallparanode.create(ccallnode.createinternfromunit('SYSTEM','GET_FRAME',nil),paras);

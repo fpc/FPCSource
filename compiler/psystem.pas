@@ -96,9 +96,9 @@ implementation
         systemunit.insert(tsyssym.create('Length',in_length_x));
         systemunit.insert(tsyssym.create('New',in_new_x));
         systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
-{$endif defined(x86) or defined(arm) or defined(jvm)}
+{$endif SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(tsyssym.create('Aligned',in_aligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }

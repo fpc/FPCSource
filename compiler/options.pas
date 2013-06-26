@@ -2860,9 +2860,9 @@ begin
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
 
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
   def_system_macro('INTERNAL_BACKTRACE');
-{$endif}
+{$endif SUPPORT_GET_FRAME}
   def_system_macro('STR_CONCAT_PROCS');
 {$warnings off}
   if pocall_default = pocall_register then
