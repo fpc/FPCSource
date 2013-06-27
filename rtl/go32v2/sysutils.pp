@@ -67,17 +67,6 @@ Type
 
 {  converts S to a pchar and copies it to the transfer-buffer.   }
 
-procedure StringToTB(const S: string);
-var
-  P: pchar;
-  Len: longint;
-begin
-  Len := Length(S) + 1;
-  P := StrPCopy(StrAlloc(Len), S);
-  SysCopyToDos(longint(P), Len);
-  StrDispose(P);
-end ;
-
 procedure StringToTB(const S: rawbytestring);
 var
   P: pchar;
