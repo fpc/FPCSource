@@ -1433,6 +1433,48 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+
+
+procedure DoDirSeparators(var ps:RawByteString);
+var
+  i : longint;
+  p : pchar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pchar(ps);
+            unique:=true;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var ps:UnicodeString);
+var
+  i : longint;
+  p : pwidechar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pwidechar(ps);
+            unique:=true;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
+end;
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
