@@ -241,7 +241,7 @@ const
 {$endif}
 
 Type
-  TSysCharSet = Set of char;
+  TSysCharSet = Set of AnsiChar;
   PSysCharSet = ^TSysCharSet;
 
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
