@@ -2644,8 +2644,6 @@ implementation
 
     procedure tfiledef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         if savesize=0 then
-           internalerror(201305131);
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(filetyp));
          if filetyp=ft_typed then
