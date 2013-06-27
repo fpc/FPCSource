@@ -195,23 +195,257 @@ Begin
 end;
 
 
-function strnew(p : PWideChar) : PWideChar; overload;
-var
-  len : SizeInt;
-begin
-  Result:=nil;
-  if (p=nil) or (p^=#0) then
-   exit;
-  len:=strlen(p)+1;
-  Result:=PWideChar(StrAlloc(Len*2));
-  if Result<>nil then
-   strmove(Result,p,len);
-end;
-
 function StrPas(Str: PWideChar): UnicodeString;overload;
 begin
   Result:=Str;
 end;
+
+
+function strecopy(dest,source : pwidechar) : pwidechar;
+  var
+    counter: sizeint;
+  begin
+    counter := indexword(source^,-1,0);
+    { counter+1 will move zero terminator }
+    move(source^,dest^,(counter+1)*2);
+    result:=dest+counter;
+  end;
+
+
+function strend(p : pwidechar) : pwidechar;
+  begin
+    result:=p+indexword(p^,-1,0);
+  end;
+
+
+function strcat(dest,source : pwidechar) : pwidechar;
+  begin
+    strcopy(strend(dest),source);
+    strcat:=dest;
+  end;
+
+
+function strcomp(str1,str2 : pwidechar) : SizeInt;
+  var
+    counter: sizeint;
+    c1, c2: widechar;
+  begin
+    counter:=0;
+    repeat
+      c1:=str1[counter];
+      c2:=str2[counter];
+      inc(counter);
+    until (c1<>c2) or
+          (c1=#0) or
+          (c2=#0);
+    strcomp:=ord(c1)-ord(c2);
+  end;
+
+
+function strlcomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+  var
+    counter: sizeint;
+    c1, c2: widechar;
+  begin
+    if l = 0 then
+      begin
+        strlcomp := 0;
+        exit;
+      end;
+    counter:=0;
+    repeat
+      c1:=str1[counter];
+      c2:=str2[counter];
+      inc(counter);
+   until (c1<>c2) or (counter>=l) or
+         (c1=#0) or (c2=#0);
+    strlcomp:=ord(c1)-ord(c2);
+  end;
+
+
+{ the str* functions are not supposed to support internationalisation;
+  system.upcase(widechar) does support it (although this is
+  Delphi-incompatible) }
+function simplewideupcase(w: widechar): widechar;
+  begin
+    if w in ['a'..'z'] then
+      result:=widechar(ord(w)-32)
+    else
+      result:=w;
+  end;
+
+
+function stricomp(str1,str2 : pwidechar) : SizeInt;
+  var
+   counter: sizeint;
+   c1, c2: widechar;
+  begin
+    counter := 0;
+    c1:=simplewideupcase(str1[counter]);
+    c2:=simplewideupcase(str2[counter]);
+    while c1=c2 do
+      begin
+        if (c1=#0) or (c2=#0) then break;
+        inc(counter);
+        c1:=simplewideupcase(str1[counter]);
+        c2:=simplewideupcase(str2[counter]);
+      end;
+    stricomp:=ord(c1)-ord(c2);
+  end;
+
+
+function strlcat(dest,source : pwidechar;l : SizeInt) : pwidechar;
+  var
+    destend : pwidechar;
+  begin
+    destend:=strend(dest);
+    dec(l,destend-dest);
+    if l>0 then
+      strlcopy(destend,source,l);
+    strlcat:=dest;
+  end;
+
+
+function strrscan(p : pwidechar;c : widechar) : pwidechar;
+  var
+   count: sizeint;
+   index: sizeint;
+  begin
+    count:=strlen(p);
+    { As in Borland Pascal , if looking for NULL return null }
+    if c=#0 then
+      begin
+        strrscan:=@(p[count]);
+        exit;
+      end;
+    dec(count);
+    for index:=count downto 0 do
+      begin
+        if c=p[index] then
+          begin
+            strrscan:=@(p[index]);
+            exit;
+          end;
+      end;
+    { nothing found. }
+    strrscan:=nil;
+  end;
+
+
+function strlower(p : pwidechar) : pwidechar;
+  var
+   counter: SizeInt;
+   c: widechar;
+  begin
+    counter:=0;
+    repeat
+      c:=p[counter];
+      if c in [#65..#90] then
+        p[counter]:=widechar(ord(c)+32);
+      inc(counter);
+    until c=#0;
+    strlower:=p;
+  end;
+
+
+function strupper(p : pwidechar) : pwidechar;
+  var
+   counter: SizeInt;
+   c: widechar;
+  begin
+    counter:=0;
+    repeat
+      c:=p[counter];
+      if c in [#97..#122] then
+        p[counter]:=widechar(ord(c)-32);
+      inc(counter);
+    until c=#0;
+    strupper:=p;
+  end;
+
+
+function strlicomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+  var
+   counter: sizeint;
+   c1, c2: char;
+  begin
+    counter := 0;
+    if l=0 then
+      begin
+        strlicomp := 0;
+        exit;
+      end;
+    repeat
+      c1:=simplewideupcase(str1[counter]);
+      c2:=simplewideupcase(str2[counter]);
+      if (c1=#0) or (c2=#0) then break;
+      inc(counter);
+    until (c1<>c2) or (counter>=l);
+    strlicomp:=ord(c1)-ord(c2);
+  end;
+
+
+function strpos(str1,str2 : pwidechar) : pwidechar;
+  var
+    p : pwidechar;
+    lstr2 : SizeInt;
+  begin
+    strpos:=nil;
+    if (str1=nil) or (str2=nil) then
+      exit;
+    p:=strscan(str1,str2^);
+    if p=nil then
+       exit;
+    lstr2:=strlen(str2);
+    while p<>nil do
+      begin
+        if strlcomp(p,str2,lstr2)=0 then
+          begin
+             strpos:=p;
+             exit;
+          end;
+        inc(p);
+        p:=strscan(p,str2^);
+      end;
+  end;
+
+
+function strnew(p : pwidechar) : pwidechar; overload;
+  var
+    len: sizeint;
+  begin
+    len:=strlen(p)+1;
+    result:=WideStrAlloc(Len);
+    if result<>nil then
+      strmove(result,p,len);
+  end;
+
+
+function WideStrAlloc(Size: cardinal): PWideChar;
+  begin
+    getmem(result,size*2+sizeof(cardinal));
+    cardinal(pointer(result)^):=size*2+sizeof(cardinal);
+    inc(result,sizeof(cardinal));
+  end;
+
+function StrBufSize(str: pwidechar): SizeUInt;
+  begin
+    if assigned(str) then
+      result:=cardinal(pointer(str-sizeof(cardinal))^)-sizeof(cardinal)
+    else
+      result := 0;
+  end;
+
+procedure StrDispose(str: pwidechar);
+begin
+  if assigned(str) then
+   begin
+     dec(str,sizeof(cardinal));
+     freemem(str,cardinal(pointer(str)^));
+   end;
+end;
+
+
 
 function BytesOf(const Val: UnicodeString): TBytes;
 begin

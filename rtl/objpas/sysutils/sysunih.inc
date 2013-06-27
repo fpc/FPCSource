@@ -40,6 +40,24 @@ function strnew(p : PWideChar) : PWideChar; overload;
 
 function StrPas(Str: PWideChar): UnicodeString;overload;
 
+function strecopy(dest,source : pwidechar) : pwidechar;
+function strend(p : pwidechar) : pwidechar;
+function strcat(dest,source : pwidechar) : pwidechar;
+function strcomp(str1,str2 : pwidechar) : SizeInt;
+function strlcomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+function stricomp(str1,str2 : pwidechar) : SizeInt;
+function strlcat(dest,source : pwidechar;l : SizeInt) : pwidechar;
+function strrscan(p : pwidechar;c : widechar) : pwidechar;
+function strlower(p : pwidechar) : pwidechar;
+function strupper(p : pwidechar) : pwidechar;
+function strlicomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+function strpos(str1,str2 : pwidechar) : pwidechar;
+
+function WideStrAlloc(size: cardinal): pwidechar;
+function StrBufSize(str: pwidechar): Cardinal;
+procedure StrDispose(str: pwidechar);
+
+
 function BytesOf(const Val: UnicodeString): TBytes; overload;
 function BytesOf(const Val: WideChar): TBytes; overload;
 function StringOf(const Bytes: TBytes): UnicodeString;
