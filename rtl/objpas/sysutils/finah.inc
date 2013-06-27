@@ -14,8 +14,10 @@
     System Utilities For Free Pascal
 }
 
+{$if not declared(TFilenameCaseMatch)}
 type
   TFilenameCaseMatch = (mkNone, mkExactMatch, mkSingleMatch, mkAmbiguous);
+{$endif}
 
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;

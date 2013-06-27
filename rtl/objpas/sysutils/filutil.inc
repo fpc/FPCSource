@@ -66,3 +66,15 @@ begin
 end;
 {$endif}
 
+
+Function GetFileHandle(var f : File):THandle;
+begin
+  Result:=filerec(f).handle;
+end;
+
+
+Function GetFileHandle(var f : Text):THandle;
+begin
+  Result:=textrec(f).handle;
+end;
+

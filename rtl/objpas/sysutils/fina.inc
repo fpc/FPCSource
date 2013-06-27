@@ -260,8 +260,10 @@ begin
 end;
 
 
+{$if not declared(MaxDirs)}
 Const
   MaxDirs = 129;
+{$endif}
 
 function ExtractRelativepath (Const BaseName,DestName : String): String;
 
@@ -419,16 +421,5 @@ begin
       Result := IncludeTrailingPathDelimiter(Result) + ExcludeLeadingPathDelimiter(Paths[I]);
   end else
     Result := '';
-end;
-
-Function GetFileHandle(var f : File):THandle;
-
-begin
-  result:=filerec(f).handle;
-end;
-
-Function GetFileHandle(var f : Text):THandle;
-begin
-  result:=textrec(f).handle;
 end;
 
