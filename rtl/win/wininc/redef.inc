@@ -69,9 +69,6 @@ type
   end;
   PMaxLogPalette = ^TMaxLogPalette;
 
-  TBitmapFileHeader = BITMAPFILEHEADER;
-  PBitmapFileHeader = ^TBitmapFileHeader;
-
   TOwnerDrawState = set of (
     odSelected,odGrayed,odDisabled,odChecked,
     odFocused,odDefault,odHotLight,odInactive,odNoAccel,odNoFocusRect,
