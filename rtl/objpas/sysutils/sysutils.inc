@@ -12,8 +12,17 @@
 
  **********************************************************************}
 
+{$macro on}
+{$define PathStr:=UnicodeString}
+{$define PathPChar:=PWideChar}
   { Read filename handling functions implementation }
   {$i fina.inc}
+{$define PathStr:=AnsiString}
+{$define PathPChar:=PAnsiChar}
+  { Read filename handling functions implementation }
+  {$i fina.inc}
+{$undef PathStr}
+{$undef PathPChar}
 
   { Read file utility functions implementation }
   {$i filutil.inc}

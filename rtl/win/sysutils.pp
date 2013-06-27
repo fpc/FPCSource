@@ -181,10 +181,21 @@ end;
 function ExpandUNCFileName (const filename:string) : string;
 { returns empty string on errors }
 var
-  s    : ansistring;
+  u: unicodestring;
+begin
+  { prevent data loss due to unsupported characters in ansi code page }
+  u:=ExpandUNCFileName(filename);
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(u),result,DefaultRTLFileSystemCodePage,length(u));
+end;
+
+
+function ExpandUNCFileName (const filename:unicodestring) : unicodestring;
+{ returns empty string on errors }
+var
+  s    : unicodestring;
   size : dword;
   rc   : dword;
-  buf : pchar;
+  buf : pwidechar;
 begin
   s := ExpandFileName (filename);
 
@@ -194,12 +205,12 @@ begin
   getmem(buf,size);
 
   try
-    rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+    rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
 
     if rc=ERROR_MORE_DATA then
       begin
         buf:=reallocmem(buf,size);
-        rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+        rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
       Result := PRemoteNameInfo(buf)^.lpUniversalName

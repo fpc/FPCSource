@@ -50,7 +50,25 @@
  {$DEFINE FPC_FEXPAND_UPDIR_HELPER}
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
-procedure GetDirIO (DriveNr: byte; var Dir: String);
+{ this code is used both in sysutils and in the dos unit, and the dos
+  unit does not have a charinset routine }
+{$if not defined(FPC_FEXPAND_SYSUTILS) and not defined(FPC_FEXPAND_HAS_CHARINSET)}
+{$define FPC_FEXPAND_HAS_CHARINSET}
+type
+  TFExpandSysCharSet = set of ansichar;
+
+Function CharInSet(Ch:AnsiChar;Const CSet : TFExpandSysCharSet) : Boolean; inline;
+begin
+  CharInSet:=ch in CSet;
+end;
+
+Function CharInSet(Ch:WideChar;Const CSet : TFExpandSysCharSet) : Boolean;
+begin
+  CharInSet:=(Ch<=#$FF) and (ansichar(byte(ch)) in CSet);
+end;
+{$endif}
+
+procedure GetDirIO (DriveNr: byte; var Dir: PathStr);
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
@@ -67,7 +85,7 @@ end;
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-procedure GetDirIO (const VolumeName: OpenString; var Dir: string);
+procedure GetDirIO (const VolumeName: OpenString; var Dir: PathStr);
 
 var
   OldInOutRes: word;
@@ -128,7 +146,7 @@ begin
 (* by converting all to the native one.           *)
 {$warnings off}
 	  for I := 1 to Length (Pa) do
-	    if Pa [I] in AllowDirectorySeparators  then
+	    if CharInSet(Pa [I], AllowDirectorySeparators)  then
 	      Pa [I] := DirectorySeparator;
 {$warnings on}
 
@@ -176,7 +194,7 @@ begin
 {$IFDEF FPC_FEXPAND_VOLUMES}
     if PathStart > 1 then
 {$ELSE FPC_FEXPAND_VOLUMES}
-    if (Length (Pa) > 1) and (Pa [1] in ['A'..'Z', 'a'..'z']) and
+    if (Length (Pa) > 1) and CharInSet(Pa [1], ['A'..'Z', 'a'..'z']) and
       (Pa [2] = DriveSeparator) and (DriveSeparator <> DirectorySeparator) then
 {$ENDIF FPC_FEXPAND_VOLUMES}
         begin
@@ -189,7 +207,7 @@ begin
             GetDirIO (Copy (Pa, 1, PathStart - 2), S);
   {$ELSE FPC_FEXPAND_VOLUMES}
             { Always uppercase driveletter }
-            if (Pa [1] in ['a'..'z']) then
+            if CharInSet(Pa [1], ['a'..'z']) then
                 Pa [1] := Chr (Ord (Pa [1]) and not ($20));
             GetDirIO (Ord (Pa [1]) - Ord ('A') + 1, S);
   {$ENDIF FPC_FEXPAND_VOLUMES}

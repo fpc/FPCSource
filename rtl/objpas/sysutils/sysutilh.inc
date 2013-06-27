@@ -288,8 +288,17 @@ Type
   {$i sysencodingh.inc}
 {$endif FPC_HAS_UNICODESTRING}
 
+{$macro on}
+{$define PathStr:=UnicodeString}
+{$define PathPChar:=PWideChar}
   { Read filename handling functions declaration }
   {$i finah.inc}
+{$define PathStr:=AnsiString}
+{$define PathPChar:=PAnsiChar}
+  { Read filename handling functions declaration }
+  {$i finah.inc}
+{$undef PathStr}
+{$undef PathPChar}
 
   { Read other file handling function declarations }
   {$i filutilh.inc}
