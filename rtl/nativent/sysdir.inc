@@ -121,7 +121,7 @@ begin
   InOutRes := 3;
 end;
 
-procedure GetDir(DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir(DriveNr: byte; var Dir: UnicodeString);
 begin
   { for now we return simply the root directory }
   Dir := DirectorySeparator;

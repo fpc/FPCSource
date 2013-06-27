@@ -34,7 +34,7 @@ begin
 
 end;
 
-procedure GetDir(DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir(DriveNr: byte; var Dir: RawByteString);
 begin
 
 end;

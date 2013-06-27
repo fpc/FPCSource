@@ -39,10 +39,17 @@ begin
     FileIODevice.DirIO.DoChdir(strpas(s));
 end;
 
-procedure GetDir(DriveNr: byte; var Dir: ShortString);
+procedure GetDir(DriveNr: byte; var Dir: RawByteString);
+var
+  TmpDir: ShortString;
 begin
+  { TODO: convert callback to use rawbytestring to avoid conversion }
   if FileIODevice.DirIO.DoGetdir <> nil then
-    FileIODevice.DirIO.DoGetdir(DriveNr, Dir);
+    begin
+      FileIODevice.DirIO.DoGetdir(DriveNr, Dir);
+      Dir:=TmpDir;
+      SetCodePage(Dir,DefaultFileSystemCodePage,false);
+    end;
 end;
 
 

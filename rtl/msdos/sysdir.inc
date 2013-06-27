@@ -84,7 +84,7 @@ begin
   DosDir($3b,s,len);
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure GetDir (DriveNr: byte; var Dir: RawByteString);
 var
   temp : array[0..260] of char;
   i    : longint;
@@ -102,12 +102,14 @@ begin
    Begin
      GetInOutRes (regs.AX);
      Dir := char (DriveNr + 64) + ':\';
+     SetCodePage (Dir,DefaultFileSystemCodePage,false);
      exit;
    end
   else
     temp[252] := #0;  { to avoid shortstring buffer overflow }
 { conversion to Pascal string including slash conversion }
   i:=0;
+  SetLength(dir,260);
   while (temp[i]<>#0) do
    begin
      if temp[i] in AllowDirectorySeparators then
@@ -117,7 +119,8 @@ begin
    end;
   dir[2]:=':';
   dir[3]:='\';
-  dir[0]:=char(i+3);
+  SetLength(dir,i+3);
+  SetCodePage (dir,DefaultFileSystemCodePage,false);
 { upcase the string }
   if not FileNameCasePreserving then
    dir:=upcase(dir);

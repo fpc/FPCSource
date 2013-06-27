@@ -1185,10 +1185,15 @@ Procedure mkdir(const s:string); overload;
 Procedure rmdir(const s:string); overload;
 // the pchar versions are exported via alias for use in objpas
 
-Procedure getdir(drivenr:byte;var dir:shortstring);
+Procedure getdir(drivenr:byte;var dir:shortstring);overload;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure getdir(drivenr:byte;var dir:ansistring);
+// defaultrtlfilesystemcodepage is returned here
+Procedure getdir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure getdir(drivenr:byte;var dir: unicodestring);overload;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {*****************************************************************************

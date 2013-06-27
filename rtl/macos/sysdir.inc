@@ -98,22 +98,16 @@ begin
     InOutRes:=res;
 end;
 
-procedure getDir (DriveNr: byte; var Dir: ShortString);
+procedure do_getDir (DriveNr: byte; var Dir: RawByteString);
 
 var
-  fullPath: AnsiString;
   pathHandleSize: Longint;
 
 begin
-  if FSpGetFullPath(workingDirectorySpec, fullPath, false) <> noErr then
+  if FSpGetFullPath(workingDirectorySpec, Dir, false) <> noErr then
     Halt(3);  {exit code 3 according to MPW}
 
-  if Length(fullPath) <= 255 then {because dir is ShortString}
-    InOutRes := 0
-  else
-    InOutRes := 1; //TODO Exchange to something better
-
-  dir:= fullPath;
+  SetCodePage(Dir,DefaultFileSystemCodePage,false);
 end;
 
 

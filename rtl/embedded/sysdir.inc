@@ -34,7 +34,11 @@ begin
   InOutRes:=3;
 end;
 
+{$if defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 begin
   InOutRes:=3;
 end;

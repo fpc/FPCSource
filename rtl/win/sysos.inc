@@ -298,9 +298,6 @@ threadvar
      stdcall;external KernelDLL name 'RemoveDirectoryW';
    function SetCurrentDirectory(name : pointer) : longbool;
      stdcall;external KernelDLL name 'SetCurrentDirectoryW';
-   function GetCurrentDirectory(bufsize : longint;name : punicodechar) : longbool;
-     stdcall;external KernelDLL name 'GetCurrentDirectoryW';
-
    {$else}
    function GetFileAttributes(p : pchar) : dword;
      stdcall;external KernelDLL name 'GetFileAttributesA';
@@ -319,10 +316,10 @@ threadvar
      stdcall;external KernelDLL name 'RemoveDirectoryA';
    function SetCurrentDirectory(name : pointer) : longbool;
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
-   function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external KernelDLL name 'GetCurrentDirectoryA';
 
   {$endif}
+   function GetCurrentDirectoryW(bufsize : longint;name : punicodechar) : Dword;
+     stdcall;external KernelDLL name 'GetCurrentDirectoryW';
 
    { Console functions needed for WriteFile fix for bug 17550 }
    function GetConsoleMode(hConsoleHandle:thandle; lpMode:LPDWORD):BOOL;

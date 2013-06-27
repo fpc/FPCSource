@@ -89,12 +89,13 @@ end;
 
 {$ASMMODE ATT}
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 {Written by Michael Van Canneyt.}
 var sof: Pchar;
     i:byte;
     l,l2:cardinal;
 begin
+    setlength(Dir,255);
     Dir [4] := #0;
     { Used in case the specified drive isn't available }
     sof:=pchar(@dir[4]);
@@ -102,12 +103,13 @@ begin
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }
     { Get dir from drivenr : 0=default, 1=A etc... }
+    { TODO: if max path length is > 255, increase the setlength parameter above and
+      the 255 below }
     l:=255-3;
     InOutRes:=longint (DosQueryCurrentDir(DriveNr, sof^, l));
 {$WARNING Result code should be translated in some cases!}
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
-    dir[0]:=#3;
     dir[2]:=':';
     dir[3]:='\';
     i:=4;
@@ -117,9 +119,9 @@ begin
             { convert path name to DOS }
             if dir[i] in AllowDirectorySeparators then
               dir[i]:=DirectorySeparator;
-            dir[0]:=char(i);
             inc(i);
         end;
+    setlength(dir,i-1);
     { upcase the string (FPC function) }
     if drivenr<>0 then   { Drive was supplied. We know it }
         dir[1]:=chr(64+drivenr)
@@ -130,6 +132,7 @@ begin
             DosQueryCurrentDisk(l, l2);
             dir[1]:=chr(64+l);
         end;
+    SetCodePage(dir,DefaultFileSystemCodePage,false);
     if not (FileNameCasePreserving) then dir:=upcase(dir);
 end;
 

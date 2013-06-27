@@ -1503,19 +1503,11 @@ end;
 {$i sysdir.inc}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
-var
-  s : shortstring;
-begin
-  getdir(drivenr,s);
-  dir:=s;
-end;
-{$endif}
-
 {$if defined(FPC_HAS_FEATURE_FILEIO)}
+
+
+
+
 
 Procedure MkDir(Const s: String);
 Var
@@ -1549,7 +1541,64 @@ Begin
   Buffer[Length(s)] := #0;
   ChDir(@buffer[0],length(s));
 End;
-{$endif}
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+procedure do_getdir(drivenr : byte;var dir : rawbytestring);
+var
+  u: unicodestring;
+begin
+  Do_getdir(drivenr,u);
+  widestringmanager.Unicode2AnsiMoveProc(pwidechar(u),dir,DefaultRTLFileSystemCodePage,length(u));
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure getdir(drivenr:byte;Var dir:rawbytestring);
+begin
+  Do_getdir(drivenr,dir);
+  { we should return results in the DefaultRTLFileSystemCodePage -> convert if
+    necessary }
+  setcodepage(dir,DefaultRTLFileSystemCodePage,true);
+end;
+
+{ this one is only implemented elsewhere for systems *not* supporting
+  ansi/unicodestrings; for now assume there are no systems that support
+  unicodestrings but not ansistrings }
+Procedure getdir(drivenr:byte;Var dir:shortstring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
+  if length(s)<=high(dir) then
+    dir:=s
+  else
+    inoutres:=3;
+end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+{$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+procedure do_getdir(drivenr : byte;var dir : unicodestring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
+  dir:=s;
+end;
+{$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+
+Procedure getdir(drivenr:byte;Var dir:unicodestring);
+begin
+  Do_getdir(drivenr,dir);
+end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+{$endif FPC_HAS_FEATURE_FILEIO}
+
 
 {*****************************************************************************
                             Resources support

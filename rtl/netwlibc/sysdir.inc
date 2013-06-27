@@ -48,7 +48,7 @@ begin
     SetFileError (Res);
 end;
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 var P : array [0..255] of CHAR;
     i : LONGINT;
 begin
@@ -57,8 +57,8 @@ begin
   i := libc_strlen (P);
   if i > 0 then
   begin
+    SetLength (dir, i);
     Move (P, dir[1], i);
-    BYTE(dir[0]) := i;
     DoDirSeparators(dir);
     // fix / after volume, the compiler needs that
     // normaly root of a volumes is SERVERNAME/SYS:, change that
@@ -67,6 +67,7 @@ begin
     if (i > 0) then
       if i = Length (dir) then dir := dir + '/' else
       if dir [i+1] <> '/' then insert ('/',dir,i+1);
+    SetCodePage (dir,DefaultFileSystemCodePage,false);
   end else
     InOutRes := 1;
 end;

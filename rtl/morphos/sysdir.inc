@@ -83,7 +83,7 @@ begin
   if assigned(FIB) then dispose(FIB);
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var tmpbuf: array[0..255] of char;
 begin
   checkCTRLC;
@@ -91,5 +91,8 @@ begin
   if not GetCurrentDirName(tmpbuf,256) then
     dosError2InOut(IoErr)
   else
-    Dir:=strpas(tmpbuf);
+    begin
+      Dir:=tmpbuf;
+      SetCodePage(Dir,DefaultFileSystemCodePage,false);
+    end;
 end;
