@@ -12,6 +12,10 @@
 
  **********************************************************************}
 
+  { MCBS functions }
+  {$i sysansi.inc}
+  {$i syscodepages.inc}
+
 {$macro on}
 {$define PathStr:=UnicodeString}
 {$define PathPChar:=PWideChar}
@@ -160,10 +164,6 @@ end;
 
   { generic internationalisation code }
   {$i sysint.inc}
-
-  { MCBS functions }
-  {$i sysansi.inc}
-  {$i syscodepages.inc}
 
   { wide string functions }
   {$i syswide.inc}

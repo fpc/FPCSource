@@ -100,7 +100,7 @@ begin
   Result[0]:=Byte(Val);
 end;
 
-Function CharInSet(Ch:AnsiChar;Const CSet : TSysCharSet) : Boolean;
+Function CharInSet(Ch:AnsiChar;Const CSet : TSysCharSet) : Boolean; inline;
 begin
   result:=ch in CSet;
 end;
