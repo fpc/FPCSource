@@ -1409,8 +1409,12 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
   begin
-    if (S<>'') and (StringCodePage(S)<>CodePage) then
-      InternalSetCodePage(s,CodePage,Convert);
+    if (S='') or (PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage=CodePage) then
+      exit
+    else if not Convert and (PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref=1) then
+      PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage:=CodePage
+    else
+      InternalSetCodePage(S,CodePage,Convert);
   end;
 {$endif FPC_HAS_ANSISTR_SETCODEPAGE}
 
