@@ -906,6 +906,13 @@ function StringCodePage(const S : UnicodeString): TSystemCodePage;
       result:=DefaultUnicodeCodePage;
   end;
 
+{$define FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODESTRING}
+Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
+Begin
+  result:=AnsiString(AnsistringClass.Create(Str,DefaultFileSystemCodePage));
+End;
+
+
 
 { helpers for converting between Windows and Java code page identifiers }
 
