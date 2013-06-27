@@ -16,3 +16,9 @@
 
 { the single byte OS APIs always use UTF-8 }
 {$define FPCRTL_FILESYSTEM_UTF8}
+
+{ The OS supports a single byte file system operations API that we use }
+{$define FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+{ The OS supports a two byte file system operations API that we use }
+{ define FPCRTL_FILESYSTEM_TWO_BYTE_API}
