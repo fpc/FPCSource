@@ -1434,7 +1434,21 @@ Type
      PFILEDESCRIPTORW = ^FILEDESCRIPTORW;
      LPFILEDESCRIPTORW = PFILEDESCRIPTORW;
      PLPFILEDESCRIPTORW = ^LPFILEDESCRIPTORW;
-
+     {$Ifdef Unicode}
+       _FILEDESCRIPTOR   = _FILEDESCRIPTORW;
+       FILEDESCRIPTOR    = _FILEDESCRIPTORW;
+       TFILEDESCRIPTOR   = _FILEDESCRIPTORW;
+       PFILEDESCRIPTOR   = PFILEDESCRIPTORW;
+       LPFILEDESCRIPTOR  = PFILEDESCRIPTORW;
+       PLPFILEDESCRIPTOR = PLPFILEDESCRIPTORW;
+     {$else}
+       _FILEDESCRIPTOR   = _FILEDESCRIPTORA;
+       FILEDESCRIPTOR    = _FILEDESCRIPTORA;
+       TFILEDESCRIPTOR   = _FILEDESCRIPTORA;
+       PFILEDESCRIPTOR   = PFILEDESCRIPTORA;
+       LPFILEDESCRIPTOR  = PFILEDESCRIPTORA;
+       PLPFILEDESCRIPTOR = PLPFILEDESCRIPTORA;
+     {$endif}
      _FILEGROUPDESCRIPTORA = record
           cItems : UINT;
           fgd : array[0..0] of FILEDESCRIPTORA;
@@ -1454,7 +1468,21 @@ Type
      PFILEGROUPDESCRIPTORW = ^FILEGROUPDESCRIPTORW;
      LPFILEGROUPDESCRIPTORW = PFILEGROUPDESCRIPTORW;
      PLPFILEGROUPDESCRIPTORW = ^LPFILEGROUPDESCRIPTORW;
-  
+     {$ifdef Unicode}
+     _FILEGROUPDESCRIPTOR    = _FILEGROUPDESCRIPTORW;
+     FILEGROUPDESCRIPTOR     = _FILEGROUPDESCRIPTORW;
+     TFILEGROUPDESCRIPTOR    = _FILEGROUPDESCRIPTORW;
+     PFILEGROUPDESCRIPTOR    = PFILEGROUPDESCRIPTORW;
+     LPFILEGROUPDESCRIPTOR   = PFILEGROUPDESCRIPTORW;
+     PLPFILEGROUPDESCRIPTOR  = PLPFILEGROUPDESCRIPTORW;
+     {$else}
+     _FILEGROUPDESCRIPTOR    = _FILEGROUPDESCRIPTORA;
+     FILEGROUPDESCRIPTOR     = _FILEGROUPDESCRIPTORA;
+     TFILEGROUPDESCRIPTOR    = _FILEGROUPDESCRIPTORA;
+     PFILEGROUPDESCRIPTOR    = PFILEGROUPDESCRIPTORA;
+     LPFILEGROUPDESCRIPTOR   = PFILEGROUPDESCRIPTORA;
+     PLPFILEGROUPDESCRIPTOR  = PLPFILEGROUPDESCRIPTORA;
+     {$endif}
      _DROPFILES = record
           pFiles : DWORD;        { offset of file list }
           pt : POINT;            { drop point (client coords) }
@@ -1742,7 +1770,6 @@ Type
      LPSHELLSTATEA = PSHELLSTATEA;           {Indicates if the Whistler StartPage on desktop is ON or OFF. }
      PLPSHELLSTATEA = ^LPSHELLSTATEA;
      TSHELLSTATEA = SHELLSTATEA;
-     LPSHELLSTATE = LPSHELLSTATEA;
 
      PSHELLSTATEW = ^SHELLSTATEW;
      SHELLSTATEW = record
@@ -1757,8 +1784,17 @@ Type
        end;                            {Indicates if the Whistler StartPage on desktop is ON or OFF. }
      LPSHELLSTATEW = PSHELLSTATEW;     { If you need a new flag, steal a bit from from fSpareFlags. }
      PLPSHELLSTATEW = ^LPSHELLSTATEW;
-     TSHELLSTATE = SHELLSTATEW;
-
+     {$ifdef Unicode}
+     SHELLSTATE     = SHELLSTATEW;
+     LPSHELLSTATE   = PSHELLSTATEW;
+     PLPSHELLSTATE  = PLPSHELLSTATEW;
+     TSHELLSTATE    = SHELLSTATEW;
+     {$else}
+     LPSHELLSTATE  = PSHELLSTATEA;
+     PLPSHELLSTATE = PLPSHELLSTATEA;
+     TSHELLSTATE   = SHELLSTATEA;
+     SHELLSTAT     = SHELLSTATEA;
+     {$endif}
      PSHELLFLAGSTATE = ^SHELLFLAGSTATE;
      SHELLFLAGSTATE = record
           flag0 : word;
@@ -2413,17 +2449,32 @@ function  SHOpenFolderAndSelectItems(pidlFolder:LPCITEMIDLIST;cidl:UINT;var  api
 function  SHGetSpecialFolderLocation( hwnd:HWND; csidl:longint;out ppidl: LPITEMIDLIST):HResult;StdCall; external 'shell32' name 'SHGetSpecialFolderLocation';
 procedure SHFlushSFCache;StdCall; external 'shell32' name 'SHFlushSFCache';
 function  SHCloneSpecialIDList(HWND:hwnd; csidl:longint;fcreate:BOOL):LPITEMIDLIST; StdCall; external 'shell32' name 'SHCloneSpecialIDList';
-function  SHGetSpecialFolderPathA(HWND:hwnd;pszpath: LPSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathA';
-function  SHGetSpecialFolderPath(HWND:hwnd;pszpath: LPSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathA';
-function  SHGetSpecialFolderPathW(HWND:hwnd;pszpath: LPWSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathW';
-function  SHGetFolderPathA(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathA';
-function  SHGetFolderPath(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathA';
-function  SHGetFolderPathW(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpWstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathW';
-function  SHGetFolderPathAndSubDirA(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCStr;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathAndSubDirA';
-function  SHGetFolderPathAndSubDir(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCStr;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathAndSubDirA';
-function  SHGetFolderPathAndSubDirW(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCWStr;pszpath:lpWstr):HResult; external 'shell32' name 'SHGetFolderPathAndSubDirW';
-function  SHFolderLocation(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;var ppidl:LPITEMIDLIST):HRESULT;StdCall; external 'shell32' name 'SHFolderLocation';
 
+function  SHGetSpecialFolderPathA(HWND:hwnd;pszpath: LPSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathA';
+function  SHGetSpecialFolderPathW(HWND:hwnd;pszpath: LPWSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathW';
+{$ifdef unicode}
+function  SHGetSpecialFolderPath(HWND:hwnd;pszpath: LPWSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathW';
+{$else}
+function  SHGetSpecialFolderPath(HWND:hwnd;pszpath: LPSTR; csidl:Longint;fcreate:bool):bool;StdCall; external 'shell32' name 'SHGetSpecialFolderPathA';
+{$endif}
+
+function  SHGetFolderPathA(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathA';
+function  SHGetFolderPathW(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpWstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathW';
+{$ifdef unicode}
+function  SHGetFolderPath(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpWstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathW';
+{$else}
+function  SHGetFolderPath(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathA';
+{$endif}
+
+function  SHGetFolderPathAndSubDirA(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCStr;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathAndSubDirA';
+function  SHGetFolderPathAndSubDirW(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCWStr;pszpath:lpWstr):HResult; external 'shell32' name 'SHGetFolderPathAndSubDirW';
+{$ifdef unicode}
+function  SHGetFolderPathAndSubDir (HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCWStr;pszpath:lpWstr):HResult; external 'shell32' name 'SHGetFolderPathAndSubDirW';
+{$else}
+function  SHGetFolderPathAndSubDir (HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;pszsubdir:LPCStr;pszpath:lpstr):HResult;StdCall; external 'shell32' name 'SHGetFolderPathAndSubDirA';
+{$endif}
+
+function  SHFolderLocation(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;var ppidl:LPITEMIDLIST):HRESULT;StdCall; external 'shell32' name 'SHFolderLocation';
 
 Const External_Library = 'shell32';
 
@@ -2431,11 +2482,29 @@ Const External_Library = 'shell32';
   procedure SHFree(pv:pointer);StdCall;external External_library name 'SHFree';
   function SHGetIconOverlayIndexA(pszIconPath:lpcstr; iIconIndex:Longint):Longint;StdCall;external External_library name 'SHGetIconOverlayIndexA';
   function SHGetIconOverlayIndexW(pszIconPath:lpcwstr; iIconIndex:Longint):Longint;StdCall;external External_library name 'SHGetIconOverlayIndexW';
+  {$ifdef Unicode}
+  function SHGetIconOverlayIndex (pszIconPath:lpcwstr; iIconIndex:Longint):Longint;StdCall;external External_library name 'SHGetIconOverlayIndexW';
+  {$else}
+  function SHGetIconOverlayIndex (pszIconPath:lpcstr; iIconIndex:Longint):Longint;StdCall;external External_library name 'SHGetIconOverlayIndexA';
+  {$endif}
+
   function SHGetPathFromIDListA(pidl:LPCITEMIDLIST; pszPath:LPStr):BOOL;StdCall;external External_library name 'SHGetPathFromIDListA';
   function SHGetPathFromIDListW(pidl:LPCITEMIDLIST; pszPath:LPWStr):BOOL;StdCall;external External_library name 'SHGetPathFromIDListW';
+  {$ifdef unicode}
+  function SHGetPathFromIDList (pidl:LPCITEMIDLIST; pszPath:LPWStr):BOOL;StdCall;external External_library name 'SHGetPathFromIDListW';
+  {$else}
+  function SHGetPathFromIDList (pidl:LPCITEMIDLIST; pszPath:LPStr):BOOL;StdCall;external External_library name 'SHGetPathFromIDListA';
+  {$endif}
   function SHCreateDirectory(hwnd:HWND; pszPath:lpcwstr):Longint;StdCall;external External_library name 'SHCreateDirectory';
+
   function SHCreateDirectoryExA(hwnd:HWND; pszPath:lpcstr; psa:LPSECURITY_ATTRIBUTES):Longint;StdCall;external External_library name 'SHCreateDirectoryExA';
   function SHCreateDirectoryExW(hwnd:HWND; pszPath:lpcwstr; psa:LPSECURITY_ATTRIBUTES):Longint;StdCall;external External_library name 'SHCreateDirectoryExW';
+  {$ifdef unicode}
+  function SHCreateDirectoryEx (hwnd:HWND; pszPath:lpcwstr; psa:LPSECURITY_ATTRIBUTES):Longint;StdCall;external External_library name 'SHCreateDirectoryExW';
+  {$else}
+  function SHCreateDirectoryEx (hwnd:HWND; pszPath:lpcstr; psa:LPSECURITY_ATTRIBUTES):Longint;StdCall;external External_library name 'SHCreateDirectoryExA';
+  {$endif}
+
 {
   function SHOpenFolderAndSelectItems(pidlFolder:LPCITEMIDLIST; cidl:UINT; var apidl:LPCITEMIDLIST; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHOpenFolderAndSelectItems';
   function SHCreateShellItem(pidlParent:LPCITEMIDLIST; psfParent:IShellFolder; pidl:LPCITEMIDLIST;out ppsi:IShellItem):HRESULT;StdCall;external External_library name 'SHCreateShellItem';
@@ -2448,16 +2517,36 @@ Const External_Library = 'shell32';
 }
   function SHGetSetFolderCustomSettingsA(pfcs:LPSHFOLDERCUSTOMSETTINGSA; pszPath:lpcstr; dwReadWrite:DWord):HRESULT;StdCall;external External_library name 'SHGetSetFolderCustomSettingsA';
   function SHGetSetFolderCustomSettingsW(pfcs:LPSHFOLDERCUSTOMSETTINGSW; pszPath:lpcwstr; dwReadWrite:DWord):HRESULT;StdCall;external External_library name 'SHGetSetFolderCustomSettingsW';
+  {$ifdef unicode}
+  function SHGetSetFolderCustomSettings (pfcs:LPSHFOLDERCUSTOMSETTINGSW; pszPath:lpcwstr; dwReadWrite:DWord):HRESULT;StdCall;external External_library name 'SHGetSetFolderCustomSettingsW';
+  {$else}
+  function SHGetSetFolderCustomSettings (pfcs:LPSHFOLDERCUSTOMSETTINGSA; pszPath:lpcstr; dwReadWrite:DWord):HRESULT;StdCall;external External_library name 'SHGetSetFolderCustomSettingsA';
+  {$endif}
+
+
   function SHBrowseForFolderA(lpbi:LPBROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
   function SHBrowseForFolderW(lpbi:LPBROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
+  {$ifdef unicode}
+  function SHBrowseForFolder (lpbi:LPBROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
+  {$else}
+  function SHBrowseForFolder (lpbi:LPBROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
+  {$endif}
+
   function SHLoadInProc(const rclsid:Tguid):HRESULT;StdCall;external External_library name 'SHLoadInProc';
   function SHEnableServiceObject(const rclsid:Tguid; fEnable:BOOL):HRESULT;StdCall;external External_library name 'SHEnableServiceObject';
 //  function SHGetDesktopFolder(out ppshf:IShellFolder):HRESULT;StdCall;external External_library name 'SHGetDesktopFolder';
   procedure SHChangeNotify(wEventId:LONG; uFlags:UINT; dwItem1:POINTER; dwItem2:POINTER);StdCall;external External_library name 'SHChangeNotify';
   procedure SHAddToRecentDocs(uFlags:UINT; pv:POINTER);StdCall;external External_library name 'SHAddToRecentDocs';
   function SHHandleUpdateImage(pidlExtra:LPCITEMIDLIST):Longint;StdCall;external External_library name 'SHHandleUpdateImage';
+
   procedure SHUpdateImageA(pszHashItem:lpcstr; iIndex:Longint; uFlags:UINT; iImageIndex:Longint);StdCall;external External_library name 'SHUpdateImageA';
   procedure SHUpdateImageW(pszHashItem:lpcwstr; iIndex:Longint; uFlags:UINT; iImageIndex:Longint);StdCall;external External_library name 'SHUpdateImageW';
+  {$ifdef Unicode}
+  procedure SHUpdateImage (pszHashItem:lpcwstr; iIndex:Longint; uFlags:UINT; iImageIndex:Longint);StdCall;external External_library name 'SHUpdateImageW';
+  {$else}
+  procedure SHUpdateImage (pszHashItem:lpcstr; iIndex:Longint; uFlags:UINT; iImageIndex:Longint);StdCall;external External_library name 'SHUpdateImageA';
+  {$endif}
+
   function SHChangeNotifyRegister(hwnd:HWND; fSources:Longint; fEvents:LONG; wMsg:UINT; cEntries:Longint; 
              pshcne:PSHChangeNotifyEntry):ULONG;StdCall;external External_library name 'SHChangeNotifyRegister';
   function SHChangeNotifyDeregister(ulID:ulong):BOOL;StdCall;external External_library name 'SHChangeNotifyDeregister';
@@ -2467,6 +2556,12 @@ Const External_Library = 'shell32';
   function SHGetInstanceExplorer(out ppunk:IUnknown):HRESULT;StdCall;external External_library name 'SHGetInstanceExplorer';
   function SHGetDataFromIDListA(psf:IShellFolder; pidl:LPCITEMIDLIST; nFormat:Longint; pv:pointer; cb:Longint):HRESULT;StdCall;external External_library name 'SHGetDataFromIDListA';
   function SHGetDataFromIDListW(psf:IShellFolder; pidl:LPCITEMIDLIST; nFormat:Longint; pv:pointer; cb:Longint):HRESULT;StdCall;external External_library name 'SHGetDataFromIDListW';
+  {$ifdef Unicode}
+  function SHGetDataFromIDList (psf:IShellFolder; pidl:LPCITEMIDLIST; nFormat:Longint; pv:pointer; cb:Longint):HRESULT;StdCall;external External_library name 'SHGetDataFromIDListW';
+  {$else}
+  function SHGetDataFromIDList (psf:IShellFolder; pidl:LPCITEMIDLIST; nFormat:Longint; pv:pointer; cb:Longint):HRESULT;StdCall;external External_library name 'SHGetDataFromIDListA';
+  {$endif}
+
   function RestartDialog(hwnd:HWND; lpPrompt:lpcwstr; dwReturn:DWord):Longint;StdCall;external External_library name 'RestartDialog';
   function RestartDialogEx(hwnd:HWND; lpPrompt:lpcwstr; dwReturn:DWord; dwReasonCode:DWord):Longint;StdCall;external External_library name 'RestartDialogEx';
   function SHCoCreateInstance(pszCLSID:lpcwstr; pclsid:PCLSID; pUnkOuter:IUnknown; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCoCreateInstance';
@@ -2487,6 +2582,12 @@ Const External_Library = 'shell32';
   function PathIsExe(pszPath:lpcwstr):BOOL;StdCall;external External_library name 'PathIsExe';
   function PathIsSlowA(pszFile:lpcstr; dwAttr:DWord):BOOL;StdCall;external External_library name 'PathIsSlowA';
   function PathIsSlowW(pszFile:lpcwstr; dwAttr:DWord):BOOL;StdCall;external External_library name 'PathIsSlowW';
+  {$ifdef Unicode}
+  function PathIsSlow (pszFile:lpcwstr; dwAttr:DWord):BOOL;StdCall;external External_library name 'PathIsSlowW';
+  {$else}
+  function PathIsSlow (pszFile:lpcstr; dwAttr:DWord):BOOL;StdCall;external External_library name 'PathIsSlowA';
+  {$endif}
+
   function PathCleanupSpec(pszDir:lpcwstr; pszSpec:LPWStr):Longint;StdCall;external External_library name 'PathCleanupSpec';
   function PathResolve(pszPath:LPWStr; dirs:array of lpcwstr; fFlags:UINT):Longint;StdCall;external External_library name 'PathResolve';
   function GetFileNameFromBrowse(hwnd:HWND; pszFilePath:LPWStr; cbFilePath:UINT; pszWorkingDir:lpcwstr; pszDefExt:lpcwstr; 
@@ -2514,7 +2615,11 @@ Const External_Library = 'shell32';
   function ILSaveToStream(pstm:IStream; pidl:LPCITEMIDLIST):HRESULT;StdCall;external External_library name 'ILSaveToStream';
   function ILCreateFromPathA(pszPath:lpcstr):LPITEMIDLIST;StdCall;external External_library name 'ILCreateFromPathA';
   function ILCreateFromPathW(pszPath:lpcwstr):LPITEMIDLIST;StdCall;external External_library name 'ILCreateFromPathW';
-  function ILCreateFromPath(pszPath:LPCTSTR):LPITEMIDLIST;StdCall;external External_library name 'ILCreateFromPath';
+  {$ifdef Unicode}
+  function ILCreateFromPath(pszPath:lpcwstr):LPITEMIDLIST;StdCall;external External_library name 'ILCreateFromPathW';
+  {$else}
+  function ILCreateFromPath(pszPath:lpcstr):LPITEMIDLIST;StdCall;external External_library name 'ILCreateFromPathA';
+  {$endif}
   function SHILCreateFromPath(szPath:lpcwstr;var ppidl:LPITEMIDLIST; rgfInOut:PDWORD):HRESULT;StdCall;external External_library name 'SHILCreateFromPath';
   function OpenRegStream(hkey:HKEY; pszSubkey:lpcwstr; pszValue:lpcwstr; grfMode:DWord):IStream;StdCall;external External_library name 'OpenRegStream';
   function SHFindFiles(pidlFolder:LPCITEMIDLIST; pidlSaveFile:LPCITEMIDLIST):BOOL;StdCall;external External_library name 'SHFindFiles';
@@ -2528,10 +2633,23 @@ Const External_Library = 'shell32';
   function SHLoadOLE(lParam:lparam):HRESULT;StdCall;external External_library name 'SHLoadOLE';
   function SHStartNetConnectionDialogA(hwnd:HWND; pszRemoteName:lpcstr; dwType:DWord):HRESULT;StdCall;external External_library name 'SHStartNetConnectionDialogA';
   function SHStartNetConnectionDialogW(hwnd:HWND; pszRemoteName:lpcwstr; dwType:DWord):HRESULT;StdCall;external External_library name 'SHStartNetConnectionDialogW';
+  {$ifdef Unicode}
+  function SHStartNetConnectionDialog (hwnd:HWND; pszRemoteName:lpcwstr; dwType:DWord):HRESULT;StdCall;external External_library name 'SHStartNetConnectionDialogW';
+  {$else}
+  function SHStartNetConnectionDialog (hwnd:HWND; pszRemoteName:lpcstr; dwType:DWord):HRESULT;StdCall;external External_library name 'SHStartNetConnectionDialogA';
+  {$endif}
+
   function SHDefExtractIconA(pszIconFile:lpcstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON; 
              nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconA';
   function SHDefExtractIconW(pszIconFile:lpcwstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON; 
              nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconW';
+  {$ifdef Unicode}
+  function SHDefExtractIcon (pszIconFile:lpcwstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON;
+             nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconW';
+  {$else}
+  function SHDefExtractIcon (pszIconFile:lpcstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON;
+             nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconA';
+  {$endif}
   function Shell_GetImageLists(var phiml:HIMAGELIST; var phimlSmall:HIMAGELIST):BOOL;StdCall;external External_library name 'Shell_GetImageLists';
   function Shell_GetCachedImageIndex(pszIconPath:lpcwstr; iIconIndex:Longint; uIconFlags:UINT):Longint;StdCall;external External_library name 'Shell_GetCachedImageIndex';
   function SHValidateUNC(hwndOwner:HWND; pszFile:LPWStr; fConnect:UINT):BOOL;StdCall;external External_library name 'SHValidateUNC';
@@ -2549,6 +2667,13 @@ Const External_Library = 'shell32';
              psb:IShellBrowser; pStartPage:lpcstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetA';
   function SHOpenPropSheetW(pszCaption:lpcwstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject; 
              psb:IShellBrowser; pStartPage:lpcwstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetW';
+  {$ifdef Unicode}
+  function SHOpenPropSheet (pszCaption:lpcwstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject;
+             psb:IShellBrowser; pStartPage:lpcwstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetW';
+  {$else}
+  function SHOpenPropSheet (pszCaption:lpcstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject;
+             psb:IShellBrowser; pStartPage:lpcstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetA';
+  {$endif}
   function SHFind_InitMenuPopup(hmenu:HMENU; hwndOwner:HWND; idCmdFirst:UINT; idCmdLast:UINT):IContextMenu;StdCall;external External_library name 'SHFind_InitMenuPopup';
   function SHCreateShellFolderViewEx(pcsfv:LPCSFV; out ppsv:IShellView):HRESULT;StdCall;external External_library name 'SHCreateShellFolderViewEx';
   procedure SHGetSetSettings(lpss:LPSHELLSTATE; dwMask:DWord; bSet:BOOL);StdCall;external External_library name 'SHGetSetSettings';
@@ -2557,6 +2682,11 @@ Const External_Library = 'shell32';
   function SHParseDisplayName(pszName:PCWSTR; pbc:IBindCtx; var ppidl:LPITEMIDLIST; sfgaoIn:TSFGAOF; psfgaoOut:PSFGAOF):HRESULT;StdCall;external External_library name 'SHParseDisplayName';
   function SHPathPrepareForWriteA(hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteA';
   function SHPathPrepareForWriteW(hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcwstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteW';
+  {$ifdef Unicode}
+  function SHPathPrepareForWrite (hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcwstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteW';
+  {$else}
+  function SHPathPrepareForWrite (hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteA';
+  {$endif}
 {  function SHPropStgCreate(psstg:IPropertySetStorage; fmtid:TREFFMTID; pclsid:PCLSID; grfFlags:DWord; grfMode:DWord; 
              dwDisposition:DWord; out ppstg:IPropertyStorage; puCodePage:PUINT):HRESULT;StdCall;external External_library name 'SHPropStgCreate';
   function SHPropStgReadMultiple(pps:IPropertyStorage; uCodePage:UINT; cpspec:ULONG; rgpspec:array of TPROPSPEC; rgvar:array of TPROPVARIANT):HRESULT;StdCall;external External_library name 'SHPropStgReadMultiple';
@@ -2565,6 +2695,11 @@ Const External_Library = 'shell32';
 }
   function SHCreateFileExtractIconA(pszFile:lpcstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
   function SHCreateFileExtractIconW(pszFile:lpcwstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
+  {$ifdef Unicode}
+  function SHCreateFileExtractIcon (pszFile:lpcwstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
+  {$else}
+  function SHCreateFileExtractIcon (pszFile:lpcstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
+  {$endif}
   function SHLimitInputEdit(hwndEdit:HWND; psf:IShellFolder):HRESULT;StdCall;external External_library name 'SHLimitInputEdit';
   function SHMultiFileProperties(pdtobj:IDataObject; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHMultiFileProperties';
 //  function SHMapIDListToImageListIndexAsync(pts:IShellTaskScheduler; psf:IShellFolder; pidl:LPCITEMIDLIST; flags:UINT; pfn:TPFNASYNCICONTASKBALLBACK; 

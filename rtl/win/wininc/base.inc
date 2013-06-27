@@ -366,7 +366,11 @@
 
   MakeIntResourceA = PAnsiChar;
   MakeIntResourceW = PWideChar;
-  MakeIntResource = MakeIntResourceA;
+  {$ifdef UNICODE}
+    MakeIntResource = MakeIntResourceW;
+  {$else}
+    MakeIntResource = MakeIntResourceA;
+  {$endif}
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -605,9 +609,13 @@
 
      DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
 
-     PROPENUMPROCEX = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
+     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
+     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
+     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
 
-     PROPENUMPROC = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE):WINBOOL;stdcall;
+     PROPENUMPROCA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE):WINBOOL;stdcall;
+     PROPENUMPROCW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE):WINBOOL;stdcall;
+     PROPENUMPROC  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE):WINBOOL;stdcall;
 
      HOOKPROC = function (_para1:longint; _para2:WPARAM; _para3:LPARAM):LRESULT;stdcall;
 
@@ -621,31 +629,49 @@
 
      LPPAGESETUPHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
-     ICMENUMPROC = function (_para1:LPTSTR; _para2:LPARAM):longint;stdcall;
+     ICMENUMPROCA = function (_para1:LPSTR;  _para2:LPARAM):longint;stdcall;
+     ICMENUMPROCW = function (_para1:LPWSTR; _para2:LPARAM):longint;stdcall;
+     ICMENUMPROC = function  (_para1:LPTSTR; _para2:LPARAM):longint;stdcall;
 
      EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;stdcall;
 
      PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
-     LOCALE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     LOCALE_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
+     LOCALE_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
+     LOCALE_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
 
-     CODEPAGE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     CODEPAGE_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
+     CODEPAGE_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
+     CODEPAGE_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
 
-     DATEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     DATEFMT_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
+     DATEFMT_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
+     DATEFMT_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
 
-     TIMEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROCA = function (_para1:LPSTR):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROC  = function (_para1:LPTSTR):WINBOOL;stdcall;
 
+     CALINFO_ENUMPROCA= function (_para1:LPSTR):WINBOOL;stdcall;
+     CALINFO_ENUMPROCW= function (_para1:LPWSTR):WINBOOL;stdcall;
      CALINFO_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
 
      PHANDLER_ROUTINE = function (_para1:DWORD):WINBOOL;stdcall;
 
      LPHANDLER_FUNCTION = function (_para1:DWORD):WINBOOL;stdcall;
 
-     PFNGETPROFILEPATH = function (_para1:LPCTSTR; _para2:LPSTR; _para3:UINT):UINT;stdcall;
+     PFNGETPROFILEPATHA = function (_para1:LPCSTR; _para2:LPSTR; _para3:UINT):UINT;stdcall;
+     PFNGETPROFILEPATHW = function (_para1:LPCWSTR; _para2:LPSTR; _para3:UINT):UINT;stdcall;
+     PFNGETPROFILEPATH  = function (_para1:LPCTSTR; _para2:LPSTR; _para3:UINT):UINT;stdcall;
 
-     PFNRECONCILEPROFILE = function (_para1:LPCTSTR; _para2:LPCTSTR; _para3:DWORD):UINT;stdcall;
+     PFNRECONCILEPROFILEA = function (_para1:LPCSTR; _para2:LPCSTR; _para3:DWORD):UINT;stdcall;
+     PFNRECONCILEPROFILEW = function (_para1:LPCWSTR; _para2:LPCWSTR; _para3:DWORD):UINT;stdcall;
+     PFNRECONCILEPROFILE  = function (_para1:LPCTSTR; _para2:LPCTSTR; _para3:DWORD):UINT;stdcall;
 
-     PFNPROCESSPOLICIES = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;stdcall;
+     PFNPROCESSPOLICIESA = function (_para1:HWND; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR; _para5:DWORD):WINBOOL;stdcall;
+     PFNPROCESSPOLICIESW = function (_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:DWORD):WINBOOL;stdcall;
+     PFNPROCESSPOLICIES  = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;stdcall;
   (*  Not convertable by H2PAS
   #define SECURITY_NULL_SID_AUTHORITY     {0,0,0,0,0,0}
   #define SECURITY_WORLD_SID_AUTHORITY    {0,0,0,0,0,1}
@@ -687,10 +713,14 @@
    }
      SERVICES_ACTIVE_DATABASEA = 'ServicesActive';
      SERVICES_FAILED_DATABASEA = 'ServicesFailed';
+     SERVICES_ACTIVE_DATABASEW = 'ServicesActive'#0000;
+     SERVICES_FAILED_DATABASEW = 'ServicesFailed'#0000;
+
   {  Not convertable by H2PAS
   #define SC_GROUP_IDENTIFIERW           L'+'
    }
      SC_GROUP_IDENTIFIERA = '+';
+     SC_GROUP_IDENTIFIERW = '+'#0000;
 {$ifdef UNICODE}
      SERVICES_ACTIVE_DATABASE = SERVICES_ACTIVE_DATABASEW;
      SERVICES_FAILED_DATABASE = SERVICES_FAILED_DATABASEW;
