@@ -1705,6 +1705,7 @@
 
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
+     INVALID_FILE_SIZE    = DWORD(-1);
 
   { GetStockObject  }
 

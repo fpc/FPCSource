@@ -347,6 +347,17 @@ Type
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
 
+  PNativeInt 	      = PPtrInt;
+  PNativeUInt	      = PPtrUint;
+  pInt8   	      = PShortInt;
+  pInt16  	      = PSmallint;
+  pInt32  	      = PLongint;
+  PIntPtr 	      = PPtrInt;
+  pUInt8  	      = PByte;
+  pUInt16 	      = PWord;
+  pUInt32 	      = PDWord;
+  PUintPtr	      = PPtrUInt;
+
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
 

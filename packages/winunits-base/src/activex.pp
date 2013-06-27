@@ -3540,6 +3540,81 @@ type
    function GetPages(out pPages:tagCAUUID):HRESULT;stdcall;
   end;
 
+// ISimpleFrameSite :
+
+ ISimpleFrameSite = interface(IUnknown)
+   ['{742B0E01-14E6-101B-914E-00AA00300CAB}']
+    // PreMessageFilter :
+   function PreMessageFilter(hwnd:wireHWND;msg:UInt;wp:UINT_PTR;lp:LONG_PTR;out plResult:LONG_PTR;out pdwCookie:LongWord):HRESULT;stdcall;
+    // PostMessageFilter :
+   function PostMessageFilter(hwnd:wireHWND;msg:UInt;wp:UINT_PTR;lp:LONG_PTR;out plResult:LONG_PTR;dwCookie:LongWord):HRESULT;stdcall;
+  end;
+
+// IFont :
+
+ IFont = interface(IUnknown)
+   ['{BEF6E002-A874-101A-8BBA-00AA00300CAB}']
+    // get_Name :
+   function get_Name(out pName:WideString):HRESULT;stdcall;
+    // put_Name :
+   function put_Name(name:WideString):HRESULT;stdcall;
+    // get_Size :
+   function get_Size(out pSize:Currency):HRESULT;stdcall;
+    // put_Size :
+   function put_Size(size:Currency):HRESULT;stdcall;
+    // get_Bold :
+   function get_Bold(out pBold:Integer):HRESULT;stdcall;
+    // put_Bold :
+   function put_Bold(bold:Integer):HRESULT;stdcall;
+    // get_Italic :
+   function get_Italic(out pItalic:Integer):HRESULT;stdcall;
+    // put_Italic :
+   function put_Italic(italic:Integer):HRESULT;stdcall;
+    // get_Underline :
+   function get_Underline(out pUnderline:Integer):HRESULT;stdcall;
+    // put_Underline :
+   function put_Underline(underline:Integer):HRESULT;stdcall;
+    // get_Strikethrough :
+   function get_Strikethrough(out pStrikethrough:Integer):HRESULT;stdcall;
+    // put_Strikethrough :
+   function put_Strikethrough(strikethrough:Integer):HRESULT;stdcall;
+    // get_Weight :
+   function get_Weight(out pWeight:Smallint):HRESULT;stdcall;
+    // put_Weight :
+   function put_Weight(weight:Smallint):HRESULT;stdcall;
+    // get_Charset :
+   function get_Charset(out pCharset:Smallint):HRESULT;stdcall;
+    // put_Charset :
+   function put_Charset(charset:Smallint):HRESULT;stdcall;
+    // get_hFont :
+   function get_hFont(out phFont:wireHFONT):HRESULT;stdcall;
+    // Clone :
+   function Clone(out ppFont:IFont):HRESULT;stdcall;
+    // IsEqual :
+   function IsEqual(pFontOther:IFont):HRESULT;stdcall;
+    // SetRatio :
+   function SetRatio(cyLogical:Integer;cyHimetric:Integer):HRESULT;stdcall;
+    // QueryTextMetrics :
+   function QueryTextMetrics(out pTM:tagTEXTMETRICW):HRESULT;stdcall;
+    // AddRefHfont :
+   function AddRefHfont(hFont:wireHFONT):HRESULT;stdcall;
+    // ReleaseHfont :
+   function ReleaseHfont(hFont:wireHFONT):HRESULT;stdcall;
+    // SetHdc :
+   function SetHdc(hDC:wireHDC):HRESULT;stdcall;
+  end;
+
+// IFontDisp :
+
+ IFontDisp = interface(IDispatch)
+   ['{BEF6E003-A874-101A-8BBA-00AA00300CAB}']
+  end;
+
+// IPictureDisp :
+
+ IPictureDisp = interface(IDispatch)
+   ['{7BF80981-BF32-101A-8BBB-00AA00300CAB}']
+  end;
 
 { ******************************************************************************************************************
                                                           stuff from objbase.h
