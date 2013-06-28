@@ -2318,6 +2318,16 @@ unit cgx86;
 
 
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+
+      procedure decrease_sp(a : tcgint);
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_STACK_POINTER_REG,-a,0);
+          { normally, lea is a better choice than a sub to adjust the stack pointer }
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+        end;
+
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
       var
@@ -2338,7 +2348,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize-4,NR_ESP));
+                    decrease_sp(localsize-4);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,4);
@@ -2353,11 +2363,11 @@ unit cgx86;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
+                    decrease_sp(winstackpagesize-4);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                     list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize - 4,NR_ESP));
+                    decrease_sp(localsize mod winstackpagesize-4);
                     reference_reset_base(href,NR_ESP,localsize-4,4);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     ungetcpuregister(list,NR_EDI);
@@ -2375,7 +2385,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_Q,localsize,NR_RSP));
+                    decrease_sp(localsize);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,4);
@@ -2390,19 +2400,19 @@ unit cgx86;
                     getcpuregister(list,NR_R10);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,winstackpagesize,NR_RSP));
+                    decrease_sp(winstackpagesize);
                     reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                     list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize,NR_RSP));
+                    decrease_sp(localsize mod winstackpagesize);
                     ungetcpuregister(list,NR_R10);
                  end
              end
            else
 {$endif NOTARGETWIN}
 {$endif x86_64}
-            list.concat(Taicpu.Op_const_reg(A_SUB,tcgsize2opsize[OS_ADDR],localsize,NR_STACK_POINTER_REG));
+            decrease_sp(localsize);
          end;
       end;
 
