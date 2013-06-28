@@ -68,7 +68,7 @@ procedure DisposeStr(S: PString); overload;
 procedure DisposeStr(S: PShortString); overload;
 procedure AssignStr(var P: PString; const S: string);
 procedure AppendStr(var Dest: String; const S: string);
-function UpperCase(const s: string): string;
+function UpperCase(const s: string): string; overload;
 function LowerCase(const s: string): string; overload;
 { the compiler can't decide else if it should use the char or the ansistring
   version for a variant }

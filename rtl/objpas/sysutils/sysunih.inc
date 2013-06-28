@@ -18,6 +18,9 @@ function Trim(const S: unicodestring): unicodestring;
 function TrimLeft(const S: unicodestring): unicodestring;
 function TrimRight(const S: unicodestring): unicodestring;
 
+function UpperCase(const s: UnicodeString): UnicodeString; overload;
+function LowerCase(const s: UnicodeString): UnicodeString; overload;
+
 function UnicodeUpperCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UnicodeLowerCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UnicodeCompareStr(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}

@@ -12105,6 +12105,7 @@ tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrcmp.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrtobool.pp svneol=native#text/plain
 tests/test/units/sysutils/tunifile.pp svneol=native#text/plain
+tests/test/units/sysutils/tuplow.pp svneol=native#text/plain
 tests/test/units/sysutils/twstrcmp.pp svneol=native#text/plain
 tests/test/units/ucomplex/tcsqr1.pp svneol=native#text/pascal
 tests/test/units/variants/tcustomvariant.pp svneol=native#text/plain

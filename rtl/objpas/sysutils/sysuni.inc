@@ -50,6 +50,50 @@ function TrimRight(const S: unicodestring): unicodestring;
   end;
 
 
+Function InternalChangeCase(Const S : UnicodeString; const Chars: TSysCharSet; const Adjustment: Longint): UnicodeString;
+  var
+    i : Integer;
+    P : PWideChar;
+    Unique : Boolean;
+  begin
+    Result := S;
+    if Result='' then
+      exit;
+    Unique:=false;
+    P:=PWideChar(Result);
+    for i:=1 to Length(Result) do
+      begin
+        if CharInSet(P^,Chars) then
+          begin
+            if not Unique then
+              begin
+                UniqueString(Result);
+                p:=@Result[i];
+                Unique:=true;
+              end;
+            P^:=WideChar(Ord(P^)+Adjustment);
+          end;
+        Inc(P);
+      end;
+  end;
+
+
+{   UpperCase returns a copy of S where all lowercase characters ( from a to z )
+    have been converted to uppercase   }
+Function UpperCase(Const S : UnicodeString) : UnicodeString;
+  begin
+    Result:=InternalChangeCase(S,['a'..'z'],-32);
+  end;
+
+
+{   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
+    have been converted to lowercase  }
+Function Lowercase(Const S : UnicodeString) : UnicodeString;
+  begin
+    Result:=InternalChangeCase(S,['A'..'Z'],32);
+  end;
+
+
 function UnicodeUpperCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.UpperUnicodeStringProc(s);
