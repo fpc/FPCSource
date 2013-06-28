@@ -302,7 +302,6 @@ end;
 
 procedure UnpatchKeyboard;
 var
-  e : ^chgentry;
   entry : kbentry;
   i : longint;
 begin
@@ -338,8 +337,6 @@ end;
 {A problem of patching the keyboard is that it no longer works as expected
  when working on another console. So we unpatch it when the user switches
  away.}
-
-const switches:longint=0;
 
 procedure vt_handler(sig:longint);cdecl;
 
