@@ -428,7 +428,7 @@ function WideStrAlloc(Size: cardinal): PWideChar;
     inc(result,sizeof(cardinal));
   end;
 
-function StrBufSize(str: pwidechar): SizeUInt;
+function StrBufSize(str: pwidechar): cardinal;
   begin
     if assigned(str) then
       result:=cardinal(pointer(str-sizeof(cardinal))^)-sizeof(cardinal)
