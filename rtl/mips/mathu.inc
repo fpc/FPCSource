@@ -63,29 +63,28 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   var
     fpu_round : longint;
   begin
-    
     case (RoundMode) of
       rmNearest :
         begin
-		  softfloat_rounding_mode := float_round_nearest_even;
-		  fpu_round:=fpu_rounding_nearest;
-		end;
+          softfloat_rounding_mode := float_round_nearest_even;
+          fpu_round:=fpu_rounding_nearest;
+        end;
       rmTruncate :
         begin
-	      softfloat_rounding_mode := float_round_to_zero;
-   		  fpu_round:=fpu_rounding_towards_zero;
-		end;
-   rmUp :
+          softfloat_rounding_mode := float_round_to_zero;
+          fpu_round:=fpu_rounding_towards_zero;
+        end;
+      rmUp :
         begin
-	      softfloat_rounding_mode := float_round_up;
-   		  fpu_round:=fpu_rounding_plus_inf;
-		end;
-   rmDown :
+          softfloat_rounding_mode := float_round_up;
+          fpu_round:=fpu_rounding_plus_inf;
+        end;
+      rmDown :
         begin
-	      softfloat_rounding_mode := float_round_down;
-   		  fpu_round:=fpu_rounding_minus_inf;
-		end;
- end;
+          softfloat_rounding_mode := float_round_down;
+          fpu_round:=fpu_rounding_minus_inf;
+        end;
+    end;
     set_fsr((get_fsr and not fpu_rounding_mask) or fpu_round);
 //!!!    result:=TFPURoundingMode(get_fsr shr 30);
   end;
