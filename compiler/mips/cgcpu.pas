@@ -301,6 +301,8 @@ begin
       reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment);
       if (cs_create_pic in current_settings.moduleswitches) then
         begin
+          if not (pi_needs_got in current_procinfo.flags) then
+            InternalError(2013060102);
           { For PIC global symbols offset must be handled separately.
             Otherwise (non-PIC or local symbols) offset can be encoded
             into relocation even if exceeds 16 bits. }
@@ -754,6 +756,8 @@ begin
   reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
+      if not (pi_needs_got in current_procinfo.flags) then
+        InternalError(2013060103);
       { For PIC global symbols offset must be handled separately.
         Otherwise (non-PIC or local symbols) offset can be encoded
         into relocation even if exceeds 16 bits. }
@@ -878,6 +882,8 @@ const
   ops_mul: array[boolean] of TAsmOp = (A_MULTU,A_MULT);
   ops_add: array[boolean] of TAsmOp = (A_ADDU, A_ADD);
   ops_sub: array[boolean] of TAsmOp = (A_SUBU, A_SUB);
+  ops_slt: array[boolean] of TAsmOp = (A_SLTU, A_SLT);
+  ops_slti: array[boolean] of TAsmOp = (A_SLTIU, A_SLTI);
   ops_and: array[boolean] of TAsmOp = (A_AND, A_ANDI);
   ops_or:  array[boolean] of TAsmOp = (A_OR, A_ORI);
   ops_xor: array[boolean] of TasmOp = (A_XOR, A_XORI);
@@ -1086,8 +1092,20 @@ begin
   else
     begin
       tmpreg := GetIntRegister(list,OS_INT);
-      a_load_const_reg(list,OS_INT,a,tmpreg);
-      a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
+      if (a>=simm16lo) and (a<=simm16hi) and
+        (cmp_op in [OC_LT,OC_B,OC_GTE,OC_AE]) then
+        begin
+          list.concat(taicpu.op_reg_reg_const(ops_slti[cmp_op in [OC_LT,OC_GTE]],tmpreg,reg,a));
+          if cmp_op in [OC_LT,OC_B] then
+            a_cmp_reg_reg_label(list,size,OC_NE,NR_R0,tmpreg,l)
+          else
+            a_cmp_reg_reg_label(list,size,OC_EQ,NR_R0,tmpreg,l);
+        end
+      else
+        begin
+          a_load_const_reg(list,OS_INT,a,tmpreg);
+          a_cmp_reg_reg_label(list, size, cmp_op, tmpreg, reg, l);
+        end;
     end;
 end;
 
@@ -1095,22 +1113,46 @@ const
   TOpCmp2AsmCond_z : array[OC_GT..OC_LTE] of TAsmCond=(
     C_GTZ,C_LTZ,C_GEZ,C_LEZ
   );
+  TOpCmp2AsmCond_eqne: array[topcmp] of TAsmCond = (C_NONE,
+   { eq      gt    lt    gte   lte   ne     }
+    C_NONE, C_NE, C_NE, C_EQ, C_EQ, C_NONE,
+   { be    b     ae    a }
+    C_EQ, C_NE, C_EQ, C_NE
+  );
 
 procedure TCGMIPS.a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   ai : Taicpu;
+  op: TAsmOp;
+  hreg: TRegister;
 begin
-  if ((reg1=NR_R0) or (reg2=NR_R0)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
+  if not (cmp_op in [OC_EQ,OC_NE]) then
     begin
-      if (reg2=NR_R0) then
+      if ((reg1=NR_R0) or (reg2=NR_R0)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
         begin
-          ai:=taicpu.op_reg_sym(A_BC,reg1,l);
-          ai.setcondition(inverse_cond(TOpCmp2AsmCond_z[cmp_op]));
+          if (reg2=NR_R0) then
+            begin
+              ai:=taicpu.op_reg_sym(A_BC,reg1,l);
+              ai.setcondition(inverse_cond(TOpCmp2AsmCond_z[cmp_op]));
+            end
+          else
+            begin
+              ai:=taicpu.op_reg_sym(A_BC,reg2,l);
+              ai.setcondition(TOpCmp2AsmCond_z[cmp_op]);
+            end;
         end
       else
         begin
-          ai:=taicpu.op_reg_sym(A_BC,reg2,l);
-          ai.setcondition(TOpCmp2AsmCond_z[cmp_op]);
+          hreg:=GetIntRegister(list,OS_INT);
+          op:=ops_slt[cmp_op in [OC_LT,OC_LTE,OC_GT,OC_GTE]];
+          if (cmp_op in [OC_LTE,OC_GT,OC_BE,OC_A]) then   { swap operands }
+            list.concat(taicpu.op_reg_reg_reg(op,hreg,reg1,reg2))
+          else
+            list.concat(taicpu.op_reg_reg_reg(op,hreg,reg2,reg1));
+          if (TOpCmp2AsmCond_eqne[cmp_op]=C_NONE) then
+            InternalError(2013051501);
+          ai:=taicpu.op_reg_reg_sym(A_BC,hreg,NR_R0,l);
+          ai.SetCondition(TOpCmp2AsmCond_eqne[cmp_op]);
         end;
     end
   else
