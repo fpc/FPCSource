@@ -44,8 +44,12 @@ const
   AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   MaxExitCode = 65535;
-  MaxPathLen = 256;
+  MaxPathLen = 260;
+(* MaxPathLen is referenced as constant from unit SysUtils   *)
+(* - changing to variable or typed constant is not possible. *)
   AllFilesMask = '*';
+  RealMaxPathLen: word = MaxPathLen;
+(* Default value only - real value queried from the system on startup. *)
 
 type    Tos=(osDOS,osOS2,osDPMI);
 
@@ -1082,6 +1086,7 @@ var TIB: PThreadInfoBlock;
     ErrStr: string;
     P: pointer;
     DosCallsHandle: THandle;
+    DW: cardinal;
 
 const
     DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
@@ -1131,6 +1136,10 @@ begin
     ProcessID := PIB^.PID;
     ThreadID := TIB^.TIB2^.TID;
     IsConsole := ApplicationType <> 3;
+
+    {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
+    if DosQuerySysInfo (1, 1, @DW, SizeOf (DW)) = 0 then
+     RealMaxPathLen := DW;
 
     ExitProc := nil;
 
