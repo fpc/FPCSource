@@ -7662,6 +7662,7 @@ rtl/embedded/consoleio.pp svneol=native#text/pascal
 rtl/embedded/empty.cfg svneol=native#text/plain
 rtl/embedded/heapmgr.pp svneol=native#text/pascal
 rtl/embedded/rtl.cfg svneol=native#text/plain
+rtl/embedded/rtldefs.inc svneol=native#text/plain
 rtl/embedded/sysdir.inc svneol=native#text/plain
 rtl/embedded/sysfile.inc svneol=native#text/plain
 rtl/embedded/sysheap.inc svneol=native#text/plain
