@@ -1133,7 +1133,7 @@ begin
           if (reg2=NR_R0) then
             begin
               ai:=taicpu.op_reg_sym(A_BC,reg1,l);
-              ai.setcondition(inverse_cond(TOpCmp2AsmCond_z[cmp_op]));
+              ai.setcondition(TOpCmp2AsmCond_z[swap_opcmp(cmp_op)]);
             end
           else
             begin
