@@ -2320,6 +2320,11 @@ unit cgx86;
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
 
       procedure decrease_sp(a : tcgint);
+{$ifdef i8086}
+        begin
+          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,a,NR_STACK_POINTER_REG));
+        end;
+{$else i8086}
         var
           href : treference;
         begin
@@ -2327,6 +2332,7 @@ unit cgx86;
           { normally, lea is a better choice than a sub to adjust the stack pointer }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
+{$endif i8086}
 
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
