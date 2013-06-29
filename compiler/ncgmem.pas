@@ -84,9 +84,10 @@ implementation
       symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
-      pass_1,nld,ncon,nadd,nutils,
+      pass_1,nld,ncon,nadd,ncnv,nutils,
       cgutils,cgobj,hlcgobj,
-      tgobj,ncgutil,objcgutl
+      tgobj,ncgutil,objcgutl,
+      defcmp
       ;
 
 
@@ -218,14 +219,38 @@ implementation
         pd : tprocdef;
         sym : tsym;
         st : tsymtable;
+        hp : pnode;
+        hp2 : tnode;
+        extraoffset : tcgint;
       begin
-         secondpass(left);
          { assume natural alignment, except for packed records }
          if not(resultdef.typ in [recorddef,objectdef]) or
             (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+
+         { can we fold an add/sub node into the offset of the deref node? }
+         extraoffset:=0;
+         hp:=actualtargetnode(@left);
+         if (hp^.nodetype=subn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).left) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
+             replacenode(hp^,taddnode(hp^).right);
+           end;
+
+         secondpass(left);
+
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          case left.location.loc of
@@ -257,6 +282,7 @@ implementation
             else
               internalerror(200507031);
          end;
+         location.reference.offset:=location.reference.offset+extraoffset;
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
