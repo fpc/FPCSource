@@ -803,7 +803,7 @@ implementation
       var
          offsetdec,
          extraoffset : aint;
-         t        : tnode;
+         rightp      : pnode;
          otl,ofl  : tasmlabel;
          newsize  : tcgsize;
          mulsize,
@@ -981,34 +981,26 @@ implementation
                  not is_packed_array(left.resultdef) then
                 begin
                    extraoffset:=0;
-                   if (right.nodetype=addn) then
+                   rightp:=actualtargetnode(@right);
+                   if rightp^.nodetype=addn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end
-                        else if taddnode(right).left.nodetype=ordconstn then
+                        else if taddnode(rightp^).left.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).left).value.svalue;
-                             t:=taddnode(right).right;
-                             taddnode(right).right:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).left).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).right);
                           end;
                      end
-                   else if (right.nodetype=subn) then
+                   else if rightp^.nodetype=subn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=-tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=-tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
                    inc(location.reference.offset,
