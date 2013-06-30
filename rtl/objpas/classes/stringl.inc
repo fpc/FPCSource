@@ -781,7 +781,7 @@ begin
     begin
     S:=Strings[Result];
     len:=pos(FNameValueSeparator,S)-1;
-    if (len>0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
+    if (len>=0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
       exit;
     inc(result);
     end;
@@ -1017,16 +1017,7 @@ end;
 
 Procedure TStringList.InsertItem(Index: Integer; const S: string);
 begin
-  Changing;
-  If FCount=Fcapacity then Grow;
-  If Index<FCount then
-    System.Move (FList^[Index],FList^[Index+1],
-                 (FCount-Index)*SizeOf(TStringItem));
-  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
-  Flist^[Index].FString:=S;
-  Flist^[Index].Fobject:=Nil;
-  Inc(FCount);
-  Changed;
+  InsertItem(Index, S, nil);
 end;
 
 

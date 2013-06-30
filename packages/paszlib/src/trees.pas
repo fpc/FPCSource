@@ -1476,7 +1476,9 @@ begin
   for n := 0 to max_code do
   begin
     curlen := nextlen;
+{$push}{$R-}
     nextlen := tree[n+1].dl.Len;
+{$pop}
     inc(count);
     if (count < max_count) and (curlen = nextlen) then
       continue
