@@ -1287,14 +1287,14 @@ function GetMenuBarInfo(_hwnd:HWND; idObject:longint; idItem:longint; pmbi:LPMEN
 
 function Internal_MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreenX, ptScreenY : LONG):longint; external 'user32' name 'MenuItemFromPoint';
 
-function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; {external 'user32' name 'MenuItemFromPoint';}
+function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint;
 begin
   MenuItemFromPoint:=Internal_MenuItemFromPoint(hWnd, hMenu, ptScreen.X, ptScreen.Y);
 end;
 
 function Internal_DragDetect(hwnd:HWND; ptX, ptY : LONG):WINBOOL; external 'user32' name 'DragDetect';
 
-function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; {external 'user32' name 'DragDetect';}
+function DragDetect(hwnd:HWND; pt:POINT):WINBOOL;
 begin
   DragDetect:=Internal_DragDetect(hWnd, pt.X, pt.Y);
 end;
@@ -1334,7 +1334,7 @@ end;
 
 function Internal_LBItemFromPt(hLB:HWND; ptX, ptY : LONG; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
 
-function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; { external 'comctl32' name 'LBItemFromPt';}
+function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint;
 begin
   LBItemFromPt:=Internal_LBItemFromPt(hLB, pt.X, pt.Y, bAutoScroll);
 end;
