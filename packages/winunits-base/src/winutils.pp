@@ -18,7 +18,7 @@ unit winutils;
 
 Interface
 
-Uses Windows;
+Uses Windows, ComObj, ActiveX;
 
 // returns True if the currently logged Windows user has Administrator rights. Delphi.about.com
 // From Delphi.about.com with permission, http://delphi.about.com/od/delphitips2007/qt/is_win_admin.htm
@@ -26,6 +26,21 @@ function IsWindowsAdmin: Boolean;
 
 // Removes Browsers "downloaded" attribute from a file.
 procedure UnBlockFile(const name:String);
+
+const
+  NET_FW_PROFILE2_DOMAIN  = 1;
+  NET_FW_PROFILE2_PRIVATE = 2;
+  NET_FW_PROFILE2_PUBLIC  = 4;
+  NET_FW_IP_PROTOCOL_TCP = 6;
+  NET_FW_IP_PROTOCOL_UDP = 17;
+  NET_FW_ACTION_ALLOW    = 1;  
+
+// add firewall rule e.g. 
+// AddProgramExceptionToFireWall( Application.Title,Application.Title, Application.ExeName, NET_FW_IP_PROTOCOL_TCP, NET_FW_PROFILE2_DOMAIN or NET_FW_PROFILE2_PRIVATE or NET_FW_PROFILE2_PUBLIC);
+procedure AddProgramExceptionToFireWall(Const wsCaption, wsDescription, wsExecutable: WideString; iProtocol,iProfile:Integer);
+
+// remove firewall rule, e.g.  RemoveExceptionFromFW(Application.Title);
+procedure RemoveExceptionFromFW(Const exCaption: WideString);
 
 implementation
 
@@ -90,5 +105,32 @@ begin
  truncate(f);
  closefile(f);
 end;
+
+procedure AddProgramExceptionToFireWall(Const wsCaption, wsDescription, wsExecutable: WideString; iProtocol, iProfile:Integer);
+var
+  fwPolicy2                :  OleVariant;
+  RulesObject              :  OleVariant;
+  NewRule                  :  OleVariant;
+begin
+  fwPolicy2                := CreateOleObject('HNetCfg.FwPolicy2');
+  RulesObject              := fwPolicy2.Rules;
+  NewRule                  := CreateOleObject('HNetCfg.FWRule');
+  NewRule.Name             := wsCaption;
+  NewRule.Description      := wsDescription;
+  NewRule.Applicationname  := wsExecutable;
+  NewRule.Protocol         := iProtocol;
+  NewRule.Enabled          := TRUE;
+  NewRule.Profiles         := iProfile;
+  NewRule.Action           := NET_FW_ACTION_ALLOW;
+  RulesObject.Add(NewRule);
+end; 
+
+procedure RemoveExceptionFromFW(Const exCaption: WideString);
+var
+  fwPolicy2      : OleVariant;
+begin
+  fwPolicy2      := CreateOleObject('HNetCfg.FwPolicy2');
+  fwPolicy2.Rules.Remove(exCaption);
+end;   
 
 end.
