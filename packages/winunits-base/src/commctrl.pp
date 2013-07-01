@@ -791,10 +791,10 @@ function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; stdcall; external comm
 {$IFNDEF NOHEADER}
 
 {$IFDEF _WIN32}
-
+// L'xx' translates to 'xx'#$0000 because that forces a wide literal in FPC.
 CONST
          WC_HEADERA                     = 'SysHeader32';
-         WC_HEADERW                     = {L}'SysHeader32';
+         WC_HEADERW                     = {L}'SysHeader32'#$0000;
 {$IFDEF UNICODE}
          WC_HEADER           = WC_HEADERW;
 {$ELSE}
@@ -1436,7 +1436,7 @@ TYPE
 {$IFDEF _WIN32}
 
 CONST
-         TOOLBARCLASSNAMEW              = {L}'ToolbarWindow32';
+         TOOLBARCLASSNAMEW              = {L}'ToolbarWindow32'#$0000;
          TOOLBARCLASSNAMEA              = 'ToolbarWindow32';
 
 {$IFDEF  UNICODE}
@@ -1738,7 +1738,7 @@ TYPE
                                  pszValueName : LPCWSTR;
                                  END;
          TBSAVEPARAMSW        = tagTBSAVEPARAMSW;
-         LPTBSAVEPARAMW       = ^tagTBSAVEPARAMSW;
+         LPTBSAVEPARAMSW      = ^tagTBSAVEPARAMSW;
          TTBSAVEPARAMSW       = tagTBSAVEPARAMSW;
          PTBSAVEPARAMSW       = ^tagTBSAVEPARAMSW;
 
@@ -2248,7 +2248,9 @@ TYPE
                                  END;
          NMTOOLBARA           = tagNMTOOLBARA;
          LPNMTOOLBARA         = ^tagNMTOOLBARA;
+         {$ifndef unicode}
          LPNMTOOLBAR          = LPNMTOOLBARA;
+         {$endif}
          TNMTOOLBARA          = tagNMTOOLBARA;
          PNMTOOLBARA          = LPNMTOOLBARA;
 {$ENDIF}
@@ -2312,7 +2314,7 @@ TYPE
 {$IFDEF _WIN32}
 
 CONST
-         REBARCLASSNAMEW                = {L}'ReBarWindow32';
+         REBARCLASSNAMEW                = {L}'ReBarWindow32'#$0000;
          REBARCLASSNAMEA                = 'ReBarWindow32';
 
 {$IFDEF  UNICODE}
@@ -2766,7 +2768,7 @@ TYPE
 {$IFDEF _WIN32}
 
 CONST
-         TOOLTIPS_CLASSW                = {L}'tooltips_class32';
+         TOOLTIPS_CLASSW                = {L}'tooltips_class32'#$0000;
          TOOLTIPS_CLASSA                = 'tooltips_class32';
 
 {$IFDEF UNICODE}
@@ -3202,7 +3204,7 @@ Procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); stdca
 
 CONST
 {$IFDEF _WIN32}
-         STATUSCLASSNAMEW               = {L}'msctls_statusbar32';
+         STATUSCLASSNAMEW               = {L}'msctls_statusbar32'#$0000;
          STATUSCLASSNAMEA               = 'msctls_statusbar32';
 
 {$IFDEF UNICODE}
@@ -3303,7 +3305,7 @@ CONST
 {$IFDEF _WIN32}
 
          TRACKBAR_CLASSA                = 'msctls_trackbar32';
-         TRACKBAR_CLASSW                = {L}'msctls_trackbar32';
+         TRACKBAR_CLASSW                = {L}'msctls_trackbar32'#$0000;
 
 {$IFDEF UNICODE}
          TRACKBAR_CLASS                 = TRACKBAR_CLASSW;
@@ -3459,7 +3461,7 @@ CONST
 {$IFDEF _WIN32}
 
          UPDOWN_CLASSA                  = 'msctls_updown32';
-         UPDOWN_CLASSW                  = {L}'msctls_updown32';
+         UPDOWN_CLASSW                  = {L}'msctls_updown32'#$0000;
 
 {$IFDEF UNICODE}
          UPDOWN_CLASS                   = UPDOWN_CLASSW;
@@ -3558,7 +3560,7 @@ CONST
 {$IFDEF _WIN32}
 
          PROGRESS_CLASSA                = 'msctls_progress32';
-         PROGRESS_CLASSW                = {L}'msctls_progress32';
+         PROGRESS_CLASSW                = {L}'msctls_progress32'#$0000;
 
 {$IFDEF UNICODE}
          PROGRESS_CLASS      = PROGRESS_CLASSW;
@@ -3699,7 +3701,7 @@ CONST
 
 {$IFDEF _WIN32}
          WC_LISTVIEWA                   = 'SysListView32';
-         WC_LISTVIEWW                   = {L}'SysListView32';
+         WC_LISTVIEWW                   = {L}'SysListView32'#$0000;
 {$IFDEF UNICODE}
          WC_LISTVIEW                    = WC_LISTVIEWW;
 {$ELSE}
@@ -5774,7 +5776,7 @@ Type
 CONST
 {$IFDEF _WIN32}
          WC_TREEVIEWA                   = 'SysTreeView32';
-         WC_TREEVIEWW                   = {L}'SysTreeView32';
+         WC_TREEVIEWW                   = {L}'SysTreeView32'#$0000;
 
 {$IFDEF UNICODE}
          WC_TREEVIEW                    = WC_TREEVIEWW;
@@ -6231,8 +6233,6 @@ CONST
          TVM_GETITEMW                   = (TV_FIRST + 62);
 
 {$IFDEF UNICODE}
-
-TYPE
          TVM_GETITEM         = TVM_GETITEMW;
 {$ELSE}
          TVM_GETITEM         = TVM_GETITEMA;
@@ -6251,8 +6251,6 @@ CONST
          TVM_SETITEMW                   = (TV_FIRST + 63);
 
 {$IFDEF UNICODE}
-
-TYPE
          TVM_SETITEM         = TVM_SETITEMW;
 {$ELSE}
          TVM_SETITEM         = TVM_SETITEMA;
@@ -6268,8 +6266,6 @@ CONST
          TVM_EDITLABELA                 = (TV_FIRST + 14);
          TVM_EDITLABELW                 = (TV_FIRST + 65);
 {$IFDEF UNICODE}
-
-TYPE
          TVM_EDITLABEL       = TVM_EDITLABELW;
 {$ELSE}
          TVM_EDITLABEL       = TVM_EDITLABELA;
@@ -6398,8 +6394,6 @@ CONST
          TVM_GETISEARCHSTRINGW          = (TV_FIRST + 64);
 
 {$IFDEF UNICODE}
-
-TYPE
          TVM_GETISEARCHSTRING= TVM_GETISEARCHSTRINGW;
 {$ELSE}
          TVM_GETISEARCHSTRING= TVM_GETISEARCHSTRINGA;
@@ -7026,7 +7020,7 @@ CONST
 
 ////////////////////  ComboBoxEx ////////////////////////////////
 
-         WC_COMBOBOXEXW                 = {L}'ComboBoxEx32';
+         WC_COMBOBOXEXW                 = {L}'ComboBoxEx32'#$0000;
          WC_COMBOBOXEXA                 = 'ComboBoxEx32';
 
 
@@ -7338,11 +7332,9 @@ TYPE
 
 CONST
          WC_TABCONTROLA                 = 'SysTabControl32';
-         WC_TABCONTROLW                 = {L}'SysTabControl32';
+         WC_TABCONTROLW                 = {L}'SysTabControl32'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_TABCONTROL       = WC_TABCONTROLW;
 {$ELSE}
          WC_TABCONTROL       = WC_TABCONTROLA;
@@ -7564,8 +7556,6 @@ CONST
          TCM_GETITEMW                   = (TCM_FIRST + 60);
 
 {$IFDEF UNICODE}
-
-TYPE
          TCM_GETITEM         = TCM_GETITEMW;
 {$ELSE}
          TCM_GETITEM         = TCM_GETITEMA;
@@ -7582,8 +7572,6 @@ CONST
          TCM_SETITEMW                   = (TCM_FIRST + 61);
 
 {$IFDEF UNICODE}
-
-TYPE
          TCM_SETITEM         = TCM_SETITEMW;
 {$ELSE}
          TCM_SETITEM         = TCM_SETITEMA;
@@ -7867,7 +7855,7 @@ CONST
 
 {$IFDEF _WIN32}
 
-         ANIMATE_CLASSW                 = {L}'SysAnimate32';
+         ANIMATE_CLASSW                 = {L}'SysAnimate32'#$0000;
          ANIMATE_CLASSA                 = 'SysAnimate32';
 
 {$IFDEF UNICODE}
@@ -7945,7 +7933,7 @@ Function Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST):HWND
 
 
 CONST
-         MONTHCAL_CLASSW                = {L}'SysMonthCal32';
+         MONTHCAL_CLASSW                = {L}'SysMonthCal32'#$0000;
          MONTHCAL_CLASSA                = 'SysMonthCal32';
 
 
@@ -8465,7 +8453,7 @@ CONST
 {$IFNDEF NODATETIMEPICK}
 {$IFDEF _WIN32}
 
-         DATETIMEPICK_CLASSW            = {L}'SysDateTimePick32';
+         DATETIMEPICK_CLASSW            = {L}'SysDateTimePick32'#$0000;
          DATETIMEPICK_CLASSA            = 'SysDateTimePick32';
 
 {$IFDEF UNICODE}
@@ -8549,8 +8537,6 @@ CONST
          DTM_SETFORMATW                 = (DTM_FIRST + 50);
 
 {$IFDEF UNICODE}
-
-TYPE
          DTM_SETFORMAT       = DTM_SETFORMATW;
 {$ELSE}
          DTM_SETFORMAT       = DTM_SETFORMATA;
@@ -8882,12 +8868,10 @@ CONST
          IPM_SETFOCUS                   = (WM_USER+104);      // wparam = field
          IPM_ISBLANK                    = (WM_USER+105);      // no parameters
 
-         WC_IPADDRESSW                  = {L}'SysIPAddress32';
+         WC_IPADDRESSW                  = {L}'SysIPAddress32'#$0000;
          WC_IPADDRESSA                  = 'SysIPAddress32';
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_IPADDRESS        = WC_IPADDRESSW;
 {$ELSE}
          WC_IPADDRESS        = WC_IPADDRESSA;
@@ -8952,12 +8936,10 @@ TYPE
 //Pager Class Name
 
 CONST
-         WC_PAGESCROLLERW               = {L}'SysPager';
+         WC_PAGESCROLLERW               = {L}'SysPager'#$0000;
          WC_PAGESCROLLERA               = 'SysPager';
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_PAGESCROLLER     = WC_PAGESCROLLERW;
 {$ELSE}
          WC_PAGESCROLLER     = WC_PAGESCROLLERA;
@@ -9225,12 +9207,10 @@ TYPE
 //NativeFont Class Name
 
 CONST
-         WC_NATIVEFONTCTLW              = {L}'NativeFontCtl';
+         WC_NATIVEFONTCTLW              = {L}'NativeFontCtl'#$0000;
          WC_NATIVEFONTCTLA              = 'NativeFontCtl';
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_NATIVEFONTCTL    = WC_NATIVEFONTCTLW;
 {$ELSE}
          WC_NATIVEFONTCTL    = WC_NATIVEFONTCTLA;
@@ -9261,7 +9241,7 @@ CONST
 
 // Button Class Name
          WC_BUTTONA                     = 'Button';
-         WC_BUTTONW                     = {L}'Button';
+         WC_BUTTONW                     = {L}'Button'#$0000;
 
 CONST
 {$IFDEF UNICODE}
@@ -9454,11 +9434,9 @@ const
 
 // Static Class Name
          WC_STATICA                     = 'Static';
-         WC_STATICW                     = {L}'Static';
+         WC_STATICW                     = {L}'Static'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_STATIC           = WC_STATICW;
 {$ELSE}
          WC_STATIC           = WC_STATICA;
@@ -9482,11 +9460,9 @@ CONST
 
 // Edit Class Name
          WC_EDITA                       = 'Edit';
-         WC_EDITW                       = {L}'Edit';
+         WC_EDITW                       = {L}'Edit'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_EDIT             = WC_EDITW;
 {$ELSE}
          WC_EDIT             = WC_EDITA;
@@ -9572,11 +9548,9 @@ function Edit_GetHilite(hwndCtl:hwnd):DWORD;
 
 CONST
          WC_LISTBOXA                    = 'ListBox';
-         WC_LISTBOXW                    = {L}'ListBox';
+         WC_LISTBOXW                    = 'ListBox'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_LISTBOX          = WC_LISTBOXW;
 {$ELSE}
          WC_LISTBOX          = WC_LISTBOXA;
@@ -9601,11 +9575,9 @@ CONST
 
 // Combobox Class Name
          WC_COMBOBOXA                   = 'ComboBox';
-         WC_COMBOBOXW                   = {L}'ComboBox';
+         WC_COMBOBOXW                   = {L}'ComboBox'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_COMBOBOX         = WC_COMBOBOXW;
 {$ELSE}
          WC_COMBOBOX         = WC_COMBOBOXA;
@@ -9652,11 +9624,9 @@ Function ComboBox_GetMinVisible( hwnd : hwnd):cint;
 
 CONST
          WC_SCROLLBARA                  = 'ScrollBar';
-         WC_SCROLLBARW                  = {L}'ScrollBar';
+         WC_SCROLLBARW                  = {L}'ScrollBar'#$0000;
 
 {$IFDEF UNICODE}
-
-TYPE
          WC_SCROLLBAR        = WC_SCROLLBARW;
 {$ELSE}
          WC_SCROLLBAR        = WC_SCROLLBARA;
@@ -9683,7 +9653,7 @@ CONST
 
 
 
-         WC_LINK                        = {L}'SysLink';
+         WC_LINK                        = {L}'SysLink'#$0000;
 
          LWS_TRANSPARENT                = $0001;
          LWS_IGNORERETURN               = $0002;
