@@ -625,7 +625,10 @@ begin
       end;
     FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
-      NewType := ftSmallint;
+      if AField^.flags and UNSIGNED_FLAG <> 0 then
+        NewType := ftWord
+      else
+        NewType := ftSmallint;
       end;
     FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
@@ -803,6 +806,14 @@ begin
   ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
+function InternalStrToInt(const S: string): integer;
+begin
+  if S = '' then
+    Result := 0
+  else
+    Result := StrToInt(S);
+end;
+
 function InternalStrToFloat(S: string): Extended;
 
 var
@@ -923,6 +934,7 @@ var
   VI: Integer;
   VL: LargeInt;
   VS: Smallint;
+  VW: Word;
   VF: Double;
   VC: Currency;
   VD: TDateTime;
@@ -935,72 +947,62 @@ begin
   if Source = Nil then // If the pointer is NULL, the field is NULL
     exit;
   SetString(Src, Source, Len);
-  case AField^.ftype of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
+
+  if Len > FieldDef.Size then
+    Len := FieldDef.Size;
+
+  case FieldDef.DataType of
+    ftSmallint:
       begin
-      if (Src<>'') then
-        VS := StrToInt(Src)
-      else
-        VS := 0;
-      Move(VS, Dest^, SizeOf(smallint));
+      VS := InternalStrToInt(Src);
+      Move(VS, Dest^, SizeOf(Smallint));
       end;
-    FIELD_TYPE_LONG, FIELD_TYPE_INT24:
+    ftWord:
       begin
-      if (Src<>'') then
-        VI := StrToInt(Src)
-      else
-        VI := 0;
+      VW := InternalStrToInt(Src);
+      Move(VW, Dest^, SizeOf(Word));
+      end;
+    ftInteger, ftAutoInc:
+      begin
+      VI := InternalStrToInt(Src);
       Move(VI, Dest^, SizeOf(Integer));
       end;
-    FIELD_TYPE_LONGLONG:
+    ftLargeInt:
       begin
-      if (Src<>'') then
+      {$IFDEF MYSQL50_UP}
+      if AField^.ftype = FIELD_TYPE_BIT then
+        begin
+        VL := 0;
+        for VI := 0 to Len-1 do
+          VL := VL * 256 + PByte(Source+VI)^;
+        end
+      else
+      {$ENDIF}
+      if Src <> '' then
         VL := StrToInt64(Src)
       else
         VL := 0;
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
-{$ifdef mysql50_up}
-    FIELD_TYPE_NEWDECIMAL,
-{$endif}      
-    FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-      case FieldDef.DataType of
-        ftBCD:
-          begin
-          VC := InternalStrToCurrency(Src);
-          Move(VC, Dest^, SizeOf(Currency));
-          end;
-        ftFmtBCD:
-          begin
-          VB := StrToBCD(Src, FSQLFormatSettings);
-          Move(VB, Dest^, SizeOf(TBCD));
-          end
-        else
-          begin
-          if Src <> '' then
-            VF := InternalStrToFloat(Src)
-          else
-            VF := 0;
-          Move(VF, Dest^, SizeOf(Double));
-          end;
-      end;
-    FIELD_TYPE_TIMESTAMP:
+    ftFloat:
       begin
       if Src <> '' then
-        VD := InternalStrToTimeStamp(Src)
+        VF := InternalStrToFloat(Src)
       else
-        VD := 0;
-      Move(VD, Dest^, SizeOf(TDateTime));
+        VF := 0;
+      Move(VF, Dest^, SizeOf(Double));
       end;
-    FIELD_TYPE_DATETIME:
+    ftBCD:
       begin
-      if Src <> '' then
-        VD := InternalStrToDateTime(Src)
-      else
-        VD := 0;
-      Move(VD, Dest^, SizeOf(TDateTime));
+      VC := InternalStrToCurrency(Src);
+      Move(VC, Dest^, SizeOf(Currency));
       end;
-    FIELD_TYPE_DATE:
+    ftFmtBCD:
+      begin
+      VB := StrToBCD(Src, FSQLFormatSettings);
+      Move(VB, Dest^, SizeOf(TBCD));
+      end;
+    ftDate:
       begin
       if Src <> '' then
         VD := InternalStrToDate(Src)
@@ -1008,7 +1010,7 @@ begin
         VD := 0;
       Move(VD, Dest^, SizeOf(TDateTime));
       end;
-    FIELD_TYPE_TIME:
+    ftTime:
       begin
       if Src <> '' then
         VD := InternalStrToTime(Src)
@@ -1016,50 +1018,33 @@ begin
         VD := 0;
       Move(VD, Dest^, SizeOf(TDateTime));
       end;
-    FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
+    ftDateTime:
       begin
-{      Write('Moving string of size ',asize,' : ');
-      P:=Source;
-      If (P<>nil) then
-        While P[0]<>#0 do
-          begin
-          Write(p[0]);
-          inc(p);
-          end;
-      Writeln;
-}
-      if Len > FieldDef.Size then
-        Len := FieldDef.Size;
-      case FieldDef.DataType of
-        // String-fields which can contain more then dsMaxStringSize characters
-        // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
-        ftBlob, ftMemo:
-          CreateBlob := True;
-        ftVarBytes:
-          begin
-          PWord(Dest)^ := Len;
-          Move(Source^, (Dest+sizeof(Word))^, Len);
-          end;
-        ftBytes:
-          Move(Source^, Dest^, Len);
-        else // ftString, ftFixedChar
-          begin
-          Move(Source^, Dest^, Len);
-          (Dest+Len)^ := #0;
-          end;
+      if Src <> '' then
+        if AField^.ftype = FIELD_TYPE_TIMESTAMP then
+          VD := InternalStrToTimeStamp(Src)
+        else
+          VD := InternalStrToDateTime(Src)
+      else
+        VD := 0;
+      Move(VD, Dest^, SizeOf(TDateTime));
       end;
+    ftString, ftFixedChar:
+      // String-fields which can contain more then dsMaxStringSize characters
+      // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
+      begin
+      Move(Source^, Dest^, Len);
+      (Dest+Len)^ := #0;
       end;
-    FIELD_TYPE_TINY_BLOB..FIELD_TYPE_BLOB:
+    ftVarBytes:
+      begin
+      PWord(Dest)^ := Len;
+      Move(Source^, (Dest+sizeof(Word))^, Len);
+      end;
+    ftBytes:
+      Move(Source^, Dest^, Len);
+    ftBlob, ftMemo:
       CreateBlob := True;
-{$IFDEF MYSQL50_UP}
-    FIELD_TYPE_BIT:
-      begin
-      VL := 0;
-      for VI := 0 to Len-1 do
-        VL := VL * 256 + PByte(Source+VI)^;
-      move(VL, Dest^, sizeof(LargeInt));
-      end;
-{$ENDIF}
   end;
   Result := True;
 end;
