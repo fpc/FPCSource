@@ -62,7 +62,7 @@ implementation
 
 uses
   verbose,globals,
-  nbas,nld,ncal,ncon,ninl,nmem,ncnv,
+  nbas,nld,ncal,ncon,ninl,nmem,ncnv,nutils,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   pass_1,
@@ -100,7 +100,7 @@ function tjvmassignmentnode.pass_1: tnode;
     { intercept writes to string elements, because Java strings are immutable
       -> detour via StringBuilder
     }
-    target:=left.actualtargetnode;
+    target:=actualtargetnode(@left)^;
     if (target.nodetype=vecn) and
        (is_wide_or_unicode_string(tvecnode(target).left.resultdef) or
         is_ansistring(tvecnode(target).left.resultdef)) then
