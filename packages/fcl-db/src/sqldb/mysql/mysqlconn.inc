@@ -4,7 +4,7 @@
 interface
 
 uses
-  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,ctypes,
+  Classes, SysUtils,bufdataset,sqldb,db,ctypes,
  {$IFDEF mysql55}
   mysql55dyn;
  {$ELSE}
@@ -348,24 +348,24 @@ end;
 
 function TConnectionName.GetAsSQLText(Field : TField) : string;
 
-var esc_str : pchar;
-
 begin
-  if (not assigned(field)) or field.IsNull then Result := 'Null'
-  else if field.DataType = ftString then
-    Result := '''' + EscapeString(field.AsString) + ''''
-  else Result := inherited GetAsSqlText(field);
+  if (not assigned(Field)) or Field.IsNull then
+    Result := 'Null'
+  else if Field.DataType = ftString then
+    Result := '''' + EscapeString(Field.AsString) + ''''
+  else
+    Result := inherited GetAsSqlText(Field);
 end;
 
 function TConnectionName.GetAsSQLText(Param: TParam) : string;
 
-var esc_str : pchar;
-
 begin
-  if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo,ftBytes,ftVarBytes] then
+  if (not assigned(Param)) or Param.IsNull then
+    Result := 'Null'
+  else if Param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo,ftBytes,ftVarBytes] then
     Result := '''' + EscapeString(Param.AsString) + ''''
-  else Result := inherited GetAsSqlText(Param);
+  else
+    Result := inherited GetAsSqlText(Param);
 end;
 
 
@@ -825,7 +825,7 @@ begin
   for I := 1 to Length(S) do
     begin
     if not (S[I] in ['0'..'9', '+', '-', 'E', 'e']) then
-      Tmp := Tmp + DecimalSeparator
+      Tmp := Tmp + FormatSettings.DecimalSeparator
     else
       Tmp := Tmp + S[I];
     end;
@@ -843,7 +843,7 @@ begin
   for I := 1 to Length(S) do
     begin
     if not (S[I] in ['0'..'9', '+', '-', 'E', 'e']) then
-      Tmp := Tmp + DecimalSeparator
+      Tmp := Tmp + FormatSettings.DecimalSeparator
     else
       Tmp := Tmp + S[I];
     end;
