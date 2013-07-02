@@ -27,11 +27,12 @@
 
     TMSSQLConnection properties:
       HostName - can be specified also as 'servername:port' or 'servername\instance'
+                 (SQL Server Browser Service must be running on server to connect to specific instance)
       CharSet - if you use Microsoft DB-Lib and set to 'UTF-8' then char/varchar fields will be UTF8Encoded/Decoded
                 if you use FreeTDS DB-Lib then you must compile with iconv support (requires libiconv2.dll) or cast char/varchar to nchar/nvarchar in SELECTs
       Params - "AutoCommit=true" - if you don't want explicitly commit/rollback transactions
                "TextSize=16777216" - set maximum size of text/image data returned
-               "ApplicationName=YourAppName" Set the app name for the connection. MSSQL 2000 and higher only
+               "ApplicationName=YourAppName" - Set the app name for the connection. MSSQL 2000 and higher only
 }
 unit mssqlconn;
 
