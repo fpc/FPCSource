@@ -6135,7 +6135,7 @@ begin
     else begin
         if ( count < 64 ) then
         begin
-            z2 := a1 shr negCount;
+            z2 := a1 shl negCount;
             z1 := ( a0 shl negCount ) or  ( a1 shr count );
             z0 := a0 shr count;
         end
@@ -7869,7 +7869,7 @@ begin
             float_raise( float_flag_overflow or float_flag_inexact );
             if (    ord( roundingMode = float_round_to_zero )
                  or ( zSign and ord( roundingMode = float_round_up ) )
-                 or ( not(zSign) and ord( roundingMode = float_round_down ) )
+                 or ( ord( zSign = 0) and ord( roundingMode = float_round_down ) )
                )<>0 then
                begin
                 result :=
@@ -7921,7 +7921,7 @@ begin
     if ( increment<>0 ) then
     begin
         add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
-        zSig1 := zSig1 and  not( ord( zSig2 + zSig2 = 0 ) and roundNearestEven );
+        zSig1 := zSig1 and not bits64( ord( zSig2 + zSig2 = 0 ) and roundNearestEven );
     end
     else begin
         if ( ( zSig0 or zSig1 ) = 0 ) then
