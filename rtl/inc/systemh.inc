@@ -567,8 +567,8 @@ const
 {$endif cpui386}
 {$ifdef cpui8086}
   { will be detected at startup }
-  { 0=8086, 1=80286, 2=80386 }
-  Test8086 : byte = 0;
+  { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
+  Test8086 : byte = 0; public name '__Test8086';
   { Always 387 or newer. Emulated if needed. }
   Test8087 : byte = 3;
   { will be detected at startup }
