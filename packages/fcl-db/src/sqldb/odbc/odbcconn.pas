@@ -1088,7 +1088,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
-  AutoIncAttr, Updatable, FixedPrecScale: SQLLEN;
+  AutoIncAttr, Updatable, FixedPrecScale, Unsigned: SQLLEN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -1224,6 +1224,7 @@ begin
 
     if FieldType in [ftFloat] then
     begin
+      FixedPrecScale:=0;
       ODBCCheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,
                         i,
@@ -1236,6 +1237,25 @@ begin
       );
       if FixedPrecScale=SQL_TRUE then
         FieldType:=ftCurrency;
+    end;
+
+    if FieldType in [ftSmallint] then
+    begin
+      Unsigned:=0;
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle,
+                        i,
+                        SQL_DESC_UNSIGNED,
+                        nil,
+                        0,
+                        nil,
+                        @Unsigned),
+      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get unsigned attribute for column %d.',[i]
+    );
+    if Unsigned=SQL_TRUE then
+      case FieldType of
+        ftSmallint: FieldType:=ftWord;
+      end;
     end;
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType

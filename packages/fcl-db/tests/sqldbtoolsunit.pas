@@ -225,6 +225,7 @@ begin
       end;
     ssMySQL:
       begin
+      FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
