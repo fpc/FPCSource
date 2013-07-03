@@ -344,6 +344,18 @@ Unit AoptObj;
       verbose,
       procinfo;
 
+
+    function JumpTargetOp(ai: taicpu): poper; inline;
+      begin
+{$ifdef MIPS}
+        { MIPS branches can have 1,2 or 3 operands, target label is the last one. }
+        result:=ai.oper[ai.ops-1];
+{$else MIPS}
+        result:=ai.oper[0];
+{$endif MIPS}
+      end;
+
+
       { ************************************************************************* }
       { ******************************** TUsedRegs ****************************** }
       { ************************************************************************* }
@@ -1126,8 +1138,8 @@ Unit AoptObj;
 {$ifdef arm}
           (hp.condition=c_None) and
 {$endif arm}
-          (hp.oper[0]^.typ = top_ref) and
-          (hp.oper[0]^.ref^.symbol is TAsmLabel);
+          (JumpTargetOp(hp)^.typ = top_ref) and
+          (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;
 
 
@@ -1151,7 +1163,7 @@ Unit AoptObj;
         GetfinalDestination := false;
         if level > 20 then
           exit;
-        p1 := getlabelwithsym(tasmlabel(hp.oper[0]^.ref^.symbol));
+        p1 := getlabelwithsym(tasmlabel(JumpTargetOp(hp)^.ref^.symbol));
         if assigned(p1) then
           begin
             SkipLabels(p1,p1);
@@ -1159,8 +1171,12 @@ Unit AoptObj;
                (taicpu(p1).is_jmp) then
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
-                 (IsJumpToLabel(taicpu(p1)) or
-                  conditions_equal(taicpu(p1).condition,hp.condition)) or
+                 IsJumpToLabel(taicpu(p1))
+{$ifndef MIPS}
+{ for MIPS, it isn't enough to check the condition; first operands must be same, too. }
+                 or
+                 conditions_equal(taicpu(p1).condition,hp.condition) or
+
                  { the next instruction after the label where the jump hp arrives
                    is the opposite of hp (so this one is never taken), but after
                    that one there is a branch that will be taken, so perform a
@@ -1172,18 +1188,21 @@ Unit AoptObj;
                   (taicpu(p2).is_jmp) and
                    (IsJumpToLabel(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
-                  SkipLabels(p1,p1)) then
+                  SkipLabels(p1,p1))
+{$endif MIPS}
+                 then
                 begin
                   { quick check for loops of the form "l5: ; jmp l5 }
-                  if (tasmlabel(taicpu(p1).oper[0]^.ref^.symbol).labelnr =
-                       tasmlabel(hp.oper[0]^.ref^.symbol).labelnr) then
+                  if (tasmlabel(JumpTargetOp(taicpu(p1))^.ref^.symbol).labelnr =
+                       tasmlabel(JumpTargetOp(hp)^.ref^.symbol).labelnr) then
                     exit;
                   if not GetFinalDestination(taicpu(p1),succ(level)) then
                     exit;
-                  tasmlabel(hp.oper[0]^.ref^.symbol).decrefs;
-                  hp.oper[0]^.ref^.symbol:=taicpu(p1).oper[0]^.ref^.symbol;
-                  tasmlabel(hp.oper[0]^.ref^.symbol).increfs;
+                  tasmlabel(JumpTargetOp(hp)^.ref^.symbol).decrefs;
+                  JumpTargetOp(hp)^.ref^.symbol:=JumpTargetOp(taicpu(p1))^.ref^.symbol;
+                  tasmlabel(JumpTargetOp(hp)^.ref^.symbol).increfs;
                 end
+{$ifndef MIPS}
               else
                 if conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) then
                   if not FindAnyLabel(p1,l) then
@@ -1194,8 +1213,8 @@ Unit AoptObj;
       {$endif finaldestdebug}
                       current_asmdata.getjumplabel(l);
                       insertllitem(p1,p1.next,tai_label.Create(l));
-                      tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
-                      hp.oper[0]^.ref^.symbol := l;
+                      tasmlabel(JumpTargetOp(hp)^.ref^.symbol).decrefs;
+                      JumpTargetOp(hp)^.ref^.symbol := l;
                       l.increfs;
       {               this won't work, since the new label isn't in the labeltable }
       {               so it will fail the rangecheck. Labeltable should become a   }
@@ -1209,11 +1228,12 @@ Unit AoptObj;
                         strpnew('next label reused'))));
       {$endif finaldestdebug}
                       l.increfs;
-                      tasmlabel(hp.oper[0]^.ref^.symbol).decrefs;
-                      hp.oper[0]^.ref^.symbol := l;
+                      tasmlabel(JumpTargetOp(hp)^.ref^.symbol).decrefs;
+                      JumpTargetOp(hp)^.ref^.symbol := l;
                       if not GetFinalDestination(hp,succ(level)) then
                         exit;
                     end;
+{$endif not MIPS}
           end;
         GetFinalDestination := true;
       end;
@@ -1263,9 +1283,9 @@ Unit AoptObj;
                               begin
                                 if (hp1.typ = ait_instruction) and
                                    taicpu(hp1).is_jmp and
-                                   (taicpu(hp1).oper[0]^.typ = top_ref) and
-                                   (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) then
-                                   TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
+                                   (JumpTargetOp(taicpu(hp1))^.typ = top_ref) and
+                                   (JumpTargetOp(taicpu(hp1))^.ref^.symbol is TAsmLabel) then
+                                   TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
                                 { don't kill start/end of assembler block,
                                   no-line-info-start/end etc }
                                 if hp1.typ<>ait_marker then
@@ -1281,13 +1301,18 @@ Unit AoptObj;
                       { remove jumps to a label coming right after them }
                       if GetNextInstruction(p, hp1) then
                         begin
-                          if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp1) and
+                          if FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
         { TODO: FIXME removing the first instruction fails}
                               (p<>blockstart) then
                             begin
+                              tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
+{$if defined(SPARC) or defined(MIPS)}
+                              hp2:=tai(p.next);
+                              asml.remove(hp2);
+                              hp2.free;
+{$endif SPARC or MIPS}
                               hp2:=tai(hp1.next);
                               asml.remove(p);
-                              tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
                               p.free;
                               p:=hp2;
                               continue;
@@ -1299,7 +1324,7 @@ Unit AoptObj;
                               if (tai(hp1).typ=ait_instruction) and
                                   IsJumpToLabel(taicpu(hp1)) and
                                   GetNextInstruction(hp1, hp2) and
-                                  FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp2) then
+                                  FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
                                 begin
                                   if (taicpu(p).opcode=aopt_condjmp)
 {$ifdef arm}
@@ -1309,17 +1334,27 @@ Unit AoptObj;
                                     begin
                                       taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                       tai_label(hp2).labsym.decrefs;
-                                      taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
+                                      JumpTargetOp(taicpu(p))^.ref^.symbol:=JumpTargetOp(taicpu(hp1))^.ref^.symbol;
                                       { when freeing hp1, the reference count
                                         isn't decreased, so don't increase
 
                                        taicpu(p).oper[0]^.ref^.symbol.increfs;
                                       }
-{$ifdef SPARC}
+{$if defined(SPARC) or defined(MIPS)}
+                                      { Remove delay slot. Initially is is placed immediately after
+                                        branch, but RA can insert regallocs in between. }
                                       hp2:=tai(hp1.next);
-                                      asml.remove(hp2);
-                                      hp2.free;
-{$endif SPARC}
+                                      while assigned(hp2) and (hp2.typ in SkipInstr) do
+                                        hp2:=tai(hp2.next);
+                                      if assigned(hp2) and (hp2.typ=ait_instruction) and
+                                         (taicpu(hp2).opcode=A_NOP) then
+                                        begin
+                                          asml.remove(hp2);
+                                          hp2.free;
+                                        end
+                                      else
+                                        InternalError(2013070301);
+{$endif SPARC or MIPS}
                                       asml.remove(hp1);
                                       hp1.free;
                                       GetFinalDestination(taicpu(p),0);
