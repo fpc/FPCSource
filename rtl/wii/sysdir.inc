@@ -46,7 +46,7 @@ begin
   { TODO: convert callback to use rawbytestring to avoid conversion }
   if FileIODevice.DirIO.DoGetdir <> nil then
     begin
-      FileIODevice.DirIO.DoGetdir(DriveNr, Dir);
+      FileIODevice.DirIO.DoGetdir(DriveNr, TmpDir);
       Dir:=TmpDir;
       SetCodePage(Dir,DefaultFileSystemCodePage,false);
     end;
