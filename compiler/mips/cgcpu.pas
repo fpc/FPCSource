@@ -120,145 +120,11 @@ uses
   procinfo, cpupi;
 
 
-  function f_TOpCG2AsmOp(op: TOpCG; size: tcgsize): TAsmOp;
-  begin
-    if size = OS_32 then
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp := A_ADDU;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp := A_MULT;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp := A_MULTU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp := A_NEGU;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp := A_SUBU;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp := A_XOR;
-        else
-          InternalError(2007070401);
-      end{ case }
-    else
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp := A_ADDU;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp := A_MULT;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp := A_MULTU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp := A_NEGU;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp := A_SUBU;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp := A_XOR;
-        else
-          InternalError(2007010701);
-      end;{ case }
-  end;
-
-  function f_TOpCG2AsmOp_ovf(op: TOpCG; size: tcgsize): TAsmOp;
-  begin
-    if size = OS_32 then
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp_ovf := A_ADD;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp_ovf := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp_ovf := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp_ovf := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp_ovf := A_MULO;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp_ovf := A_MULOU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp_ovf := A_NEG;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp_ovf := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp_ovf := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp_ovf := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp_ovf := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp_ovf := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp_ovf := A_SUB;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp_ovf := A_XOR;
-        else
-          InternalError(2007070403);
-      end{ case }
-    else
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp_ovf := A_ADD;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp_ovf := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp_ovf := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp_ovf := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp_ovf := A_MULO;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp_ovf := A_MULOU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp_ovf := A_NEG;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp_ovf := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp_ovf := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp_ovf := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp_ovf := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp_ovf := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp_ovf := A_SUB;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp_ovf := A_XOR;
-        else
-          InternalError(2007010703);
-      end;{ case }
-  end;
+const
+  TOpcg2AsmOp: array[TOpCg] of TAsmOp = (
+    A_NONE,A_NONE,A_ADDU,A_AND,A_NONE,A_NONE,A_MULT,A_MULTU,A_NONE,A_NONE,
+    A_OR,A_SRAV,A_SLLV,A_SRLV,A_SUBU,A_XOR,A_NONE,A_NONE
+  );
 
 
 procedure TCGMIPS.make_simple_ref(list: tasmlist; var ref: treference);
@@ -879,7 +745,6 @@ end;
 
 
 const
-  ops_mul: array[boolean] of TAsmOp = (A_MULTU,A_MULT);
   ops_add: array[boolean] of TAsmOp = (A_ADDU, A_ADD);
   ops_sub: array[boolean] of TAsmOp = (A_SUBU, A_SUB);
   ops_slt: array[boolean] of TAsmOp = (A_SLTU, A_SLT);
@@ -918,11 +783,12 @@ begin
 
     OP_IMUL,OP_MUL:
       begin
-        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], dst, src));
+        list.concat(taicpu.op_reg_reg(TOpcg2AsmOp[op], dst, src));
         list.concat(taicpu.op_reg(A_MFLO, dst));
       end;
   else
-    list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, dst, src));
+    a_op_reg_reg_reg(list, op, size, src, dst, dst);
+    exit;
   end;
   maybeadjustresult(list,op,size,dst);
 end;
@@ -938,8 +804,9 @@ end;
 
 procedure TCGMIPS.a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
 begin
-
-  list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, src2, src1));
+  if (TOpcg2AsmOp[op]=A_NONE) then
+    InternalError(2013070305);
+  list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op], dst, src2, src1));
   maybeadjustresult(list,op,size,dst);
 end;
 
@@ -1011,8 +878,14 @@ begin
           end;
       end;
 
-    OP_SHL,OP_SHR,OP_SAR:
-      list.concat(taicpu.op_reg_reg_const(f_TOpCG2AsmOp_ovf(op,size),dst,src,a));
+    OP_SHL:
+      list.concat(taicpu.op_reg_reg_const(A_SLL,dst,src,a));
+
+    OP_SHR:
+      list.concat(taicpu.op_reg_reg_const(A_SRL,dst,src,a));
+
+    OP_SAR:
+      list.concat(taicpu.op_reg_reg_const(A_SRA,dst,src,a));
 
   else
     internalerror(2007012601);
@@ -1050,7 +923,7 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], src2, src1));
+        list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
         list.concat(taicpu.op_reg(A_MFLO, dst));
         if setflags then
           begin
@@ -1071,7 +944,7 @@ begin
       end;
     OP_AND,OP_OR,OP_XOR:
       begin
-        list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op], dst, src2, src1));
       end;
     else
       internalerror(2007012602);
