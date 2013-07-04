@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
-    FPC Pascal system unit for the Win32 API.
+    FPC Pascal system unit for Amiga.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,15 +18,14 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(s : pchar; len : sizeuint); [IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+procedure do_mkdir(const s : rawbytestring);
 var
-  tmpStr : array[0..255] of char;
+  tmpStr : rawbytestring;
   tmpLock: LongInt;
 begin
   checkCTRLC;
-  if (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
-  tmpLock:=dosCreateDir(@tmpStr);
+  tmpStr:=PathConv(s);
+  tmpLock:=dosCreateDir(pchar(tmpStr));
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
@@ -34,33 +33,35 @@ begin
   UnLock(tmpLock);
 end;
 
-procedure rmdir(s : pchar; len : sizeuint); [IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+procedure do_rmdir(const s : rawbytestring);
 var
-  tmpStr : array[0..255] of Char;
+  tmpStr : rawbytestring;
 begin
   checkCTRLC;
-  if (s='.') then InOutRes:=16;
-  If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
-  if not dosDeleteFile(@tmpStr) then
+  if (s='.') then
+    begin
+      InOutRes:=16;
+      exit;
+    end;
+  tmpStr:=PathConv(s);
+  if not dosDeleteFile(pchar(tmpStr)) then
     dosError2InOut(IoErr);
 end;
 
-procedure sys_chdir(s : pchar);
+procedure do_ChDir(const s: rawbytestring);
 var
-  tmpStr : array[0..255] of Char;
+  tmpStr : rawbytestring;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
 begin
   checkCTRLC;
-  If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
+  tmpStr:=PathConv(s);
   tmpLock:=0;
 
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
-  tmpLock:=Lock(@tmpStr,SHARED_LOCK);
+  tmpLock:=Lock(pchar(tmpStr),SHARED_LOCK);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
@@ -79,13 +80,6 @@ begin
 
   if tmpLock<>0 then Unlock(tmpLock);
   if assigned(FIB) then dispose(FIB);
-end;
-
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
-begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-  sys_chdir(s);
 end;
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);

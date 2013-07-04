@@ -94,9 +94,6 @@ function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
 
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-function RemoveDirectory(name:pointer):longbool;
-
 
 {$ifdef CPUARM}
 { the external directive isn't really necessary here because it is overridden by external (FK) }
@@ -205,6 +202,12 @@ var
 
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    cdecl; external 'coredll' name 'MessageBoxW';
+
+function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
+    cdecl; external KernelDLL name 'CreateDirectoryW';
+function RemoveDirectoryW(name:pwidechar):longbool;
+    cdecl; external KernelDLL name 'RemoveDirectoryW';
+
 
 {*****************************************************************************}
 
@@ -424,10 +427,6 @@ function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DW
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
     cdecl; external KernelDLL name 'CreateFileW';
-function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
-    cdecl; external KernelDLL name 'CreateDirectoryW';
-function RemoveDirectoryW(name:pwidechar):longbool;
-    cdecl; external KernelDLL name 'RemoveDirectoryW';
 
 function GetFileAttributes(p : pchar) : dword;
 var
@@ -463,22 +462,6 @@ begin
   AnsiToWideBuf(lpFileName, -1, buf, SizeOf(buf));
   CreateFile := CreateFileW(buf, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
                             dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-end;
-
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  CreateDirectory := CreateDirectoryW(buf, sec);
-end;
-
-function RemoveDirectory(name:pointer):longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  RemoveDirectory := RemoveDirectoryW(buf);
 end;
 
 const

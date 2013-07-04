@@ -17,17 +17,17 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure mkdir(const s:string);[IOCHECK];
+procedure do_mkdir(const s:rawbytestring);
 begin
 
 end;
 
-procedure rmdir(const s:string);[IOCHECK];
+procedure do_rmdir(const s:rawbytestring);
 begin
 
 end;
 
-procedure chdir(const s:string);[IOCHECK];
+procedure do_chdir(const s:rawbytestring);
 begin
 
 end;

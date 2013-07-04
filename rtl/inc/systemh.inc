@@ -1178,23 +1178,28 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
                             Directory Management
 ****************************************************************************}
 
-
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:string); overload;
-Procedure mkdir(const s:string); overload;
-Procedure rmdir(const s:string); overload;
-// the pchar versions are exported via alias for use in objpas
-
+Procedure chdir(const s:shortstring); overload;
+Procedure mkdir(const s:shortstring); overload;
+Procedure rmdir(const s:shortstring); overload;
 Procedure getdir(drivenr:byte;var dir:shortstring);overload;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure chdir(const s:rawbytestring); overload;
+Procedure mkdir(const s:rawbytestring); overload;
+Procedure rmdir(const s:rawbytestring); overload;
 // defaultrtlfilesystemcodepage is returned here
 Procedure getdir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure chdir(const s:unicodestring); overload;
+Procedure mkdir(const s:unicodestring); overload;
+Procedure rmdir(const s:unicodestring); overload;
 Procedure getdir(drivenr:byte;var dir: unicodestring);overload;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
+
+
 
 {*****************************************************************************
                              Miscellaneous

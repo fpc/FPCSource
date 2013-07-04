@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
-    FPC Pascal system unit for the Win32 API.
+    FPC Pascal system unit for go32v2.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,18 +18,20 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir(func:byte;s:pchar;len:integer);
+procedure DosDir(func:byte;s:rawbytestring);
 var
   regs   : trealregs;
+  len    : longint;
 begin
   DoDirSeparators(s);
   { True DOS does not like backslashes at end
     Win95 DOS accepts this !!
     but "\" and "c:\" should still be kept and accepted hopefully PM }
-  if (len>0) and (s[len-1]='\') and
-     Not ((len=1) or ((len=3) and (s[1]=':'))) then
-    s[len-1]:=#0;
-  syscopytodos(longint(s),len+1);
+  len:=length(s);
+  if (len>0) and (s[len]='\') and
+     Not ((len=1) or ((len=3) and (s[2]=':'))) then
+    s[len]:=#0;
+  syscopytodos(longint(pointer(s)),len+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
   if LFNSupport then
@@ -41,32 +43,31 @@ begin
    GetInOutRes(lo(regs.realeax));
 end;
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(const s: rawbytestring);
 begin
- If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  DosDir($39,s,len);
+  DosDir($39,s);
 end;
 
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+Procedure do_RmDir(const s: rawbytestring);
 begin
-  if (len=1) and (s[0] = '.' ) then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  DosDir($3a,s,len);
+  if s='.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
+  DosDir($3a,s);
 end;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+Procedure do_ChDir(const s: rawbytestring);
 var
   regs : trealregs;
+  len  : longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
+  len:=length(s);
 { First handle Drive changes }
-  if (len>=2) and (s[1]=':') then
+  if (len>=2) and (s[2]=':') then
    begin
-     regs.realedx:=(ord(s[0]) and (not 32))-ord('A');
+     regs.realedx:=(ord(s[1]) and (not 32))-ord('A');
      regs.realeax:=$0e00;
      sysrealintr($21,regs);
      regs.realeax:=$1900;
@@ -82,7 +83,7 @@ begin
        exit;
    end;
 { do the normal dos chdir }
-  DosDir($3b,s,len);
+  DosDir($3b,s);
 end;
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);

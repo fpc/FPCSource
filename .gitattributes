@@ -12031,6 +12031,7 @@ tests/test/units/system/tassert6.pp svneol=native#text/plain
 tests/test/units/system/tassert7.pp svneol=native#text/plain
 tests/test/units/system/tassignd.pp svneol=native#text/plain
 tests/test/units/system/tdir.pp svneol=native#text/plain
+tests/test/units/system/tdir2.pp svneol=native#text/plain
 tests/test/units/system/testmac.txt svneol=native#text/plain
 tests/test/units/system/testpc.txt svneol=native#text/plain
 tests/test/units/system/teststk.pp svneol=native#text/plain

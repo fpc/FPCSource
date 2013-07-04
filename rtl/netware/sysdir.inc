@@ -17,12 +17,10 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(s: rawbytestring);
 var
     Rc : longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
   DoDirSeparators(s);
   Rc := _mkdir(pchar(s));
   if Rc <> 0 then
@@ -30,13 +28,14 @@ begin
 end;
 
 
-procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+procedure do_RmDir(s: rawbytestring);
 var Rc : longint;
 begin
-  if (len=1) and (s^ = '.' ) then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
+  if s = '.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
   DoDirSeparators(s);
   Rc := _rmdir(pchar(s));
   if Rc <> 0 then
@@ -44,15 +43,15 @@ begin
 end;
 
 
-procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+procedure do_ChDir(s: rawbytestring);
 var RC: longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
+  DoDirSeparators(s);
   RC := _chdir (pchar(s));
   if Rc <> 0 then
     SetFileError(Rc);
 end;
+
 
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 VAR P : ARRAY [0..255] OF CHAR;

@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
-    FPC Pascal system unit for the Win32 API.
+    FPC Pascal system unit for EMX.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,7 +19,7 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir (Func: byte; S: PChar);
+procedure DosDir (Func: byte; S: rawbytestring);
 
 begin
   DoDirSeparators (S);
@@ -33,17 +33,14 @@ begin
   end ['eax', 'edx'];
 end;
 
-procedure MkDir (S: pchar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_MKDIR'];
+procedure do_MkDir (S: rawbytestring);
 var 
   RC: cardinal;
 begin
-  if not Assigned (S) or (Len = 0) or (InOutRes <> 0) then
-   Exit;
-
   if os_mode = osOs2 then
    begin
     DoDirSeparators (S);
-    RC := DosCreateDir (S, nil);
+    RC := DosCreateDir (pchar(S), nil);
     if RC <> 0 then
      begin
       InOutRes := RC;
@@ -60,49 +57,46 @@ begin
 end;
 
 
-procedure RmDir (S: PChar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_RMDIR'];
+procedure do_RmDir (S: rawbytestring);
 var
   RC: cardinal;
 begin
-  if Assigned (S) and (Len <> 0) and (InOutRes = 0) then
-   begin
-    if (Len = 1) and (S^ = '.') then
-     InOutRes := 16
-    else
-     if os_mode = osOs2 then
+  if S = '.' then
+   InOutRes := 16
+  else
+   if os_mode = osOs2 then
+    begin
+     DoDirSeparators (S);
+     RC := DosDeleteDir (pchar(S));
+     if RC <> 0 then
       begin
-       DoDirSeparators (S);
-       RC := DosDeleteDir (S);
-       if RC <> 0 then
-        begin
-         InOutRes := RC;
-         Errno2InOutRes;
-        end;
-      end
-     else
-     { Under EMX 0.9d DOS this routine call may sometimes fail   }
-     { The syscall documentation indicates clearly that this     }
-     { routine was NOT tested.                                   }
-      DosDir ($3A, S);
-   end
+       InOutRes := RC;
+       Errno2InOutRes;
+      end;
+    end
+   else
+   { Under EMX 0.9d DOS this routine call may sometimes fail   }
+   { The syscall documentation indicates clearly that this     }
+   { routine was NOT tested.                                   }
+    DosDir ($3A, S);
 end;
 
 
 {$ASMMODE INTEL}
 
-procedure ChDir (S: PChar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_CHDIR'];
+procedure do_ChDir (S: rawbytestring);
 var
   RC: cardinal;
+  Len: longint;
 begin
-  if not Assigned (S) or (Len = 0) or (InOutRes <> 0) then
-    exit;
 (* According to EMX documentation, EMX has only one current directory
    for all processes, so we'll use native calls under OS/2. *)
+  Len := Length (S);
   if os_Mode = osOS2 then
    begin
-    if (Len >= 2) and (S [1] = ':') then
+    if (Len >= 2) and (S [2] = ':') then
      begin
-      RC := DosSetDefaultDisk ((Ord (S^) and not ($20)) - $40);
+      RC := DosSetDefaultDisk ((Ord (S[1]) and not ($20)) - $40);
       if RC <> 0 then
        begin
         InOutRes := RC;
@@ -112,7 +106,7 @@ begin
        if Len > 2 then
         begin
          DoDirSeparators (S);
-         RC := DosSetCurrentDir (S);
+         RC := DosSetCurrentDir (pchar(S));
          if RC <> 0 then
           begin
            InOutRes := RC;
@@ -123,7 +117,7 @@ begin
     else
      begin
       DoDirSeparators (S);
-      RC := DosSetCurrentDir (S);
+      RC := DosSetCurrentDir (pchar(S));
       if RC <> 0 then
        begin
         InOutRes:= RC;
@@ -132,7 +126,7 @@ begin
      end;
    end
   else
-   if (Len >= 2) and (S [1] = ':') then
+   if (Len >= 2) and (S [2] = ':') then
     begin
      asm
       mov esi, S

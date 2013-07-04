@@ -20,53 +20,50 @@
 type
  TDirFnType=function(name:pointer):longbool;stdcall;
 
-procedure dirfn(afunc : TDirFnType;s:pchar;len:integer);
+function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
+begin
+  CreateDirectoryTrunc:=CreateDirectoryW(name,nil);
+end;
+
+procedure dirfn(afunc : TDirFnType;s:unicodestring);
 begin
   DoDirSeparators(s);
-  if not aFunc(s) then
+  if not aFunc(punicodechar(s)) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
     end;
 end;
-
-function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
+Procedure do_MkDir(const s: UnicodeString);
 begin
-  CreateDirectoryTrunc:=CreateDirectory(name,nil);
+  dirfn(TDirFnType(@CreateDirectoryTrunc),s);
 end;
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_RmDir(const s: UnicodeString);
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@CreateDirectoryTrunc),s,len);
-end;
-
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
-
-begin
-  if (len=1) and (s^ ='.') then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-{$ifdef WINCE}
-  if (len=2) and (s[0]='.') and (s[1]='.') then
-    InOutRes := 5;
-{$endif WINCE}
-  dirfn(TDirFnType(@RemoveDirectory),s,len);
+  if (s ='.') then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
+  {$ifdef WINCE}
+  if (s='..') then
+    begin
+      InOutRes := 5;
+      exit;
+    end;
+  {$endif WINCE}
+  dirfn(TDirFnType(@RemoveDirectoryW),s);
 {$ifdef WINCE}
   if (Inoutres=3) and (Pos(DirectorySeparator, s)<2) then
     Inoutres:=2;
 {$endif WINCE}
 end;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
-
+Procedure do_ChDir(const s: UnicodeString);
 begin
 {$ifndef WINCE}
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@SetCurrentDirectory),s,len);
+  dirfn(TDirFnType(@SetCurrentDirectoryW),s);
   if Inoutres=2 then
    Inoutres:=3;
 {$else WINCE}

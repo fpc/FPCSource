@@ -87,12 +87,6 @@ Var
      Function ParamStr(Param : Integer) : Ansistring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-     Procedure MkDir(s:ansistring);overload;
-     Procedure RmDir(s:ansistring);overload;
-     Procedure ChDir(s:ansistring);overload;
-{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-
 {****************************************************************************
                              Resource strings.
 ****************************************************************************}
@@ -130,9 +124,6 @@ Var
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure MkDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_MKDIR';
-Procedure ChDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_CHDIR';
-Procedure RmDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_RMDIR';
 
 { Untyped file support }
 
@@ -232,30 +223,6 @@ Function ParamStr(Param : Integer) : ansistring;
       Result:='';
   end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
-
-
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-{ xxDirPChar procedures can adjust directory separators in supplied string (at least
-  Windows implementation does so). Therefore full copy of argument is needed,
-  just passing by value isn't enough because it won't copy a string literal. }
-Procedure MkDir(s:ansistring);[IOCheck];
-begin
-  UniqueString(s);
-  mkdirpchar(pchar(s),length(s));
-end;
-
-Procedure RmDir(s:ansistring);[IOCheck];
-begin
-  UniqueString(s);
-  RmDirpchar(pchar(s),length(s));
-end;
-
-Procedure ChDir(s:ansistring);[IOCheck];
-begin
-  UniqueString(s);
-  ChDirpchar(pchar(s),length(s));
-end;
-{$endif defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 
 {$ifdef FPC_HAS_FEATURE_RESOURCES}
 { ---------------------------------------------------------------------

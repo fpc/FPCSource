@@ -291,13 +291,6 @@ threadvar
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileW';
-   { Directory }
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external KernelDLL name 'CreateDirectoryW';
-   function RemoveDirectory(name:pointer):longbool;
-     stdcall;external KernelDLL name 'RemoveDirectoryW';
-   function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external KernelDLL name 'SetCurrentDirectoryW';
    {$else}
    function GetFileAttributes(p : pchar) : dword;
      stdcall;external KernelDLL name 'GetFileAttributesA';
@@ -309,16 +302,12 @@ threadvar
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileA';
-   { Directory }
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external KernelDLL name 'CreateDirectoryA';
-   function RemoveDirectory(name:pointer):longbool;
-     stdcall;external KernelDLL name 'RemoveDirectoryA';
-   function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external KernelDLL name 'SetCurrentDirectoryA';
-
   {$endif}
    { Directory }
+   function CreateDirectoryW(name : pointer;sec : pointer) : longbool;
+     stdcall;external KernelDLL name 'CreateDirectoryW';
+   function RemoveDirectoryW(name:pointer):longbool;
+     stdcall;external KernelDLL name 'RemoveDirectoryW';
    function SetCurrentDirectoryW(name : pointer) : longbool;
      stdcall;external KernelDLL name 'SetCurrentDirectoryW';
    function GetCurrentDirectoryW(bufsize : longint;name : punicodechar) : Dword;

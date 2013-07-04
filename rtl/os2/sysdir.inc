@@ -19,14 +19,12 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(s: rawbytestring);
 var 
     Rc : word;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
   DoDirSeparators(s);
-  Rc := DosCreateDir(s,nil);
+  Rc := DosCreateDir(pchar(s),nil);
   if Rc <> 0 then
     begin
       InOutRes := Rc;
@@ -34,16 +32,17 @@ begin
     end;
 end;
 
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+Procedure do_RmDir(s: rawbytestring);
 var 
     Rc : word;
 begin
-  if (len=1) and (s^ = '.' ) then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
+  if s = '.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
   DoDirSeparators(s);
-  Rc := DosDeleteDir(s);
+  Rc := DosDeleteDir(pchar(s));
   if Rc <> 0 then
     begin
       InOutRes := Rc;
@@ -53,23 +52,23 @@ end;
 
 {$ASMMODE INTEL}
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+Procedure do_ChDir(s: rawbytestring);
 
 var RC: cardinal;
+    Len: Longint;
 
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-  if (Len >= 2) and (S[1] = ':') then
+  Len := Length (s);
+  if (Len >= 2) and (S[2] = ':') then
   begin
-    RC := DosSetDefaultDisk ((Ord (S [0]) and not ($20)) - $40);
+    RC := DosSetDefaultDisk ((Ord (S [1]) and not ($20)) - $40);
     if RC <> 0 then
       InOutRes := RC
     else
       if Len > 2 then
       begin
         DoDirSeparators (s);
-        RC := DosSetCurrentDir (s);
+        RC := DosSetCurrentDir (pchar (s));
         if RC <> 0 then
         begin
           InOutRes := RC;
@@ -78,7 +77,7 @@ begin
       end;
   end else begin
     DoDirSeparators (s);
-    RC := DosSetCurrentDir (s);
+    RC := DosSetCurrentDir (pchar (s));
     if RC <> 0 then
     begin
       InOutRes:= RC;

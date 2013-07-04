@@ -18,7 +18,6 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 const
   { read/write search permission for everyone }
   MODE_MKDIR = S_IWUSR OR S_IRUSR OR
@@ -26,39 +25,32 @@ const
                S_IWOTH OR S_IROTH OR
                S_IXUSR OR S_IXGRP OR S_IXOTH;
 
-// len is not passed to the *nix functions because the unix API doesn't 
-// use length safeguards for these functions. (probably because there
-// already is a length limit due to PATH_MAX)
+Procedure Do_MkDir(s: rawbytestring);
 
 Begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-  If Fpmkdir(s, MODE_MKDIR)<0 Then
+  If Fpmkdir(pchar(s), MODE_MKDIR)<0 Then
    Errno2Inoutres
-  Else
-   InOutRes:=0;
 End;
 
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
-Begin
-  if (len=1) and (s^ = '.') then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-  If Fprmdir(s)<0 Then
+
+Procedure Do_RmDir(s: rawbytestring);
+
+begin
+  if (s='.') then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
+  If Fprmdir(pchar(S))<0 Then
    Errno2Inoutres
-  Else
-   InOutRes:=0;
 End;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+
+Procedure do_ChDir(s: rawbytestring);
+
 Begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  If Fpchdir(s)<0 Then
-   Errno2Inoutres
-  Else
-   InOutRes:=0;
+  If Fpchdir(pchar(s))<0 Then
+   Errno2Inoutres;
   { file not exists is path not found under tp7 }
   if InOutRes=2 then
    InOutRes:=3;

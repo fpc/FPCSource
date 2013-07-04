@@ -17,7 +17,7 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure MkDir(s: pchar; len: sizeuint); [IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+procedure do_MkDir(const s: UnicodeString);
 var
   objattr: TObjectAttributes;
   name: TNtUnicodeString;
@@ -25,10 +25,7 @@ var
   iostatus: TIOStatusBlock;
   h: THandle;
 begin
-  if not Assigned(s) or (len <= 1) or (InOutRes <> 0) then
-    Exit;
-
-  SysPCharToNtStr(name, s, len);
+  SysUnicodeStringToNtStr(name, s);
 
   { first we try to create a directory object }
   SysInitializeObjectAttributes(objattr, @name, OBJ_PERMANENT, 0, Nil);
@@ -61,7 +58,7 @@ begin
   SysFreeNtStr(name);
 end;
 
-procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+procedure do_RmDir(const s: UnicodeString);
 var
   ntstr: TNtUnicodeString;
   objattr: TObjectAttributes;
@@ -70,14 +67,18 @@ var
   disp: TFileDispositionInformation;
   res: LongInt;
 begin
-  if (len = 1) and (s^ = '.') then
-    InOutRes := 16;
-  if not assigned(s) or (len = 0) or (InOutRes <> 0) then
-    Exit;
-  if (len = 2) and (s[0] = '.') and (s[1] = '.') then
-    InOutRes := 5;
+  if s = '.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
+  if s = '..' then
+    begin
+      InOutRes := 5;
+      exit;
+    end;
 
-  SysPCharToNtStr(ntstr, s, len);
+  SysUnicodeStringToNtStr(ntstr, s);
   SysInitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   res := NtOpenDirectoryObject(@h, STANDARD_RIGHTS_REQUIRED, @objattr);
@@ -115,7 +116,7 @@ begin
   Errno2InoutRes;
 end;
 
-procedure ChDir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+procedure do_ChDir(const s: UnicodeString);
 begin
   { for now this is not supported }
   InOutRes := 3;

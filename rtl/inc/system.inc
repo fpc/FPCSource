@@ -1501,46 +1501,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO)}
-
-
-
-
-
-Procedure MkDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
-Begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  MkDir(@buffer[0],length(s));
-End;
-
-Procedure RmDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
-Begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  RmDir(@buffer[0],length(s));
-End;
-
-Procedure ChDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
-Begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  ChDir(@buffer[0],length(s));
-End;
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 
@@ -1554,6 +1515,30 @@ begin
 end;
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 
+Procedure MkDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(S);
+End;
+
+
+Procedure RmDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(S);
+End;
+
+
+Procedure ChDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(S);
+End;
+
+
 Procedure getdir(drivenr:byte;Var dir:rawbytestring);
 begin
   Do_getdir(drivenr,dir);
@@ -1562,9 +1547,47 @@ begin
   setcodepage(dir,DefaultRTLFileSystemCodePage,true);
 end;
 
-{ this one is only implemented elsewhere for systems *not* supporting
-  ansi/unicodestrings; for now assume there are no systems that support
-  unicodestrings but not ansistrings }
+{ the generic shortstring ones are only implemented elsewhere for systems *not*
+  supporting ansi/unicodestrings; for now assume there are no systems that
+  support unicodestrings but not ansistrings }
+
+{ avoid double string conversions }
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): RawByteString;
+begin
+  GetDirStrFromShortstring:=ToSingleByteFileSystemEncodedFileName(ansistring(s));
+end;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): UnicodeString;
+begin
+  GetDirStrFromShortstring:=s;
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure MkDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure RmDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure ChDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(GetDirStrFromShortstring(S));
+End;
+
+
 Procedure getdir(drivenr:byte;Var dir:shortstring);
 var
   s: rawbytestring;
@@ -1581,6 +1604,26 @@ end;
 {$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
 
 {$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{ overloads required for mkdir/rmdir/chdir to ensure that the string is
+  converted to the right code page }
+procedure do_mkdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_mkdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_rmdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_rmdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_chdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_chdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
 procedure do_getdir(drivenr : byte;var dir : unicodestring);
 var
   s: rawbytestring;
@@ -1589,6 +1632,29 @@ begin
   dir:=s;
 end;
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+Procedure MkDir(Const s: UnicodeString);[IOCheck];
+Begin
+  if (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(S);
+End;
+
+
+Procedure RmDir(Const s: UnicodeString);[IOCheck];
+Begin
+  if (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(S);
+End;
+
+
+Procedure ChDir(Const s: UnicodeString);[IOCheck];
+Begin
+  if (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(S);
+End;
 
 
 Procedure getdir(drivenr:byte;Var dir:unicodestring);

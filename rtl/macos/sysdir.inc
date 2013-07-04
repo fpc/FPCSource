@@ -18,16 +18,14 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure mkdir(const s:string);[IOCheck];
+procedure do_mkdir(const s: rawbytestring);
 var
   spec: FSSpec;
   createdDirID: Longint;
   err: OSErr;
   res: Integer;
 begin
-  If (s='') or (InOutRes <> 0) then
-    exit;
-
+  { TODO: convert PathArgToFSSpec (and the routines it calls) to rawbytestring }
   res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
@@ -38,7 +36,7 @@ begin
     InOutRes:=res;
 end;
 
-procedure rmdir(const s:string);[IOCheck];
+procedure do_rmdir(const s: rawbytestring);
 
 var
   spec: FSSpec;
@@ -46,9 +44,6 @@ var
   res: Integer;
 
 begin
-  If (s='') or (InOutRes <> 0) then
-    exit;
-
   res:= PathArgToFSSpec(s, spec);
 
   if (res = 0) then
@@ -65,15 +60,12 @@ begin
     InOutRes:=res;
 end;
 
-procedure chdir(const s:string);[IOCheck];
+procedure do_chdir(const s: rawbytestring);
 var
   spec, newDirSpec: FSSpec;
   err: OSErr;
   res: Integer;
 begin
-  if (s='') or (InOutRes <> 0) then
-    exit;
-
   res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin

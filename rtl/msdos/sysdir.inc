@@ -18,19 +18,21 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir(func:byte;s:pchar;len:integer);
+procedure DosDir(func:byte;s: rawbytestring);
 var
   regs   : Registers;
+  len    : Longint;
 begin
   DoDirSeparators(s);
   { True DOS does not like backslashes at end
     Win95 DOS accepts this !!
     but "\" and "c:\" should still be kept and accepted hopefully PM }
-  if (len>0) and (s[len-1]='\') and
-     Not ((len=1) or ((len=3) and (s[1]=':'))) then
-    s[len-1]:=#0;
-  regs.DX:=Ofs(s^);
-  regs.DS:=Seg(s^);
+  len:=length(s);
+  if (len>0) and (s[len]='\') and
+     Not ((len=1) or ((len=3) and (s[2]=':'))) then
+    s[len]:=#0;
+  regs.DX:=Ofs(s[1]);
+  regs.DS:=Seg(s[1]);
   if LFNSupport then
    regs.AX:=$7100+func
   else
@@ -40,32 +42,31 @@ begin
    GetInOutRes(regs.AX);
 end;
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(const s: rawbytestring);
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
-   DosDir($39,s,len);
+   DosDir($39,s);
 end;
 
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+Procedure do_RmDir(const s: rawbytestring);
 begin
-  if (len=1) and (s[0] = '.' ) then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  DosDir($3a,s,len);
+  if s='.' then
+    begin
+      InOutRes:=16;
+      exit;
+    end;
+  DosDir($3a,s);
 end;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+Procedure do_ChDir(const s: rawbytestring);
 var
   regs : Registers;
+  len  : Longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
+  len:=Length(s);
 { First handle Drive changes }
-  if (len>=2) and (s[1]=':') then
+  if (len>=2) and (s[2]=':') then
    begin
-     regs.DX:=(ord(s[0]) and (not 32))-ord('A');
+     regs.DX:=(ord(s[1]) and (not 32))-ord('A');
      regs.AX:=$0e00;
      MsDos(regs);
      regs.AX:=$1900;

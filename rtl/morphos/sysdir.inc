@@ -17,15 +17,14 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(const s: rawbytestring);
 var
-  tmpStr : array[0..255] of char;
+  tmpStr : rawbytestring;
   tmpLock: LongInt;
 begin
   checkCTRLC;
-  if not assigned(s) or (len=0) or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(strpas(s))+#0;
-  tmpLock:=dosCreateDir(@tmpStr);
+  tmpStr:=PathConv(s);
+  tmpLock:=dosCreateDir(pchar(tmpStr));
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
@@ -33,34 +32,35 @@ begin
   UnLock(tmpLock);
 end;
 
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+Procedure do_RmDir(const s: rawbytestring);
 var
-  tmpStr : array[0..255] of Char;
+  tmpStr : rawbytestring;
 begin
   checkCTRLC;
-  if not assigned(s) or (len=0) then exit;
-  if (s='.') then InOutRes:=16;
-  If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(strpas(s))+#0;
-  if not dosDeleteFile(@tmpStr) then
+  if (s='.') then
+    begin
+      InOutRes:=16;
+      exit;
+    end;
+  tmpStr:=PathConv(s);
+  if not dosDeleteFile(pchar(tmpStr)) then
     dosError2InOut(IoErr);
 end;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+Procedure do_ChDir(const s: rawbytestring);
 var
-  tmpStr : array[0..255] of Char;
+  tmpStr : rawbytestring;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
 begin
   checkCTRLC;
-  if not assigned(s) or (len=0) or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(strpas(s))+#0;
+  tmpStr:=PathConv(s);
   tmpLock:=0;
 
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
-  tmpLock:=Lock(@tmpStr,SHARED_LOCK);
+  tmpLock:=Lock(pchar(tmpStr),SHARED_LOCK);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
