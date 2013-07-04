@@ -644,7 +644,8 @@ begin
   case SQLDataType of
     SQLCHAR:             Result:=ftFixedChar;
     SQLVARCHAR:          Result:=ftString;
-    SQLINT1, SQLINT2:    Result:=ftSmallInt;
+    SQLINT1:             Result:=ftWord;
+    SQLINT2:             Result:=ftSmallInt;
     SQLINT4, SQLINTN:    Result:=ftInteger;
     SYBINT8:             Result:=ftLargeInt;
     SQLFLT4, SQLFLT8,
@@ -761,7 +762,7 @@ begin
       inc(dest, sizeof(Word));
       desttype:=SQLBINARY;
       end;
-    ftSmallInt:
+    ftSmallInt, ftWord:
       begin
       desttype:=SQLINT2;
       destlen:=sizeof(DBSMALLINT); //smallint

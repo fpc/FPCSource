@@ -6,7 +6,7 @@ unit TestFieldTypes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
+  Classes, SysUtils, fpcunit, testregistry,
   db;
 
 type
@@ -24,7 +24,7 @@ type
     procedure TestSQLFieldType(ADatatype: TFieldType; ASQLTypeDecl: string;
       ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc;
       ACheckFieldValueProc: TCheckFieldValueProc);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
+    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
     procedure SetUp; override;
@@ -76,6 +76,7 @@ type
 
     procedure TestLargeRecordSize;
     procedure TestInt;
+    procedure TestTinyint;
     procedure TestNumeric;
     procedure TestFloat;
     procedure TestDate;
@@ -302,6 +303,56 @@ begin
       end;
     close;
     end;
+end;
+
+procedure TTestFieldTypes.TestTinyint;
+const
+  testValuesCount = 5;
+  testValues : Array[0..testValuesCount-1] of byte = (0,1,127,128,255);
+var
+  datatype: string;
+  fieldtype: TFieldType;
+  i: integer;
+begin
+  case SQLServerType of
+    ssMSSQL:
+      begin
+      datatype  := 'TINYINT';
+      fieldtype := ftWord;
+      end;
+    ssMySQL:
+      begin
+      datatype  := 'TINYINT UNSIGNED';
+      fieldtype := ftWord;
+      end;
+    ssSQLite:
+      begin
+      datatype  := 'TINYINT';
+      fieldtype := ftSmallint;
+      end;
+    else
+      begin
+      fieldtype := ftSmallint;
+      datatype  := FieldtypeDefinitions[fieldtype];
+      end;
+  end;
+
+  CreateTableWithFieldType(fieldtype, datatype);
+  TestFieldDeclaration(fieldtype, sizeof(Smallint));
+
+  with TSQLDBConnector(DBConnector) do
+  begin
+    for i := 0 to testValuesCount-1 do
+      ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testValues[i]) + ')');
+
+    Query.Open;
+    for i := 0 to testValuesCount-1 do
+    begin
+      AssertEquals(testValues[i], Query.Fields[0].AsInteger);
+      Query.Next;
+    end;
+    Query.Close;
+  end;
 end;
 
 procedure TTestFieldTypes.TestNumeric;
