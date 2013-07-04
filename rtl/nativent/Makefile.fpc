@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 #units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system uuchar objpas iso7185 buildrtl
+units=system uuchar objpas iso7185 cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
@@ -17,7 +17,7 @@ implicitunits=ndk ndkutils ddk \
 #      dos crt objects \
       rtlconsts sysconst sysutils math types \
       strutils dateutils varutils variants typinfo fgl classes \
-      convutils stdconvs $(CPU_UNITS) charset cpall ucomplex getopts \
+      convutils stdconvs $(CPU_UNITS) charset ucomplex getopts \
 #      sockets printer \
 #      video mouse keyboard
        fmtbcd \
@@ -124,3 +124,6 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
