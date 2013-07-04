@@ -184,7 +184,7 @@ var
   u: unicodestring;
 begin
   { prevent data loss due to unsupported characters in ansi code page }
-  u:=ExpandUNCFileName(filename);
+  u:=ExpandUNCFileName(unicodestring(filename));
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(u),result,DefaultRTLFileSystemCodePage,length(u));
 end;
 
