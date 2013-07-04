@@ -146,3 +146,38 @@ begin
   PathConv:=path;
 end;
 
+{ Converts an Unix-like path to Amiga-like path }
+function PathConv(const path: rawbytestring): rawbytestring;
+var tmppos: longint;
+begin
+  { check for short paths }
+  if length(path)<=2 then begin
+    if (path='.') or (path='./') then PathConv:='' else
+    if path='..' then PathConv:='/' else
+    if path='*' then PathConv:='#?'
+    else PathConv:=path;
+  end else begin
+    { convert parent directories }
+    PathConv:=path;
+    tmppos:=pos('../',PathConv);
+    while tmppos<>0 do begin
+      { delete .. to have / as parent dir sign }
+      delete(PathConv,tmppos,2);
+      tmppos:=pos('../',PathConv);
+    end;
+    { convert current directories }
+    tmppos:=pos('./',PathConv);
+    while tmppos<>0 do begin
+      { delete ./ since we doesn't need to sign current directory }
+      delete(PathConv,tmppos,2);
+      tmppos:=pos('./',PathConv);
+    end;
+    { convert wildstart to #? }
+    tmppos:=pos('*',PathConv);
+    while tmppos<>0 do begin
+      delete(PathConv,tmppos,1);
+      insert('#?',PathConv,tmppos);
+      tmppos:=pos('*',PathConv);
+    end;
+  end;
+end;
