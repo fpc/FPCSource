@@ -95,12 +95,12 @@ begin
     setlength(savebuf,len-1); // -1 because len is #0 inclusive
 
     GetCurrentDirectoryW(len,punicodechar(SaveBuf)); // in TChar
-    if not SetCurrentDirectory(@Drive) then
+    if not SetCurrentDirectoryW(@Drive) then
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
       Dir := widechar (DriveNr + 64) + ':\';
-      SetCurrentDirectory(@SaveBuf);
+      SetCurrentDirectoryW(@SaveBuf);
       Exit;
      end;
    end;
@@ -109,7 +109,7 @@ begin
   setlength(dir,len-1); // -1 because len is #0 inclusive
   GetCurrentDirectoryW(len,punicodechar(dir));
   if not defaultdrive then
-    SetCurrentDirectory(@SaveBuf);
+    SetCurrentDirectoryW(@SaveBuf);
   if not FileNameCasePreserving then
     dir:=upcase(dir);
 {$else WINCE}

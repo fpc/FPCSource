@@ -318,6 +318,9 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
 
   {$endif}
+   { Directory }
+   function SetCurrentDirectoryW(name : pointer) : longbool;
+     stdcall;external KernelDLL name 'SetCurrentDirectoryW';
    function GetCurrentDirectoryW(bufsize : longint;name : punicodechar) : Dword;
      stdcall;external KernelDLL name 'GetCurrentDirectoryW';
 
