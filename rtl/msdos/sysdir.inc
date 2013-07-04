@@ -81,10 +81,10 @@ begin
        exit;
    end;
 { do the normal dos chdir }
-  DosDir($3b,s,len);
+  DosDir($3b,s);
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: RawByteString);
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var
   temp : array[0..260] of char;
   i    : longint;
