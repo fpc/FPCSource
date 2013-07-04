@@ -372,6 +372,17 @@ begin
     aNtStr.Buffer[i] := aText[i];
 end;
 
+procedure SysUnicodeStringToNtStr(var aNtStr: TNtUnicodeString; const s: UnicodeString);
+var
+  i: Integer;
+begin
+  aNtStr.Length := Length(s) * SizeOf(WideChar);
+  aNtStr.MaximumLength := aNtStr.Length;
+  aNtStr.Buffer := GetMem(aNtStr.Length);
+  if aNtStr.Length<>0 then
+    Move(s[1],aNtStr.Buffer[0],aNtStr.Length);
+end;
+
 procedure SysFreeNtStr(var aNtStr: TNtUnicodeString);
 begin
   if aNtStr.Buffer <> Nil then begin
