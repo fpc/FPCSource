@@ -97,10 +97,19 @@ begin
   end;
 end;
 
+
 function ExpandUNCFileName (const filename:string) : string;
+var
+  u: unicodestring;
+begin
+  u:=ExpandUNCFileName(unicodestring(filename));
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(u),result,DefaultRTLFileSystemCodePage,length(u));
+end;
+
+function ExpandUNCFileName (const filename:unicodestring) : unicodestring;
 { returns empty string on errors }
 var
-  s    : widestring;
+  s    : unicodestring;
   size : dword;
   rc   : dword;
   buf  : pwidechar;
