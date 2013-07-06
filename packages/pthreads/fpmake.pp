@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('pthreads');
 {$ifdef ALLPACKAGES}
-    P.Directory:='pthreads';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];

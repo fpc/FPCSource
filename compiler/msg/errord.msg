@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 23596
+#   Based on errore.msg of SVN revision 24910 + 1
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2013 by the Free Pascal Development team
@@ -143,7 +143,7 @@ general_f_oserror=01025_F_Betriebsystemfehler: $1
 #
 # Scanner
 #
-# 02092 is the last used one
+# 02094 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -395,6 +395,12 @@ scan_w_unavailable_system_codepage=02091_W_Die aktuelle System-Codepage "$1" ste
 % the compiler with support for this codepage.
 scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS wird fÅr das Ziel-OS nicht unterstÅtzt
 % The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
+scan_e_illegal_peflag=02093_E_UngÅltiges Argument fÅr SETPEFLAGS
+% The given argument for SETPEFLAGS is neither a correct named value nor an
+% ordinal value
+scan_e_illegal_peoptflag=02094_E_UngÅltiges Argument fÅr SETPEOPTFLAGS
+% The given argument for SETPEOPTFLAGS is neither a correct named value nor an
+% ordinal value
 %
 % \end{description}
 # EndOfTeX
@@ -402,7 +408,7 @@ scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS wird fÅr das Ziel-OS nich
 #
 # Parser
 #
-# 03332 is the last used one
+# 03334 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1459,7 +1465,7 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Einen virtuellen Konstrukt
 % for the current instance inside another constructor.
 parser_e_method_lower_visibility=03322_E_Die Åberschreibende Method "$1" kann keine niedrigere Sichtbarkeit ($2) haben als in der Elternklasse $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
-parser_w_nostackframe_without_assembler=03323_W_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME aber ohne ASSEMBLER deklariert 
+parser_e_nostackframe_without_assembler=03323_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME aber ohne ASSEMBLER deklariert 
 % nostackframe call modifier is supposed to be used in conjunction with assembler.
 parser_e_nostackframe_with_locals=03324_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME deklariert, aber die Grî·e des lokalen Stack ist $1
 % nostackframe call modifier used without assembler modifier
@@ -1498,6 +1504,11 @@ parser_e_not_allowed_in_record=03332_E_Sichtbarkeits-Abschnitt "$1" ist in Recor
 % The visibility sections \var(protected) and \var(strict protected) are only
 % useful together with inheritance. Since records do not support that they are
 % forbidden.
+parser_e_proc_dir_not_allowed=03333_E_Prozedurdirektive "$1" ist hier nicht erlaubt
+% This procedure directive is not allowed in the given context. E.g. "static"
+% is not allowed for instance methods or class operators.
+parser_e_no_assembler_in_generic=03334_E_Assemblerblîcke sind innerhalb von "generics" nicht erlaubt
+% The use of assembler blocks/routines is not allowed inside generics.
 %
 % \end{description}
 # EndOfTeX
@@ -1928,7 +1939,7 @@ type_e_invalid_default_value=04119_E_Der Defaultwert fÅr einen Parameter des Typ
 % Parameters declared as structured types, such as files, variants, non-dynamic
 % arrays and TP-style objects, cannot have a default value.
 type_e_type_not_allowed_for_type_helper=04120_E_Typ "$1" kann durch einen Typhelfer nicht erweitert werden
-% Types like procedural variables can not be extended by type helpers
+% Types like procedural variables cannot be extended by type helpers
 %
 % \end{description}
 # EndOfTeX
@@ -2710,7 +2721,7 @@ asmw_e_handlerdata_no_handler=08025_E_".seh_handlerdata"-Direktive ohne vorangeh
 #
 # Executing linker/assembler
 #
-# 09033 is the last used one
+# 09034 is the last used one
 #
 # BeginOfTeX
 %
@@ -2802,6 +2813,9 @@ exec_e_cant_write_resource_file=09032_E_Kann die Resourcedatei "$1" nicht schrei
 % An error occurred resource file cannot be written.
 exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommando cat nicht gefunden
 % The compiler did not find the file that should be expanded into linker parameters
+exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich zu einem Fehler beim Linken fÅhren
+% The compiler adds certain startup code files to the linker only when they are found.
+% If they are not found, they are not added and this might cause a linking failure.
 %
 % \end{description}
 # EndOfTeX
@@ -3346,6 +3360,7 @@ diskutiert werden kînnen, usw.):
 #    3 = 80x86 targets
 #    4 = x86_64
 #    6 = 680x0 targets
+#    8 = 8086 (16-bit) targets
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
@@ -3641,6 +3656,10 @@ p*2Wi_Benutze interne Resourcen (Darwin)
 3*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 4*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 A*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
+8*2Wm<x>_Setze Speichermodell
+8*3WmTiny_Winziges (tiny) Speichermodell
+8*3WmSmall_Kleines (small) Speichermodell (Voreinstellung)
+8*3WmMedium_Mittleres (medium) Speichermodell
 3*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)

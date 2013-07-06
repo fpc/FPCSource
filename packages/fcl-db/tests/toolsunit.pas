@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB, testdecorator;
+  Classes, SysUtils, DB, testdecorator, fpcunit;
 
 Const
   // Number of "N" test datasets (as opposed to FieldDatasets) that will be created
@@ -19,6 +19,7 @@ Const
 type
 
   { TDBConnector }
+
   TDBConnectorClass = class of TDBConnector;
   TDBConnector = class(TPersistent)
      private
@@ -53,8 +54,8 @@ type
        procedure DropNDatasets; virtual; abstract;
        procedure DropFieldDataset; virtual; abstract;
      public
-       constructor create; virtual;
-       destructor destroy; override;
+       constructor Create; virtual;
+       destructor Destroy; override;
 
        procedure DataEvent(dataset :TDataset);
 
@@ -72,15 +73,7 @@ type
        property FormatSettings: TFormatSettings read FFormatSettings;
      end;
 
-  { TDBBasicsTestSetup }
-
-  TDBBasicsTestSetup = class(TTestSetup)
-    protected
-      procedure OneTimeSetup; override;
-      procedure OneTimeTearDown; override;
-    end;
-
-{ TTestDataLink }
+  { TTestDataLink }
 
   TTestDataLink = class(TDataLink)
      protected
@@ -92,6 +85,22 @@ type
        procedure DataEvent(Event: TDataEvent; Info: longint); override;
 {$ENDIF}
      end;
+
+  { TDBBasicsTestSetup }
+
+  TDBBasicsTestSetup = class(TTestSetup)
+    protected
+      procedure OneTimeSetup; override;
+      procedure OneTimeTearDown; override;
+    end;
+
+  { TDBBasicsTestCase }
+  TDBBasicsTestCase = class(TTestCase)
+    protected
+      procedure SetUp; override;
+      procedure TearDown; override;
+  end;
+
 
 const
   DataEventnames : Array [TDataEvent] of String[21] =
@@ -107,6 +116,7 @@ const
   testCurrencyValues : Array[0..testValuesCount-1] of currency = (-100,-65.5,-54.34,-43.34,-2.50,-0.2,45.40,0.3,45.4,127,128,255,256,45,0.3,45.4,127,128,255,256,45,1234.56,43.23,43.43,99.88);
   testFmtBCDValues : Array[0..testValuesCount-1] of string = ('-100','-65.5','-54.3333','-43.3334','-2.5','-0.234567','45.4','0.3','45.414585','127','128','255','256','45','0.3','45.4','127','128','255','256','45','1234.56789','43.23','43.500001','99.88');
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
+  testWordValues : Array[0..testValuesCount-1] of Word = (1,2,3,4,5,6,7,8,0,1,127,128,255,256,maxSmallint,maxSmallint+1,maxSmallInt-1,maxSmallInt,65535,100,130,150,151,132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
   testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = ( -$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
   testBooleanValues : Array[0..testValuesCount-1] of boolean = (true,false,false,true,true,false,false,true,false,true,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false);
@@ -223,7 +233,9 @@ uses
 
 var DBConnectorRefCount: integer;
 
-constructor TDBConnector.create;
+{ TDBConnector }
+
+constructor TDBConnector.Create;
 begin
   FFormatSettings.DecimalSeparator:='.';
   FFormatSettings.ThousandSeparator:=#0;
@@ -236,11 +248,12 @@ begin
   CreateNDatasets;
 end;
 
-destructor TDBConnector.destroy;
+destructor TDBConnector.Destroy;
 begin
   if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
+  Inherited;
 end;
 
 function TDBConnector.GetTestUniDirectional: boolean;
@@ -251,6 +264,11 @@ end;
 procedure TDBConnector.SetTestUniDirectional(const AValue: boolean);
 begin
   raise exception.create('Connector does not support tests for unidirectional datasets');
+end;
+
+procedure TDBConnector.DataEvent(dataset : tdataset);
+begin
+  DataEvents := DataEvents + 'DataEvent' + ';';
 end;
 
 procedure TDBConnector.ResetNDatasets;
@@ -265,16 +283,115 @@ begin
   CreateFieldDataset;
 end;
 
-procedure TDBConnector.DataEvent(dataset : tdataset);
-
-begin
-  DataEvents := DataEvents + 'DataEvent' + ';';
-end;
-
 function TDBConnector.GetNDataset(n: integer): TDataset;
 begin
   Result := GetNDataset(False,n);
 end;
+
+function TDBConnector.GetNDataset(AChange : Boolean; n: integer): TDataset;
+begin
+  if AChange then FChangedDatasets[n] := True;
+  Result := InternalGetNDataset(n);
+  FUsedDatasets.Add(Result);
+end;
+
+function TDBConnector.GetFieldDataset: TDataSet;
+begin
+  Result := GetFieldDataset(False);
+end;
+
+function TDBConnector.GetFieldDataset(AChange: Boolean): TDataSet;
+begin
+  if AChange then FChangedFieldDataset := True;
+  Result := InternalGetFieldDataset;
+  FUsedDatasets.Add(Result);
+end;
+
+function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
+begin
+  result := GetNDataset(AChange,NForTraceDataset);
+end;
+
+procedure TDBConnector.StartTest;
+begin
+  // Do nothing?
+end;
+
+procedure TDBConnector.StopTest;
+var i : integer;
+    ds : TDataset;
+begin
+  for i := 0 to FUsedDatasets.Count -1 do
+    begin
+    ds := tdataset(FUsedDatasets[i]);
+    if ds.active then ds.Close;
+    ds.Free;
+    end;
+  FUsedDatasets.Clear;
+  if FChangedFieldDataset then ResetFieldDataset;
+  for i := 0 to MaxDataSet do if FChangedDatasets[i] then
+    begin
+    ResetNDatasets;
+    fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
+    break;
+    end;
+end;
+
+
+{ TTestDataLink }
+
+procedure TTestDataLink.DataSetScrolled(Distance: Integer);
+begin
+  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
+  inherited DataSetScrolled(Distance);
+end;
+
+procedure TTestDataLink.DataSetChanged;
+begin
+  DataEvents := DataEvents + 'DataSetChanged;';
+  inherited DataSetChanged;
+end;
+
+{$IFDEF FPC}
+procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
+{$ELSE}
+procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
+{$ENDIF}
+begin
+  if Event <> deFieldChange then
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';'
+  else
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + TField(info).FieldName + ';';
+  inherited DataEvent(Event, Info);
+end;
+
+
+{ TDBBasicsTestSetup }
+
+procedure TDBBasicsTestSetup.OneTimeSetup;
+begin
+  InitialiseDBConnector;
+end;
+
+procedure TDBBasicsTestSetup.OneTimeTearDown;
+begin
+  FreeDBConnector;
+end;
+
+{ TDBBasicsTestCase }
+
+procedure TDBBasicsTestCase.SetUp;
+begin
+  inherited SetUp;
+  DBConnector.StartTest;
+end;
+
+procedure TDBBasicsTestCase.TearDown;
+begin
+  DBConnector.StopTest;
+  inherited TearDown;
+end;
+
 
 procedure ReadIniFile;
 
@@ -326,6 +443,7 @@ begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i],FormatSettings);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
+    testValues[ftWord,i] := IntToStr(testWordValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
@@ -398,96 +516,6 @@ begin
   end;
 end;
 
-
-{ TTestDataLink }
-
-procedure TTestDataLink.DataSetScrolled(Distance: Integer);
-begin
-  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
-  inherited DataSetScrolled(Distance);
-end;
-
-procedure TTestDataLink.DataSetChanged;
-begin
-  DataEvents := DataEvents + 'DataSetChanged;';
-  inherited DataSetChanged;
-end;
-
-{$IFDEF FPC}
-procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
-{$ELSE}
-procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
-{$ENDIF}
-begin
-  if Event <> deFieldChange then
-    DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';'
-  else
-    DataEvents := DataEvents + DataEventnames[Event] + ':' + TField(info).FieldName + ';';
-  inherited DataEvent(Event, Info);
-end;
-
-{ TDBConnector }
-
-function TDBConnector.GetNDataset(AChange : Boolean; n: integer): TDataset;
-begin
-  if AChange then FChangedDatasets[n] := True;
-  Result := InternalGetNDataset(n);
-  FUsedDatasets.Add(Result);
-end;
-
-function TDBConnector.GetFieldDataset: TDataSet;
-begin
-  Result := GetFieldDataset(False);
-end;
-
-function TDBConnector.GetFieldDataset(AChange: Boolean): TDataSet;
-begin
-  if AChange then FChangedFieldDataset := True;
-  Result := InternalGetFieldDataset;
-  FUsedDatasets.Add(Result);
-end;
-
-function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
-begin
-  result := GetNDataset(AChange,NForTraceDataset);
-end;
-
-procedure TDBConnector.StartTest;
-begin
-// Do nothing?
-end;
-
-procedure TDBConnector.StopTest;
-var i : integer;
-    ds : TDataset;
-begin
-  for i := 0 to FUsedDatasets.Count -1 do
-    begin
-    ds := tdataset(FUsedDatasets[i]);
-    if ds.active then ds.Close;
-    ds.Free;
-    end;
-  FUsedDatasets.Clear;
-  if FChangedFieldDataset then ResetFieldDataset;
-  for i := 0 to MaxDataSet do if FChangedDatasets[i] then
-    begin
-    ResetNDatasets;
-    fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
-    break;
-    end;
-end;
-
-{ TDBBasicsTestSetup }
-
-procedure TDBBasicsTestSetup.OneTimeSetup;
-begin
-  InitialiseDBConnector;
-end;
-
-procedure TDBBasicsTestSetup.OneTimeTearDown;
-begin
-  FreeDBConnector;
-end;
 
 initialization
   ReadIniFile;

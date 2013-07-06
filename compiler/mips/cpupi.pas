@@ -41,9 +41,6 @@ interface
       intregssave,
       floatregssave : byte;
       register_used : tparasupregsused;
-      register_size : tparasupregsize;
-      register_name : tparasuprename;
-      register_offset : tparasupregsoffset;
       computed_local_size : longint;
       save_gp_ref: treference;
       //intparareg,
@@ -66,20 +63,12 @@ implementation
       tgobj,paramgr,symconst;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
-      var
-        i : longint;
       begin
         inherited create(aparent);
         { if (cs_generate_stackframes in current_settings.localswitches) or
            not (cs_opt_stackframe in current_settings.optimizerswitches) then }
           include(flags,pi_needs_stackframe);
-        for i:=low(tparasupregs)  to high(tparasupregs) do
-          begin
-            register_used[i]:=false;
-            register_size[i]:=OS_NO;
-            register_name[i]:='invalid';
-            register_offset[i]:=-1;
-          end;
+
         floatregssave:=12; { f20-f31 }
         intregssave:=10;   { r16-r23,r30,r31 }
         computed_local_size:=-1;
@@ -129,10 +118,14 @@ implementation
 
     procedure TMIPSProcInfo.allocate_got_register(list:tasmlist);
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (pi_needs_got in flags) and
-           not (po_nostackframe in procdef.procoptions) then
-          tg.gettemp(list,sizeof(aint),sizeof(aint),tt_noreuse,save_gp_ref);
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            if (pi_do_call in flags) then
+              include(flags,pi_needs_got);
+            if (pi_needs_got in flags) and
+               not (po_nostackframe in procdef.procoptions) then
+              tg.gettemp(list,sizeof(aint),sizeof(aint),tt_noreuse,save_gp_ref);
+          end;
       end;
 
 

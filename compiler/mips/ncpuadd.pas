@@ -158,30 +158,23 @@ begin
 end;
 
 
+const
+  cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
+
 procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
-var
-  hreg: tregister;
 begin
-  hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ops[unsigned], hreg, left_reg.reghi, right_reg.reghi));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrTrueLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,current_procinfo.CurrTrueLabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg, left_reg.reglo, right_reg.reglo));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrTrueLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,current_procinfo.CurrTrueLabel);
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
 end;
 
 
 procedure tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
-var
-  hreg: TRegister;
 begin
-  hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ops[unsigned], hreg, right_reg.reghi, left_reg.reghi));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrFalseLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrTrueLabel);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg, right_reg.reglo, left_reg.reglo));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrFalseLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,current_procinfo.CurrFalseLabel);
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
 end;
 
@@ -343,8 +336,9 @@ const
 
 procedure tmipsaddnode.second_cmpfloat;
 var
-  op,op2: tasmop;
+  op: tasmop;
   lreg,rreg: tregister;
+  ai: Taicpu;
 begin
   pass_left_right;
   if nf_swapped in flags then
@@ -355,11 +349,6 @@ begin
   location_reset(location, LOC_JUMP, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];
-
-  if (nodetype=unequaln) then
-    op2:=A_BC1F
-  else
-    op2:=A_BC1T;
 
   if (nodetype in [gtn,gten]) then
     begin
@@ -373,7 +362,12 @@ begin
     end;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,lreg,rreg));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(op2,current_procinfo.CurrTrueLabel));
+  ai:=taicpu.op_sym(A_BC,current_procinfo.CurrTrueLabel);
+  if (nodetype=unequaln) then
+    ai.SetCondition(C_COP1FALSE)
+  else
+    ai.SetCondition(C_COP1TRUE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
 end;

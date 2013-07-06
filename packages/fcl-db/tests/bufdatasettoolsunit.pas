@@ -152,6 +152,7 @@ begin
       FieldByName('FSTRING').AsString := testStringValues[i];
       FieldByName('FSMALLINT').AsInteger := testSmallIntValues[i];
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
+      FieldByName('FWORD').AsInteger := testWordValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
       FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];

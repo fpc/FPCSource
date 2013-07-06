@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('pasjpeg');
 {$ifdef ALLPACKAGES}
-    P.Directory:='pasjpeg';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=P.OSes-[embedded];

@@ -416,3 +416,7 @@ const
 
 function DosQueryMem (P: pointer; var Size, Flag: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 306;
+
+function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
+                                                               cardinal; cdecl;
+external 'DOSCALLS' index 348;

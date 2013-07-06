@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_tply;
+procedure add_tply(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -24,9 +24,7 @@ begin
     P.Description := 'A compiler generator for Turbo Pascal and compatibles.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='tply';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.Options.Add('-Sg');
@@ -92,7 +90,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_tply;
+  add_tply('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

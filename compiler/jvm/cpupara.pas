@@ -147,6 +147,7 @@ implementation
             result.size:=OS_NO;
             result.intsize:=0;
             paraloc^.size:=OS_NO;
+            paraloc^.def:=voidtype;
             paraloc^.loc:=LOC_VOID;
             exit;
           end;
@@ -155,6 +156,11 @@ implementation
           begin
             retcgsize:=OS_INT;
             result.intsize:=sizeof(pint);
+          end
+        else if jvmimplicitpointertype(result.def) then
+          begin
+            retcgsize:=OS_ADDR;
+            result.def:=getpointerdef(result.def);
           end
         else
           begin
@@ -168,6 +174,8 @@ implementation
         paraloc^.loc:=LOC_REFERENCE;
         paraloc^.reference.index:=NR_EVAL_STACK_BASE;
         paraloc^.reference.offset:=0;
+        paraloc^.size:=result.size;
+        paraloc^.def:=result.def;
       end;
 
     function TJVMParaManager.param_use_paraloc(const cgpara: tcgpara): boolean;
@@ -226,6 +234,11 @@ implementation
                 paracgsize:=OS_ADDR;
                 paradef:=java_jlobject;
               end
+            else if jvmimplicitpointertype(hp.vardef) then
+              begin
+                paracgsize:=OS_ADDR;
+                paradef:=getpointerdef(hp.vardef);
+              end
             else
               begin
                 paracgsize:=def_cgsize(hp.vardef);
@@ -246,6 +259,8 @@ implementation
               taking up two slots) }
             paraloc^.loc:=LOC_REFERENCE;;
             paraloc^.reference.offset:=paraofs;
+            paraloc^.size:=paracgsize;
+            paraloc^.def:=paradef;
             case side of
               callerside:
                 begin

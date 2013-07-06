@@ -71,8 +71,6 @@ uses
 *****************************************************************************}
 
 function tmipseltypeconvnode.first_int_to_real: tnode;
-var
-  fname: string[19];
 begin
   { converting a 64bit integer to a float requires a helper }
   if is_64bitint(left.resultdef) or
@@ -87,7 +85,11 @@ begin
       if is_signed(left.resultdef) then
         inserttypeconv(left,s32inttype)
       else
-        inserttypeconv(left,u32inttype);
+        begin
+          inserttypeconv(left,u32inttype);
+          if (cs_create_pic in current_settings.moduleswitches) then
+            include(current_procinfo.flags,pi_needs_got);
+        end;
       firstpass(left);
     end;
   result := nil;

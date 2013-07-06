@@ -1,4 +1,4 @@
-
+{ %fail }
 var
   x :longint;
 procedure test; nostackframe;

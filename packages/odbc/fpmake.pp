@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('odbc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='odbc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];

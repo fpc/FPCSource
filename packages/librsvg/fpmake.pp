@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('rsvg');
 {$ifdef ALLPACKAGES}
-    P.Directory:='librsvg';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.OSes := [beos,haiku,freebsd,netbsd,openbsd,linux,win32,aix];
     // Do not build x11 on iPhone (=arm-darwin)

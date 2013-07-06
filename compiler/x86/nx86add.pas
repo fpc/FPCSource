@@ -41,7 +41,10 @@ unit nx86add;
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
         procedure second_cmpfloatsse;
+        procedure second_cmpfloatavx;
+
         procedure second_addfloatsse;
+        procedure second_addfloatavx;
       public
         procedure second_addfloat;override;
 {$ifndef i8086}
@@ -114,7 +117,7 @@ unit nx86add;
               if extra_not then
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,opsize,left.location.register,left.location.register);
               r:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,hlcg.tcgsize2orddef(opsize),right.location,r);
+              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,r);
               emit_reg_reg(op,TCGSize2Opsize[opsize],left.location.register,r);
               cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,r,left.location.register);
             end
@@ -157,7 +160,7 @@ unit nx86add;
                    if extra_not then
                      begin
                         r:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,hlcg.tcgsize2orddef(opsize),right.location,r);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,r);
                         emit_reg(A_NOT,TCGSize2Opsize[opsize],r);
                         emit_reg_reg(A_AND,TCGSize2Opsize[opsize],r,left.location.register);
                      end
@@ -440,7 +443,7 @@ unit nx86add;
 
         { fix the changed opsize we did above because of the missing btsb }
         if opsize<>int_cgsize(resultdef.size) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,hlcg.tcgsize2orddef(int_cgsize(resultdef.size)),false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,cgsize_orddef(int_cgsize(resultdef.size)),false);
       end;
 {$endif not i8086}
 
@@ -726,8 +729,8 @@ unit nx86add;
             if nf_swapped in flags then
               swapleftright;
 
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-            location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
             location:=left.location;
             if is_double(resultdef) then
               begin
@@ -766,7 +769,8 @@ unit nx86add;
         { we can use only right as left operand if the operation is commutative }
         else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
           begin
-            location.register:=right.location.register;
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,location.size,right.location.register,location.register,mms_movescalar);
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -778,11 +782,20 @@ unit nx86add;
           end
         else
           begin
-            if (nf_swapped in flags) then
+            if nf_swapped in flags then
               swapleftright;
 
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-            location.register:=left.location.register;
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
+
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -790,7 +803,166 @@ unit nx86add;
             }
             if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
+
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,location.register,mms_movescalar);
+          end;
+      end;
+
+
+    procedure tx86addnode.second_addfloatavx;
+      var
+        op : topcg;
+        sqr_sum : boolean;
+        tmp : tnode;
+      begin
+        sqr_sum:=false;
+{$ifdef dummy}
+        if (current_settings.fputype>=fpu_sse3) and
+           use_vectorfpu(resultdef) and
+           (nodetype in [addn,subn]) and
+          (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) and
+          (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_sqr_real) then
+          begin
+            sqr_sum:=true;
+            tmp:=tinlinenode(left).left;
+            tinlinenode(left).left:=nil;
+            left.free;
+            left:=tmp;
+
+            tmp:=tinlinenode(right).left;
+            tinlinenode(right).left:=nil;
+            right.free;
+            right:=tmp;
+          end;
+{$endif dummy}
+
+        pass_left_right;
+        check_left_and_right_fpureg(false);
+
+        if (nf_swapped in flags) then
+          { can't use swapleftright if both are on the fpu stack, since then }
+          { both are "R_ST" -> nothing would change -> manually switch       }
+          if (left.location.loc = LOC_FPUREGISTER) and
+             (right.location.loc = LOC_FPUREGISTER) then
+            emit_none(A_FXCH,S_NO)
+          else
+            swapleftright;
+
+        case nodetype of
+          addn :
+            op:=OP_ADD;
+          muln :
+            op:=OP_MUL;
+          subn :
+            op:=OP_SUB;
+          slashn :
+            op:=OP_DIV;
+          else
+            internalerror(200312231);
+        end;
+
+        location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+
+        if sqr_sum then
+          begin
+            if nf_swapped in flags then
+              swapleftright;
+
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+            location:=left.location;
+            if is_double(resultdef) then
+              begin
+                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_SHUFPD,S_NO,%00,right.location.register,location.register));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MULPD,S_NO,location.register,location.register));
+                case nodetype of
+                  addn:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HADDPD,S_NO,location.register,location.register));
+                  subn:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPD,S_NO,location.register,location.register));
+                  else
+                    internalerror(201108162);
+                end;
+              end
+            else
+              begin
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_UNPCKLPS,S_NO,right.location.register,location.register));
+                { ensure that bits 64..127 contain valid values }
+                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_SHUFPD,S_NO,%00,location.register,location.register));
+                { the data is now in bits 0..32 and 64..95 }
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MULPS,S_NO,location.register,location.register));
+                case nodetype of
+                  addn:
+                    begin
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HADDPS,S_NO,location.register,location.register));
+                    end;
+                  subn:
+                    begin
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPS,S_NO,location.register,location.register));
+                    end;
+                  else
+                    internalerror(201108163);
+                end;
+              end
+          end
+        { left*2 ? }
+        else if (nodetype=muln) and is_constrealnode(right) and is_number_float(trealconstnode(right).value_real) and (trealconstnode(right).value_real=2) then
+          begin
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,location.size,
+              left.location.register,
+              left.location.register,
+              location.register,
+              mms_movescalar);
+          end
+        { right*2 ? }
+        else if (nodetype=muln) and is_constrealnode(left) and is_number_float(trealconstnode(left).value_real) and (trealconstnode(left).value_real=2) then
+          begin
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,right.location.size);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+            cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,location.size,
+              right.location.register,
+              right.location.register,
+              location.register,
+              mms_movescalar);
+          end
+        { we can use only right as left operand if the operation is commutative }
+        else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
+          begin
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            cg.a_opmm_loc_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+              left.location,
+              right.location.register,
+              location.register,
+              mms_movescalar);
+          end
+        else
+          begin
+            if (nf_swapped in flags) then
+              swapleftright;
+
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
+            cg.a_opmm_loc_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+              right.location,
+              left.location.register,
+              location.register,
+              mms_movescalar);
           end;
       end;
 
@@ -836,7 +1008,72 @@ unit nx86add;
           end
         else
           begin
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
+            case right.location.loc of
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,right.location.reference,left.location.register));
+                end;
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,right.location.register,left.location.register));
+              else
+                internalerror(200402223);
+            end;
+          end;
+        location.resflags:=getresflags(true);
+      end;
+
+
+    procedure tx86addnode.second_cmpfloatavx;
+      var
+        op : tasmop;
+      begin
+        if is_single(left.resultdef) then
+          op:=A_VCOMISS
+        else if is_double(left.resultdef) then
+          op:=A_VCOMISD
+        else
+          internalerror(200402222);
+        pass_left_right;
+
+        location_reset(location,LOC_FLAGS,def_cgsize(resultdef));
+        { we can use only right as left operand if the operation is commutative }
+        if (right.location.loc=LOC_MMREGISTER) then
+          begin
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+            case left.location.loc of
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,left.location.reference,right.location.register));
+                end;
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,left.location.register,right.location.register));
+              else
+                internalerror(200402221);
+            end;
+            if nf_swapped in flags then
+              exclude(flags,nf_swapped)
+            else
+              include(flags,nf_swapped)
+          end
+        else
+          begin
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -912,7 +1149,10 @@ unit nx86add;
       begin
         if use_vectorfpu(resultdef) then
           begin
-            second_addfloatsse;
+            if UseAVX then
+              second_addfloatavx
+            else
+              second_addfloatsse;
             exit;
           end;
 
@@ -959,7 +1199,10 @@ unit nx86add;
       begin
         if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
-            second_cmpfloatsse;
+            if UseAVX then
+              second_cmpfloatavx
+            else
+              second_cmpfloatsse;
             exit;
           end;
 

@@ -154,14 +154,11 @@ interface
 
         if expectloc=LOC_MMREGISTER then
           begin
-            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
             { make life of register allocator easier }
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-            cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
-
-            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
 
             current_asmdata.getdatalabel(l1);
             new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
@@ -179,9 +176,16 @@ interface
             end;
 
             reference_reset_symbol(href,l1,0,resultdef.alignment);
+            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
 
-            cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
+            if UseAVX then
+              cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,left.location.register,location.register,nil)
+            else
+              begin
+                cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
+                cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
+              end;
           end
         else
           begin

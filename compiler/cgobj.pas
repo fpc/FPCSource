@@ -52,8 +52,10 @@ unit cgobj;
           by Free Pascal. For 32-bit processors, the base class
           should be @link(tcg64f32) and not @var(tcg).
        }
+
+       { tcg }
+
        tcg = class
-       public
           { how many times is this current code executed }
           executionweight : longint;
           alignment : talignment;
@@ -271,6 +273,9 @@ unit cgobj;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
+          procedure a_opmm_loc_reg_reg(list: TAsmList;Op : TOpCG;size : tcgsize;const loc : tlocation;src,dst : tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src1,src2,dst: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_ref_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; src,dst: tregister;shuffle : pmmshuffle); virtual;
 
           procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle); virtual;
           procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual;
@@ -2058,6 +2063,33 @@ implementation
           else
             internalerror(200312232);
         end;
+      end;
+
+
+    procedure tcg.a_opmm_loc_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; src,dst: tregister;shuffle : pmmshuffle);
+      begin
+        case loc.loc of
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            a_opmm_reg_reg_reg(list,op,size,loc.register,src,dst,shuffle);
+          LOC_CREFERENCE,LOC_REFERENCE:
+            a_opmm_ref_reg_reg(list,op,size,loc.reference,src,dst,shuffle);
+          else
+            internalerror(200312232);
+        end;
+      end;
+
+
+    procedure tcg.a_opmm_reg_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;
+      src1,src2,dst : tregister;shuffle : pmmshuffle);
+      begin
+        internalerror(2013061102);
+      end;
+
+
+    procedure tcg.a_opmm_ref_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;
+      const ref : treference;src,dst : tregister;shuffle : pmmshuffle);
+      begin
+        internalerror(2013061101);
       end;
 
 

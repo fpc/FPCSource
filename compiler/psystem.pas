@@ -96,9 +96,9 @@ implementation
         systemunit.insert(tsyssym.create('Length',in_length_x));
         systemunit.insert(tsyssym.create('New',in_new_x));
         systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
-{$endif defined(x86) or defined(arm) or defined(jvm)}
+{$endif SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(tsyssym.create('Aligned',in_aligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
@@ -282,6 +282,9 @@ implementation
   {$ifdef i8086}
         voidfarpointertype:=tpointerdef.createx86(voidtype,x86pt_far);
         voidhugepointertype:=tpointerdef.createx86(voidtype,x86pt_huge);
+        bytefarpointertype:=tpointerdef.createx86(u8inttype,x86pt_far);
+        wordfarpointertype:=tpointerdef.createx86(u16inttype,x86pt_far);
+        longintfarpointertype:=tpointerdef.createx86(s32inttype,x86pt_far);
   {$endif i8086}
 {$endif x86}
         cfiletype:=tfiledef.createuntyped;
@@ -416,6 +419,9 @@ implementation
   {$ifdef i8086}
         addtype('$void_farpointer',voidfarpointertype);
         addtype('$void_hugepointer',voidhugepointertype);
+        addtype('$byte_farpointer',bytefarpointertype);
+        addtype('$word_farpointer',wordfarpointertype);
+        addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
 {$endif x86}
         addtype('$openchararray',openchararraytype);
@@ -458,7 +464,14 @@ implementation
             addtype('$vtblarray',vmtarraytype);
             { Add a type for methodpointers }
             hrecst:=trecordsymtable.create('',1);
+{$ifdef i8086}
+            if current_settings.x86memorymodel in x86_far_code_models then
+              addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidfarpointertype,[]))
+            else
+              addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidnearpointertype,[]));
+{$else i8086}
             addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
+{$endif i8086}
             addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
             methodpointertype:=trecorddef.create('',hrecst);
             addtype('$methodpointer',methodpointertype);
@@ -541,6 +554,9 @@ implementation
   {$ifdef i8086}
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('void_hugepointer',voidhugepointertype);
+        loadtype('byte_farpointer',bytefarpointertype);
+        loadtype('word_farpointer',wordfarpointertype);
+        loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
 {$endif x86}
         loadtype('file',cfiletype);

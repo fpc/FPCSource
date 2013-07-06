@@ -58,7 +58,7 @@ implementation
       symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
-      ncon,ncnv,ncal,
+      ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
       ncgutil,
       nadd,pass_1,symdef;
@@ -99,6 +99,17 @@ implementation
               end;
             left:=nil;
           end
+        else if (nodetype=modn) and
+          (is_signed(left.resultdef)) and
+          (right.nodetype=ordconstn) and
+          (tordconstnode(right).value=2) then
+          begin
+            // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
+            result:=caddnode.create(andn,caddnode.create(subn,cordconstnode.create(0,sinttype,false),caddnode.create(andn,left,cordconstnode.create(1,sinttype,false))),
+                                         caddnode.create(addn,cordconstnode.create(1,sinttype,false),
+                                                              cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,ccallparanode.create(cordconstnode.create(31,sinttype,false),ccallparanode.Create(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
+            left:=nil;
+          end
         else
           result:=inherited first_moddivint;
       end;
@@ -135,7 +146,10 @@ implementation
                  begin
                     helper1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                     helper2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
+                    if power = 1 then
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,numerator,helper1)
+                    else
+                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
                     if current_settings.cputype in cpu_thumb then
                       begin
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
@@ -390,7 +404,7 @@ implementation
           fpu_vfpv3,
           fpu_vfpv3_d16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -403,7 +417,7 @@ implementation
             end;
           fpu_fpv4_s16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);

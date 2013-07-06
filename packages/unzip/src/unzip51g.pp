@@ -2240,7 +2240,7 @@ VAR err : integer;
 BEGIN
   getmem ( slide, wsize );
   fillchar ( slide [ 0 ], wsize, #0 );
-  assign ( infile, in_name );
+  assign ( infile, strpas(in_name) );
   storefilemode := filemode;
   filemode := 0;
   {$push} {$I-}
@@ -2315,7 +2315,7 @@ BEGIN
   reachedsize := 0;
   seek ( infile, offset );
 
-  assign ( outfile, out_name );
+  assign ( outfile, strpas(out_name) );
   {$push} {$I-}
   rewrite ( outfile, 1 );
   {$pop}
@@ -2578,7 +2578,7 @@ VAR bufstart, headerstart, start : longint;
 
 BEGIN
  WITH zprec DO BEGIN
-  assign ( f, zipfilename );
+  assign ( f, strpas(zipfilename));
   filemode := 0;  {Others may read or write};
   {$push} {$I-}
   reset ( f, 1 );

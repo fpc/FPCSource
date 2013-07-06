@@ -334,6 +334,7 @@ Implementation
         relsym: string;
         asmsymtyp: tasmsymtype;
         l: aint;
+        sym: tasmsymbol;
       begin
         case actasmtoken of
           AS_AT:
@@ -356,6 +357,23 @@ Implementation
                   if actasmpattern='GOT' then
 {$endif i8086}
                     begin
+                      case oper.opr.typ of
+                        OPR_SYMBOL:
+                          begin
+                            sym:=oper.opr.symbol;
+                            if oper.opr.symofs<>0 then
+                              Message(asmr_e_invalid_reference_syntax);
+                            oper.opr.typ:=OPR_REFERENCE;
+                            fillchar(oper.opr.ref,sizeof(oper.opr.ref),0);
+                            oper.opr.ref.symbol:=sym;
+                          end;
+                        OPR_REFERENCE:
+                          begin
+                            { ok }
+                          end;
+                        else
+                          Message(asmr_e_invalid_reference_syntax)
+                      end;
                       oper.opr.ref.refaddr:=addr_pic;
                       consume(AS_ID);
                     end

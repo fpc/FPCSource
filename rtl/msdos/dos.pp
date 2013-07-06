@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$inline on}
+{$asmmode intel}
 
 unit dos;
 
@@ -74,6 +75,11 @@ implementation
 uses
   strings;
 
+type
+  PFarByte = ^Byte;far;
+  PFarChar = ^Char;far;
+  PFarWord = ^Word;far;
+
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}
 {$DEFINE HAS_SETCBREAK}
@@ -81,6 +87,9 @@ uses
 {$DEFINE HAS_SETVERIFY}
 {$DEFINE HAS_GETVERIFY}
 {$DEFINE HAS_SWAPVECTORS}
+{$DEFINE HAS_GETINTVEC}
+{$DEFINE HAS_SETINTVEC}
+{$DEFINE HAS_KEEP}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
 
@@ -192,9 +201,88 @@ const
   DOS_MAX_COMMAND_LINE_LENGTH = 126;
 
 procedure exec_ansistring(path : string;comline : ansistring);
+type
+  realptr = packed record
+    ofs,seg : word;
+  end;
+  texecblock = packed record
+    envseg    : word;
+    comtail   : realptr;
+    firstFCB  : realptr;
+    secondFCB : realptr;
+    iniStack  : realptr;
+    iniCSIP   : realptr;
+  end;
+var
+  execblock       : texecblock;
+  c               : ansistring;
+  p               : string;
+  arg_ofs         : integer;
+  fcb1            : array [0..15] of byte;
+  fcb2            : array [0..15] of byte;
 begin
-  {TODO: implement}
-  runerror(304);
+  { create command line }
+  c:=comline;
+  if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
+    begin
+      writeln(stderr,'Dos.exec command line truncated to ',
+              DOS_MAX_COMMAND_LINE_LENGTH,' chars');
+      writeln(stderr,'Before: "',c,'"');
+      setlength(c, DOS_MAX_COMMAND_LINE_LENGTH);
+      writeln(stderr,'After: "',c,'"');
+    end;
+  p:=path;
+  { allow slash as backslash }
+  DoDirSeparators(p);
+  if LFNSupport then
+    GetShortName(p);
+  { allocate FCB see dosexec code }
+  arg_ofs:=1;
+  while (c[arg_ofs] in [' ',#9]) and
+   (arg_ofs<length(c)) do
+    inc(arg_ofs);
+  dosregs.ax:=$2901;
+  dosregs.ds:=Seg(c[arg_ofs]);
+  dosregs.si:=Ofs(c[arg_ofs]);
+  dosregs.es:=Seg(fcb1);
+  dosregs.di:=Ofs(fcb1);
+  msdos(dosregs);
+  { allocate second FCB see dosexec code }
+  dosregs.ax:=$2901;
+  dosregs.ds:=Seg(c[arg_ofs]);
+  dosregs.si:=Ofs(c[arg_ofs]);
+  dosregs.es:=Seg(fcb2);
+  dosregs.di:=Ofs(fcb2);
+  msdos(dosregs);
+
+  c := Chr(Length(c)) + c + #13 + #0;
+  with execblock do
+  begin
+    envseg:={la_env shr 4}0;
+    comtail.seg:=Seg(c[1]);
+    comtail.ofs:=Ofs(c[1]);
+    firstFCB.seg:=Seg(fcb1);
+    firstFCB.ofs:=Ofs(fcb1);
+    secondFCB.seg:=Seg(fcb2);
+    secondFCB.ofs:=Ofs(fcb2);
+  end;
+
+  p := p + #0;
+  dosregs.dx:=Ofs(p[1]);
+  dosregs.ds:=Seg(p[1]);
+  dosregs.bx:=Ofs(execblock);
+  dosregs.es:=Seg(execblock);
+  dosregs.ax:=$4b00;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     dosregs.ax:=$4d00;
+     msdos(dosregs);
+     LastDosExitCode:=DosRegs.al
+   end
+  else
+   LastDosExitCode:=0;
 end;
 
 procedure exec(const path : pathstr;const comline : comstr);
@@ -287,9 +375,156 @@ type
 
 
 function do_diskdata(drive : byte; Free : boolean) : Int64;
+var
+  blocksize, freeblocks, totblocks : longword;
+
+  { Get disk data via old int21/36 (GET FREE DISK SPACE). It's always supported
+    even if it returns wrong values for volumes > 2GB and for cdrom drives when
+    in pure DOS. Note that it's also the only way to get some data on WinNTs. }
+  function DiskData_36 : boolean;
+  begin
+    DiskData_36:=false;
+    dosregs.dl:=drive;
+    dosregs.ah:=$36;
+    msdos(dosregs);
+    if dosregs.ax=$FFFF then exit;
+
+    blocksize:=dosregs.ax*dosregs.cx;
+    freeblocks:=dosregs.bx;
+    totblocks:=dosregs.dx;
+    Diskdata_36:=true;
+  end;
+
+  { Get disk data via int21/7303 (FAT32 - GET EXTENDED FREE SPACE ON DRIVE).
+    It is supported by win9x even in pure DOS }
+  function DiskData_7303 : boolean;
+  var
+    s : shortstring;
+    rec : ExtendedFat32FreeSpaceRec;
+  begin
+    DiskData_7303:=false;
+    s:=chr(drive+$40)+':\'+#0;
+
+    rec.Strucversion:=0;
+    rec.RetSize := 0;
+    dosregs.dx:=Ofs(s[1]);
+    dosregs.ds:=Seg(s[1]);
+    dosregs.di:=Ofs(Rec);
+    dosregs.es:=Seg(Rec);
+    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+    dosregs.ax:=$7303;
+    msdos(dosregs);
+    if (dosregs.flags and fcarry) <> 0 then
+      exit;
+    if Rec.RetSize = 0 then
+      exit;
+
+    blocksize:=rec.SecPerClus*rec.BytePerSec;
+    freeblocks:=rec.AvailAllocUnits;
+    totblocks:=rec.TotalAllocUnits;
+    DiskData_7303:=true;
+  end;
+
+  { Get disk data asking to MSCDEX. Pure DOS returns wrong values with
+    int21/7303 or int21/36 if the drive is a CDROM drive }
+  function DiskData_CDROM : boolean;
+  var req : TRequestHeader;
+      sectreq : TCDSectSizeReq;
+      sizereq : TCDVolSizeReq;
+      i : integer;
+      status,byteswritten : word;
+      drnum : byte;
+  begin
+    DiskData_CDROM:=false;
+    exit;
+    { TODO: implement }
+(*    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
+
+    { Is this a CDROM drive? }
+    dosregs.ax:=$150b;
+    dosregs.cx:=drnum;
+    realintr($2f,dosregs);
+    if (dosregs.bx<>$ADAD) or (dosregs.ax=0) then
+      exit; // no, it isn't
+
+    { Prepare the request header to send to the cdrom driver }
+    FillByte(req,sizeof(req),0);
+    req.length:=sizeof(req);
+    req.command:=IOCTL_INPUT;
+    req.transf_ofs:=tb_offset+sizeof(req); //CDROM control block will follow
+    req.transf_seg:=tb_segment;            //the request header
+    req.numbytes:=sizeof(sectreq);
+
+    { We're asking the sector size }
+    sectreq.func:=CDFUNC_SECTSIZE;
+    sectreq.mode:=0; //cooked
+    sectreq.secsize:=0;
+
+    for i:=1 to 2 do
+    begin
+      { Send the request to the cdrom driver }
+      dosmemput(tb_segment,tb_offset,req,sizeof(req));
+      dosmemput(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
+      dosregs.ax:=$1510;
+      dosregs.cx:=drnum;
+      dosregs.es:=tb_segment;
+      dosregs.bx:=tb_offset;
+      realintr($2f,dosregs);
+      dosmemget(tb_segment,tb_offset+3,status,2);
+      { status = $800F means "disk changed". Try once more. }
+      if (status and $800F) <> $800F then break;
+    end;
+    dosmemget(tb_segment,tb_offset+$12,byteswritten,2);
+    if (status<>$0100) or (byteswritten<>sizeof(sectreq)) then
+      exit; //An error occurred
+    dosmemget(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
+
+  { Update the request header for the next request }
+    req.numbytes:=sizeof(sizereq);
+
+    { We're asking the volume size (in blocks) }
+    sizereq.func:=CDFUNC_VOLSIZE;
+    sizereq.size:=0;
+
+    { Send the request to the cdrom driver }
+    dosmemput(tb_segment,tb_offset,req,sizeof(req));
+    dosmemput(tb_segment,tb_offset+sizeof(req),sizereq,sizeof(sizereq));
+    dosregs.ax:=$1510;
+    dosregs.cx:=drnum;
+    dosregs.es:=tb_segment;
+    dosregs.bx:=tb_offset;
+    realintr($2f,dosregs);
+    dosmemget(tb_segment,tb_offset,req,sizeof(req));
+    if (req.status<>$0100) or (req.numbytes<>sizeof(sizereq)) then
+      exit; //An error occurred
+    dosmemget(tb_segment,tb_offset+sizeof(req)+1,sizereq.size,4);
+
+    blocksize:=sectreq.secsize;
+    freeblocks:=0; //always 0 for a cdrom
+    totblocks:=sizereq.size;
+    DiskData_CDROM:=true;*)
+  end;
+
 begin
-  {TODO: implement}
-  runerror(304);
+  if drive=0 then
+  begin
+    dosregs.ax:=$1900;    //get current default drive
+    msdos(dosregs);
+    drive:=dosregs.al+1;
+  end;
+
+  if not DiskData_CDROM then
+  if not DiskData_7303 then
+  if not DiskData_36 then
+  begin
+    do_diskdata:=-1;
+    exit;
+  end;
+  do_diskdata:=blocksize;
+  if free then
+    do_diskdata:=do_diskdata*freeblocks
+  else
+    do_diskdata:=do_diskdata*totblocks;
 end;
 
 function diskfree(drive : byte) : int64;
@@ -355,23 +590,82 @@ var
 {$endif DEBUG_LFN}
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+var
+  i : longint;
+  w : LFNSearchRec;
 begin
-  {TODO: implement}
-  runerror(304);
+  { allow slash as backslash }
+  DoDirSeparators(path);
+  dosregs.si:=1; { use ms-dos time }
+  { don't include the label if not asked for it, needed for network drives }
+  if attr=$8 then
+   dosregs.cx:=8
+  else
+   dosregs.cx:=attr and (not 8);
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
+  dosregs.di:=Ofs(w);
+  dosregs.es:=Seg(w);
+  dosregs.ax:=$714e;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=2 then
+    DosError:=18;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN then
+    begin
+      Append(lfnfile);
+      inc(LFNOpenNb);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindFirst called ',path);
+      close(lfnfile);
+    end;
+{$endif DEBUG_LFN}
+  LFNSearchRec2Dos(w,dosregs.ax,s,true);
 end;
 
 
 procedure LFNFindNext(var s:searchrec);
+var
+  hdl : longint;
+  w   : LFNSearchRec;
 begin
-  {TODO: implement}
-  runerror(304);
+  Move(s.Fill,hdl,4);
+  dosregs.si:=1; { use ms-dos time }
+  dosregs.di:=Ofs(w);
+  dosregs.es:=Seg(w);
+  dosregs.bx:=hdl;
+  dosregs.ax:=$714f;
+  msdos(dosregs);
+  LoadDosError;
+  LFNSearchRec2Dos(w,hdl,s,false);
 end;
 
 
 procedure LFNFindClose(var s:searchrec);
+var
+  hdl : longint;
 begin
-  {TODO: implement}
-  runerror(304);
+  Move(s.Fill,hdl,4);
+  { Do not call MsDos if FindFirst returned with an error }
+  if hdl=-1 then
+    begin
+      DosError:=0;
+      exit;
+    end;
+  dosregs.bx:=hdl;
+  dosregs.ax:=$71a1;
+  msdos(dosregs);
+  LoadDosError;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN  then
+    begin
+      Append(lfnfile);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindClose called ');
+      close(lfnfile);
+      if LFNOpenNb>0 then
+        dec(LFNOpenNb);
+    end;
+{$endif DEBUG_LFN}
 end;
 
 
@@ -395,15 +689,32 @@ end;
 
 procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
 begin
-  {TODO: implement}
-  runerror(304);
+  { allow slash as backslash }
+  DoDirSeparators(path);
+  dosregs.dx:=Ofs(f);
+  dosregs.ds:=Seg(f);
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.cx:=attr;
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
+  dosregs.ah:=$4e;
+  msdos(dosregs);
+  LoadDosError;
+  dossearchrec2searchrec(f);
 end;
 
 
 procedure Dosfindnext(var f : searchrec);
 begin
-  {TODO: implement}
-  runerror(304);
+  dosregs.dx:=Ofs(f);
+  dosregs.ds:=Seg(f);
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.ah:=$4f;
+  msdos(dosregs);
+  LoadDosError;
+  dossearchrec2searchrec(f);
 end;
 
 
@@ -514,17 +825,54 @@ end;
 
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
+var
+  c : array[0..255] of char;
 begin
-  {TODO: implement}
-  runerror(304);
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  dosregs.ax:=$7160;
+  dosregs.cx:=1;
+  dosregs.ds:=Seg(c);
+  dosregs.si:=Ofs(c);
+  dosregs.es:=Seg(c);
+  dosregs.di:=Ofs(c);
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetShortName:=true;
+   end
+  else
+   GetShortName:=false;
 end;
 
 
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
+var
+  c : array[0..260] of char;
 begin
-  {TODO: implement}
-  runerror(304);
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  dosregs.ax:=$7160;
+  dosregs.cx:=2;
+  dosregs.ds:=Seg(c);
+  dosregs.si:=Ofs(c);
+  dosregs.es:=Seg(c);
+  dosregs.di:=Ofs(c);
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     c[255]:=#0;
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetLongName:=true;
+   end
+  else
+   GetLongName:=false;
 end;
 
 
@@ -555,15 +903,41 @@ end;
 
 procedure getfattr(var f;var attr : word);
 begin
-  {TODO: implement}
-  runerror(304);
+  dosregs.dx:=Ofs(filerec(f).name);
+  dosregs.ds:=Seg(filerec(f).name);
+  if LFNSupport then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=0;
+   end
+  else
+   dosregs.ax:=$4300;
+  msdos(dosregs);
+  LoadDosError;
+  Attr:=dosregs.cx;
 end;
 
 
 procedure setfattr(var f;attr : word);
 begin
-  {TODO: implement}
-  runerror(304);
+  { Fail for setting VolumeId. }
+  if ((attr and VolumeID)<>0) then
+  begin
+    doserror:=5;
+    exit;
+  end;
+  dosregs.dx:=Ofs(filerec(f).name);
+  dosregs.ds:=Seg(filerec(f).name);
+  if LFNSupport then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=1;
+   end
+  else
+   dosregs.ax:=$4301;
+  dosregs.cx:=attr;
+  msdos(dosregs);
+  LoadDosError;
 end;
 
 
@@ -571,49 +945,108 @@ end;
                              --- Environment ---
 ******************************************************************************}
 
+function GetEnvStr(EnvNo: Integer; var OutEnvStr: string): integer;
+var
+  dos_env_seg: Word;
+  ofs: Word;
+  Ch, Ch2: Char;
+begin
+  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  GetEnvStr := 1;
+  OutEnvStr := '';
+  ofs := 0;
+  repeat
+    Ch := PFarChar(Ptr(dos_env_seg,ofs))^;
+    Ch2 := PFarChar(Ptr(dos_env_seg,ofs + 1))^;
+    if (Ch = #0) and (Ch2 = #0) then
+      exit;
+
+    if Ch = #0 then
+      Inc(GetEnvStr);
+
+    if (Ch <> #0) and (GetEnvStr = EnvNo) then
+      OutEnvStr := OutEnvStr + Ch;
+
+    Inc(ofs);
+    if ofs = 0 then
+      exit;
+  until false;
+end;
+
+
 function envcount : longint;
 var
-  hp : ppchar;
+  tmpstr: string;
 begin
-  hp:=envp;
-  envcount:=0;
-  while assigned(hp^) do
-   begin
-     inc(envcount);
-     inc(hp);
-   end;
+  envcount := GetEnvStr(-1, tmpstr);
 end;
 
 
 function envstr (Index: longint): string;
 begin
-  if (index<=0) or (index>envcount) then
-    envstr:=''
-  else
-    envstr:=strpas(ppchar(pointer(envp)+SizeOf(PChar)*(index-1))^);
+  GetEnvStr(Index, envstr);
 end;
 
 
 Function  GetEnv(envvar: string): string;
 var
-  hp    : ppchar;
   hs    : string;
   eqpos : longint;
+  I     : integer;
 begin
   envvar:=upcase(envvar);
-  hp:=envp;
   getenv:='';
-  while assigned(hp^) do
+  for I := 1 to envcount do
    begin
-     hs:=strpas(hp^);
+     hs:=envstr(I);
      eqpos:=pos('=',hs);
      if upcase(copy(hs,1,eqpos-1))=envvar then
       begin
         getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
         break;
       end;
-     inc(hp);
    end;
+end;
+
+{******************************************************************************
+                             --- Get/SetIntVec ---
+******************************************************************************}
+
+procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
+asm
+  mov al, intno
+  mov ah, 35h
+  int 21h
+  xchg ax, bx
+  mov bx, vector
+  mov [bx], ax
+  mov ax, es
+  mov [bx + 2], ax
+end;
+
+procedure SetIntVec(intno: Byte; vector: farpointer); assembler;
+asm
+  push ds
+  mov al, intno
+  mov ah, 25h
+  lds dx, word [vector]
+  int 21h
+  pop ds
+end;
+
+{******************************************************************************
+                                  --- Keep ---
+******************************************************************************}
+
+Procedure Keep(exitcode: word); assembler;
+asm
+  mov bx, dos_psp
+  dec bx
+  mov es, bx
+  mov dx, es:[3]
+  mov al, exitcode
+  mov ah, 31h
+  int 21h
 end;
 
 {$ifdef DEBUG_LFN}

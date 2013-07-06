@@ -13,9 +13,16 @@ interface
 uses
   fpcunit, testregistry,
   Classes, SysUtils, db, ToolsUnit, bufdataset,
-  fpDBExport, fpXMLXSDExport, fpdbfexport, fpcsvexport, fpfixedexport,
-  fpSimpleXMLExport, fpsimplejsonexport, fpSQLExport,
-  fptexexport, fprtfexport;
+  fpDBExport,
+  fpXMLXSDExport,
+  fpdbfexport,
+  fpcsvexport,
+  fpfixedexport,
+  fpSimpleXMLExport,
+  fpsimplejsonexport,
+  fpSQLExport,
+  fptexexport,
+  fprtfexport;
 
 
 type
@@ -146,7 +153,7 @@ procedure TTestDBExport.SetUp;
 begin
   inherited SetUp;
   InitialiseDBConnector;
-  //DBConnector.StartTest; //is this needed?
+  DBConnector.StartTest; //is this needed?
   FExportTempDir:=IncludeTrailingPathDelimiter(ExpandFileName(''))+'exporttests'+PathDelim; //Store output in subdirectory
   ForceDirectories(FExportTempDir);
   FKeepFilesAfterTest:=true; //keep test files; consistent with other units right now
@@ -155,7 +162,7 @@ end;
 procedure TTestDBExport.TearDown;
 begin
   inherited TearDown;
-  //DBConnector.StopTest; //is this needed?
+  DBConnector.StopTest; //is this needed?
   FreeDBConnector;
 end;
 

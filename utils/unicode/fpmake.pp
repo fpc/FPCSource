@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_unicode;
+procedure add_unicode(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -22,7 +22,7 @@ begin
     P.Email := '';
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='unicode';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('rtl');
@@ -61,7 +61,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_unicode;
+  add_unicode('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

@@ -257,9 +257,16 @@ implementation
 
     procedure check_finalize_paras(p:TObject;arg:pointer);
       begin
-        if (tsym(p).typ=paravarsym) and
-           tparavarsym(p).needs_finalization then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+        if (tsym(p).typ=paravarsym) then
+          begin
+            if tparavarsym(p).needs_finalization then
+              include(current_procinfo.flags,pi_needs_implicit_finally);
+            if (tparavarsym(p).varspez in [vs_value,vs_out]) and
+               (cs_create_pic in current_settings.moduleswitches) and
+               (tf_pic_uses_got in target_info.flags) and
+               is_rtti_managed_type(tparavarsym(p).vardef) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 
@@ -270,7 +277,13 @@ implementation
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
            is_managed_type(tlocalvarsym(p).vardef) then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+          begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
+            if is_rtti_managed_type(tlocalvarsym(p).vardef) and
+              (cs_create_pic in current_settings.moduleswitches) and
+              (tf_pic_uses_got in target_info.flags) then
+              include(current_procinfo.flags,pi_needs_got);
+          end;
       end;
 
 
@@ -982,6 +995,7 @@ implementation
                 (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
                ((cs_opt_stackframe in current_settings.optimizerswitches) and
                 not(cs_generate_stackframes in current_settings.localswitches) and
+                not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_has_stackparameter,pi_needs_stackframe]+
@@ -1010,10 +1024,6 @@ implementation
               end;
           end;
 {$endif defined(x86) or defined(arm)}
-{$ifdef MIPS}
-        framepointer:=NR_STACK_POINTER_REG;
-        tg.direction:=1;
-{$endif MIPS}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;

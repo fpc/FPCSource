@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_importtl;
+procedure add_importtl(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -22,10 +22,11 @@ begin
     P.Email := '';
     P.Description := 'Reads type information from "file" and converts it into a freepascal binding.';
     P.NeedLibC:= false;
+    P.Dependencies.Add('winunits-base');
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-registry');
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='importtl';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.OSes:=[win32,win64];
@@ -36,7 +37,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_rmwait;
+  add_importtl('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

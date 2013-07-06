@@ -23,54 +23,13 @@ type
   TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
-const MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
-      SQLConnTypesNames : Array [TSQLConnType] of String[19] =
+const
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
+  SQLConnTypesNames : Array [TSQLConnType] of String[19] =
         ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
-      FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
-        (
-          '',
-          'VARCHAR(10)',
-          'SMALLINT',
-          'INTEGER',
-          '',             // ftWord
-          'BOOLEAN',
-          'DOUBLE PRECISION', // ftFloat
-          '',             // ftCurrency
-          'DECIMAL(18,4)',// ftBCD
-          'DATE',
-          'TIME',
-          'TIMESTAMP',    // ftDateTime
-          '',             // ftBytes
-          '',             // ftVarBytes
-          '',             // ftAutoInc
-          'BLOB',         // ftBlob
-          'BLOB',         // ftMemo
-          'BLOB',         // ftGraphic
-          '',
-          '',
-          '',
-          '',
-          '',
-          'CHAR(10)',     // ftFixedChar
-          '',             // ftWideString
-          'BIGINT',       // ftLargeInt
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',             // ftGuid
-          'TIMESTAMP',    // ftTimestamp
-          'NUMERIC(18,6)',// ftFmtBCD
-          '',             // ftFixedWideChar
-          ''              // ftWideMemo
-        );
-             
+  STestNotApplicable = 'This test does not apply to this sqldb-connection type';
+
 
 type
 { TSQLDBConnector }
@@ -96,6 +55,7 @@ type
   public
     destructor Destroy; override;
     constructor Create; override;
+    procedure ExecuteDirect(const SQL: string);
     procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
@@ -117,6 +77,50 @@ type
   end;
 
 const
+  FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
+    (
+      '',
+      'VARCHAR(10)',
+      'SMALLINT',
+      'INTEGER',
+      '',             // ftWord
+      'BOOLEAN',
+      'DOUBLE PRECISION', // ftFloat
+      '',             // ftCurrency
+      'DECIMAL(18,4)',// ftBCD
+      'DATE',
+      'TIME',
+      'TIMESTAMP',    // ftDateTime
+      '',             // ftBytes
+      '',             // ftVarBytes
+      '',             // ftAutoInc
+      'BLOB',         // ftBlob
+      'BLOB',         // ftMemo
+      'BLOB',         // ftGraphic
+      '',
+      '',
+      '',
+      '',
+      '',
+      'CHAR(10)',     // ftFixedChar
+      '',             // ftWideString
+      'BIGINT',       // ftLargeInt
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',             // ftGuid
+      'TIMESTAMP',    // ftTimestamp
+      'NUMERIC(18,6)',// ftFmtBCD
+      '',             // ftFixedWideChar
+      ''              // ftWideMemo
+    );
+
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
   SQLServerTypesMap : array [0..7] of TSQLServerTypesMapItem = (
     (s: 'Firebird'; t: ssFirebird),
@@ -221,6 +225,7 @@ begin
       end;
     ssMySQL:
       begin
+      FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
@@ -239,13 +244,14 @@ begin
       end;
     ssPostgreSQL:
       begin
-      FieldtypeDefinitions[ftCurrency] := 'MONEY';
+      FieldtypeDefinitions[ftCurrency] := 'MONEY'; // ODBC?!
       FieldtypeDefinitions[ftBlob] := 'BYTEA';
       FieldtypeDefinitions[ftMemo] := 'TEXT';
       FieldtypeDefinitions[ftGraphic] := '';
       end;
     ssSQLite:
       begin
+      FieldtypeDefinitions[ftWord] := 'WORD';
       FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
       FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
@@ -319,7 +325,7 @@ begin
     database := Fconnection;
 end;
 
-Function TSQLDBConnector.CreateQuery : TSQLQuery;
+function TSQLDBConnector.CreateQuery: TSQLQuery;
 
 begin
   Result := TSQLQuery.create(nil);
@@ -511,6 +517,11 @@ begin
   end;
 end;
 
+procedure TSQLDBConnector.ExecuteDirect(const SQL: string);
+begin
+  Connection.ExecuteDirect(SQL);
+end;
+
 procedure TSQLDBConnector.CommitDDL;
 begin
   // Commits schema definition and manipulation statements;
@@ -533,7 +544,6 @@ begin
     end; // try
     end;
   inherited Destroy;
-
   FreeAndNil(FQuery);
   FreeAndNil(FTransaction);
   FreeAndNil(FConnection);

@@ -86,7 +86,7 @@ Unit Rax86int;
        { symtable }
        symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
-       scanner,
+       scanner,pbase,
        { register allocator }
        rabase,rautils,itx86int,
        { codegen }
@@ -2222,7 +2222,8 @@ Unit Rax86int;
       { setup label linked list }
       LocalLabelList:=TLocalLabelList.Create;
       { we might need to know which parameters are passed in registers }
-      current_procinfo.generate_parameter_info;
+      if not parse_generic then
+        current_procinfo.generate_parameter_info;
       { start tokenizer }
       c:=current_scanner.asmgetcharstart;
       gettoken;

@@ -24,6 +24,16 @@ asm
   mov ax, sp
 end;
 
+{$define FPC_SYSTEM_HAS_PTR}
+function Ptr(sel,off: LongInt):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+asm
+  push bp
+  mov bp, sp
+  mov ax, ss:[bp + 4 + extra_param_offset]  // off
+  mov dx, ss:[bp + 8 + extra_param_offset]  // sel
+  pop bp
+end;
+
 {$define FPC_SYSTEM_HAS_CSEG}
 function CSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
 asm
@@ -47,7 +57,7 @@ function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;nostackframe;
 asm
   push bp
   mov bp, sp
-  mov ax, ss:[bp + 6]
+  mov ax, ss:[bp + 6 + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx
@@ -62,7 +72,7 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;nostackframe
 asm
   push bp
   mov bp, sp
-  mov ax, ss:[bp + 6]
+  mov ax, ss:[bp + 6 + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lgnf_null
   xchg ax, bx
@@ -77,7 +87,7 @@ function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
   push bp
   mov bp, sp
-  mov bx, ss:[bp + 4]
+  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
   sub word [bx], 1
   sbb word [bx+2], 0
   mov ax, [bx]
@@ -90,7 +100,7 @@ function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
   push bp
   mov bp, sp
-  mov bx, ss:[bp + 4]
+  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
   add word [bx], 1
   adc word [bx+2], 0
   mov ax, [bx]

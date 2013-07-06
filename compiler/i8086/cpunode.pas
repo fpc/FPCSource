@@ -46,16 +46,15 @@ unit cpunode;
          after the generic one (FK)
        }
        nx86set,
-       nx86con,
-       nx86cnv,
-       nx86mem,
 
        n8086add,
-       n8086cal{,
-       n386mem,
+       n8086cal,
+       n8086cnv,
+       n8086mem{,
        n386set},
        n8086inl,
-       n8086mat
+       n8086mat,
+       n8086con
        ;
 
 end.

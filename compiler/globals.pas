@@ -154,6 +154,8 @@ interface
 
          disabledircache : boolean;
 
+         x86memorymodel  : tx86memorymodel;
+
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
@@ -446,8 +448,8 @@ interface
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
-        cputype : cpu_mips32;
-        optimizecputype : cpu_mips32;
+        cputype : cpu_mips2;
+        optimizecputype : cpu_mips2;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
@@ -477,6 +479,7 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+        x86memorymodel : mm_small;
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
@@ -902,6 +905,11 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
+        if (length(GetEnvPChar)=0) then 
+          begin
+            FreeEnvPChar(GetEnvPChar);
+            GetEnvPChar:=nil;
+          end;
       {$endif}
       end;
 

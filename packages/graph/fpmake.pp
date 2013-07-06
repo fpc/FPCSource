@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('graph');
 {$ifdef ALLPACKAGES}
-    P.Directory:='graph';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'FPC team';

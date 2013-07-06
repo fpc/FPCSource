@@ -51,6 +51,18 @@ interface
                     TDef
 ************************************************}
 
+       tgenericconstraintdata=class
+         interfaces : tfpobjectlist;
+         interfacesderef : tfplist;
+         flags : tgenericconstraintflags;
+         constructor create;
+         destructor destroy;override;
+         procedure ppuload(ppufile:tcompilerppufile);
+         procedure ppuwrite(ppufile:tcompilerppufile);
+         procedure buildderef;
+         procedure deref;
+       end;
+
        { tstoreddef }
 
        tstoreddef = class(tdef)
@@ -66,8 +78,12 @@ interface
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
           { this list contains references to the symbols that make up the
-            generic parameters; the symbols are not owned by this list }
+            generic parameters; the symbols are not owned by this list
+            Note: this list is allocated on demand! }
           genericparas    : tfphashobjectlist;
+          { contains additional data if this def is a generic constraint
+            Note: this class is allocated on demand! }
+          genconstraintdata : tgenericconstraintdata;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -89,6 +105,8 @@ interface
           { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
+          { def can be put into a register if it is const/immutable }
+          function is_const_intregable : boolean;
           { generics }
           procedure initgeneric;
           { this function can be used to determine whether a def is really a
@@ -175,9 +193,6 @@ interface
        end;
 
 {$ifdef x86}
-       tx86pointertyp = (x86pt_near, x86pt_near_cs, x86pt_near_ds, x86pt_near_ss,
-         x86pt_near_es, x86pt_near_fs, x86pt_near_gs, x86pt_far, x86pt_huge);
-
     const
        { TODO: make this depend on the memory model, when other memory models are supported }
        default_x86_data_pointer_type = x86pt_near;
@@ -196,6 +211,7 @@ interface
 {$ifdef x86}
           constructor createx86(def:tdef;x86typ:tx86pointertyp);
 {$endif x86}
+          function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -529,6 +545,7 @@ interface
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;
+          function address_size:asizeint;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -834,6 +851,9 @@ interface
   {$ifdef i8086}
        voidfarpointertype,
        voidhugepointertype,
+       bytefarpointertype,        { used for Mem[] }
+       wordfarpointertype,        { used for MemW[] }
+       longintfarpointertype,     { used for MemL[] }
   {$endif i8086}
 {$endif x86}
        cundefinedtype,
@@ -1377,6 +1397,72 @@ implementation
                      TDEF (base class for definitions)
 ****************************************************************************}
 
+    constructor tgenericconstraintdata.create;
+      begin
+        interfaces:=tfpobjectlist.create(false);
+        interfacesderef:=tfplist.create;
+      end;
+
+
+    destructor tgenericconstraintdata.destroy;
+      var
+        i : longint;
+      begin
+        for i:=0 to interfacesderef.count-1 do
+          dispose(pderef(interfacesderef[i]));
+        interfacesderef.free;
+        interfaces.free;
+        inherited destroy;
+      end;
+
+    procedure tgenericconstraintdata.ppuload(ppufile: tcompilerppufile);
+      var
+        cnt,i : longint;
+        intfderef : pderef;
+      begin
+        ppufile.getsmallset(flags);
+        cnt:=ppufile.getlongint;
+        for i:=0 to cnt-1 do
+          begin
+            new(intfderef);
+            ppufile.getderef(intfderef^);
+            interfacesderef.add(intfderef);
+          end;
+      end;
+
+
+    procedure tgenericconstraintdata.ppuwrite(ppufile: tcompilerppufile);
+      var
+        i : longint;
+      begin
+        ppufile.putsmallset(flags);
+        ppufile.putlongint(interfacesderef.count);
+        for i:=0 to interfacesderef.count-1 do
+          ppufile.putderef(pderef(interfacesderef[i])^);
+      end;
+
+    procedure tgenericconstraintdata.buildderef;
+      var
+        intfderef : pderef;
+        i : longint;
+      begin
+        for i:=0 to interfaces.count-1 do
+          begin
+            new(intfderef);
+            intfderef^.build(tobjectdef(interfaces[i]));
+            interfacesderef.add(intfderef);
+          end;
+      end;
+
+    procedure tgenericconstraintdata.deref;
+      var
+        i : longint;
+      begin
+        for i:=0 to interfacesderef.count-1 do
+          interfaces.add(pderef(interfacesderef[i])^.resolve);
+      end;
+
+
     procedure tstoreddef.fillgenericparas(symtable: tsymtable);
       var
         sym : tsym;
@@ -1390,7 +1476,11 @@ implementation
           begin
             sym:=tsym(symtable.symlist[i]);
             if sp_generic_para in sym.symoptions then
-              genericparas.Add(sym.name,sym);
+              begin
+                if not assigned(genericparas) then
+                  genericparas:=tfphashobjectlist.create(false);
+                genericparas.Add(sym.name,sym);
+              end;
           end;
       end;
 
@@ -1405,7 +1495,6 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
-         genericparas:=tfphashobjectlist.create(false);
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1442,6 +1531,7 @@ implementation
             generictokenbuf:=nil;
           end;
         genericparas.free;
+        genconstraintdata.free;
         inherited destroy;
       end;
 
@@ -1452,7 +1542,6 @@ implementation
         buf  : array[0..255] of byte;
       begin
          inherited create(dt);
-         genericparas:=tfphashobjectlist.create(false);
          DefId:=ppufile.getlongint;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
@@ -1462,6 +1551,11 @@ implementation
          ppufile.getderef(typesymderef);
          ppufile.getsmallset(defoptions);
          ppufile.getsmallset(defstates);
+         if df_genconstraint in defoptions then
+           begin
+             genconstraintdata:=tgenericconstraintdata.create;
+             genconstraintdata.ppuload(ppufile);
+           end;
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
@@ -1487,7 +1581,8 @@ implementation
         result:=false;
       end;
 
-    function Tstoreddef.rtti_mangledname(rt:trttitype):string;
+
+    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
       var
         prefix : string[4];
       begin
@@ -1557,6 +1652,8 @@ implementation
         oldintfcrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         ppufile.putsmallset(defstates);
+        if df_genconstraint in defoptions then
+          genconstraintdata.ppuwrite(ppufile);
         if df_generic in defoptions then
           begin
             if assigned(generictokenbuf) then
@@ -1588,6 +1685,8 @@ implementation
       begin
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
+        if assigned(genconstraintdata) then
+          genconstraintdata.buildderef;
       end;
 
 
@@ -1601,6 +1700,8 @@ implementation
         typesym:=ttypesym(typesymderef.resolve);
         if df_specialization in defoptions then
           genericdef:=tstoreddef(genericdefderef.resolve);
+        if assigned(genconstraintdata) then
+          genconstraintdata.deref;
       end;
 
 
@@ -1689,6 +1790,21 @@ implementation
      end;
 
 
+   function tstoreddef.is_const_intregable : boolean;
+     begin
+       case typ of
+         stringdef:
+           result:=tstringdef(self).stringtype in [st_ansistring,st_unicodestring,st_widestring];
+         arraydef:
+           result:=is_dynamic_array(self);
+         objectdef:
+           result:=is_interface(self);
+         else
+           result:=false;
+       end;
+     end;
+
+
    procedure tstoreddef.initgeneric;
      begin
        if assigned(generictokenbuf) then
@@ -1699,13 +1815,17 @@ implementation
 
    function tstoreddef.is_generic: boolean;
      begin
-       result:=(genericparas.count>0) and (df_generic in defoptions);
+       result:=assigned(genericparas) and
+                 (genericparas.count>0) and
+                 (df_generic in defoptions);
      end;
 
 
    function tstoreddef.is_specialization: boolean;
      begin
-       result:=(genericparas.count>0) and (df_specialization in defoptions);
+       result:=assigned(genericparas) and
+                 (genericparas.count>0) and
+                 (df_specialization in defoptions);
      end;
 
 
@@ -2552,18 +2672,27 @@ implementation
 {$ifdef cpu16bitaddr}
         case filetyp of
           ft_text :
-            {$ifdef avr}
+            {$if defined(avr)}
               savesize:=96;
-            {$else avr}
-              savesize:=576;
-            {$endif avr}
+            {$elseif defined(i8086)}
+              case current_settings.x86memorymodel of
+                mm_tiny,mm_small: savesize:=576;
+                mm_medium:        savesize:=584;
+                else
+                  internalerror(2013060901);
+              end;
+            {$else}
+              {$fatal TODO: define the textrec size for your cpu}
+            {$endif}
           ft_typed,
           ft_untyped :
-            {$ifdef avr}
+            {$if defined(avr)}
               savesize:=76;
-            {$else avr}
+            {$elseif defined(i8086)}
               savesize:=316;
-            {$endif avr}
+            {$else}
+              {$fatal TODO: define the textrec size for your cpu}
+            {$endif}
         end;
 {$endif cpu16bitaddr}
       end;
@@ -2743,12 +2872,15 @@ implementation
 {$endif x86}
 
 
-{    constructor tpointerdef.createfar(def:tdef);
+    function tpointerdef.size: asizeint;
       begin
-        inherited create(pointerdef,def);
-        is_far:=true;
-        has_pointer_math:=cs_pointermath in current_settings.localswitches;
-      end;}
+{$ifdef x86}
+        if x86pointertyp in [x86pt_far,x86pt_huge] then
+          result:=sizeof(pint)+2
+        else
+{$endif x86}
+          result:=sizeof(pint);
+      end;
 
 
     constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
@@ -3765,6 +3897,10 @@ implementation
          proctypeoption:=potype_none;
          proccalloption:=pocall_none;
          procoptions:=[];
+{$ifdef i8086}
+         if current_settings.x86memorymodel in x86_far_code_models then
+           procoptions:=procoptions+[po_far];
+{$endif i8086}
          returndef:=voidtype;
          savesize:=sizeof(pint);
          callerargareasize:=0;
@@ -4212,6 +4348,16 @@ implementation
 {$else}
         result:=false;
 {$endif}
+      end;
+
+    function tabstractprocdef.address_size: asizeint;
+      begin
+{$ifdef i8086}
+        if po_far in procoptions then
+          result:=sizeof(pint)+2
+        else
+{$endif i8086}
+          result:=sizeof(pint);
       end;
 
 
@@ -5285,13 +5431,22 @@ implementation
 
 
     function tprocvardef.size : asizeint;
+      var
+        far_code_extra_bytes: integer = 0;
+        far_data_extra_bytes: integer = 0;
       begin
+{$ifdef i8086}
+         if po_far in procoptions then
+           far_code_extra_bytes:=2;
+         if current_settings.x86memorymodel in x86_far_data_models then
+           far_data_extra_bytes:=2;
+{$endif i8086}
          if ((po_methodpointer in procoptions) or
              is_nested_pd(self)) and
             not(po_addressonly in procoptions) then
-           size:=2*sizeof(pint)
+           size:=2*sizeof(pint)+far_code_extra_bytes+far_data_extra_bytes
          else
-           size:=sizeof(pint);
+           size:=sizeof(pint)+far_code_extra_bytes;
       end;
 
 

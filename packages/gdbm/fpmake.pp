@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gdbm');
 {$ifdef ALLPACKAGES}
-    P.Directory:='gdbm';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: GNU, header: Michael van Canneyt';

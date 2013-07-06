@@ -526,7 +526,14 @@ implementation
               begin
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
+{$ifdef i8086}
+                    if po_far in tabstractprocdef(left.resultdef).procoptions then
+                      result:=ctypeconvnode.create_internal(left,voidfarpointertype)
+                    else
+                      result:=ctypeconvnode.create_internal(left,voidnearpointertype);
+{$else i8086}
                     result:=ctypeconvnode.create_internal(left,voidpointertype);
+{$endif i8086}
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -650,11 +657,10 @@ implementation
 *****************************************************************************}
 
     constructor tderefnode.create(l : tnode);
-
       begin
          inherited create(derefn,l);
-
       end;
+
 
     function tderefnode.pass_typecheck:tnode;
       begin

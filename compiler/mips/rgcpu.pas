@@ -38,8 +38,12 @@ unit rgcpu;
         function get_spill_subreg(r : tregister) : tsubregister;override;
         procedure do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
         procedure do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
       end;
 
+      trgintcpu=class(trgcpu)
+        procedure add_cpu_interferences(p:tai);override;
+      end;
 
 implementation
 
@@ -151,5 +155,59 @@ implementation
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
     end;
+
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      begin
+        result:=false;
+        { Replace 'move  orgreg,src' with 'sw  src,spilltemp'
+              and 'move  dst,orgreg' with 'lw  dst,spilltemp' }
+        { TODO: A_MOV_S and A_MOV_D for float registers are also replaceable }
+        if (instr.opcode<>A_MOVE) or (abs(spilltemp.offset)>32767) then
+          exit;
+        if (instr.ops<>2) or
+           (instr.oper[0]^.typ<>top_reg) or
+           (instr.oper[1]^.typ<>top_reg) or
+           (getregtype(instr.oper[0]^.reg)<>regtype) or
+           (getregtype(instr.oper[1]^.reg)<>regtype) then
+          InternalError(2013061001);
+        if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
+          begin
+            instr.opcode:=A_LW;
+          end
+        else if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
+          begin
+            instr.opcode:=A_SW;
+            instr.oper[0]^:=instr.oper[1]^;
+          end
+        else
+          InternalError(2013061002);
+        instr.oper[1]^.typ:=top_ref;
+        new(instr.oper[1]^.ref);
+        instr.oper[1]^.ref^:=spilltemp;
+        result:=true;
+      end;
+
+
+    procedure trgintcpu.add_cpu_interferences(p: tai);
+      var
+        supreg: tsuperregister;
+      begin
+        if p.typ<>ait_instruction then
+          exit;
+        if (taicpu(p).ops>=1) and (taicpu(p).oper[0]^.typ=top_reg) and
+          (getregtype(taicpu(p).oper[0]^.reg)=regtype) and
+          (taicpu(p).spilling_get_operation_type(0) in [operand_write,operand_readwrite]) then
+          begin
+            { prevent merging registers with frame/stack pointer, $zero and $at
+              if an instruction writes to the register }
+            supreg:=getsupreg(taicpu(p).oper[0]^.reg);
+            add_edge(supreg,RS_STACK_POINTER_REG);
+            add_edge(supreg,RS_FRAME_POINTER_REG);
+            add_edge(supreg,RS_R0);
+            add_edge(supreg,RS_R1);
+          end;
+      end;
+
 
 end.

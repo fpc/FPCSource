@@ -12,10 +12,8 @@
 
  **********************************************************************}
 Unit UComplex;
-{$ifndef VER2_0}
 {$INLINE ON}
 {$define TEST_INLINE}
-{$endif VER2_0}
 
 { created for FPC by Pierre Muller }
 { inpired from the complex unit from  JD GAYRARD mai 95 }

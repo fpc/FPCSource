@@ -1422,7 +1422,7 @@ end;
 
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
 begin
-  Animate_Create:=CreateWindow(LPCSTR(ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
+  Animate_Create:=CreateWindow(LPCTSTR(ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
 end;
 
 

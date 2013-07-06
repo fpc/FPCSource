@@ -35,6 +35,9 @@ unit cgx86;
        symconst,symtype,symdef;
 
     type
+
+      { tcgx86 }
+
       tcgx86 = class(tcg)
         rgfpu   : Trgx86fpu;
         procedure done_register_allocators;override;
@@ -53,9 +56,13 @@ unit cgx86;
         procedure inc_fpu_stack;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
-        procedure a_call_reg(list : TAsmList;reg : tregister);override;
-        procedure a_call_ref(list : TAsmList;ref : treference);override;
+        procedure a_call_name_near(list : TAsmList;const s : string; weak: boolean);
         procedure a_call_name_static(list : TAsmList;const s : string);override;
+        procedure a_call_name_static_near(list : TAsmList;const s : string);
+        procedure a_call_reg(list : TAsmList;reg : tregister);override;
+        procedure a_call_reg_near(list : TAsmList;reg : tregister);
+        procedure a_call_ref(list : TAsmList;ref : treference);override;
+        procedure a_call_ref_near(list : TAsmList;ref : treference);
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
@@ -85,6 +92,8 @@ unit cgx86;
         procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
         procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle);override;
+        procedure a_opmm_ref_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;const ref : treference;src,dst : tregister;shuffle : pmmshuffle);override;
+        procedure a_opmm_reg_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;src1,src2,dst : tregister;shuffle : pmmshuffle);override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -119,9 +128,9 @@ unit cgx86;
         procedure check_register_size(size:tcgsize;reg:tregister);
 
         procedure opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
+        procedure opmm_loc_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;loc : tlocation;src,dst : tregister;shuffle : pmmshuffle);
 
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
-      private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
         procedure floatload(list: TAsmList; t : tcgsize;const ref : treference);
@@ -168,7 +177,7 @@ unit cgx86;
 
     function UseAVX: boolean;
       begin
-        Result:=current_settings.fputype in [fpu_avx];
+        Result:=current_settings.fputype in fpu_avx_instructionsets;
       end;
 
     const
@@ -576,7 +585,15 @@ unit cgx86;
             { let the register allocator find a suitable register for the reference }
             list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
             ref:=href;
-          end
+          end;
+
+        { if there is a segment in an int register, move it to ES }
+        if (ref.segment<>NR_NO) and (not is_segment_reg(ref.segment)) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
+            ref.segment:=NR_ES;
+          end;
 {$endif}
       end;
 
@@ -734,6 +751,12 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      begin
+        a_call_name_near(list,s,weak);
+      end;
+
+
+    procedure tcgx86.a_call_name_near(list : TAsmList;const s : string; weak: boolean);
       var
         sym : tasmsymbol;
         r : treference;
@@ -768,6 +791,12 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name_static(list : TAsmList;const s : string);
+      begin
+        a_call_name_static_near(list,s);
+      end;
+
+
+    procedure tcgx86.a_call_name_static_near(list : TAsmList;const s : string);
       var
         sym : tasmsymbol;
         r : treference;
@@ -781,11 +810,23 @@ unit cgx86;
 
     procedure tcgx86.a_call_reg(list : TAsmList;reg : tregister);
       begin
+        a_call_reg_near(list,reg);
+      end;
+
+
+    procedure tcgx86.a_call_reg_near(list: TAsmList; reg: tregister);
+      begin
         list.concat(taicpu.op_reg(A_CALL,S_NO,reg));
       end;
 
 
     procedure tcgx86.a_call_ref(list : TAsmList;ref : treference);
+      begin
+        a_call_ref_near(list,ref);
+      end;
+
+
+    procedure tcgx86.a_call_ref_near(list: TAsmList; ref: treference);
       begin
         list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
@@ -1105,9 +1146,15 @@ unit cgx86;
 
     function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
       const
-        convertop : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
+        convertopsse : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
           (A_MOVSS,A_CVTSS2SD,A_NONE,A_NONE,A_NONE),
           (A_CVTSD2SS,A_MOVSD,A_NONE,A_NONE,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
+          (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
+        convertopavx : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
+          (A_VMOVSS,A_VCVTSS2SD,A_NONE,A_NONE,A_NONE),
+          (A_VCVTSD2SS,A_VMOVSD,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
@@ -1122,14 +1169,24 @@ unit cgx86;
             OS_64:
               tosize:=OS_F64;
           end;
-        if (fromsize in [low(convertop)..high(convertop)]) and
-           (tosize in [low(convertop)..high(convertop)]) then
-          result:=convertop[fromsize,tosize]
+        if (fromsize in [low(convertopsse)..high(convertopsse)]) and
+           (tosize in [low(convertopsse)..high(convertopsse)]) then
+          begin
+            if UseAVX then
+              result:=convertopavx[fromsize,tosize]
+            else
+              result:=convertopsse[fromsize,tosize];
+          end
         { we can have OS_M64 (record in function result/LOC_MMREGISTER) to
           OS_64 (record in memory/LOC_REFERENCE) }
         else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
                 (fromsize=OS_M64) then
-          result:=A_MOVQ
+          begin
+            if UseAVX then
+              result:=A_VMOVQ
+            else
+              result:=A_MOVQ;
+          end
         else
           internalerror(2010060104);
         if result=A_NONE then
@@ -1140,6 +1197,7 @@ unit cgx86;
     procedure tcgx86.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle);
       var
         instr : taicpu;
+        op : TAsmOp;
       begin
         if shuffle=nil then
           begin
@@ -1161,8 +1219,33 @@ unit cgx86;
           end
         else if shufflescalar(shuffle) then
           begin
-            instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2);
-            case get_scalar_mm_op(fromsize,tosize) of
+            op:=get_scalar_mm_op(fromsize,tosize);
+
+            { MOVAPD/MOVAPS are normally faster }
+            if op=A_MOVSD then
+              op:=A_MOVAPD
+            else if op=A_MOVSS then
+              op:=A_MOVAPS
+            { VMOVSD/SS is not available with two register operands }
+            else if op=A_VMOVSD then
+              op:=A_VMOVAPD
+            else if op=A_VMOVSS then
+              op:=A_VMOVAPS;
+
+            { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+            if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg2,reg2)
+            else
+              instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
+
+            case op of
+              A_VMOVAPD,
+              A_VMOVAPS,
+              A_VMOVSS,
+              A_VMOVSD,
+              A_VMOVQ,
+              A_MOVAPD,
+              A_MOVAPS,
               A_MOVSS,
               A_MOVSD,
               A_MOVQ:
@@ -1178,6 +1261,7 @@ unit cgx86;
     procedure tcgx86.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
        var
          tmpref  : treference;
+         op : tasmop;
        begin
          tmpref:=ref;
          make_simple_ref(list,tmpref);
@@ -1194,7 +1278,15 @@ unit cgx86;
 {$endif x86_64}
            end
          else if shufflescalar(shuffle) then
-           list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,tmpref,reg))
+           begin
+             op:=get_scalar_mm_op(fromsize,tosize);
+
+             { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+             if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+               list.concat(taicpu.op_ref_reg_reg(op,S_NO,tmpref,reg,reg))
+             else
+               list.concat(taicpu.op_ref_reg(op,S_NO,tmpref,reg))
+           end
          else
            internalerror(200312252);
        end;
@@ -1204,6 +1296,7 @@ unit cgx86;
        var
          hreg : tregister;
          tmpref  : treference;
+         op : tasmop;
        begin
          tmpref:=ref;
          make_simple_ref(list,tmpref);
@@ -1224,8 +1317,15 @@ unit cgx86;
              if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
                begin
                  hreg:=getmmregister(list,tosize);
-                 list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg,hreg));
-                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref));
+                 op:=get_scalar_mm_op(fromsize,tosize);
+
+                 { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
+                 if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
+                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,hreg,hreg))
+                 else
+                   list.concat(taicpu.op_reg_reg(op,S_NO,reg,hreg));
+
+                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref))
                end
              else
                list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,tmpref));
@@ -1257,6 +1357,103 @@ unit cgx86;
      end;
 
 
+    procedure tcgx86.opmm_loc_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;src,dst: tregister; shuffle : pmmshuffle);
+      const
+        opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
+          ( { scalar }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDSS,A_NOP,A_VDIVSS,A_NOP,A_NOP,A_VMULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSS,A_NOP,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDSD,A_NOP,A_VDIVSD,A_NOP,A_NOP,A_VMULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSD,A_NOP,A_NOP,A_NOP
+            )
+          ),
+          ( { vectorized/packed }
+            { because the logical packed single instructions have shorter op codes, we use always
+              these
+            }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDPS,A_NOP,A_VDIVPS,A_NOP,A_NOP,A_VMULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPS,A_VXORPS,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDPD,A_NOP,A_VDIVPD,A_NOP,A_NOP,A_VMULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPD,A_VXORPD,A_NOP,A_NOP
+            )
+          )
+        );
+
+      var
+        resultreg : tregister;
+        asmop : tasmop;
+      begin
+        { this is an internally used procedure so the parameters have
+          some constrains
+        }
+        if loc.size<>size then
+          internalerror(2013061108);
+        resultreg:=dst;
+        { deshuffle }
+        //!!!
+        if (shuffle<>nil) and not(shufflescalar(shuffle)) then
+          begin
+            internalerror(2013061107);
+          end
+        else if (shuffle=nil) then
+          asmop:=opmm2asmop[1,size,op]
+        else if shufflescalar(shuffle) then
+          begin
+            asmop:=opmm2asmop[0,size,op];
+            { no scalar operation available? }
+            if asmop=A_NOP then
+              begin
+                { do vectorized and shuffle finally }
+                internalerror(2010060102);
+              end;
+          end
+        else
+          internalerror(2013061106);
+        if asmop=A_NOP then
+          internalerror(2013061105);
+        case loc.loc of
+          LOC_CREFERENCE,LOC_REFERENCE:
+            begin
+              make_simple_ref(current_asmdata.CurrAsmList,loc.reference);
+              list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,src,resultreg));
+            end;
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            list.concat(taicpu.op_reg_reg_reg(asmop,S_NO,loc.register,src,resultreg));
+          else
+            internalerror(2013061104);
+        end;
+        { shuffle }
+        if resultreg<>dst then
+          begin
+            internalerror(2013061103);
+          end;
+      end;
+
+
+    procedure tcgx86.a_opmm_reg_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src1,src2,dst: tregister;shuffle : pmmshuffle);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_MMREGISTER;
+        l.register:=src1;
+        l.size:=size;
+        opmm_loc_reg_reg(list,op,size,l,src2,dst,shuffle);
+      end;
+
+
+    procedure tcgx86.a_opmm_ref_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; src,dst: tregister;shuffle : pmmshuffle);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_REFERENCE;
+        l.reference:=ref;
+        l.size:=size;
+        opmm_loc_reg_reg(list,op,size,l,src,dst,shuffle);
+      end;
+
+
     procedure tcgx86.opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
       const
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
@@ -1280,7 +1477,6 @@ unit cgx86;
             )
           )
         );
-
       var
         resultreg : tregister;
         asmop : tasmop;
@@ -1850,16 +2046,19 @@ unit cgx86;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
         copy_len_sizes = [1, 2, 4, 8];
+        push_segment_size = S_L;
 {$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
         copy_len_sizes = [1, 2, 4];
+        push_segment_size = S_L;
 {$elseif defined(cpu16bitalu)}
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
         copy_len_sizes = [1, 2];
+        push_segment_size = S_W;
 {$endif}
 
     type  copymode=(copy_move,copy_mmx,copy_string);
@@ -1979,8 +2178,8 @@ unit cgx86;
               begin
                 a_loadaddr_ref_reg(list,dest,REGDI);
 {$ifdef volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
 {$endif volatile_es}
               end
             else
@@ -1989,10 +2188,10 @@ unit cgx86;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
 {$ifndef volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_ES));
 {$endif not volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,dest.segment));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment));
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
             if (source.segment=NR_NO) then
@@ -2054,10 +2253,10 @@ unit cgx86;
             ungetcpuregister(list,REGSI);
             ungetcpuregister(list,REGDI);
             if (source.segment<>NR_NO) then
-              list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+              list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
 {$ifndef volatile_es}
             if (dest.segment<>NR_NO) then
-              list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+              list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
 {$endif not volatile_es}
           end;
         end;
@@ -2119,6 +2318,22 @@ unit cgx86;
 
 
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+
+      procedure decrease_sp(a : tcgint);
+{$ifdef i8086}
+        begin
+          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,a,NR_STACK_POINTER_REG));
+        end;
+{$else i8086}
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_STACK_POINTER_REG,-a,0);
+          { normally, lea is a better choice than a sub to adjust the stack pointer }
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+        end;
+{$endif i8086}
+
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
       var
@@ -2139,7 +2354,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize-4,NR_ESP));
+                    decrease_sp(localsize-4);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,4);
@@ -2154,11 +2369,11 @@ unit cgx86;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
+                    decrease_sp(winstackpagesize-4);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                     list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize - 4,NR_ESP));
+                    decrease_sp(localsize mod winstackpagesize-4);
                     reference_reset_base(href,NR_ESP,localsize-4,4);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     ungetcpuregister(list,NR_EDI);
@@ -2176,7 +2391,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_Q,localsize,NR_RSP));
+                    decrease_sp(localsize);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,4);
@@ -2191,19 +2406,19 @@ unit cgx86;
                     getcpuregister(list,NR_R10);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,winstackpagesize,NR_RSP));
+                    decrease_sp(winstackpagesize);
                     reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                     list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize,NR_RSP));
+                    decrease_sp(localsize mod winstackpagesize);
                     ungetcpuregister(list,NR_R10);
                  end
              end
            else
 {$endif NOTARGETWIN}
 {$endif x86_64}
-            list.concat(Taicpu.Op_const_reg(A_SUB,tcgsize2opsize[OS_ADDR],localsize,NR_STACK_POINTER_REG));
+            decrease_sp(localsize);
          end;
       end;
 
@@ -2212,7 +2427,28 @@ unit cgx86;
       var
         stackmisalignment: longint;
         para: tparavarsym;
+{$ifdef i8086}
+        dgroup: treference;
+{$endif i8086}
       begin
+{$ifdef i8086}
+        { interrupt support for i8086 }
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_AX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_BX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DX));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_SI));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DS));
+            list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_ES));
+            reference_reset(dgroup,0);
+            dgroup.refaddr:=addr_dgroup;
+            list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
+            list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+          end;
+{$endif i8086}
 {$ifdef i386}
         { interrupt support for i386 }
         if (po_interrupt in current_procinfo.procdef.procoptions) and

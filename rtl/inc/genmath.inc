@@ -236,7 +236,7 @@ invalid:
      End;
 
 
-   function float64_to_int64_round_to_zero(a : float64) : int64;
+   function genmath_float64_to_int64_round_to_zero(a : float64) : int64;
      var
        aSign : flag;
        aExp, shiftCount : smallint;
@@ -285,6 +285,7 @@ invalid:
          z:=-z;
        result:=z;
      end;
+
 
 {$ifndef FPC_SYSTEM_HAS_ExtractFloat32Frac}
   Function ExtractFloat32Frac(a : Float32) : longint;
@@ -370,7 +371,7 @@ invalid:
          f64.low:=f64.high;
          f64.high:=l;
 {$endif FPC_DOUBLE_HILO_SWAPPED}
-         result:=float64_to_int64_round_to_zero(f64);
+         result:=genmath_float64_to_int64_round_to_zero(f64);
        end
      else
        begin

@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('paszlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='paszlib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := P.OSes - [embedded,nativent];

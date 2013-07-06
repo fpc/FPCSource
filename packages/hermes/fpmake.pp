@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('hermes');
 {$ifdef ALLPACKAGES}
-    P.Directory:='hermes';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

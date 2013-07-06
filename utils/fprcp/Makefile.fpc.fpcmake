@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for fprcp
+#
+
+[target]
+programs=fprcp
+
+[clean]
+units=comments expr pasprep
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+
+[rules]
+.NOTPARALLEL:
+fpcrp$(EXEEXT): fpcrp.pp comments.pp pexpr.pp pasprep.pp

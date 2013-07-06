@@ -87,7 +87,7 @@ procedure TExternalLinkerMsDosTLink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='tlink $RES';
+     ExeCmd[1]:='tlink $OPT $RES';
    end;
 end;
 
@@ -138,6 +138,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }
@@ -196,7 +197,7 @@ procedure TExternalLinkerMsDosALink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='alink $RES';
+     ExeCmd[1]:='alink $OPT $RES';
    end;
 end;
 
@@ -215,6 +216,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }
@@ -246,7 +248,14 @@ begin
     DOS command line is limited to 126 characters! }
 
   { add objectfiles, start with prt0 always }
-  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0','',false)));
+  case current_settings.x86memorymodel of
+    mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
+    mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0h','',false)));
+  end;
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
@@ -259,8 +268,13 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  LinkRes.Add('format dos');
+  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('format dos com')
+  else
+    LinkRes.Add('format dos');
   LinkRes.Add('option dosseg');
+{  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('system com');}
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
   { Write and Close response }
@@ -282,7 +296,7 @@ procedure TExternalLinkerMsDosWLink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='wlink $RES';
+     ExeCmd[1]:='wlink $OPT $RES';
    end;
 end;
 
@@ -301,6 +315,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }

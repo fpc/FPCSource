@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-process');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-process';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Michael van Canneyt and Free Pascal Development team';

@@ -171,11 +171,11 @@ unit aoptbase;
       Current := tai(Current.Next);
       While Assigned(Current) And
             ((Current.typ In SkipInstr) or
-{$ifdef SPARC}
+{$if defined(SPARC) or defined(MIPS)}
              ((Current.typ=ait_instruction) and
               (taicpu(Current).opcode=A_NOP)
              ) or
-{$endif SPARC}
+{$endif SPARC or MIPS}
              ((Current.typ = ait_label) And
               labelCanBeSkipped(Tai_Label(Current)))) Do
         Current := tai(Current.Next);

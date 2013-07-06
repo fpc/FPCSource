@@ -1832,6 +1832,18 @@ unit rgobj;
 {$endif}
                                         setsupreg(index,reginfo[u].colour);
                                       end;
+{$if defined(x86) or defined(m68k)}
+                                    if (segment<>NR_NO) and
+                                       (getregtype(segment)=regtype) then
+                                      begin
+                                        u:=getsupreg(segment);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2013052401);
+{$endif}
+                                        setsupreg(segment,reginfo[u].colour);
+                                      end;
+{$endif defined(x86) or defined(m68k)}
                                   end;
                             end;
 {$ifdef arm}
@@ -2100,6 +2112,11 @@ unit rgobj;
                         if (index <> NR_NO) and
                             (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
+{$if defined(x86) or defined(m68k)}
+                        if (segment <> NR_NO) and
+                            (getregtype(segment)=regtype) then
+                          addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
+{$endif defined(x86) or defined(m68k)}
                       end;
                 end;
 {$ifdef ARM}
@@ -2117,9 +2134,12 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$ifdef x86}
+{$if defined(x86) or defined(mips)}
         { Try replacing the register with the spilltemp. This is useful only
-          for the i386,x86_64 that support memory locations for several instructions }
+          for the i386,x86_64 that support memory locations for several instructions
+
+          For non-x86 it is nevertheless possible to replace moves to/from the register
+          with loads/stores to spilltemp (Sergei) }
         for counter := 0 to pred(regindex) do
           with regs[counter] do
             begin
@@ -2129,7 +2149,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif x86}
+{$endif defined(x86) or defined(mips)}
 
         {
           There are registers that need are spilled. We generate the
@@ -2265,6 +2285,11 @@ unit rgobj;
                       if (ref^.index <> NR_NO) and
                           (getregtype(ref^.index)=regtype) then
                         tryreplacereg(ref^.index);
+{$if defined(x86) or defined(m68k)}
+                      if (ref^.segment <> NR_NO) and
+                          (getregtype(ref^.segment)=regtype) then
+                        tryreplacereg(ref^.segment);
+{$endif defined(x86) or defined(m68k)}
                     end;
                 end;
 {$ifdef ARM}

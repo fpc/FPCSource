@@ -2928,9 +2928,17 @@ const
            else
             break;
          end;
+         { nostackframe requires assembler, but assembler
+           may be specified in the implementation part only,
+           and in not required if the function is first forward declared
+           if it is a procdef that has forwardef set to true
+           we postpone the possible error message to the real implementation
+           parse_only does not need to be considered as po_nostackframe
+           is an implementation only directive  }
          if (po_nostackframe in pd.procoptions) and
-            not (po_assembler in pd.procoptions) then
-           message(parser_w_nostackframe_without_assembler);
+            not (po_assembler in pd.procoptions) and
+            ((pd.typ<>procdef) or not tprocdef(pd).forwarddef) then
+           message(parser_e_nostackframe_without_assembler);
       end;
 
 

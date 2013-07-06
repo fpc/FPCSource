@@ -110,6 +110,9 @@ interface
     {# Returns whether def is reference counted }
     function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { # Returns whether def is needs to load RTTI for reference counting }
+    function is_rtti_managed_type(def: tdef) : boolean;
+
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
 {*****************************************************************************
@@ -293,6 +296,13 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
+    { #Return an orddef (integer) correspondig to a tcgsize }
+    function cgsize_orddef(size: tcgsize): torddef;
+
+    {# Same as def_cgsize, except that it will interpret certain arrays as
+       vectors and return OS_M* sizes for them }
+    function def_cgmmsize(def: tdef): tcgsize;
+
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
@@ -317,6 +327,14 @@ interface
 
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
+
+{$ifdef i8086}
+    {# Returns true if p is a far pointer def }
+    function is_farpointer(p : tdef) : boolean;
+
+    {# Returns true if p is a huge pointer def }
+    function is_hugepointer(p : tdef) : boolean;
+{$endif i8086}
 
 implementation
 
@@ -613,6 +631,19 @@ implementation
     function is_managed_type(def: tdef): boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
         result:=def.needs_inittable;
+      end;
+
+
+    function is_rtti_managed_type(def: tdef): boolean;
+      begin
+        result:=def.needs_inittable and not (
+          is_interfacecom_or_dispinterface(def) or
+          (def.typ=variantdef) or
+          (
+            (def.typ=stringdef) and
+            (tstringdef(def).stringtype in [st_ansistring,st_widestring,st_unicodestring])
+          )
+        );
       end;
 
 
@@ -1170,23 +1201,27 @@ implementation
                 result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef:
-            result := OS_ADDR;
-          procvardef:
+          pointerdef,
+          formaldef:
             begin
-              if not tprocvardef(def).is_addressonly then
-                {$if sizeof(pint) = 2}
-                  result:=OS_32
-                {$elseif sizeof(pint) = 4}
-                  result:=OS_64
-                {$elseif sizeof(pint) = 8}
-                  result:=OS_128
-                {$else}
-                  internalerror(200707141)
-                {$endif}
+{$ifdef x86}
+              if (def.typ=pointerdef) and
+                 (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+                begin
+                  {$if defined(i8086)}
+                    result := OS_32;
+                  {$elseif defined(i386)}
+                    internalerror(2013052201);  { there's no OS_48 }
+                  {$elseif defined(x86_64)}
+                    internalerror(2013052202);  { there's no OS_80 }
+                  {$endif}
+                end
               else
-                result:=OS_ADDR;
+{$endif x86}
+                result := OS_ADDR;
             end;
+          procvardef:
+            result:=int_cgsize(def.size);
           stringdef :
             begin
               if is_ansistring(def) or is_wide_or_unicode_string(def) then
@@ -1225,6 +1260,60 @@ implementation
               { undefined size }
               result:=OS_NO;
             end;
+        end;
+      end;
+
+    function cgsize_orddef(size: tcgsize): torddef;
+      begin
+        case size of
+          OS_8:
+            result:=torddef(u8inttype);
+          OS_S8:
+            result:=torddef(s8inttype);
+          OS_16:
+            result:=torddef(u16inttype);
+          OS_S16:
+            result:=torddef(s16inttype);
+          OS_32:
+            result:=torddef(u32inttype);
+          OS_S32:
+            result:=torddef(s32inttype);
+          OS_64:
+            result:=torddef(u64inttype);
+          OS_S64:
+            result:=torddef(s64inttype);
+          else
+            internalerror(2012050401);
+        end;
+      end;
+
+    function def_cgmmsize(def: tdef): tcgsize;
+      begin
+        case def.typ of
+          arraydef:
+            begin
+              if tarraydef(def).elementdef.typ in [orddef,floatdef] then
+                begin
+                  { this is not correct, OS_MX normally mean that the vector
+                    contains elements of size X. However, vectors themselves
+                    can also have different sizes (e.g. a vector of 2 singles on
+                    SSE) and the total size is currently more important }
+                  case def.size of
+                    1: result:=OS_M8;
+                    2: result:=OS_M16;
+                    4: result:=OS_M32;
+                    8: result:=OS_M64;
+                    16: result:=OS_M128;
+                    32: result:=OS_M256;
+                    else
+                      internalerror(2013060103);
+                  end;
+                end
+              else
+                result:=def_cgsize(def);
+            end
+          else
+            result:=def_cgsize(def);
         end;
       end;
 
@@ -1347,5 +1436,19 @@ implementation
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
       end;
+
+{$ifdef i8086}
+    { true if p is a far pointer def }
+    function is_farpointer(p : tdef) : boolean;
+      begin
+        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_far);
+      end;
+
+    { true if p is a huge pointer def }
+    function is_hugepointer(p : tdef) : boolean;
+      begin
+        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_huge);
+      end;
+{$endif i8086}
 
 end.

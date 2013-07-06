@@ -236,8 +236,7 @@ implementation
         opsize: tdef;
       begin
         secondpass(left);
-        { load left operator in a register }
-        location_copy(location,left.location);
+
 {$ifdef cpunodefaultint}
         opsize:=left.resultdef;
 {$else cpunodefaultint}
@@ -247,8 +246,11 @@ implementation
         else
           opsize:={$ifdef cpu16bitalu}s32inttype{$else}s64inttype{$endif};
 {$endif cpunodefaultint}
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
-        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(opsize));
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,left.location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
@@ -524,8 +526,11 @@ implementation
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        location_copy(location,left.location);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
@@ -535,10 +540,12 @@ implementation
     procedure tcgnotnode.second_integer;
       begin
         secondpass(left);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        location_copy(location,left.location);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { perform the NOT operation }
-        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,location.register,location.register);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
       end;
 
 

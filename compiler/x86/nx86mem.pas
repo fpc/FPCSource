@@ -46,7 +46,7 @@ implementation
       cutils,verbose,
       aasmtai,aasmdata,
       cgutils,cgobj,
-      symdef;
+      symconst,symdef;
 
 {*****************************************************************************
                            TX86DEREFNODE
@@ -63,8 +63,13 @@ implementation
            x86pt_near_es: location.reference.segment:=NR_ES;
            x86pt_near_fs: location.reference.segment:=NR_FS;
            x86pt_near_gs: location.reference.segment:=NR_GS;
+{$ifdef i8086}
+           x86pt_far,
+           x86pt_huge: {do nothing; handled in ti8086derefnode};
+{$else i8086}
            x86pt_far: internalerror(2013050401);
            x86pt_huge: internalerror(2013050402);
+{$endif i8086}
            else
              internalerror(2013050403);
          end;

@@ -1,11 +1,25 @@
-; nasm -f obj -o prt0.o prt0.asm
+; common startup code for the SMALL, TINY and MEDIUM memory models
+
+%ifdef __MEDIUM__
+        %define __FAR_CODE__
+%else
+        %define __NEAR_CODE__
+%endif
+
+%ifdef __FAR_CODE__
+        extra_param_offset equ 2
+%else
+        extra_param_offset equ 0
+%endif
 
         cpu 8086
 
-        segment text use16
+        segment text use16 class=code
 
         extern PASCALMAIN
         extern dos_psp
+        extern dos_version
+        extern __Test8086
 
         extern _edata  ; defined by WLINK, indicates start of BSS
         extern _end    ; defined by WLINK, indicates end of BSS
@@ -16,11 +30,18 @@
         extern __nearheap_start
         extern __nearheap_end
 
+%ifdef __TINY__
+        resb 0100h
+%endif
 ..start:
+%ifdef __TINY__
+        mov bx, cs
+%else
         ; init the stack
         mov bx, dgroup
         mov ss, bx
         mov sp, stacktop
+%endif
 
         ; zero fill the BSS section
         mov es, bx
@@ -42,21 +63,80 @@ no_bss:
         pop ax
         mov word [dos_psp], ax
 
+        ; get DOS version and save it in the pascal variable dos_version
+        mov ax, 3000h
+        int 21h
+        xchg al, ah
+        mov word [dos_version], ax
+
+        ; detect CPU
+        xor bx, bx  ; 0=8086/8088/80186/80188/NEC V20/NEC V30
+        ; on pre-286 processors, bits 12..15 of the FLAGS registers are always set
+        pushf
+        pop ax
+        and ah, 0fh
+        push ax
+        popf
+        pushf
+        pop ax
+        and ah, 0f0h
+        cmp ah, 0f0h
+        je cpu_detect_done
+        ; at this point we have a 286 or higher
+        inc bx
+        ; on a true 286 in real mode, bits 12..15 are always clear
+        pushf
+        pop ax
+        or ah, 0f0h
+        push ax
+        popf
+        pushf
+        pop ax
+        and ah, 0f0h
+        jz cpu_detect_done
+        ; we have a 386+
+        inc bx
+
+cpu_detect_done:
+        mov [__Test8086], bl
+
         ; allocate max heap
         ; TODO: also support user specified heap size
         ; try to resize our main DOS memory block until the end of the data segment
-        mov bx, word [dos_psp]
-        mov es, bx
-        sub bx, dgroup
-        neg bx  ; bx = (ds - psp) in paragraphs
-        add bx, 1000h  ; 64kb in paragraphs
+%ifdef __TINY__
+        mov cx, cs
+        mov dx, 1000h  ; 64kb in paragraphs
+%else
+        mov dx, word [dos_psp]
+        mov cx, dx
+        sub dx, dgroup
+        neg dx  ; dx = (ds - psp) in paragraphs
+        add dx, 1000h  ; 64kb in paragraphs
+%endif
+
+         ; get our MCB size in paragraphs
+        dec cx
+        mov es, cx
+        mov bx, word [es:3]
+
+        ; is it smaller than the maximum data segment size?
+        cmp bx, dx
+        jbe skip_mem_realloc
+
+        mov bx, dx
+        inc cx
+        mov es, cx
         mov ah, 4Ah
         int 21h
         jc mem_realloc_err
 
+skip_mem_realloc:
+
         ; bx = the new size in paragraphs
+%ifndef __TINY__
         add bx, word [dos_psp]
         sub bx, dgroup
+%endif
         mov cl, 4
         shl bx, cl
         sub bx, 2
@@ -76,7 +156,11 @@ no_bss:
         dec bx
         mov word [__nearheap_end], bx
 
+%ifdef __FAR_CODE__
+        jmp far PASCALMAIN
+%else
         jmp PASCALMAIN
+%endif
 
 not_enough_mem:
         mov dx, not_enough_mem_msg
@@ -97,17 +181,23 @@ FPC_MSDOS_CARRY:
 FPC_MSDOS:
         mov al, 21h  ; not ax, because only the low byte is used
         pop dx
+%ifdef __FAR_CODE__
+        pop bx
+%endif
         pop cx
         push ax
         push cx
+%ifdef __FAR_CODE__
+        push bx
+%endif
         push dx
         global FPC_INTR
 FPC_INTR:
         push bp
         mov bp, sp
-        mov al, byte [ss:bp + 6]
+        mov al, byte [ss:bp + 6 + extra_param_offset]
         mov byte [cs:int_number], al
-        mov si, [ss:bp + 4]
+        mov si, [ss:bp + 4 + extra_param_offset]
         push ds
         mov ax, word [si + 16]
         mov es, ax
@@ -133,7 +223,7 @@ int_number:
         mov bp, sp
         mov si, word [ss:bp + 8]
         mov ds, si
-        mov si, word [ss:bp + 14]
+        mov si, word [ss:bp + 14 + extra_param_offset]
         mov word [si], ax
         mov word [si + 2], bx
         mov word [si + 4], cx
@@ -152,7 +242,11 @@ int_number:
         
         pop ds
         pop bp
+%ifdef __FAR_CODE__
+        retf 4
+%else
         ret 4
+%endif
 
         segment data
 mem_realloc_err_msg:
@@ -162,8 +256,14 @@ not_enough_mem_msg:
 
         segment bss class=bss
 
+%ifndef __TINY__
         segment stack stack class=stack
         resb 256
         stacktop:
+%endif
 
+%ifdef __TINY__
+        group dgroup text data bss
+%else
         group dgroup data bss stack
+%endif

@@ -67,10 +67,14 @@ uses
                              TMipselMODDIVNODE
 *****************************************************************************}
 
+const
+  ops_div: array[boolean] of tasmop = (A_DIVU, A_DIV);
+
 procedure tMIPSELmoddivnode.pass_generate_code;
 var
   power: longint;
   tmpreg, numerator, divider, resultreg: tregister;
+  hl,hl2: tasmlabel;
 begin
   secondpass(left);
   secondpass(right);
@@ -112,25 +116,44 @@ begin
       right.resultdef, right.resultdef, True);
     divider := right.location.Register;
 
+    { GAS performs division in delay slot:
 
-    if (nodetype = modn) then
+          bne   denom,$zero,.L1
+          div   $zero,numerator,denom
+          break 7
+     .L1:
+          mflo  result
+
+      We can't yet do the same without prior fixing the spilling code:
+      if registers require spilling, loads can be inserted before 'div',
+      resulting in invalid code.
+    }
+    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops_div[is_signed(resultdef)],NR_R0,numerator,divider));
+    { Check for zero denominator, omit if dividing by constant (constants are checked earlier) }
+    if (right.nodetype<>ordconstn) then
     begin
-      if is_signed(right.resultdef) then
-      begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_REM, resultreg, numerator, divider));
-      end
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_REMU, resultreg, numerator, divider));
-    end
-    else
-    begin
-      if is_signed({left.resultdef}right.resultdef) then
-      begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIV, resultreg, numerator, divider));
-      end
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVU, resultreg, numerator, divider));
+      current_asmdata.getjumplabel(hl);
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,divider,NR_R0,hl);
+      current_asmdata.CurrAsmList.Concat(taicpu.op_const(A_BREAK,7));
+      cg.a_label(current_asmdata.CurrAsmList,hl);
     end;
+
+    { Dividing low(longint) by -1 will overflow }
+    if is_signed(right.resultdef) and (cs_check_overflow in current_settings.localswitches) then
+    begin
+      current_asmdata.getjumplabel(hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_R1,NR_R0,-1));
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,divider,NR_R1,hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LUI,NR_R1,$8000));
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,numerator,NR_R1,hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(A_BREAK,6));
+      cg.a_label(current_asmdata.CurrAsmList,hl2);
+    end;
+
+   if (nodetype=modn) then
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFHI,resultreg))
+   else
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFLO,resultreg));
   end;
   { set result location }
   location.loc      := LOC_REGISTER;

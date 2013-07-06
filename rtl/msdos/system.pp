@@ -4,6 +4,8 @@ unit system;
 
 interface
 
+{$DEFINE FPC_NO_DEFAULT_HEAP}
+
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
@@ -81,6 +83,23 @@ implementation
 const
   fCarry = 1;
 
+  { used for an offset fixup for accessing the proc parameters in asm routines
+    that use nostackframe. We can't use the parameter name directly, because
+    i8086 doesn't support sp relative addressing. }
+{$ifdef FPC_X86_CODE_FAR}
+  extra_param_offset = 2;
+{$else FPC_X86_CODE_FAR}
+  extra_param_offset = 0;
+{$endif FPC_X86_CODE_FAR}
+
+type
+  PFarByte = ^Byte;far;
+  PFarChar = ^Char;far;
+  PFarWord = ^Word;far;
+
+var
+  dos_version:Word;public name 'dos_version';
+
 {$I registers.inc}
 
 procedure Intr(IntNo: Byte; var Regs: Registers); external name 'FPC_INTR';
@@ -122,15 +141,107 @@ end;
                               ParamStr/Randomize
 *****************************************************************************}
 
-function paramcount : longint;
+function GetProgramName: string;
+var
+  dos_env_seg: Word;
+  ofs: Word;
+  Ch, Ch2: Char;
 begin
-  paramcount := 0;
+  if dos_version < $300 then
+    begin
+      GetProgramName := '';
+      exit;
+    end;
+  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  ofs := 1;
+  repeat
+    Ch := PFarChar(Ptr(dos_env_seg,ofs - 1))^;
+    Ch2 := PFarChar(Ptr(dos_env_seg,ofs))^;
+    if (Ch = #0) and (Ch2 = #0) then
+      begin
+        Inc(ofs, 3);
+        GetProgramName := '';
+        repeat
+          Ch := PFarChar(Ptr(dos_env_seg,ofs))^;
+          if Ch <> #0 then
+            GetProgramName := GetProgramName + Ch;
+          Inc(ofs);
+          if ofs = 0 then
+            begin
+              GetProgramName := '';
+              exit;
+            end;
+        until Ch = #0;
+        exit;
+      end;
+    Inc(ofs);
+    if ofs = 0 then
+      begin
+        GetProgramName := '';
+        exit;
+      end;
+  until false;
+end;
+
+
+function GetCommandLine: string;
+var
+  len, I: Integer;
+begin
+  len := PFarByte(Ptr(dos_psp, $80))^;
+{$ifdef CG_BUG}
+  { doesn't work due to a code generator bug }
+  SetLength(GetCommandLine, len);
+  for I := 1 to len do
+    GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
+{$else CG_BUG}
+  GetCommandLine := '';
+  for I := 1 to len do
+    GetCommandLine := GetCommandLine + PFarChar(Ptr(dos_psp, $80 + I))^;
+{$endif CG_BUG}
+end;
+
+
+function GetArg(ArgNo: Integer; out ArgResult: string): Integer;
+var
+  cmdln: string;
+  I: Integer;
+  InArg: Boolean;
+begin
+  cmdln := GetCommandLine;
+  ArgResult := '';
+  I := 1;
+  InArg := False;
+  GetArg := 0;
+  for I := 1 to Length(cmdln) do
+    begin
+      if not InArg and (cmdln[I] <> ' ') then
+        begin
+          InArg := True;
+          Inc(GetArg);
+        end;
+      if InArg and (cmdln[I] = ' ') then
+        InArg := False;
+      if InArg and (GetArg = ArgNo) then
+        ArgResult := ArgResult + cmdln[I];
+    end;
+end;
+
+
+function paramcount : longint;
+var
+  tmpstr: string;
+begin
+  paramcount := GetArg(-1, tmpstr);
 end;
 
 
 function paramstr(l : longint) : string;
 begin
-  paramstr := '';
+  if l = 0 then
+    paramstr := GetProgramName
+  else
+    GetArg(l, paramstr);
 end;
 
 procedure randomize;

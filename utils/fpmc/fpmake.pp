@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
-procedure add_fpmc;
+procedure add_fpmc(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -25,9 +25,7 @@ begin
     P.Description := 'Free Pascal Message Compiler.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fpmc';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.OSes := [win32, win64, os2, emx];
@@ -46,19 +44,19 @@ begin
 
     T:=P.Targets.AddProgram('fpmcgtk.pp',gtkOSes);
     T.Dependencies.AddUnit('msgcomp');
-    T.Dependencies.AddUnit('frmmain');
-    T.Dependencies.AddUnit('frmabout');
-    T.Dependencies.AddUnit('frmoptions');
+    T.Dependencies.AddUnit('frmmain', gtkOSes);
+    T.Dependencies.AddUnit('frmabout', gtkOSes);
+    T.Dependencies.AddUnit('frmoptions', gtkOSes);
 
-    T:=P.Targets.AddUnit('frmmain.pp');
+    T:=P.Targets.AddUnit('frmmain.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('frmabout.pp');
+    T:=P.Targets.AddUnit('frmabout.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('frmoptions.pp');
+    T:=P.Targets.AddUnit('frmoptions.pp', gtkOSes);
     T.install:=false;
     T.ResourceStrings:=true;
 

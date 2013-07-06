@@ -56,7 +56,8 @@ unit scandir;
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
-      symconst,symtable,
+      defutil,
+      symconst,symtable,symbase,symtype,symsym,
       rabase;
 
 {*****************************************************************************
@@ -1084,21 +1085,54 @@ unit scandir;
         do_localswitch(cs_scopedenums);
       end;
 
+    function get_peflag_const(const ident:string;error:longint):longint;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=0;
+        if searchsym(ident,srsym,srsymtable) then
+          if (srsym.typ=constsym) and
+              (tconstsym(srsym).consttyp=constord) and
+              is_integer(tconstsym(srsym).constdef) then
+            with tconstsym(srsym).value.valueord do
+              if signed then
+                result:=tconstsym(srsym).value.valueord.svalue
+              else
+                result:=tconstsym(srsym).value.valueord.uvalue
+          else
+            message(error)
+        else
+          message1(sym_e_id_not_found,ident);
+      end;
+
     procedure dir_setpeflags;
+      var
+        ident : string;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
-        peflags:=peflags or current_scanner.readval;
+        ident:=current_scanner.readid;
+        if ident<>'' then
+          peflags:=peflags or get_peflag_const(ident,scan_e_illegal_peflag)
+        else
+          peflags:=peflags or current_scanner.readval;
         SetPEFlagsSetExplicity:=true;
       end;
 
     procedure dir_setpeoptflags;
+      var
+        ident : string;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeoptflags_not_support);
         current_scanner.skipspace;
-        peoptflags:=peoptflags or current_scanner.readval;
+        ident:=current_scanner.readid;
+        if ident<>'' then
+          peoptflags:=peoptflags or get_peflag_const(ident,scan_e_illegal_peoptflag)
+        else
+          peoptflags:=peoptflags or current_scanner.readval;
         SetPEOptFlagsSetExplicity:=true;
       end;
 

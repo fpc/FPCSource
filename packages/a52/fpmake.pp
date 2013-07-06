@@ -23,7 +23,7 @@ begin
     P.OSes := [linux.win32];
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='a52';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

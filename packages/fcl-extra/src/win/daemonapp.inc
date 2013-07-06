@@ -324,10 +324,10 @@ Const
 Var
   T : TDaemonStartThread;
   Msg : TMsg;
-  TClass: TWndClass;
-  AWClass: TWndClass = (
+  TClass: TWndClassA;
+  AWClass: TWndClassA = (
     style: 0;
-    lpfnWndProc: @DefWindowProc;
+    lpfnWndProc: @DefWindowProcA;
     cbClsExtra: 0;
     cbWndExtra: 0;
     hInstance: 0;
@@ -340,13 +340,13 @@ Var
 begin
   If (GUIHandle=0) then
     begin
-    if not GetClassInfo(HInstance,AWClass.lpszClassName,TClass) then
+    if not GetClassInfoA(HInstance,AWClass.lpszClassName,TClass) then
       begin
       AWClass.hInstance := HInstance;
-      if Windows.RegisterClass(AWClass) = 0 then
+      if Windows.RegisterClassA(AWClass) = 0 then
         DaemonError(SErrWindowClass);
       end;
-    GUIHandle := CreateWindow(AWClass.lpszClassName, Pchar(Title),
+    GUIHandle := CreateWindowA(AWClass.lpszClassName, Pchar(Title),
       HandleOpts, 1,1, 0, 0, 0, 0, HInstance, nil);
     end;
   T:=TDaemonStartThread.Create(P,GUIHandle);

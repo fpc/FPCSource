@@ -36,6 +36,8 @@ interface
 
       T386NasmAssembler = class(texternalassembler)
       private
+        function CodeSectionName: string;
+
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; op : tasmop);
@@ -291,6 +293,18 @@ interface
                                T386NasmAssembler
  ****************************************************************************}
 
+
+    function T386NasmAssembler.CodeSectionName: string;
+      begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          result:=current_module.modulename^ + '_TEXT'
+        else
+{$endif}
+          result:='.text';
+      end;
+
+
     procedure T386NasmAssembler.WriteReference(var ref : treference);
       var
         first : boolean;
@@ -362,11 +376,17 @@ interface
                           (opcode = A_LSS) or (opcode = A_LFS) or
                           (opcode = A_LES) or (opcode = A_LDS) or
                          // (opcode = A_SHR) or (opcode = A_SHL) or
-                          (opcode = A_SAR) or (opcode = A_SAL) or
+                         // (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
                     AsmWrite(sizestr(s,dest));
                   WriteReference(o.ref^);
                 end
+{$ifdef i8086}
+              else if o.ref^.refaddr=addr_dgroup then
+                begin
+                  AsmWrite('dgroup');
+                end
+{$endif i8086}
               else
                 begin
 {$ifdef x86_64}
@@ -376,7 +396,12 @@ interface
                   asmwrite('dword ');
 {$endif i386}
 {$ifdef i8086}
-                  asmwrite('word ');
+                  if o.ref^.refaddr=addr_far then
+                    asmwrite('far ')
+                  else if o.ref^.refaddr=addr_seg then
+                    asmwrite('SEG ')
+                  else
+                    asmwrite('word ');
 {$endif i8086}
                   if assigned(o.ref^.symbol) then
                    begin
@@ -403,8 +428,14 @@ interface
           top_reg :
             AsmWrite(nasm_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr=addr_no then
-              WriteReference(o.ref^)
+            if o.ref^.refaddr in [addr_no{$ifdef i8086},addr_far_ref{$endif}] then
+              begin
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far_ref then
+                  AsmWrite('far ');
+{$endif i8086}
+                WriteReference(o.ref^);
+              end
             else
               begin
 { NEAR forces NASM to emit near jumps, which are 386+ }
@@ -419,6 +450,10 @@ interface
                        (op=A_LOOPZ)
                       ) then
                   AsmWrite('NEAR ');
+{$endif i8086}
+{$ifdef i8086}
+                if o.ref^.refaddr=addr_far then
+                  AsmWrite('far ');
 {$endif i8086}
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
@@ -508,6 +543,8 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           AsmWrite('.data')
+        else if secnames[atype]='.text' then
+          AsmWrite(CodeSectionName)
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -574,7 +611,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in current_settings.globalswitches) then
-                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+
+                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
                    regallocstr[tai_regalloc(hp).ratype]);
              end;
 
@@ -632,6 +669,28 @@ interface
                  aitconst_128bit:
                     begin
                     end;
+{$ifdef i8086}
+                 aitconst_farptr:
+                   begin
+                     AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         AsmWrite(tai_const(hp).sym.name);
+                         if tai_const(hp).value<>0 then
+                           AsmWrite(tostr_with_plus(tai_const(hp).value));
+                         AsmLn;
+                         AsmWrite(ait_const2str[aitconst_16bit]);
+                         AsmWrite('SEG ');
+                         AsmWrite(tai_const(hp).sym.name);
+                       end
+                     else
+                       AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
+                                tostr(hi(longint(tai_const(hp).value))));
+                     AsmLn;
+                   end;
+{$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
@@ -908,6 +967,7 @@ interface
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
+{$ifndef i8086}
                   { We need to explicitely set
                     word prefix to get selectors
                     to be pushed in 2 bytes  PM }
@@ -917,6 +977,7 @@ interface
                       (taicpu(hp).oper[0]^.typ=top_reg) and
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
+{$endif not i8086}
                   AsmWrite(#9#9+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
@@ -1057,15 +1118,22 @@ interface
           internalerror(2013050101);
       end;
 
-      { NASM complains if you put a missing section in the GROUP directive, so }
-      { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata');
-      AsmWriteLn('SECTION .data');
-      { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=bss');
-      { group these sections in the same segment }
-      AsmWriteLn('GROUP dgroup rodata data bss');
-      AsmWriteLn('SECTION .text');
+      AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
+      if current_settings.x86memorymodel in x86_near_data_models then
+        begin
+          { NASM complains if you put a missing section in the GROUP directive, so }
+          { we add empty declarations to make sure they exist, even if empty }
+          AsmWriteLn('SECTION .rodata');
+          AsmWriteLn('SECTION .data');
+          { WLINK requires class=bss in order to leave the BSS section out of the executable }
+          AsmWriteLn('SECTION .bss class=bss');
+          { group these sections in the same segment }
+          if current_settings.x86memorymodel=mm_tiny then
+            AsmWriteLn('GROUP dgroup text rodata data bss')
+          else
+            AsmWriteLn('GROUP dgroup rodata data bss');
+        end;
+      AsmWriteLn('SECTION ' + CodeSectionName);
 {$else i8086}
       AsmWriteLn('BITS 32');
 {$endif i8086}

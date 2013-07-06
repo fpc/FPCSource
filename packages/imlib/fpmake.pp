@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('imlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='imlib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

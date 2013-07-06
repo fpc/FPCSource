@@ -88,7 +88,7 @@ implementation
           fpu_vfpv3_d16,
           fpu_fpv4_s16:
             begin
-              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CMMREGISTER then
                 begin

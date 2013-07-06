@@ -141,6 +141,7 @@ implementation
     procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         last : TConstExprInt;
+        basereg,
         indexreg : tregister;
         href : treference;
         tablelabel: TAsmLabel;
@@ -207,6 +208,26 @@ implementation
             cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             last:=min_;
             genitem_thumb2(current_asmdata.CurrAsmList,hp);
+          end
+        else if current_settings.cputype in cpu_thumb then
+          begin
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
+            current_asmdata.getaddrlabel(tablelabel);
+
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
+
+            basereg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
+            reference_reset_symbol(href,tablelabel,0,4);
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
+
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_ADDr, indexreg, basereg);
+
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_BX, basereg));
+
+            cg.a_label(current_asmdata.CurrAsmList,tablelabel);
+            { generate jump table }
+            last:=min_;
+            genitem(current_asmdata.CurrAsmList,hp);
           end
         else
           begin

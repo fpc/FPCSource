@@ -80,17 +80,22 @@ end;
 procedure tppcparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
-  def: tdef;
+  psym: tparavarsym;
+  pdef: tdef;
 begin
-  def:=tparavarsym(pd.paras[nr-1]).vardef;
+  psym:=tparavarsym(pd.paras[nr-1]);
+  pdef:=psym.vardef;
+  if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+    pdef:=getpointerdef(pdef);
   cgpara.reset;
-  cgpara.size := def_cgsize(def);
+  cgpara.size := def_cgsize(pdef);
   cgpara.intsize := tcgsize2size[cgpara.size];
   cgpara.alignment := get_para_align(pd.proccalloption);
-  cgpara.def:=def;
+  cgpara.def:=pdef;
   paraloc := cgpara.add_location;
   with paraloc^ do begin
-    size := OS_INT;
+    size := def_cgsize(pdef);
+    def := pdef;
     if (nr <= 8) then begin
       if (nr = 0) then
         internalerror(200309271);
@@ -219,6 +224,7 @@ begin
       paraloc^.loc:=LOC_FPUREGISTER;
       paraloc^.register:=NR_FPU_RESULT_REG;
       paraloc^.size:=retcgsize;
+      paraloc^.def:=result.def;
     end
   else
    { Return in register }
@@ -229,6 +235,7 @@ begin
        else
          paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
        paraloc^.size:=retcgsize;
+       paraloc^.def:=result.def;
      end;
 end;
 
@@ -255,6 +262,7 @@ var
   stack_offset: longint;
   paralen: aint;
   nextintreg, nextfloatreg, nextmmreg : tsuperregister;
+  locdef,
   paradef: tdef;
   paraloc: pcgparalocation;
   i: integer;
@@ -263,6 +271,7 @@ var
   paracgsize: tcgsize;
 
   parashift : byte;
+  firstparaloc,
   adjusttail: boolean;
 
 begin
@@ -295,6 +304,7 @@ begin
       paraloc^.loc := LOC_REGISTER;
       paraloc^.register := NR_R0;
       paraloc^.size := OS_ADDR;
+      paraloc^.def := voidpointertype;
       break;
     end;
 
@@ -359,6 +369,8 @@ begin
       end else
         internalerror(2005011310);
     adjusttail:=paralen>8;
+    locdef:=paradef;
+    firstparaloc:=true;
     { can become < 0 for e.g. 3-byte records }
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
@@ -373,7 +385,10 @@ begin
 
         { make sure we don't lose whether or not the type is signed }
         if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
-          paracgsize := int_cgsize(paralen);
+          begin
+            paracgsize := int_cgsize(paralen);
+            locdef:=get_paraloc_def(paradef,paralen,firstparaloc);
+          end;
 
         { aix requires that record data (including partial data) stored in
           parameter registers is left-aligned. Other targets only do this if
@@ -385,11 +400,18 @@ begin
           begin
             paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
             paraloc^.size := OS_INT;
+            paraloc^.def := u64inttype;
           end
         else if (paracgsize in [OS_NO,OS_128,OS_S128]) then
-          paraloc^.size := OS_INT
+          begin
+            paraloc^.size := OS_INT;
+            paraloc^.def := osuinttype;
+          end
         else
-          paraloc^.size := paracgsize;
+          begin
+            paraloc^.size := paracgsize;
+            paraloc^.def := locdef;
+          end;
 
         paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
         inc(nextintreg);
@@ -400,6 +422,7 @@ begin
         (nextfloatreg <= RS_F13) then begin
         paraloc^.loc := loc;
         paraloc^.size := paracgsize;
+        paraloc^.def := locdef;
         paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
         { the PPC64 ABI says that the GPR index is increased for every parameter, no matter
         which type it is stored in }
@@ -417,10 +440,21 @@ begin
         paraloc^.loc := LOC_REFERENCE;
         case loc of
           LOC_FPUREGISTER:
-            paraloc^.size:=int_float_cgsize(paralen);
+            begin
+              paraloc^.size:=int_float_cgsize(paralen);
+              case paraloc^.size of
+                OS_F32: paraloc^.def:=s32floattype;
+                OS_F64: paraloc^.def:=s64floattype;
+                else
+                  internalerror(2013060122);
+              end;
+            end;
           LOC_REGISTER,
           LOC_REFERENCE:
-            paraloc^.size:=int_cgsize(paralen);
+            begin
+              paraloc^.size:=int_cgsize(paralen);
+              paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+            end;
           else
             internalerror(2006011101);
         end;
@@ -440,6 +474,7 @@ begin
         inc(stack_offset, align(paralen, 8));
         paralen := 0;
       end;
+      firstparaloc:=false;
     end;
   end;
 
@@ -480,6 +515,7 @@ begin
       paraloc := hp.paraloc[callerside].add_location;
       paraloc^.loc := LOC_REFERENCE;
       paraloc^.size := def_cgsize(hp.vardef);
+      paraloc^.def := hp.vardef;
       paraloc^.reference.index := NR_STACK_POINTER_REG;
       l := push_size(hp.varspez, hp.vardef, p.proccalloption);
       paraloc^.reference.offset := parasize;

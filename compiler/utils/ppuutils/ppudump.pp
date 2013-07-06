@@ -1311,6 +1311,10 @@ type
     mask : tdefstate;
     str  : string[30];
   end;
+  tgenconstrflag=record
+    mask : tgenericconstraintflag;
+    str  : string[30];
+  end;
   ptoken=^ttoken;
   pmsgstate =^tmsgstate;
 const
@@ -1330,6 +1334,11 @@ const
      (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
      (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
   );
+  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
+     (mask:gcf_constructor; str:'Constructor'),
+     (mask:gcf_class;       str:'Class'),
+     (mask:gcf_record;      str:'Record')
+  );
 var
   defstates  : tdefstates;
   i, nb{, msgvalue}, mesgnb : longint;
@@ -1343,6 +1352,7 @@ var
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
+  genconstr : tgenericconstraintflags;
 
   function readtoken: ttoken;
     var
@@ -1465,6 +1475,40 @@ begin
         end;
     end;
   writeln;
+
+  if df_genconstraint in defoptions then
+    begin
+      ppufile.getsmallset(genconstr);
+      write  ([space,'   GenConstraints : ']);
+      if genconstr<>[] then
+        begin
+          first:=true;
+          for i:=1 to high(genconstrflag) do
+           if (genconstrflag[i].mask in genconstr) then
+            begin
+              if first then
+                first:=false
+              else
+                write(', ');
+              write(genconstrflag[i].str);
+            end;
+        end;
+      writeln;
+
+      len:=ppufile.getasizeint;
+      if len>0 then
+        begin
+          space:='    '+space;
+          writeln([space,'------ constraint defs begin ------']);
+          for i:=0 to len-1 do
+            begin
+              writeln([space,'------ constraint def ',i,' ------']);
+              readderef(space);
+            end;
+          writeln([space,'------ constraint defs end ------']);
+          delete(space,1,4);
+        end;
+    end;
 
   if df_generic in defoptions then
     begin
@@ -1679,7 +1723,8 @@ const
      (mask:po_java_nonvirtual; str: 'Java non-virtual method'),
      (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution'),
      (mask:po_rtlproc;         str: 'RTL procedure'),
-     (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler')
+     (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
+     (mask:po_far;             str: 'Far')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -2546,7 +2591,24 @@ begin
              readcommondef('Pointer definition',defoptions,def);
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
-             writeln([space,'           Is Far : ',(getbyte<>0)]);
+             if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
+               begin
+                 write([space,' X86 Pointer Type : ']);
+                 b:=getbyte;
+                 case tx86pointertyp(b) of
+                   x86pt_near: writeln('Near');
+                   x86pt_near_cs: writeln('Near ''CS''');
+                   x86pt_near_ds: writeln('Near ''DS''');
+                   x86pt_near_ss: writeln('Near ''SS''');
+                   x86pt_near_es: writeln('Near ''ES''');
+                   x86pt_near_fs: writeln('Near ''FS''');
+                   x86pt_near_gs: writeln('Near ''GS''');
+                   x86pt_far: writeln('Far');
+                   x86pt_huge: writeln('Huge');
+                   else
+                     WriteWarning('Invalid x86 pointer type: ' + IntToStr(b));
+                 end;
+               end;
              writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 

@@ -920,7 +920,7 @@ end;
 {*                             TStringList                                  *}
 {****************************************************************************}
 
-{$if defined(VER2_0) or not defined(FPC_TESTGENERICS)}
+{$if not defined(FPC_TESTGENERICS)}
 
 Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
 

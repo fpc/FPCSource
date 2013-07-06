@@ -113,6 +113,7 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+{$PACKRECORDS C}
       // members of TTypeData
       TArrayTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -160,7 +161,6 @@ unit typinfo;
         function GetParam(ParamIndex: Integer): PProcedureParam;
       end;
 
-{$PACKRECORDS C}
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -172,7 +172,7 @@ unit typinfo;
               ();
             tkAString:
               (CodePage: Word);
-            tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
+            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
@@ -299,7 +299,7 @@ unit typinfo;
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
       PPropList = ^TPropList;
-      TPropList = array[0..65535] of PPropInfo;
+      TPropList = array[0..{$ifdef cpu16}32765 div sizeof(PPropInfo){$else}65535{$endif}] of PPropInfo;
 
    const
       tkString = tkSString;
@@ -1259,7 +1259,7 @@ begin
 {$ifdef cpu64}
   SetInt64Prop(Instance,PropInfo,Int64(Value));
 {$else cpu64}
-  SetOrdProp(Instance,PropInfo,Integer(Value));
+  SetOrdProp(Instance,PropInfo,PtrInt(Value));
 {$endif cpu64}
 end;
 
@@ -2056,7 +2056,7 @@ begin
   Result := PProcedureParam(PByte(@Flags) + SizeOf(Self));
   while ParamIndex > 0 do
     begin
-      Result := PProcedureParam(PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar));
+      Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
       dec(ParamIndex);
     end;
 end;

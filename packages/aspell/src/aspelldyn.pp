@@ -1,4 +1,4 @@
-unit aspelldyn;
+﻿unit aspelldyn;
 
 { * This file is header translation of The New Aspell
   * Copyright (C) 2001-2002 by Kevin Atkinson under the GNU LGPL
@@ -471,9 +471,9 @@ begin
   bufsize:=maxkeysize;
   buftype:=REG_SZ;
   key:=HKEY_LOCAL_MACHINE;
-  res:=RegOpenKeyEx (key,p,0,KEY_QUERY_VALUE,rkey);
+  res:=RegOpenKeyExA (key,p,0,KEY_QUERY_VALUE,rkey);
   if res<>ERROR_SUCCESS then exit;
-  res:=RegQueryValueEx (rkey,sp,nil,@buftype,@buf[1],@bufsize);
+  res:=RegQueryValueExA (rkey,sp,nil,@buftype,@buf[1],@bufsize);
   if res<>ERROR_SUCCESS then exit;
   buf[0]:=chr(bufsize-1);
   RegCloseKey (rkey);

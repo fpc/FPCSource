@@ -35,7 +35,7 @@ interface
 
 uses
   cutils,cclasses,
-  globtype,
+  globtype,globals,
   cgbase
   ;
 
@@ -286,6 +286,9 @@ uses
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { checks whether two segment registers are normally equal in the current memory model }
+    function segment_regs_equal(r1,r2:tregister):boolean;
+
 {$ifdef i8086}
     { returns the next virtual register }
     function GetNextReg(const r : TRegister) : TRegister;
@@ -440,9 +443,9 @@ implementation
       begin
         case o of
           A_CALL,
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
           A_JCXZ,
-{$endif i386}
+{$endif defined(i386) or defined(i8086)}
           A_JECXZ,
 {$ifdef x86_64}
           A_JRCXZ,
@@ -550,6 +553,48 @@ implementation
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+
+    function segment_regs_equal(r1, r2: tregister): boolean;
+      begin
+        if not is_segment_reg(r1) or not is_segment_reg(r2) then
+          internalerror(2013062301);
+        { every segment register is equal to itself }
+        if r1=r2 then
+          exit(true);
+{$if defined(i8086)}
+        case current_settings.x86memorymodel of
+          mm_tiny:
+            begin
+              { CS=DS=SS }
+              if ((r1=NR_CS) or (r1=NR_DS) or (r1=NR_SS)) and
+                 ((r2=NR_CS) or (r2=NR_DS) or (r2=NR_SS)) then
+                exit(true);
+              { the remaining are distinct from each other }
+              exit(false);
+            end;
+          mm_small,mm_medium:
+            begin
+              { DS=SS }
+              if ((r1=NR_DS) or (r1=NR_SS)) and
+                 ((r2=NR_DS) or (r2=NR_SS)) then
+                exit(true);
+              { the remaining are distinct from each other }
+              exit(false);
+            end;
+          mm_compact,mm_large,mm_huge: internalerror(2013062303);
+          else
+            internalerror(2013062302);
+        end;
+{$elseif defined(i386) or defined(x86_64)}
+        { DS=SS=ES }
+        if ((r1=NR_DS) or (r1=NR_SS) or (r1=NR_ES)) and
+           ((r2=NR_DS) or (r2=NR_SS) or (r2=NR_ES)) then
+          exit(true);
+        { the remaining are distinct from each other }
+        exit(false);
+{$endif}
       end;
 
 

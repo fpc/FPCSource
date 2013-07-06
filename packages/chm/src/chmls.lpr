@@ -1,4 +1,8 @@
 { Copyright (C) <2005> <Andrew Haines> chmls.lpr
+  Mostly rewritten by Marco van de Voort 2009-2012
+
+  An util that concentrates on listing and decompiling various sections
+   of a CHM.
 
   This library is free software; you can redistribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -12,9 +16,8 @@
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-}
-{
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
   See the file COPYING, included in this distribution,
   for details about the copyright.
 }
@@ -28,8 +31,10 @@ program chmls;
 
 uses
   Classes, GetOpts, SysUtils, Types,
+  StreamEx,
   chmreader, chmbase, chmsitemap;
 
+{$R-} // CHM spec puts "-1" in dwords etc.
 type
 
   { TListObject }
@@ -49,11 +54,11 @@ type
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
 
-
-  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdextractalias,cmdextracttoc,cmdextractindex,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+Type
+  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdextractalias,cmdextracttoc,cmdextractindex,cmdprintidxhdr,cmdprintsystem,cmdprintwindows,cmdprinttopics,cmdNone);        // One dummy element at the end avoids rangecheck errors.
 
 Const
-  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','EXTRACTALIAS','EXTRACTTOC','EXTRACTINDEX','');
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','EXTRACTALIAS','EXTRACTTOC','EXTRACTINDEX','PRINTIDXHDR','PRINTSYSTEM','PRINTWINDOWS','PRINTTOPICS','');
 
 var
   theopts : array[1..4] of TOption;
@@ -89,6 +94,15 @@ begin
   writeln(stderr,'            Extracts the toc (mainly to check binary TOC)');
   writeln(stderr,' extractindex <chmfilename> [filename]');
   writeln(stderr,'            Extracts the index (mainly to check binary index)');
+  writeln(stderr,' printidxhdr <chmfilename>');
+  writeln(stderr,'            prints #IDXHDR in readable format ');
+  writeln(stderr,' printsystem <chmfilename>');
+  writeln(stderr,'            prints #SYSTEM in readable format ');
+  writeln(stderr,' printwindows <chmfilename>');
+  writeln(stderr,'            prints #WINDOWS in readable format ');
+  writeln(stderr,' printtopics <chmfilename>');
+  writeln(stderr,'            prints #TOPICS in readable format ');
+
   Halt(1);
 end;
 
@@ -286,7 +300,7 @@ begin
   if (length(readfrom)>1) and (readfrom[1]<>'/') then
     readfrom:='/'+readfrom;
 
-  fs:=TFileStream.create(chm,fmOpenRead);
+  fs:=TFileStream.create(chm,fmOpenRead or fmShareDenyNone);
   r:=TChmReader.Create(fs,True);
   m:=r.getobject(readfrom);
   if assigned(m) then
@@ -453,7 +467,452 @@ begin
  Files.Free;
 end;
 
-const 
+
+procedure readchunk13(m:TMemoryStream;r:TChmReader);
+
+var i,cnt,cnt2: integer;
+    s : ansistring;
+
+procedure fetchstring;
+
+begin
+  cnt:=m.ReadDWordLE;
+  s:='';
+  if (cnt>0) then
+   s:=r.readstringsentry(cnt);
+end;
+
+
+begin
+  setlength(s,4);
+  for i:=1 to 4 do
+    s[i]:=ansichar(m.readbyte);
+  Writeln('Identifier tag                                :',s);
+  Writeln('Unknown timestamp/checksum                    :',leton(m.readdword));
+  Writeln('Always 1                                      :',leton(m.readdword));
+  Writeln('Number of topic nodes incl. contents & index  :',leton(m.readdword));
+  Writeln('    The following are mostly parameters of the "text/site properties" object of the sitemap contents');
+  Writeln('0 (meaning unknown)                           :',leton(m.readdword));
+  fetchstring;
+  Writeln('Imagelist param index in #strings (0,-1=none) :',cnt);
+  if (cnt>0) then
+      writeln('    = ',s);
+  Writeln('0 (meaning unknown)                           :',leton(m.readdword));
+  cnt:=m.ReadDWordLE;
+  if cnt=1 then
+    s:='Folder'
+  else
+    if cnt=0 then
+      s:='None'
+    else
+      s:='unknown value!';
+  Writeln('imagetype param text/site.                    :',cnt,' = ',s);
+  Writeln('Background value                              :',inttohex(leton(m.readdword),8));
+  Writeln('Foreground value                              :',inttohex(leton(m.readdword),8));
+  fetchstring;
+  Writeln('Font  param index in #strings (0,-1=none)     :',cnt);
+  if (cnt>0) then
+      writeln('    = ',s);
+  Writeln('Windows Styles                                :',inttohex(leton(m.readdword),8));
+  Writeln('ExWindows Styles                              :',inttohex(leton(m.readdword),8));
+  Writeln('Unknown, often -1 or 0                        :',leton(m.readdword));
+  FetchString;
+  Write  ('Framename                                     :',cnt);
+  if (cnt>0) then
+      write('    = ',s);
+  Writeln;
+  FetchString;
+  Writeln('Windowname                                    :',cnt);
+  if (cnt>0) then
+      writeln('    = ',s);
+  Writeln('Number of Information Types                   :',leton(m.readdword));
+  Writeln('Unknown. Often 1. Also 0, 3.                  :',leton(m.readdword));
+  cnt2:=m.ReadDWordLE;
+  Writeln('Number of files in the [MERGE FILES] list     :',cnt2);
+  Writeln('Unknown. Often 0.                             :',leton(m.readdword),'(Non-zero mostly in files with some files in the merge files list)');
+  if cnt2>0 then
+    for i:=0 to cnt2-1 do
+      begin
+        fetchstring;
+        Writeln(' Offset ', cnt, ' = ',s);
+      end;
+end;
+
+procedure PrintIDXHDR(filespec:TStringDynArray);
+
+var s,
+    chm,
+    prefixfn,
+    symbolname : ansistring;
+    i,cnt,cnt2: integer;
+    cl : TList;
+    x : PcontextItem;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+    m : TMemorystream;
+
+
+begin
+  symbolname:='helpid';
+  chm:=filespec[0];
+  prefixfn:=changefileext(chm,'');
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  m:=r.getobject('/#IDXHDR');
+  if not assigned(m) then
+    begin
+      writeln(stderr,'This CHM doesn''t contain a #IDXHDR internal file');
+      halt(1);
+    end;
+  m.position:=0;
+  Writeln(' --- #IDXHDR ---');
+  readchunk13(m,r);
+  m.free;
+  r.free;
+end;
+
+
+procedure PrintWindows(filespec:TStringDynArray);
+
+var s,
+    chm,
+    prefixfn,
+    symbolname : ansistring;
+    i,cnt,cnt2: integer;
+    x : PcontextItem;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+    m : TMemorystream;
+
+function fetchstring:string;
+
+var xx : longint;
+begin
+  xx:=m.ReadDWordLE;
+  if (xx>0) then
+    result:=r.readstringsentry(xx)+ ' (index value = '+inttostr(xx)+')'
+  else
+    result:='(0)';
+end;
+
+function printstructsize(sz:integer):string;
+
+begin
+ case sz of
+       188 : result:='Compatibility 1.0';
+       196 : result:='Compatibility 1.1 or later';
+      else
+       result:='unknown';
+       end;
+end;
+
+begin
+  chm:=filespec[0];
+  prefixfn:=changefileext(chm,'');
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  m:=r.getobject('/#WINDOWS');
+  if not assigned(m) then
+    begin
+      writeln(stderr,'This CHM doesn''t contain a #WINDOWS internal file. Odd.');
+      halt(1);
+    end;
+  m.position:=0;
+  cnt:=m.ReadDWordLE;
+  Writeln('Entries in #Windows                         : ',Cnt);
+  cnt2:=m.ReadDWordLE;
+  Writeln('Structure size                              : ',cnt2, ' = ',printstructsize(Cnt2));
+  writeln;
+  i:=0;
+  while (i<cnt) do
+    begin
+      cnt2:=m.ReadDWordLE;
+      Writeln('00 Structure size                            : ',cnt2, ' = ',printstructsize(Cnt2));
+
+      Writeln('04 htmlhelp.h indicates "BOOL fUniCodeStrings: ',m.ReadDWordLE);
+      Writeln('08 WindowType                                : ',fetchstring);
+      cnt2:=m.ReadDWordLE;
+      Write  ('0C Which window properties are valid         : ');
+      if (cnt2 and $00002)>0 then Write(' "Navigation pane style"');
+      if (cnt2 and $00004)>0 then Write(' "Window style flags"');
+      if (cnt2 and $00008)>0 then Write(' "Window extended style flags"');
+      if (cnt2 and $00010)>0 then Write(' "Initial window position"');
+      if (cnt2 and $00020)>0 then Write(' "Navigation pane width"');
+      if (cnt2 and $00040)>0 then Write(' "Window show state"');
+      if (cnt2 and $00080)>0 then Write(' "Info types"');
+      if (cnt2 and $00100)>0 then Write(' "Buttons"');
+      if (cnt2 and $00200)>0 then Write(' "Navigation Pane initially closed state"');
+      if (cnt2 and $00400)>0 then Write(' "Tab position"');
+      if (cnt2 and $00800)>0 then Write(' "Tab order"');
+      if (cnt2 and $01000)>0 then Write(' "History count"');
+      if (cnt2 and $02000)>0 then Write(' "Default Pane"');
+      writeln(' ( = ',inttohex(cnt2,8),')');
+      Writeln('10 A bit field of navigation pane styles     : ',inttohex(m.readdwordLE,8));
+      Writeln('14 Title Bar Text                            : ',fetchstring);
+      Writeln('18 Style Flags                               : ',inttohex(m.readdwordLE,8));
+      Writeln('1C Extended Style Flags                      : ',inttohex(m.readdwordLE,8));
+      Writeln('20 Initial position (left,top,right,bottom   : ',m.readdwordLE,' ' ,m.readdwordLE,' ',m.readdwordLE,' ',m.readdwordLE);
+      Writeln('30 Window ShowState                          : ',inttohex(m.readdwordLE,8));
+      Writeln('34 HWND hwndHelp; OUT: window handle"        : ',inttohex(m.readdwordLE,8));
+      Writeln('38 HWND hwndCaller; OUT: who called window"  : ',inttohex(m.readdwordLE,8));
+      Writeln('3C HH_INFOTYPE* paInfoTypes                  : ',inttohex(m.readdwordLE,8));
+      Writeln('40 HWND hwndToolBar;                         : ',inttohex(m.readdwordLE,8));
+      Writeln('44 HWND hwndNavigation;                      : ',inttohex(m.readdwordLE,8));
+      Writeln('48 HWND hwndHTML;                            : ',inttohex(m.readdwordLE,8));
+      Writeln('4C Width of the navigation pane in pixels    : ',inttohex(m.readdwordLE,8));
+      Writeln('50 Topic panel coordinates left,top,right,bottom : ',m.readdwordLE,' ' ,m.readdwordLE,' ',m.readdwordLE,' ',m.readdwordLE);
+      Writeln('60 TOC File                                  : ',fetchstring);
+      Writeln('64 Index File                                : ',fetchstring);
+      Writeln('68 Default File                              : ',fetchstring);
+      Writeln('6C File when Home button is pressed          : ',fetchstring);
+      inc(i);
+
+    end;
+
+  m.free;
+  r.free;
+end;
+
+procedure PrintTopics(filespec:TStringDynArray);
+var s,
+    chm,
+    prefixfn,
+    symbolname : ansistring;
+    i,cnt,cnt2: integer;
+    cl : TList;
+    x : PcontextItem;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+    m : TMemorystream;
+    chunktype,
+    chunksize : Word;
+
+    entries : integer;
+begin
+  chm:=filespec[0];
+  prefixfn:=changefileext(chm,'');
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  m:=r.getobject('/#TOPICS');
+  if not assigned(m) then
+    begin
+      writeln(stderr,'This CHM doesn''t contain a #SYSTEM internal file. Odd.');
+      halt(1);
+    end;
+  m.position:=0;
+  entries:=m.size div 16;
+  if entries>0 then
+    for i:=0 to entries-1 do
+      begin
+        writeln('#TOPICS entry : ',i);
+        cnt:=m.ReadDWordLE;
+        writeln(' TOCIDX index:',cnt,5);
+        write  (' Tag name    :');
+        cnt2:=m.ReadDWordLE;
+        if cnt2=-1 then
+          writeln(cnt2)
+        else
+         begin
+           s:=r.ReadStringsEntry(cnt2);
+           writeln(s,'(',cnt2,')');
+         end;
+        write  (' Tag value   :');
+        cnt2:=m.ReadDWordLE;
+        if cnt2=-1 then
+          writeln(cnt2)
+        else
+         begin
+           s:=r.ReadUrlStr(cnt2);
+           writeln(s,'(',cnt2,')');
+         end;
+        cnt2:=m.ReadWordLE;
+        writeln(' contents val:',cnt2, '(2=not in contents, 6 in contents, 0/4 unknown)');
+        cnt2:=m.ReadWordLE;
+        writeln(' unknown val :',cnt2, '(0,2,4,8,10,12,16,32)');
+      end;
+  m.free;
+  r.free;
+end;
+
+procedure PrintSystem(filespec:TStringDynArray);
+
+var s,
+    chm,
+    prefixfn,
+    symbolname : ansistring;
+    i,cnt,cnt2: integer;
+    cl : TList;
+    x : PcontextItem;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+    m : TMemorystream;
+    chunktype,
+    chunksize : Word;
+
+procedure fetchstring;
+
+begin
+  cnt:=m.ReadDWordLE;
+  s:='';
+  if (cnt>0) then
+   s:=r.readstringsentry(cnt);
+end;
+
+
+function printnulterminated(sz:word):string;
+begin
+ setlength(result,sz);
+ if sz>0 then
+   begin
+     m.read(result[1],sz);
+   end;
+end;
+
+procedure printentry4(m:TMemoryStream;chsz:dword);
+var q : QWord;
+    ts : TFileTime;
+begin
+  writeln('(4)');
+  if chsz<32 then
+    begin
+      Writeln('   is too small', chsz, ' bytes instead of 32');
+      m.position:=m.position+chsz;
+      exit;
+    end;
+  writeln(' LCID from HHP file                : ',m.readdwordLE );
+  writeln(' One if DBCS in use                : ',m.readdwordLE );
+  writeln(' one if fullttext search is on     : ',m.readdwordLE );
+  writeln(' Non zero if there are KLinks      : ',m.readdwordLE );
+  writeln(' Non zero if there are ALinks      : ',m.readdwordLE );
+  ts.dwlowdatetime:=m.readdwordLE;
+  ts.dwhighdatetime:=m.readdwordLE;
+  writeln(' Timestamp                         : ',ts.dwhighdatetime,':', ts.dwlowdatetime );
+  writeln(' 0/1 except in dsmsdn.chi has 1    : ',m.readdwordLE );
+  writeln(' 0 (unknown)                       : ',m.readdwordLE );
+end;
+
+procedure printentry8(m:TMemoryStream;chsz:dword);
+var q : QWord;
+    ts : TFileTime;
+begin
+  writeln('(8)');
+  if chsz<16 then
+    begin
+      Writeln('   is too small', chsz, ' bytes instead of 16');
+      m.position:=m.position+chsz;
+      exit;
+    end;
+  writeln(' 0 (or 4 in some)                  : ',m.readdwordLE );
+  fetchstring;
+  writeln(' Abbreviation                      : ',cnt,' = ',s);
+  writeln(' 3 or 5 depending on 1st field     : ',m.readdwordLE );
+  fetchstring;
+  writeln(' Abbreviation explanation          : ',cnt,' = ',s);
+  if chsz>16 then
+    writeln('   x size is larger than 16');
+  m.position:=m.position+chsz-16;
+end;
+
+begin
+  symbolname:='helpid';
+  chm:=filespec[0];
+  prefixfn:=changefileext(chm,'');
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  m:=r.getobject('/#SYSTEM');
+  if not assigned(m) then
+    begin
+      writeln(stderr,'This CHM doesn''t contain a #SYSTEM internal file. Odd.');
+      halt(1);
+    end;
+  m.position:=0;
+  cnt:=m.ReadDWordLE;
+  case cnt of
+   2 : s:='Compatibility 1.0';
+   3 : s:='Compatibility 1.1 or later';
+  else
+   s:='unknown';
+   end;
+
+  Writeln(' --- #SYSTEM---');
+
+  while (m.size-m.position)>=8 do
+    begin
+      chunktype := m.readwordle;
+      Chunksize := m.readwordle;
+      if (m.size-m.position)>=chunksize then
+        begin
+          case chunktype of
+            0 : Writeln('(0)  Contents file from [options]  :',printnulterminated(chunksize));
+            1 : Writeln('(1)  Index file from [options]     :',printnulterminated(chunksize));
+            2 : Writeln('(2)  Default topic from [options]  :',printnulterminated(chunksize));
+            3 : Writeln('(3)  Title from [options]          :',printnulterminated(chunksize));
+            4 : printentry4(m,chunksize);
+            5 : Writeln('(5)  Default Window from [options] :',printnulterminated(chunksize));
+            6 : Writeln('(6)  Compiled file from [options]  :',printnulterminated(chunksize));
+            7 : Writeln('(7)  DWord when Binary Index is on :',m.readdwordle, '(= entry in #urltbl has same first dword');
+            8 : printentry8(m,chunksize);
+            9 : Writeln('(9)  CHM compiler version          :',printnulterminated(chunksize));
+            10: begin
+                  writeln('(10) Timestamp (32-bit?)           :',m.readdwordle);
+                  m.position:=m.position+chunksize-4;
+                end;
+            11: Writeln('(11)  DWord when Binary TOC is on   :',m.readdwordle, '(= entry in #urltbl has same first dword');
+            12: begin
+                  writeln('(12) Number of Information files   :',m.readdwordle);
+                  m.position:=m.position+chunksize-4;
+                end;
+            13: begin
+                  cnt:=m.position;
+                  Writeln('(13)');
+                  readchunk13(m,r);
+                  m.position:=chunksize+cnt;
+                end;
+            14: begin
+                  writeln('(14) MS Office related windowing constants ', chunksize,' bytes');
+                  m.position:=m.position+chunksize;
+                end;
+            15: Writeln('(15) Information type checksum     :',m.readdwordle,' (Unknown algorithm & data source)');
+            16: Writeln('(16) Default Font from [options]   :',printnulterminated(chunksize));
+          else
+            begin
+              writeln('Not (yet) handled chunk, type ',chunktype,' of size ',chunksize);
+              m.position:=m.position+chunksize;
+            end;
+
+          end;
+        end;
+    end;
+
+  m.free;
+  r.free;
+end;
+
+const
    siteext : array[TSiteMapType] of string = ('.hhc','.hhk');
 
 procedure extracttocindex(filespec:TStringDynArray;sttype:TSiteMapType);
@@ -604,18 +1063,43 @@ begin
                         else
                           WrongNrParam(cmdnames[cmd],length(localparams));
                        end;
-       cmdextracttoc : begin
+      cmdextracttoc : begin
                         if length(localparams)>0 then
                           extracttocindex(localparams,sttoc)
                         else
                           WrongNrParam(cmdnames[cmd],length(localparams));
                        end;
-       cmdextractindex: begin
+      cmdextractindex: begin
                         if length(localparams)>0 then
                           extracttocindex(localparams,stindex)
 	                        else
                           WrongNrParam(cmdnames[cmd],length(localparams));
                        end;
+
+      cmdprintidxhdr: begin
+                        if length(localparams)=1 then
+                          printidxhdr(localparams)
+	                else
+                          WrongNrParam(cmdnames[cmd],length(localparams));
+                       end;
+      cmdprintsystem   : begin
+                          if length(localparams)=1 then
+                            printsystem(localparams)
+                          else
+                            WrongNrParam(cmdnames[cmd],length(localparams));
+                         end;
+      cmdprintwindows  : begin
+                          if length(localparams)=1 then
+                            printwindows(localparams)
+                          else
+                            WrongNrParam(cmdnames[cmd],length(localparams));
+                         end;
+      cmdprinttopics   : begin
+                          if length(localparams)=1 then
+                            printtopics(localparams)
+                          else
+                            WrongNrParam(cmdnames[cmd],length(localparams));
+                         end;
       end; {case cmd of}
   end
  else

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('openal');
 {$ifdef ALLPACKAGES}
-    P.Directory:='openal';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     if Defaults.CPU = i386 then

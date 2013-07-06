@@ -38,7 +38,6 @@ interface
           procedure generate_nested_access(vs: tsym);virtual;
          public
           procedure pass_generate_code;override;
-          procedure generate_picvaraccess;virtual;
           procedure changereflocation(const ref: treference);
        end;
 
@@ -213,15 +212,6 @@ implementation
 {*****************************************************************************
                              SecondLoad
 *****************************************************************************}
-
-    procedure tcgloadnode.generate_picvaraccess;
-      begin
-{$ifndef sparc}
-        location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname+'@GOT');
-{$endif sparc}
-      end;
-
 
     procedure tcgloadnode.changereflocation(const ref: treference);
       var
@@ -481,13 +471,7 @@ implementation
                    internalerror(200312011);
                  if assigned(left) then
                    begin
-                     {$if sizeof(pint) = 4}
-                        location_reset(location,LOC_CREGISTER,OS_64);
-                     {$else} {$if sizeof(pint) = 8}
-                        location_reset(location,LOC_CREGISTER,OS_128);
-                     {$else}
-                        internalerror(20020520);
-                     {$endif} {$endif}
+                     location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -569,6 +553,10 @@ implementation
                       { def_cgsize does not work for procdef }
                       location.size:=OS_ADDR;
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
+{$ifdef i8086}
+                      if po_far in pd.procoptions then
+                        location.size:=OS_32;
+{$endif i8086}
                       if not(po_weakexternal in pd.procoptions) then
                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
                       else
@@ -600,12 +588,13 @@ implementation
          r64 : tregister64;
          oldflowcontrol : tflowcontrol;
       begin
+        { previously, managed types were handled in firstpass
+          newer FPCs however can identify situations when
+          assignments of managed types require no special code and the
+          value could be just copied so this could should be able also to handle
+          managed types without any special "managing code"}
+
         location_reset(location,LOC_VOID,OS_NO);
-        { managed types should be handled in firstpass }
-        if not(target_info.system in systems_garbage_collected_managed_types) and
-           (is_managed_type(left.resultdef) or
-            is_managed_type(right.resultdef)) then
-          InternalError(2012011901);
 
         otlabel:=current_procinfo.CurrTrueLabel;
         oflabel:=current_procinfo.CurrFalseLabel;
@@ -824,11 +813,12 @@ implementation
                             releaseright:=true;
                             location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                             right.location.reference:=href;
+                            right.resultdef:=left.resultdef;
                           end;
 {$endif}
-                        cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
-                          right.location.size,
-                          left.location.size,
+                        hlcg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,
+                          left.resultdef,
                           right.location.reference,
                           left.location.register,mms_movescalar);
                       end;
@@ -868,10 +858,10 @@ implementation
                       case left.location.loc of
                         LOC_CMMREGISTER,
                         LOC_MMREGISTER:
-                          cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar);
+                          hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register,mms_movescalar);
                         LOC_REFERENCE,
                         LOC_CREFERENCE:
-                          cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                          hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference,mms_movescalar);
                         else
                           internalerror(2009112601);
                       end;
@@ -905,15 +895,16 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef, left.resultdef.size,tt_normal,href);
+                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
+                          right.resultdef:=left.resultdef;
                         end;
 {$endif}
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,false);
-                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
-                          right.location.size,left.location.size,
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
+                          right.resultdef,left.resultdef,
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
@@ -1286,7 +1277,7 @@ implementation
                   end
                  else
                   { todo: proper type information for hlcg }
-                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,voidpointertype,hp.left.location,href);
+                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,{$ifdef cpu16bitaddr}u32inttype{$else}voidpointertype{$endif},hp.left.location,href);
                  { update href to the vtype field and write it }
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
@@ -1301,7 +1292,7 @@ implementation
                  case hp.left.location.loc of
                    LOC_MMREGISTER,
                    LOC_CMMREGISTER:
-                     cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,
+                     hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.resultdef,
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :

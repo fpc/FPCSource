@@ -461,9 +461,9 @@ type
     procedure SetBufUniDirectional(const AValue: boolean);
     procedure InitDefaultIndexes;
   protected
-    procedure UpdateIndexDefs; override;
     function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
+    procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
@@ -507,7 +507,6 @@ type
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
     function IsReadFromPacket : Boolean;
-
   public
     constructor Create(AOwner: TComponent); override;
     function GetFieldData(Field: TField; Buffer: Pointer;
@@ -1118,9 +1117,12 @@ begin
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
     FDatasetReader := GetPacketReader(dfAny, FFileStream);
-    FReadFromFile := True;
     end;
-  if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
+  if assigned(FDatasetReader) then
+    begin
+    FReadFromFile := True;
+    IntLoadFielddefsFromFile;
+    end;
 
   // This is to check if the dataset is actually created (By calling CreateDataset,
   // reading from a stream in some other way implemented by a descendent)
@@ -1887,8 +1889,12 @@ begin
   // if the current update buffer matches, immediately return true
   if (FCurrentUpdateBuffer < length(FUpdateBuffer)) and (
       FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) or
-      (IncludePrior and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
-    Result := True
+      (IncludePrior
+        and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete)
+        and  FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
+     begin
+     Result := True;
+     end
   else
     Result := GetRecordUpdateBuffer(ABookmark,IncludePrior);
 end;
@@ -1897,7 +1903,7 @@ function TCustomBufDataset.LoadBuffer(Buffer : TRecordBuffer): TGetResult;
 
 var NullMask        : pbyte;
     x               : longint;
-    CreateblobField : boolean;
+    CreateBlobField : boolean;
     BufBlob         : PBufBlobField;
 
 begin
@@ -1921,9 +1927,9 @@ begin
 
   for x := 0 to FieldDefs.count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer,CreateblobField) then
+    if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
       SetFieldIsNull(NullMask,x)
-    else if CreateblobField then
+    else if CreateBlobField then
       begin
       BufBlob := PBufBlobField(Buffer);
       BufBlob^.BlobBuffer := GetNewBlobBuffer;
@@ -1937,7 +1943,7 @@ end;
 function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   if State = dsFilter then Result := FFilterBuffer
-  else if state = dsCalcFields then Result := CalcBuffer
+  else if State = dsCalcFields then Result := CalcBuffer
   else Result := ActiveBuffer;
 end;
 
@@ -2054,7 +2060,6 @@ begin
     begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
-
     FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
     move(RemRec^, FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
     end
@@ -2091,30 +2096,34 @@ var StoreRecBM     : TBufBookmark;
     StoreUpdBuf    : integer;
     Bm             : TBufBookmark;
   begin
-    with AUpdBuffer do if assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
+    with AUpdBuffer do
       begin
-      if (UpdateKind = ukModify) then
+      if Not assigned(BookmarkData.BookmarkData) then
+        exit;// this is used to exclude buffers which are already handled
+      Case UpdateKind of
+      ukModify:
         begin
         FCurrentIndex.GotoBookmark(@BookmarkData);
         move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
         FreeRecordBuffer(OldValuesBuffer);
-        end
-      else if (UpdateKind = ukDelete) and (assigned(OldValuesBuffer)) then
-        begin
-        FCurrentIndex.GotoBookmark(@NextBookmarkData);
-        FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
-        FCurrentIndex.ScrollBackward;
-        move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-
-{        for x := length(FUpdateBuffer)-1 downto 0 do
+        end;
+      ukDelete:
+        if (assigned(OldValuesBuffer)) then
           begin
-          if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
-            CancelUpdBuffer(FUpdateBuffer[x]);
-          end;}
-        FreeRecordBuffer(OldValuesBuffer);
-        inc(FBRecordCount);
-        end
-      else if (UpdateKind = ukInsert) then
+          FCurrentIndex.GotoBookmark(@NextBookmarkData);
+          FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
+          FCurrentIndex.ScrollBackward;
+          move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+
+          {for x := length(FUpdateBuffer)-1 downto 0 do
+            begin
+            if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
+              CancelUpdBuffer(FUpdateBuffer[x]);
+            end;}
+          FreeRecordBuffer(OldValuesBuffer);
+          inc(FBRecordCount);
+          end  ;
+      ukInsert:
         begin
         // Process all update buffers linked to this record before this record is removed
         StoreUpdBuf:=FCurrentUpdateBuffer;
@@ -2123,7 +2132,10 @@ var StoreRecBM     : TBufBookmark;
         if GetRecordUpdateBuffer(Bm,True,False) then
           begin
           repeat
-          if (FCurrentUpdateBuffer<>StoreUpdBuf) then CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
+          if (FCurrentUpdateBuffer<>StoreUpdBuf) then
+            begin
+            CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
+            end;
           until not GetRecordUpdateBuffer(Bm,True,True);
           end;
         FCurrentUpdateBuffer:=StoreUpdBuf;
@@ -2143,6 +2155,7 @@ var StoreRecBM     : TBufBookmark;
         FreeRecordBuffer(TmpBuf);
         dec(FBRecordCount);
         end;
+      end;
       BookmarkData.BookmarkData:=nil;
       end;
   end;
@@ -2252,25 +2265,27 @@ procedure TCustomBufDataset.MergeChangeLog;
 var r            : Integer;
 
 begin
+  for r:=0 to length(FUpdateBuffer)-1 do
+    if assigned(FUpdateBuffer[r].OldValuesBuffer) then
+      FreeMem(FUpdateBuffer[r].OldValuesBuffer);
   SetLength(FUpdateBuffer,0);
 
   if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
-   if assigned(FUpdateBlobBuffers[r]) then
-    begin
-    if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+    if assigned(FUpdateBlobBuffers[r]) then
       begin
-      Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
-      Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
-      FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
-      end
-    else
-      begin
-      setlength(FBlobBuffers,length(FBlobBuffers)+1);
-      FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
-      FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
-
+      // update blob buffer is already referenced from record buffer (see InternalPost)
+      if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+        begin
+        FreeBlobBuffer(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+        FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] := FUpdateBlobBuffers[r];
+        end
+      else
+        begin
+        setlength(FBlobBuffers,length(FBlobBuffers)+1);
+        FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
+        FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+        end;
       end;
-    end;
   SetLength(FUpdateBlobBuffers,0);
 end;
 
@@ -2281,12 +2296,8 @@ Var i            : integer;
 
 begin
   if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
-   if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
-    begin
-    Reallocmem(FUpdateBlobBuffers[i]^.Buffer,0);
-    Dispose(FUpdateBlobBuffers[i]);
-    FUpdateBlobBuffers[i] := nil;
-    end;
+    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
+      FreeBlobBuffer(FUpdateBlobBuffers[i]);
 end;
 
 procedure TCustomBufDataset.InternalPost;
@@ -2320,7 +2331,6 @@ begin
       FAutoIncField.AsInteger := FAutoIncValue;
       inc(FAutoIncValue);
       end;
-
     // The active buffer is the newly created TDataset record,
     // from which the bookmark is set to the record where the new record should be
     // inserted
@@ -2472,7 +2482,7 @@ var
     TmpRecBuffer : PBufRecLinkItem;
 
 begin
-  checkbrowsemode;
+  CheckBrowseMode;
   if value > RecordCount then
     begin
     repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
@@ -2495,7 +2505,7 @@ Var abuf            :  TRecordBuffer;
 begin
   abuf := GetCurrentBuffer;
   // If abuf isn't assigned, the recordset probably isn't opened.
-  if assigned(abuf) and (FBRecordCount>0) and (state <> dsInsert) then
+  if assigned(abuf) and (FBRecordCount>0) and (State <> dsInsert) then
     Result:=FCurrentIndex.GetRecNo(PBufBookmark(abuf+FRecordSize))
   else
     result := 0;
@@ -2533,7 +2543,7 @@ begin
   setlength(FBlobBuffers,length(FBlobBuffers)+1);
   new(ABlobBuffer);
   fillbyte(ABlobBuffer^,sizeof(ABlobBuffer^),0);
-  ABlobBuffer^.OrgBufID := high(FUpdateBlobBuffers);
+  ABlobBuffer^.OrgBufID := high(FBlobBuffers);
   FBlobBuffers[high(FBlobBuffers)] := ABlobBuffer;
   result := ABlobBuffer;
 end;
@@ -2565,7 +2575,7 @@ begin
   Case Origin of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=FBlobBuffer^.Size+Offset;
-    soFromCurrent   : FpoSition:=FPosition+Offset;
+    soFromCurrent   : FPosition:=FPosition+Offset;
   end;
   Result:=FPosition;
 end;
@@ -2603,24 +2613,24 @@ var bufblob : TBufBlobField;
 
 begin
   FDataset := Field.DataSet as TCustomBufDataset;
-  if mode = bmread then
+  if Mode = bmRead then
     begin
-    if not field.getData(@bufblob) then
+    if not Field.GetData(@bufblob) then
       DatabaseError(SFieldIsNull);
     if not assigned(bufblob.BlobBuffer) then with FDataSet do
       begin
       FBlobBuffer := GetNewBlobBuffer;
       bufblob.BlobBuffer := FBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[field.FieldNo-1],@bufblob);
+      LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1],@bufblob);
       end
     else
       FBlobBuffer := bufblob.BlobBuffer;
     end
-  else if mode=bmWrite then with FDataSet as TCustomBufDataset do
+  else if Mode=bmWrite then with FDataSet as TCustomBufDataset do
     begin
     FBlobBuffer := GetNewWriteBlobBuffer;
     FBlobBuffer^.FieldNo := Field.FieldNo;
-    if (field.getData(@bufblob)) and assigned(bufblob.BlobBuffer) then
+    if (Field.GetData(@bufblob)) and assigned(bufblob.BlobBuffer) then
       FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
     else
       FBlobBuffer^.OrgBufID := -1;
@@ -2633,22 +2643,19 @@ var bufblob : TBufBlobField;
 
 begin
   result := nil;
-  if mode=bmread then
+  if Mode = bmRead then
     begin
-    if not field.getData(@bufblob) then
+    if not Field.GetData(@bufblob) then
       exit;
 
-    result := TBufBlobStream.Create(Field as tblobfield,bmread);
+    result := TBufBlobStream.Create(Field as TBlobField, bmRead);
     end
-  else if mode=bmWrite then
+  else if Mode = bmWrite then
     begin
-    if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-      begin
+    if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
       DatabaseErrorFmt(SNotEditing,[Name],self);
-      exit;
-      end;
 
-    result := TBufBlobStream.Create(Field as tblobfield,bmWrite);
+    result := TBufBlobStream.Create(Field as TBlobField, bmWrite);
 
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
@@ -2931,6 +2938,7 @@ begin
 
       FFilterBuffer:=IntAllocRecordBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
+
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
       FDatasetReader.RestoreRecord(self);
 

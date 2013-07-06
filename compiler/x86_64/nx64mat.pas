@@ -187,7 +187,7 @@ implementation
 
         { load left operators in a register }
         location_copy(location,left.location);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,hlcg.tcgsize2orddef(opsize),false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,cgsize_orddef(opsize),false);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then

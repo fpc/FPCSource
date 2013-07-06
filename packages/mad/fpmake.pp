@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('mad');
 {$ifdef ALLPACKAGES}
-    P.Directory:='mad';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [linux,win32,win64];

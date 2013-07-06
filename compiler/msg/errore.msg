@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02091 is the last used one
+# 02094 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -388,11 +388,17 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 % the compiler with support for this codepage.
 scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the target OS
 % The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
+scan_e_illegal_peflag=02093_E_Illegal argument for SETPEFLAGS
+% The given argument for SETPEFLAGS is neither a correct named value nor an
+% ordinal value
+scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
+% The given argument for SETPEOPTFLAGS is neither a correct named value nor an
+% ordinal value
 % \end{description}
 #
 # Parser
 #
-# 03333 is the last used one
+# 03334 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1448,7 +1454,7 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 % for the current instance inside another constructor.
 parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
-parser_w_nostackframe_without_assembler=03323_W_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
+parser_e_nostackframe_without_assembler=03323_E_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
 % nostackframe call modifier is supposed to be used in conjunction with assembler.
 parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
 % nostackframe call modifier used without assembler modifier
@@ -1490,6 +1496,8 @@ parser_e_not_allowed_in_record=03332_E_Visibility section "$1" not allowed in re
 parser_e_proc_dir_not_allowed=03333_E_Procedure directive "$1" not allowed here
 % This procedure directive is not allowed in the given context. E.g. "static"
 % is not allowed for instance methods or class operators.
+parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside generics
+% The use of assembler blocks/routines is not allowed inside generics.
 %
 %
 % \end{description}
@@ -2697,7 +2705,7 @@ asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 6553
 #
 # Executing linker/assembler
 #
-# 09033 is the last used one
+# 09034 is the last used one
 #
 # BeginOfTeX
 %
@@ -2789,10 +2797,11 @@ exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
 % An error occurred resource file cannot be written.
 exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted cat command
 % The compiler did not find the file that should be expanded into linker parameters
-%\end{description}
 exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a linking failure
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
+%
+%\end{description}
 # EndOfTeX
 
 #
@@ -3333,6 +3342,7 @@ new features, etc.):
 #    3 = 80x86 targets
 #    4 = x86_64
 #    6 = 680x0 targets
+#    8 = 8086 (16-bit) targets
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
@@ -3630,6 +3640,10 @@ p*2Wi_Use internal resources (Darwin)
 3*2WI_Turn on/off the usage of import sections (Windows)
 4*2WI_Turn on/off the usage of import sections (Windows)
 A*2WI_Turn on/off the usage of import sections (Windows)
+8*2Wm<x>_Set memory model
+8*3WmTiny_Tiny memory model
+8*3WmSmall_Small memory model (default)
+8*3WmMedium_Medium memory model
 3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)

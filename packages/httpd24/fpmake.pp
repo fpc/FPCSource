@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('httpd24');
 {$ifdef ALLPACKAGES}
-    P.Directory:='httpd24';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';

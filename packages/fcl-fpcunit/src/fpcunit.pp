@@ -285,12 +285,13 @@ type
     property StartingTime: TDateTime read FStartingTime;
   end;
 
-  function ComparisonMsg(const aExpected: string; const aActual: string): string;
+  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
 
   
 Resourcestring
 
   SCompare = ' expected: <%s> but was: <%s>';
+  SCompareNotEqual = ' expected: not equal to <%s> but was: <%s>';
   SExpectedNotSame = 'expected not same';
   SExceptionCompare = 'Exception %s expected but %s was raised';
   SMethodNotFound = 'Method <%s> not found';
@@ -332,9 +333,13 @@ begin
 end;
 
 
-function ComparisonMsg(const aExpected: string; const aActual: string): string;
+function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
+// aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
 begin
-  Result := format(SCompare, [aExpected, aActual]);
+  if aCheckEqual then
+    Result := format(SCompare, [aExpected, aActual])
+  else {check unequal requires opposite error message}
+    Result := format(SCompareNotEqual, [aExpected, aActual]);
 end;
 
 
@@ -375,7 +380,10 @@ end;
 
 function TTestFailure.GetExceptionClassName: string;
 begin
-  Result := FRaisedExceptionClass.ClassName;
+  if Assigned(FRaisedExceptionClass) then
+    Result := FRaisedExceptionClass.ClassName
+  else
+    Result := '<NIL>'
 end;
 
 
@@ -570,8 +578,18 @@ end;
 
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: TClass);
+
+  Function GetN(C : TClass) : string;
+  begin
+    if C=Nil then
+      Result:='<NIL>'
+    else
+      Result:=C.ClassName;
+  end;
+
 begin
-  AssertTrue(AMessage + ComparisonMsg(Expected.ClassName, Actual.ClassName), Expected = Actual);
+  If (Expected<>Nil) then
+  AssertTrue(AMessage + ComparisonMsg(GetN(Expected), GetN(Actual)), Expected = Actual);
 end;
 
 
@@ -892,6 +910,7 @@ var
   i: integer;
   tc: TTestCaseClass;
 begin
+  TAssert.AssertNotNull(AClass);
   Create(AClass.ClassName);
   if AClass.InheritsFrom(TTestCase) then
   begin

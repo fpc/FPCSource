@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
-procedure add_fppkg;
+procedure add_fppkg(const ADirectory: string);
 
 const
   TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
@@ -23,9 +23,7 @@ begin
     begin
 
     P:=AddPackage('fppkg');
-{$ifdef ALLPACKAGES}
-    P.Directory:='fppkg';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
 
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
@@ -91,7 +89,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fppkg;
+  add_fppkg('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

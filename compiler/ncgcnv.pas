@@ -407,11 +407,12 @@ interface
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
+             left.resultdef:=resultdef;
            end;
 {$endif x86}
          { ARM VFP values are in integer registers when they are function results }
          if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-           location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+           hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -427,7 +428,7 @@ interface
                     end;
                   LOC_MMREGISTER:
                     begin
-                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                       cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,mms_movescalar);
                     end
@@ -442,7 +443,7 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location,location.register,mms_movescalar)
+                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
@@ -651,28 +652,9 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          current_asmdata.getjumplabel(l1);
-         case left.location.loc of
-            LOC_CREGISTER,LOC_REGISTER:
-              begin
-               {$ifdef cpu_uses_separate_address_registers}
-                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
-                   begin
-                     location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
-                              left.location.register,location.register);
-                   end
-                 else
-               {$endif}
-                    location.register := left.location.register;
-              end;
-            LOC_CREFERENCE,LOC_REFERENCE:
-              begin
-                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
-              end;
-            else
-              internalerror(2002032214);
-         end;
+         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,
+           left.location,location.register);
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);

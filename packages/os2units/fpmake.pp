@@ -13,7 +13,7 @@ begin
 
     P:=AddPackage('os2units');
 {$ifdef ALLPACKAGES}
-    P.Directory:='os2units';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [OS2,emx];

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-res');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-res';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Giulio Bernardi';

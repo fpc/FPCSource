@@ -62,7 +62,8 @@ Type
       fpu_ssse3,
       fpu_sse41,
       fpu_sse42,
-      fpu_avx
+      fpu_avx,
+      fpu_avx2
      );
 
 
@@ -102,11 +103,14 @@ Const
      'SSSE3',
      'SSE41',
      'SSE42',
-     'AVX'
+     'AVX',
+     'AVX2'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
-   sse_doublescalar : set of tfputype = [fpu_sse2,fpu_sse3];
+   sse_singlescalar : set of tfputype = [fpu_sse..fpu_avx2];
+   sse_doublescalar : set of tfputype = [fpu_sse2..fpu_avx2];
+
+   fpu_avx_instructionsets = [fpu_avx,fpu_avx2];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -124,6 +128,11 @@ Const
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
+
+   x86_near_code_models = [mm_tiny,mm_small,mm_compact];
+   x86_far_code_models = [mm_medium,mm_large,mm_huge];
+   x86_near_data_models = [mm_tiny,mm_small,mm_medium];
+   x86_far_data_models = [mm_compact,mm_large,mm_huge];
 
 Implementation
 

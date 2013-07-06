@@ -14,7 +14,7 @@ begin
     P:=AddPackage('hash');
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='hash';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
     P.Author := 'Free Pascal development team, Mark Adler, Jacques Nomssi Nzali';

@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('fcl-xml');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-xml';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Options.Add('-S2h');

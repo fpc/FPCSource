@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('opencl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='opencl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := ' Dmitry "skalogryz" Boyarintsev; Kronos group';

@@ -89,7 +89,11 @@ type
   end;
 
 const
+{$ifdef cpu16}
+  MaxGListSize = {MaxInt div} 1024;
+{$else cpu16}
   MaxGListSize = MaxInt div 1024;
+{$endif cpu16}
 
 type
   generic TFPGListEnumerator<T> = class(TObject)

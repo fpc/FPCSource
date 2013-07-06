@@ -1678,7 +1678,7 @@ begin
             sl:=trim(copy(sRefSrc,pos(',',sRefSrc)+1,length(sRefSrc))); //format: filename, id
             sRefSrc:=copy(sRefSrc,1,pos(',',sRefSrc)-1);
             //Load bitmap
-            ResHandle:=LoadLibraryEx(pchar(sRefSrc),0,$00000022); //LOAD_LIBRARY_AS_IMAGE_RESOURCE or LOAD_LIBRARY_AS_DATAFILE
+            ResHandle:=LoadLibraryExA(pchar(sRefSrc),0,$00000022); //LOAD_LIBRARY_AS_IMAGE_RESOURCE or LOAD_LIBRARY_AS_DATAFILE
             if (ResHandle<>0) then
               begin
               bmhandle:=FindResource(ResHandle,makeintresource(StrToIntDef(sl,0)),RT_BITMAP);

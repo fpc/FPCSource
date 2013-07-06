@@ -9,9 +9,9 @@ type
   PProcedureParam = ^TProcedureParam;
   TProc = procedure(var A: Integer; S: String); stdcall;
 
-function TestParam(Param: PProcedureParam; Flags: Byte; ParamType: Pointer; Name: ShortString): Boolean;
+function TestParam(Param: PProcedureParam; Flags: TParamFlags; ParamType: Pointer; Name: ShortString): Boolean;
 begin
-  Result := (Param^.Flags = Flags) and (Param^.ParamType = ParamType) and (Param^.Name = Name);
+  Result := (Param^.Flags = PByte(@Flags)^) and (Param^.ParamType = ParamType) and (Param^.Name = Name);
 end;
 
 var
@@ -29,10 +29,10 @@ begin
      halt(3);
   if Data^.ProcSig.ParamCount <> 2 then
      halt(4);
-  Param := PProcedureParam(PAnsiChar(@Data^.ProcSig.Flags) + SizeOf(TProcedureSignature));
-  if not TestParam(Param, 1, TypeInfo(Integer), 'A') then
+  Param := Data^.ProcSig.GetParam(0);
+  if not TestParam(Param, [pfVar], TypeInfo(Integer), 'A') then
      halt(5);
-  Param := PProcedureParam(PAnsiChar(@Param^.Name) + (Length(Param^.Name) + 1) * SizeOf(AnsiChar));
-  if not TestParam(Param, 0, TypeInfo(String), 'S') then
+  Param := Data^.ProcSig.GetParam(1);
+  if not TestParam(Param, [], TypeInfo(String), 'S') then
      halt(6);
 end.

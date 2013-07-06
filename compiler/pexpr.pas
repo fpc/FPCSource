@@ -1867,6 +1867,24 @@ implementation
                                (tloadnode(p1).symtableentry.name='MEMW') or
                                (tloadnode(p1).symtableentry.name='MEML')) then
                              begin
+{$if defined(i8086)}
+                               consume(_COLON);
+                               inserttypeconv(p2,u16inttype);
+                               inserttypeconv_internal(p2,u32inttype);
+                               p3:=cshlshrnode.create(shln,p2,cordconstnode.create($10,s16inttype,false));
+                               p2:=comp_expr(true,false);
+                               inserttypeconv(p2,u16inttype);
+                               inserttypeconv_internal(p2,u32inttype);
+                               p2:=caddnode.create(addn,p2,p3);
+                               case tloadnode(p1).symtableentry.name of
+                                 'MEM': p2:=ctypeconvnode.create_internal(p2,bytefarpointertype);
+                                 'MEMW': p2:=ctypeconvnode.create_internal(p2,wordfarpointertype);
+                                 'MEML': p2:=ctypeconvnode.create_internal(p2,longintfarpointertype);
+                                 else
+                                   internalerror(2013053102);
+                               end;
+                               p1:=cderefnode.create(p2);
+{$elseif defined(i386)}
                                if try_to_consume(_COLON) then
                                 begin
                                   p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
@@ -1887,6 +1905,9 @@ implementation
                                   p1:=cvecnode.create(p1,p2);
                                   include(tvecnode(p1).flags,nf_memindex);
                                 end;
+{$else}
+                               internalerror(2013053101);
+{$endif}
                              end
                            else
                              begin

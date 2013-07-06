@@ -84,7 +84,6 @@ interface
       var
         op         : TOpCG;
         op1,op2    : TAsmOp;
-        opsize     : TOpSize;
         hregister,
         hregister2 : tregister;
         hl4        : tasmlabel;
@@ -97,7 +96,6 @@ interface
         op1:=A_NONE;
         op2:=A_NONE;
         mboverflow:=false;
-        opsize:=S_L;
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u64bit)) or
                   ((right.resultdef.typ=orddef) and
@@ -174,16 +172,16 @@ interface
             begin
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
-              emit_reg_reg(op1,opsize,left.location.register64.reglo,r);
-              emit_reg_reg(op2,opsize,GetNextReg(left.location.register64.reglo),GetNextReg(r));
-              emit_reg_reg(A_MOV,opsize,r,left.location.register64.reglo);
-              emit_reg_reg(A_MOV,opsize,GetNextReg(r),GetNextReg(left.location.register64.reglo));
+              emit_reg_reg(op1,S_W,left.location.register64.reglo,r);
+              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reglo),GetNextReg(r));
+              emit_reg_reg(A_MOV,S_W,r,left.location.register64.reglo);
+              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reglo));
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
-              emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
-              emit_reg_reg(op2,opsize,GetNextReg(left.location.register64.reghi),GetNextReg(r));
-              emit_reg_reg(A_MOV,opsize,r,left.location.register64.reghi);
-              emit_reg_reg(A_MOV,opsize,GetNextReg(r),GetNextReg(left.location.register64.reghi));
+              emit_reg_reg(op2,S_W,left.location.register64.reghi,r);
+              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reghi),GetNextReg(r));
+              emit_reg_reg(A_MOV,S_W,r,left.location.register64.reghi);
+              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reghi));
             end
            else
             begin
@@ -561,7 +559,8 @@ interface
                  inc(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register));
                  firstjmp32bitcmp;
-                 emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register);
+                 dec(href.offset,2);
+                 emit_ref_reg(A_CMP,S_W,href,left.location.register);
                  secondjmp32bitcmp;
                  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                  location_freetemp(current_asmdata.CurrAsmList,right.location);

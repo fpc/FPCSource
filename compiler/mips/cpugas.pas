@@ -53,7 +53,7 @@ unit cpugas;
 
     uses
       cutils, systems, cpuinfo,
-      verbose, itcpugas, cgbase, cgutils;
+      globals, verbose, itcpugas, cgbase, cgutils;
 
     function gas_std_regname(r:Tregister):string;
       var
@@ -67,7 +67,10 @@ unit cpugas;
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
            setsubreg(hr, R_SUBD);
         end;
-        result:=std_regname(hr);
+        if getregtype(r)=R_SPECIALREGISTER then
+          result:=tostr(getsupreg(r))
+        else
+          result:=std_regname(hr);
       end;
 
 
@@ -99,7 +102,7 @@ unit cpugas;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
          { ARCH selection }
-         Replace(result,'$ARCH','-march='+lower(cputypestr[mips_cpu]));
+         Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
       end;
 
 {****************************************************************************}
@@ -121,7 +124,10 @@ unit cpugas;
             if assigned(ref.symbol) then
               result:=result+'+';
             result:=result+tostr(ref.offset);
-          end;
+          end
+        { asmreader appears to treat literal numbers as references }
+        else if (ref.symbol=nil) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:='0';
 
         { either base or index may be present, but not both }
         reg:=ref.base;
@@ -232,9 +238,13 @@ unit cpugas;
           (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
           (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
           { JAL is not here! See comments in TCGMIPS.a_call_name. }
-          or (op=A_LA) or ((op=A_BC) and not (ai.condition in [C_EQ,C_NE])) {or (op=A_JAL)}
+          or (op=A_LA) or ((op=A_BC) and
+            not (ai.condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE])) {or (op=A_JAL)}
           or (op=A_REM) or (op=A_REMU)
-          or (op=A_DIV) or (op=A_DIVU)
+          { DIV and DIVU are normally macros, but use $zero as first arg to generate a CPU instruction. }
+          or ((op=A_DIV) or (op=A_DIVU) and
+            ((ai.ops<>3) or (ai.oper[0]^.typ<>top_reg) or (ai.oper[0]^.reg<>NR_R0)))
+          or (op=A_MULO) or (op=A_MULOU)
           { A_LI is only a macro if the immediate is not in thez 16-bit range }
           or (op=A_LI);
       end;
@@ -255,8 +265,7 @@ unit cpugas;
         case op of
           A_P_SET_NOMIPS16:
             begin
-              s := #9 + '.set' + #9 + 'nomips16';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'nomips16');
             end;
           A_P_MASK,
           A_P_FMASK:
@@ -266,37 +275,33 @@ unit cpugas;
             end;
           A_P_SET_MACRO:
             begin
-              s := #9 + '.set' + #9 + 'macro';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'macro');
               TMIPSGNUAssembler(owner).nomacro:=false;
             end;
           A_P_SET_REORDER:
             begin
-              s := #9 + '.set' + #9 + 'reorder';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'reorder');
               TMIPSGNUAssembler(owner).noreorder:=false;
             end;
           A_P_SET_NOMACRO:
             begin
-              s := #9 + '.set' + #9 + 'nomacro';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'nomacro');
               TMIPSGNUAssembler(owner).nomacro:=true;
             end;
           A_P_SET_NOREORDER:
             begin
-              s := #9 + '.set' + #9 + 'noreorder';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteLn(#9'.set'#9'noreorder');
               TMIPSGNUAssembler(owner).noreorder:=true;
             end;
-          A_P_SW:
+          A_P_SET_NOAT:
             begin
-              s := #9 + gas_op2str[A_SW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteln(#9'.set'#9'noat');
+              TMIPSGNUAssembler(owner).noat:=true;
             end;
-          A_P_LW:
+          A_P_SET_AT:
             begin
-              s := #9 + gas_op2str[A_LW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              owner.AsmWriteln(#9'.set'#9'at');
+              TMIPSGNUAssembler(owner).noat:=false;
             end;
           A_LDC1:
             begin

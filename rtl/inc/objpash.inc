@@ -83,7 +83,7 @@
        { to access the message table from outside }
        TMsgStrTable = record
           name   : pshortstring;
-          method : pointer;
+          method : codepointer;
        end;
 
        PMsgStrTable = ^TMsgStrTable;
@@ -181,7 +181,8 @@
        end;
 
        TMethod = record
-         Code, Data : Pointer;
+         Code : CodePointer;
+         Data : Pointer;
        end;
 
        TObject = class
@@ -424,7 +425,7 @@
        end;
 
   var
-    DispCallByIDProc : pointer;
+    DispCallByIDProc : codepointer;
 
   const
     { for safe as operator support }

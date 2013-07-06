@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fv');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fv';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Leon De Boer and Pierre Mueller';

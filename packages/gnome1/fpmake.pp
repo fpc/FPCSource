@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gnome1');
 {$ifdef ALLPACKAGES}
-    P.Directory:='gnome1';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=AllUnixOSes-[darwin,iphonesim,Android];

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('httpd22');
 {$ifdef ALLPACKAGES}
-    P.Directory:='httpd22';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';

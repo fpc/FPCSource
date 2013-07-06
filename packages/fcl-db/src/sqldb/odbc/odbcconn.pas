@@ -843,8 +843,10 @@ begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size+1, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
-    ftInteger,ftWord,ftAutoInc:   // mapped to TLongintField
+    ftInteger,ftAutoInc:  // mapped to TLongintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SLONG, buffer, SizeOf(Longint), @StrLenOrInd);
+    ftWord:               // mapped to TWordField
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_USHORT, buffer, SizeOf(Word), @StrLenOrInd);
     ftLargeint:           // mapped to TLargeintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SBIGINT, buffer, SizeOf(Largeint), @StrLenOrInd);
     ftFloat,ftCurrency:   // mapped to TFloatField
@@ -1088,7 +1090,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
-  AutoIncAttr, Updatable, FixedPrecScale: SQLLEN;
+  AutoIncAttr, FixedPrecScale, Unsigned, Updatable: SQLLEN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -1195,7 +1197,6 @@ begin
     // only one column per table can have identity attr.
     if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
-      AutoIncAttr:=0;
       ODBCCheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
                         i,                          // column number
@@ -1208,22 +1209,11 @@ begin
       );
       if (AutoIncAttr=SQL_TRUE) and (FieldType=ftInteger) then
         FieldType:=ftAutoInc;
-    end;
-
-    Updatable:=0;
-    ODBCCheckResult(
-      SQLColAttribute(ODBCCursor.FSTMTHandle,
-                      i,
-                      SQL_DESC_UPDATABLE,
-                      nil,
-                      0,
-                      nil,
-                      @Updatable),
-      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get updatable attribute for column %d.',[i]
-    );
-
+    end
+    else
     if FieldType in [ftFloat] then
     begin
+      FixedPrecScale:=0;
       ODBCCheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,
                         i,
@@ -1237,6 +1227,37 @@ begin
       if FixedPrecScale=SQL_TRUE then
         FieldType:=ftCurrency;
     end;
+
+    if FieldType in [ftSmallint] then
+    begin
+      Unsigned:=0;
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle,
+                        i,
+                        SQL_DESC_UNSIGNED,
+                        nil,
+                        0,
+                        nil,
+                        @Unsigned),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get unsigned attribute for column %d.',[i]
+      );
+      if Unsigned=SQL_TRUE then
+        case FieldType of
+          ftSmallint: FieldType:=ftWord;
+        end;
+    end;
+
+    Updatable:=0;
+    ODBCCheckResult(
+      SQLColAttribute(ODBCCursor.FSTMTHandle,
+                      i,
+                      SQL_DESC_UPDATABLE,
+                      nil,
+                      0,
+                      nil,
+                      @Updatable),
+      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get updatable attribute for column %d.',[i]
+    );
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
     begin
@@ -1284,6 +1305,7 @@ end;
 
 procedure TODBCConnection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
+  Len: integer;
   StmtHandle:SQLHSTMT;
   Res:SQLRETURN;
   IndexDef: TIndexDef;
@@ -1299,6 +1321,13 @@ var
 const
   DEFAULT_NAME_LEN = 255;
 begin
+  Len := length(TableName);
+  if Len > 2 then
+    if (TableName[1] in ['"','`']) and (TableName[Len]  in ['"','`']) then
+      TableName := AnsiDequotedStr(TableName, TableName[1])
+    else if (TableName[1] in ['[']) and (TableName[Len] in [']']) then
+      TableName := copy(TableName, 2, Len-2);
+
   // allocate statement handle
   StmtHandle := SQL_NULL_HANDLE;
   ODBCCheckResult(

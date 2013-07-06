@@ -42,6 +42,7 @@ Type
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
+	ParaIncludeCfgPath,
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
@@ -398,6 +399,9 @@ begin
 {$endif}
 {$ifdef m68k}
       '6',
+{$endif}
+{$ifdef i8086}
+      '8',
 {$endif}
 {$ifdef arm}
       'A',
@@ -1841,6 +1845,25 @@ begin
                         else
                           IllegalPara(opt);
                       end;
+                    'm':
+                      begin
+                        if (target_info.system in [system_i8086_msdos]) then
+                          begin
+                            case Upper(Copy(More,j+1,255)) of
+                              'TINY':    init_settings.x86memorymodel:=mm_tiny;
+                              'SMALL':   init_settings.x86memorymodel:=mm_small;
+                              'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
+                              'COMPACT',
+                              'LARGE',
+                              'HUGE': IllegalPara(opt); { these are not implemented yet }
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
                     'M':
                       begin
                         if (target_info.system in (systems_darwin-[system_i386_iphonesim])) and
@@ -2139,14 +2162,17 @@ var
   level : longint;
   option_read : boolean;
   oldfilemode : byte;
+  ConfigFile: TPathStr;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
   Option_read:=false;
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
+  if not ParaIncludeCfgPath.FindFile(fileName,true,ConfigFile) then
+    ConfigFile := ExpandFileName(filename);
 { Maybe It's Directory ?}   //Jaro Change:
-  if PathExists(filename,false) then
+  if PathExists(ConfigFile,false) then
     begin
        Message1(option_config_is_dir,filename);
        exit;
@@ -2155,7 +2181,7 @@ begin
   Message1(option_using_file,filename);
   oldfilemode:=filemode;
   filemode:=0;
-  assign(f,ExpandFileName(filename));
+  assign(f,ConfigFile);
   {$push}{$I-}
    reset(f);
   {$pop}
@@ -2266,6 +2292,14 @@ begin
                 begin
                   Delete(opts,1,1);
                   Interpret_file(opts);
+                  Option_read:=true;
+                end
+              else
+               if (s='CFGDIR') then
+                begin
+                  Delete(opts,1,1);
+                  DefaultReplacements(opts);
+                  ParaIncludeCfgPath.AddPath(opts,false);
                   Option_read:=true;
                 end;
             end;
@@ -2635,6 +2669,7 @@ begin
   OptCPUSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
+  ParaIncludeCfgPath:=TSearchPathList.Create;
   ParaIncludePath:=TSearchPathList.Create;
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
@@ -2647,6 +2682,7 @@ end;
 
 destructor TOption.destroy;
 begin
+  ParaIncludeCfgPath.Free;
   ParaIncludePath.Free;
   ParaObjectPath.Free;
   ParaUnitPath.Free;
@@ -2824,9 +2860,9 @@ begin
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
 
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
   def_system_macro('INTERNAL_BACKTRACE');
-{$endif}
+{$endif SUPPORT_GET_FRAME}
   def_system_macro('STR_CONCAT_PROCS');
 {$warnings off}
   if pocall_default = pocall_register then
@@ -3378,6 +3414,16 @@ if (target_info.abi = abi_eabihf) then
       if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
+{$endif}
+{$if defined(i8086)}
+  case init_settings.x86memorymodel of
+    mm_tiny:    def_system_macro('FPC_MM_TINY');
+    mm_small:   def_system_macro('FPC_MM_SMALL');
+    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+    mm_compact: def_system_macro('FPC_MM_COMPACT');
+    mm_large:   def_system_macro('FPC_MM_LARGE');
+    mm_huge:    def_system_macro('FPC_MM_HUGE');
+  end;
 {$endif}
 
 

@@ -218,12 +218,15 @@ threadvar
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
+   {$ifdef FPC_UNICODE_RTL}
    { command line/environment functions }
+
+   function GetCommandLine : pwidechar;
+     stdcall;external KernelDLL name 'GetCommandLineW';
+   {$else}
    function GetCommandLine : pchar;
      stdcall;external KernelDLL name 'GetCommandLineA';
-
-   function GetCommandLineW : pwidechar;
-     stdcall;external KernelDLL name 'GetCommandLineW';
+   {$endif}
 
   function GetCurrentProcessId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentProcessId';
@@ -275,6 +278,30 @@ threadvar
    function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
    function GetFileType(Handle:thandle):DWord;
      stdcall;external KernelDLL name 'GetFileType';
+   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
+
+   {$ifdef FPC_UNICODE_RTL}
+    function GetFileAttributes(p : punicodechar) : dword;
+     stdcall;external KernelDLL name 'GetFileAttributesW';
+   function DeleteFile(p : punicodechar) : longint;
+     stdcall;external KernelDLL name 'DeleteFileW';
+   function MoveFile(old,_new : punicodechar) : longint;
+     stdcall;external KernelDLL name 'MoveFileW';
+   function CreateFile(lpFileName:punicodechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
+                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
+     stdcall;external KernelDLL name 'CreateFileW';
+   { Directory }
+   function CreateDirectory(name : pointer;sec : pointer) : longbool;
+     stdcall;external KernelDLL name 'CreateDirectoryW';
+   function RemoveDirectory(name:pointer):longbool;
+     stdcall;external KernelDLL name 'RemoveDirectoryW';
+   function SetCurrentDirectory(name : pointer) : longbool;
+     stdcall;external KernelDLL name 'SetCurrentDirectoryW';
+   function GetCurrentDirectory(bufsize : longint;name : punicodechar) : longbool;
+     stdcall;external KernelDLL name 'GetCurrentDirectoryW';
+
+   {$else}
    function GetFileAttributes(p : pchar) : dword;
      stdcall;external KernelDLL name 'GetFileAttributesA';
    function DeleteFile(p : pchar) : longint;
@@ -285,8 +312,6 @@ threadvar
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileA';
-   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
-
    { Directory }
    function CreateDirectory(name : pointer;sec : pointer) : longbool;
      stdcall;external KernelDLL name 'CreateDirectoryA';
@@ -296,6 +321,9 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external KernelDLL name 'GetCurrentDirectoryA';
+
+  {$endif}
+
    { Console functions needed for WriteFile fix for bug 17550 }
    function GetConsoleMode(hConsoleHandle:thandle; lpMode:LPDWORD):BOOL;
      stdcall;external KernelDLL name 'GetConsoleMode';

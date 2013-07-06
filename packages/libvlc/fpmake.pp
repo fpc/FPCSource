@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('libvlc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libvlc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.OSes := [win32, win64, linux, freebsd];
     P.Dependencies.Add('fcl-base');

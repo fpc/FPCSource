@@ -59,6 +59,7 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
+  dos,
   strings;
 
 {$ifdef win32}

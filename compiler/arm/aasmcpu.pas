@@ -1092,7 +1092,6 @@ implementation
                     curtai:=tai(curtai.next);
 
                 doinsert:=false;
-                hp:=tai(curtai.next);
                 current_asmdata.getjumplabel(l);
 
                 { align thumb in thumb .text section to 4 bytes }
@@ -1112,6 +1111,11 @@ implementation
                     hp2:=tai(hp2.next);
                   end;
 
+                { continue with the last inserted label because we use later
+                  on SimpleGetNextInstruction, so if we used curtai.next (which
+                  is then equal curdata.last.previous) we could over see one
+                  instruction }
+                hp:=tai(curdata.Last);
                 list.insertlistafter(curtai,curdata);
                 curtai:=hp;
               end

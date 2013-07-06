@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('zorba');
 {$ifdef ALLPACKAGES}
-    P.Directory:='zorba';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [linux,win32];

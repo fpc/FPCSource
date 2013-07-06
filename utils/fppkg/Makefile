@@ -2272,13 +2272,11 @@ examples:
 shared:
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
-zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
 zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: units examples shared sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -2334,3 +2332,7 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie

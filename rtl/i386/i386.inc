@@ -1590,3 +1590,25 @@ asm
 .L2:
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}
+
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+{$define FPC_SYSTEM_HAS_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+asm
+        movb   %al,%cl
+        movl   8(%esp),%edx
+        movl   4(%esp),%eax
+        andb   $63,%cl
+        cmpb   $32,%cl
+        jnb    .L1
+        shrdl  %cl,%edx,%eax
+        sarl   %cl,%edx
+        jmp    .Lexit
+.L1:
+        movl   %edx,%eax
+        sarl   $31,%edx
+        andb   $31,%cl
+        sarl   %cl,%eax
+.Lexit:
+end;
+{$endif FPC_SYSTEM_HAS_SAR_QWORD}

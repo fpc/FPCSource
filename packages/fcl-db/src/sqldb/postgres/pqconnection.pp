@@ -1041,10 +1041,16 @@ end;
 procedure TPQConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 var qry : TSQLQuery;
+    relname : string;
 
 begin
   if not assigned(Transaction) then
     DatabaseError(SErrConnTransactionnSet);
+
+  if (length(TableName)>2) and (TableName[1]='"') and (TableName[length(TableName)]='"') then
+    relname := QuotedStr(AnsiDequotedStr(TableName, '"'))
+  else
+    relname := 'lower(' + QuotedStr(TableName) + ')';  // unquoted names are stored lower case in PostgreSQL which is incompatible with the SQL standard
 
   qry := tsqlquery.Create(nil);
   qry.transaction := Transaction;
@@ -1072,7 +1078,7 @@ begin
               '(ia.attrelid = i.indexrelid) and '+
               '(ic.oid = i.indexrelid) and '+
               '(ta.attnum = i.indkey[ia.attnum-1]) and '+
-              '(upper(tc.relname)=''' +  UpperCase(TableName) +''') '+
+              '(tc.relname = ' + relname + ') '+
             'order by '+
               'ic.relname;');
     open;

@@ -1758,6 +1758,14 @@ endif
 ifeq ($(OS_TARGET),msdos)
 override OPT=-CX
 endif
+TESTOPT:=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
+ifeq ($(CPU_TARGET),armeb)
+override TESTOPT+=-Cb
+endif
+ifneq ($(BINUTILSPREFIX),)
+override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
+endif
+TESTCOMPILER:=$(FPC) $(TESTOPT)
 ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
@@ -1803,14 +1811,6 @@ cleanpackages:
 	-$(DEL) packages-stamp.$(FULL_TARGET)
 distcleanpackages: cleanpackages
 packages : packages-stamp.$(FULL_TARGET)
-TESTOPT=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
-ifeq ($(CPU_TARGET),armeb)
-override TESTOPT+=-Cb
-endif
-ifneq ($(BINUTILSPREFIX),)
-override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
-endif
-TESTCOMPILER=$(FPC) $(TESTOPT)
 erroru$(PPUEXT) : erroru.pp
 	$(TESTCOMPILER) erroru.pp
 ptest$(PPUEXT) : ../test/cg/ptest.pp

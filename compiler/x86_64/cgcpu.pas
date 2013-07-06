@@ -177,6 +177,16 @@ unit cgcpu;
 
 
     procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
+
+      procedure increase_sp(a : tcgint);
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
+          { normally, lea is a better choice than an add }
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+        end;
+
       var
         href : treference;
       begin
@@ -195,7 +205,7 @@ unit cgcpu;
                (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
                 if (current_procinfo.final_localsize<>0) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,current_procinfo.final_localsize,NR_STACK_POINTER_REG);
+                  increase_sp(current_procinfo.final_localsize);
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end

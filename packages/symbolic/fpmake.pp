@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('symbolic');
 {$ifdef ALLPACKAGES}
-    P.Directory:='symbolic';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Marco van de Voort';

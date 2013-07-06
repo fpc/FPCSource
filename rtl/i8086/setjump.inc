@@ -20,11 +20,15 @@ asm
   push bp
   mov bp, sp
 
-  mov bx, ss:[bp + 4]
+  mov bx, ss:[bp + 4 + extra_param_offset]  // S
   mov word [bx + Jmp_buf.bp], ax
   mov word [bx + Jmp_buf.sp], di
-  mov di, word ss:[di]
-  mov word [bx + Jmp_buf.pc], di
+  mov cx, word ss:[di]
+  mov word [bx + Jmp_buf.ip], cx
+{$ifdef FPC_X86_CODE_FAR}
+  mov cx, word ss:[di + 2]
+  mov word [bx + Jmp_buf.cs], cx
+{$endif FPC_X86_CODE_FAR}
 
   xor ax, ax
   pop bp
@@ -36,17 +40,22 @@ asm
   push bp
   mov bp, sp
 
-  mov bx, ss:[bp + 6]
-  mov ax, ss:[bp + 4]
+  mov bx, ss:[bp + 6 + extra_param_offset]  // S
+  mov ax, ss:[bp + 4 + extra_param_offset]  // value
   test ax, ax
   jnz @@L1
   inc ax
 @@L1:
-  mov dx, word [bx + Jmp_buf.pc]
   mov bp, word [bx + Jmp_buf.bp]
   mov sp, word [bx + Jmp_buf.sp]
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also
-  jmp dx
+{$ifdef FPC_X86_CODE_NEAR}
+  jmp word [bx + Jmp_buf.ip]
+{$else FPC_X86_CODE_NEAR}
+  // the inline asm doesn't support jmp far yet, so we use db for now
+  // jmp far [bx + Jmp_buf.ip]
+  db 0FFh, 06Fh, Jmp_buf.ip
+{$endif FPC_X86_CODE_NEAR}
 end;

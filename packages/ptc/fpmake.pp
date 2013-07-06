@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('ptc');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ptc';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

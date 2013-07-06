@@ -82,6 +82,7 @@ interface
 
     { tries to simplify the given node after inlining }
     procedure doinlinesimplify(var n : tnode);
+
     { creates an ordinal constant, optionally based on the result from a
       simplify operation: normally the type is the smallest integer type
       that can hold the value, but when inlining the "def" will be used instead,
@@ -117,6 +118,22 @@ interface
     { count the number of nodes in the node tree,
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
+
+    { returns true, if the value described by node is constant/immutable, this approximation is safe
+      if no dirty tricks like buffer overflows or pointer magic are used }
+    function is_const(node : tnode) : boolean;
+
+    { returns a pointer to the real node a node refers to,
+      skipping (absolute) equal type conversions. Returning
+      a pointer allows the caller to move/remove/replace this
+      node
+    }
+    function actualtargetnode(n : pnode) : pnode;
+
+    { moves src into dest, before doing so, right is set to nil and dest is freed.
+      Because dest and src are var parameters, this can be done inline in an existing
+      node tree }
+    procedure replacenode(var dest,src : tnode);
 
 implementation
 
@@ -1127,13 +1144,43 @@ implementation
       end;
 
 
-    { rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
       begin
         nodecount:=0;
         foreachnodestatic(node,@donodecount,nil);
         result:=nodecount;
       end;
+
+
+    function is_const(node : tnode) : boolean;
+      begin
+        result:=(node.nodetype=temprefn) and (ti_const in ttemprefnode(node).tempinfo^.flags)
+      end;
+
+
+    function actualtargetnode(n : pnode) : pnode;
+      begin
+        result:=n;
+        case n^.nodetype of
+          typeconvn:
+            if ttypeconvnode(n^).retains_value_location then
+              result:=actualtargetnode(@ttypeconvnode(n^).left);
+        end;
+      end;
+
+
+    procedure replacenode(var dest,src : tnode);
+      var
+        t : tnode;
+      begin
+        t:=src;
+        { set src nil before free'ing dest because
+          src could be part of dest }
+        src:=nil;
+        dest.Free;
+        dest:=t;
+      end;
+
 
 
 end.

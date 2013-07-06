@@ -373,10 +373,10 @@ begin
   Result := Length;
 {$ifndef WINCE}
   if (FromCP = GetOEMCP) and (ToCP = GetACP) then
-    OemToCharBuff(Src, Dest, Length)
+    OemToCharBuffA(Src, Dest, Length)
   else
   if (FromCP = GetACP) and (ToCP = GetOEMCP) then
-    CharToOemBuff(Src, Dest, Length)
+    CharToOemBuffA(Src, Dest, Length)
   else
 {$endif}
   if FromCP = ToCP then

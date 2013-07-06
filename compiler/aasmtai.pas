@@ -138,7 +138,9 @@ interface
           { for use by dwarf debugger information }
           aitconst_16bit_unaligned,
           aitconst_32bit_unaligned,
-          aitconst_64bit_unaligned
+          aitconst_64bit_unaligned,
+          { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
+          aitconst_farptr
         );
 
     const
@@ -572,6 +574,8 @@ interface
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
+          constructor Create_nil_codeptr;
+          constructor Create_nil_dataptr;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1628,7 +1632,24 @@ implementation
       begin
          inherited Create;
          typ:=ait_const;
+{$ifdef i8086}
+         if assigned(_sym) and (_sym.typ=AT_DATA) then
+           begin
+             if current_settings.x86memorymodel in x86_far_data_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end
+         else
+           begin
+             if current_settings.x86memorymodel in x86_far_code_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end;
+{$else i8086}
          consttype:=aitconst_ptr;
+{$endif i8086}
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
@@ -1664,6 +1685,40 @@ implementation
       end;
 
 
+    constructor tai_const.Create_nil_codeptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
+      end;
+
+
+    constructor tai_const.Create_nil_dataptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
+      end;
+
+
     constructor tai_const.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -1693,7 +1748,8 @@ implementation
       begin
         getcopy:=inherited getcopy;
         { we need to increase the reference number }
-        sym.increfs;
+        if assigned(sym) then
+          sym.increfs;
         if assigned(endsym) then
           endsym.increfs;
       end;

@@ -15,7 +15,7 @@ begin
 
     P:=AddPackage('chm');
 {$ifdef ALLPACKAGES}
-    P.Directory:='chm';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

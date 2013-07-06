@@ -2307,7 +2307,7 @@ implementation
           exit;
 
         { remove possible typecasts }
-        realassignmenttarget:=aktassignmentnode.left.actualtargetnode;
+        realassignmenttarget:=actualtargetnode(@aktassignmentnode.left)^;
 
         { when it is not passed in a parameter it will only be used after the
           function call }
@@ -2327,7 +2327,7 @@ implementation
           point
         }
         if assigned(methodpointer) and
-           realassignmenttarget.isequal(methodpointer.actualtargetnode) then
+           realassignmenttarget.isequal(actualtargetnode(@methodpointer)^) then
           exit;
 
         { when we substitute a function result inside an inlined function,
@@ -3044,7 +3044,8 @@ implementation
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
                     ((block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
-                     (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
+                     (assigned(left) and ((tcallparanode(left).left.nodetype in [realconstn,ordconstn])
+                      and (not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype in [realconstn,ordconstn])))));
           if (procdefinition.proccalloption=pocall_internproc) or is_const then
            begin
              if assigned(left) then
@@ -3168,7 +3169,7 @@ implementation
                { skip (absolute and other simple) type conversions -- only now,
                  because the checks above have to take type conversions into
                  e.g. class reference types account }
-               hpt:=hpt.actualtargetnode;
+               hpt:=actualtargetnode(@hpt)^;
 
                { R.Init then R will be initialized by the constructor,
                  Also allow it for simple loads }
@@ -3903,12 +3904,27 @@ implementation
                       begin
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
                           tt_persistent,tparavarsym(para.parasym).is_regvar(false));
+
+                        { inherit const }
+                        if tabstractvarsym(para.parasym).varspez=vs_const then
+                          begin
+                            include(tempnode.tempinfo^.flags,ti_const);
+
+                            { apply less strict rules for the temp. to be a register than
+                              ttempcreatenode does
+
+                              this way, dyn. array, ansistrings etc. can be put into registers as well }
+                            if tparavarsym(para.parasym).is_regvar(false) then
+                              include(tempnode.tempinfo^.flags,ti_may_be_in_reg);
+                          end;
+
                         addstatement(inlineinitstatement,tempnode);
 
                         if localvartrashing <> -1 then
                           cnodeutils.maybe_trash_variable(inlineinitstatement,para.parasym,ctemprefnode.create(tempnode));
 
                         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+
                         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                             para.left));
                         para.left := ctemprefnode.create(tempnode);
@@ -3955,6 +3971,9 @@ implementation
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           include(tempnode.tempinfo^.flags,ti_addr_taken);
+        { inherit read only }
+        if tabstractvarsym(para.parasym).varspez=vs_const then
+          include(tempnode.tempinfo^.flags,ti_const);
         paraaddr:=caddrnode.create_internal(para.left);
         include(paraaddr.flags,nf_typedaddr);
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),

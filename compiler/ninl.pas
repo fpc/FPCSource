@@ -2052,7 +2052,13 @@ implementation
                      {Don't construct pointers from negative values.}
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
                        cgmessage(parser_e_range_check_error);
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,{$ifdef i386}voidnearfspointertype{$else}voidpointertype{$endif});
+{$if defined(i8086)}
+                     hp:=cpointerconstnode.create((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
+{$elseif defined(i386)}
+                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype);
+{$else}
+                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
+{$endif}
                    end
                  else
                    internalerror(88);
@@ -2982,6 +2988,9 @@ implementation
                       tcallparanode(tcallparanode(left).right).left.resultdef.typename);
                 end;
 
+              in_new_x:
+                resultdef:=left.resultdef;
+
               in_low_x,
               in_high_x:
                 begin
@@ -3268,14 +3277,14 @@ implementation
               firstpass(result);
             end;
 
-          in_sizeof_x:
-            begin
-              expectloc:=LOC_REGISTER;
-            end;
-
+          in_sizeof_x,
           in_typeof_x:
             begin
-               expectloc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
+              if (left.nodetype=typen) and
+                 (cs_create_pic in current_settings.moduleswitches) and
+                 (tf_pic_uses_got in target_info.flags) then
+                include(current_procinfo.flags,pi_needs_got);
             end;
 
           in_length_x:
@@ -3285,7 +3294,9 @@ implementation
 
           in_typeinfo_x:
             begin
-               expectloc:=LOC_REGISTER;
+              result:=caddrnode.create_internal(
+                crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)
+              );
             end;
 
           in_assigned_x:
@@ -3925,11 +3936,47 @@ implementation
         left:=nil;
      end;
 
+
      function tinlinenode.first_new: tnode;
+       var
+         newstatement : tstatementnode;
+         newblock     : tblocknode;
+         temp         : ttempcreatenode;
+         para         : tcallparanode;
        begin
-         internalerror(2011012201);
-         result:=nil;
+         { create statements with call to getmem+initialize }
+         newblock:=internalstatements(newstatement);
+
+         { create temp for result }
+         temp := ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+         addstatement(newstatement,temp);
+
+         { create call to fpc_getmem }
+         para := ccallparanode.create(cordconstnode.create
+             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true),nil);
+         addstatement(newstatement,cassignmentnode.create(
+             ctemprefnode.create(temp),
+             ccallnode.createintern('fpc_getmem',para)));
+
+         { create call to fpc_initialize }
+         if is_managed_type(tpointerdef(left.resultdef).pointeddef) then
+          begin
+            para := ccallparanode.create(caddrnode.create_internal(crttinode.create
+                       (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal)),
+                    ccallparanode.create(ctemprefnode.create
+                       (temp),nil));
+            addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
+          end;
+
+         { the last statement should return the value as
+           location and type, this is done be referencing the
+           temp and converting it first from a persistent temp to
+           normal temp }
+         addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+         addstatement(newstatement,ctemprefnode.create(temp));
+         result:=newblock;
        end;
+
 
      function tinlinenode.first_length: tnode;
        begin
@@ -3957,7 +4004,7 @@ implementation
          paras:=tcallparanode(tcallparanode(left).right);
          paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
          paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
          paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil),paras);
 {$else}
          paras:=ccallparanode.create(ccallnode.createinternfromunit('SYSTEM','GET_FRAME',nil),paras);

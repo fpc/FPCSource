@@ -319,444 +319,16 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_PROGRAMS+=fpcres fpcjres
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i386-android)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc-aix)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),arm-android)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),mips-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),jvm-java)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),jvm-android)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
-ifeq ($(FULL_TARGET),i8086-msdos)
-override CLEAN_UNITS+=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
-endif
+override PACKAGE_NAME=fpcres
+override PACKAGE_VERSION=2.7.1
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1387,7 +959,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl rtl fcl-res paszlib
+override REQUIRE_PACKAGES=rtl fpmkunit
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
@@ -1395,7 +967,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
@@ -1404,7 +975,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1413,7 +983,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
@@ -1422,7 +991,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1431,7 +999,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
@@ -1440,7 +1007,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
@@ -1449,7 +1015,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1458,7 +1023,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -1467,7 +1031,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
@@ -1476,7 +1039,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
@@ -1485,7 +1047,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1494,7 +1055,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
@@ -1503,7 +1063,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1512,7 +1071,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
@@ -1521,7 +1079,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
@@ -1530,7 +1087,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
@@ -1539,7 +1095,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -1548,7 +1103,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1557,7 +1111,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -1566,7 +1119,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
@@ -1575,7 +1127,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
@@ -1584,7 +1135,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i386-android)
 REQUIRE_PACKAGES_RTL=1
@@ -1593,7 +1143,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1602,7 +1151,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1611,7 +1159,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1620,7 +1167,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -1629,7 +1175,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
@@ -1638,7 +1183,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1647,7 +1191,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -1656,7 +1199,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1665,7 +1207,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1674,7 +1215,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1683,7 +1223,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -1692,7 +1231,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
@@ -1701,7 +1239,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1710,7 +1247,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
@@ -1719,7 +1255,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1728,7 +1263,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
@@ -1737,7 +1271,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
 REQUIRE_PACKAGES_RTL=1
@@ -1746,7 +1279,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1755,7 +1287,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1764,7 +1295,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -1773,7 +1303,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1782,7 +1311,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1791,7 +1319,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1800,7 +1327,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1809,7 +1335,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -1818,7 +1343,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1827,7 +1351,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1836,7 +1359,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
@@ -1845,7 +1367,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1854,7 +1375,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1863,7 +1383,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -1872,7 +1391,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1881,7 +1399,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -1890,7 +1407,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
@@ -1899,7 +1415,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
@@ -1908,7 +1423,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1917,7 +1431,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -1926,7 +1439,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),arm-android)
 REQUIRE_PACKAGES_RTL=1
@@ -1935,7 +1447,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1944,7 +1455,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1953,7 +1463,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1962,7 +1471,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
 REQUIRE_PACKAGES_RTL=1
@@ -1971,7 +1479,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1980,7 +1487,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1989,7 +1495,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1998,7 +1503,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),mips-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2007,7 +1511,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2016,7 +1519,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
@@ -2025,7 +1527,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),jvm-android)
 REQUIRE_PACKAGES_RTL=1
@@ -2034,7 +1535,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
 REQUIRE_PACKAGES_RTL=1
@@ -2043,7 +1543,6 @@ REQUIRE_PACKAGES_FCL-PROCESS=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
-REQUIRE_PACKAGES_FCL-RES=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2273,44 +1772,6 @@ ifdef UNITDIR_FPMAKE_FPMKUNIT
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FPMKUNIT)
 endif
 endif
-ifdef REQUIRE_PACKAGES_FCL-RES
-PACKAGEDIR_FCL-RES:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-res/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-RES),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-RES)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-RES=$(PACKAGEDIR_FCL-RES)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-RES=$(PACKAGEDIR_FCL-RES)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_FCL-RES)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-RES=$(PACKAGEDIR_FCL-RES)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_FCL-RES)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-RES=$(PACKAGEDIR_FCL-RES)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_FCL-RES=$(PACKAGEDIR_FCL-RES)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-RES)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-RES) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-RES)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-RES=
-UNITDIR_FCL-RES:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-res/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-RES),)
-UNITDIR_FCL-RES:=$(firstword $(UNITDIR_FCL-RES))
-else
-UNITDIR_FCL-RES=
-endif
-endif
-ifdef UNITDIR_FCL-RES
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-RES)
-endif
-ifdef UNITDIR_FPMAKE_FCL-RES
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-RES)
-endif
-endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(ARCH)
 endif
@@ -2465,102 +1926,9 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 endif
-.PHONY: fpc_exes
-ifndef CROSSINSTALL
-ifneq ($(TARGET_PROGRAMS),)
-override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
-override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
-override EXEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_PROGRAMS))
-override ALLTARGET+=fpc_exes
-override INSTALLEXEFILES+=$(EXEFILES)
-override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
-override CLEANEXEDBGFILES+=$(EXEDBGFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-ifeq ($(OS_TARGET),emx)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-endif
-endif
-fpc_exes: $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(EXEFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
-endif
-.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
-	@$(ECHOREDIR) Compiled > $(FPCMADE)
-fpc_all: $(FPCMADE)
-fpc_smart:
-	$(MAKE) all LINKSMART=1 CREATESMART=1
-fpc_debug:
-	$(MAKE) all DEBUG=1
-fpc_release:
-	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
-$(COMPILER_UNITTARGETDIR):
-	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-$(COMPILER_TARGETDIR):
-	$(MKDIRTREE) $(COMPILER_TARGETDIR)
-%$(PPUEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(PPUEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.lpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.dpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%.res: %.rc
-	windres -i $< -o $@
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.inc $(COMPILER_INCLUDEDIR)
-vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
-.PHONY: fpc_shared
-override INSTALLTARGET+=fpc_shared_install
-ifndef SHARED_LIBVERSION
-SHARED_LIBVERSION=$(FPC_VERSION)
-endif
-ifndef SHARED_LIBNAME
-SHARED_LIBNAME=$(PACKAGE_NAME)
-endif
-ifndef SHARED_FULLNAME
-SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
-endif
-ifndef SHARED_LIBUNITS
-SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
-override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
-endif
-fpc_shared:
-ifdef HASSHAREDLIB
-	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
-ifneq ($(SHARED_BUILD),n)
-	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR)
-endif
-else
-	@$(ECHO) Shared Libraries not supported
-endif
-fpc_shared_install:
-ifneq ($(SHARED_BUILD),n)
-ifneq ($(SHARED_LIBUNITS),)
-ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
-	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
-endif
-endif
 endif
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS
@@ -2629,6 +1997,92 @@ endif
 ifdef TARGET_EXAMPLEDIRS
 	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
+.PHONY: fpc_distinstall
+fpc_distinstall: install exampleinstall
+.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
+ifndef PACKDIR
+ifndef inUnix
+PACKDIR=$(BASEDIR)/../fpc-pack
+else
+PACKDIR=/tmp/fpc-pack
+endif
+endif
+ifndef ZIPNAME
+ifdef DIST_ZIPNAME
+ZIPNAME=$(DIST_ZIPNAME)
+else
+ZIPNAME=$(PACKAGE_NAME)
+endif
+endif
+ifndef FULLZIPNAME
+FULLZIPNAME=$(ZIPCROSSPREFIX)$(ZIPPREFIX)$(ZIPNAME)$(ZIPSUFFIX)
+endif
+ifndef ZIPTARGET
+ifdef DIST_ZIPTARGET
+ZIPTARGET=DIST_ZIPTARGET
+else
+ZIPTARGET=install
+endif
+endif
+ifndef USEZIP
+ifdef inUnix
+USETAR=1
+endif
+endif
+ifndef inUnix
+USEZIPWRAPPER=1
+endif
+ifdef USEZIPWRAPPER
+ZIPPATHSEP=$(PATHSEP)
+ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(SRCBATCHEXT))
+else
+ZIPPATHSEP=/
+endif
+ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
+ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
+ifdef USETAR
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(TAREXT)
+ZIPCMD_ZIP:=$(TARPROG) c$(TAROPT)f $(ZIPDESTFILE) *
+else
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(ZIPEXT)
+ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
+endif
+fpc_zipinstall:
+	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
+	$(MKDIR) $(DIST_DESTDIR)
+	$(DEL) $(ZIPDESTFILE)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+else
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+endif
+ifdef inUnix
+	/bin/sh $(ZIPWRAPPER)
+else
+ifdef RUNBATCH
+	$(RUNBATCH) $(ZIPWRAPPER)
+else
+	$(ZIPWRAPPER)
+endif
+endif
+	$(DEL) $(ZIPWRAPPER)
+else
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+endif
+	$(DELTREE) $(PACKDIR)
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=$(ZIPSOURCESUFFIX)
+fpc_zipexampleinstall:
+ifdef HASEXAMPLES
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=$(ZIPEXAMPLESUFFIX)
+endif
+fpc_zipdistinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -2813,30 +2267,72 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-all: fpc_all
-debug: fpc_debug
-smart: fpc_smart
-release: fpc_release
-units: fpc_units
+units:
 examples:
-shared: fpc_shared
-install: fpc_install
+shared:
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
-distinstall:
-zipinstall:
-zipsourceinstall:
-zipexampleinstall:
-zipdistinstall:
-clean: fpc_clean
-distclean: fpc_distclean
-cleanall: fpc_cleanall
+zipsourceinstall: fpc_zipsourceinstall
+zipexampleinstall: fpc_zipexampleinstall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=../..
+FPMAKE_OPT+=--globalunitdir=../../packages
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
 .NOTPARALLEL:
-fpcres$(EXEEXT): target.pas msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcres.pas
-fpcjres$(EXEEXT): msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcjres.pas jarsourcehandler.pas jarparamparser.pas
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:
+ifdef inUnix
+	{ $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+	$(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+cleanall: distclean
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
+endif
+zipinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie

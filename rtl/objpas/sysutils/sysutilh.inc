@@ -96,10 +96,10 @@ type
    end;
 
    PByteArray = ^TByteArray;
-   TByteArray = Array[0..32767] of Byte;
+   TByteArray = Array[0..{$ifdef CPU16}32766{$else}32767{$endif}] of Byte;
 
    PWordarray = ^TWordArray;
-   TWordArray = array[0..16383] of Word;
+   TWordArray = array[0..{$ifdef CPU16}16382{$else}16383{$endif}] of Word;
 
    TBytes = array of Byte;   
 

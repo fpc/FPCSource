@@ -27,6 +27,11 @@ unit fpmkunit;
 
 Interface
 
+{$IFDEF MORPHOS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
@@ -1007,6 +1012,9 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+
+    FCachedlibcPath: string;
+    FGeneralCriticalSection: TRTLCriticalSection;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
 {$endif HAS_UNIT_ZIPPER}
@@ -1037,6 +1045,7 @@ Type
     Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
+    procedure AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
     //package commands
     function  GetUnitDir(APackage:TPackage):String;
     procedure AddDependencyPaths(L: TStrings; DependencyType: TDependencyType; ATarget: TTarget);
@@ -1272,6 +1281,7 @@ Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
 procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
 Implementation
 
@@ -1350,6 +1360,9 @@ ResourceString
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
   SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
   SWarnDuplicatePackage = 'Warning: Package %s is already added. Using the existing package';
+  SWarngccNotFound        = 'Could not find libgcc';
+  SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
+  SWarnNoFCLProcessSupport= 'No FCL-Process support';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1360,7 +1373,8 @@ ResourceString
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
-  SInfoDeletingFile       = 'Deleting file "%s"';
+  SInfoDeletedFile        = 'Deleted file "%s"';
+  SInfoRemovedDirectory   = 'Removed directory "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
@@ -1406,6 +1420,9 @@ ResourceString
   SDbgDependencyRecompiled  = 'The unit %s where this unit depends on is recompiled';
   SDbgPackageDepRecompiled  = 'The package %s where this package depends on is recompiled';
   SDbgTargetHasToBeCompiled = 'At least one of the targets in the package has to be compiled.';
+  SDbgDeletedFile           = 'Recursively deleted file "%s"';
+  SDbgRemovedDirectory      = 'Recursively removed directory "%s"';
+
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1744,7 +1761,7 @@ end;
 
 function maybequoted(const s:string):string;
 const
-  {$IFDEF MSWINDOWS}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS)}
     FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                        '{', '}', '''', '`', '~'];
   {$ELSE}
@@ -2230,7 +2247,7 @@ end;
 
 
 {$ifdef HAS_UNIT_PROCESS}
-function GetCompilerInfo(const ACompiler,AOptions:string):string;
+function GetCompilerInfo(const ACompiler,AOptions:string; ReadStdErr: boolean):string;
 const
   BufSize = 1024;
 var
@@ -2243,11 +2260,91 @@ begin
   S.Options:=[poUsePipes];
   S.execute;
   Count:=s.output.read(buf,BufSize);
+  if (count=0) and ReadStdErr then
+    Count:=s.Stderr.read(buf,BufSize);
   S.Free;
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
 {$endif HAS_UNIT_PROCESS}
+
+function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
+
+  function Get4thWord(const AString: string): string;
+  var p: pchar;
+      spacecount: integer;
+      StartWord: pchar;
+  begin
+    result:='';
+    if length(AString)>6 then
+      begin
+      p := @AString[1];
+      spacecount:=0;
+      StartWord:=nil;
+      while (not (p^ in [#0,#10,#13])) and ((p^<>' ') or (StartWord=nil)) do
+        begin
+        if p^=' ' then
+          begin
+          inc(spacecount);
+          if spacecount=3 then StartWord:=p+1;
+          end;
+        inc(p);
+        end;
+      if StartWord<>nil then
+        begin
+        SetLength(result,p-StartWord);
+        move(StartWord^,result[1],p-StartWord);
+        end
+      else
+        result := '';
+      end;
+  end;
+
+  function GetGccDirArch(const ACpuType, GCCParams: string) : string;
+  var ExecResult: string;
+      libgccFilename: string;
+      GccExecutable: string;
+  begin
+    result := '';
+    GccExecutable := ExeSearch(AddProgramExtension('gcc', OS),GetEnvironmentVariable('PATH'));
+    if FileExists(GccExecutable) then
+      begin
+{$ifdef HAS_UNIT_PROCESS}
+      ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
+      libgccFilename:=Get4thWord(ExecResult);
+      if libgccFilename='' then
+        libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
+      result := ExtractFileDir(libgccFilename);
+{$else HAS_UNIT_PROCESS}
+      ErrorMessage := SWarnNoFCLProcessSupport;
+{$endif HAS_UNIT_PROCESS}
+      end
+    else
+      ErrorMessage := SWarngccNotFound;
+  end;
+
+begin
+  result := '';
+  ErrorMessage:='';
+  if OS in [freebsd, openbsd] then
+    result := '/usr/local/lib'
+  else if OS = netbsd then
+    result := '/usr/pkg/lib'
+  else if OS = linux then
+    case CPU of
+      i386:     result := GetGccDirArch('cpui386','-m32');
+      x86_64:   result := GetGccDirArch('cpux86_64','-m64');
+      powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
+      powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
+    end {case}
+  else if OS = darwin then
+    case CPU of
+      i386:     result := GetGccDirArch('cpui386','-arch i386');
+      x86_64:   result := GetGccDirArch('cpux86_64','-arch x86_64');
+      powerpc:  result := GetGccDirArch('cpupowerpc','-arch ppc');
+      powerpc64:result := GetGccDirArch('cpupowerpc64','-arch ppc64');
+    end; {case}
+end;
 
 constructor TPackageVariant.Create(ACollection: TCollection);
 begin
@@ -3742,7 +3839,7 @@ begin
       // Detect compiler version/target from -i option
       infosl:=TStringList.Create;
       infosl.Delimiter:=' ';
-      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO');
+      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO', False);
       if infosl.Count<>3 then
         Raise EInstallerError.Create(SErrInvalidFPCInfo);
       if FCompilerVersion='' then
@@ -4432,12 +4529,21 @@ begin
   // With --start-dir=/path/to/sources.
   FStartDir:=includeTrailingPathDelimiter(GetCurrentDir);
   FExternalPackages:=TPackages.Create(TPackage);
+
+{$ifndef NO_THREADING}
+  InitCriticalSection(FGeneralCriticalSection);
+{$endif NO_THREADING}
 end;
 
 
 destructor TBuildEngine.Destroy;
 begin
   FreeAndNil(FExternalPackages);
+
+{$ifndef NO_THREADING}
+  DoneCriticalsection(FGeneralCriticalSection);
+{$endif NO_THREADING}
+
   inherited Destroy;
 end;
 
@@ -4579,11 +4685,12 @@ end;
 
 procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
-  Log(vlInfo,SInfoDeletingFile,[AFileName]);
   if not FileExists(AFileName) then
     Log(vldebug,SDbgFileDoesNotExist,[AFileName])
   else If Not DeleteFile(AFileName) then
-    Error(SErrDeletingFile,[AFileName]);
+    Error(SErrDeletingFile,[AFileName])
+  else
+    Log(vlInfo,SInfoDeletedFile,[AFileName]);
 end;
 
 procedure TBuildEngine.SysDeleteDirectory(Const ADirectoryName: String);
@@ -4593,7 +4700,9 @@ begin
   else if not IsDirectoryEmpty(ADirectoryName) then
     Log(vldebug,SDbgDirectoryNotEmpty,[ADirectoryName])
   else If Not RemoveDir(ADirectoryName) then
-    Error(SErrRemovingDirectory,[ADirectoryName]);
+    Error(SErrRemovingDirectory,[ADirectoryName])
+  else
+    Log(vlInfo,SInfoRemovedDirectory,[ADirectoryName]);
 end;
 
 
@@ -4603,6 +4712,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
   var
     searchRec: TSearchRec;
     SearchResult: longint;
+    s: string;
   begin
     result := true;
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
@@ -4611,13 +4721,16 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
         begin
           if (searchRec.Name<>'.') and (searchRec.Name<>'..') then
              begin
+               s := IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name;
                if (searchRec.Attr and faDirectory)=faDirectory then
                  begin
-                   if not IntRemoveTree(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
+                   if not IntRemoveTree(s) then
                      result := false;
                  end
-               else if not DeleteFile(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
-                 result := False;
+               else if not DeleteFile(s) then
+                 result := False
+               else
+                 log(vldebug, SDbgDeletedFile, [s]);
              end;
           SearchResult := FindNext(searchRec);
         end;
@@ -4625,14 +4738,18 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
       FindClose(searchRec);
     end;
     if not RemoveDir(ADirectoryName) then
-      result := false;
+      result := false
+    else
+      log(vldebug, SDbgRemovedDirectory, [ADirectoryName]);
   end;
 
 begin
   if not DirectoryExists(ADirectoryName) then
     Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])
   else If Not IntRemoveTree(ADirectoryName) then
-    Error(SErrRemovingDirectory,[ADirectoryName]);
+    Error(SErrRemovingDirectory,[ADirectoryName])
+  else
+    Log(vlInfo,SInfoRemovedDirectory,[ADirectoryName]);
 end;
 
 
@@ -4879,7 +4996,7 @@ begin
   D1:=FileDateToDateTime(DS);
   D2:=FileDateToDateTime(DD);
   Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
-  Result:=D1>=D2;
+  Result:=D1>D2;
   If Result then
     Log(vlInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
 end;
@@ -5003,6 +5120,11 @@ begin
     ADirectoryList.Add(ExtractFileDir(AFileList.Strings[i]));
 end;
 
+procedure TBuildEngine.AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
+begin
+  APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
+  APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+end;
 
 Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
 
@@ -5277,6 +5399,7 @@ Var
   L : TUnsortedDuplicatesStringList;
   Args : TStringList;
   s : string;
+  ErrS: string;
   i : Integer;
 begin
   if ATarget.TargetSourceFileName = '' then
@@ -5335,6 +5458,33 @@ begin
   for i:=0 to L.Count-1 do
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
+
+  // libc-linker path
+  if APackage.NeedLibC then
+    begin
+    if FCachedlibcPath='' then
+      begin
+      s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
+      if s='' then
+        Log(vlWarning, SWarngcclibpath +' '+ErrS)
+      else
+        begin
+{$ifndef NO_THREADING}
+        EnterCriticalsection(FGeneralCriticalSection);
+        try
+{$endif NO_THREADING}
+          FCachedlibcPath:=s;
+{$ifndef NO_THREADING}
+        finally
+          LeaveCriticalsection(FGeneralCriticalSection);
+        end;
+{$endif NO_THREADING}
+        end;
+      end;
+
+    Args.Add('-Fl'+FCachedlibcPath);
+    end;
+
   // Custom Options
   If (Defaults.HaveOptions) then
     Args.AddStrings(Defaults.Options);
@@ -5993,8 +6143,7 @@ begin
   GPathPrefix:=APackage.Directory;
   Try
     CreateOutputDir(APackage);
-    APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
-    APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     DoBeforeCompile(APackage);
     RegenerateUnitconfigFile:=False;
     if APackage.BuildMode=bmBuildUnit then
@@ -6384,14 +6533,15 @@ begin
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     DoBeforeClean(Apackage);
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     if AllTargets then
       begin
         // Remove the unit-and bin-directories completely. This is safer in case of files
         // being renamed and such. See also bug 19655
         DirectoryList := TStringList.Create;
         try
-          for ACPU:=low(TCpu) to high(TCpu) do
-            for AOS:=low(TOS) to high(TOS) do
+          for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
+            for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
               begin
                 DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
                 DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));

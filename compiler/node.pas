@@ -367,10 +367,6 @@ interface
          { does the real copying of a node }
          function dogetcopy : tnode;virtual;
 
-         { returns the real loadn/temprefn a node refers to,
-           skipping (absolute) equal type conversions        }
-         function actualtargetnode: tnode;virtual;
-
          procedure insertintolist(l : tnodelist);virtual;
          { writes a node for debugging purpose, shouldn't be called }
          { direct, because there is no test for nil, use printnode  }
@@ -952,12 +948,6 @@ implementation
       end;
 
 
-    function tnode.actualtargetnode: tnode;
-      begin
-        result:=self;
-      end;
-
-
     procedure tnode.insertintolist(l : tnodelist);
       begin
       end;
@@ -967,7 +957,10 @@ implementation
     function tnode.allocoptinfo : poptinfo;inline;
       begin
         if not(assigned(optinfo)) then
-          new(optinfo);
+          begin
+            new(optinfo);
+            fillchar(optinfo^,sizeof(optinfo^),0);
+          end;
         result:=optinfo;
       end;
 

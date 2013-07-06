@@ -447,39 +447,10 @@ implementation
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
               Message(parser_w_use_extended_syntax_for_objects);
 
-            { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement);
+            if p1.nodetype=typen then
+              ttypenode(p1).allowed:=true;
 
-            { create temp for result }
-            temp := ctempcreatenode.create(p1.resultdef,p1.resultdef.size,tt_persistent,true);
-            addstatement(newstatement,temp);
-
-            { create call to fpc_getmem }
-            para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resultdef).pointeddef.size,s32inttype,true),nil);
-            addstatement(newstatement,cassignmentnode.create(
-                ctemprefnode.create(temp),
-                ccallnode.createintern('fpc_getmem',para)));
-
-            { create call to fpc_initialize }
-            if is_managed_type(tpointerdef(p1.resultdef).pointeddef) then
-             begin
-               para := ccallparanode.create(caddrnode.create_internal(crttinode.create
-                          (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti,rdt_normal)),
-                       ccallparanode.create(ctemprefnode.create
-                          (temp),nil));
-               addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
-             end;
-
-            { the last statement should return the value as
-              location and type, this is done be referencing the
-              temp and converting it first from a persistent temp to
-              normal temp }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctemprefnode.create(temp));
-
-            p1.destroy;
-            p1:=newblock;
+            p1:=cinlinenode.create(in_new_x,false,p1);
           end
         else
           begin
