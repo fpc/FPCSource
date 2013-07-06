@@ -114,7 +114,7 @@ implementation
        optbase,
        opttail,
        optcse,optloop
-{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
+{$if defined(arm) or defined(avr) or defined(mipsel) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
 {$if defined(arm)}

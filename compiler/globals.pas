@@ -157,9 +157,9 @@ interface
          x86memorymodel  : tx86memorymodel;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -480,9 +480,9 @@ interface
 
         disabledircache : false;
         x86memorymodel : mm_small;
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -513,9 +513,9 @@ interface
     function Setabitype(const s:string;var a:tabi):boolean;
     function Setcputype(const s:string;var a:tcputype):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
@@ -1139,7 +1139,7 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
@@ -1155,7 +1155,7 @@ implementation
               break;
             end;
       end;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;

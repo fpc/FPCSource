@@ -188,9 +188,9 @@ var
   opt : toptimizerswitch;
   wpopt: twpoptimizerswitch;
   abi : tabi;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -313,7 +313,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-        {$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr) or defined(mipsel)}
         hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
@@ -337,8 +337,8 @@ begin
             Comment(V_Normal,hs);
             hs1:=''
           end;
-        {$else defined(arm) or defined(avr)}
-        {$endif defined(arm) or defined(avr)}
+        {$else defined(arm) or defined(avr) or defined(mipsel)}
+        {$endif defined(arm) or defined(avr) or defined(mipsel)}
       end
      else
       Comment(V_Normal,s);
@@ -1886,7 +1886,7 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
                         if (target_info.system in systems_embedded) then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -1895,7 +1895,7 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':
@@ -2762,10 +2762,10 @@ var
   env: ansistring;
   i : tfeature;
   abi : tabi;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   cpuflag : tcpuflags;
   hs : string;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -3026,6 +3026,8 @@ begin
         system_avr_embedded:
           heapsize:=128;
         system_arm_embedded:
+          heapsize:=256;
+        system_mipsel_embedded:
           heapsize:=256;
         else
           heapsize:=256;
@@ -3347,7 +3349,7 @@ if (target_info.abi = abi_eabihf) then
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
       str(cpuflag,hs);
@@ -3356,7 +3358,7 @@ if (target_info.abi = abi_eabihf) then
       else
         undef_system_macro(hs);
     end;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
   if init_settings.fputype<>fpu_none then
     begin

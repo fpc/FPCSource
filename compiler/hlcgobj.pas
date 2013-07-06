@@ -3874,7 +3874,7 @@ implementation
 
   function use_ent : boolean;
     begin
-	  use_ent := (target_info.system in [system_mipsel_linux,system_mipseb_linux])
+	  use_ent := (target_info.system in [system_mipsel_linux,system_mipseb_linux,system_mipsel_embedded])
 	             or (target_info.cpu=cpu_alpha);
     end;
 

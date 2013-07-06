@@ -378,6 +378,7 @@ Implementation
           end;
         try
           FlushOutput;
+          writeln('***** '+command+' '+para);
           DosExitCode:=RequotedExecuteProcess(command,para);
           if DosExitCode<>0
           then begin

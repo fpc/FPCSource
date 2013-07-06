@@ -93,7 +93,7 @@ implementation
     begin
       cgsubsetsize:=def_cgsize(subsetsize);
       cgtosize:=def_cgsize(tosize);
-      if (current_settings.cputype<>cpu_mips32r2) then
+      if (current_settings.cputype<>cpu_mips32r2) and (current_settings.cputype<>cpu_pic32mx) then
         inherited a_load_subsetreg_reg(list,subsetsize,tosize,sreg,destreg)
       else if (sreg.bitlen>32) then
         InternalError(2013070201)
@@ -121,7 +121,7 @@ implementation
 
   procedure thlcgmips.a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
     begin
-      if (current_settings.cputype<>cpu_mips32r2) then
+      if (current_settings.cputype<>cpu_mips32r2)  and (current_settings.cputype<>cpu_pic32mx) then
         inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
       else if (sreg.bitlen>32) then
         InternalError(2013070202)

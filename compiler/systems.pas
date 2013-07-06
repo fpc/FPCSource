@@ -266,7 +266,7 @@ interface
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded,system_avr_embedded,
-                           system_jvm_java32];
+                           system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
@@ -923,11 +923,22 @@ begin
 {$endif avr}
 
 {$ifdef mips}
-{$ifdef mipsel}
-  default_target(system_mipsel_linux);
-{$else mipsel}
-  default_target(system_mipseb_linux);
-{$endif mipsel}
+  {$ifdef mipsel}
+    {$ifdef linux}
+      {$define default_target_set}
+      default_target(system_mipsel_linux);
+    {$endif}
+    {$ifdef embedded}
+      {$define default_target_set}
+      default_target(system_mipsel_embedded); //FIXME
+    {$endif}
+    {$ifndef default_target_set}
+      {$define default_target_set}
+      default_target(system_mipsel_embedded);
+    {$endif}
+  {$else mipsel}
+    default_target(system_mipseb_linux);
+  {$endif mipsel}
 {$endif mips}
 
 {$ifdef jvm}

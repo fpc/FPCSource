@@ -138,7 +138,7 @@ interface
         { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
-        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false,   false, false),
+        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, true , false, false,   false, false),
         { symbian } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { nativent }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false),
         { iphonesim }( true, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false),
