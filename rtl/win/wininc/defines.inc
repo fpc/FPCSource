@@ -1188,6 +1188,13 @@
   { EnumProtocols  }
   { EnumResLangProc  }
 
+  // layout
+   LAYOUT_RTL                         = 1; // Right to left
+   LAYOUT_BTT                         = 2; // Bottom to top
+   LAYOUT_VBH                         = 4; // Vertical before horizontal
+   LAYOUT_ORIENTATIONMASK             = (LAYOUT_RTL or LAYOUT_BTT or LAYOUT_VBH);
+   LAYOUT_BITMAPORIENTATIONPRESERVED  = 8;
+
   // DEVMODE dmDisplayFixedOutput 
      DMDFO_DEFAULT = 0;
      DMDFO_STRETCH = 1;
