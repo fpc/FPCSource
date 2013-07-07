@@ -798,6 +798,7 @@ compiler/x86_64/nx64cnv.pas svneol=native#text/plain
 compiler/x86_64/nx64flw.pas svneol=native#text/plain
 compiler/x86_64/nx64inl.pas svneol=native#text/plain
 compiler/x86_64/nx64mat.pas svneol=native#text/plain
+compiler/x86_64/nx64set.pas svneol=native#text/plain
 compiler/x86_64/r8664ari.inc svneol=native#text/plain
 compiler/x86_64/r8664att.inc svneol=native#text/plain
 compiler/x86_64/r8664con.inc svneol=native#text/plain

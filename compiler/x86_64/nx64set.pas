@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Includes the x86-64 code generator
+    Generate i386 assembler for in set/case nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,44 +19,33 @@
 
  ****************************************************************************
 }
-{ This is a helper unit to include the necessary code generator units
-  for the x86-64 processor.
-}
-unit cpunode;
+unit nx64set;
 
 {$i fpcdefs.inc}
 
-  interface
-
-  implementation
+interface
 
     uses
-       { generic nodes }
-       ncgbas,
-       ncgld,
-       ncgflw,
-       ncgcnv,
-       ncgmem,
-       ncgmat,
-       ncgcon,
-       ncgcal,
-       ncgset,
-       ncgopt,
-       ncgobjc,
-       { the cpu specific node units must be used after the generic ones to
-         get the correct class pointer }
-       nx86set,
-       nx86con,
-       nx86mem,
-       nx64add,
-       nx64cal,
-       nx64cnv,
-       nx64mat,
-{$ifndef DISABLE_WIN64_SEH}
-       nx64flw,
-{$endif DISABLE_WIN64_SEH}
-       nx64inl,
-       nx64set
-       ;
+      globtype,
+      node,nset,pass_1,nx86set;
 
+    type
+      tx8664casenode = class(tx86casenode)
+         procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
+      end;
+
+
+implementation
+
+{*****************************************************************************
+                            TI386CASENODE
+*****************************************************************************}
+
+    procedure tx8664casenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+      begin
+        inc(max_linear_list,9);
+      end;
+
+begin
+   ccasenode:=tx8664casenode;
 end.
