@@ -60,10 +60,11 @@ implementation
           inc(max_linear_list,3)
         else if current_settings.optimizecputype=cpu_Pentium then
           inc(max_linear_list,6)
-        else if current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3] then
-          inc(max_linear_list,9)
         else if current_settings.optimizecputype=cpu_Pentium4 then
-          inc(max_linear_list,14);
+          inc(max_linear_list,14)
+        else
+        { default, also fine for cpu_Pentium2, cpu_Pentium3, cpu_PentiumM }
+          inc(max_linear_list,9);
       end;
 
 
