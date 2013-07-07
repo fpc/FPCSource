@@ -38,16 +38,7 @@ interface
 implementation
 
     uses
-      systems,
-      verbose,globals,constexp,
-      symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,pass_2,
-      ncon,
-      cpubase,cpuinfo,procinfo,
-      cga,cgutils,cgobj,ncgutil,
-      cgx86;
-
+      globals,cpuinfo;
 
 {*****************************************************************************
                             TI386CASENODE
