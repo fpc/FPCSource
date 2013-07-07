@@ -5,6 +5,9 @@ if [ $? != 0 ]; then
   echo "Compilation failed";
   exit
 fi
+echo "Generating test list"
+./dbtestframework --list 2>/dev/null | sed /TestSuites/d | tr -d '[:blank:]' > test-list.txt 
+exit
 for f in `cat test-list.txt`
 do
   echo -n "Doing test $f"
