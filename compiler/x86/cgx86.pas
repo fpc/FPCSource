@@ -167,6 +167,8 @@ unit cgx86;
 
     function UseAVX: boolean;
 
+    function UseIncDec: boolean;
+
   implementation
 
     uses
@@ -179,6 +181,21 @@ unit cgx86;
       begin
         Result:=current_settings.fputype in fpu_avx_instructionsets;
       end;
+
+
+    { modern CPUs prefer add/sub over inc/dec because add/sub break instructions dependencies on flags
+      because they modify all flags }
+    function UseIncDec: boolean;
+      begin
+{$if defined(x86_64)}
+        Result:=cs_opt_size in current_settings.optimizerswitches;
+{$elseif defined(i386)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.cputype in [cpu_386]);
+{$elseif defined(i8086)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.cputype in [cpu_8086..cpu_386]);
+{$endif}
+      end;
+
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -1596,11 +1613,14 @@ unit cgx86;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) then
-              if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
-              else
-                list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+               (op in [OP_ADD,OP_SUB]) and
+               UseIncDec then
+               begin
+                 if op = OP_ADD then
+                   list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
+                 else
+                   list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+               end
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
@@ -1727,11 +1747,14 @@ unit cgx86;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) then
-              if op = OP_ADD then
-                list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
-              else
-                list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+               (op in [OP_ADD,OP_SUB]) and
+               UseIncDec then
+               begin
+                 if op = OP_ADD then
+                   list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
+                 else
+                   list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+               end
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
@@ -2371,7 +2394,10 @@ unit cgx86;
                     a_label(list,again);
                     decrease_sp(winstackpagesize-4);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
-                    list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
+                    if UseIncDec then
+                      list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI))
+                    else
+                      list.concat(Taicpu.op_const_reg(A_SUB,S_L,1,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
                     decrease_sp(localsize mod winstackpagesize-4);
                     reference_reset_base(href,NR_ESP,localsize-4,4);
@@ -2409,7 +2435,10 @@ unit cgx86;
                     decrease_sp(winstackpagesize);
                     reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
-                    list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
+                    if UseIncDec then
+                      list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10))
+                    else
+                      list.concat(Taicpu.op_const_reg(A_SUB,S_Q,1,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
                     decrease_sp(localsize mod winstackpagesize);
                     ungetcpuregister(list,NR_R10);

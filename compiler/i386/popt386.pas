@@ -41,7 +41,8 @@ uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpuinfo,cpubase,cgutils,daopt386;
+  cpuinfo,cpubase,cgutils,daopt386,
+  cgx86;
 
 
 function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
@@ -960,13 +961,13 @@ begin
                             if (base = taicpu(p).oper[1]^.reg) then
                               begin
                                 l := offset;
-                                if (l=1) then
+                                if (l=1) and UseIncDec then
                                   begin
                                     taicpu(p).opcode := A_INC;
                                     taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
                                     taicpu(p).ops := 1
                                   end
-                                else if (l=-1) then
+                                else if (l=-1) and UseIncDec then
                                   begin
                                     taicpu(p).opcode := A_DEC;
                                     taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
@@ -2121,6 +2122,8 @@ begin
               end;
             case taicpu(p).opcode Of
               A_CALL:
+                { don't do this on modern CPUs, this really hurts them due to
+                  broken call/ret pairing }
                 if (current_settings.optimizecputype < cpu_Pentium2) and
                    not(cs_create_pic in current_settings.moduleswitches) and
                    GetNextInstruction(p, hp1) and
