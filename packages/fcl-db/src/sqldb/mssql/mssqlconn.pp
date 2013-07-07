@@ -396,9 +396,22 @@ const
   ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
   VERSION_NUMBER: array[boolean] of shortstring = ('SERVERPROPERTY(''ProductVersion'')', '@@version_number');
+  
+Var
+  B : Boolean;
+    
 begin
   // Do not call the inherited method as it checks for a non-empty DatabaseName, empty DatabaseName=default database defined for login
-  //inherited DoInternalConnect;
+  // MVC: Inherited MUST be called to do housekeeping.
+  B:=DatabaseName='';
+  if B then
+    DatabaseName:='Dummy';
+  try  
+    inherited DoInternalConnect;
+  finally
+    if B then 
+      DatabaseName:='';
+  end;
 
   InitialiseDBLib(DBLibLibraryName);
 

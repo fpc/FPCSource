@@ -732,6 +732,7 @@ procedure TSQLite3Connection.DoInternalConnect;
 var
   str1: string;
 begin
+  Inherited;
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSqlite(SQLiteDefaultLibrary);
@@ -746,6 +747,7 @@ end;
 procedure TSQLite3Connection.DoInternalDisconnect;
 
 begin
+  Inherited;
   if fhandle <> nil then 
     begin
     checkerror(sqlite3_close(fhandle));

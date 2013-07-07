@@ -375,6 +375,7 @@ end;
 procedure TPQConnection.DoInternalDisconnect;
 var i:integer;
 begin
+  Inherited;
   for i:=0 to length(FConnectionPool)-1 do
     begin
     if assigned(FConnectionPool[i].FPGConn) then
