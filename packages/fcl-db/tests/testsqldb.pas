@@ -27,6 +27,7 @@ type
   TTestTSQLQuery = class(TSQLDBTestCase)
   private
   published
+    procedure TestMasterDetail;
     procedure TestUpdateServerIndexDefs;
   end;
 
@@ -51,6 +52,29 @@ uses sqldbtoolsunit, toolsunit, sqldb;
 
 
 { TTestTSQLQuery }
+
+procedure TTestTSQLQuery.TestMasterDetail;
+var MasterQuery, DetailQuery: TSQLQuery;
+    MasterSource: TDataSource;
+begin
+  with TSQLDBConnector(DBConnector) do
+  try
+    MasterQuery := GetNDataset(10) as TSQLQuery;
+    MasterSource := TDatasource.Create(nil);
+    MasterSource.DataSet := MasterQuery;
+    DetailQuery := Query;
+    DetailQuery.SQL.Text := 'select NAME from FPDEV where ID=:ID';
+    DetailQuery.DataSource := MasterSource;
+
+    MasterQuery.Open;
+    DetailQuery.Open;
+    CheckEquals('TestName1', DetailQuery.Fields[0].AsString);
+    MasterQuery.MoveBy(3);
+    CheckEquals('TestName4', DetailQuery.Fields[0].AsString);
+  finally
+    MasterSource.Free;
+  end;
+end;
 
 procedure TTestTSQLQuery.TestUpdateServerIndexDefs;
 var Q: TSQLQuery;
