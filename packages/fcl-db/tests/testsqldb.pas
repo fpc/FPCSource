@@ -38,10 +38,17 @@ type
     procedure ReplaceMe;
   end;
 
+  { TTestTSQLScript }
+
+  TTestTSQLScript = class(TSQLDBTestCase)
+  published
+    procedure TestExecuteScript;
+  end;
 
 implementation
 
 uses sqldbtoolsunit, toolsunit, sqldb;
+
 
 { TTestTSQLQuery }
 
@@ -115,6 +122,32 @@ begin
   // replace this procedure with any test for TSQLConnection
 end;
 
+{ TTestTSQLScript }
+
+procedure TTestTSQLScript.TestExecuteScript;
+var Ascript : TSQLScript;
+begin
+  Ascript := TSQLScript.Create(nil);
+  try
+    with Ascript do
+      begin
+      DataBase := TSQLDBConnector(DBConnector).Connection;
+      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      Script.Clear;
+      Script.Append('create table a (id int);');
+      Script.Append('create table b (id int);');
+      ExecuteScript;
+      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+      TSQLDBConnector(DBConnector).CommitDDL;
+      end;
+  finally
+    AScript.Free;
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+  end;
+end;
 
 { TSQLDBTestCase }
 
@@ -141,5 +174,6 @@ initialization
   begin
     RegisterTest(TTestTSQLQuery);
     RegisterTest(TTestTSQLConnection);
+    RegisterTest(TTestTSQLScript);
   end;
 end.

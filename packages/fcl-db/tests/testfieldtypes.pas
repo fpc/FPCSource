@@ -57,7 +57,6 @@ type
     procedure TestNonNullableParams;
     procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
-    procedure TestScript;
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
     procedure TestOpenSpecialStatements;
@@ -202,33 +201,6 @@ begin
     AFld2.Free;
     AFld3.Free;
     end;
-end;
-
-procedure TTestFieldTypes.TestScript;
-
-var Ascript : TSQLScript;
-
-begin
-  Ascript := tsqlscript.create(nil);
-  try
-    with Ascript do
-      begin
-      DataBase := TSQLDBConnector(DBConnector).Connection;
-      transaction := TSQLDBConnector(DBConnector).Transaction;
-      script.clear;
-      script.append('create table a (id int);');
-      script.append('create table b (id int);');
-      ExecuteScript;
-      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      TSQLDBConnector(DBConnector).CommitDDL;
-      end;
-  finally
-    AScript.Free;
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
-    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
-  end;
 end;
 
 procedure TTestFieldTypes.TestLargeRecordSize;
