@@ -342,13 +342,19 @@ begin
 
   with TSQLDBConnector(DBConnector) do
   begin
+    Query.Open;
+    for i := 0 to testValuesCount-1 do
+      Query.AppendRecord([testValues[i]]);
+    Query.ApplyUpdates;
+    Query.Close;
+
     for i := 0 to testValuesCount-1 do
       ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testValues[i]) + ')');
 
     Query.Open;
-    for i := 0 to testValuesCount-1 do
+    for i := 0 to testValuesCount*2-1 do
     begin
-      AssertEquals(testValues[i], Query.Fields[0].AsInteger);
+      AssertEquals(testValues[i mod testValuesCount], Query.Fields[0].AsInteger);
       Query.Next;
     end;
     Query.Close;
