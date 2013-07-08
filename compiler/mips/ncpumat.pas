@@ -73,29 +73,17 @@ const
 procedure tMIPSELmoddivnode.pass_generate_code;
 var
   power: longint;
-  tmpreg, numerator, divider, resultreg: tregister;
+  tmpreg, numerator, divider: tregister;
   hl,hl2: tasmlabel;
 begin
   secondpass(left);
   secondpass(right);
-  location_copy(location, left.location);
+  location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+  location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
   { put numerator in register }
   hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-  location_copy(location, left.location);
-  numerator := location.Register;
-
-  if (nodetype = modn) then
-    resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT)
-  else
-  begin
-    if (location.loc = LOC_CREGISTER) then
-    begin
-      location.loc      := LOC_REGISTER;
-      location.Register := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-    end;
-    resultreg := location.Register;
-  end;
+  numerator := left.location.Register;
 
   if (nodetype = divn) and
     (right.nodetype = ordconstn) and
@@ -105,9 +93,9 @@ begin
     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 31, numerator, tmpreg);
     { if signed, tmpreg=right value-1, otherwise 0 }
     cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).Value.svalue - 1, tmpreg);
-    { add to the left value }
-    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, tmpreg, numerator);
-    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), numerator, resultreg);
+    { add left value }
+    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, numerator, tmpreg);
+    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), tmpreg, location.register);
   end
   else
   begin
@@ -151,13 +139,10 @@ begin
     end;
 
    if (nodetype=modn) then
-     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFHI,resultreg))
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFHI,location.register))
    else
-     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFLO,resultreg));
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFLO,location.register));
   end;
-  { set result location }
-  location.loc      := LOC_REGISTER;
-  location.Register := resultreg;
 end;
 
 
@@ -181,7 +166,7 @@ end;
 
 procedure tMIPSELshlshrnode.pass_generate_code;
 var
-  hregister, resultreg, hregister1, hreg64hi, hreg64lo: tregister;
+  hregister, hreg64hi, hreg64lo: tregister;
   op: topcg;
   shiftval: aword;
 begin
@@ -250,15 +235,8 @@ begin
   begin
     { load left operators in a register }
     hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-    location_copy(location, left.location);
-    resultreg  := location.Register;
-    hregister1 := location.Register;
-    if (location.loc = LOC_CREGISTER) then
-    begin
-      location.loc := LOC_REGISTER;
-      resultreg    := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-      location.Register := resultreg;
-    end;
+    location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+    location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
     { determine operator }
     if nodetype = shln then
       op := OP_SHL
@@ -268,13 +246,13 @@ begin
     if (right.nodetype = ordconstn) then
     begin
       if tordconstnode(right).Value.svalue and 31 <> 0 then
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, tordconstnode(right).Value.svalue and 31, hregister1, resultreg);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, tordconstnode(right).Value.svalue and 31, left.location.register, location.register);
     end
     else
     begin
       { load shift count in a register if necessary }
       hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location, right.resultdef, right.resultdef, True);
-      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, OS_32, right.location.Register, hregister1, resultreg);
+      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, OS_32, right.location.Register, left.location.register, location.register);
     end;
   end;
 end;
