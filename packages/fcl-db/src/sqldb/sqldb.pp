@@ -888,8 +888,7 @@ begin
   try
     DoPrepare;
   except
-    if assigned(FCursor) then
-      DeAllocateCursor;
+    DeAllocateCursor;
     Raise;
   end;
 end;
@@ -923,7 +922,10 @@ end;
 
 procedure TCustomSQLStatement.Unprepare;
 begin
-  if Prepared then
+  // Some SQLConnections does not support statement [un]preparation, but they have allocated local cursor(s)
+  //  so let them do cleanup f.e. cancel pending queries and/or free resultset
+  //  and also do UnRegisterStatement!
+  if assigned(FCursor) then
     DoUnprepare;
 end;
 
@@ -988,6 +990,7 @@ Var
 begin
   For I:=0 to FStatements.Count-1 do
     TCustomSQLStatement(FStatements[i]).Unprepare;
+  FStatements.Clear;
 end;
 
 destructor TSQLConnection.Destroy;
@@ -1625,18 +1628,13 @@ end;
 
 procedure TCustomSQLQuery.InternalClose;
 begin
-  if not IsReadFromPacket then
+  if assigned(Cursor) then
     begin
-    if assigned(Cursor) and Cursor.FSelectable then
+    if Cursor.FSelectable then
       FreeFldBuffers;
     // Some SQLConnections does not support statement [un]preparation,
     //  so let them do cleanup f.e. cancel pending queries and/or free resultset
     if not Prepared then FStatement.DoUnprepare;
-    end
-  else
-    begin
-    if assigned(Cursor) then
-      FStatement.DeAllocateCursor;
     end;
   if DefaultFields then
     DestroyFields;
@@ -1863,24 +1861,22 @@ procedure TCustomSQLQuery.InternalOpen;
 var tel, fieldc : integer;
     f           : TField;
     IndexFields : TStrings;
-    ReadFromFile: Boolean;
 begin
-  ReadFromFile:=IsReadFromPacket;
-  if ReadFromFile then
+  if IsReadFromPacket then
     begin
-    FStatement.AllocateCursor;
-    Cursor.FSelectable:=True;
-    Cursor.FStatementType:=stSelect;
+    // When we read from file there is no need for Cursor, also note that Database may not be assigned
+    //FStatement.AllocateCursor;
+    //Cursor.FSelectable:=True;
+    //Cursor.FStatementType:=stSelect;
     FUpdateable:=True;
+    BindFields(True);
     end
   else
-    Prepare;
-
-  if not Cursor.FSelectable then
-    DatabaseError(SErrNoSelectStatement,Self);
-
-  if not ReadFromFile then
     begin
+    Prepare;
+    if not Cursor.FSelectable then
+      DatabaseError(SErrNoSelectStatement,Self);
+
     // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
     // which do not allow processing multiple recordsets at a time. (Microsoft
     // calls this MARS, see bug 13241)
@@ -1922,9 +1918,7 @@ begin
       end
     else
       BindFields(True);
-    end
-  else
-    BindFields(True);
+    end;
 
   if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
     begin
