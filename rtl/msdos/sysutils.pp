@@ -40,6 +40,9 @@ implementation
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -78,7 +81,7 @@ end ;}
 
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-function OpenFile(const FileName: string; var Handle: THandle; Mode, Action: word): longint;
+function OpenFile(const FileName: RawByteString; var Handle: THandle; Mode, Action: word): longint;
 var
    Regs: registers;
 begin
@@ -110,7 +113,7 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 var
   e: integer;
 Begin
@@ -120,7 +123,7 @@ Begin
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : RawByteString) : THandle;
 var
   e: integer;
 begin
@@ -130,13 +133,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights : longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; Rights : longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
