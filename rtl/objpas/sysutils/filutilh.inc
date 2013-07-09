@@ -77,14 +77,16 @@ Type
   TFileSearchOption = (sfoImplicitCurrentDir,sfoStripQuotes);
   TFileSearchOptions = set of TFileSearchOption;
 
-Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
-Function FileCreate (Const FileName : RawByteString) : THandle;
-Function FileCreate (Const FileName : RawByteString; Rights : Integer) : THandle;
-Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString) : THandle;
 Function FileCreate (Const FileName : UnicodeString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
+
+Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
+Function FileCreate (Const FileName : RawByteString) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights : Integer) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
+
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
