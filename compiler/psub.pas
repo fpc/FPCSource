@@ -449,7 +449,7 @@ implementation
                       begin
                         { if vmt>1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create(gtn,
+                            caddnode.create_internal(gtn,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),

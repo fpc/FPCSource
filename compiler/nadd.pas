@@ -38,6 +38,7 @@ interface
        public
           resultrealdef : tdef;
           constructor create(tt : tnodetype;l,r : tnode);override;
+          constructor create_internal(tt:tnodetype;l,r:tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -150,6 +151,13 @@ implementation
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
+      end;
+
+
+    constructor taddnode.create_internal(tt: tnodetype; l, r: tnode);
+      begin
+        create(tt,l,r);
+        include(flags,nf_internal);
       end;
 
 
@@ -1638,7 +1646,8 @@ implementation
                  end;
                ltn,lten,gtn,gten:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) or
+                       (nf_internal in flags) then
                      begin
                        if is_voidpointer(right.resultdef) then
                         inserttypeconv(right,left.resultdef)
