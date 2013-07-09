@@ -71,12 +71,27 @@ uses
 *****************************************************************************}
 
 function tmipseltypeconvnode.first_int_to_real: tnode;
+var
+  fname: string[19];
 begin
   { converting a 64bit integer to a float requires a helper }
   if is_64bitint(left.resultdef) or
      is_currency(left.resultdef) then
     begin
-      result:=inherited first_int_to_real;
+      { hack to avoid double division by 10000, as it's
+        already done by typecheckpass.resultdef_int_to_real }
+      if is_currency(left.resultdef) then
+        left.resultdef := s64inttype;
+      if is_signed(left.resultdef) then
+        fname := 'fpc_int64_to_double'
+      else
+        fname := 'fpc_qword_to_double';
+      result := ccallnode.createintern(fname,ccallparanode.create(
+        left,nil));
+      left:=nil;
+      if (tfloatdef(resultdef).floattype=s32real) then
+        inserttypeconv(result,s32floattype);
+      firstpass(result);
       exit;
     end
   else
@@ -105,11 +120,18 @@ procedure tMIPSELtypeconvnode.second_int_to_real;
 
   procedure loadsigned;
   begin
-    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
     location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
-    { Load memory in fpu register }
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-    tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+    if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      { 32-bit values can be loaded directly }
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MTC1, left.location.register, location.register))
+    else
+      begin
+        { Load memory in fpu register }
+        hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
+        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+        tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+      end;
+
     { Convert value in fpu register from integer to float }
     case tfloatdef(resultdef).floattype of
       s32real:
@@ -125,7 +147,6 @@ var
   href:      treference;
   hregister: tregister;
   l1, l2:    tasmlabel;
-  ai : TaiCpu;
   addend: array[boolean] of longword;
   bigendian: boolean;
 begin
@@ -148,9 +169,7 @@ begin
     { Convert value in fpu register from integer to float }
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_D_W, location.Register, location.Register));
 
-    ai := Taicpu.op_reg_reg_sym(A_BC, hregister, NR_R0, l2);
-    ai.setCondition(C_GE);
-    current_asmdata.CurrAsmList.concat(ai);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, hregister, l2);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }
