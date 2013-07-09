@@ -67,27 +67,24 @@ Type
 
 {  converts S to a pchar and copies it to the transfer-buffer.   }
 
-procedure StringToTB(const S: string);
-var
-  P: pchar;
-  Len: integer;
+procedure StringToTB(const S: RawByteString);
 begin
-  Len := Length(S) + 1;
-  P := StrPCopy(StrAlloc(Len), S);
-  SysCopyToDos(longint(P), Len);
-  StrDispose(P);
+  { include terminating null char }
+  SysCopyToDos(longint(pointer(s)), Length(S) + 1);
 end ;
 
 
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-function OpenFile(const FileName: string; var Handle: longint; Mode, Action: word): longint;
+function OpenFile(const FileName: RawByteString; var Handle: longint; Mode, Action: word): longint;
 var
-   Regs: registers;
+  Regs: registers;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   result := 0;
   Handle := 0;
-  StringToTB(FileName);
+  StringToTB(SystemFileName);
   if LFNSupport then
     Regs.Eax := $716c                       { Use LFN Open/Create API }
   else  { Check if Extended Open/Create API is safe to use }
@@ -120,11 +117,9 @@ end;
 
 Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
 Var
-  SystemFileName: RawByteString;
   e: integer;
 Begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  e := OpenFile(SystemFileName, result, Mode, faOpen);
+  e := OpenFile(FileName, result, Mode, faOpen);
   if e <> 0 then
     result := -1;
 end;
@@ -132,11 +127,9 @@ end;
 
 Function FileCreate (Const FileName : RawByteString) : Longint;
 var
-  SystemFileName: RawByteString;
   e: integer;
 begin
-  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
-  e := OpenFile(SystemFileName, result, ofReadWrite, faCreate or faOpenReplace);
+  e := OpenFile(FileName, result, ofReadWrite, faCreate or faOpenReplace);
   if e <> 0 then
     result := -1;
 end;
