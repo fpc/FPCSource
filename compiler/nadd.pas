@@ -154,7 +154,7 @@ implementation
       end;
 
 
-    constructor taddnode.create_internal(tt: tnodetype; l, r: tnode);
+    constructor taddnode.create_internal(tt:tnodetype;l,r:tnode);
       begin
         create(tt,l,r);
         include(flags,nf_internal);
