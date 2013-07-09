@@ -13100,6 +13100,7 @@ tests/webtbs/tw17550.pp svneol=native#text/plain
 tests/webtbs/tw17560.pp svneol=native#text/plain
 tests/webtbs/tw1758.pp svneol=native#text/plain
 tests/webtbs/tw17591.pp svneol=native#text/plain
+tests/webtbs/tw17598.pp svneol=native#text/pascal
 tests/webtbs/tw17604.pp svneol=native#text/plain
 tests/webtbs/tw17646.pp svneol=native#text/plain
 tests/webtbs/tw1765.pp svneol=native#text/plain
