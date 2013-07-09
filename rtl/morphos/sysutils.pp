@@ -61,6 +61,7 @@ uses dos,sysconst;
 
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
+function PathConv(path: RawByteString): shortstring; external name 'PATHCONVRBS';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
 function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
 function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
@@ -133,13 +134,10 @@ function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
-  tmpStr   : array[0..255] of char;
 begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   {$WARNING FIX ME! To do: FileOpen Access Modes}
-  {$WARNING FIX ME! PathConv takes a shortstring, which means 255 char truncation and conversion to defaultsystemcodepage, ignoring the defaultfilesystemcodepage setting}
-  tmpStr:=PathConv(SystemFileName)+#0;
-  dosResult:=Open(@tmpStr,MODE_OLDFILE);
+  dosResult:=Open(PChar(SystemFileName),MODE_OLDFILE);
   if dosResult=0 then
     dosResult:=-1
   else
@@ -209,17 +207,14 @@ function FileCreate(const FileName: RawByteString) : LongInt;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
-  tmpStr   : array[0..255] of char;
 begin
   dosResult:=-1;
 
   { Open file in MODDE_READWRITE, then truncate it by hand rather than
     opening it in MODE_NEWFILE, because that returns an exclusive lock 
     so some operations might fail with it (KB) }
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  {$WARNING FIX ME! PathConv takes a shortstring, which means 255 char truncation and conversion to defaultsystemcodepage, ignoring the defaultfilesystemcodepage setting}
-  tmpStr:=PathConv(SystemFileName)+#0;
-  dosResult:=Open(@tmpStr,MODE_READWRITE);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  dosResult:=Open(PChar(SystemFileName),MODE_READWRITE);
   if dosResult = 0 then exit;
 
   if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 

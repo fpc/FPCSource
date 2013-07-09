@@ -147,7 +147,7 @@ begin
 end;
 
 { Converts an Unix-like path to Amiga-like path }
-function PathConv(const path: rawbytestring): rawbytestring;
+function PathConv(const path: rawbytestring): rawbytestring; alias: 'PATHCONVRBS'; [public];
 var tmppos: longint;
 begin
   { check for short paths }
