@@ -133,7 +133,7 @@ var
   e: integer;
 begin
   SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
-  e := OpenFile(FileName, result, ofReadWrite, faCreate or faOpenReplace);
+  e := OpenFile(SystemFileName, result, ofReadWrite, faCreate or faOpenReplace);
   if e <> 0 then
     result := -1;
 end;
