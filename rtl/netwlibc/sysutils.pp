@@ -209,10 +209,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 VAR Info : TStat;
+    SystemFileName: RawByteString;
 begin
-  FileExists:=(Fpstat(pchar(filename),Info) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists:=(Fpstat(pchar(SystemFileName),Info) = 0);
 end;
 
 
@@ -359,22 +361,26 @@ Begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Var Info : TStat;
+    SystemFileName: RawByteString;
 begin
-  If Fpstat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   StatBuf : TStat;
   newMode : longint;
+  SystemFileName: RawByteString;
 begin
-  if Fpstat (pchar(Filename),StatBuf) = 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if Fpstat (pchar(SystemFilename),StatBuf) = 0 then
   begin
     {what should i do here ?
      only support sysutils-standard attributes or also support the extensions defined
@@ -390,7 +396,7 @@ begin
       newmode := StatBuf.st_mode and ($ffff0000-M_A_RDONLY-M_A_HIDDEN- M_A_SYSTEM-M_A_SUBDIR-M_A_ARCH);
       newmode := newmode or (attr shl 16) or M_A_BITS_SIGNIFICANT;
     end;
-    if Fpchmod (pchar(Filename),newMode) < 0 then
+    if Fpchmod (pchar(SystemFilename),newMode) < 0 then
       result := ___errno^ else
       result := 0;
   end else
@@ -398,17 +404,22 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result:= (libc.UnLink (pchar(FileName)) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:= (libc.UnLink (pchar(SystemFileName)) = 0);
 end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile:=(libc.rename(pchar(OldName),pchar(NewName)) = 0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile:=(libc.rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
 end;
 
 
@@ -507,10 +518,13 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: string): boolean;
-var Info : TStat;
+function DirectoryExists (const Directory: RawByteString): boolean;
+var
+  Info : TStat;
+  SystemFileName: RawByteString;
 begin
-  If Fpstat (pchar(Directory),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_mode and M_A_SUBDIR) <> 0);

@@ -264,7 +264,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
@@ -276,7 +276,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
@@ -368,7 +368,7 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 var
   fn: PWideChar;
 begin
@@ -378,38 +378,24 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-var
-  fn: PWideChar;
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
 begin
-  fn:=StringToPWideChar(FileName);
-  if not SetFileAttributes(fn, Attr) then
+  if not SetFileAttributes(PWideChar(FileName), Attr) then
     Result := GetLastError
   else
     Result:=0;
-  FreeMem(fn);
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-var
-  fn: PWideChar;
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  fn:=StringToPWideChar(FileName);
-  DeleteFile:=Windows.DeleteFile(fn);
-  FreeMem(fn);
+  DeleteFile:=Windows.DeleteFile(PWideChar(FileName));
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-var
-  fold, fnew: PWideChar;
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
 begin
-  fold:=StringToPWideChar(OldName);
-  fnew:=StringToPWideChar(NewName);
-  Result := MoveFile(fold, fnew);
-  FreeMem(fnew);
-  FreeMem(fold);
+  Result := MoveFile(PWideChar(OldName), PWideChar(NewName));
 end;
 
 

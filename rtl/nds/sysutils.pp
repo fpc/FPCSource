@@ -138,15 +138,22 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result := _UnLink(pointer(FileName))>= 0;
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result := _UnLink(pointer(SystemFileName))>= 0;
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile := _Rename(pointer(OldNAme), pointer(NewName)) >= 0;
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile := _Rename(pointer(OldSystemFileName), pointer(NewSystemFileName)) >= 0;
 end;
 
 
@@ -164,9 +171,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  FileExists := _Access(pointer(filename), F_OK) = 0;
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists := _Access(pointer(SystemFileName), F_OK) = 0;
 end;
 
 
@@ -187,17 +197,20 @@ begin
 
 end;
 
-Function FileGetAttr (Const FileName : String) : Longint;
-Var Info : TStat;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
+var
+  Info : TStat;
+  SystemFileName: RawByteString;
 begin
-  If _stat(pchar(FileName), Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If _stat(pchar(SystemFileName), Info) <> 0 then
     Result := -1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   result := -1;
 end;
@@ -251,7 +264,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawByteString): Boolean;
 begin
   result := false;
 end;

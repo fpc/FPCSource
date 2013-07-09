@@ -114,13 +114,13 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
   result := false;
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
   result := false;
 end;
@@ -135,7 +135,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 Begin
   result := false;
 end;

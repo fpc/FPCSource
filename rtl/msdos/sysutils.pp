@@ -287,7 +287,7 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
@@ -302,9 +302,9 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
 Var
-  Dir : String;
+  Dir : RawByteString;
   drive : byte;
   FADir, StoredIORes : longint;
 begin
@@ -435,7 +435,7 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
 begin
@@ -456,7 +456,7 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
 begin
@@ -478,7 +478,7 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
@@ -495,7 +495,7 @@ begin
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin

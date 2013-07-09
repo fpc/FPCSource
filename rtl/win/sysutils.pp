@@ -359,11 +359,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
-  Attr:=GetFileAttributes(PChar(FileName));
+
+  Attr:=GetFileAttributesW(PWideChar(FileName));
   if Attr <> $ffffffff then
     Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
   else
@@ -371,11 +372,11 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
-  Attr:=GetFileAttributes(PChar(Directory));
+  Attr:=GetFileAttributesW(PWideChar(Directory));
   if Attr <> $ffffffff then
     Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
   else
@@ -460,30 +461,30 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 begin
-  Result:=Longint(GetFileAttributes(PChar(FileName)));
+  Result:=Longint(GetFileAttributesW(PWideChar(FileName)));
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
 begin
-  if SetFileAttributes(PChar(FileName), Attr) then
+  if SetFileAttributesW(PWideChar(FileName), Attr) then
     Result:=0
   else
     Result := GetLastError;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  Result:=Windows.DeleteFile(Pchar(FileName));
+  Result:=Windows.DeleteFileW(PWidechar(FileName));
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
 begin
-  Result := MoveFile(PChar(OldName), PChar(NewName));
+  Result := MoveFileW(PWideChar(OldName), PWideChar(NewName));
 end;
 
 

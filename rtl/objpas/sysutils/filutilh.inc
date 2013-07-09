@@ -81,11 +81,32 @@ Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString) : THandle;
 Function FileCreate (Const FileName : UnicodeString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
+Function FileExists (Const FileName : UnicodeString) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
+Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
+Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : Boolean) : UnicodeString;
+Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString = '') : UnicodeString;
+Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString) : THandle;
 Function FileCreate (Const FileName : RawByteString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
+Function FileExists (Const FileName : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+Function FileSearch (Const Name, DirList : RawByteString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : RawByteString;
+Function FileSearch (Const Name, DirList : RawByteString; ImplicitCurrentDir : Boolean) : RawByteString;
+Function ExeSearch  (Const Name : RawByteString; Const DirList : RawByteString = '') : RawByteString;
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
@@ -96,24 +117,11 @@ Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
 {$ifndef FPUNONE}
 Function FileAge (Const FileName : String): Longint;
 {$endif}
-Function FileExists (Const FileName : String) : Boolean;
-Function DirectoryExists (Const Directory : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
 Function FileGetDate (Handle : THandle) : Longint;
 Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
-Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
-Function FileGetAttr (Const FileName : String) : Longint;
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-Function DeleteFile (Const FileName : String) : Boolean;
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-
-Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
-Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
-Function ExeSearch  (Const Name : String; Const DirList : String = '') : String;
-Function FileIsReadOnly(const FileName: String): Boolean;
-
 Function GetFileHandle(var f : File):THandle;
 Function GetFileHandle(var f : Text):THandle;
 function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;

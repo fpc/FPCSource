@@ -558,29 +558,29 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
-
+Function FileExists (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   // Don't use stat. It fails on files >2 GB.
   // Access obeys the same access rules, so the result should be the same.
-  FileExists:=fpAccess(pointer(filename),F_OK)=0;
+  FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
 end;
 
-
-Function DirectoryExists (Const Directory : String) : Boolean;
-
-Var Info : Stat;
-
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Var
+  Info : Stat;
+  SystemFileName: RawByteString;
 begin
-  DirectoryExists:=(fpstat(pointer(Directory),Info)>=0) and fpS_ISDIR(Info.st_mode);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  DirectoryExists:=(fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode);
 end;
 
-
-Function LinuxToWinAttr (const FN : Ansistring; Const Info : Stat) : Longint;
-
+Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
 Var
   LinkInfo : Stat;
-  nm : AnsiString;
+  nm : RawByteString;
 begin
   Result:=faArchive;
   If fpS_ISDIR(Info.st_mode) then
@@ -596,10 +596,10 @@ begin
      Result:=Result or faSysFile;
   If fpS_ISLNK(Info.st_mode) Then
     begin
-    Result:=Result or faSymLink;
-    // Windows reports if the link points to a directory.
-    if (fpstat(FN,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
-      Result := Result or faDirectory;
+      Result:=Result or faSymLink;
+      // Windows reports if the link points to a directory.
+      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+        Result := Result or faDirectory;
     end;
 end;
 
@@ -857,58 +857,67 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
-
-Var Info : Stat;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
+Var
+  SystemFileName: RawByteString;
+  Info : Stat;
   res : Integer;
 begin
-  res:=FpLStat (pointer(FileName),Info);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  res:=FpLStat(pointer(SystemFileName),Info);
   if res<0 then
-    res:=FpStat (pointer(FileName),Info);
+    res:=FpStat(pointer(SystemFileName),Info);
   if res<0 then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(Pchar(FileName),Info);
+    Result:=LinuxToWinAttr(SystemFileName,Info);
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   Result:=-1;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-
-begin
-  Result:=fpUnLink (pointer(FileName))>=0;
-end;
-
-
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-
-begin
-  RenameFile:=BaseUnix.FpRename(pointer(OldNAme),pointer(NewName))>=0;
-end;
-
-Function FileIsReadOnly(const FileName: String): Boolean;
-
-begin
-  Result := fpAccess(PChar(pointer(FileName)),W_OK)<>0;
-end;
-
-Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
-
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
-  t: TUTimBuf;
-
+  SystemFileName: RawByteString;
 begin
-  Result := 0;
-  t.actime := Age;
-  t.modtime := Age;
-  if fputime(PChar(pointer(FileName)), @t) = -1 then
-    Result := fpgeterrno;
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:=fpUnLink (pchar(SystemFileName))>=0;
+end;
+
+
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+var
+  SystemOldName, SystemNewName: RawByteString;
+begin
+  SystemOldName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  SystemNewName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile:=BaseUnix.FpRename(pointer(SystemOldNAme),pointer(SystemNewName))>=0;
+end;
+
+
+Function FileIsReadOnly(const FileName: RawByteString): Boolean;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:=fpAccess(PChar(SystemFileName),W_OK)<>0;
+end;
+
+Function FileSetDate (Const FileName : RawByteString; Age : Longint) : Longint;
+var
+  SystemFileName: RawByteString;
+  t: TUTimBuf;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:=0;
+  t.actime:= Age;
+  t.modtime:=Age;
+  if fputime(PChar(SystemFileName), @t) = -1 then
+    Result:=fpgeterrno;
 end;
 
 {****************************************************************************

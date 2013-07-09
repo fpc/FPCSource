@@ -293,7 +293,7 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
@@ -301,6 +301,7 @@ begin
    Result := false
   else
    begin
+    { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
     L := FileGetAttr (FileName);
     Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
 (* Neither VolumeIDs nor directories are files. *)
@@ -308,12 +309,13 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
 Var
-  Dir : String;
+  Dir : RawByteString;
   drive : byte;
   FADir, StoredIORes : longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   Dir:=Directory;
   if (length(dir)=2) and (dir[2]=':') and
      ((dir[1] in ['A'..'Z']) or (dir[1] in ['a'..'z'])) then
@@ -441,11 +443,13 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -463,11 +467,13 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -486,11 +492,13 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -504,14 +512,17 @@ begin
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 var
   Regs: registers;
-begin
-  StringToTB(OldName + #0 + NewName);
+  OldSystemFileName, NewSystemFileName: RawByteString;
+Begin
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  StringToTB(OldSystemFileName + #0 + NewSystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
-  Regs.Edi := tb_offset + Length(OldName) + 1;
+  Regs.Edi := tb_offset + Length(OldSystemFileName) + 1;
   Regs.Es := tb_segment;
   if LFNSupport then
     Regs.Eax := $7156

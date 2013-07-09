@@ -315,7 +315,7 @@ begin
 end;
 
 
-function FileExists(const FileName: String): Boolean;
+function FileExists(const FileName: UnicodeString): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -323,7 +323,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   h: THandle;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
            @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -336,7 +336,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : String) : Boolean;
+function DirectoryExists(const Directory : UnicodeString) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -344,7 +344,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   h: THandle;
 begin
-  AnsiStrToNtStr(Directory, ntstr);
+  UnicodeStrToNtStr(Directory, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   { first test wether this is a object directory }
@@ -782,14 +782,14 @@ begin
 end;
 
 
-function FileGetAttr(const FileName: String): Longint;
+function FileGetAttr(const FileName: UnicodeString): Longint;
 var
   objattr: OBJECT_ATTRIBUTES;
   info: FILE_NETWORK_OPEN_INFORMATION;
   res: NTSTATUS;
   ntstr: UNICODE_STRING;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   res := NtQueryFullAttributesFile(@objattr, @info);
@@ -802,7 +802,7 @@ begin
 end;
 
 
-function FileSetAttr(const Filename: String; Attr: LongInt): Longint;
+function FileSetAttr(const Filename: UnicodeString; Attr: LongInt): Longint;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -811,7 +811,7 @@ var
   res: NTSTATUS;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(Filename, ntstr);
+  UnicodeStrToNtStr(Filename, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h,
            NT_SYNCHRONIZE or FILE_READ_ATTRIBUTES or FILE_WRITE_ATTRIBUTES,
@@ -837,7 +837,7 @@ begin
 end;
 
 
-function DeleteFile(const FileName: String): Boolean;
+function DeleteFile(const FileName: UnicodeString): Boolean;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -846,7 +846,7 @@ var
   res: NTSTATUS;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(Filename, ntstr);
+  UnicodeStrToNtStr(Filename, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h, NT_DELETE, @objattr, @iostatus,
            FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE,
@@ -868,7 +868,7 @@ begin
 end;
 
 
-function RenameFile(const OldName, NewName: String): Boolean;
+function RenameFile(const OldName, NewName: UnicodeString): Boolean;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -878,7 +878,7 @@ var
   res: LongInt;
 begin
   { check whether the destination exists first }
-  AnsiStrToNtStr(NewName, dest);
+  UnicodeStrToNtStr(NewName, dest);
   InitializeObjectAttributes(objattr, @dest, 0, 0, Nil);
 
   res := NtCreateFile(@h, 0, @objattr, @iostatus, Nil, 0,
@@ -889,7 +889,7 @@ begin
     NtClose(h);
     Result := False;
   end else begin
-    AnsiStrToNtStr(OldName, src);
+    UnicodeStrToNtStr(OldName, src);
     InitializeObjectAttributes(objattr, @src, 0, 0, Nil);
 
     res := NtCreateFile(@h,

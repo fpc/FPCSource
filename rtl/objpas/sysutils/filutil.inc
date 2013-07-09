@@ -38,8 +38,147 @@ Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights
 begin
   Result:=FileCreate(ToSingleByteFileSystemEncodedFileName(FileName),ShareMode,Rights);
 end;
+
+
+Function FileExists (Const FileName : UnicodeString) : Boolean;
+begin
+  Result:=FileExists(ToSingleByteFileSystemEncodedFileName(FileName));
+end;
+
+
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+begin
+  Result:=DirectoryExists(ToSingleByteFileSystemEncodedFileName(Directory));
+end;
+
+
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
+begin
+  Result:=FileGetAttr(ToSingleByteFileSystemEncodedFileName(FileName));
+end;
+
+
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
+begin
+  Result:=FileSetAttr(ToSingleByteFileSystemEncodedFileName(FileName),Attr);
+end;
+
+
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
+begin
+  Result:=DeleteFile(ToSingleByteFileSystemEncodedFileName(FileName));
+end;
+
+
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
+
+begin
+  Result:=RenameFile(ToSingleByteFileSystemEncodedFileName(OldName),
+                     ToSingleByteFileSystemEncodedFileName(NewName));
+end;
+
+{$ifdef OS_FILEISREADONLY}
+Function FileIsReadOnly(const FileName: UnicodeString): Boolean;
+begin
+  Result:=FileIsReadOnly(ToSingleByteFileSystemEncodedFileName(FileName));
+end;
 {$endif}
 
+
+{$ifdef OS_FILESETDATEBYNAME}
+Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+begin
+  Result:=FileSetDate(ToSingleByteFileSystemEncodedFileName(FileName),Age);
+end;
+{$endif}
+
+
+Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
+begin
+  Result:=UnicodeString(FileSearch(ToSingleByteFileSystemEncodedFileName(Name),
+                                   ToSingleByteFileSystemEncodedFileName(Dirlist),Options));
+end;
+
+
+Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : Boolean) : UnicodeString;
+begin
+  Result:=UnicodeString(FileSearch(ToSingleByteFileSystemEncodedFileName(Name),
+                                   ToSingleByteFileSystemEncodedFileName(DirList),ImplicitCurrentDir));
+end;
+
+
+Function ExeSearch (Const Name : UnicodeString; Const DirList : UnicodeString ='' ) : UnicodeString;
+begin
+  Result:=UnicodeString(ExeSearch(ToSingleByteFileSystemEncodedFileName(Name),
+                                  ToSingleByteFileSystemEncodedFileName(Dirlist)));
+end;
+
+
+
+Function FileSearch (Const Name, DirList : RawByteString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : RawByteString;
+Var
+  I : longint;
+  Temp : RawByteString;
+begin
+  Result:=Name;
+  temp:=SetDirSeparators(DirList);
+  // Start with checking the file in the current directory
+  If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
+    exit;
+  while True do begin
+    If Temp = '' then
+      Break; // No more directories to search - fail
+    I:=pos(PathSeparator,Temp);
+    If I<>0 then
+      begin
+        Result:=Copy (Temp,1,i-1);
+        system.Delete(Temp,1,I);
+      end
+    else
+      begin
+        Result:=Temp;
+        Temp:='';
+      end;
+    If Result<>'' then
+      begin
+      If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
+        Result:=Copy(Result,2,Length(Result)-2);
+      if (Result<>'') then
+        Result:=IncludeTrailingPathDelimiter(Result)+name;
+      end;
+    If (Result <> '') and FileExists(Result) Then
+      exit;
+  end;
+  Result:='';
+end;
+
+
+Function FileSearch (Const Name, DirList : RawByteString; ImplicitCurrentDir : Boolean) : RawByteString;
+begin
+  if ImplicitCurrentDir then
+    Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
+  else
+    Result:=FileSearch(Name,DirList,[]);
+end;
+
+
+Function ExeSearch (Const Name : RawByteString; Const DirList : RawByteString ='' ) : RawByteString;
+Var
+  D : RawByteString;
+  O : TFileSearchOptions;
+begin
+  D:=DirList;
+  if (D='') then
+    D:=GetEnvironmentVariable('PATH');
+{$ifdef unix}
+  O:=[];
+{$else unix}
+  O:=[sfoImplicitCurrentDir,sfoStripQuotes];
+{$endif unix}
+  Result := FileSearch(Name, D, O);
+end;
+
+{$endif}
 
 {$ifndef SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
@@ -63,6 +202,138 @@ end;
 Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
 begin
   Result:=FileCreate(UnicodeString(FileName),ShareMode,Rights);
+end;
+
+
+Function FileExists (Const FileName : RawByteString) : Boolean;
+begin
+  Result:=FileExists(UnicodeString(FileName));
+end;
+
+
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+begin
+  Result:=DirectoryExists(UnicodeString(Directory));
+end;
+
+
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
+begin
+  Result:=FileGetAttr(unicodestring(FileName));
+end;
+
+
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
+begin
+  Result:=FileSetAttr(unicodestring(FileName),Attr);
+end;
+
+
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+begin
+  Result:=DeleteFile(UnicodeString(FileName));
+end;
+
+
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+begin
+  Result:=RenameFile(UnicodeString(OldName),UnicodeString(NewName));
+end;
+
+{$ifdef OS_FILEISREADONLY}
+Function FileIsReadOnly(const FileName: RawByteString): Boolean;
+begin
+  Result:=FileIsReadOnly(UnicodeString(FileName));
+end;
+{$endif}
+
+{$ifdef OS_FILESETDATEBYNAME}
+Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+begin
+  Result:=FileSetDate(UnicodeString(FileName),Age);
+end;
+{$endif}
+
+
+Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
+Var
+  I : longint;
+  Temp : UnicodeString;
+begin
+  Result:=Name;
+  temp:=SetDirSeparators(DirList);
+  // Start with checking the file in the current directory
+  If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
+    exit;
+  while True do begin
+    If Temp = '' then
+      Break; // No more directories to search - fail
+    I:=pos(PathSeparator,Temp);
+    If I<>0 then
+      begin
+        Result:=Copy (Temp,1,i-1);
+        system.Delete(Temp,1,I);
+      end
+    else
+      begin
+        Result:=Temp;
+        Temp:='';
+      end;
+    If Result<>'' then
+      begin
+      If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
+        Result:=Copy(Result,2,Length(Result)-2);
+      if (Result<>'') then
+        Result:=IncludeTrailingPathDelimiter(Result)+name;
+      end;
+    If (Result <> '') and FileExists(Result) Then
+      exit;
+  end;
+  Result:='';
+end;
+
+
+Function FileSearch (Const Name, DirList : RawbyteString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : RawByteString;
+begin
+  Result:=ToSingleByteFileSystemEncodedFileName(FileSearch(unicodestring(name),unicodestring(dirlist),options));
+end;
+
+
+Function FileSearch (Const Name, DirList : RawbyteString; ImplicitCurrentDir : Boolean) : RawByteString;
+begin
+  Result:=ToSingleByteFileSystemEncodedFileName(FileSearch(unicodestring(name),unicodestring(dirlist),ImplicitCurrentDir));
+end;
+
+
+Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : Boolean) : UnicodeString;
+begin
+  if ImplicitCurrentDir then
+    Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
+  else
+    Result:=FileSearch(Name,DirList,[]);
+end;
+
+
+Function ExeSearch (Const Name : UnicodeString; Const DirList : UnicodeString ='' ) : UnicodeString;
+Var
+  D : UnicodeString;
+  O : TFileSearchOptions;
+begin
+  D:=DirList;
+  if (D='') then
+    D:=GetEnvironmentVariable('PATH');
+{$ifdef unix}
+  O:=[];
+{$else unix}
+  O:=[sfoImplicitCurrentDir,sfoStripQuotes];
+{$endif unix}
+  Result := FileSearch(Name, D, O);
+end;
+
+
+Function ExeSearch (Const Name : RawbyteString; Const DirList : RawbyteString ='' ) : RawByteString;
+begin
+  Result:=ToSingleByteFileSystemEncodedFileName(ExeSearch(unicodestring(name),unicodestring(dirlist)));
 end;
 {$endif}
 

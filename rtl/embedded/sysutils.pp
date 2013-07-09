@@ -107,13 +107,13 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
   result := false;
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
   result := false;
 end;
@@ -125,7 +125,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 Begin
   result := false;
 end;
@@ -148,13 +148,13 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   result := -1;
 end;
@@ -205,7 +205,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawByteString): Boolean;
 begin
   result := false;
 end;

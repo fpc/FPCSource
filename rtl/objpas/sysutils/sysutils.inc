@@ -34,73 +34,15 @@
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
-    Var
-      I : longint;
-      Temp : String;
-
-    begin
-      Result:=Name;
-      temp:=SetDirSeparators(DirList);
-      // Start with checking the file in the current directory
-      If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
-        exit;
-      while True do begin
-        If Temp = '' then
-          Break; // No more directories to search - fail
-        I:=pos(PathSeparator,Temp);
-        If I<>0 then
-          begin
-            Result:=Copy (Temp,1,i-1);
-            system.Delete(Temp,1,I);
-          end
-        else
-          begin
-            Result:=Temp;
-            Temp:='';
-          end;
-        If Result<>'' then
-          begin
-          If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
-            Result:=Copy(Result,2,Length(Result)-2);
-          if (Result<>'') then
-            Result:=IncludeTrailingPathDelimiter(Result)+name;
-          end;
-        If (Result <> '') and FileExists(Result) Then
-          exit;
-      end;
-      result:='';
-    end;
-
-    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
-
-    begin
-      if ImplicitCurrentDir then
-        Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
-      else  
-        Result:=FileSearch(Name,DirList,[]);
-    end;
-    
-    Function ExeSearch (Const Name : String; Const DirList : String ='' ) : String;
-    
-    Var
-      D : String;
-      O : TFileSearchOptions;
-    begin
-      D:=DirList;
-      if (D='') then
-        D:=GetEnvironmentVariable('PATH');
-    {$ifdef unix}
-      O:=[];
-    {$else unix}
-      O:=[sfoImplicitCurrentDir,sfoStripQuotes];
-    {$endif unix}
-      Result := FileSearch(Name, D, O);
-    end;
 
   {$ifndef OS_FILEISREADONLY}
-  Function FileIsReadOnly(const FileName: String): Boolean;
+  Function FileIsReadOnly(const FileName: RawByteString): Boolean;
+  begin
+    Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
+  end;
 
+
+  Function FileIsReadOnly(const FileName: UnicodeString): Boolean;
   begin
     Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
   end;
@@ -108,7 +50,28 @@
 
 
   {$ifndef OS_FILESETDATEBYNAME}
-  Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+  Var
+    fd : THandle;
+  begin
+    { at least windows requires fmOpenWrite here }
+    fd:=FileOpen(FileName,fmOpenWrite);
+    If (Fd<>feInvalidHandle) then
+      try
+        Result:=FileSetDate(fd,Age);
+      finally
+        FileClose(fd);
+      end
+    else
+  {$ifdef HAS_OSERROR}
+      Result:=GetLastOSError;
+  {$else}
+      Result:=-1;
+  {$endif}
+  end;
+
+
+  Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
   Var
     fd : THandle;
   begin

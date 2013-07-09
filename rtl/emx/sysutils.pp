@@ -654,10 +654,11 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if FileName = '' then
    Result := false
   else
@@ -895,59 +896,56 @@ asm
 end {['eax', 'edx']};
 
 
-function FileSetAttr (const Filename: string; Attr: longint): longint; assembler;
-asm
-{$IFDEF REGCALL}
- mov ecx, edx
- mov edx, eax
-{$ELSE REGCALL}
- mov ecx, Attr
- mov edx, FileName
-{$ENDIF REGCALL}
- mov ax, 4301h
- call syscall
- mov eax, 0
- jnc @FSetAttrEnd
- mov eax, -1
-@FSetAttrEnd:
-end {['eax', 'ecx', 'edx']};
+function FileSetAttr (const Filename: RawByteString; Attr: longint): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  asm
+   mov ecx, Attr
+   mov edx, SystemFileName
+   mov ax, 4301h
+   call syscall
+   mov @result, 0
+   jnc @FSetAttrEnd
+   mov @result, -1
+  @FSetAttrEnd:
+  end ['eax', 'ecx', 'edx'];
+end;
 
+function DeleteFile (const FileName: string): boolean;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  asm
+   mov edx, SystemFileName
+   mov ax, 4100h
+   call syscall
+   mov @result, 0
+   jc @FDeleteEnd
+   moc @result, 1
+  @FDeleteEnd:
+  end ['eax', 'edx'];
+end;
 
-function DeleteFile (const FileName: string): boolean; assembler;
-asm
-{$IFDEF REGCALL}
- mov edx, eax
-{$ELSE REGCALL}
- mov edx, FileName
-{$ENDIF REGCALL}
- mov ax, 4100h
- call syscall
- mov eax, 0
- jc @FDeleteEnd
- inc eax
-@FDeleteEnd:
-end {['eax', 'edx']};
-
-
-function RenameFile (const OldName, NewName: string): boolean; assembler;
-asm
- push edi
-{$IFDEF REGCALL}
- mov edx, eax
- mov edi, edx
-{$ELSE REGCALL}
- mov edx, OldName
- mov edi, NewName
-{$ENDIF REGCALL}
- mov ax, 5600h
- call syscall
- mov eax, 0
- jc @FRenameEnd
- inc eax
-@FRenameEnd:
- pop edi
-end {['eax', 'edx', 'edi']};
-
+function RenameFile (const OldName, NewName: string): boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
+Begin
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  asm
+   mov edx, OldSystemFileName
+   mov edi, NewSystemFileName
+   mov ax, 5600h
+   call syscall
+   mov @result, 0
+   jc @FRenameEnd
+   mov @result, 1
+  @FRenameEnd:
+  end ['eax', 'edx', 'edi'];
+end;
 
 {****************************************************************************
                               Disk Functions
@@ -1072,10 +1070,11 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if Directory = '' then
    Result := false
   else

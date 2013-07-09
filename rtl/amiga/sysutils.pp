@@ -234,24 +234,24 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
 var
-  tmpStr: array[0..255] of char;
+  SystemFileName: RawByteString;
 begin
-  tmpStr:=PathConv(FileName)+#0;
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
 
-  DeleteFile:=dosDeleteFile(@tmpStr);
+  DeleteFile:=dosDeleteFile(PChar(SystemFileName));
 end;
 
 
 function RenameFile(const OldName, NewName: string): Boolean;
 var
-  tmpOldName, tmpNewName: array[0..255] of char;
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  tmpOldName:=PathConv(OldName)+#0;
-  tmpNewName:=PathConv(NewName)+#0;
+  OldSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(OldName));
+  NewSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(NewName));
 
-  RenameFile:=dosRename(tmpOldName, tmpNewName);
+  RenameFile:=dosRename(PChar(OldSystemFileName), PChar(NewSystemFileName));
 end;
 
 
@@ -287,16 +287,15 @@ begin
 end;
 
 
-function FileExists (const FileName : String) : Boolean;
+function FileExists (const FileName : RawByteString) : Boolean;
 var
-  tmpName: String;
   tmpLock: LongInt;
   tmpFIB : PFileInfoBlock;
-
+  SystemFileName: RawByteString;
 begin
   result:=false;
-  tmpName := PathConv(FileName);
-  tmpLock := dosLock(tmpName, SHARED_LOCK);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := dosLock(PChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -388,7 +387,7 @@ end;
 
 (****** end of non portable routines ******)
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
  F: file;
  attr: word;
@@ -402,7 +401,7 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
  F: file;
 begin
@@ -491,17 +490,18 @@ begin
 end;
 
 
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawBytetring): Boolean;
 var
   tmpStr : String;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
+  SystemFileName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(Directory);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
 
-  tmpLock:=dosLock(tmpStr,SHARED_LOCK);
+  tmpLock:=dosLock(PChar(SystemFileName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);

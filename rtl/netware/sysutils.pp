@@ -211,10 +211,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 VAR Info : NWStatBufT;
+    SystemFileName: RawByteString;
 begin
-  FileExists:=(_stat(pchar(filename),Info) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists:=(_stat(pchar(SystemFileName),Info) = 0);
 end;
 
 
@@ -319,38 +321,48 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Var Info : NWStatBufT;
+    SystemFileName: RawByteString;
 begin
-  If _stat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If _stat (pchar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := Info.st_attr AND $FFFF;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 VAR MS : NWModifyStructure;
+    SystemFileName: RawByteString;
 begin
+  { The Attr parameter is not used! }
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   FillChar (MS, SIZEOF (MS), 0);
-  if _ChangeDirectoryEntry (PChar (Filename), MS, MFileAtrributesBit, 0) <> 0 then
+  if _ChangeDirectoryEntry (PChar (SystemFilename), MS, MFileAtrributesBit, 0) <> 0 then
     result := -1
   else
     result := 0;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result:= (_UnLink (pchar(FileName)) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:= (_UnLink (pchar(SystemFileName)) = 0);
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile:=(_rename(pchar(OldName),pchar(NewName)) = 0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile:=(_rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
 end;
 
 
@@ -456,9 +468,12 @@ end;
 
 
 function DirectoryExists (const Directory: string): boolean;
-VAR Info : NWStatBufT;
+var
+  Info : NWStatBufT;
+  SystemFileName: RawByteString;
 begin
-  If _stat (pchar(Directory),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  If _stat (pchar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_attr and faDirectory) <> 0);

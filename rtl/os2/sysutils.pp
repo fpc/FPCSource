@@ -178,16 +178,17 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if FileName = '' then
-   Result := false
+    Result := false
   else
    begin
-    L := FileGetAttr (FileName);
-    Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
+     L := FileGetAttr (FileName);
+     Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
 (* Neither VolumeIDs nor directories are files. *)
    end;
 end;
@@ -328,36 +329,47 @@ begin
   Dispose (FStat);
 end;
 
-function FileGetAttr (const FileName: string): longint;
+function FileGetAttr (const FileName: RawByteString): longint;
 var
   FS: PFileStatus3;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  Result:=-DosQueryPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^));
+  Result:=-DosQueryPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
   If Result=0 Then Result:=FS^.attrFile;
   Dispose(FS);
 end;
 
-function FileSetAttr (const Filename: string; Attr: longint): longint;
+function FileSetAttr (const Filename: RawByteString; Attr: longint): longint;
 Var
   FS: PFileStatus3;
+  SystemFileName: RawByteString;
 Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
   FillChar(FS, SizeOf(FS^), 0);
   FS^.AttrFile:=Attr;
-  Result:=-DosSetPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^), 0);
+  Result:=-DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
   Dispose(FS);
 end;
 
 
-function DeleteFile (const FileName: string): boolean;
+function DeleteFile (const FileName: RawByteString): boolean;
+var
+  SystemFileName: RawByteString;
 Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   Result:=(DosDelete(PChar (FileName))=0);
 End;
 
-function RenameFile (const OldName, NewName: string): boolean;
+function RenameFile (const OldName, NewName: RawByteString): boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 Begin
-  Result:=(DosMove(PChar (OldName), PChar (NewName))=0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  Result:=(DosMove(PChar (OldSystemFileName), PChar (NewSystemFileName))=0);
 End;
 
 {****************************************************************************
@@ -443,10 +455,11 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if Directory = '' then
    Result := false
   else
