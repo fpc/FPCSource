@@ -124,7 +124,7 @@ function fsr2ExceptionMask(fsr: longword): TFPUExceptionMask;
 
 function GetExceptionMask: TFPUExceptionMask;
   begin
-    result:=fpu2ExceptionMask(get_fsr);
+    result:=fsr2ExceptionMask(get_fsr);
   end;
 
 
