@@ -324,10 +324,12 @@ end;
 
 Function TCGIRequest.GetFieldValue(Index : Integer) : String;
 
-  Function DecodeVar(I : Integer) : String;
+  Function DecodeVar(I : Integer; DoDecode : Boolean = true) : String;
   
   begin
-    Result:=HTTPDecode(GetEnvironmentVariable(CGIVarNames[I]));
+    Result:=GetEnvironmentVariable(CGIVarNames[I]);
+    if DoDecode then
+      Result:=HttpDecode(Result)
   end;
 
 begin
@@ -342,7 +344,7 @@ begin
     30 : Result:=DecodeVar(15); // Property ServerPort
     31 : Result:=DecodeVar(12); // Property RequestMethod
     32 : Result:=DecodeVar(34); // Property URI
-    33 : Result:=DecodeVar(7); // Property QueryString
+    33 : Result:=DecodeVar(7,False); // Property QueryString
     36 : Result:=DecodeVar(36); // Property XRequestedWith
   else
     Result:=Inherited GetFieldValue(Index);
