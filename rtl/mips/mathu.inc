@@ -54,39 +54,34 @@ begin
       result:=result or (1 shl ord(exPrecision));
 end;
 
+const
+  roundmode2fsr : array [TFPURoundingMode] of byte=(
+    fpu_rounding_nearest,
+    fpu_rounding_minus_inf,
+    fpu_rounding_plus_inf,
+    fpu_rounding_towards_zero
+  );
+
+  fsr2roundmode : array [0..3] of TFPURoundingMode = (
+    rmNearest,
+    rmTruncate,
+    rmUp,
+    rmDown
+  );
+
 function GetRoundMode: TFPURoundingMode;
   begin
-    result:=TFPURoundingMode(get_fsr and 3);
+    result:=fsr2roundmode[get_fsr and fpu_rounding_mask];
   end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   var
-    fpu_round : longint;
+    fsr: longword;
   begin
-    case (RoundMode) of
-      rmNearest :
-        begin
-          softfloat_rounding_mode := float_round_nearest_even;
-          fpu_round:=fpu_rounding_nearest;
-        end;
-      rmTruncate :
-        begin
-          softfloat_rounding_mode := float_round_to_zero;
-          fpu_round:=fpu_rounding_towards_zero;
-        end;
-      rmUp :
-        begin
-          softfloat_rounding_mode := float_round_up;
-          fpu_round:=fpu_rounding_plus_inf;
-        end;
-      rmDown :
-        begin
-          softfloat_rounding_mode := float_round_down;
-          fpu_round:=fpu_rounding_minus_inf;
-        end;
-    end;
-    set_fsr((get_fsr and not fpu_rounding_mask) or fpu_round);
-//!!!    result:=TFPURoundingMode(get_fsr shr 30);
+    softfloat_rounding_mode:=byte(RoundMode);
+    fsr:=get_fsr;
+    result:=fsr2roundmode[fsr and fpu_rounding_mask];
+    set_fsr((fsr and not fpu_rounding_mask) or roundmode2fsr[RoundMode]);
   end;
 
 
@@ -102,11 +97,8 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
   end;
 
 
-function GetExceptionMask: TFPUExceptionMask;
-  var
-    fsr : dword;
+function fsr2ExceptionMask(fsr: longword): TFPUExceptionMask;
   begin
-    fsr:=get_fsr;
     result:=[];
     { invalid operation }
     if (fsr and fpu_enable_invalid)=0 then
@@ -130,45 +122,41 @@ function GetExceptionMask: TFPUExceptionMask;
   end;
 
 
+function GetExceptionMask: TFPUExceptionMask;
+  begin
+    result:=fpu2ExceptionMask(get_fsr);
+  end;
+
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
-    fsr : dword;
+    fsr : longword;
   begin
     fsr:=get_fsr;
+    result:=fsr2ExceptionMask(fsr);
+
+    { Reset flags, cause and enables }
+    fsr := fsr and not (fpu_flags_mask or fpu_cause_mask or fpu_enable_mask);
 
     { invalid operation }
-    if (exInvalidOp in mask) then
-      fsr:=fsr and not(fpu_enable_invalid)
-    else
+    if not (exInvalidOp in mask) then
       fsr:=fsr or (fpu_enable_invalid);
 
     { zero divide }
-    if (exZeroDivide in mask) then
-      fsr:=fsr and not(fpu_enable_div_zero)
-    else
+    if not (exZeroDivide in mask) then
       fsr:=fsr or (fpu_enable_div_zero);
 
     { overflow }
-    if (exOverflow in mask) then
-      fsr:=fsr and not(fpu_enable_overflow)
-    else
+    if not (exOverflow in mask) then
       fsr:=fsr or (fpu_enable_overflow);
 
     { underflow }
-    if (exUnderflow in mask) then
-      fsr:=fsr and not(fpu_enable_underflow)
-    else
+    if not (exUnderflow in mask) then
       fsr:=fsr or (fpu_enable_underflow);
 
     { Precision (inexact result) }
-    if (exPrecision in mask) then
-      fsr:=fsr and not(fpu_enable_inexact)
-    else
+    if not (exPrecision in mask) then
       fsr:=fsr or (fpu_enable_inexact);
-
-    { Reset flags and cause }
-    fsr := fsr and not (fpu_flags_mask or fpu_cause_mask);
 
     { update control register contents }
     set_fsr(fsr);
