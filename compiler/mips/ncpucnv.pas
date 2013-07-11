@@ -40,7 +40,7 @@ type
     { procedure second_chararray_to_string;override; }
     { procedure second_char_to_string;override; }
     procedure second_int_to_real; override;
-    procedure second_real_to_real; override;
+    { procedure second_real_to_real; override; }
     { procedure second_cord_to_pointer;override; }
     { procedure second_proc_to_procvar;override; }
     { procedure second_bool_to_int;override; }
@@ -204,32 +204,6 @@ begin
         internalerror(200410031);
     end;
   end;
-end;
-
-
-procedure tMIPSELtypeconvnode.second_real_to_real;
-const
-  conv_op: array[tfloattype, tfloattype] of tasmop = (
-    {    from:   s32      s64         s80     sc80    c64     cur    f128 }
-    { s32 }  (A_MOV_S,   A_CVT_S_D, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { s64 }  (A_CVT_D_S, A_MOV_D,   A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { s80 }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { sc80 } (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { c64 }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { cur }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { f128 } (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE)
-    );
-var
-  op: tasmop;
-begin
-  location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, False);
-  { Convert value in fpu register from integer to float }
-  op := conv_op[tfloatdef(resultdef).floattype, tfloatdef(left.resultdef).floattype];
-  if op = A_NONE then
-    internalerror(200401121);
-  location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, location.Register, left.location.Register));
 end;
 
 
