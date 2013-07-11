@@ -115,6 +115,7 @@ interface
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
                   end;
               end
+{$if not defined(cpu16bitalu) and not defined(cpu8bitalu)}
             { On targets without 8/16 bit register components, 8/16-bit operations
               always adjust high bits of result, see 'maybeadjustresult' method in
               respective cgcpu.pas. Therefore 8/16-bit locations are valid as larger
@@ -125,6 +126,7 @@ interface
               (newsize in [OS_32,OS_S32,OS_16,OS_S16]) and
               not ((newsize=OS_16) and (def_cgsize(left.resultdef)=OS_S8)) then
               location.size:=newsize
+{$endif}
             else
               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
           end
