@@ -1817,8 +1817,10 @@ implementation
         if tsym(p).typ<>paravarsym then
          exit;
         with tparavarsym(p) do
-          if is_managed_type(vardef) and
-             (varspez in [vs_value,vs_out]) then
+          if (is_managed_type(vardef) and
+             (varspez in [vs_value,vs_out])) or
+             (is_shortstring(vardef) and
+             (varspez=vs_value)) then
             include(current_procinfo.flags,pi_do_call);
       end;
 
