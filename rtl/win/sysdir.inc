@@ -74,7 +74,7 @@ end;
 procedure do_GetDir (DriveNr: byte; var Dir: Unicodestring);
 {$ifndef WINCE}
 var
-  Drive:array[0..3]of char;
+  Drive:array[0..3]of widechar;
   defaultdrive:boolean;
   savebuf: UnicodeString;
   len : integer;
@@ -97,7 +97,7 @@ begin
       errno := word (GetLastError);
       Errno2InoutRes;
       Dir := widechar (DriveNr + 64) + ':\';
-      SetCurrentDirectoryW(@SaveBuf);
+      SetCurrentDirectoryW(punicodechar(SaveBuf));
       Exit;
      end;
    end;
@@ -106,7 +106,7 @@ begin
   setlength(dir,len-1); // -1 because len is #0 inclusive
   GetCurrentDirectoryW(len,punicodechar(dir));
   if not defaultdrive then
-    SetCurrentDirectoryW(@SaveBuf);
+    SetCurrentDirectoryW(punicodechar(SaveBuf));
   if not FileNameCasePreserving then
     dir:=upcase(dir);
 {$else WINCE}
