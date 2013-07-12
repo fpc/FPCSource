@@ -312,8 +312,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    if (cp=CP_ACP) then
-      cp:=DefaultSystemCodePage;
+    cp:=TranslatePlaceholderCP(cp);
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
   end;
 end;
@@ -334,9 +333,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    cp:=StringCodePage(S2);
-    if (cp=CP_ACP) then
-      cp:=DefaultSystemCodePage;
+    cp:=TranslatePlaceholderCP(StringCodePage(S2));
     widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
   end;
 end;
@@ -641,8 +638,7 @@ begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}     
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
 {$endif FPC_HAS_UCHAR_TO_ANSISTR}

@@ -318,6 +318,8 @@ threadvar
      stdcall;external KernelDLL name 'GetConsoleMode';
    function GetConsoleOutputCP : UINT;
      stdcall; external KernelDLL name 'GetConsoleOutputCP';
+   function GetOEMCP: UINT;
+     stdcall; external KernelDLL name 'GetOEMCP';
 
    function SysAllocStringLen(psz:pointer;len:dword):pointer;
      stdcall; external 'oleaut32.dll' name 'SysAllocStringLen';
@@ -392,3 +394,17 @@ threadvar
       SetString(widestring(pointer(result)),PWideChar(source),length(source));
     end;
 
+
+{$ifndef WINCE}
+{$define FPC_HAS_TRANSLATEPLACEHOLDERCP}
+function TranslatePlaceholderCP(cp: TSystemCodePage): TSystemCodePage; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  TranslatePlaceholderCP:=cp;
+  case cp of
+    CP_OEMCP:
+      TranslatePlaceholderCP:=GetOEMCP;
+    CP_ACP:
+      TranslatePlaceholderCP:=DefaultSystemCodePage;
+  end;
+end;
+{$endif not WINCE}

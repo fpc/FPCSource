@@ -307,7 +307,6 @@ const
      MB_COMPOSITE = 2;
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
-     CP_OEMCP = 1;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';

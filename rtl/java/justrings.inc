@@ -122,8 +122,7 @@ Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString{$ifdef FPC_HAS_CPST
 Var
   Size : SizeInt;
 begin
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   { avoid codepage conversion -- why isn't the result rawbytestring? }
   pointer(result):=pointer(AnsistringClass.Create(s2,cp));
 end;
@@ -185,8 +184,7 @@ begin
   if (p=nil) or
      (p^=#0) then
     exit;
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   pointer(result):=pointer(AnsistringClass.Create(unicodestring(p),cp));
 end;
 
@@ -317,8 +315,7 @@ var
   arr: array[0..0] of unicodechar;
 begin
   arr[0]:=c;
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr), RawByteString(fpc_UChar_To_AnsiStr), cp, 1);
 end;
 
@@ -351,8 +348,7 @@ begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   arr[0]:=c;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr[0]), fpc_UChar_To_AnsiStr, cp, 1);
 end;

@@ -59,6 +59,20 @@ Const
                     Internal functions, not in interface.
 ****************************************************************************}
 
+{$ifndef FPC_HAS_TRANSLATEPLACEHOLDERCP}
+{$define FPC_HAS_TRANSLATEPLACEHOLDERCP}
+function TranslatePlaceholderCP(cp: TSystemCodePage): TSystemCodePage; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  TranslatePlaceholderCP:=cp;
+  case cp of
+    CP_OEMCP,
+    CP_ACP:
+      TranslatePlaceholderCP:=DefaultSystemCodePage;
+  end;
+end;
+{$endif FPC_HAS_TRANSLATEPLACEHOLDERCP}
+
+
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
@@ -207,8 +221,7 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_ACP) then
-    DestCP:=DefaultSystemCodePage;
+  DestCP:=TranslatePlaceholderCP(DestCP);
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
     DefaultSystemCodePage in that case, which may differ from other addend/dest) }
@@ -216,14 +229,12 @@ begin
     S1CP:=DestCP
   else
     S1CP:=StringCodePage(S1);
-  if (S1CP=CP_ACP) then
-    S1CP:=DefaultSystemCodePage;
+  S1CP:=TranslatePlaceholderCP(S1CP);
   if S2='' then
     S2CP:=DestCP
   else
     S2CP:=StringCodePage(S2);
-  if (S2CP=CP_ACP) then
-    S2CP:=DefaultSystemCodePage;
+  S2CP:=TranslatePlaceholderCP(S2CP);
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
@@ -296,15 +307,12 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_ACP) then
-    DestCP:=DefaultSystemCodePage;
+  DestCP:=TranslatePlaceholderCP(DestCP);
   sameCP:=true;
   lowstart:=low(sarr);
   for i:=lowstart to high(sarr) do
     begin
-      tmpCP:=StringCodePage(sarr[i]);
-      if tmpCP=CP_ACP then
-        tmpCP:=DefaultSystemCodePage;
+      tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[i]));
       if (DestCP<>tmpCp) then
         begin
           sameCP:=false;
@@ -408,11 +416,8 @@ begin
   Size:=Length(S);
   if Size>0 then
     begin
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
-      orgcp:=StringCodePage(S);
-      if (orgcp=CP_ACP) then
-        orgcp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
+      orgcp:=TranslatePlaceholderCP(StringCodePage(S));
       if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           SetLength(result,Size);
@@ -469,8 +474,7 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -497,8 +501,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -527,8 +530,7 @@ begin
   if L > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -565,8 +567,7 @@ begin
   if i > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -626,12 +627,8 @@ begin
       result:=Length(S1);
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  if cp1=CP_ACP then
-    cp1:=DefaultSystemCodePage;
-  cp2:=StringCodePage(S2);
-  if cp2=CP_ACP then
-    cp2:=DefaultSystemCodePage;
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
     begin
       Maxi:=Length(S1);
@@ -690,12 +687,8 @@ begin
       result:=1;
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  if cp1=CP_ACP then
-    cp1:=DefaultSystemCodePage;
-  cp2:=StringCodePage(S2);
-  if cp2=CP_ACP then
-    cp2:=DefaultSystemCodePage;
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
     begin
       Maxi:=Length(S1);
@@ -776,8 +769,7 @@ begin
           Pointer(S):=Temp;
         end;
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
       PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
 {$else}
       PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
@@ -1278,9 +1270,7 @@ begin
    index := LS+1;
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
-  cp:=StringCodePage(S);
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(StringCodePage(S));
   SetCodePage(Temp,cp,false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);

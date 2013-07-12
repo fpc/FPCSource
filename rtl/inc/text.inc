@@ -148,8 +148,7 @@ Begin
   TextRec(t).bufend:=0;
   {$ifdef FPC_HAS_CPSTRING}
   { if no codepage is yet assigned then assign default ansi codepage }
-  if TextRec(t).CodePage=CP_ACP then
-    TextRec(t).CodePage:=DefaultSystemCodePage;
+  TextRec(t).CodePage:=TranslatePlaceholderCP(TextRec(t).CodePage);
   {$endif}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }

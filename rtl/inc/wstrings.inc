@@ -194,8 +194,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    if (cp=CP_ACP) then
-      cp:=DefaultSystemCodePage;
+    cp:=TranslatePlaceholderCP(cp);
     widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
   end;
 end;
@@ -213,9 +212,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    cp:=StringCodePage(S2);
-    if (cp=CP_ACP) then
-      cp:=DefaultSystemCodePage;
+    cp:=TranslatePlaceholderCP(StringCodePage(S2));
     widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
   end;
 end;
