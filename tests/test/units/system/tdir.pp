@@ -46,7 +46,36 @@ Begin
    test(IOResult, 0);
    WriteLn('Passed!');
 
-   Write('removing directory ...');
+   Write('making subdirectory /testdir3...');
+   mkdir('testdir2/testdir3');
+   test(IOResult, 0);
+   WriteLn('Passed!');
+
+{$ifdef mswindows}
+   Write('making subdirectory \testdir4...');
+   mkdir('testdir2\testdir4');
+   test(IOResult, 0);
+   WriteLn('Passed!');
+
+   Write('removing directory /testdir3 ...');
+   rmdir('testdir2\testdir3');
+   test(IOResult, 0);
+   WriteLn('Passed!');
+
+   Write('removing directory \testdir4 ...');
+   rmdir('testdir2/testdir4');
+   test(IOResult, 0);
+   WriteLn('Passed!');
+{$else}
+   { Unix platforms do not translate \ into / in the system unit *dir functions,
+     regardless of the allowdirectoryseparators setting -> no \ testing }
+   Write('removing directory /testdir3 ...');
+   rmdir('testdir2/testdir3');
+   test(IOResult, 0);
+   WriteLn('Passed!');
+{$endif}
+
+   Write('removing directory 3 ...');
    rmdir('testdir2');
    test(IOResult, 0);
    WriteLn('Passed!');

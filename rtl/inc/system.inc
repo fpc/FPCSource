@@ -1451,7 +1451,7 @@ begin
             p:=pchar(ps);
             unique:=true;
           end;
-        p[i]:=DirectorySeparator;
+        p[i-1]:=DirectorySeparator;
       end;
 end;
 
@@ -1471,7 +1471,7 @@ begin
             p:=pwidechar(ps);
             unique:=true;
           end;
-        p[i]:=DirectorySeparator;
+        p[i-1]:=DirectorySeparator;
       end;
 end;
 
