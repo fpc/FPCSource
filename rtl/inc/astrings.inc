@@ -314,10 +314,8 @@ begin
   if not sameCP then
     begin
       U:='';
-      for i:=lowstart to high(sarr) do begin
-        tmpCP:=StringCodePage(sarr[i]);
+      for i:=lowstart to high(sarr) do
         U:=U+UnicodeString(sarr[i]);
-      end;
 
       DestS:='';
       widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
