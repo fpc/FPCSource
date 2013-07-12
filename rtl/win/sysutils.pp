@@ -971,24 +971,30 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 var
-   s : string;
-   i : longint;
+   oemenvvar, oemstr : RawByteString;
+   i, hplen : longint;
    hp,p : pchar;
 begin
+   oemenvvar:=uppercase(envvar);
+   SetCodePage(oemenvvar,CP_OEMCP);
    Result:='';
    p:=GetEnvironmentStrings;
    hp:=p;
    while hp^<>#0 do
      begin
-        s:=strpas(hp);
-        i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upcase(envvar) then
+        oemstr:=hp;
+        { cache length, may change after uppercasing depending on code page }
+        hplen:=length(oemstr);
+        { all environment variables are encoded in the oem code page }
+        SetCodePage(oemstr,CP_OEMCP,false);
+        i:=pos('=',oemstr);
+        if uppercase(copy(oemstr,1,i-1))=oemenvvar then
           begin
-             Result:=copy(s,i+1,length(s)-i);
+             Result:=copy(oemstr,i+1,length(oemstr)-i);
              break;
           end;
         { next string entry}
-        hp:=hp+strlen(hp)+1;
+        hp:=hp+hplen+1;
      end;
    FreeEnvironmentStrings(p);
 end;
