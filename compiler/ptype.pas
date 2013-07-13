@@ -1679,8 +1679,10 @@ implementation
         { no Delphi-style RTTI }
         exit;
 {$endif jvm}
-        if st.symtabletype = globalsymtable then
-          st.extrtticount := 0;
+        { Always write the TUnitInfo, even if there is further no type
+          information for the module }
+        if current_module.extrttiinfo=nil then
+          RTTIWriter.start_write_unit_extrtti_info;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -1735,7 +1737,7 @@ implementation
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);
           end;
-        if st.symtabletype = globalsymtable then
+        if st.symtabletype = staticsymtable then
           RTTIWriter.after_write_unit_extrtti_info(st);
       end;
 

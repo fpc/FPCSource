@@ -22,6 +22,7 @@ unit typinfo;
 
 {$MODE objfpc}
 {$inline on}
+{$modeswitch advancedrecords}
 {$h+}
 
   uses SysUtils;
@@ -105,6 +106,12 @@ unit typinfo;
       end;
 
 {$PACKRECORDS 1}
+      PUnitInfo = ^TUnitInfo;
+      TUnitInfo = packed record
+        UnitInfoSize: LongInt;
+        UnitName: shortstring;
+      end;
+
       TTypeInfo = record
          Kind : TTypeKind;
          Name : ShortString;
@@ -121,6 +128,7 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+         function UnitName: string;
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant,tkUString:
               ();
@@ -149,10 +157,9 @@ unit typinfo;
               (ClassType : TClass;
                ParentInfo : PTypeInfo;
                PropCount : SmallInt;
-               AttributeCount : byte;
-               UnitName : ShortString
-               // here the attributes follow as array of TAttributeProc
-               // followed by the properties as array of TPropInfo
+               UnitInfo: PUnitInfo;
+               // AttributeData: TAttributeData;
+               // here the properties follow as TPropData
               );
             tkHelper:
               (HelperParent : PTypeInfo;
@@ -215,6 +222,7 @@ unit typinfo;
         PropCount : Word;
         PropList : record _alignmentdummy : ptrint; end;
       end;
+      PPropData = ^TPropData;
 {$PACKRECORDS 1}
 
       PPropInfo = ^TPropInfo;
@@ -242,31 +250,24 @@ unit typinfo;
 
       TAttributeProc = function : TCustomAttribute;
       PAttributeProcList = ^TAttributeProcList;
-      TAttributeProcList = array[0..255] of TAttributeProc;
+      TAttributeProcList = array[0..$ffff] of TAttributeProc;
 
       PPropList = ^TPropList;
       TPropList = array[0..65535] of PPropInfo;
 
-      TClassAttributeData = record
-        AttributeCount: byte;
+      TAttributeData = record
+        AttributeCount: word;
         AttributesList: TAttributeProcList;
       end;
-      PClassAttributeData = ^TClassAttributeData;
+      PAttributeData = ^TAttributeData;
 
       TExtRTTIData = record
-        TypeData: PTypeInfo;
-        AttributeData: PClassAttributeData;
+        TypeInfo: PTypeInfo;
       end;
       PExtRTTIData = ^TExtRTTIData;
 
       PextRTTIDataList = ^TExtRTTIDataList;
       TExtRTTIDataList = array[0..65535] of TExtRTTIData;
-
-      PUnitInfo = ^TUnitInfo;
-      TUnitInfo = packed record
-        UnitInfoSize: LongInt;
-        UnitName: shortstring;
-      end;
 
       PUnitInfoList = ^TUnitInfoList;
       TUnitInfoList = record
@@ -390,7 +391,8 @@ procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Valu
 
 // Extended RTTI
 function GetUnitList: PUnitInfoList;
-function GetExtRTTIData(TypeInfo : PTypeInfo) : PExtRTTIData;
+
+function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 
 function GetRTTIDataListForUnit(AUnitInfo: PUnitInfo): PExtRTTIDataList;
 function GetRTTIDataCountForUnit(AUnitInfo: PUnitInfo): longint;
@@ -398,9 +400,7 @@ function GetRTTIDataCountForUnit(AUnitInfo: PUnitInfo): longint;
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
 
-function GetClassAttributeCount(ExtRTTIData: PExtRTTIData): byte;
-function GetClassAttributeProclist(ExtRTTIData: PExtRTTIData): PAttributeProcList;
-function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TCustomAttribute;
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -440,6 +440,15 @@ type
   PMethod = ^TMethod;
 
 { ---------------------------------------------------------------------
+  TTypeData methods
+  ---------------------------------------------------------------------}
+
+function TTypeData.UnitName: string;
+begin
+  result := UnitInfo^.UnitName
+end;
+
+{ ---------------------------------------------------------------------
   Auxiliary methods
   ---------------------------------------------------------------------}
 
@@ -466,21 +475,21 @@ begin
 {$endif FPC_HAS_EXTENDED_RTTI}
 end;
 
-function GetExtRTTIData(TypeInfo: PTypeInfo): PExtRTTIData;
+function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 var
-  p: pointer;
+  TD: PTypeData;
 begin
-  p := pointer(TypeInfo) - sizeof(p);
-  result := PExtRTTIData(pointer(p)^);
+  td := GetTypeData(TypeInfo);
+  Result:=PAttributeData(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)));
 end;
 
 function GetRTTIDataListForUnit(AUnitInfo: PUnitInfo): PExtRTTIDataList;
 var
   p: pointer;
 begin
-  p := AUnitInfo;
-  inc(p,length(AUnitInfo^.UnitName)+1+sizeof(LongInt));
-  p := align(p,sizeof(p));
+  p := @AUnitInfo^.UnitName;
+  inc(p,length(AUnitInfo^.UnitName)+1);
+  p := aligntoptr(p);
   GetRTTIDataListForUnit := pExtRTTIDataList(p);
 end;
 
@@ -488,8 +497,7 @@ function GetRTTIDataCountForUnit(AUnitInfo: PUnitInfo): longint;
 var
   p: PtrInt;
 begin
-  p := PtrInt(GetRTTIDataListForUnit(AUnitInfo))-PtrInt(AUnitInfo);
-  GetRTTIDataCountForUnit := (AUnitInfo^.UnitInfoSize-p) div SizeOf(TExtRTTIData);
+  GetRTTIDataCountForUnit := (AUnitInfo^.UnitInfoSize) div SizeOf(TExtRTTIData);
 end;
 
 function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
@@ -515,33 +523,15 @@ begin
     end;
 end;
 
-
-function GetClassAttributeCount(ExtRTTIData: PExtRTTIData): byte;
-begin
-  if not assigned(ExtRTTIData^.AttributeData) then
-    result := 0
-  else
-    result := ExtRTTIData^.AttributeData^.AttributeCount;
-end;
-
-function GetClassAttributeProclist(ExtRTTIData: PExtRTTIData): PAttributeProcList;
-begin
-  if GetClassAttributeCount(ExtRTTIData) = 0 then
-    result := nil
-  else
-    result := @ExtRTTIData^.AttributeData^.AttributesList;
-end;
-
-function GetClassAttribute(ExtRTTIData: PExtRTTIData; AttributeNr: byte): TCustomAttribute;
+function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustomAttribute;
 var
-  AttributeProcList: PAttributeProcList;
+  AttributeProcList: TAttributeProcList;
 begin
-  if AttributeNr>=GetClassAttributeCount(ExtRTTIData) then
+  if AttributeNr>=AttributeData^.AttributeCount then
     result := nil
   else
     begin
-      AttributeProcList := GetClassAttributeProclist(ExtRTTIData);
-      result := AttributeProcList^[AttributeNr]();
+      result := AttributeData^.AttributesList[AttributeNr]();
     end;
 end;
 
@@ -749,23 +739,27 @@ end;
 { ---------------------------------------------------------------------
   Basic Type information functions.
   ---------------------------------------------------------------------}
+function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
+var
+  AD: PAttributeData;
+begin
+  AD := GetAttributeData(TypeInfo);
+  result := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+end;
 
 Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
 var
   hp : PTypeData;
   i : longint;
   p : shortstring;
-  pd : ^TPropData;
+  pd : PPropData;
 begin
   P:=PropName;  // avoid Ansi<->short conversion in a loop
   while Assigned(TypeInfo) do
     begin
       // skip the name
       hp:=GetTypeData(Typeinfo);
-      // the class info rtti the property rtti follows immediatly
-      pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
-      // also skip the attribute-information
-      pd:=aligntoptr(pointer(pd)+(hp^.AttributeCount*sizeof(TAttributeProc)));
+      pd := GetPropData(TypeInfo,hp);
       Result:=PPropInfo(@pd^.PropList);
       for i:=1 to pd^.PropCount do
         begin
@@ -895,9 +889,7 @@ begin
   repeat
     TD:=GetTypeData(TypeInfo);
     // published properties count for this object
-    TP:=aligntoptr(PPropInfo(aligntoptr((Pointer(@TD^.UnitName)+Length(TD^.UnitName)+1))));
-    // skip the attribute-info if available
-    TP:=aligntoptr(pointer(TP)+(TD^.AttributeCount*sizeof(TAttributeProc)));
+    TP:=PPropInfo(GetPropData(TypeInfo, TD));
     Count:=PWord(TP)^;
     // Now point TP to first propinfo record.
     Inc(Pointer(TP),SizeOF(Word));

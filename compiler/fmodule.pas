@@ -180,6 +180,9 @@ interface
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
 
+        { contains a reference to the TUnitInfo rtti information for this module }
+        extrttiinfo : TAsmSymbol;
+
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of
           tobjectdef instances (the helper defs) }
@@ -558,6 +561,7 @@ implementation
         deprecatedmsg:=nil;
         namespace:=nil;
         tcinitcode:=nil;
+        extrttiinfo:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(realmodulename^);

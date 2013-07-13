@@ -299,22 +299,22 @@ begin
       for TypeInd:=0 to l-1 do
         begin
         ExtRttiData := @UnitDataList^[TypeInd];
-        if Assigned(ExtRttiData^.TypeData) then
+        if Assigned(ExtRttiData^.TypeInfo) then
           begin
-          case ExtRttiData^.TypeData^.Kind of
-            tkClass   : ARttiType := TRttiInstanceType.Create(ExtRttiData^.TypeData);
+          case ExtRttiData^.TypeInfo^.Kind of
+            tkClass   : ARttiType := TRttiInstanceType.Create(ExtRttiData^.TypeInfo);
             tkSString,
             tkLString,
             tkAString,
             tkUString,
-            tkWString : ARttiType := TRttiStringType.Create(ExtRttiData^.TypeData);
-            tkFloat   : ARttiType := TRttiFloatType.Create(ExtRttiData^.TypeData);
+            tkWString : ARttiType := TRttiStringType.Create(ExtRttiData^.TypeInfo);
+            tkFloat   : ARttiType := TRttiFloatType.Create(ExtRttiData^.TypeInfo);
           else
-            ARttiType := TRttiType.Create(ExtRttiData^.TypeData);
+            ARttiType := TRttiType.Create(ExtRttiData^.TypeInfo);
           end; {case}
           end
         else
-          ARttiType := TRttiType.Create(ExtRttiData^.TypeData);
+          ARttiType := TRttiType.Create(ExtRttiData^.TypeInfo);
         FTypesList[UnitStartIndex+TypeInd] := ARttiType;
         end;
       end;
@@ -607,14 +607,14 @@ end;
 function TRttiType.GetAttributes: TAttributeArray;
 var
   i: Integer;
-  erd: PExtRTTIData;
+  ad: PAttributeData;
 begin
   if not FAttributesResolved then
     begin
-    erd := GetExtRTTIData(FTypeInfo);
-    setlength(FAttributes,FTypeData^.AttributeCount);
-    for i := 0 to FTypeData^.AttributeCount-1 do
-      FAttributes[i]:=GetClassAttribute(erd,i);
+    ad := GetAttributeData(FTypeInfo);
+    setlength(FAttributes,ad^.AttributeCount);
+    for i := 0 to ad^.AttributeCount-1 do
+      FAttributes[i]:=GetAttribute(ad,i);
     FAttributesResolved:=true;
     end;
   result := FAttributes;
@@ -629,7 +629,6 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
-
 function TRttiType.GetProperties: TRttiPropertyArray;
 var
   propcount: integer;
@@ -638,8 +637,10 @@ var
   TypeInfo: PTypeInfo;
   TypeRttiType: TRttiType;
   TD: PTypeData;
+  PPD: PPropData;
   TP: PPropInfo;
   Count: longint;
+  AD: PAttributeData;
 begin
   if not FPropertiesResolved then
     begin
@@ -654,13 +655,12 @@ begin
         TD:=GetTypeData(TypeInfo);
 
         // published properties count for this object
-        TP:=aligntoptr(PPropInfo(aligntoptr((Pointer(@TD^.UnitName)+Length(TD^.UnitName)+1))));
         // skip the attribute-info if available
-        TP:=aligntoptr(pointer(TP)+(TD^.AttributeCount*sizeof(TAttributeProc)));
-        Count:=PWord(TP)^;
+        AD := GetAttributeData(TypeInfo);
+        PPD := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+        Count:=PPD^.PropCount;
         // Now point TP to first propinfo record.
-        Inc(Pointer(TP),SizeOF(Word));
-        TP:=aligntoptr(TP);
+        TP:=PPropInfo(@PPD^.PropList);
         While Count>0 do
           begin
             // Don't overwrite properties with the same name

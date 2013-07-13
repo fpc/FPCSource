@@ -1,3 +1,4 @@
+{ %fail }
 program tclassattribute8;
 
 {$mode objfpc}{$H+}

@@ -46,12 +46,13 @@ interface
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
         procedure write_rtti_name(def:tdef);
         procedure write_rtti_data(def:tdef;rt:trttitype);
-        procedure write_ext_rtti_data(def:tdef);
+        procedure write_attribute_data(def:tdef);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
         procedure write_header(def: tdef; typekind: byte);
         procedure write_string(const s: string);
         procedure maybe_write_align;
+        procedure write_unitinfo_reference;
         procedure write_ext_rtti(def:tdef;rt:trttitype);
       public
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -105,26 +106,16 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
       end;
 
-    procedure TRTTIWriter.write_ext_rtti(def: tdef; rt: trttitype);
-      var
-        extrttilab : tasmsymbol;
+    procedure TRTTIWriter.write_unitinfo_reference;
       begin
-        if def.owner.ExtRttiCount=0 then
-          start_write_unit_extrtti_info;
+      { write reference to TUnitInfo }
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(current_module.extrttiinfo));
+      end;
 
-        extrttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(extrtti),AB_GLOBAL,AT_DATA);
-
-        { Create a sec_extrtti section, because a normal data section could be
-          re-ordered by the linker }
-        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,extrttilab.name,const_align(sizeof(pint)));
-        current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(extrttilab,0));
-
+    procedure TRTTIWriter.write_ext_rtti(def: tdef; rt: trttitype);
+      begin
         // Write reference to 'normal' typedata
         current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Createname(tstoreddef(def).rtti_mangledname(fullrtti),0));
-
-        write_ext_rtti_data(def);
-        current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol_end.Create(extrttilab));
-        inc(def.owner.ExtRttiCount);
       end;
 
     procedure TRTTIWriter.write_string(const s: string);
@@ -841,22 +832,12 @@ implementation
             { total number of unique properties }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(propnamelist.count));
 
-            { total amount of class-attributes }
-            if assigned(def.rtti_attributesdef) then
-              attributecount:=def.rtti_attributesdef.get_attribute_count
-            else
-              attributecount:=0;
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(attributecount));
+            { reference to unitinfo with unit-name }
+            write_unitinfo_reference;
 
-            { write unit name }
-            write_string(current_module.realmodulename^);
+            { TAttributeData }
             maybe_write_align;
-
-            for attributeindex:=0 to attributecount-1 do
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(def.rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
-              end;
-            maybe_write_align;
+            write_attribute_data(def);
 
             { write published properties for this object }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(published_properties_count(def.symtable)));
@@ -1003,36 +984,30 @@ implementation
         end;
       end;
 
-    procedure TRTTIWriter.write_ext_rtti_data(def: tdef);
+    procedure TRTTIWriter.write_attribute_data(def: tdef);
 
     var
-      attributecount: byte;
+      attributecount: word;
       attributeindex: byte;
-      attributeslab : tasmsymbol;
 
     begin
-      attributeslab := nil;
       if def.typ = objectdef then
         begin
           if assigned(tobjectdef(def).rtti_attributesdef) then
-            begin
-              attributecount:=tobjectdef(def).rtti_attributesdef.get_attribute_count;
-              attributeslab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(attribute),AB_GLOBAL,AT_DATA);
-              current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(attributeslab,0));
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(attributecount));
-
-              for attributeindex:=0 to attributecount-1 do
-                begin
-                  current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(tobjectdef(def).rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
-                end;
-            end
+            attributecount:=tobjectdef(def).rtti_attributesdef.get_attribute_count
           else
             attributecount:=0;
         end
       else
         attributecount:=0;
 
-      current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Create_sym(attributeslab));
+      current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(attributecount));
+
+      if attributecount>0 then
+        for attributeindex:=0 to attributecount-1 do
+          begin
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(tobjectdef(def).rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
+          end;
     end;
 
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
@@ -1313,9 +1288,6 @@ implementation
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
         new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
-        { write reference to extended rtti }
-        if rt=fullrtti then
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tstoreddef(def).rtti_mangledname(extrtti),0));
 
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
@@ -1342,8 +1314,34 @@ implementation
       end;
 
     procedure TRTTIWriter.start_write_unit_extrtti_info;
+      var
+        start_extrtti_symbollist,
+        end_extrtti_symbollist    : TAsmSymbol;
+        s                         : string;
       begin
-        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,make_mangledname('EXTR',current_module.localsymtable,''),const_align(sizeof(pint)));
+        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
+
+        { Make symbol that point to the start of the TUnitInfo }
+        current_module.extrttiinfo := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRU_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+        current_asmdata.asmlists[al_ext_rtti].Concat(Tai_symbol.Create_global(current_module.extrttiinfo,0));
+
+        { write TUnitInfo }
+
+        { Make symbols for the start and the end of the symbol-list, so that
+          the linker can calculate the size of the structure. This because
+          some types could be omitted due to smart-linking }
+        start_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+        end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_const.Create_rel_sym(aitconst_aint, start_extrtti_symbollist, end_extrtti_symbollist));
+
+        { Write the unit-name }
+        s := current_module.realmodulename^;
+        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_const.Create_8bit(length(s)));
+        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_string.Create(s));
+
+        maybe_write_align;
+
+        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_symbol.Create_global(start_extrtti_symbollist,0));
       end;
 
 
@@ -1358,29 +1356,10 @@ implementation
         unitname_item             : TLinkedListItem;
         s                         : string;
     begin
-      if st.extrtticount>0 then
+      if current_module.extrttiinfo<>nil then
         begin
-          { Make symbols for the start and the end of the unit-info, so that
-            the linker can calculate the size of the structure. This because
-            some types could be omitted due to smart-linking }
-          start_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+          { Write the symbol to mark the end of the symbols-list }
           end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-          s := current_module.realmodulename^;
-
-          { Insert the TUnitInfo structure after the section-start, which is
-            added in start_write_unit_extrtti_info }
-          first_item := current_asmdata.asmlists[al_ext_rtti].First.Next;
-          start_extrtti_item := Tai_symbol.Create_global(start_extrtti_symbollist,0);
-          unitinfosize_item := Tai_const.Create_rel_sym(aitconst_aint, start_extrtti_symbollist, end_extrtti_symbollist);
-          unitnamelength_item := Tai_const.Create_8bit(length(s));
-          unitname_item := Tai_string.Create(s);
-
-          current_asmdata.asmlists[al_ext_rtti].InsertAfter(start_extrtti_item, first_item);
-          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitinfosize_item, start_extrtti_item);
-          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitnamelength_item, unitinfosize_item);
-          current_asmdata.asmlists[al_ext_rtti].InsertAfter(unitname_item, unitnamelength_item);
-
-          { Write the symbol to mark the end of the structure }
           current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(end_extrtti_symbollist,0));
           current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Create_8bit(0));
 

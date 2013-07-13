@@ -23,7 +23,7 @@ type
   end;
 
 var
-  rtd: PExtRTTIData;
+  rtd: PAttributeData;
   AClassAttribute: tmyt;
 
 { tmyt }
@@ -34,18 +34,18 @@ begin
 end;
 
 begin
-  rtd := GetExtRTTIData(TMyObject.ClassInfo);
+  rtd := GetAttributeData(TMyObject.ClassInfo);
 
-  if GetClassAttributeCount(rtd)<>2 then
+  if rtd^.AttributeCount<>2 then
     halt(1);
 
-  AClassAttribute := GetClassAttribute(rtd,1) as tmyt;
+  AClassAttribute := GetAttribute(rtd,1) as tmyt;
   if AClassAttribute = nil then
     halt(2);
   if AClassAttribute.FID<>1425 then
     halt(3);
 
-  AClassAttribute := GetClassAttribute(rtd,0) as tmyt;
+  AClassAttribute := GetAttribute(rtd,0) as tmyt;
   if AClassAttribute = nil then
     halt(2);
   if AClassAttribute.FID<>924 then

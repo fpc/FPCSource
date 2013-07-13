@@ -658,7 +658,7 @@ implementation
        begin
          if (hp.u.flags and uf_extrtti) <> 0 then
            begin
-             unitinits.concat(Tai_const.Createname(make_mangledname('EXTR',hp.u.globalsymtable,''),0));
+             unitinits.concat(Tai_const.Createname(make_mangledname('EXTRU_',hp.u.globalsymtable,''),0));
              inc(count);
            end;
          hp:=tused_unit(hp.next);

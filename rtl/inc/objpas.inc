@@ -930,13 +930,15 @@
 
       class function TObject.UnitName : ansistring;
         type
-          // from the typinfo unit
+          TUnitInfo = packed record
+            UnitInfoSize: LongInt;
+            UnitName: shortstring;
+          end;
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
             ClassType: TClass;
             ParentInfo: Pointer;
             PropCount: SmallInt;
-            AttributeCount : byte;
-            UnitName: ShortString;
+            UnitInfo: ^TUnitInfo;
           end;
           PClassTypeInfo = ^TClassTypeInfo;
         var
@@ -950,7 +952,7 @@
             {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
             classtypeinfo:=align(classtypeinfo,sizeof(classtypeinfo));
             {$endif}
-            result:=classtypeinfo^.UnitName;
+            result:=classtypeinfo^.UnitInfo^.UnitName;
           end
           else
             result:='';
