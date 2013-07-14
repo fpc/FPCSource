@@ -93,7 +93,7 @@ procedure TTestCase1.GetClassProperties;
 var
   LContext: TRttiContext;
   LType: TRttiType;
-  PropList: TRttiPropertyArray;
+  PropList: specialize TArray<TRttiProperty>;
 begin
   LContext := TRttiContext.Create;
 
@@ -113,7 +113,7 @@ procedure TTestCase1.GetClassAttributes;
 var
   LContext: TRttiContext;
   LType: TRttiType;
-  AttrList: TAttributeArray;
+  AttrList: specialize TArray<TCustomAttribute>;
 begin
   LContext := TRttiContext.Create;
 
@@ -133,8 +133,8 @@ procedure TTestCase1.GetClassPropertiesAttributes;
 var
   LContext: TRttiContext;
   LType: TRttiType;
-  PropList: TRttiPropertyArray;
-  AttrList: TAttributeArray;
+  PropList: specialize TArray<TRttiProperty>;
+  AttrList: specialize TArray<TCustomAttribute>;
 begin
   LContext := TRttiContext.Create;
 

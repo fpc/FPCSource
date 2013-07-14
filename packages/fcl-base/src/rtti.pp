@@ -44,9 +44,7 @@ type
   TRttiProperty = class;
   TRttiInstanceType = class;
 
-  TAttributeArray = array of TCustomAttribute;
-  TRttiPropertyArray = array of TRttiProperty;
-  TRttiTypeArray = array of TRttiType;
+  generic TArray<T> = array of T;
 
   IValueData = interface
   ['{1338B2F3-2C21-4798-A641-CA2BC5BF2396}']
@@ -99,14 +97,14 @@ type
     destructor Free;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
     function GetType(AClass: TClass): TRttiType;
-    function GetTypes: TRttiTypeArray;
+    function GetTypes: specialize TArray<TRttiType>;
   end;
 
   { TRttiObject }
 
   TRttiObject = class
   public
-    function GetAttributes: TAttributeArray; virtual; abstract;
+    function GetAttributes: specialize TArray<TCustomAttribute>; virtual; abstract;
   end;
 
   { TRttiNamedObject }
@@ -124,9 +122,9 @@ type
   private
     FTypeInfo: PTypeInfo;
     FAttributesResolved: boolean;
-    FAttributes: TAttributeArray;
+    FAttributes: specialize TArray<TCustomAttribute>;
     FPropertiesResolved: boolean;
-    FProperties: TRttiPropertyArray;
+    FProperties: specialize TArray<TRttiProperty>;
     function GetAsInstance: TRttiInstanceType;
   protected
     FTypeData: PTypeData;
@@ -135,8 +133,8 @@ type
     function GetTypeKind: TTypeKind; virtual;
   public
     constructor create(ATypeInfo : PTypeInfo);
-    function GetAttributes: TAttributeArray; override;
-    function GetProperties: TRttiPropertyArray;
+    function GetAttributes: specialize TArray<TCustomAttribute>; override;
+    function GetProperties: specialize TArray<TRttiProperty>;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     destructor destroy; override;
     property IsInstance: boolean read GetIsInstance;
@@ -204,11 +202,11 @@ type
   private
     FPropInfo: PPropInfo;
     FAttributesResolved: boolean;
-    FAttributes: TAttributeArray;
+    FAttributes: specialize TArray<TCustomAttribute>;
     function GetPropertyType: TRttiType;
   protected
     function GetName: string; override;
-    function GetAttributes: TAttributeArray; override;
+    function GetAttributes: specialize TArray<TCustomAttribute>; override;
   public
     constructor create(AParent: TRttiType; APropInfo: PPropInfo);
     function GetValue(Instance: pointer): TValue;
@@ -225,9 +223,9 @@ type
   TRttiPool = class
   private
     FAllTypesResolved: boolean;
-    FTypesList: TRttiTypeArray;
+    FTypesList: specialize TArray<TRttiType>;
   public
-    function GetTypes: TRttiTypeArray;
+    function GetTypes: specialize TArray<TRttiType>;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
     destructor Destroy; override;
   end;
@@ -271,7 +269,7 @@ var
 
 { TRttiPool }
 
-function TRttiPool.GetTypes: TRttiTypeArray;
+function TRttiPool.GetTypes: specialize TArray<TRttiType>;
 var
   UnitList        : PUnitInfoList;
   UnitInd, TypeInd: longint;
@@ -325,7 +323,7 @@ end;
 
 function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
 var
-  ATypesList: TRttiTypeArray;
+  ATypesList: specialize TArray<TRttiType>;
   i: integer;
 begin
   ATypesList := GetTypes;
@@ -527,7 +525,7 @@ begin
   Result:=FPropInfo^.Name;
 end;
 
-function TRttiProperty.GetAttributes: TAttributeArray;
+function TRttiProperty.GetAttributes: specialize TArray<TCustomAttribute>;
 var
   i: Integer;
 begin
@@ -604,7 +602,7 @@ begin
     FTypeData:=GetTypeData(ATypeInfo);
 end;
 
-function TRttiType.GetAttributes: TAttributeArray;
+function TRttiType.GetAttributes: specialize TArray<TCustomAttribute>;
 var
   i: Integer;
   ad: PAttributeData;
@@ -629,7 +627,7 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
-function TRttiType.GetProperties: TRttiPropertyArray;
+function TRttiType.GetProperties: specialize TArray<TRttiProperty>;
 var
   propcount: integer;
   PropList: PPropList;
@@ -685,7 +683,7 @@ end;
 
 function TRttiType.GetProperty(const AName: string): TRttiProperty;
 var
-  FPropList: TRttiPropertyArray;
+  FPropList: specialize TArray<TRttiProperty>;
   i: Integer;
 begin
   result := nil;
@@ -744,7 +742,7 @@ begin
     result := nil;
 end;
 
-function TRttiContext.GetTypes: TRttiTypeArray;
+function TRttiContext.GetTypes: specialize TArray<TRttiType>;
 
 begin
   if not assigned(FContextToken) then
