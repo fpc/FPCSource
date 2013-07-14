@@ -16,15 +16,15 @@ type
   end;
 
 var
-  rtd: PExtRTTIData;
+  ad: PAttributeData;
   AClassAttribute: TCustomAttribute;
 
 begin
-  rtd := GetExtRTTIData(TMyObject.ClassInfo);
-  if rtd^.AttributeData^.AttributeCount<>1 then
+  ad := GetAttributeData(TMyObject.ClassInfo);
+  if ad^.AttributeCount<>1 then
     halt(1);
 
-  AClassAttribute := GetClassAttribute(rtd,0) as TCustomAttribute;
+  AClassAttribute := GetAttribute(ad,0);
   if AClassAttribute = nil then
     halt(2);
   writeln('ok');
