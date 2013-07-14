@@ -932,6 +932,7 @@
         type
           TUnitInfo = packed record
             UnitInfoSize: LongInt;
+            UnitOptions: byte;
             UnitName: shortstring;
           end;
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record

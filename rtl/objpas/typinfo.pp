@@ -105,10 +105,14 @@ unit typinfo;
         Fields: array[0..0] of TVmtFieldEntry
       end;
 
+      TRTTIUnitOption = (rmoHasAttributes);
+      TRTTIUnitOptions = set of TRTTIUnitOption;
+
 {$PACKRECORDS 1}
       PUnitInfo = ^TUnitInfo;
       TUnitInfo = packed record
         UnitInfoSize: LongInt;
+        UnitOptions: TRTTIUnitOptions;
         UnitName: shortstring;
       end;
 
@@ -479,8 +483,16 @@ function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;
 var
   TD: PTypeData;
 begin
-  td := GetTypeData(TypeInfo);
-  Result:=PAttributeData(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)));
+  if TypeInfo^.Kind<>tkClass then
+    result := nil
+  else
+    begin
+      TD := GetTypeData(TypeInfo);
+      if (rmoHasAttributes in td^.UnitInfo^.UnitOptions) then
+        Result:=PAttributeData(aligntoptr(pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)))
+      else
+        result := nil;
+    end;
 end;
 
 function GetRTTIDataListForUnit(AUnitInfo: PUnitInfo): PExtRTTIDataList;
@@ -527,7 +539,7 @@ function GetAttribute(AttributeData: PAttributeData; AttributeNr: byte): TCustom
 var
   AttributeProcList: TAttributeProcList;
 begin
-  if AttributeNr>=AttributeData^.AttributeCount then
+  if (AttributeData=nil) or (AttributeNr>=AttributeData^.AttributeCount) then
     result := nil
   else
     begin
@@ -743,8 +755,13 @@ function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData;
 var
   AD: PAttributeData;
 begin
-  AD := GetAttributeData(TypeInfo);
-  result := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+  if rmoHasAttributes in TypeData^.UnitInfo^.UnitOptions then
+    begin
+      AD := GetAttributeData(TypeInfo);
+      result := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+    end
+  else
+    result := aligntoptr(pointer(@TypeData^.UnitInfo)+sizeof(TypeData^.UnitInfo));
 end;
 
 Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;

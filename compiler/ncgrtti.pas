@@ -836,8 +836,11 @@ implementation
             write_unitinfo_reference;
 
             { TAttributeData }
-            maybe_write_align;
-            write_attribute_data(def);
+            if rmo_hasattributes in current_module.rtti_options then
+              begin
+                maybe_write_align;
+                write_attribute_data(def);
+              end;
 
             { write published properties for this object }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(published_properties_count(def.symtable)));
@@ -1333,6 +1336,9 @@ implementation
         start_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
         end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
         current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_const.Create_rel_sym(aitconst_aint, start_extrtti_symbollist, end_extrtti_symbollist));
+
+        { write the TRTTIUnitOptions }
+        current_asmdata.AsmLists[al_ext_rtti].Concat(tai_const.Create_8bit(byte(longint(current_module.rtti_options))));
 
         { Write the unit-name }
         s := current_module.realmodulename^;

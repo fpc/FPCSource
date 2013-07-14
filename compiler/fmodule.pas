@@ -68,6 +68,9 @@ interface
       );
       tmoduleoptions = set of tmoduleoption;
 
+      trtti_moduleoption = (rmo_hasattributes);
+      trtti_moduleoptions = set of trtti_moduleoption;
+
       tlinkcontaineritem=class(tlinkedlistitem)
       public
          data : TPathStr;
@@ -182,6 +185,7 @@ interface
 
         { contains a reference to the TUnitInfo rtti information for this module }
         extrttiinfo : TAsmSymbol;
+        rtti_options : trtti_moduleoptions;
 
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of

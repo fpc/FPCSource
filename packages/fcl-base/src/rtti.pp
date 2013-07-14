@@ -657,7 +657,10 @@ begin
         // published properties count for this object
         // skip the attribute-info if available
         AD := GetAttributeData(TypeInfo);
-        PPD := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)));
+        if assigned(AD) then
+          PPD := PPropData(pointer(AD)+SizeOf(AD^.AttributeCount)+(AD^.AttributeCount*SizeOf(TAttributeProc)))
+        else
+          PPD := PPropData((pointer(@TD^.UnitInfo)+sizeof(TD^.UnitInfo)));
         Count:=PPD^.PropCount;
         // Now point TP to first propinfo record.
         TP:=PPropInfo(@PPD^.PropList);

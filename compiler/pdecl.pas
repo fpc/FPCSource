@@ -423,6 +423,8 @@ implementation
           if not assigned(rtti_attributes) then
             rtti_attributes := trtti_attributesdef.create;
           rtti_attributes.addattribute(typesym,p1);
+
+          Include(current_module.rtti_options, rmo_hasattributes);
           end;
         p.free;
         consume(_RECKKLAMMER);
