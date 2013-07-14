@@ -51,7 +51,7 @@ type
   TPQConnection = class (TSQLConnection)
   private
     FConnectionPool      : array of TPQTranConnection;
-    FCursorCount         : word;
+    FCursorCount         : dword;
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
