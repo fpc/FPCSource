@@ -644,7 +644,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-    GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
+    GetEnvironmentVariable := GetEnvPChar (EnvVar);
 end;
 
 

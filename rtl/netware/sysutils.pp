@@ -544,7 +544,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(_getenv(PChar(EnvVar)));
+  Result:=_getenv(PChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;

@@ -1172,7 +1172,9 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(BaseUnix.FPGetenv(PChar(pointer(EnvVar))));
+  { no need to adjust the code page of EnvVar to DefaultSystemCodePage, as only
+    ASCII identifiers are supported }
+  Result:=BaseUnix.FPGetenv(PChar(pointer(EnvVar)));
 end;
 
 Function GetEnvironmentVariableCount : Integer;

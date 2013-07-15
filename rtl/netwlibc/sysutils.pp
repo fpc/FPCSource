@@ -605,7 +605,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(libc.getenv(PChar(EnvVar)));
+  Result:=libc.getenv(PChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;

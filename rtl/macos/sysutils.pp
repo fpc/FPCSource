@@ -664,7 +664,7 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
   (* TODO fix
-  Result:=StrPas(Unix.Getenv(PChar(EnvVar)));
+  Result:=Unix.Getenv(PChar(EnvVar));
   *)
 end;
 
