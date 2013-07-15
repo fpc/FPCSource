@@ -150,6 +150,7 @@ type
     FSize: Int64;
     FStream : TStream;
   Protected
+    // Note that this will free the file stream, to be able to close it - file is share deny write locked!
     Procedure DeleteTempUploadedFile; virtual;
     function GetStream: TStream; virtual;
   Public
@@ -351,6 +352,7 @@ type
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
     Function RequestUploadDir : String; virtual;
     Function GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
+    // This will free any TUPloadedFile.Streams that may exist, as they may lock the files and thus prevent them
     Procedure DeleteTempUploadedFiles; virtual;
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
@@ -1705,6 +1707,8 @@ Var
   s: String;
 
 begin
+  if Assigned(FStream) and (FStream is TFileStream) then
+    FreeAndNil(FStream);
   if (LocalFileName<>'') and FileExists(LocalFileName) then
     DeleteFile(LocalFileName);
 end;
