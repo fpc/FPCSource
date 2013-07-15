@@ -978,7 +978,7 @@ begin
    oemenvvar:=uppercase(envvar);
    SetCodePage(oemenvvar,CP_OEMCP);
    Result:='';
-   p:=GetEnvironmentStrings;
+   p:=GetEnvironmentStringsA;
    hp:=p;
    while hp^<>#0 do
      begin
@@ -996,7 +996,7 @@ begin
         { next string entry}
         hp:=hp+hplen+1;
      end;
-   FreeEnvironmentStrings(p);
+   FreeEnvironmentStringsA(p);
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -1005,7 +1005,7 @@ var
   hp,p : pchar;
 begin
   Result:=0;
-  p:=GetEnvironmentStrings;
+  p:=GetEnvironmentStringsA;
   hp:=p;
   If (Hp<>Nil) then
     while hp^<>#0 do
@@ -1013,7 +1013,7 @@ begin
       Inc(Result);
       hp:=hp+strlen(hp)+1;
       end;
-  FreeEnvironmentStrings(p);
+  FreeEnvironmentStringsA(p);
 end;
 
 Function GetEnvironmentString(Index : Integer) : String;
@@ -1022,7 +1022,7 @@ var
   hp,p : pchar;
 begin
   Result:='';
-  p:=GetEnvironmentStrings;
+  p:=GetEnvironmentStringsA;
   hp:=p;
   If (Hp<>Nil) then
     begin
@@ -1034,7 +1034,7 @@ begin
     If (hp^<>#0) then
       Result:=StrPas(HP);
     end;
-  FreeEnvironmentStrings(p);
+  FreeEnvironmentStringsA(p);
 end;
 
 {$pop}
