@@ -66,11 +66,11 @@ begin
   Result:='';
   while assigned(EP^) and (Index>1) do
     begin
-    Dec(Index);
-    inc(EP);
+      dec(Index);
+      inc(EP);
     end;
-  If Assigned(EP^) then
-    Result:=StrPas(EP^);
+  if Assigned(EP^) then
+    Result:=EP^;
 end;
 
 

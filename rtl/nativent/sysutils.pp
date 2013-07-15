@@ -1108,6 +1108,7 @@ begin
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(Result, len);
         UnicodeToUTF8(PChar(Result), hp, len);
+        SetCodePage(RawByteString(Result),CP_UTF8,false);
       end;
     end;
 end;

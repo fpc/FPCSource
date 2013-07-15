@@ -1026,13 +1026,16 @@ begin
   hp:=p;
   If (Hp<>Nil) then
     begin
-    while (hp^<>#0) and (Index>1) do
-      begin
-      Dec(Index);
-      hp:=hp+strlen(hp)+1;
-      end;
+      while (hp^<>#0) and (Index>1) do
+        begin
+          Dec(Index);
+          hp:=hp+strlen(hp)+1;
+        end;
     If (hp^<>#0) then
-      Result:=StrPas(HP);
+      begin
+        Result:=HP;
+        SetCodePage(RawByteString(Result),CP_OEMCP,false);
+      end;
     end;
   FreeEnvironmentStringsA(p);
 end;
