@@ -10591,6 +10591,7 @@ tests/test/cg/variants/tvarol9.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol91.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol94.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
+tests/test/cpu16/i8086/tfarptr1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal
 tests/test/dumpclass.pp svneol=native#text/plain
