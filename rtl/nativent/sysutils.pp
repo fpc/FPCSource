@@ -1050,7 +1050,7 @@ function wstrlen(p: PWideChar): SizeInt; external name 'FPC_PWIDECHAR_LENGTH';
 
 function GetEnvironmentVariable(const EnvVar: String): String;
 var
-   s : string;
+   s, upperenvvar : UTF8String;
    i : longint;
    hp: pwidechar;
    len: sizeint;
@@ -1058,15 +1058,19 @@ begin
    { TODO : test once I know how to execute processes }
    Result:='';
    hp:=PPEB(CurrentPEB)^.ProcessParameters^.Environment;
+   { first convert to UTF-8, then uppercase in order to avoid potential data
+     loss }
+   upperenvvar:=EnvVar;
+   upperenvvar:=UpperCase(upperenvvar);
    while hp^<>#0 do
      begin
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(s,len);
         UnicodeToUTF8(PChar(s), hp, len);
-        //s:=strpas(hp);
         i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upcase(envvar) then
+        if uppercase(copy(s,1,i-1))=upperenvvar then
           begin
+             { copy() returns a rawbytestring -> will keep UTF-8 encoding }
              Result:=copy(s,i+1,length(s)-i);
              break;
           end;
