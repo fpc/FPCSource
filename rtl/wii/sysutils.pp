@@ -193,30 +193,6 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
-begin
-  result := '';
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
 function DirectoryExists(const Directory: string): Boolean;
 begin
   result := false;

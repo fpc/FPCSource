@@ -570,30 +570,6 @@ begin
 end;
 
 
-Function GetCurrentDir : String;
-begin
-  GetDir(0, result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  Result:=SetCurrentDirectory(PChar(NewDir));
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  Result:=CreateDirectory(PChar(NewDir),nil);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  Result:=RemoveDirectory(PChar(Dir));
-end;
-
-
 {****************************************************************************
                               Time Functions
 ****************************************************************************}

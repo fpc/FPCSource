@@ -491,33 +491,6 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
-begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  Libc.FpChDir(pchar(NewDir));
-  result := (___errno^ = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  Libc.FpMkDir(pchar(NewDir),0);
-  result := (___errno^ = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  libc.FpRmDir(pchar(Dir));
-  result := (___errno^ = 0);
-end;
-
-
 function DirectoryExists (const Directory: RawByteString): boolean;
 var
   Info : TStat;

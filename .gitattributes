@@ -8573,6 +8573,7 @@ rtl/objpas/strutils.pp svneol=native#text/plain
 rtl/objpas/sysconst.pp svneol=native#text/plain
 rtl/objpas/sysutils/dati.inc svneol=native#text/plain
 rtl/objpas/sysutils/datih.inc svneol=native#text/plain
+rtl/objpas/sysutils/disk.inc svneol=native#text/plain
 rtl/objpas/sysutils/diskh.inc svneol=native#text/plain
 rtl/objpas/sysutils/filutil.inc svneol=native#text/plain
 rtl/objpas/sysutils/filutilh.inc svneol=native#text/plain

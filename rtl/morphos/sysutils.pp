@@ -535,33 +535,6 @@ Begin
   DiskSize := dos.DiskSize(Drive);
 End;
 
-function GetCurrentDir : String;
-begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  ChDir(NewDir);
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  MkDir(NewDir);
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  RmDir(Dir);
-  result := (IOResult = 0);
-end;
-
-
 function DirectoryExists(const Directory: RawByteString): Boolean;
 var
   tmpLock: LongInt;

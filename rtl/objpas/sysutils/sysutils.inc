@@ -21,10 +21,14 @@
 {$define PathPChar:=PWideChar}
   { Read filename handling functions implementation }
   {$i fina.inc}
+  { Read disk function implementations }
+  {$i disk.inc}
 {$define PathStr:=AnsiString}
 {$define PathPChar:=PAnsiChar}
   { Read filename handling functions implementation }
   {$i fina.inc}
+  { Read disk function implementations }
+  {$i disk.inc}
 {$undef PathStr}
 {$undef PathPChar}
 
@@ -634,50 +638,14 @@ end;
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
 
-function ForceDirectories(Const Dir: string): Boolean;
-
-var
-  E: EInOutError;
-  ADrv : String;
-
-function DoForceDirectories(Const Dir: string): Boolean;
-var
-  ADir : String;
-  APath: String;
+Function GetCurrentDir: {$ifdef FPC_UNICODE_RTL}UnicodeString{$else}AnsiString{$endif};
 begin
-  Result:=True;
-  ADir:=ExcludeTrailingPathDelimiter(Dir);
-  if (ADir='') then Exit;
-  if Not DirectoryExists(ADir) then
-    begin
-      APath := ExtractFilePath(ADir);
-      //this can happen on Windows if user specifies Dir like \user\name/test/
-      //and would, if not checked for, cause an infinite recusrsion and a stack overflow
-      if (APath = ADir) then Result := False
-        else Result:=DoForceDirectories(APath);
-    If Result then
-      Result := CreateDir(ADir);
-    end;
+  GetDir(0,Result);
 end;
 
-function IsUncDrive(const Drv: String): Boolean;
-begin
-  Result := (Length(Drv) > 2) and (Drv[1] = PathDelim) and (Drv[2] = PathDelim);
-end;
-
-begin
-  Result := False;
-  ADrv := ExtractFileDrive(Dir);
-  if (ADrv<>'') and (not DirectoryExists(ADrv))
-  {$IFNDEF FORCEDIR_NO_UNC_SUPPORT} and (not IsUncDrive(ADrv)){$ENDIF} then Exit;
-  if Dir='' then
-    begin
-      E:=EInOutError.Create(SCannotCreateEmptyDir);
-      E.ErrorCode:=3;
-      Raise E;
-    end;
-  Result := DoForceDirectories(SetDirSeparators(Dir));
-end;
+{ ---------------------------------------------------------------------
+    Other functions, OS independent.
+  ---------------------------------------------------------------------}
 
 Var
   GUIDCalledRandomize : Boolean = False;

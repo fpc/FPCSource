@@ -948,39 +948,6 @@ begin
 end;
 
 
-function GetCurrentDir: String;
-begin
-  GetDir(0, result);
-end;
-
-
-function SetCurrentDir(const NewDir: String): Boolean;
-begin
-{$I-}
-  ChDir(NewDir);
-{$I+}
-  Result := IOResult = 0;
-end;
-
-
-function CreateDir(const NewDir: String): Boolean;
-begin
-{$I-}
-  MkDir(NewDir);
-{$I+}
-  Result := IOResult = 0;
-end;
-
-
-function RemoveDir(const Dir: String): Boolean;
-begin
-{$I-}
-  RmDir(Dir);
-{$I+}
-  Result := IOResult = 0;
-end;
-
-
 {****************************************************************************
                               Time Functions
 ****************************************************************************}

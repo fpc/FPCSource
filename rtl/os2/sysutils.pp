@@ -407,54 +407,6 @@ begin
 end;
 
 
-function GetCurrentDir: string;
-begin
- GetDir (0, Result);
-end;
-
-
-function SetCurrentDir (const NewDir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- ChDir (NewDir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
-function CreateDir (const NewDir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- MkDir (NewDir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
-function RemoveDir (const Dir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- RmDir (Dir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
 function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;

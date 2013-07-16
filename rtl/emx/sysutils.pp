@@ -1037,39 +1037,6 @@ begin
 end;
 
 
-function GetCurrentDir: string;
-begin
- GetDir (0, Result);
-end;
-
-
-function SetCurrentDir (const NewDir: string): boolean;
-begin
-{$I-}
- ChDir (NewDir);
- Result := (IOResult = 0);
-{$I+}
-end;
-
-
-function CreateDir (const NewDir: string): boolean;
-begin
-{$I-}
- MkDir (NewDir);
- Result := (IOResult = 0);
-{$I+}
-end;
-
-
-function RemoveDir (const Dir: string): boolean;
-begin
-{$I-}
- RmDir (Dir);
- Result := (IOResult = 0);
- {$I+}
-end;
-
-
 function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
