@@ -4408,7 +4408,7 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
 
         if ((PropInfo^.PropProcs shr 6) and 1)=0 then
@@ -4435,7 +4435,7 @@ begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
 
 	      if ((PropInfo^.PropProcs shr 6) and 1)=0 then
