@@ -583,7 +583,7 @@ interface
 
     procedure ti8086addnode.second_cmpordinal;
       begin
-        if is_32bit(left.resultdef) then
+        if is_32bit(left.resultdef) or is_farpointer(left.resultdef) or is_hugepointer(left.resultdef) then
           second_cmp32bit
         else
           inherited second_cmpordinal;
