@@ -38,6 +38,9 @@ implementation
 uses 
   dos, sysconst;
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -157,13 +160,13 @@ Procedure FindClose (Var F : TSearchrec);
 begin
 end;
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   result := -1;
 end;
@@ -193,7 +196,7 @@ Begin
 End;
 
 
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawByteString): Boolean;
 begin
   result := false;
 end;
