@@ -239,152 +239,167 @@ var
 procedure InitialisePostgres3;
 
 begin
-  if (RefCount<>0) then
-      // pretend to load whatever is already loaded, so we do not get a library name conflict.
-    inc(Refcount)
-  else
-    InitialisePostgres3(pqlib)
+  EnterCriticalsection(libpgCriticalSection);
+  try
+    if (RefCount<>0) then
+        // pretend to load whatever is already loaded, so we do not get a library name conflict.
+      inc(Refcount)
+    else
+      InitialisePostgres3(pqlib)
+  finally
+    LeaveCriticalsection(libpgCriticalSection);
+  end;
 end;
 
 
 function InitialisePostgres3(Const libpath : ansistring) : Integer;
 
 begin
-  inc(RefCount);
-  Result:=Refcount;
-  if RefCount = 1 then
-    begin
-    Postgres3LibraryHandle := loadlibrary(libpath);
-    if Postgres3LibraryHandle = nilhandle then
+  EnterCriticalsection(libpgCriticalSection);
+  try
+    inc(RefCount);
+    Result:=Refcount;
+    if RefCount = 1 then
       begin
-      RefCount := 0;
-      Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
-      end;
+      Postgres3LibraryHandle := loadlibrary(libpath);
+      if Postgres3LibraryHandle = nilhandle then
+        begin
+        RefCount := 0;
+        Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
+        end;
 
-    Postgres3LoadedLibrary:=libpath;
-    pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
-    pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
-    pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
-    pointer(PQsetdbLogin) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetdbLogin');
-    pointer(PQfinish) := GetProcedureAddress(Postgres3LibraryHandle,'PQfinish');
-    pointer(PQconndefaults) := GetProcedureAddress(Postgres3LibraryHandle,'PQconndefaults');
-    pointer(PQconninfoFree) := GetProcedureAddress(Postgres3LibraryHandle,'PQconninfoFree');
-    pointer(PQresetStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQresetStart');
-    pointer(PQresetPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQresetPoll');
-    pointer(PQreset) := GetProcedureAddress(Postgres3LibraryHandle,'PQreset');
-    pointer(PQrequestCancel) := GetProcedureAddress(Postgres3LibraryHandle,'PQrequestCancel');
-    pointer(PQdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQdb');
-    pointer(PQuser) := GetProcedureAddress(Postgres3LibraryHandle,'PQuser');
-    pointer(PQpass) := GetProcedureAddress(Postgres3LibraryHandle,'PQpass');
-    pointer(PQhost) := GetProcedureAddress(Postgres3LibraryHandle,'PQhost');
-    pointer(PQport) := GetProcedureAddress(Postgres3LibraryHandle,'PQport');
-    pointer(PQtty) := GetProcedureAddress(Postgres3LibraryHandle,'PQtty');
-    pointer(PQoptions) := GetProcedureAddress(Postgres3LibraryHandle,'PQoptions');
-    pointer(PQstatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQstatus');
-    pointer(PQtransactionStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQtransactionStatus');
-    pointer(PQparameterStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQparameterStatus');
-    pointer(PQprotocolVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQprotocolVersion');
-    pointer(PQserverVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQserverVersion');
-    pointer(PQerrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQerrorMessage');
-    pointer(PQsocket) := GetProcedureAddress(Postgres3LibraryHandle,'PQsocket');
-    pointer(PQbackendPID) := GetProcedureAddress(Postgres3LibraryHandle,'PQbackendPID');
-    pointer(PQclientEncoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQclientEncoding');
-    pointer(PQsetClientEncoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetClientEncoding');
-{$ifdef USE_SSL}
-    pointer(PQgetssl) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetssl');
-{$endif}
-    pointer(PQsetErrorVerbosity) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetErrorVerbosity');
-    pointer(PQtrace) := GetProcedureAddress(Postgres3LibraryHandle,'PQtrace');
-    pointer(PQuntrace) := GetProcedureAddress(Postgres3LibraryHandle,'PQuntrace');
-    pointer(PQsetNoticeReceiver) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetNoticeReceiver');
-    pointer(PQsetNoticeProcessor) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetNoticeProcessor');
-    pointer(PQexec) := GetProcedureAddress(Postgres3LibraryHandle,'PQexec');
-    pointer(PQexecParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecParams');
-    pointer(PQexecPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecPrepared');
-    pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQprepare');
-    pointer(PQdescribePrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQdescribePrepared');
-    pointer(PQsendQuery) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQuery');
-    pointer(PQsendQueryParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryParams');
-    pointer(PQsendQueryPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryPrepared');
-    pointer(PQgetResult) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetResult');
-    pointer(PQisBusy) := GetProcedureAddress(Postgres3LibraryHandle,'PQisBusy');
-    pointer(PQconsumeInput) := GetProcedureAddress(Postgres3LibraryHandle,'PQconsumeInput');
-    pointer(PQnotifies) := GetProcedureAddress(Postgres3LibraryHandle,'PQnotifies');
-    pointer(PQputCopyData) := GetProcedureAddress(Postgres3LibraryHandle,'PQputCopyData');
-    pointer(PQputCopyEnd) := GetProcedureAddress(Postgres3LibraryHandle,'PQputCopyEnd');
-    pointer(PQgetCopyData) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetCopyData');
-    pointer(PQgetline) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetline');
-    pointer(PQputline) := GetProcedureAddress(Postgres3LibraryHandle,'PQputline');
-    pointer(PQgetlineAsync) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetlineAsync');
-    pointer(PQputnbytes) := GetProcedureAddress(Postgres3LibraryHandle,'PQputnbytes');
-    pointer(PQendcopy) := GetProcedureAddress(Postgres3LibraryHandle,'PQendcopy');
-    pointer(PQsetnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetnonblocking');
-    pointer(PQisnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQisnonblocking');
-    pointer(PQflush) := GetProcedureAddress(Postgres3LibraryHandle,'PQflush');
-    pointer(PQfn) := GetProcedureAddress(Postgres3LibraryHandle,'PQfn');
-    pointer(PQresultStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultStatus');
-    pointer(PQresStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQresStatus');
-    pointer(PQresultErrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultErrorMessage');
-    pointer(PQresultErrorField) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultErrorField');
-    pointer(PQntuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQntuples');
-    pointer(PQnfields) := GetProcedureAddress(Postgres3LibraryHandle,'PQnfields');
-    pointer(PQbinaryTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQbinaryTuples');
-    pointer(PQfname) := GetProcedureAddress(Postgres3LibraryHandle,'PQfname');
-    pointer(PQfnumber) := GetProcedureAddress(Postgres3LibraryHandle,'PQfnumber');
-    pointer(PQftable) := GetProcedureAddress(Postgres3LibraryHandle,'PQftable');
-    pointer(PQftablecol) := GetProcedureAddress(Postgres3LibraryHandle,'PQftablecol');
-    pointer(PQfformat) := GetProcedureAddress(Postgres3LibraryHandle,'PQfformat');
-    pointer(PQftype) := GetProcedureAddress(Postgres3LibraryHandle,'PQftype');
-    pointer(PQfsize) := GetProcedureAddress(Postgres3LibraryHandle,'PQfsize');
-    pointer(PQfmod) := GetProcedureAddress(Postgres3LibraryHandle,'PQfmod');
-    pointer(PQcmdStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQcmdStatus');
-    pointer(PQoidStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQoidStatus');
-    pointer(PQoidValue) := GetProcedureAddress(Postgres3LibraryHandle,'PQoidValue');
-    pointer(PQcmdTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQcmdTuples');
-    pointer(PQgetvalue) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetvalue');
-    pointer(PQgetlength) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetlength');
-    pointer(PQgetisnull) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetisnull');
-    pointer(PQclear) := GetProcedureAddress(Postgres3LibraryHandle,'PQclear');
-    pointer(PQfreemem) := GetProcedureAddress(Postgres3LibraryHandle,'PQfreemem');
-    pointer(PQmakeEmptyPGresult) := GetProcedureAddress(Postgres3LibraryHandle,'PQmakeEmptyPGresult');
-    pointer(PQescapeString) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeString');
-    pointer(PQescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeBytea');
-    pointer(PQunescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQunescapeBytea');
-    pointer(PQprint) := GetProcedureAddress(Postgres3LibraryHandle,'PQprint');
-    pointer(PQdisplayTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQdisplayTuples');
-    pointer(PQprintTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQprintTuples');
-    pointer(lo_open) := GetProcedureAddress(Postgres3LibraryHandle,'lo_open');
-    pointer(lo_close) := GetProcedureAddress(Postgres3LibraryHandle,'lo_close');
-    pointer(lo_read) := GetProcedureAddress(Postgres3LibraryHandle,'lo_read');
-    pointer(lo_write) := GetProcedureAddress(Postgres3LibraryHandle,'lo_write');
-    pointer(lo_lseek) := GetProcedureAddress(Postgres3LibraryHandle,'lo_lseek');
-    pointer(lo_creat) := GetProcedureAddress(Postgres3LibraryHandle,'lo_creat');
-    pointer(lo_tell) := GetProcedureAddress(Postgres3LibraryHandle,'lo_tell');
-    pointer(lo_unlink) := GetProcedureAddress(Postgres3LibraryHandle,'lo_unlink');
-    pointer(lo_import) := GetProcedureAddress(Postgres3LibraryHandle,'lo_import');
-    pointer(lo_export) := GetProcedureAddress(Postgres3LibraryHandle,'lo_export');
-    pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
-    pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
+      Postgres3LoadedLibrary:=libpath;
+      pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
+      pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
+      pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
+      pointer(PQsetdbLogin) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetdbLogin');
+      pointer(PQfinish) := GetProcedureAddress(Postgres3LibraryHandle,'PQfinish');
+      pointer(PQconndefaults) := GetProcedureAddress(Postgres3LibraryHandle,'PQconndefaults');
+      pointer(PQconninfoFree) := GetProcedureAddress(Postgres3LibraryHandle,'PQconninfoFree');
+      pointer(PQresetStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQresetStart');
+      pointer(PQresetPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQresetPoll');
+      pointer(PQreset) := GetProcedureAddress(Postgres3LibraryHandle,'PQreset');
+      pointer(PQrequestCancel) := GetProcedureAddress(Postgres3LibraryHandle,'PQrequestCancel');
+      pointer(PQdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQdb');
+      pointer(PQuser) := GetProcedureAddress(Postgres3LibraryHandle,'PQuser');
+      pointer(PQpass) := GetProcedureAddress(Postgres3LibraryHandle,'PQpass');
+      pointer(PQhost) := GetProcedureAddress(Postgres3LibraryHandle,'PQhost');
+      pointer(PQport) := GetProcedureAddress(Postgres3LibraryHandle,'PQport');
+      pointer(PQtty) := GetProcedureAddress(Postgres3LibraryHandle,'PQtty');
+      pointer(PQoptions) := GetProcedureAddress(Postgres3LibraryHandle,'PQoptions');
+      pointer(PQstatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQstatus');
+      pointer(PQtransactionStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQtransactionStatus');
+      pointer(PQparameterStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQparameterStatus');
+      pointer(PQprotocolVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQprotocolVersion');
+      pointer(PQserverVersion) := GetProcedureAddress(Postgres3LibraryHandle,'PQserverVersion');
+      pointer(PQerrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQerrorMessage');
+      pointer(PQsocket) := GetProcedureAddress(Postgres3LibraryHandle,'PQsocket');
+      pointer(PQbackendPID) := GetProcedureAddress(Postgres3LibraryHandle,'PQbackendPID');
+      pointer(PQclientEncoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQclientEncoding');
+      pointer(PQsetClientEncoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetClientEncoding');
+  {$ifdef USE_SSL}
+      pointer(PQgetssl) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetssl');
+  {$endif}
+      pointer(PQsetErrorVerbosity) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetErrorVerbosity');
+      pointer(PQtrace) := GetProcedureAddress(Postgres3LibraryHandle,'PQtrace');
+      pointer(PQuntrace) := GetProcedureAddress(Postgres3LibraryHandle,'PQuntrace');
+      pointer(PQsetNoticeReceiver) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetNoticeReceiver');
+      pointer(PQsetNoticeProcessor) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetNoticeProcessor');
+      pointer(PQexec) := GetProcedureAddress(Postgres3LibraryHandle,'PQexec');
+      pointer(PQexecParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecParams');
+      pointer(PQexecPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecPrepared');
+      pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQprepare');
+      pointer(PQdescribePrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQdescribePrepared');
+      pointer(PQsendQuery) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQuery');
+      pointer(PQsendQueryParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryParams');
+      pointer(PQsendQueryPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryPrepared');
+      pointer(PQgetResult) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetResult');
+      pointer(PQisBusy) := GetProcedureAddress(Postgres3LibraryHandle,'PQisBusy');
+      pointer(PQconsumeInput) := GetProcedureAddress(Postgres3LibraryHandle,'PQconsumeInput');
+      pointer(PQnotifies) := GetProcedureAddress(Postgres3LibraryHandle,'PQnotifies');
+      pointer(PQputCopyData) := GetProcedureAddress(Postgres3LibraryHandle,'PQputCopyData');
+      pointer(PQputCopyEnd) := GetProcedureAddress(Postgres3LibraryHandle,'PQputCopyEnd');
+      pointer(PQgetCopyData) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetCopyData');
+      pointer(PQgetline) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetline');
+      pointer(PQputline) := GetProcedureAddress(Postgres3LibraryHandle,'PQputline');
+      pointer(PQgetlineAsync) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetlineAsync');
+      pointer(PQputnbytes) := GetProcedureAddress(Postgres3LibraryHandle,'PQputnbytes');
+      pointer(PQendcopy) := GetProcedureAddress(Postgres3LibraryHandle,'PQendcopy');
+      pointer(PQsetnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetnonblocking');
+      pointer(PQisnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQisnonblocking');
+      pointer(PQflush) := GetProcedureAddress(Postgres3LibraryHandle,'PQflush');
+      pointer(PQfn) := GetProcedureAddress(Postgres3LibraryHandle,'PQfn');
+      pointer(PQresultStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultStatus');
+      pointer(PQresStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQresStatus');
+      pointer(PQresultErrorMessage) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultErrorMessage');
+      pointer(PQresultErrorField) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultErrorField');
+      pointer(PQntuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQntuples');
+      pointer(PQnfields) := GetProcedureAddress(Postgres3LibraryHandle,'PQnfields');
+      pointer(PQbinaryTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQbinaryTuples');
+      pointer(PQfname) := GetProcedureAddress(Postgres3LibraryHandle,'PQfname');
+      pointer(PQfnumber) := GetProcedureAddress(Postgres3LibraryHandle,'PQfnumber');
+      pointer(PQftable) := GetProcedureAddress(Postgres3LibraryHandle,'PQftable');
+      pointer(PQftablecol) := GetProcedureAddress(Postgres3LibraryHandle,'PQftablecol');
+      pointer(PQfformat) := GetProcedureAddress(Postgres3LibraryHandle,'PQfformat');
+      pointer(PQftype) := GetProcedureAddress(Postgres3LibraryHandle,'PQftype');
+      pointer(PQfsize) := GetProcedureAddress(Postgres3LibraryHandle,'PQfsize');
+      pointer(PQfmod) := GetProcedureAddress(Postgres3LibraryHandle,'PQfmod');
+      pointer(PQcmdStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQcmdStatus');
+      pointer(PQoidStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQoidStatus');
+      pointer(PQoidValue) := GetProcedureAddress(Postgres3LibraryHandle,'PQoidValue');
+      pointer(PQcmdTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQcmdTuples');
+      pointer(PQgetvalue) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetvalue');
+      pointer(PQgetlength) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetlength');
+      pointer(PQgetisnull) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetisnull');
+      pointer(PQclear) := GetProcedureAddress(Postgres3LibraryHandle,'PQclear');
+      pointer(PQfreemem) := GetProcedureAddress(Postgres3LibraryHandle,'PQfreemem');
+      pointer(PQmakeEmptyPGresult) := GetProcedureAddress(Postgres3LibraryHandle,'PQmakeEmptyPGresult');
+      pointer(PQescapeString) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeString');
+      pointer(PQescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeBytea');
+      pointer(PQunescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQunescapeBytea');
+      pointer(PQprint) := GetProcedureAddress(Postgres3LibraryHandle,'PQprint');
+      pointer(PQdisplayTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQdisplayTuples');
+      pointer(PQprintTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQprintTuples');
+      pointer(lo_open) := GetProcedureAddress(Postgres3LibraryHandle,'lo_open');
+      pointer(lo_close) := GetProcedureAddress(Postgres3LibraryHandle,'lo_close');
+      pointer(lo_read) := GetProcedureAddress(Postgres3LibraryHandle,'lo_read');
+      pointer(lo_write) := GetProcedureAddress(Postgres3LibraryHandle,'lo_write');
+      pointer(lo_lseek) := GetProcedureAddress(Postgres3LibraryHandle,'lo_lseek');
+      pointer(lo_creat) := GetProcedureAddress(Postgres3LibraryHandle,'lo_creat');
+      pointer(lo_tell) := GetProcedureAddress(Postgres3LibraryHandle,'lo_tell');
+      pointer(lo_unlink) := GetProcedureAddress(Postgres3LibraryHandle,'lo_unlink');
+      pointer(lo_import) := GetProcedureAddress(Postgres3LibraryHandle,'lo_import');
+      pointer(lo_export) := GetProcedureAddress(Postgres3LibraryHandle,'lo_export');
+      pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
+      pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
 
-    InitialiseDllist(libpath);
-    end
-  else
-    if (libpath<>pqlib) and (Postgres3LoadedLibrary<>libpath) then
-      begin
-      Dec(RefCount);
-      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[Postgres3LoadedLibrary]);
-      end;
+      InitialiseDllist(libpath);
+      end
+    else
+      if (libpath<>pqlib) and (Postgres3LoadedLibrary<>libpath) then
+        begin
+        Dec(RefCount);
+        Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[Postgres3LoadedLibrary]);
+        end;
+  finally
+    LeaveCriticalsection(libpgCriticalSection);
+  end;
 end;
 
 Procedure ReleasePostgres3;
 
 begin
-  if RefCount > 0 then dec(RefCount);
-  if RefCount = 0 then
-    begin
-    if not UnloadLibrary(Postgres3LibraryHandle) then inc(RefCount);
-    ReleaseDllist;
-    end;
+  EnterCriticalsection(libpgCriticalSection);
+  try
+    if RefCount > 0 then dec(RefCount);
+    if RefCount = 0 then
+      begin
+      if not UnloadLibrary(Postgres3LibraryHandle) then inc(RefCount);
+      ReleaseDllist;
+      end;
+  finally
+    LeaveCriticalsection(libpgCriticalSection);
+  end;
 end;
 
 // This function is also defined in postgres3!
