@@ -319,6 +319,8 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
   CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -331,6 +333,8 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
   CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU32}
 
 {$ifdef CPU16}
@@ -345,10 +349,16 @@ Type
   {$endif}
   {$if defined(FPC_X86_CODE_FAR)}
     CodePointer = FarPointer;
+    CodePtrInt = Longint;
+    CodePtrUInt = DWord;
   {$elseif defined(FPC_X86_CODE_NEAR)}
     CodePointer = NearPointer;
+    CodePtrInt = Integer;
+    CodePtrUInt = Word;
   {$else}
     CodePointer = Pointer;
+    CodePtrInt = PtrInt;
+    CodePtrUInt = PtrUInt;
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
