@@ -33,6 +33,14 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+
+{ used OS file system APIs use unicodestring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+{ OS has a unicodestring/two byte environment variable API }
+{$define SYSUTILS_HAS_UNICODESTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -152,9 +160,6 @@ function GetFileVersion(const AFileName:string):Cardinal;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-
-{ used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
 function ConvertEraYearString(Count ,Year,Month,Day : integer) : string; forward;
 function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
@@ -975,6 +980,32 @@ begin
    FreeEnvironmentStringsA(p);
 end;
 
+Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
+
+var
+   s, upperenv : Unicodestring;
+   i : longint;
+   hp,p : pwidechar;
+begin
+   Result:='';
+   p:=GetEnvironmentStringsW;
+   hp:=p;
+   upperenv:=uppercase(envvar);
+   while hp^<>#0 do
+     begin
+        s:=hp;
+        i:=pos('=',s);
+        if uppercase(copy(s,1,i-1))=upperenv then
+          begin
+             Result:=copy(s,i+1,length(s)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
+   FreeEnvironmentStringsW(p);
+end;
+
 Function GetEnvironmentVariableCount : Integer;
 
 var
@@ -992,10 +1023,13 @@ begin
   FreeEnvironmentStringsA(p);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 var
   hp,p : pchar;
+{$ifdef FPC_RTL_UNICODE}
+  tmpstr : RawByteString;
+{$endif}
 begin
   Result:='';
   p:=GetEnvironmentStringsA;
@@ -1009,8 +1043,14 @@ begin
         end;
     If (hp^<>#0) then
       begin
-        Result:=HP;
+{$ifdef FPC_RTL_UNICODE}
+        tmpstr:=hp;
+        SetCodePage(tmpstr,CP_OEMCP,false);
+        Result:=tmpstr;
+{$else}
+        Result:=hp;
         SetCodePage(RawByteString(Result),CP_OEMCP,false);
+{$endif}
       end;
     end;
   FreeEnvironmentStringsA(p);

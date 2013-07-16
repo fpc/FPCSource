@@ -35,6 +35,12 @@ interface
 {$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT64}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 uses
   Unix,errors,sysconst,Unixtype;
 
@@ -264,9 +270,6 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
-
-{ used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -1149,7 +1152,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);

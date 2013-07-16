@@ -32,6 +32,11 @@ interface
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -40,9 +45,6 @@ implementation
 
 uses
   dos, sysconst;
-
-{ used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -269,7 +271,7 @@ begin
   result := -1;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
   result := '';
 end;

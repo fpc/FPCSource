@@ -31,6 +31,13 @@ uses
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_TEMPDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API (it has a dummy
+  one currently, but that one uses ansistring) }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -61,9 +68,6 @@ implementation
 
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-
-{ used OS file system APIs use unicodestring }
-{$DEFINE SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -611,7 +615,7 @@ begin
   Result := 0;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
   Result := '';
 end;

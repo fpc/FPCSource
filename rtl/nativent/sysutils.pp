@@ -39,6 +39,12 @@ type
     LastRes: NTSTATUS;
   end;
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API (actually it's
+  unicodestring, but that's not yet implemented) }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -48,9 +54,6 @@ implementation
     sysconst, ndkutils;
 
 {$DEFINE FPC_NOGENERICANSIROUTINES}
-
-{ used OS file system APIs use unicodestring }
-{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -1060,7 +1063,7 @@ begin
       end;
 end;
 
-function GetEnvironmentString(Index: Integer): String;
+function GetEnvironmentString(Index: Integer): {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 var
   hp : pwidechar;
   len: sizeint;
@@ -1071,15 +1074,19 @@ begin
     begin
     while (hp^<>#0) and (Index>1) do
       begin
-      Dec(Index);
-      hp:=hp+wstrlen(hp)+1;
+        Dec(Index);
+        hp:=hp+wstrlen(hp)+1;
       end;
     If (hp^<>#0) then
       begin
+{$ifdef FPC_RTL_UNICODE}
+        Result:=hp;
+{$else}
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(Result, len);
         UnicodeToUTF8(PChar(Result), hp, len);
         SetCodePage(RawByteString(Result),CP_UTF8,false);
+{$endif}
       end;
     end;
 end;

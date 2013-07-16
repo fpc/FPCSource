@@ -73,6 +73,23 @@ begin
     Result:=EP^;
 end;
 
+{ these are extremely inefficient, but not much we can do about it because
+  changing their result type based on the supported OS-interfaces will change
+  program behaviour if they are passed as a parameter to overloaded routines }
+{$ifndef SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
+begin
+  result:=AnsiString(GetEnvironmentVariable(UnicodeString(EnvVar)));
+end;
+{$endif not SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
+{$ifndef SYSUTILS_HAS_UNICODESTR_ENVVAR_IMPL}
+Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
+begin
+  result:=UnicodeString(GetEnvironmentVariable(AnsiString(EnvVar)));
+end;
+{$endif not SYSUTILS_HAS_UNICODESTR_ENVVAR_IMPL}
+
 
 { ---------------------------------------------------------------------
     Application name

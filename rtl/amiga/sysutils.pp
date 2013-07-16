@@ -26,6 +26,12 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -41,9 +47,6 @@ uses dos,sysconst;
 {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-
-{ used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -562,7 +565,7 @@ begin
   Result:=Dos.envCount;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);

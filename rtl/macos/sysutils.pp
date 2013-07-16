@@ -44,6 +44,11 @@ type
                 exactMatch: Boolean;
   end;
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -57,9 +62,6 @@ uses
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
 {$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
 {$DEFINE FPC_FEXPAND_NO_CURDIR}
-
-{ used OS file system APIs use ansistring }
-{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -642,7 +644,7 @@ begin
   Result:=0;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
