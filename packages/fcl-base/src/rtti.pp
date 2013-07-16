@@ -76,15 +76,27 @@ type
   private
     FData: TValueData;
     function GetTypeDataProp: PTypeData;
+    function GetTypeInfo: PTypeInfo;
+    function GetTypeKind: TTypeKind;
   public
+    function IsArray: boolean;
     function AsString: string;
     function AsExtended: Extended;
-    function AsObject: TObject;
+    function IsClass: boolean;
+    function AsClass: TClass;
     function IsObject: boolean;
+    function AsObject: TObject;
+    function IsOrdinal: boolean;
+    function AsOrdinal: Int64;
     function AsBoolean: boolean;
     function AsCurrency: Currency;
     function AsInteger: Integer;
+    function ToString: string;
+    function IsType(ATypeInfo: PTypeInfo): boolean;
+    function TryAsOrdinal(out AResult: int64): boolean;
+    property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
+    property TypeInfo: PTypeInfo read GetTypeInfo;
   end;
 
   { TRttiContext }
@@ -130,7 +142,13 @@ type
     FTypeData: PTypeData;
     function GetName: string; override;
     function GetIsInstance: boolean; virtual;
+    function GetIsManaged: boolean; virtual;
+    function GetIsOrdinal: boolean; virtual;
+    function GetIsRecord: boolean; virtual;
+    function GetIsSet: boolean; virtual;
     function GetTypeKind: TTypeKind; virtual;
+    function GetTypeSize: integer; virtual;
+    function GetBaseType: TRttiType; virtual;
   public
     constructor create(ATypeInfo : PTypeInfo);
     function GetAttributes: specialize TArray<TCustomAttribute>; override;
@@ -138,8 +156,14 @@ type
     function GetProperty(const AName: string): TRttiProperty; virtual;
     destructor destroy; override;
     property IsInstance: boolean read GetIsInstance;
+    property isManaged: boolean read GetIsManaged;
+    property IsOrdinal: boolean read GetIsOrdinal;
+    property IsRecord: boolean read GetIsRecord;
+    property IsSet: boolean read GetIsSet;
+    property BaseType: TRttiType read GetBaseType;
     property AsInstance: TRttiInstanceType read GetAsInstance;
     property TypeKind: TTypeKind read GetTypeKind;
+    property TypeSize: integer read GetTypeSize;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -172,11 +196,15 @@ type
 
   TRttiInstanceType = class(TRttiStructuredType)
   private
+    function GetDeclaringUnitName: string;
     function GetMetaClassType: TClass;
   protected
     function GetIsInstance: boolean; override;
+    function GetTypeSize: integer; override;
+    function GetBaseType: TRttiType; override;
   public
     property MetaClassType: TClass read GetMetaClassType;
+    property DeclaringUnitName: string read GetDeclaringUnitName;
 
   end;
 
@@ -213,6 +241,8 @@ type
     property PropertyType: TRttiType read GetPropertyType;
 
   end;
+
+function IsManaged(TypeInfo: PTypeInfo): boolean;
 
 implementation
 
@@ -266,6 +296,11 @@ resourcestring
 var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
+
+function IsManaged(TypeInfo: PTypeInfo): boolean;
+begin
+  result := TypeInfo^.Kind in [tkString, tkAString, tkLString, tkInterface, tkArray, tkDynArray];
+end;
 
 { TRttiPool }
 
@@ -423,28 +458,50 @@ begin
   result := GetTypeData(FData.FTypeInfo);
 end;
 
+function TValue.GetTypeInfo: PTypeInfo;
+begin
+  result := FData.FTypeInfo;
+end;
+
+function TValue.GetTypeKind: TTypeKind;
+begin
+  result := FData.FTypeInfo^.Kind;
+end;
+
+function TValue.IsArray: boolean;
+begin
+  result := kind in [tkArray, tkDynArray];
+end;
+
 function TValue.AsString: string;
 var
   s: string;
 begin
-  case fdata.FTypeInfo^.Kind of
+  case Kind of
     tkSString,
     tkAString   : begin
                     setlength(s,FData.FValueData.GetDataSize);
                     system.move(FData.FValueData.GetReferenceToRawData^,s[1],FData.FValueData.GetDataSize);
                   end;
   else
-    raise exception.Create(SErrInvalidTypecast);
+    raise EInvalidCast.Create(SErrInvalidTypecast);
   end;
   result := s;
 end;
 
 function TValue.AsExtended: Extended;
 begin
-  case TypeData^.FloatType of
-    ftDouble   : result := FData.FAsDouble;
-    ftExtended : result := FData.FAsExtenden;
-  end;
+  if Kind = tkFloat then
+    begin
+    case TypeData^.FloatType of
+      ftDouble   : result := FData.FAsDouble;
+      ftExtended : result := FData.FAsExtenden;
+    else
+      raise EInvalidCast.Create(SErrInvalidTypecast);
+    end;
+    end
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsObject: TObject;
@@ -452,28 +509,88 @@ begin
   if IsObject then
     result := FData.FAsObject
   else
-    raise exception.Create(SErrInvalidTypecast);
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.IsObject: boolean;
 begin
+  result := fdata.FTypeInfo^.Kind = tkObject;
+end;
+
+function TValue.IsClass: boolean;
+begin
   result := fdata.FTypeInfo^.Kind = tkClass;
+end;
+
+function TValue.AsClass: TClass;
+begin
+  if IsClass then
+    result := FData.FAsClass
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.IsOrdinal: boolean;
+begin
+  result := Kind in [tkInteger, tkInt64, tkBool];
 end;
 
 function TValue.AsBoolean: boolean;
 begin
-  result := boolean(FData.FAsSInt64)
+  if (Kind = tkBool) then
+    result := boolean(FData.FAsSInt64)
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsOrdinal: int64;
+begin
+  if IsOrdinal then
+    result := FData.FAsSInt64
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsCurrency: Currency;
 begin
-  result := FData.FAsCurr;
+  if (Kind = tkFloat) and (TypeData^.FloatType=ftCurr) then
+    result := FData.FAsCurr
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsInteger: Integer;
 begin
-  result := Integer(FData.FAsSInt64)
+  if Kind in [tkInteger, tkInt64] then
+    result := integer(FData.FAsSInt64)
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
+
+function TValue.ToString: String;
+begin
+  case Kind of
+    tkString,
+    tkAString : result := AsString;
+    tkInteger : result := IntToStr(AsInteger);
+    tkBool    : result := BoolToStr(AsBoolean, True);
+  else
+    result := '';
+  end;
+end;
+
+function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
+begin
+  result := ATypeInfo = TypeInfo;
+end;
+
+function TValue.TryAsOrdinal(out AResult: int64): boolean;
+begin
+  result := IsOrdinal;
+  if result then
+    AResult := AsOrdinal;
+end;
+
 
 { TRttiStringType }
 
@@ -495,9 +612,31 @@ begin
   result := FTypeData^.ClassType;
 end;
 
+function TRttiInstanceType.GetDeclaringUnitName: string;
+begin
+  result := FTypeData^.UnitInfo^.UnitName;
+end;
+
+function TRttiInstanceType.GetBaseType: TRttiType;
+var
+  AContext: TRttiContext;
+begin
+  AContext := TRttiContext.Create;
+  try
+    result := AContext.GetType(FTypeData^.ParentInfo);
+  finally
+    AContext.Free;
+  end;
+end;
+
 function TRttiInstanceType.GetIsInstance: boolean;
 begin
   Result:=True;
+end;
+
+function TRttiInstanceType.GetTypeSize: integer;
+begin
+  Result:=sizeof(TObject);
 end;
 
 { TRttiMember }
@@ -578,15 +717,45 @@ begin
   result := false;
 end;
 
+function TRttiType.GetIsManaged: boolean;
+begin
+  result := Rtti.IsManaged(FTypeInfo);
+end;
+
+function TRttiType.GetIsOrdinal: boolean;
+begin
+  result := false;
+end;
+
+function TRttiType.GetIsRecord: boolean;
+begin
+  result := false;
+end;
+function TRttiType.GetIsSet: boolean;
+
+begin
+  result := false;
+end;
+
 function TRttiType.GetAsInstance: TRttiInstanceType;
 begin
   // This is a ridicoulous design, but Delphi-compatible...
   result := TRttiInstanceType(self);
 end;
 
+function TRttiType.GetBaseType: TRttiType;
+begin
+  result := nil;
+end;
+
 function TRttiType.GetTypeKind: TTypeKind;
 begin
   result := FTypeInfo^.Kind;
+end;
+
+function TRttiType.GetTypeSize: integer;
+begin
+  result := -1;
 end;
 
 function TRttiType.GetName: string;
