@@ -103,6 +103,31 @@ begin
   if eq or not neq then
     Error(4);
 
+  Writeln('var, nil');
+  FarPtr := Ptr(0, 0);
+  eq := FarPtr = nil;
+  neq := FarPtr <> nil;
+  if not eq or neq then
+    Error(1);
+
+  FarPtr := Ptr(0, 1);
+  eq := FarPtr = nil;
+  neq := FarPtr <> nil;
+  if eq or not neq then
+    Error(2);
+
+  FarPtr := Ptr(1, 0);
+  eq := FarPtr = nil;
+  neq := FarPtr <> nil;
+  if eq or not neq then
+    Error(3);
+
+  FarPtr := Ptr(1, 1);
+  eq := FarPtr = nil;
+  neq := FarPtr <> nil;
+  if eq or not neq then
+    Error(4);
+
   if ErrorCode = 0 then
     Writeln('Success!')
   else
