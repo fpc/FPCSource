@@ -279,9 +279,9 @@ unit typinfo;
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
         PropType : PTypeInfo;
-        GetProc : Pointer;
-        SetProc : Pointer;
-        StoredProc : Pointer;
+        GetProc : CodePointer;
+        SetProc : CodePointer;
+        StoredProc : CodePointer;
         Index : Integer;
         Default : Longint;
         NameIndex : SmallInt;
