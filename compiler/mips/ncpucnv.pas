@@ -118,9 +118,9 @@ end;
 
 procedure tMIPSELtypeconvnode.second_int_to_real;
 
-  procedure loadsigned;
+  procedure loadsigned(restype: tfloattype);
   begin
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
+    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
     if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
       { 32-bit values can be loaded directly }
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MTC1, left.location.register, location.register))
@@ -133,7 +133,7 @@ procedure tMIPSELtypeconvnode.second_int_to_real;
       end;
 
     { Convert value in fpu register from integer to float }
-    case tfloatdef(resultdef).floattype of
+    case restype of
       s32real:
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_S_W, location.Register, location.Register));
       s64real:
@@ -152,7 +152,7 @@ var
 begin
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
   if is_signed(left.resultdef) then
-    loadsigned
+    loadsigned(tfloatdef(resultdef).floattype)
   else
   begin
     current_asmdata.getdatalabel(l1);
@@ -162,13 +162,7 @@ begin
     hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
 
     { Always load into 64-bit FPU register }
-    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-    tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
-    { Convert value in fpu register from integer to float }
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_D_W, location.Register, location.Register));
-
+    loadsigned(s64real);
     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, hregister, l2);
 
     case tfloatdef(resultdef).floattype of
