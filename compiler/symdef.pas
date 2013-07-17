@@ -4693,12 +4693,14 @@ implementation
               potype_destructor:
                 s:=s+'destructor ';
               else
-                if (pno_proctypeoption in pno) and
-                   assigned(returndef) and
-                   not(is_void(returndef)) then
-                  s:=s+'function '
-                else
-                  s:=s+'procedure ';
+                if (pno_proctypeoption in pno) then
+                  begin
+                   if assigned(returndef) and
+                     not(is_void(returndef)) then
+                     s:=s+'function '
+                   else
+                     s:=s+'procedure ';
+                  end;
             end;
             if (pno_ownername in pno) and
                (owner.symtabletype in [recordsymtable,objectsymtable]) then
