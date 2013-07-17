@@ -61,6 +61,40 @@ implementation
       globals,verbose;
 
 
+    const
+      HexTbl : array[0..15] of char='0123456789abcdef';
+
+    function sizestr(v:aword):string;
+      var
+        tmp:array [0..19] of char;
+        i:longint;
+      begin
+        if v=0 then
+          result:='0x0'
+        else
+          begin
+            i:=high(tmp);
+            while (v>0) do
+              begin
+                tmp[i]:=hextbl[v and $f];
+                v:=v shr 4;
+                dec(i);
+              end;
+            tmp[i]:='x';
+            tmp[i-1]:='0';
+            setstring(result,@tmp[i-1],high(tmp)+2-i);
+          end;
+      end;
+
+    function PadSpaceLeft(const s:string;len:longint):string;
+      begin
+        if length(s)<len then
+          result:=Space(len-length(s))+s
+        else
+          result:=s;
+      end;
+
+
 {****************************************************************************
                                   TExeMap
 ****************************************************************************}
@@ -111,7 +145,7 @@ implementation
             writeln(t,p.name);
             s:='';
           end;
-         Add(PadSpace(s,20)+'0x'+PadSpace(hexstr(p.size,1),16)+p.objsection.objdata.name);
+         Add(PadSpace(s,20)+'0x'+PadSpace(sizestr(p.size),16)+p.objsection.objdata.name);
        end;
 
 
@@ -121,7 +155,7 @@ implementation
        begin
          FImageBase:=abase;
          if FImageBase<>0 then
-           imagebasestr:=' (ImageBase='+HexStr(FImageBase,sizeof(pint)*2)+')'
+           imagebasestr:=' (ImageBase=0x'+HexStr(FImageBase,sizeof(pint)*2)+')'
          else
            imagebasestr:='';
          AddHeader('Memory map'+imagebasestr);
@@ -132,8 +166,8 @@ implementation
      procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
-         Add(PadSpace(p.name,19)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
-             ' 0x'+HexStr(p.size,sizeof(pint)));
+         Add(PadSpace(p.name,15)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
+             ' '+PadSpaceLeft(sizestr(p.size),9));
        end;
 
 
@@ -143,20 +177,20 @@ implementation
        begin
          { .text           0x000018a8     0xd958     object.o }
          secname:=p.name;
-         if Length(secname)>18 then
+         if Length(secname)>14 then
            begin
              Add(' '+secname);
              secname:='';
            end;
-         Add(' '+PadSpace(secname,18)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(pint)*2),12)+
-             ' 0x'+HexStr(p.size,sizeof(pint))+' '+p.objdata.name);
+         Add(' '+PadSpace(secname,14)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(pint)*2),12)+
+             ' '+PadSpaceLeft(sizestr(p.size),9)+' '+p.objdata.name);
        end;
 
 
      procedure TExeMap.AddMemoryMapSymbol(p:TObjSymbol);
        begin
          {                 0x00001e30                setup_screens }
-         Add(Space(20)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(pint)*2),25)+' '+p.name);
+         Add(Space(16)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(pint)*2),25)+' '+p.name);
        end;
 
 end.
