@@ -204,8 +204,7 @@ unit cpupara;
           pocall_stdcall,
           pocall_cdecl,
           pocall_cppdecl,
-          pocall_mwpascal :
-            result:=[RS_AX,RS_DX,RS_CX];
+          pocall_mwpascal,
           pocall_far16,
           pocall_pascal,
           pocall_oldfpccall :
