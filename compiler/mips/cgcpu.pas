@@ -378,21 +378,16 @@ begin
       href.refaddr:=addr_low;
       list.concat(taicpu.op_reg_ref(A_ADDIU,NR_PIC_FUNC,href));
     end;
-  { JAL handled as macro provides delay slot and correct restoring of GP. }
-  { Doing it ourselves requires a fixup pass, because GP restore location
-    becomes known only in g_proc_entry, when all code is already generated. }
-
-  { GAS <2.21 is buggy, it doesn't add delay slot in noreorder mode. As a result,
-    the code will crash if dealing with stack frame size >32767 or if calling
-    into shared library.
-    This can be remedied by enabling instruction reordering, but then we also
-    have to emit .set macro/.set nomacro pair and exclude JAL from the
-    list of macro instructions (because noreorder is not allowed after nomacro) }
-  list.concat(taicpu.op_none(A_P_SET_MACRO));
-  list.concat(taicpu.op_none(A_P_SET_REORDER));
-  list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
-  list.concat(taicpu.op_none(A_P_SET_NOREORDER));
-  list.concat(taicpu.op_none(A_P_SET_NOMACRO));
+  list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+  { Delay slot }
+  list.concat(taicpu.op_none(A_NOP));
+  { Restore GP if in PIC mode }
+  if (cs_create_pic in current_settings.moduleswitches) then
+    begin
+      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+        InternalError(2013071001);
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
+    end;
 end;
 
 
@@ -425,22 +420,18 @@ begin
   if assigned(current_procinfo) and
      not (pi_do_call in current_procinfo.flags) then
     InternalError(2013022102);
-  // if (cs_create_pic in current_settings.moduleswitches) then
+
+  if (Reg <> NR_PIC_FUNC) then
+    list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
+  list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+  { Delay slot }
+  list.concat(taicpu.op_none(A_NOP));
+  { Restore GP if in PIC mode }
+  if (cs_create_pic in current_settings.moduleswitches) then
     begin
-      if (Reg <> NR_PIC_FUNC) then
-        list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
-      { See comments in a_call_name }
-      list.concat(taicpu.op_none(A_P_SET_MACRO));
-      list.concat(taicpu.op_none(A_P_SET_REORDER));
-      list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
-      list.concat(taicpu.op_none(A_P_SET_NOREORDER));
-      list.concat(taicpu.op_none(A_P_SET_NOMACRO));
-  (*  end
-  else
-    begin
-      list.concat(taicpu.op_reg(A_JALR, reg));
-      { Delay slot }
-      list.concat(taicpu.op_none(A_NOP)); *)
+      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+        InternalError(2013071002);
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
     end;
 end;
 
