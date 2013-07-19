@@ -291,34 +291,18 @@ begin
       LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF:
       begin
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags.reg2:=NR_R0;
+        location.resflags.cond:=OC_EQ;
         if is_64bit(resultdef) then
           begin
-            r64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-            r64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
             { OR low and high parts together }
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,r64.reglo,left.location.register64.reglo,left.location.register64.reghi));
-            { x=0 <=> unsigned(x)<1 }
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,r64.reglo,r64.reglo,1));
-            if is_cbool(resultdef) then
-              begin
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,r64.reglo,r64.reglo);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,r64.reglo,r64.reghi);
-              end
-            else
-              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
-            location_reset(location,LOC_REGISTER,OS_64);
-            location.Register64:=r64;
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,tmpreg,left.location.register64.reglo,left.location.register64.reghi));
+            location.resflags.reg1:=tmpreg;
           end
         else
-          begin
-            tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-            { x=0 <=> unsigned(x)<1 }
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU, tmpreg, left.location.Register, 1));
-            if is_cbool(resultdef) then
-              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S32,tmpreg,tmpreg);
-            location_reset(location, LOC_REGISTER, OS_INT);
-            location.Register := tmpreg;
-          end;
+          location.resflags.reg1:=left.location.register;
       end;
       else
         internalerror(2003042401);

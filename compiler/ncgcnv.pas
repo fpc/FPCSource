@@ -192,7 +192,11 @@ interface
 {$if defined(POWERPC) or defined(POWERPC64)}
         resflags.cr := RS_CR0;
         resflags.flag:=F_NE;
-{$else defined(POWERPC) or defined(POWERPC64)}
+{$elseif defined(mips)}
+        resflags.reg1:=NR_NO;
+        resflags.reg2:=NR_NO;
+        resflags.cond:=OC_NONE;
+{$else}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;
 {$endif defined(POWERPC) or defined(POWERPC64)}

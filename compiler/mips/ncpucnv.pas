@@ -284,6 +284,11 @@ begin
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
       cg.a_label(current_asmdata.CurrAsmList, hlabel);
     end;
+    LOC_FLAGS:
+    begin
+      hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      cg.g_flags2reg(current_asmdata.CurrAsmList,OS_INT,left.location.resflags,hreg1);
+    end
     else
       internalerror(10062);
   end;

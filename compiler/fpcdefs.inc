@@ -211,7 +211,7 @@
   {$else}
     {$error mips64 not yet supported}
   {$endif}
-  { define cpuflags}
+  {$define cpuflags} { Flags are emulated }
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
   { define cpumm}

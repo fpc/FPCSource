@@ -72,6 +72,8 @@ type
     { comparison operations }
     procedure a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
     procedure a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
+    procedure a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel); override;
+    procedure g_flags2reg(list: tasmlist; size: TCgSize; const f: TResFlags; reg: tregister); override;
     procedure a_jmp_always(List: tasmlist; l: TAsmLabel); override;
     procedure a_jmp_name(list: tasmlist; const s: string); override;
     procedure g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef); override;
@@ -1071,6 +1073,88 @@ begin
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
+
+
+procedure TCGMIPS.a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel);
+  begin
+    if f.use_const then
+      a_cmp_const_reg_label(list,OS_INT,f.cond,f.value,f.reg1,l)
+    else
+      a_cmp_reg_reg_label(list,OS_INT,f.cond,f.reg2,f.reg1,l);
+  end;
+
+
+procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags; reg: tregister);
+  var
+    left,right: tregister;
+    unsigned: boolean;
+  begin
+    if (f.cond in [OC_EQ,OC_NE]) then
+      begin
+        left:=reg;
+        if f.use_const and (f.value>=0) and (f.value<=65535) then
+          begin
+            if (f.value<>0) then
+              list.concat(taicpu.op_reg_reg_const(A_XORI,reg,f.reg1,f.value))
+            else
+              left:=f.reg1;
+          end
+        else
+          begin
+            if f.use_const then
+              begin
+                right:=GetIntRegister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,f.value,right);
+              end
+            else
+              right:=f.reg2;
+            list.concat(taicpu.op_reg_reg_reg(A_XOR,reg,f.reg1,right));
+          end;
+
+        if f.cond=OC_EQ then
+          list.concat(taicpu.op_reg_reg_const(A_SLTIU,reg,left,1))
+        else
+          list.concat(taicpu.op_reg_reg_reg(A_SLTU,reg,NR_R0,left));
+      end
+    else
+      begin
+        {
+          sle  x,a,b  -->  slt   x,b,a; xori  x,x,1    immediate not possible (or must be at left)
+          sgt  x,a,b  -->  slt   x,b,a                 likewise
+          sge  x,a,b  -->  slt   x,a,b; xori  x,x,1
+          slt  x,a,b  -->  unchanged
+        }
+
+        unsigned:=f.cond in [OC_GT,OC_LT,OC_GTE,OC_LTE];
+        if (f.cond in [OC_GTE,OC_LT,OC_B,OC_AE]) and
+          f.use_const and
+          (f.value>=simm16lo) and
+          (f.value<=simm16hi) then
+          list.Concat(taicpu.op_reg_reg_const(ops_slti[unsigned],reg,f.reg1,f.value))
+        else
+          begin
+            if f.use_const then
+              begin
+                if (f.value=0) then
+                  right:=NR_R0
+                else
+                  begin
+                   right:=GetIntRegister(list,OS_INT);
+                   a_load_const_reg(list,OS_INT,f.value,right);
+                end;
+              end
+            else
+              right:=f.reg2;
+
+            if (f.cond in [OC_LTE,OC_GT,OC_BE,OC_A]) then
+              list.Concat(taicpu.op_reg_reg_reg(ops_slt[unsigned],reg,right,f.reg1))
+            else
+              list.Concat(taicpu.op_reg_reg_reg(ops_slt[unsigned],reg,f.reg1,right));
+          end;
+        if (f.cond in [OC_LTE,OC_GTE,OC_BE,OC_AE]) then
+          list.Concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
+      end;
+  end;
 
 
 procedure TCGMIPS.g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef);
