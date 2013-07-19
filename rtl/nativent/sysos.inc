@@ -372,6 +372,19 @@ begin
     aNtStr.Buffer[i] := aText[i];
 end;
 
+procedure SysPWideCharToNtStr(var aNtStr: TNtUnicodeString; aText: PWideChar;
+  aLen: LongWord);
+var
+  i: Integer;
+begin
+  if (aLen = 0) and (aText <> Nil) and (aText^ <> #0) then
+    aLen := Length(aText);
+  aNtStr.Length := aLen * SizeOf(WideChar);
+  aNtStr.MaximumLength := aNtStr.Length;
+  aNtStr.Buffer := GetMem(aNtStr.Length);
+  Move(aText[0],aNtStr.Buffer[0],aLen);
+end;
+
 procedure SysUnicodeStringToNtStr(var aNtStr: TNtUnicodeString; const s: UnicodeString);
 var
   i: Integer;

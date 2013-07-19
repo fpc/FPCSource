@@ -803,7 +803,11 @@ End;
       paramBlock: CInfoPBRec;
 
   begin
-    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    DosError := PathArgToFSSpec(filerec(f).name, spec);
+{$else}
+    DosError := PathArgToFSSpec(ToSingleByteFileSystemEncodedFileName(filerec(f).name), spec);
+{$endif}
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);
@@ -822,7 +826,11 @@ End;
       macfiletime: UInt32;
 
   begin
-    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    DosError := PathArgToFSSpec(filerec(f).name, spec);
+{$else}
+    DosError := PathArgToFSSpec(ToSingleByteFileSystemEncodedFileName(filerec(f).name), spec);
+{$endif}
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);

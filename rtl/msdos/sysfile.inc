@@ -54,11 +54,13 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p : pchar; pchangeable: boolean);
 var
   regs : Registers;
+  oldp : pchar;
 begin
-  DoDirSeparators(p);
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
   regs.DX:=Ofs(p^);
   regs.DS:=Seg(p^);
   if LFNSupport then
@@ -70,15 +72,20 @@ begin
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
    GetInOutRes(regs.AX);
+  if p<>oldp then
+    freemem(p);
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
 var
   regs : Registers;
+  oldp1, oldp2 : pchar;
 begin
-  DoDirSeparators(p1);
-  DoDirSeparators(p2);
+  oldp1:=p1;
+  oldp2:=p2;
+  DoDirSeparators(p1,p1changeable);
+  DoDirSeparators(p2,p2changeable);
   regs.DS:=Seg(p1^);
   regs.DX:=Ofs(p1^);
   regs.ES:=Seg(p2^);
@@ -91,6 +98,10 @@ begin
   MsDos(regs);
   if (regs.Flags and fCarry) <> 0 then
    GetInOutRes(regs.AX);
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 
@@ -229,7 +240,7 @@ begin
     Increase_file_handle_count:=true;
 end;
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -240,8 +251,8 @@ procedure do_open(var f;p:pchar;flags:longint);
 var
   regs   : Registers;
   action : longint;
+  oldp : pchar;
 begin
-  DoDirSeparators(p);
 { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -283,6 +294,8 @@ begin
      end;
      exit;
    end;
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
 {$ifndef RTLLITE}
   if LFNSupport then
    begin
@@ -332,6 +345,8 @@ begin
   if (regs.Flags and fCarry) <> 0 then
     begin
       GetInOutRes(regs.AX);
+      if oldp<>p then
+        freemem(p);
       exit;
     end
   else
@@ -366,6 +381,8 @@ begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
+  if oldp<>p then
+    freemem(p);
 end;
 
 

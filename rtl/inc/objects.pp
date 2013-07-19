@@ -1389,7 +1389,7 @@ BEGIN
      Begin                        { Check status okay }
      If (Handle = InvalidHandle) Then
         Begin                      { File not open }
-          Assign(FileInfo,FName);
+          Assign(FileInfo,@FName);
           { Handle the mode }
           if OpenMode =stCreate then
             Begin

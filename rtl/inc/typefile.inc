@@ -15,48 +15,56 @@
                     subroutines for typed file handling
 ****************************************************************************}
 
-Procedure Assign(out f:TypedFile;const Name:string);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:TypedFile;const Name: UnicodeString);
 {
   Assign Name to file f so it can be used with the file routines
 }
 Begin
-  FillChar(f,SizeOF(FileRec),0);
-  FileRec(f).Handle:=UnusedHandle;
-  FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
+  Assign(UnTypedFile(f),Name);
+End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:TypedFile;const Name: RawByteString);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+  Assign(UnTypedFile(f),Name);
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+Procedure Assign(out f:TypedFile;const Name: ShortString);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+  Assign(UnTypedFile(f),Name);
 End;
 
 
-Procedure Assign(out f:TypedFile;p:pchar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,StrPas(p));
+Procedure Assign(out f:TypedFile;const p:PAnsiChar);
+Begin
+  Assign(UnTypedFile(f),p);
 end;
 
 
-Procedure Assign(out f:TypedFile;c:char);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,string(c));
+Procedure Assign(out f:TypedFile;const c:AnsiChar);
+Begin
+  Assign(UnTypedFile(f),c);
 end;
-
 
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; compilerproc;
 Begin
-  If InOutRes <> 0 then
-   exit;
   Reset(UnTypedFile(f),Size);
 End;
 
 
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED']; compilerproc;
 Begin
-  If InOutRes <> 0 then
-   exit;
   Rewrite(UnTypedFile(f),Size);
 End;
 

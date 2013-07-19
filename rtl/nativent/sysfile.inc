@@ -34,7 +34,7 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p : pwidechar; pchangeable: boolean);
 var
   ntstr: TNtUnicodeString;
   objattr: TObjectAttributes;
@@ -42,11 +42,13 @@ var
   h: THandle;
   disp: TFileDispositionInformation;
   res: LongInt;
+  oldp: pwidechar;
 begin
   InoutRes := 4;
-  DoDirSeparators(p);
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
 
-  SysPCharToNtStr(ntstr, p, 0);
+  SysPWideCharToNtStr(ntstr, p, 0);
   SysInitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   res := NtCreateFile(@h, NT_DELETE or NT_SYNCHRONIZE, @objattr, @iostatus, Nil,
@@ -71,10 +73,12 @@ begin
 
   SysFreeNtStr(ntstr);
   Errno2InoutRes;
+  if p<>oldp then
+    freemem(p);
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : pwidechar; p1changeable, p2changeable: boolean);
 var
   h: THandle;
   objattr: TObjectAttributes;
@@ -82,12 +86,14 @@ var
   dest, src: TNtUnicodeString;
   renameinfo: PFileRenameInformation;
   res: LongInt;
+  oldp1, oldp2 : pwidechar;
 begin
-  DoDirSeparators(p1);
-  DoDirSeparators(p2);
+  oldp1:=p1;
+  oldp2:=p2;
 
   { check whether the destination exists first }
-  SysPCharToNtStr(dest, p2, 0);
+  DoDirSeparators(p2,p2changeable);
+  SysPWideCharToNtStr(dest, p2, 0);
   SysInitializeObjectAttributes(objattr, @dest, 0, 0, Nil);
 
   res := NtCreateFile(@h, 0, @objattr, @iostatus, Nil, 0,
@@ -99,7 +105,8 @@ begin
     errno := 5;
     Errno2InoutRes;
   end else begin
-    SysPCharToNtStr(src, p1, 0);
+    DoDirSeparators(p1,p1changeable);
+    SysPWideCharToNtStr(src, p1, 0);
     SysInitializeObjectAttributes(objattr, @src, 0, 0, Nil);
 
     res := NtCreateFile(@h, GENERIC_ALL or NT_SYNCHRONIZE or FILE_READ_ATTRIBUTES,
@@ -138,6 +145,10 @@ begin
   end;
 
   SysFreeNtStr(dest);
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 
@@ -292,7 +303,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pwidechar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -306,8 +317,8 @@ var
   iostatus: TIoStatusBlock;
   ntstr: TNtUnicodeString;
   res: LongInt;
+  oldp : pwidechar;
 begin
-  DoDirSeparators(p);
   { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -378,7 +389,9 @@ begin
      exit;
    end;
 
-  SysPCharToNtStr(ntstr, p, 0);
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
+  SysPWideCharToNtStr(ntstr, p, 0);
 
   SysInitializeObjectAttributes(objattr, @ntstr, OBJ_INHERIT, 0, Nil);
 
@@ -399,4 +412,6 @@ begin
     errno := res;
     Errno2InoutRes;
   end;
+  if oldp<>p then
+    freemem(p);
 end;

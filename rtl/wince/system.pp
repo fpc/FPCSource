@@ -87,12 +87,17 @@ function Win32GetCurrentThreadId:DWORD;
 function TlsAlloc : DWord;
 function TlsFree(dwTlsIndex : DWord) : LongBool;
 
-function GetFileAttributes(p : pchar) : dword;
-function DeleteFile(p : pchar) : longint;
-function MoveFile(old,_new : pchar) : longint;
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+
+function GetFileAttributesW(p : pwidechar) : dword;
+    cdecl; external KernelDLL name 'GetFileAttributesW';
+function DeleteFileW(p : pwidechar) : longint;
+    cdecl; external KernelDLL name 'DeleteFileW';
+function MoveFileW(old,_new : pwidechar) : longint;
+    cdecl; external KernelDLL name 'MoveFileW';
+function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
+    cdecl; external KernelDLL name 'CreateFileW';
 
 
 {$ifdef CPUARM}
@@ -415,53 +420,6 @@ end;
 {*****************************************************************************
                       WinAPI wrappers implementation
 *****************************************************************************}
-
-function GetFileAttributesW(p : pwidechar) : dword;
-    cdecl; external KernelDLL name 'GetFileAttributesW';
-function DeleteFileW(p : pwidechar) : longint;
-    cdecl; external KernelDLL name 'DeleteFileW';
-function MoveFileW(old,_new : pwidechar) : longint;
-    cdecl; external KernelDLL name 'MoveFileW';
-function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-    cdecl; external KernelDLL name 'CreateFileW';
-
-function GetFileAttributes(p : pchar) : dword;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  GetFileAttributes := GetFileAttributesW(buf);
-end;
-
-function DeleteFile(p : pchar) : longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  DeleteFile := DeleteFileW(buf);
-end;
-
-function MoveFile(old,_new : pchar) : longint;
-var
-  buf_old, buf_new: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(old, -1, buf_old, SizeOf(buf_old));
-  AnsiToWideBuf(_new, -1, buf_new, SizeOf(buf_new));
-  MoveFile := MoveFileW(buf_old, buf_new);
-end;
-
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(lpFileName, -1, buf, SizeOf(buf));
-  CreateFile := CreateFileW(buf, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-                            dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-end;
 
 const
 {$ifdef CPUARM}

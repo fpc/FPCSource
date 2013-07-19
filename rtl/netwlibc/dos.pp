@@ -553,10 +553,21 @@ end;
 
 
 procedure getfattr(var f;var attr : word);
-VAR StatBuf : TStat;
+var
+  StatBuf : TStat;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
+  p: pchar;
 begin
   doserror := 0;
-  if Fpstat (@textrec(f).name, StatBuf) = 0 then
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  p := @filerec(f).name;
+{$else FPC_ANSI_TEXTFILEREC}
+  r := ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+  p := pchar(r);
+{$endif FPC_ANSI_TEXTFILEREC}
+  if Fpstat (p, StatBuf) = 0 then
     attr := nwattr2dosattr (StatBuf.st_mode)
   else
   begin
@@ -570,8 +581,18 @@ procedure setfattr(var f;attr : word);
 var
   StatBuf : TStat;
   newMode : longint;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
+  p: pchar;
 begin
-  if Fpstat (@textrec(f).name,StatBuf) = 0 then
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  p := @filerec(f).name;
+{$else FPC_ANSI_TEXTFILEREC}
+  r := ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+  p := pchar(r);
+{$endif FPC_ANSI_TEXTFILEREC}
+  if Fpstat (p,StatBuf) = 0 then
   begin
     newmode := StatBuf.st_mode and ($FFFF0000 - M_A_RDONLY-M_A_HIDDEN-M_A_SYSTEM-M_A_ARCH); {only this can be set by dos unit}
     newmode := newmode or M_A_BITS_SIGNIFICANT;  {set netware attributes}

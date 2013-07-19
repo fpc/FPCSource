@@ -40,10 +40,12 @@ begin
    end;
 end;
 
-procedure do_erase(p:Pchar);
-
+procedure do_erase(p:Pchar; pchangeable: boolean);
+var
+  oldp: pchar;
 begin
-    DoDirSeparators(p);
+    oldp:=p;
+    DoDirSeparators(p,pchangeable);
     asm
         movl P,%edx
         movb $0x41,%ah
@@ -52,13 +54,18 @@ begin
         movw %ax,inoutres
     .LERASE1:
     end ['eax', 'edx'];
+    if p<>oldp then
+      freemem(p);
 end;
 
-procedure do_rename(p1,p2:Pchar);
-
+procedure do_rename(p1,p2:Pchar; p1changeable, p2changeable: boolean);
+var
+  oldp1, oldp2 : pchar;
 begin
-    DoDirSeparators(p1);
-    DoDirSeparators(p2);
+    oldp1:=p1;
+    oldp2:=p2;
+    DoDirSeparators(p1,p1changeable);
+    DoDirSeparators(p2,p2changeable);
     asm
         movl P1, %edx
         movl P2, %edi
@@ -68,6 +75,10 @@ begin
         movw %ax,inoutres
     .LRENAME1:
     end ['eax', 'edx', 'edi'];
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 function do_read (H: THandle; Addr: pointer; Len: longint): longint; assembler;
@@ -254,7 +265,7 @@ begin
         end;
 end;
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 
 {
   filerec and textrec have both handle and mode as the first items so
@@ -264,10 +275,10 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
-var Action: cardinal;
-
+var
+  Action: cardinal;
+  oldp : pchar;
 begin
-    DoDirSeparators(p);
     { close first if opened }
     if ((flags and $10000)=0) then
         begin
@@ -309,6 +320,8 @@ begin
             end;
             exit;
         end;
+    oldp:=p;
+    DoDirSeparators(p,pchangeable);
     Action := Action or (Flags and $FF);
 (* DenyNone if sharing not specified. *)
     if Flags and 112 = 0 then
@@ -356,6 +369,8 @@ begin
                     FileRec (F).Mode := fmOutput; {fool fmappend}
                 end;
         end;
+    if oldp<>p then
+      freemem(p);
 end;
 
 {$ASMMODE INTEL}

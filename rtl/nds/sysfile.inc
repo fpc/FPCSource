@@ -88,7 +88,7 @@ begin
     InOutRes := 0;
 end;
 
-procedure do_erase(p: pchar);
+procedure do_erase(p: pchar; pchangeable: boolean);
 var
   res: longint;
 begin
@@ -100,7 +100,7 @@ begin
     InOutRes := 0;  
 end;
 
-procedure do_rename(p1, p2: pchar);
+procedure do_rename(p1, p2: pchar; p1changeable, p2changeable: boolean);
 var
   res: longint;
 begin
@@ -209,7 +209,7 @@ begin
     InOutRes := 0;  
 end;
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.

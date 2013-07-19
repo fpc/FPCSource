@@ -31,17 +31,30 @@ begin
 {$endif}
 end;
 
-procedure do_erase(p:Pchar);
+procedure do_erase(p:Pchar; pchangeable: boolean);
+var
+  oldp: pchar;
 begin
-  DoDirSeparators(p);
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
   inoutres:=DosDelete(p);
+  if p<>oldp then
+    freemem(p);
 end;
 
-procedure do_rename(p1,p2:Pchar);
+procedure do_rename(p1,p2:Pchar; p1changeable, p2changeable: boolean);
+var
+  oldp1, oldp2 : pchar;
 begin
-  DoDirSeparators(p1);
-  DoDirSeparators(p2);
+  oldp1:=p1;
+  oldp2:=p2;
+  DoDirSeparators(p1,p1changeable);
+  DoDirSeparators(p2,p2changeable);
   inoutres:=DosMove(p1, p2);
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 function do_read(h:thandle;addr:pointer;len:longint):longint;
@@ -141,7 +154,7 @@ begin
       Increase_File_Handle_Count := false;
 end;
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -152,9 +165,8 @@ procedure do_open(var f;p:pchar;flags:longint);
 }
 var
   Action, Attrib, OpenFlags, FM: Cardinal;
+  oldp : pchar;
 begin
-  // convert unix slashes to normal slashes
-  DoDirSeparators(p);
 
   // close first if opened
   if ((flags and $10000)=0) then
@@ -211,6 +223,9 @@ begin
     exit;
   end;
 
+  oldp:=p;
+  // convert unix slashes to normal slashes
+  DoDirSeparators(p,pchangeable);
   Attrib:=32 {faArchive};
 
   InOutRes:=Sys_DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
@@ -234,6 +249,9 @@ begin
     end;
 
   end;
+
+  if oldp<>p then
+    freemem(p);
 
 {$ifdef IODEBUG}
   writeln('do_open,', filerec(f).handle, ',', filerec(f).name, ',', filerec(f).mode, ', InOutRes=', InOutRes);

@@ -1416,13 +1416,49 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
-procedure DoDirSeparators(p:Pchar);
+procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
 var
   i : longint;
+  len : sizeint;
+  newp : pchar;
 begin
-  for i:=0 to strlen(p) do
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
     if p[i] in AllowDirectorySeparators then
-      p[i]:=DirectorySeparator;
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,len+1);
+            move(p^,newp^,len+1);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var p: pwidechar; inplace: boolean = true);
+var
+  i : longint;
+  len : sizeint;
+  newp : pwidechar;
+begin
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
+    if (ord(p[i])<255) and
+       (ansichar(ord(p[i])) in AllowDirectorySeparators) then
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,(len+1)*2);
+            move(p^,newp^,(len+1)*2);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
 end;
 
 procedure DoDirSeparators(var p:shortstring);
@@ -1480,6 +1516,82 @@ end;
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i sysfile.inc}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pansichar; flags: longint; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_open(f,pwidechar(u),flags,true);
+end;
+
+procedure do_erase(p: pansichar; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_erase(pwidechar(u),true);
+end;
+
+procedure do_rename(src, dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  usrc, udst: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  widestringmanager.Ansi2UnicodeMoveProc(dst,DefaultFileSystemCodePage,udst,length(dst));
+  do_rename(pwidechar(usrc),pwidechar(udst),true,true);
+end;
+
+procedure do_rename(src: pansichar; dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  usrc: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  do_rename(pwidechar(usrc),dst,true,dstchangeable);
+end;
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{$ifndef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pwidechar; flags: longint; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_open(f,pansichar(s),flags,true);
+end;
+
+procedure do_erase(p: pwidechar; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_erase(pansichar(s),true);
+end;
+
+procedure do_rename(src, dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc, rdst: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  widestringmanager.Unicode2AnsiMoveProc(dst,rdst,DefaultFileSystemCodePage,length(dst));
+  do_rename(pansichar(rsrc),pansichar(rdst),true,true);
+end;
+
+procedure do_rename(src: pwidechar; dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  do_rename(pansichar(rsrc),dst,true,dstchangeable);
+end;
+{$endif not FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }

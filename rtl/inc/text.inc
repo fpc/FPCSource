@@ -57,7 +57,7 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PChar(@t.Name),Flags);
+  Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -74,9 +74,9 @@ Begin
    end;
 End;
 
+Procedure InitText(Var t : Text);
 
-Procedure Assign(out t:Text;const s:String);
-Begin
+begin
   FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
@@ -89,20 +89,74 @@ Begin
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
   End;
-  Move(s[1],TextRec(t).Name,Length(s));
+end;
+
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out t:Text;const s : UnicodeString);
+begin
+  InitText(t);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$else FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=S;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out t:Text;const s: RawByteString);
+Begin
+  InitText(t);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { ensure the characters in the record's filename are encoded correctly }
+  TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$else FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=S;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+Procedure Assign(out t:Text;const s: ShortString);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(s));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  InitText(t);
+  { warning: no encoding support }
+  TextRec(t).Name:=s;
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
 
 
-Procedure Assign(out t:Text;p:pchar);
-begin
-  Assign(t,StrPas(p));
-end;
+Procedure Assign(out t:Text;const p: PAnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(p));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  { no use in making this the one that does the work, since the name field is
+    limited to 255 characters anyway }
+  Assign(t,strpas(p));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
 
-Procedure Assign(out t:Text;c:char);
-begin
-  Assign(t,string(c));
-end;
+Procedure Assign(out t:Text;const c: AnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(c));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,ShortString(c));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
 
 Procedure Close(var t : Text);[IOCheck];
@@ -204,47 +258,134 @@ Begin
   If InOutRes <> 0 then
    exit;
   If TextRec(t).mode=fmClosed Then
-   Do_Erase(PChar(@TextRec(t).Name));
+   Do_Erase(PFileTextRecChar(@TextRec(t).Name),false);
 End;
 
 
-Procedure Rename(var t : text;p:pchar);[IOCheck];
+Procedure Rename(var t : Text;const s : unicodestring);[IOCheck];
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+var
+  fs: RawByteString;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 Begin
-  If InOutRes <> 0 then
-   exit;
-  If TextRec(t).mode=fmClosed Then
-   Begin
-     Do_Rename(PChar(@TextRec(t).Name),p);
-     { check error code of do_rename }
-     If InOutRes = 0 then
-         Move(p^,TextRec(t).Name,StrLen(p)+1);
-   End;
+  If (InOutRes<>0) or
+     (TextRec(t).mode<>fmClosed) then
+    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  { it's slightly faster to convert the unicodestring here to rawbytestring
+    than doing it in do_rename(), because here we still know the length }
+  fs:=ToSingleByteFileSystemEncodedFileName(s);
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),PAnsiChar(fs),false,true);
+  If InOutRes=0 then
+     TextRec(t).Name:=fs
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),PUnicodeChar(S),false,false);
+  If InOutRes=0 then
+{$ifdef FPC_ANSI_TEXTTextRec}
+    TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(s);
+{$else FPC_ANSI_TEXTFILEREC}
+    TextRec(t).Name:=s
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
 
 
-Procedure Rename(var t : Text;const s : string);[IOCheck];
+Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
+var
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: RawByteString;
+  pdst: PAnsiChar;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: UnicodeString;
+  pdst: PUnicodeChar;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable: boolean;
+Begin
+  If (InOutRes<>0) or
+     (TextRec(t).mode<>fmClosed) then
+    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable:=false;
+  pdst:=PAnsiChar(s);
+  if StringCodePage(s)<>DefaultFileSystemCodePage then
+    begin
+      fs:=ToSingleByteFileSystemEncodedFileName(s);
+      pdst:=PAnsiChar(fs);
+      dstchangeable:=true;
+    end
+  else
+    fs:=s;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+   { it's slightly faster to convert the rawbytestring here to unicodestring
+     than doing it in do_rename, because here we still know the length }
+   fs:=unicodestring(s);
+   pdst:=PUnicodeChar(fs);
+   dstchangeable:=true;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),pdst,false,dstchangeable);
+  If InOutRes=0 then
+{$if defined(FPC_ANSI_TEXTTextRec) and not defined(FPCRTL_FILESYSTEM_SINGLE_BYTE_API)}
+    TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(fs)
+{$else FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+    TextRec(t).Name:=fs
+{$endif FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+End;
+
+
+Procedure Rename(var t : Text;const s : ShortString);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(t,AnsiString(s));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
   p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(t,Pchar(@p));
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
-
-Procedure Rename(var t : Text;c : char);[IOCheck];
-var
-  p : array[0..1] Of Char;
+Procedure Rename(var t:Text;const p:PAnsiChar);
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Begin
-  If InOutRes <> 0 then
-   exit;
+  Rename(t,AnsiString(p));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  len: SizeInt
+Begin
+  If InOutRes<>0 then
+    exit;
+  If TextRec(t).mode=fmClosed Then
+    Begin
+      Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false);
+      { check error code of do_rename }
+      If InOutRes=0 then
+        begin
+          len:=min(StrLen(p),high(TextRec(t).Name));
+          Move(p^,TextRec(t).Name,len);
+          TextRec(t).Name[len]:=#0;
+        end;
+    End;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+Procedure Rename(var t : Text;const c : AnsiChar);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(t,AnsiString(c));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  p : array[0..1] Of AnsiChar;
+Begin
   p[0]:=c;
   p[1]:=#0;
-  Rename(t,Pchar(@p));
+  Rename(t,PAnsiChar(@p));
 End;
-
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin

@@ -74,12 +74,11 @@ Const
 Var
   Lpr      : String[255]; { Contains path to lpr binary, including null char }
 
-Procedure PrintAndDelete (f:string);
+Procedure PrintAndDelete (const f: RawByteString);
 var
   i: pid_t;
   p,pp : ppchar;
 begin
-  f:=f+#0;
   if lpr='' then
    exit;
   i:=fpFork;
@@ -114,8 +113,17 @@ end;
 
 
 Procedure OpenLstPipe ( Var F : Text);
+var
+  r: rawbytestring;
 begin
-  POpen (f,StrPas(textrec(f).name),'W');
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { encoding is already correct }
+  r:=textrec(f).name;
+  SetCodePage(r,DefaultFileSystemCodePage,false);
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
+{$endif}
+  POpen (f,r,'W');
 end;
 
 
@@ -123,6 +131,7 @@ end;
 Procedure OpenLstFile ( Var F : Text);
 var
   i : cint;
+  r: rawbytestring;
 begin
 {$IFDEF PRINTERDEBUG}
   writeln ('Printer : In OpenLstFile');
@@ -130,8 +139,15 @@ begin
  If textrec(f).mode <> fmoutput then
   exit;
  textrec(f).userdata[15]:=0; { set Zero length flag }
+{$ifdef FPC_ANSI_TEXTFILEREC}
+ { encoding is already correct }
+ r:=textrec(f).name;
+ SetCodePage(r,DefaultFileSystemCodePage,false);
+{$else}
+ r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
+{$endif}
  repeat
-   i:=fpOpen(StrPas(textrec(f).name),(Open_WrOnly or Open_Creat), 438);
+   i:=fpOpen(pansichar(r),(Open_WrOnly or Open_Creat), 438);
  until (i<>-1) or (fpgeterrno<>ESysEINTR);
  if i<0 then
   textrec(f).mode:=fmclosed
@@ -154,12 +170,20 @@ begin
 { In case length is zero, don't print : lpr would give an error }
   if (textrec(f).userdata[15]=0) and (textrec(f).userdata[16]=P_TOF) then
    begin
-     fpUnlink(StrPas(textrec(f).name));
+{$IFDEF FPC_ANSI_TEXTFILEREC}
+     fpUnlink(pansichar(@textrec(f).name));
+{$ELSE}
+    fpUnlink(ToSingleByteFileSystemEncodedFileName(textrec(f).name));
+{$ENDIF}
      exit
    end;
 { Non empty : needs printing ? }
   if (textrec(f).userdata[16]=P_TOF) then
-   PrintAndDelete (strpas(textrec(f).name));
+{$IFDEF FPC_ANSI_TEXTFILEREC}
+   PrintAndDelete (textrec(f).name);
+{$ELSE}
+   PrintAndDelete (ToSingleByteFileSystemEncodedFileName(textrec(f).name));
+{$ENDIF}
   textrec(f).mode:=fmclosed
 end;
 

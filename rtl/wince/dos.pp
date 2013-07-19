@@ -484,7 +484,9 @@ end;
 procedure getfattr(var f;var attr : word);
 var
   l : cardinal;
-  buf: array[0..MaxPathLen] of WideChar;
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  u: unicodestring;
+{$endif FPC_ANSI_TEXTFILEREC}
 begin
   if filerec(f).name[0] = #0 then
     begin
@@ -494,8 +496,12 @@ begin
   else
     begin
       doserror:=0;
-      AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
-      l:=GetFileAttributes(buf);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+      widestringmanager.Ansi2UnicodeMoveProc(filerec(f).name,DefaultFileSystemCodePage,u,length(filerec(f).name));
+      l:=GetFileAttributes(pwidechar(u));
+{$else}
+      l:=GetFileAttributes(filerec(f).name);
+{$endif}
       if l = $ffffffff then
        begin
          doserror:=Last2DosError(GetLastError);

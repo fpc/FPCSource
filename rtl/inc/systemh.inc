@@ -495,6 +495,12 @@ Type
 
   TSystemCodePage     = Word;
 
+{$ifdef VER2_6}
+  { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
+  {$define FPC_ANSI_TEXTFILEREC}
+{$endif}
+  TFileTextRecChar    = {$ifdef FPC_ANSI_TEXTFILEREC}AnsiChar{$else}UnicodeChar{$endif};
+  PFileTextRecChar    = ^TFileTextRecChar;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
@@ -1098,9 +1104,20 @@ procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign(out f:File;const Name:string);
-Procedure Assign(out f:File;p:pchar);
-Procedure Assign(out f:File;c:char);
+Procedure Assign(out f:File;const Name: ShortString);
+Procedure Assign(out f:File;const p: PAnsiChar);
+Procedure Assign(out f:File;const c: AnsiChar);
+Procedure Rename(var f:File;const s : ShortString);
+Procedure Rename(var f:File;const p : PAnsiChar);
+Procedure Rename(var f:File;const c : AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:File;const Name: UnicodeString);
+Procedure Rename(var f:File;const s : UnicodeString);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:File;const Name: RawByteString);
+Procedure Rename(var f:File;const s : RawByteString);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -1123,9 +1140,6 @@ Function  FileSize(var f:File):Int64;
 Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
-Procedure Rename(var f:File;const s:string);
-Procedure Rename(var f:File;p:pchar);
-Procedure Rename(var f:File;c:char);
 Procedure Truncate (var F:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1135,9 +1149,15 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign(out f:TypedFile;const Name:string);
-Procedure Assign(out f:TypedFile;p:pchar);
-Procedure Assign(out f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;const Name:shortstring);
+Procedure Assign(out f:TypedFile;const p:PAnsiChar);
+Procedure Assign(out f:TypedFile;const c:AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:TypedFile;const Name:unicodestring);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:TypedFile;const Name:rawbytestring);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -1147,18 +1167,26 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-Procedure Assign(out t:Text;const s:string);
-Procedure Assign(out t:Text;p:pchar);
-Procedure Assign(out t:Text;c:char);
+Procedure Assign(out t:Text;const s:shortstring);
+Procedure Rename(var t:Text;const s:shortstring);
+Procedure Assign(out t:Text;const p:PAnsiChar);
+Procedure Rename(var t:Text;const p:PAnsiChar);
+Procedure Assign(out t:Text;const c:AnsiChar);
+Procedure Rename(var t:Text;const c:AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out t:Text;const s:unicodestring);
+Procedure Rename(var t:Text;const s:unicodestring);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Rename(var t:Text;const s:rawbytestring);
+Procedure Assign(out t:Text;const s:rawbytestring);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
 Procedure Append(var t:Text);
 Procedure Flush(var t:Text);
 Procedure Erase(var t:Text);
-Procedure Rename(var t:Text;const s:string);
-Procedure Rename(var t:Text;p:pchar);
-Procedure Rename(var t:Text;c:char);
 Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(var t:Text):Boolean;

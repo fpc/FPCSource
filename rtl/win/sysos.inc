@@ -280,29 +280,18 @@ threadvar
      stdcall;external KernelDLL name 'GetFileType';
    function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
-   {$ifdef FPC_UNICODE_RTL}
-    function GetFileAttributes(p : punicodechar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributesW';
-   function DeleteFile(p : punicodechar) : longint;
+   { File }
+   function DeleteFileW(p : punicodechar) : longint;
      stdcall;external KernelDLL name 'DeleteFileW';
-   function MoveFile(old,_new : punicodechar) : longint;
+   function MoveFileW(old,_new : punicodechar) : longint;
      stdcall;external KernelDLL name 'MoveFileW';
-   function CreateFile(lpFileName:punicodechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+   function CreateFileW(lpFileName:punicodechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileW';
-   {$else}
-   function GetFileAttributes(p : pchar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributesA';
-   function DeleteFile(p : pchar) : longint;
-     stdcall;external KernelDLL name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;
-     stdcall;external KernelDLL name 'MoveFileA';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
-     stdcall;external KernelDLL name 'CreateFileA';
-  {$endif}
+   function GetFileAttributesW(p : punicodechar) : dword;
+     stdcall;external KernelDLL name 'GetFileAttributesW';
+
    { Directory }
    function CreateDirectoryW(name : pointer;sec : pointer) : longbool;
      stdcall;external KernelDLL name 'CreateDirectoryW';

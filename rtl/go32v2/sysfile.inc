@@ -54,11 +54,13 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p : pchar; pchangeable: boolean);
 var
   regs : trealregs;
+  oldp : pchar;
 begin
-  DoDirSeparators(p);
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
   syscopytodos(longint(p),strlen(p)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
@@ -71,15 +73,20 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    GetInOutRes(lo(regs.realeax));
+  if p<>oldp then
+    freemem(p);
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
 var
   regs : trealregs;
+  oldp1, oldp2 : pchar;
 begin
-  DoDirSeparators(p1);
-  DoDirSeparators(p2);
+  oldp1:=p1;
+  oldp2:=p2;
+  DoDirSeparators(p1,p1changeable);
+  DoDirSeparators(p2,p2changeable);
   if strlen(p1)+strlen(p2)+3>tb_size then
    HandleError(217);
   sysseg_move(get_ds,longint(p2),dos_selector,tb,strlen(p2)+1);
@@ -96,6 +103,10 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    GetInOutRes(lo(regs.realeax));
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 
@@ -280,7 +291,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -291,8 +302,8 @@ procedure do_open(var f;p:pchar;flags:longint);
 var
   regs   : trealregs;
   action : longint;
+  oldp : pchar;
 begin
-  DoDirSeparators(p);
 { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -334,6 +345,8 @@ begin
      end;
      exit;
    end;
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
 { real dos call }
   syscopytodos(longint(p),strlen(p)+1);
 {$ifndef RTLLITE}
@@ -385,6 +398,8 @@ begin
   if (regs.realflags and carryflag) <> 0 then
     begin
       GetInOutRes(lo(regs.realeax));
+      if oldp<>p then
+        freemem(p);
       exit;
     end
   else
@@ -419,6 +434,8 @@ begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
+  if oldp<>p then
+    freemem(p);
 end;
 
 

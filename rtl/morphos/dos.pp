@@ -725,7 +725,11 @@ var
 begin
     DosError:=0;
     FTime := 0;
-    Str := StrPas(filerec(f).name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    Str := strpas(filerec(f).Name);
+{$else}
+    Str := ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+{$endif}
     DoDirSeparators(Str);
     FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
@@ -756,7 +760,11 @@ end;
     FLock: longint;
   Begin
     new(DateStamp);
-    Str := StrPas(filerec(f).name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    Str := strpas(filerec(f).Name);
+{$else}
+    Str := ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+{$endif}
     DoDirSeparators(str);
     { Check first of all, if file exists }
     FLock := dosLock(Str, SHARED_LOCK);
@@ -788,7 +796,11 @@ begin
     DosError:=0;
     flags:=0;
     New(info);
-    Str := StrPas(filerec(f).name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    Str := strpas(filerec(f).Name);
+{$else}
+    Str := ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+{$endif}
     DoDirSeparators(str);
     { open with shared lock to check if file exists }
     MyLock:=dosLock(Str,SHARED_LOCK);
@@ -825,7 +837,17 @@ procedure setfattr(var f; attr : word);
 var
   flags: longint;
   tmpLock : longint;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r : rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
+  p : pchar;
 begin
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    p := @filerec(f).Name;
+{$else}
+    r := ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+    p := pchar(r);
+{$endif}
   DosError:=0;
   flags:=FIBF_WRITE;
 
@@ -836,10 +858,10 @@ begin
   { converts the path (KB) }
 
   { create a shared lock on the file }
-  tmpLock:=Lock(filerec(f).name,SHARED_LOCK);
+  tmpLock:=Lock(p,SHARED_LOCK);
   if tmpLock <> 0 then begin
     Unlock(tmpLock);
-    if not SetProtection(filerec(f).name,flags) then DosError:=5;
+    if not SetProtection(p,flags) then DosError:=5;
   end else
     DosError:=3;
 end;
