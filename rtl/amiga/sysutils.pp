@@ -1,10 +1,10 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004-2006 by Karoly Balogh
+    Copyright (c) 2004-2013 by Karoly Balogh
 
-    Sysutils unit for MorphOS
+    Sysutils unit for AmigaOS & clones
 
-    Based on Amiga version by Carl Eric Codere, and other
+    Based on Amiga 1.x version by Carl Eric Codere, and other
     parts of the RTL
 
     See the file COPYING.FPC, included in this distribution,
@@ -26,6 +26,7 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -567,6 +568,11 @@ function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
 {  Result:=StrError(ErrorCode);}
+end;
+
+function GetLastOSError: Integer;
+begin
+    result:=-1;
 end;
 
 {****************************************************************************
