@@ -30,11 +30,9 @@ var
   f: THandle;
   r: rawbytestring;
 begin
-  { can't set code page of an empty string }
-  r:=' ';
-  setcodepage(r,DefaultFileSystemCodePage,false);
   u:='‹≈©◊';
   r:=u;
+  setcodepage(r,DefaultFileSystemCodePage);
   if r=u then
     begin
       f:=FileCreate(u,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
@@ -66,11 +64,8 @@ var
   f: THandle;
   r: rawbytestring;
 begin
-  { can't set code page of an empty string }
-  r:=' ';
-  setcodepage(r,DefaultFileSystemCodePage,false);
   u:='‹≈©◊';
-  r:=u;
+  widestringmanager.unicode2ansimoveproc(punicodechar(u),r,DefaultFileSystemCodePage,length(u));
   if r=u then
     begin
       f:=FileCreate(u,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
