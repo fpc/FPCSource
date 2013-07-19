@@ -557,7 +557,7 @@ begin
   Result:=True;
 end;
 
-Procedure TStrings.SetTextStr(const Value: string);
+Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
@@ -566,7 +566,8 @@ Var
 begin
   Try
     beginUpdate;
-    Clear;
+    if DoClear then
+      Clear;
     P:=1;
     While GetNextLine (Value,S,P) do
       Add(S);
@@ -575,7 +576,17 @@ begin
   end;
 end;
 
+Procedure TStrings.SetTextStr(const Value: string);
 
+begin
+  DoSetTextStr(Value,True);
+end;
+
+Procedure TStrings.AddText(const S: string);
+
+begin
+  DoSetTextStr(S,False);
+end;
 
 Procedure TStrings.SetUpdateState(Updating: Boolean);
 

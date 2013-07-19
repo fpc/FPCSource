@@ -627,6 +627,7 @@ type
     procedure SetQuoteChar(c:Char);
     procedure SetNameValueSeparator(c:Char);
     procedure WriteData(Writer: TWriter);
+    procedure DoSetTextStr(const Value: string; DoClear : Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -655,6 +656,7 @@ type
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
+    Procedure AddText(Const S : String); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
