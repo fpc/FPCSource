@@ -908,6 +908,11 @@ Begin
   result:=AnsiString(AnsistringClass.Create(Str,DefaultFileSystemCodePage));
 End;
 
+{$define FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODECHARARRAY}
+Function ToSingleByteFileSystemEncodedFileName(const arr: array of widechar): RawByteString;
+Begin
+  result:=AnsiString(AnsistringClass.Create(arr,DefaultFileSystemCodePage));
+End;
 
 
 { helpers for converting between Windows and Java code page identifiers }

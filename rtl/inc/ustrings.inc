@@ -2292,6 +2292,15 @@ End;
 {$endif FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODESTRING}
 
 
+{$ifndef FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODECHARARRAY}
+{$define FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODECHARARRAY}
+Function ToSingleByteFileSystemEncodedFileName(const arr: array of widechar): RawByteString;
+Begin
+  widestringmanager.Unicode2AnsiMoveProc(@arr[0],Result,
+    DefaultFileSystemCodePage,length(pwidechar(@arr[0])));
+End;
+{$endif FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODECHARARRAY}
+
 Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
 Begin
   Result:=Str;
