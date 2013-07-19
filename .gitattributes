@@ -12037,6 +12037,7 @@ tests/test/units/system/testmac.txt svneol=native#text/plain
 tests/test/units/system/testpc.txt svneol=native#text/plain
 tests/test/units/system/teststk.pp svneol=native#text/plain
 tests/test/units/system/testux.txt svneol=native#text/plain
+tests/test/units/system/tfiledir.pp svneol=native#text/plain
 tests/test/units/system/tgenstr.pp svneol=native#text/pascal
 tests/test/units/system/tincdec.pp svneol=native#text/plain
 tests/test/units/system/tint.pp svneol=native#text/plain
