@@ -486,7 +486,7 @@ var
   l : cardinal;
   buf: array[0..MaxPathLen] of WideChar;
 begin
-  if filerec(f).name[1] = #0 then
+  if filerec(f).name[0] = #0 then
     begin
       doserror:=3;
       attr:=0;
