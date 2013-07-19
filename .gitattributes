@@ -11011,6 +11011,7 @@ tests/test/tcpstrchar2ansistr.pp svneol=native#text/plain
 tests/test/tcpstrconcat.pp svneol=native#text/plain
 tests/test/tcpstrconcat2.pp svneol=native#text/plain
 tests/test/tcpstrconcat3.pp svneol=native#text/plain
+tests/test/tcpstrconcat4.pp svneol=native#text/plain
 tests/test/tcpstrconcatmulti.pp svneol=native#text/plain
 tests/test/tcpstrconcatmulti2.pp svneol=native#text/plain
 tests/test/tcpstrpchar2ansistr.pp svneol=native#text/plain

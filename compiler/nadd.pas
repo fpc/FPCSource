@@ -2170,7 +2170,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),
@@ -2208,7 +2210,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),

@@ -1125,7 +1125,11 @@ implementation
     function getparaencoding(def:tdef):tstringencoding; inline;
       begin
         { don't pass CP_NONE encoding to internal functions
-          they expect 0 encoding instead }
+          they expect 0 encoding instead
+          exception: result of string concatenation, because if you pass the
+          result of a string concatenation to a rawbytestring, the result of
+          that concatenation shouldn't be converted to defaultsystemcodepage
+          if all strings have the same type }
         result:=tstringdef(def).encoding;
         if result=CP_NONE then
           result:=0
