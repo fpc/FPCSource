@@ -70,7 +70,7 @@ begin
   setlength(dest,len);
   if not assigned(pointer(dest)) then
     exit;
-  PAnsiRec(dest)^.CodePage:=cp;
+  SetCodePage(dest,cp,false);
   p:=pointer(dest);         {SetLength guarantees that dest is unique}
   for i:=1 to len do
     begin
