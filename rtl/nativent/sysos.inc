@@ -368,7 +368,7 @@ begin
   aNtStr.Length := aLen * SizeOf(WideChar);
   aNtStr.MaximumLength := aNtStr.Length;
   aNtStr.Buffer := GetMem(aNtStr.Length);
-  for i := 0 to aLen do
+  for i := 0 to aLen-1 do
     aNtStr.Buffer[i] := aText[i];
 end;
 
