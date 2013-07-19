@@ -2295,6 +2295,5 @@ End;
 Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
 Begin
   Result:=Str;
-  if StringCodePage(Result)<>DefaultFileSystemCodePage then
-    SetCodePage(Result,DefaultFileSystemCodePage,True);
+  SetCodePage(Result,DefaultFileSystemCodePage,True);
 End;
