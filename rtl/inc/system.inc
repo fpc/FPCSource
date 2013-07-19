@@ -1631,15 +1631,23 @@ Procedure MkDir(Const s: RawByteString);[IOCheck];
 Begin
   If (s='') or (InOutRes <> 0) then
    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_mkdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_mkdir(S);
-End;
+{$endif}
+end;
 
 
 Procedure RmDir(Const s: RawByteString);[IOCheck];
 Begin
   If (s='') or (InOutRes <> 0) then
    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_rmdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_rmdir(S);
+{$endif}
 End;
 
 
@@ -1647,7 +1655,11 @@ Procedure ChDir(Const s: RawByteString);[IOCheck];
 Begin
   If (s='') or (InOutRes <> 0) then
    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_chdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_chdir(S);
+{$endif}
 End;
 
 
