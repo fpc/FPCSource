@@ -1185,7 +1185,7 @@ type
 
 
   TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
-    var Address: Pointer; var Error: Boolean) of object;
+    var Address: CodePointer; var Error: Boolean) of object;
   TSetMethodPropertyEvent = procedure(Reader: TReader; Instance: TPersistent;
     PropInfo: PPropInfo; const TheMethodName: string;
     var Handled: boolean) of object;
@@ -1234,7 +1234,7 @@ type
     function FindComponentClass(const AClassName: string): TComponentClass;
   protected
     function Error(const Message: string): Boolean; virtual;
-    function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
+    function FindMethod(ARoot: TComponent; const AMethodName: string): CodePointer; virtual;
     procedure ReadProperty(AInstance: TPersistent);
     procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
     procedure PropertyError;

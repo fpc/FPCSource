@@ -656,7 +656,7 @@ begin
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: String): Pointer;
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: String): CodePointer;
 var
   ErrorResult: Boolean;
 begin
