@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globals,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -42,6 +43,8 @@ interface
      public
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
+
+      procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
     end;
 
   procedure create_hlcodegen;
@@ -51,7 +54,8 @@ implementation
   uses
     globtype,verbose,
     paramgr,
-    cpubase,tgobj,cgobj,cgcpu;
+    cpubase,cpuinfo,tgobj,cgobj,cgcpu,
+    symconst;
 
   { thlcgcpu }
 
@@ -189,6 +193,39 @@ implementation
           exit;
         end;
       tcg8086(cg).g_releasevaluepara_openarray(list,l);
+    end;
+
+
+  procedure thlcgcpu.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
+    var
+      r,tmpref: treference;
+    begin
+      { handle i8086 6-byte (mixed near + far) method pointers }
+      if (size.typ=procvardef) and (size.size=6) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tg.gethltemp(list,size,size.size,tt_normal,r);
+          tmpref:=r;
+
+          if po_far in tprocvardef(size).procoptions then
+            begin
+              cg.a_load_reg_ref(list,OS_32,OS_32,l.register,tmpref);
+              inc(tmpref.offset,4);
+            end
+          else
+            begin
+              cg.a_load_reg_ref(list,OS_16,OS_16,l.register,tmpref);
+              inc(tmpref.offset,2);
+            end;
+          if current_settings.x86memorymodel in x86_far_data_models then
+            cg.a_load_reg_ref(list,OS_32,OS_32,l.registerhi,tmpref)
+          else
+            cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref);
+
+          location_reset_ref(l,LOC_REFERENCE,l.size,0);
+          l.reference:=r;
+        end
+      else
+        inherited;
     end;
 
 
