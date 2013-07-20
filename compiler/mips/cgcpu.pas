@@ -1346,6 +1346,8 @@ begin
      end
    else
      begin
+       if TMIPSProcinfo(current_procinfo).save_gp_ref.offset<>0 then
+         tg.ungettemp(list,TMIPSProcinfo(current_procinfo).save_gp_ref);
        reference_reset(href,0);
        href.base:=NR_STACK_POINTER_REG;
 
@@ -1439,7 +1441,6 @@ var
     begin
       result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
          (ref.symbol=nil) and
-         (ref.alignment>=sizeof(aint)) and
          (ref.offset>=simm16lo) and (ref.offset+len<=simm16hi);
     end;
 

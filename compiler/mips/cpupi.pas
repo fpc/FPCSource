@@ -105,7 +105,10 @@ implementation
           also declared as nostackframe and everything is managed manually. }
         if (pi_do_call in flags) or
            ((pi_is_assembler in flags) and not (po_nostackframe in procdef.procoptions)) then
-          allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          begin
+            include(flags,pi_do_call);   // for pi_is_assembler case
+            allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          end;
 
         if not (po_nostackframe in procdef.procoptions) then
           tg.setfirsttemp(Align(maxpushedparasize+
