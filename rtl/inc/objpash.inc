@@ -211,8 +211,8 @@
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
 
-          class function MethodAddress(const name : shortstring) : pointer;
-          class function MethodName(address : pointer) : shortstring;
+          class function MethodAddress(const name : shortstring) : codepointer;
+          class function MethodName(address : codepointer) : shortstring;
           function FieldAddress(const name : shortstring) : pointer;
 
           { new since Delphi 4 }
