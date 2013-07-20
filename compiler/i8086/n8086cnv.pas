@@ -32,6 +32,7 @@ interface
        t8086typeconvnode = class(tx86typeconvnode)
        protected
          procedure second_proc_to_procvar;override;
+         procedure second_nil_to_methodprocvar;override;
        end;
 
 
@@ -127,6 +128,32 @@ implementation
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_ADDR,0,location.reference);
                 dec(location.reference.offset,sizeof(pint));
               end;
+          end;
+      end;
+
+
+    procedure t8086typeconvnode.second_nil_to_methodprocvar;
+      begin
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            location.registerhi:=cg.getintregister(current_asmdata.currasmlist,OS_32);
+            cg.a_load_const_reg(current_asmdata.currasmlist,OS_32,0,location.registerhi);
+          end
+        else
+          begin
+            location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
+            cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
+          end;
+        if (resultdef.typ=procvardef) and (po_far in tprocvardef(resultdef).procoptions) then
+          begin
+            location.register:=cg.getintregister(current_asmdata.currasmlist,OS_32);
+            cg.a_load_const_reg(current_asmdata.currasmlist,OS_32,0,location.register);
+          end
+        else
+          begin
+            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+            cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.register);
           end;
       end;
 
