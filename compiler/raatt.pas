@@ -1518,7 +1518,18 @@ unit raatt;
                        begin
                          case sym.typ of
                            staticvarsym :
-                             hs:=tstaticvarsym(sym).mangledname;
+                             begin
+                               { we always assume in asm statements that     }
+                               { that the variable is valid.                 }
+                               tabstractvarsym(sym).varstate:=vs_readwritten;
+                               inc(tabstractvarsym(sym).refs);
+                               { variable can't be placed in a register }
+                               tabstractvarsym(sym).varregable:=vr_none;
+                               { and anything may happen with its address }
+                               tabstractvarsym(sym).addr_taken:=true;
+
+                               hs:=tstaticvarsym(sym).mangledname;
+                             end;
                            localvarsym,
                            paravarsym :
                              Message(asmr_e_no_local_or_para_allowed);
