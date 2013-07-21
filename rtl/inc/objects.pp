@@ -212,8 +212,8 @@ TYPE
    TStreamRec = Packed RECORD
       ObjType: Sw_Word;                               { Object type id }
       VmtLink: pointer;                               { VMT link }
-      Load : Pointer;                                 { Object load code }
-      Store: Pointer;                                 { Object store code }
+      Load : CodePointer;                             { Object load code }
+      Store: CodePointer;                             { Object store code }
       Next : PStreamRec;                              { Next stream record }
    END;
 
@@ -407,8 +407,8 @@ TYPE
       FUNCTION At (Index: Sw_Integer): Pointer;
       FUNCTION IndexOf (Item: Pointer): Sw_Integer;                  Virtual;
       FUNCTION GetItem (Var S: TStream): Pointer;                    Virtual;
-      FUNCTION LastThat (Test: Pointer): Pointer;
-      FUNCTION FirstThat (Test: Pointer): Pointer;
+      FUNCTION LastThat (Test: CodePointer): Pointer;
+      FUNCTION FirstThat (Test: CodePointer): Pointer;
       PROCEDURE Pack;
       PROCEDURE FreeAll;
       PROCEDURE DeleteAll;
@@ -418,7 +418,7 @@ TYPE
       PROCEDURE AtFree (Index: Sw_Integer);
       PROCEDURE FreeItem (Item: Pointer);                            Virtual;
       PROCEDURE AtDelete (Index: Sw_Integer);
-      PROCEDURE ForEach (Action: Pointer);
+      PROCEDURE ForEach (Action: CodePointer);
       PROCEDURE SetLimit (ALimit: Sw_Integer);                       Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
       PROCEDURE AtPut (Index: Sw_Integer; Item: Pointer);
@@ -580,8 +580,8 @@ TYPE
   VMT      Pointer to the VMT (obtained by TypeOf()).
   returns  Pointer to the instance.
 }
-function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;inline;
-function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
+function CallVoidConstructor(Ctor: codepointer; Obj: pointer; VMT: pointer): pointer;inline;
+function CallPointerConstructor(Ctor: codepointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
 
 { Method calls.
 
@@ -589,8 +589,8 @@ function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param
   Obj      Pointer to the instance. NIL if new instance to be allocated.
   returns  Pointer to the instance.
 }
-function CallVoidMethod(Method: pointer; Obj: pointer): pointer;inline;
-function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;inline;
+function CallVoidMethod(Method: codepointer; Obj: pointer): pointer;inline;
+function CallPointerMethod(Method: codepointer; Obj: pointer; Param1: pointer): pointer;inline;
 
 { Local-function/procedure calls.
 
@@ -598,8 +598,8 @@ function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): poin
   Frame    Frame pointer of the wrapping function.
 }
 
-function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;inline;
-function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;inline;
+function CallVoidLocal(Func: codepointer; Frame: Pointer): pointer;inline;
+function CallPointerLocal(Func: codepointer; Frame: Pointer; Param1: pointer): pointer;inline;
 
 { Calls of functions/procedures local to methods.
 
@@ -607,8 +607,8 @@ function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): point
   Frame    Frame pointer of the wrapping method.
   Obj      Pointer to the object that the method belongs to.
 }
-function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;inline;
-function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
+function CallVoidMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer): pointer;inline;
+function CallPointerMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
 
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -687,7 +687,7 @@ CONST
 {---------------------------------------------------------------------------}
 {              INITIALIZED DOS/DPMI/WIN/OS2 PUBLIC VARIABLES                }
 {---------------------------------------------------------------------------}
-   StreamError: Pointer = Nil;                        { Stream error ptr }
+   StreamError: CodePointer = Nil;                    { Stream error ptr }
    DefaultTPCompatible: Boolean = false;
 
 {---------------------------------------------------------------------------}
@@ -751,13 +751,13 @@ type
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
 
-function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;inline;
+function CallVoidConstructor(Ctor: codepointer; Obj: pointer; VMT: pointer): pointer;inline;
 begin
   CallVoidConstructor := VoidConstructor(Ctor)(Obj, VMT);
 end;
 
 
-function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
+function CallPointerConstructor(Ctor: codepointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
 {$undef FPC_CallPointerConstructor_Implemented}
 begin
   {$define FPC_CallPointerConstructor_Implemented}
@@ -768,13 +768,13 @@ end;
 {$endif not FPC_CallPointerConstructor_Implemented}
 
 
-function CallVoidMethod(Method: pointer; Obj: pointer): pointer;inline;
+function CallVoidMethod(Method: codepointer; Obj: pointer): pointer;inline;
 begin
   CallVoidMethod := VoidMethod(Method)(Obj)
 end;
 
 
-function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;inline;
+function CallPointerMethod(Method: codepointer; Obj: pointer; Param1: pointer): pointer;inline;
 {$undef FPC_CallPointerMethod_Implemented}
 begin
 {$define FPC_CallPointerMethod_Implemented}
@@ -785,25 +785,25 @@ end;
 {$endif not FPC_CallPointerMethod_Implemented}
 
 
-function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;inline;
+function CallVoidLocal(Func: codepointer; Frame: Pointer): pointer;inline;
 begin
   CallVoidLocal := VoidLocal(Func)(Frame)
 end;
 
 
-function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;inline;
+function CallPointerLocal(Func: codepointer; Frame: Pointer; Param1: pointer): pointer;inline;
 begin
   CallPointerLocal := PointerLocal(Func)(Frame, Param1)
 end;
 
 
-function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;inline;
+function CallVoidMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer): pointer;inline;
 begin
   CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
 end;
 
 
-function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
+function CallPointerMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
 begin
   CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
 end;
@@ -1904,7 +1904,7 @@ END;
 {$PUSH}
 {$W+}
 
-FUNCTION TCollection.LastThat (Test: Pointer): Pointer;
+FUNCTION TCollection.LastThat (Test: CodePointer): Pointer;
 VAR I: LongInt;
 
 BEGIN
@@ -1933,7 +1933,7 @@ END;
 {--TCollection--------------------------------------------------------------}
 {  FirstThat -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
+FUNCTION TCollection.FirstThat (Test: CodePointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
@@ -2062,7 +2062,7 @@ END;
 
 {$PUSH}
 {$W+}
-PROCEDURE TCollection.ForEach (Action: Pointer);
+PROCEDURE TCollection.ForEach (Action: CodePointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
