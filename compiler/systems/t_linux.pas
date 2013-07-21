@@ -1461,12 +1461,14 @@ begin
       Concat('EXESECTION .dynamic');
       Concat('  OBJSECTION .dynamic');
       Concat('ENDEXESECTION');
+{$ifndef mips}
       Concat('EXESECTION .got');
 {$ifdef arm}
       Concat('  OBJSECTION .got.plt');
 {$endif arm}
       Concat('  OBJSECTION .got');
       Concat('ENDEXESECTION');
+{$endif mips}
 {$ifndef arm}
       Concat('EXESECTION .got.plt');
       Concat('  OBJSECTION .got.plt');
@@ -1479,6 +1481,11 @@ begin
       Concat('  PROVIDE _edata');
       Concat('  PROVIDE edata');
       Concat('ENDEXESECTION');
+{$ifdef mips}
+      Concat('EXESECTION .got');
+      Concat('  OBJSECTION .got');
+      Concat('ENDEXESECTION');
+{$endif mips}
       Concat('EXESECTION .bss');
       Concat('  OBJSECTION .dynbss');
       Concat('  OBJSECTION .bss*');
