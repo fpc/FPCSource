@@ -59,27 +59,28 @@ Var
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
     { Untyped file support }
-
-     Procedure AssignFile(out f:File;const Name:string);
      Procedure AssignFile(out f:File;p:pchar);
      Procedure AssignFile(out f:File;c:char);
+     Procedure AssignFile(out f:File;const Name:UnicodeString);
+     Procedure AssignFile(out f:File;const Name:RawByteString);
      Procedure CloseFile(var f:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
      { Text file support }
-     Procedure AssignFile(out t:Text;const s:string);
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
+     Procedure AssignFile(out t:Text;const Name:UnicodeString);
+     Procedure AssignFile(out t:Text;const Name:RawByteString);
      Procedure CloseFile(Var t:Text);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
      { Typed file supoort }
-
-     Procedure AssignFile(out f:TypedFile;const Name:string);
      Procedure AssignFile(out f:TypedFile;p:pchar);
      Procedure AssignFile(out f:TypedFile;c:char);
+     Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+     Procedure AssignFile(out f:TypedFile;const Name:RawByteString);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -127,22 +128,24 @@ Var
 
 { Untyped file support }
 
-Procedure AssignFile(out f:File;const Name:string);
+Procedure AssignFile(out f:File;p:pchar);
+begin
+  System.Assign (F,p);
+end;
 
+Procedure AssignFile(out f:File;c:char);
+begin
+  System.Assign (F,c);
+end;
+
+Procedure AssignFile(out f:File;const Name:RawBytestring);
 begin
   System.Assign (F,Name);
 end;
 
-Procedure AssignFile(out f:File;p:pchar);
-
+Procedure AssignFile(out f:File;const Name:UnicodeString);
 begin
-  System.Assign (F,P);
-end;
-
-Procedure AssignFile(out f:File;c:char);
-
-begin
-  System.Assign (F,C);
+  System.Assign (F,Name);
 end;
 
 Procedure CloseFile(Var f:File); [IOCheck];
@@ -156,22 +159,24 @@ end;
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file support }
 
-Procedure AssignFile(out t:Text;const s:string);
-
-begin
-  System.Assign (T,S);
-end;
-
 Procedure AssignFile(out t:Text;p:pchar);
-
 begin
-  System.Assign (T,P);
+  System.Assign (T,p);
 end;
 
 Procedure AssignFile(out t:Text;c:char);
-
 begin
-  System.Assign (T,C);
+  System.Assign (T,c);
+end;
+
+Procedure AssignFile(out t:Text;const Name:RawBytestring);
+begin
+  System.Assign (T,Name);
+end;
+
+Procedure AssignFile(out t:Text;const Name:UnicodeString);
+begin
+  System.Assign (T,Name);
 end;
 
 Procedure CloseFile(Var t:Text); [IOCheck];
@@ -185,22 +190,24 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Typed file support }
 
-Procedure AssignFile(out f:TypedFile;const Name:string);
-
-begin
-  system.Assign(F,Name);
-end;
-
 Procedure AssignFile(out f:TypedFile;p:pchar);
-
 begin
-  system.Assign (F,p);
+  System.Assign (F,p);
 end;
 
 Procedure AssignFile(out f:TypedFile;c:char);
-
 begin
-  system.Assign (F,C);
+  System.Assign (F,c);
+end;
+
+Procedure AssignFile(out f:TypedFile;const Name:RawBytestring);
+begin
+  System.Assign (F,Name);
+end;
+
+Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+begin
+  System.Assign (F,Name);
 end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
