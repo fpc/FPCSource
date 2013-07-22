@@ -30,6 +30,8 @@ const
 type
   TLineEndStr = string [3];
   TextBuf = array[0..TextRecBufSize-1] of ansichar;
+  TTextBuf = TextBuf;
+
   { using packed makes the compiler to generate ugly code on some CPUs, further
     using packed causes the compiler to handle arrays of text wrongly, see  see tw0754 e.g. on arm  }
   TextRec = {$ifdef VER2_6} packed {$endif} Record
