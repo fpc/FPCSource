@@ -36,10 +36,10 @@ Const
 
 Uses nwserv;
 
-Function LoadLibrary(const Name : AnsiString) : TlibHandle;
-var args : array[0..1] of pchar;
+Function DoLoadLibrary(const Name : RawByteString) : TlibHandle;
+var args : array[0..1] of PAnsiChar;
 begin
-  args[0] := pchar(Name);
+  args[0] := PAnsiChar(Name);
   args[1] := nil;
   Result:=spawnvp(P_NOWAIT,@args,nil);
 end;

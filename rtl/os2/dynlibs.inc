@@ -41,13 +41,13 @@ threadvar
  DynLibErrNo: cardinal;
  DynLibErrPath: array [0..259] of char;
 
-function LoadLibrary (const Name: AnsiString): TLibHandle;
+function DoLoadLibrary (const Name: RawbyteString): TLibHandle;
 var
  Handle: longint;
 begin
  DynLibErrPath [0] := #0;
  DynLibErrNo := DosLoadModule (@DynLibErrPath [0], SizeOf (DynLibErrPath),
-                                                         PChar (Name), Handle);
+                                                         PAnsiChar (Name), Handle);
  if DynLibErrNo = 0 then
   Result := Handle
  else

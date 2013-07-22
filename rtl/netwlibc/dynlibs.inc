@@ -35,10 +35,10 @@ Const
 
 uses libc;
 
-Function LoadLibrary(const Name : AnsiString) : TLibHandle;
+Function DoLoadLibrary(const Name : RawByteString) : TLibHandle;
 
 begin
-  Result:=dlopen(Pchar(Name),RTLD_LAZY);
+  Result:=dlopen(PAnsiChar(Name),RTLD_LAZY);
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
