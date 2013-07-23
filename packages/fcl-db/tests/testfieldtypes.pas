@@ -33,11 +33,17 @@ type
   published
     procedure TestEmptyUpdateQuery; // bug 13654
     procedure TestParseJoins; // bug 10148
-    procedure TestDoubleFieldNames; // bug 8457
     procedure TestParseUnion; // bug 8442
-    procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestDoubleFieldNames; // bug 8457
     procedure TestNumericNames; // Bug9661
-    procedure TestApplyUpdFieldnames; // Bug 12275;
+    procedure TestApplyUpdFieldnames; // Bug 12275
+    procedure TestStringLargerThen8192;
+    procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestLargeRecordSize;
+    procedure TestClearUpdateableStatus;
+    procedure TestReadOnlyParseSQL; // bug 9254
+    procedure TestpfInUpdateFlag; // bug 7565
+    procedure TestAggregates;
     procedure TestServerFilter; // bug 15456
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
@@ -47,22 +53,18 @@ type
     procedure TestCircularParams;
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
-    procedure TestGetFieldNames;
-    procedure TestUpdateIndexDefs;
-    procedure TestMultipleFieldPKIndexDefs;
-    procedure TestGetIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
     procedure TestSetBlobAsStringParam;
     procedure TestNonNullableParams;
     procedure TestDblQuoteEscComments;
-    procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
     procedure TestOpenSpecialStatements;
 
     procedure TestTemporaryTable;
     procedure TestRefresh;
+    procedure TestQueryAfterReconnect; // bug 16438
 
     procedure TestParametersAndDates;
     procedure TestExceptOnsecClose;
@@ -73,7 +75,6 @@ type
     procedure TestBlobGetText;
     procedure TestBlobSize;
 
-    procedure TestLargeRecordSize;
     procedure TestInt;
     procedure TestTinyint;
     procedure TestNumeric;
@@ -99,17 +100,15 @@ type
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
-    procedure TestAggregates;
-
-    procedure TestStringLargerThen8192;
-    procedure TestQueryAfterReconnect; // bug 16438
 
     // SchemaType tests
     procedure TestTableNames;
-    procedure TestFieldNames;
-    procedure TestClearUpdateableStatus;
-    procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestGetTables;
+    procedure TestFieldNames;
+    procedure TestGetFieldNames;
+    procedure TestUpdateIndexDefs;
+    procedure TestMultipleFieldPKIndexDefs;
+    procedure TestGetIndexDefs;
 
     // Test SQL-field type recognition
     procedure TestSQLClob;
@@ -164,67 +163,6 @@ const
     '', #0, #0#1#2#3#4#5#6#7#8#9
   );
 
-
-procedure TTestFieldTypes.TestpfInUpdateFlag;
-var ds   : TCustomBufDataset;
-    AFld1, AFld2, AFld3 : Tfield;
-begin
-  ds := (DBConnector.GetNDataset(True,5) as TCustomBufDataset);
-  with ds do
-    begin
-    AFld1 := TIntegerField.Create(ds);
-    AFld1.FieldName := 'ID';
-    AFld1.DataSet := ds;
-    AFld1.ProviderFlags := AFld1.ProviderFlags + [pfInKey];
-
-    AFld2 := TStringField.Create(ds);
-    AFld2.FieldName := 'NAME';
-    AFld2.DataSet := ds;
-
-    AFld3 := TIntegerField.Create(ds);
-    AFld3.FieldName := 'CALCFLD';
-    AFld3.DataSet := ds;
-    Afld3.FieldKind := fkCalculated;
-    AFld3.ProviderFlags := [];  // do not include calculated fields into generated sql insert/update
-
-    Open;
-    Edit;
-    FieldByName('ID').AsInteger := 254;
-    Post;
-    ApplyUpdates;
-    Append;
-    FieldByName('ID').AsInteger := 255;
-    Post;
-    ApplyUpdates;
-    Close;
-    AFld1.Free;
-    AFld2.Free;
-    AFld3.Free;
-    end;
-end;
-
-procedure TTestFieldTypes.TestLargeRecordSize;
-
-begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
-
-  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).CommitDDL;
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    sql.clear;
-    sql.append('insert into FPDEV2 (plant,sampling_type,batch,sampling_datetime,status,batch_commentary) values (''ZUBNE PASTE'',''OTISCI POVR￿INA'',''000037756'',''2005-07-01'',''NE ODGOVARA'',''Ovdje se upisuje komentar o kontrolnom broju..............'')');
-    ExecSQL;
-
-    sql.clear;
-    sql.append('select * from FPDEV2');
-    open;
-    AssertEquals('ZUBNE PASTE',FieldByName('plant').AsString);
-    AssertEquals(EncodeDate(2005,07,01),FieldByName('sampling_datetime').AsDateTime);
-    close;
-    end;
-end;
 
 procedure TTestFieldTypes.CreateTableWithFieldType(ADatatype: TFieldType;
   ASQLTypeDecl: string);
@@ -1051,43 +989,6 @@ begin
 end;
 
 
-procedure TTestFieldTypes.TestAggregates;
-begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
-  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).CommitDDL;
-
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (1,1)');
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (2,3)');
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (3,4)');
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (4,4)');
-
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    sql.clear;
-    sql.append('select count(*) from FPDEV2');
-    open;
-    AssertEquals(4,Fields[0].AsInteger);
-    close;
-
-    sql.clear;
-    sql.append('select sum(FIELD1) from FPDEV2');
-    open;
-    AssertEquals(10,Fields[0].AsInteger);
-    close;
-
-    sql.clear;
-    sql.append('select avg(FIELD2) from FPDEV2');
-    open;
-    AssertEquals(3,Fields[0].AsInteger);
-    close;
-
-    end;
-
-end;
-
 procedure TTestFieldTypes.TestQueryAfterReconnect;
 var DS: TDataset;
 begin
@@ -1241,30 +1142,60 @@ begin
     end;
 end;
 
-procedure TTestFieldTypes.TestTableNames;
-var TableList : TStringList;
-    i         : integer;
+procedure TTestFieldTypes.TestInsertLargeStrFields;
+// See also: TestStringLargerThen8192
+const
+  FieldValue1='test1';
+var
+  FieldValue2: string;
 begin
-  TableList := TStringList.Create;
-  try
-    TSQLDBConnector(DBConnector).Connection.GetTableNames(TableList);
-    AssertTrue(TableList.Find('fpdev',i));
-  finally
-    TableList.Free;
-  end;
+  FieldValue2:=StringOfChar('t', 16000);
+  with TSQLDBConnector(DBConnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (  ' +
+                              '  ID INT NOT NULL ,   ' +
+                              '  NAME VARCHAR(16000),' +
+                              '  PRIMARY KEY (ID)    ' +
+                              ')                     ');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+
+    query.sql.Text:='select * from FPDEV2';
+    Query.Open;
+    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
+    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
+    Query.ApplyUpdates;
+    Query.Close;
+    Query.Open;
+    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
+    Query.Next;
+    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
+    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
+    Query.Close;
+    end;
 end;
 
-procedure TTestFieldTypes.TestFieldNames;
-var FieldList : TStringList;
-    i         : integer;
+procedure TTestFieldTypes.TestLargeRecordSize;
+
 begin
-  FieldList := TStringList.Create;
-  try
-    TSQLDBConnector(DBConnector).Connection.GetFieldNames('fpdev',FieldList);
-    AssertTrue(FieldList.Find('id',i));
-  finally
-    FieldList.Free;
-  end;
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
+
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('insert into FPDEV2 (plant,sampling_type,batch,sampling_datetime,status,batch_commentary) values (''ZUBNE PASTE'',''OTISCI POVR￿INA'',''000037756'',''2005-07-01'',''NE ODGOVARA'',''Ovdje se upisuje komentar o kontrolnom broju..............'')');
+    ExecSQL;
+
+    sql.clear;
+    sql.append('select * from FPDEV2');
+    open;
+    AssertEquals('ZUBNE PASTE',FieldByName('plant').AsString);
+    AssertEquals(EncodeDate(2005,07,01),FieldByName('sampling_datetime').AsDateTime);
+    close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
@@ -1491,6 +1422,81 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestpfInUpdateFlag;
+var ds   : TCustomBufDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+begin
+  ds := (DBConnector.GetNDataset(True,5) as TCustomBufDataset);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+    AFld1.ProviderFlags := AFld1.ProviderFlags + [pfInKey];
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    AFld3.FieldName := 'CALCFLD';
+    AFld3.DataSet := ds;
+    Afld3.FieldKind := fkCalculated;
+    AFld3.ProviderFlags := [];  // do not include calculated fields into generated sql insert/update
+
+    Open;
+    Edit;
+    FieldByName('ID').AsInteger := 254;
+    Post;
+    ApplyUpdates;
+    Append;
+    FieldByName('ID').AsInteger := 255;
+    Post;
+    ApplyUpdates;
+    Close;
+    AFld1.Free;
+    AFld2.Free;
+    AFld3.Free;
+    end;
+end;
+
+procedure TTestFieldTypes.TestAggregates;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).CommitDDL;
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (1,1)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (2,3)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (3,4)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (4,4)');
+
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('select count(*) from FPDEV2');
+    open;
+    AssertEquals(4,Fields[0].AsInteger);
+    close;
+
+    sql.clear;
+    sql.append('select sum(FIELD1) from FPDEV2');
+    open;
+    AssertEquals(10,Fields[0].AsInteger);
+    close;
+
+    sql.clear;
+    sql.append('select avg(FIELD2) from FPDEV2');
+    open;
+    AssertEquals(3,Fields[0].AsInteger);
+    close;
+
+    end;
+
+end;
+
 procedure TTestFieldTypes.TestParseJoins;
 begin
   with TSQLDBConnector(DBConnector) do
@@ -1506,6 +1512,21 @@ begin
       Open;
       AssertFalse(CanModify);
       Close;
+      end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestParseUnion;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select NAME from FPDEV where ID<5';
+      sql.Add('union');
+      sql.Add('select NAME from FPDEV where ID>5');
+      Open;
+      close;
       end;
     end;
 end;
@@ -1529,54 +1550,6 @@ begin
       AssertEquals('TestName1',fieldbyname('NAME_1').AsString);
       close;
       end;
-    end;
-end;
-
-procedure TTestFieldTypes.TestParseUnion;
-begin
-  with TSQLDBConnector(DBConnector) do
-    begin
-    with query do
-      begin
-      SQL.Text:='select NAME from FPDEV where ID<5';
-      sql.Add('union');
-      sql.Add('select NAME from FPDEV where ID>5');
-      Open;
-      close;
-      end;
-    end;
-end;
-
-procedure TTestFieldTypes.TestInsertLargeStrFields;
-// See also: TestStringLargerThen8192
-const
-  FieldValue1='test1';
-var
-  FieldValue2: string;
-begin
-  FieldValue2:=StringOfChar('t', 16000);
-  with TSQLDBConnector(DBConnector) do
-    begin
-    Connection.ExecuteDirect('create table FPDEV2 (  ' +
-                              '  ID INT NOT NULL ,   ' +
-                              '  NAME VARCHAR(16000),' +
-                              '  PRIMARY KEY (ID)    ' +
-                              ')                     ');
-    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
-
-    query.sql.Text:='select * from FPDEV2';
-    Query.Open;
-    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
-    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
-    Query.ApplyUpdates;
-    Query.Close;
-    Query.Open;
-    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
-    Query.Next;
-    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
-    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
-    Query.Close;
     end;
 end;
 
@@ -1853,43 +1826,6 @@ begin
   end;
 end;
 
-procedure TTestFieldTypes.TestGetFieldNames;
-var FieldNames : TStringList;
-begin
-  with TSQLDBConnector(DBConnector) do
-    begin
-    FieldNames := TStringList.Create;
-    try
-      if SQLConnType in MySQLConnTypes then
-        Connection.GetFieldNames('FPDEV',FieldNames)
-      else
-        Connection.GetFieldNames('fpDEv',FieldNames);
-      AssertEquals(2,FieldNames.Count);
-      AssertEquals('ID',UpperCase(FieldNames[0]));
-      AssertEquals('NAME',UpperCase(FieldNames[1]));
-    finally
-      FieldNames.Free;
-      end;
-    end;
-end;
-
-procedure TTestFieldTypes.TestGetTables;
-var TableNames : TStringList;
-begin
-  with TSQLDBConnector(DBConnector) do
-    begin
-    TableNames := TStringList.Create;
-    try
-      Connection.GetTableNames(TableNames);
-      AssertTrue(TableNames.Count>0);
-      AssertTrue(TableNames.IndexOf('FPDEV')>-1);
-      AssertTrue(TableNames.IndexOf('FPDEV_FIELD')>-1);
-    finally
-      TableNames.Free;
-      end;
-    end;
-end;
-
 procedure TTestFieldTypes.TestSQLFieldType(ADatatype : TFieldType; ASQLTypeDecl : string; ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc; ACheckFieldValueProc: TCheckFieldValueProc);
 var
   i          : byte;
@@ -2104,6 +2040,70 @@ begin
   end;
   TestSQLFieldType(ftFloat, datatype, sizeof(double), @TestSQLReal_GetSQLText, @CheckFieldValue);
 end;
+
+procedure TTestFieldTypes.TestTableNames;
+var TableList : TStringList;
+    i         : integer;
+begin
+  TableList := TStringList.Create;
+  try
+    TSQLDBConnector(DBConnector).Connection.GetTableNames(TableList);
+    AssertTrue(TableList.Find('fpdev',i));
+  finally
+    TableList.Free;
+  end;
+end;
+
+procedure TTestFieldTypes.TestGetTables;
+var TableNames : TStringList;
+begin
+  with TSQLDBConnector(DBConnector) do
+  begin
+    TableNames := TStringList.Create;
+    try
+      Connection.GetTableNames(TableNames);
+      AssertTrue(TableNames.Count>0);
+      AssertTrue(TableNames.IndexOf('FPDEV')>-1);
+      AssertTrue(TableNames.IndexOf('FPDEV_FIELD')>-1);
+    finally
+      TableNames.Free;
+    end;
+  end;
+end;
+
+procedure TTestFieldTypes.TestFieldNames;
+var FieldList : TStringList;
+    i         : integer;
+begin
+  FieldList := TStringList.Create;
+  try
+    TSQLDBConnector(DBConnector).Connection.GetFieldNames('fpdev',FieldList);
+    AssertTrue(FieldList.Find('id',i));
+  finally
+    FieldList.Free;
+  end;
+end;
+
+procedure TTestFieldTypes.TestGetFieldNames;
+var FieldNames : TStringList;
+begin
+  with TSQLDBConnector(DBConnector) do
+  begin
+    FieldNames := TStringList.Create;
+    try
+      if SQLConnType in MySQLConnTypes then
+        Connection.GetFieldNames('FPDEV',FieldNames)
+      else
+        Connection.GetFieldNames('fpDEv',FieldNames);
+      AssertEquals(2,FieldNames.Count);
+      AssertEquals('ID',UpperCase(FieldNames[0]));
+      AssertEquals('NAME',UpperCase(FieldNames[1]));
+    finally
+      FieldNames.Free;
+    end;
+  end;
+end;
+
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
 var ds : TSQLQuery;
