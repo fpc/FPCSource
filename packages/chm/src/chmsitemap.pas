@@ -12,13 +12,13 @@
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 {
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
-unit chmsitemap; 
+unit chmsitemap;
 
 {$mode objfpc}{$H+}
 
@@ -26,11 +26,11 @@ interface
 
 uses
   Classes, SysUtils, fasthtmlparser;
-  
+
 type
   TChmSiteMapItems = class; // forward
   TChmSiteMap = class;
-  
+
   { TChmSiteMapItem }
 
   TChmSiteMapItem = class(TPersistent)
@@ -45,6 +45,9 @@ type
     FSeeAlso: String;
     FText: String;
     FURL: String;
+    FMerge : String;
+    FFrameName : String;
+    FWindowName : String;
     procedure SetChildren(const AValue: TChmSiteMapItems);
   public
     constructor Create(AOwner: TChmSiteMapItems);
@@ -60,10 +63,11 @@ type
     property IncreaseImageIndex: Boolean read FIncreaseImageIndex write FIncreaseImageIndex;
     property Comment: String read FComment write FComment;
     property Owner: TChmSiteMapItems read FOwner;
-    //property FrameName: String read FFrameName write FFrameName;
-    //property WindowName: String read FWindowName write FWindowName;
-    //property Type_: Integer read FType_ write FType_; either Local or URL
-    //property Merge: Boolean read FMerge write FMerge;
+
+    property FrameName: String read FFrameName write FFrameName;
+    property WindowName: String read FWindowName write FWindowName;
+//    property Type_: Integer read FType_ write FType_; either Local or URL
+    property Merge: String read FMerge write FMerge;
   end;
 
   { TChmSiteMapItems }
@@ -194,6 +198,7 @@ var
   //TagAttribute,
   TagAttributeName,
   TagAttributeValue: String;
+  isParam,IsMerged : string;
 begin
   //WriteLn('TAG:', AActualTag);
   TagName := GetTagName(ACaseInsensitiveTag);
@@ -241,40 +246,77 @@ begin
          end;
        end
        else begin // we are the properties of the object tag
-         if (FLevel > 0 ) and (smbtOBJECT in FSiteMapBodyTags) then begin
+         if (smbtOBJECT in FSiteMapBodyTags) then
+           begin
+            if (FLevel > 0 ) then 
+             begin
 
-           if LowerCase(GetTagName(AActualTag)) = 'param' then begin
+              if LowerCase(GetTagName(AActualTag)) = 'param' then begin
 
-             TagAttributeName := GetVal(AActualTag, 'name');
-             TagAttributeValue := GetVal(AActualTag, 'value');
-
-             if TagAttributeName <> '' then begin
-               if CompareText(TagAttributeName, 'keyword') = 0 then begin
-                 ActiveItem.Text := TagAttributeValue;
-               end
-               else if CompareText(TagAttributeName, 'name') = 0 then begin
-                 if ActiveItem.Text = '' then ActiveItem.Text := TagAttributeValue;
-               end
-               else if CompareText(TagAttributeName, 'local') = 0 then begin
-                 ActiveItem.Local := TagAttributeValue;
-               end
-               else if CompareText(TagAttributeName, 'URL') = 0 then begin
-                 ActiveItem.URL := TagAttributeValue;
-               end
-               else if CompareText(TagAttributeName, 'ImageNumber') = 0 then begin
-                 ActiveItem.ImageNumber := StrToInt(TagAttributeValue);
-               end
-               else if CompareText(TagAttributeName, 'New') = 0 then begin
-                 ActiveItem.IncreaseImageIndex := (LowerCase(TagAttributeValue) = 'yes');
-               end
-               else if CompareText(TagAttributeName, 'Comment') = 0 then begin
-                 ActiveItem.Comment := TagAttributeValue;
-               end;
-               //else if CompareText(TagAttributeName, '') = 0 then begin
-               //end;
+                TagAttributeName := GetVal(AActualTag, 'name');
+                TagAttributeValue := GetVal(AActualTag, 'value');
+                //writeln('name,value',tagattributename, ' ',tagattributevalue);
+                if TagAttributeName <> '' then begin
+                  if CompareText(TagAttributeName, 'keyword') = 0 then begin
+                    ActiveItem.Text := TagAttributeValue;
+                  end
+                  else if CompareText(TagAttributeName, 'name') = 0 then begin
+                    if ActiveItem.Text = '' then ActiveItem.Text := TagAttributeValue;
+                  end
+                  else if CompareText(TagAttributeName, 'local') = 0 then begin
+                    ActiveItem.Local := TagAttributeValue;
+                  end
+                  else if CompareText(TagAttributeName, 'URL') = 0 then begin
+                    ActiveItem.URL := TagAttributeValue;
+                  end
+                  else if CompareText(TagAttributeName, 'ImageNumber') = 0 then begin
+                    ActiveItem.ImageNumber := StrToInt(TagAttributeValue);
+                  end
+                  else if CompareText(TagAttributeName, 'New') = 0 then begin
+                    ActiveItem.IncreaseImageIndex := (LowerCase(TagAttributeValue) = 'yes');
+                  end
+                  else if CompareText(TagAttributeName, 'Comment') = 0 then begin
+                    ActiveItem.Comment := TagAttributeValue
+                  end
+                  else if CompareText(TagAttributeName, 'Merge') = 0 then begin
+                    ActiveItem.Merge:= TagAttributeValue
+                  end;
+                  //else if CompareText(TagAttributeName, '') = 0 then begin
+                  //end;
+                end;
+              end;
+            end
+           else
+             begin // object and level is zero?
+               if LowerCase(GetTagName(AActualTag)) = 'param' then begin
+                 begin
+                   TagAttributeName := uppercase(GetVal(AActualTag, 'name'));
+                   TagAttributeValue := GetVal(AActualTag, 'value');
+                   if TagAttributeName = 'FRAMENAME' then
+                     framename:=TagAttributeValue
+                   else
+                     if TagAttributeName = 'WINDOWNAME' then
+                       WINDOWname:=TagAttributeValue
+                   else
+                     if TagAttributeName = 'WINDOW STYLES' then
+                       WindowStyles:=StrToIntDef(TagAttributeValue,0)
+                   else
+                     if TagAttributeName = 'EXWINDOW STYLES' then
+                       ExWindowStyles:=StrToIntDef(TagAttributeValue,0)
+                   else
+                     if TagAttributeName = 'FONT' then
+                       FONT:=TagAttributeValue
+                   else
+                     if TagAttributeName = 'IMAGELIST' then
+                      IMAGELIST:=TagAttributeValue
+                    else
+                     if TagAttributeName = 'IMAGETYPE' then
+                      UseFolderImages:=uppercase(TagAttributeValue)='FOLDER';
+                  // writeln('0:',flevel,' ' ,aactualtag,' ',tagname,' ' ,tagattributename, ' ' ,tagattributevalue);
+                 end;
+                 end;
              end;
-           end;
-         end;
+          end;
        end;
      end;
   //end
@@ -346,7 +388,7 @@ begin
     fs.free;
     end;
 end;
-                    
+
 procedure TChmSiteMap.SaveToStream(AStream: TStream);
 var
   Indent: Integer;
@@ -407,7 +449,7 @@ begin
   WriteString('<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">');  // Should we change this?
   WriteString('<!-- Sitemap 1.0 -->');
   WriteString('</HEAD><BODY>');
-  
+
   // Site Properties
   WriteString('<OBJECT type="text/site properties">');
   Inc(Indent, 8);

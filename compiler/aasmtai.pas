@@ -568,12 +568,16 @@ interface
           constructor Create_uleb128bit(_value : qword);
           constructor Create_aint(_value : aint);
           constructor Create_pint(_value : pint);
+          constructor Create_pint_unaligned(_value : pint);
           constructor Create_sym(_sym:tasmsymbol);
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
+          constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:aint);
+          constructor Create_nil_codeptr;
+          constructor Create_nil_dataptr;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1606,6 +1610,17 @@ implementation
       end;
 
 
+    constructor tai_const.Create_pint_unaligned(_value: pint);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_ptr_unaligned;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
     constructor tai_const.Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
       begin
          inherited Create;
@@ -1631,11 +1646,23 @@ implementation
          inherited Create;
          typ:=ait_const;
 {$ifdef i8086}
-         if current_settings.x86memorymodel in x86_far_code_models then
-           consttype:=aitconst_farptr
+         if assigned(_sym) and (_sym.typ=AT_DATA) then
+           begin
+             if current_settings.x86memorymodel in x86_far_data_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end
          else
+           begin
+             if current_settings.x86memorymodel in x86_far_code_models then
+               consttype:=aitconst_farptr
+             else
+               consttype:=aitconst_ptr;
+           end;
+{$else i8086}
+         consttype:=aitconst_ptr;
 {$endif i8086}
-           consttype:=aitconst_ptr;
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
@@ -1668,6 +1695,47 @@ implementation
     constructor tai_const.Createname(const name:string;ofs:aint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name),ofs);
+      end;
+
+
+    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;ofs:aint);
+      begin
+         self.create_sym_offset(current_asmdata.RefAsmSymbol(name),ofs);
+         consttype:=_typ;
+      end;
+
+
+    constructor tai_const.Create_nil_codeptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
+      end;
+
+
+    constructor tai_const.Create_nil_dataptr;
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=0;
       end;
 
 

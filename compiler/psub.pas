@@ -449,7 +449,7 @@ implementation
                       begin
                         { if vmt>1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create(gtn,
+                            caddnode.create_internal(gtn,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
@@ -1024,10 +1024,6 @@ implementation
               end;
           end;
 {$endif defined(x86) or defined(arm)}
-{$ifdef MIPS}
-        framepointer:=NR_STACK_POINTER_REG;
-        tg.direction:=1;
-{$endif MIPS}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;
@@ -1821,8 +1817,10 @@ implementation
         if tsym(p).typ<>paravarsym then
          exit;
         with tparavarsym(p) do
-          if is_managed_type(vardef) and
-             (varspez in [vs_value,vs_out]) then
+          if (is_managed_type(vardef) and
+             (varspez in [vs_value,vs_out])) or
+             (is_shortstring(vardef) and
+             (varspez=vs_value)) then
             include(current_procinfo.flags,pi_do_call);
       end;
 

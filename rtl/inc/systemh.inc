@@ -330,6 +330,8 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
   CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -342,6 +344,8 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
   CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU32}
 
 {$ifdef CPU16}
@@ -356,10 +360,16 @@ Type
   {$endif}
   {$if defined(FPC_X86_CODE_FAR)}
     CodePointer = FarPointer;
+    CodePtrInt = Longint;
+    CodePtrUInt = DWord;
   {$elseif defined(FPC_X86_CODE_NEAR)}
     CodePointer = NearPointer;
+    CodePtrInt = Integer;
+    CodePtrUInt = Word;
   {$else}
     CodePointer = Pointer;
+    CodePtrInt = PtrInt;
+    CodePtrUInt = PtrUInt;
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
@@ -588,8 +598,8 @@ const
 {$endif cpui386}
 {$ifdef cpui8086}
   { will be detected at startup }
-  { 0=8086, 1=80286, 2=80386 }
-  Test8086 : byte = 0;
+  { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
+  Test8086 : byte = 0; public name '__Test8086';
   { Always 387 or newer. Emulated if needed. }
   Test8087 : byte = 3;
   { will be detected at startup }
@@ -889,10 +899,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$ifdef FPC_HAS_INTERNAL_SAR}
 
-{$if defined(cpux86_64) or defined(cpui386)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
 {$define FPC_HAS_INTERNAL_SAR_BYTE}
 {$define FPC_HAS_INTERNAL_SAR_WORD}
-{$endif defined(cpux86_64) or defined(cpui386)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
 { $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
@@ -1332,7 +1342,7 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
+Procedure Dump_Stack(var f : text;fp:pointer;addr : pointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

@@ -143,7 +143,10 @@ interface
          ti_readonly,
          { if this is a managed temp, it doesn't have to be finalised before use
          }
-         ti_nofini
+         ti_nofini,
+         { the value described by this temp. node is const/immutable, this is important for
+           managed types like ansistrings where temp. refs are pointers to the actual value }
+         ti_const
          );
        ttempinfoflags = set of ttempinfoflag;
 

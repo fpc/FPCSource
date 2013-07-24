@@ -43,8 +43,6 @@ unit cpunode;
        ncgset,
        ncgopt,
        ncgobjc,
-       // n386con,n386flw,n386mat,n386mem,
-       // n386set,n386inl,n386opt,
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
        nx86set,
@@ -57,7 +55,8 @@ unit cpunode;
 {$ifndef DISABLE_WIN64_SEH}
        nx64flw,
 {$endif DISABLE_WIN64_SEH}
-       nx64inl
+       nx64inl,
+       nx64set
        ;
 
 end.

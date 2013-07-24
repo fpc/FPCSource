@@ -1295,8 +1295,14 @@ implementation
                     not(is_void(p.resultdef)) and
                     { can be nil in case there was an error in the expression }
                     assigned(tcallnode(p).procdefinition) and
-                    not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                        is_object(tprocdef(tcallnode(p).procdefinition).struct)) then
+                    { allow constructor calls to drop the result if they are
+                      called as instance methods instead of class methods }
+                    not(
+                      (tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                      is_class_or_object(tprocdef(tcallnode(p).procdefinition).struct) and
+                      assigned(tcallnode(p).methodpointer) and
+                      (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
+                    ) then
                    Message(parser_e_illegal_expression);
                end;
              code:=p;

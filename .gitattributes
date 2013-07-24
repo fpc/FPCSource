@@ -798,6 +798,7 @@ compiler/x86_64/nx64cnv.pas svneol=native#text/plain
 compiler/x86_64/nx64flw.pas svneol=native#text/plain
 compiler/x86_64/nx64inl.pas svneol=native#text/plain
 compiler/x86_64/nx64mat.pas svneol=native#text/plain
+compiler/x86_64/nx64set.pas svneol=native#text/plain
 compiler/x86_64/r8664ari.inc svneol=native#text/plain
 compiler/x86_64/r8664att.inc svneol=native#text/plain
 compiler/x86_64/r8664con.inc svneol=native#text/plain
@@ -1974,6 +1975,8 @@ packages/fcl-base/texts/fptemplate.txt svneol=native#text/plain
 packages/fcl-db/Makefile svneol=native#text/plain
 packages/fcl-db/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-db/examples/dbftool.lpi svneol=native#text/plain
+packages/fcl-db/examples/dbftool.lpr svneol=native#text/plain
 packages/fcl-db/examples/fbadmindemo.pp svneol=native#text/plain
 packages/fcl-db/examples/fbeventstest.pp svneol=native#text/plain
 packages/fcl-db/examples/loadlibdemo.lpi svneol=native#text/plain
@@ -10005,6 +10008,7 @@ tests/tbs/tb0593.pp svneol=native#text/pascal
 tests/tbs/tb0594.pp svneol=native#text/plain
 tests/tbs/tb0595.pp svneol=native#text/plain
 tests/tbs/tb0596.pp svneol=native#text/pascal
+tests/tbs/tb0597.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/tbs0594.pp svneol=native#text/pascal
 tests/tbs/ub0060.pp svneol=native#text/plain
@@ -10298,10 +10302,13 @@ tests/test/cg/obj/win32/i386/tcext3.o -text
 tests/test/cg/obj/win32/i386/tcext4.o -text
 tests/test/cg/obj/win32/i386/tcext5.o -text
 tests/test/cg/obj/win32/i386/tcext6.o -text
+tests/test/cg/obj/win64/x86_64/cpptcl1.o -text
+tests/test/cg/obj/win64/x86_64/cpptcl2.o -text
 tests/test/cg/obj/win64/x86_64/ctest.o -text svneol=unset#unset
 tests/test/cg/obj/win64/x86_64/tcext3.o -text svneol=unset#unset
 tests/test/cg/obj/win64/x86_64/tcext4.o -text svneol=unset#unset
 tests/test/cg/obj/win64/x86_64/tcext5.o -text svneol=unset#unset
+tests/test/cg/obj/win64/x86_64/tcext6.o -text
 tests/test/cg/obj/wince/arm/ctest.o -text
 tests/test/cg/obj/wince/arm/tcext3.o -text
 tests/test/cg/obj/wince/arm/tcext4.o -text
@@ -10619,6 +10626,9 @@ tests/test/cg/variants/tvarol9.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol91.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol94.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
+tests/test/cpu16/i8086/tfarptr1.pp svneol=native#text/pascal
+tests/test/cpu16/i8086/tfarptr2.pp svneol=native#text/pascal
+tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal
 tests/test/dumpclass.pp svneol=native#text/plain
 tests/test/dumpmethods.pp svneol=native#text/plain
@@ -13137,6 +13147,7 @@ tests/webtbs/tw17550.pp svneol=native#text/plain
 tests/webtbs/tw17560.pp svneol=native#text/plain
 tests/webtbs/tw1758.pp svneol=native#text/plain
 tests/webtbs/tw17591.pp svneol=native#text/plain
+tests/webtbs/tw17598.pp svneol=native#text/pascal
 tests/webtbs/tw17604.pp svneol=native#text/plain
 tests/webtbs/tw17646.pp svneol=native#text/plain
 tests/webtbs/tw1765.pp svneol=native#text/plain
@@ -13493,6 +13504,8 @@ tests/webtbs/tw2438.pp svneol=native#text/plain
 tests/webtbs/tw2442.pp svneol=native#text/plain
 tests/webtbs/tw2452.pp svneol=native#text/plain
 tests/webtbs/tw2454.pp svneol=native#text/plain
+tests/webtbs/tw24651.pp svneol=native#text/pascal
+tests/webtbs/tw24705.pp svneol=native#text/pascal
 tests/webtbs/tw2473.pp svneol=native#text/plain
 tests/webtbs/tw2480.pp svneol=native#text/plain
 tests/webtbs/tw2481.pp svneol=native#text/plain
@@ -13701,6 +13714,8 @@ tests/webtbs/tw3320.pp svneol=native#text/plain
 tests/webtbs/tw3324.pp svneol=native#text/plain
 tests/webtbs/tw3327.pp svneol=native#text/plain
 tests/webtbs/tw3328.pp svneol=native#text/plain
+tests/webtbs/tw3328a.pp svneol=native#text/plain
+tests/webtbs/tw3328b.pp svneol=native#text/plain
 tests/webtbs/tw3334.pp svneol=native#text/plain
 tests/webtbs/tw3340.pp svneol=native#text/plain
 tests/webtbs/tw3348.pp svneol=native#text/plain

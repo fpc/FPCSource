@@ -213,7 +213,7 @@ const
       LANG_FRENCH     or (SUBLANG_FRENCH_CANADIAN      shl 10) or (SORT_DEFAULT shl 16),
 {1E}  0,
 {1F}  LANG_CZECH      or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),
-      LANG_CZECH      or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),
+      0 {Used to be LANG_CZECH in previous versions but DBase IV tables show no support here.},
 {21}  0,
 {22}  LANG_HUNGARIAN  or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),
       LANG_POLISH     or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),
@@ -231,7 +231,7 @@ const
       LANG_THAI       or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),
 {51}  0,0,0,0,0,
 {56}  LANG_JAPANESE   or (SUBLANG_DEFAULT              shl 10) or (SORT_DEFAULT shl 16),    // JPN: Dic932 ??
-      0,                                                                                    // Ascii: Binary
+{57}  0, // ANSI/ASCII binary (interpret e.g. as ISO 8859_1 depending on client}
       LANG_ENGLISH    or (SUBLANG_ENGLISH_UK           shl 10) or (SORT_DEFAULT shl 16),    // Western Europe ??
       LANG_SPANISH    or (SUBLANG_SPANISH              shl 10) or (SORT_DEFAULT shl 16),
 {5A}  0,0,0,0,

@@ -41,9 +41,6 @@ interface
       intregssave,
       floatregssave : byte;
       register_used : tparasupregsused;
-      register_size : tparasupregsize;
-      register_name : tparasuprename;
-      register_offset : tparasupregsoffset;
       computed_local_size : longint;
       save_gp_ref: treference;
       //intparareg,
@@ -66,20 +63,12 @@ implementation
       tgobj,paramgr,symconst;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
-      var
-        i : longint;
       begin
         inherited create(aparent);
         { if (cs_generate_stackframes in current_settings.localswitches) or
            not (cs_opt_stackframe in current_settings.optimizerswitches) then }
           include(flags,pi_needs_stackframe);
-        for i:=low(tparasupregs)  to high(tparasupregs) do
-          begin
-            register_used[i]:=false;
-            register_size[i]:=OS_NO;
-            register_name[i]:='invalid';
-            register_offset[i]:=-1;
-          end;
+
         floatregssave:=12; { f20-f31 }
         intregssave:=10;   { r16-r23,r30,r31 }
         computed_local_size:=-1;
@@ -116,7 +105,10 @@ implementation
           also declared as nostackframe and everything is managed manually. }
         if (pi_do_call in flags) or
            ((pi_is_assembler in flags) and not (po_nostackframe in procdef.procoptions)) then
-          allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          begin
+            include(flags,pi_do_call);   // for pi_is_assembler case
+            allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          end;
 
         if not (po_nostackframe in procdef.procoptions) then
           tg.setfirsttemp(Align(maxpushedparasize+

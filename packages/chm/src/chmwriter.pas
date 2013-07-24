@@ -11,8 +11,8 @@
   for more details.
 
   You should have received a copy of the GNU Library General Public License
-  along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  along with this library; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02111-1301, USA.
 }
 {
   See the file COPYING.FPC, included in this distribution,
@@ -23,7 +23,7 @@ unit chmwriter;
 { $DEFINE LZX_USETHREADS}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
 
 Const
    DefaultHHC = 'Default.hhc';
@@ -147,11 +147,13 @@ Type
     FURLSTRStream: TMemoryStream;  // the #URLSTR file
     FFiftiMainStream: TMemoryStream;
     FContextStream: TMemoryStream; // the #IVB file
+    FIDXHdrStream : TMemoryStream; // the #IDXHDR and chunk 13 in #SYSTEM
     FTitle: String;
     FHasTOC: Boolean;
     FHasIndex: Boolean;
     FIndexedFiles: TIndexedWordList;
     FAvlStrings   : TAVLTree;    // dedupe strings
+    FAVLTopicdedupe : TAVlTree;  // Topic deduping, if we load it both from hhp and TOC
     FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
     SpareString   : TStringIndex;
     SpareUrlStr   : TUrlStrIndex;
@@ -159,6 +161,10 @@ Type
     FDefaultWindow: String;
     FTocName      : String;
     FIndexName    : String;
+    FMergeFiles   : TStringList;
+    FTocSM        : TCHMSitemap;
+    FHasKLinks    : Boolean;
+    FNrTopics     : Integer;
   protected
     procedure FileAdded(AStream: TStream; const AEntry: TFileEntryRec); override;
   private
@@ -170,6 +176,8 @@ Type
     procedure WriteSTRINGS;
     procedure WriteTOPICS;
     procedure WriteIVB; // context ids
+    procedure CreateIDXHDRStream;
+    procedure WriteIDXHDR;
     procedure WriteURL_STR_TBL;
     procedure WriteOBJINST;
     procedure WriteFiftiMain;
@@ -178,10 +186,11 @@ Type
     function AddString(AString: String): LongWord;
     function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
-    function AddTopic(ATitle,AnUrl:AnsiString):integer;
+    function AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
+    procedure ScanSitemap(asitemap:TCHMSiteMap);
     function NextTopicIndex: Integer;
     procedure Setwindows (AWindowList:TObjectList);
-
+    procedure SetMergefiles(src:TStringList);
   public
     constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
@@ -193,6 +202,7 @@ Type
     procedure AppendIndex(AStream: TStream);
     procedure AppendSearchDB(AName: String; AStream: TStream);
     procedure AddContext(AContext: DWord; ATopic: String);
+    procedure AddDummyALink;
 
     property Title: String read FTitle write FTitle;
     property FullTextSearch: Boolean read FFullTextSearch write FFullTextSearch;
@@ -205,6 +215,8 @@ Type
     property TOCName : String read FTocName write FTocName;
     property IndexName : String read FIndexName write FIndexName;
     property DefaultWindow : string read fdefaultwindow write fdefaultwindow;
+    property MergeFiles :TStringList read FMergeFiles write setmergefiles;
+    property Tocsitemap :TChmSitemap read ftocsm write ftocsm;
   end;
 
 Function CompareStrings(Node1, Node2: Pointer): integer; // also used in filewriter
@@ -932,7 +944,7 @@ begin
 end;
 
 
-procedure TChmWriter.WriteSystem;
+procedure TChmWriter.WriteSYSTEM;
 var
   Entry: TFileEntryRec;
   TmpStr: String;
@@ -940,7 +952,6 @@ var
 const
   VersionStr = 'HHA Version 4.74.8702'; // does this matter?
 begin
-
 
   // this creates the /#SYSTEM file
   Entry.Name := '#SYSTEM';
@@ -977,10 +988,11 @@ begin
   FSection0.WriteWord(NToLE(Word(36))); // size
 
   FSection0.WriteDWord(NToLE(DWord($0409)));
-  FSection0.WriteDWord(1);
+  FSection0.WriteDWord(0);
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch and FFullTextSearchAvailable))));
-  FSection0.WriteDWord(0);
-  FSection0.WriteDWord(0);
+
+  FSection0.WriteDWord(NToLE(Dword(Ord(FHasKLinks))) ); // klinks
+  FSection0.WriteDWord(0); // alinks
 
   // two for a QWord
   FSection0.WriteDWord(0);
@@ -988,8 +1000,6 @@ begin
 
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
-
-
 
 
   ////////////////////////<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1077,6 +1087,14 @@ begin
   end;
 
 
+  // 13
+  if FIDXHdrStream.size>0 then
+  begin
+    FSection0.WriteWord(NToLE(Word(13)));
+    FSection0.WriteWord(NToLE(Word(FIDXHdrStream.size)));
+    FSection0.copyfrom(FIDXHdrStream,0);
+  end;
+
   Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
   FInternalFiles.AddEntry(Entry);
 end;
@@ -1104,16 +1122,27 @@ begin
 end;
 
 procedure TChmWriter.WriteTOPICS;
-//var
-  //FHits: Integer;
 begin
   if FTopicsStream.Size = 0 then
     Exit;
+  if tocname<>'' then
+    AddTopic('',self.TOCName,2);
+  if indexname<>'' then
+    AddTopic('',self.IndexName,2);
+
   FTopicsStream.Position := 0;
   PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
  // I commented the code below since the result seemed unused
  // FHits:=0;
  //   FIndexedFiles.ForEach(@IterateWord,FHits);
+end;
+
+procedure TChmWriter.WriteIDXHDR;
+begin
+  if FIDXHdrStream.Size = 0 then
+    Exit;
+  FIDXHdrStream.Position := 0;
+  PostAddStreamToArchive('#IDXHDR', '/', FIDXHdrStream);
 end;
 
 procedure TChmWriter.WriteIVB;
@@ -1126,6 +1155,98 @@ begin
 
   FContextStream.Position := 0;
   AddStreamToArchive('#IVB', '/', FContextStream);
+end;
+
+const idxhdrmagic ='T#SM';
+
+procedure TChmWriter.CreateIDXHDRStream;
+var i : Integer;
+begin
+   if fmergefiles.count=0 then  // I assume text/site properties could also trigger idxhdr
+     exit;
+
+   FIDXHdrStream.setsize(4096);
+   FIDXHdrStream.position:=0;
+   FIDXHdrStream.write(idxhdrmagic[1],4);     //  0 Magic
+   FIDXHdrStream.writedword(ntole(1));        //  4 Unknown timestamp/checksum
+   FIDXHdrStream.writedword(ntole(1));        //  8 1 (unknown)
+   FIDXHdrStream.writedword(ntole(FNrTopics));        //  C Number of topic nodes including the contents & index files
+   FIDXHdrStream.writedword(ntole(0));        // 10 0 (unknown)
+
+   // 14 Offset in the #STRINGS file of the ImageList param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+   if assigned(ftocsm) and (ftocsm.ImageList<>'') then
+     FIDXHdrStream.writedwordLE(addstring(ftocsm.ImageList))
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 18 0 (unknown)
+   FIDXHdrStream.writedwordLE(0);
+
+   // 1C 1 if the value of the ImageType param of the "text/site properties" object of the sitemap contents is Folder. 0 otherwise.
+   if assigned(ftocsm) and (ftocsm.UseFolderImages) then
+     FIDXHdrStream.writedwordLE(1)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 20 The value of the Background param of the "text/site properties" object of the sitemap contents
+   if assigned(ftocsm) then
+     FIDXHdrStream.writedwordLE(ftocsm.Backgroundcolor)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 24 The value of the Foreground param of the "text/site properties" object of the sitemap contents
+   if assigned(ftocsm) then
+     FIDXHdrStream.writedwordLE(ftocsm.Foregroundcolor)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 28 Offset in the #STRINGS file of the Font param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+   if assigned(ftocsm) and (ftocsm.Font<>'') then
+     FIDXHdrStream.writedwordLE(addstring(ftocsm.font))
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 2C The value of the Window Styles param of the "text/site properties" object of the sitemap contents
+   if assigned(ftocsm) then
+     FIDXHdrStream.writedwordLE(FTocsm.WindowStyles)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 30 The value of the EXWindow Styles param of the "text/site properties" object of the sitemap contents
+   if assigned(ftocsm) then
+     FIDXHdrStream.writedwordLE(FTocSm.ExWindowStyles)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 34 Unknown. Often -1. Sometimes 0.
+   FIDXHdrStream.writedwordLE(0);
+
+   // 38 Offset in the #STRINGS file of the FrameName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+   if assigned(ftocsm) and (ftocsm.framename<>'') then
+     FIDXHdrStream.writedwordLE(addstring(FTocsm.Framename))
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   // 3C Offset in the #STRINGS file of the WindowName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+   if assigned(ftocsm) and (ftocsm.windowname<>'') then
+     FIDXHdrStream.writedwordLE(addstring(FTocsm.windowname))
+   else
+     FIDXHdrStream.writedwordLE(0);
+   FIDXHdrStream.writedword(ntole(0));        // 40 Number of information types.
+   FIDXHdrStream.writedword(ntole(0));        // 44 Unknown. Often 1. Also 0, 3.
+   FIDXHdrStream.writedword(ntole(fmergefiles.count));        // 48 Number of files in the [MERGE FILES] list.
+
+   // 4C Unknown. Often 0. Non-zero mostly in files with some files in the merge files list.
+   if fmergefiles.count>0 then
+     FIDXHdrStream.writedwordLE(1)
+   else
+     FIDXHdrStream.writedwordLE(0);
+
+   for i:=0 to FMergefiles.count-1 do
+     FIDXHdrStream.WriteDword(addstring(fmergefiles[i]));
+
+   for i:=0 to 1004-fmergefiles.count-1 do
+    FIDXHdrStream.WriteDword(0);
 end;
 
 procedure TChmWriter.WriteURL_STR_TBL;
@@ -1295,8 +1416,8 @@ begin
       for i:=0 to FWindows.Count-1 Do
         begin
           Win:=TChmWindow(FWindows[i]);
-          WindowStream.WriteDword(NToLE(dword(196 )));                   //  0 size of entry.
-          WindowStream.WriteDword(NToLE(dword(0 )));                     //  4 unknown (bool Unicodestrings?)
+          WindowStream.WriteDwordLE (196);                               //  0 size of entry.
+          WindowStream.WriteDwordLE (0);                                 //  4 unknown (bool Unicodestrings?)
           WindowStream.WriteDword(NToLE(addstring(win.window_type )));   //  8 Arg 0, name of window
           WindowStream.WriteDword(NToLE(dword(win.flags )));             //  C valid fields
           WindowStream.WriteDword(NToLE(dword(win.nav_style)));          // 10 arg 10 navigation pane style
@@ -1353,6 +1474,8 @@ begin
   WriteITBITS;
   // This creates and writes the #SYSTEM file to section0
   WriteSystem;
+  if Assigned(FTocSM)  then
+   Scansitemap(FTocSM);
 end;
 
 procedure TChmWriter.WriteFinalCompressedFiles;
@@ -1360,8 +1483,10 @@ begin
   inherited WriteFinalCompressedFiles;
   WriteTOPICS;
   WriteURL_STR_TBL;
-  WriteSTRINGS;
   WriteWINDOWS;
+  CreateIDXHDRStream;
+  WriteIDXHDR;
+  WriteSTRINGS;
   WriteFiftiMain;
 end;
 
@@ -1388,30 +1513,38 @@ begin
   FURLTBLStream := TMemoryStream.Create;
   FFiftiMainStream := TMemoryStream.Create;
   FIndexedFiles := TIndexedWordList.Create;
+  FAVLTopicdedupe  :=TAVLTree.Create(@CompareStrings);  // dedupe filenames in topics.
   FAvlStrings   := TAVLTree.Create(@CompareStrings);    // dedupe strings
   FAvlURLStr    := TAVLTree.Create(@CompareUrlStrs);    // dedupe urltbl + binindex must resolve URL to topicid
   SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
   SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
+  FIDXHdrStream := TMemoryStream.Create;                // the #IDXHDR and chunk 13 in #SYSTEM
                                                         //    for searching purposes
   FWindows      := TObjectlist.Create(True);
   FDefaultWindow:= '';
+  FMergeFiles   :=TStringList.Create;
+  FNrTopics     :=0;
 end;
 
 destructor TChmWriter.Destroy;
 begin
   if Assigned(FContextStream) then FContextStream.Free;
+  FMergeFiles.Free;
   FIndexedFiles.Free;
   FStringsStream.Free;
   FTopicsStream.Free;
   FURLSTRStream.Free;
   FURLTBLStream.Free;
   FFiftiMainStream.Free;
+  FIDXHdrStream.Create;
   SpareString.free;
   SpareUrlStr.free;
   FAvlUrlStr.FreeAndClear;
   FAvlUrlStr.Free;
   FAvlStrings.FreeAndClear;
   FAvlStrings.Free;
+  FAVLTopicdedupe.FreeAndClear;
+  FAVLTopicdedupe.free;
   FWindows.Free;
 
   inherited Destroy;
@@ -1431,7 +1564,7 @@ begin
   SpareString.TheString:=AString;
   n:=fAvlStrings.FindKey(SpareString,@CompareStrings);
   if assigned(n) then
-   exit(TStringIndex(n.data).strid);
+    exit(TStringIndex(n.data).strid);
 
   // each entry is a null terminated string
   Pos := DWord(FStringsStream.Position);
@@ -1445,9 +1578,9 @@ begin
   end;
 
   Result := FStringsStream.Position;
-  FStringsStream.WriteBuffer(AString[1], Length(AString));
+  if length(AString)>0 Then
+    FStringsStream.WriteBuffer(AString[1], Length(AString));
   FStringsStream.WriteByte(0);
-
   StrRec:=TStringIndex.Create;
   StrRec.TheString:=AString;
   StrRec.Strid    :=Result;
@@ -1516,46 +1649,44 @@ begin
   FURLTBLStream.WriteDWord(NtoLE(UrlIndex));
 end;
 
-
-
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
-
-  var
+var
     TopicEntry: TTopicEntry;
     ATitle: String;
 begin
   if Pos('.ht', AFileEntry.Name) > 0 then
   begin
     ATitle := FIndexedFiles.IndexFile(AStream, NextTopicIndex, FSearchTitlesOnly);
-    if ATitle <> '' then
-      TopicEntry.StringsOffset := AddString(ATitle)
-    else
-      TopicEntry.StringsOffset := $FFFFFFFF;
-    TopicEntry.URLTableOffset := AddURL(AFileEntry.Path+AFileEntry.Name, NextTopicIndex);
-    TopicEntry.InContents := 2;
-    TopicEntry.Unknown := 0;
-    TopicEntry.TocOffset := 0;
-    FTopicsStream.WriteDWord(LEtoN(TopicEntry.TocOffset));
-    FTopicsStream.WriteDWord(LEtoN(TopicEntry.StringsOffset));
-    FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
-    FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
-    FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
-  end;
+    AddTopic(ATitle,AFileEntry.Path+AFileEntry.Name,-1);
+ end;
 end;
 
-function TChmWriter.AddTopic(ATitle,AnUrl:AnsiString):integer;
+function TChmWriter.AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
 
 var
     TopicEntry: TTopicEntry;
 
 begin
+    anurl:=StringReplace(anurl, '\', '/', [rfReplaceAll]);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
     else
       TopicEntry.StringsOffset := $FFFFFFFF;
     result:=NextTopicIndex;
     TopicEntry.URLTableOffset := AddURL(AnUrl, Result);
-    TopicEntry.InContents := 2;
+    if code=-1 then
+      begin
+       if ATitle<>'' then
+         TopicEntry.InContents := 6
+       else
+         TopicEntry.InContents := 2;
+       if pos('#',AnUrl)>0 then
+         TopicEntry.InContents := 0;
+      end
+     else
+       TopicEntry.InContents := code;
+
+    inc(FNrTopics);
     TopicEntry.Unknown := 0;
     TopicEntry.TocOffset := 0;
     FTopicsStream.WriteDWord(LEtoN(TopicEntry.TocOffset));
@@ -1563,6 +1694,30 @@ begin
     FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
+end;
+
+procedure TChmWriter.ScanSitemap(asitemap:TCHMSiteMap);
+procedure scanitems(it:TChmSiteMapItems);
+
+var i : integer;
+    x : TChmSiteMapItem;
+    s : string;
+    strrec : TStringIndex;
+
+begin
+  for i:=0 to it.count -1 do
+    begin
+      x:=it.item[i];
+//      if sanitizeurl(fbasepath,x.local,S) then   // sanitize, remove stuff etc.
+//        begin
+//          writeln(x.text,' : ',x.local,' ',x.url,' ' ,x.merge);
+
+      if assigned(x.children) and (x.children.count>0) then
+        scanitems(x.children);
+    end;
+end;
+begin
+ scanitems(asitemap.items);
 end;
 
 function TChmWriter.NextTopicIndex: Integer;
@@ -1807,28 +1962,40 @@ Var
   blocknplusentries : Integer;  // The other blocks indexed on creation.
   datastream,mapstream,propertystream : TMemoryStream;
 
-procedure preparecurrentblock;
-
+procedure preparecurrentblock(force:boolean);
 var p: PBTreeBlockHeader;
-
 begin
+  {$ifdef binindex}
+  writeln('prepcurblock ' ,Entries,' ',lastblock,' ' ,blocknr,' ',indexstream.position);
+  {$endif}
   p:=@curblock[0];
+  fillchar(p^,sizeof(TBtreeBlockHeader),#0);
   p^.Length:=NToLE(Defblocksize-curind);
   p^.NumberOfEntries:=Entries;
-  p^.IndexOfPrevBlock:=lastblock;
+  p^.IndexOfPrevBlock:=cardinal(lastblock); // lastblock can be -1, avoid rangecheck
   p^.IndexOfNextBlock:=Blocknr;
+  if force and (blocknr=0) then   // only one listblock -> no indexblocks.
+    p^.IndexOfNextBlock:=dword(-1);
   IndexStream.Write(curblock[0],Defblocksize);
+  fillchar(curblock[0],DefBlockSize,#0);
   MapStream.Write(NToLE(MapEntries),sizeof(dword));
   MapStream.Write(NToLE(BlockNr),Sizeof(DWord));
   MapEntries:=TotalEntries;
   curind:=sizeof(TBtreeBlockHeader);   // index into current block;
   lastblock:=blocknr;
   inc(blocknr);
+  Entries:=0;
+  {$ifdef binindex}
+  writeln('prepcurblock post' , indexstream.position);
+  {$endif}
 end;
 
 procedure prepareindexblockn(listingblocknr:integer);
 var p:PBTreeIndexBlockHeader;
 begin
+  {$ifdef binindex}
+  writeln('prepindexblockn');
+  {$endif}
   p:=@Blockn[IndexBlockNr];
   p^.Length:=defblocksize-BlockInd;
   p^.NumberOfEntries:=BlockEntries;
@@ -1838,18 +2005,21 @@ begin
   BlockEntries:=0;
   BlockInd:=0;
   if Indexblocknr>=length(blockn) then
-    setlength(blockn,length(blockn)+1);  // larger increments also possible. #blocks is kept independantly.
+    begin
+      setlength(blockn,length(blockn)+1);  // larger increments also possible. #blocks is kept independantly.
+      fillchar(blockn[0][0],sizeof(blockn[0]),#0);
+    end;
   p:=@Blockn[IndexBlockNr];
   p^.IndexOfChildBlock:=ListingBlockNr;
   blockind:=sizeof(TBTreeIndexBlockHeader);
 end;
 
-procedure finalizeindexblockn(p:pbyte;var ind:integer;Entries:integer);
+procedure finalizeindexblockn(p:pbyte;var ind:integer;xEntries:integer);
 var ph:PBTreeIndexBlockHeader;
 begin
   ph:=PBTreeIndexBlockHeader(p);
   ph^.Length:=defblocksize-Ind;
-  ph^.NumberOfEntries:=Entries;
+  ph^.NumberOfEntries:=xEntries;
 // p^.IndexOfChildBlock  // already entered on block creation, since of first entry, not last.
 //  inc(Ind);
 end;
@@ -1858,6 +2028,10 @@ procedure CurEntryToIndex(entrysize:integer);
 var p,pentry : pbyte;
     indexentrysize : integer;
 begin
+  {$ifdef binindex}
+  writeln('curentrytoindex ', entrysize);
+  {$endif}
+
   indexentrysize:=entrysize-sizeof(dword);         // index entry is 4 bytes shorter, and only the last dword differs
   if (blockind+indexentrysize)>=Defblocksize then
     prepareindexblockn(blocknr);
@@ -1877,6 +2051,7 @@ var p      : pbyte;
     i      : Integer;
 begin
   inc(TotalEntries);
+  fillchar(testblock[0],DefBlockSize,#0);
   p:=@TestBlock[0];
   for i:=1 to Length(str) do
     WriteWord(p,Word(str[i]));   // write the wstr in little endian
@@ -1886,7 +2061,7 @@ begin
  // else
 //    seealso:=2;
   WriteWord(p,seealso);          // =0 not a see also 2 =seealso
-  WriteWord(p,2);                // Entrydepth.  We can't know it, so write 2.
+  WriteWord(p,0);                // Entrydepth.  We can't know it, so write 2.
   WriteDword(p,commaatposition); // position of the comma
   WriteDword(p,0);               // unused 0
   WriteDword(p,1);               // for now only local pair.
@@ -1897,19 +2072,29 @@ begin
   WriteDword(p,mod13value);      //a value that increments with 13.
   mod13value:=mod13value+13;
   entrysize:=p-pbyte(@testblock[0]);
+  {$ifdef binindex}
+    writeln(curind, ' ',entrysize, ' ',defblocksize);
+  {$endif}
   if (curind+entrysize)>=Defblocksize then
     begin
-      preparecurrentblock;
+      {$ifdef binindex}
+      writeln('larger!');
+      {$endif}
+      preparecurrentblock(False);
       EntrytoIndex:=true;
     end;
   if EntryToIndex Then
     begin
+      {$ifdef binindex}
+      writeln('entrytoindex');
+      {$endif}
       CurEntryToIndex(entrysize);
       EntryToIndex:=False;
     end;
   move(testblock[0],curblock[curind],entrysize);
   inc(curind,entrysize);
   datastream.write(DataEntry,Sizeof(DataEntry));
+  inc(Entries);
 end;
 
 procedure MoveIndexEntry(nr:integer;bytes:integer;childblock:integer);
@@ -1931,7 +2116,10 @@ begin
       FinalizeIndexBlockn(@blocknplus1[blocknplusindex][0],blockind,blocknplusentries);
       inc(blocknplusindex);
       if blocknplusindex>=length(blocknplus1) then
-        setlength(blocknplus1,length(blocknplus1)+1);
+        begin
+          setlength(blocknplus1,length(blocknplus1)+1);
+          fillchar(blocknplus1[length(blocknplus1)-1][0],sizeof(blocknplus1[0]),#0);
+        end;
       blockInd:=Sizeof(TBTreeIndexBlockHeader);
       pdword(@blocknplus1[blocknplusindex][0])[4]:=NToLE(ChildBlock);  /// init 2nd level index to first 1st level index block
       end;
@@ -2035,17 +2223,28 @@ begin
   indexblocknr:=0;   // nr of first index block.
   BlockEntries:=0;   // entries into current block;
   MapEntries  :=0;   // entries before the current listing block, for MAP file
+  TreeDepth   :=0;
 
+  fillchar(testblock[0],DefBlockSize,#0);
+  fillchar(curblock[0],DefBlockSize,#0);
   curind      :=sizeof(TBTreeBlockHeader);      // index into current listing block;
   blockind    :=sizeof(TBtreeIndexBlockHeader); // index into current index block
 
   Setlength(blockn,1);
+  fillchar(blockn[0][0],sizeof(blockn[0]),#0);
   pdword(@blockn[0][4])^:=NToLE(0);  /// init first listingblock nr to 0 in the first index block
   EntryToIndex   := True;
+  {$ifdef binindex}
+  writeln('items:',asitemap.items.count);
+  {$endif}
   for i:=0 to ASiteMap.Items.Count-1 do
     begin
       item := TChmSiteMapItem(ASiteMap.Items.Item[i]);
       key  :=Item.Text;
+       {$ifdef binindex}
+        writeln('item: ',i,' ',key);
+       {$endif}
+
       {$ifdef chm_windowsbinindex}
       // append 2 to all index level 0 entries. This
       // so we can see if Windows loads the binary or textual index.
@@ -2054,10 +2253,10 @@ begin
       CombineWithChildren(Item,Key,length(key),true);
       {$endif}
     end;
-  PrepareCurrentBlock;     // flush last listing block.
+  PrepareCurrentBlock(True);     // flush last listing block.
+
   Listingblocks:=blocknr;   // blocknr is from now on the number of the first block in blockn.
                             // we still need the # of listingblocks for the header though
-
   {$ifdef binindex}
     writeln('binindex: listingblocks : '+inttostr(listingblocks),' indexblocks: ',indexblocknr,' entries:',blockentries);
   {$endif}
@@ -2067,70 +2266,75 @@ begin
   // and repeat until we have no entries left.
 
   // First we finalize the current set of blocks
-
-  if  Blockind<>sizeof(TBtreeIndexBlockHeader) Then
+  if blocknr>1 then
     begin
-      {$ifdef binindex}
-        writeln('finalizing level 1 index');
-      {$endif}
-      FinalizeIndexBlockN(@blockn[indexblocknr][0],blockind,blockentries); // also increasing indexblocknr
-      inc(IndexBlockNr);
-    end;
-  {$ifdef binindex}
-    writeln('binindex: listingblocks : '+inttostr(listingblocks),' indexblocks: ',indexblocknr,' entries:',blockentries);
-  {$endif}
-
-
-  while (Indexblocknr>1) do
-    begin
-      {$ifdef binindex}
-        printloopvars(1);
-      {$endif}
-
-      blockind      :=sizeof(TBtreeIndexBlockHeader);
-      pdword(@blockn[0][4])^:=NToLE(Listingblocks);  /// init 2nd level index to first 1st level index block
-      blocknplusindex     :=0;
-      blocknplusentries   :=0;
-      if length(blocknplus1)<1 then
-        Setlength(blocknplus1,1);
-
-      EntryToIndex        :=True;
-      {$ifdef binindex}
-        printloopvars(2);
-      {$endif}
-      for i:=0 to Indexblocknr-1 do
-        begin
-          Entrybytes:=ScanIndexBlock(@blockn[i][0]);
-//          writeln('after scan ,',i, ' bytes: ',entrybytes,' blocknr:',blocknr,' indexblocknr:',indexblocknr,' to:',blocknr+i);
-          MoveIndexEntry(i,Entrybytes,blocknr+i);
-          indexStream.Write(blockn[i][0],defblocksize);
-        end;
-
-      {$ifdef binindex}
-        printloopvars(3);
-      {$endif}
-
-      If Blockind<>sizeof(TBtreeIndexBlockHeader) Then
+      if  Blockind<>sizeof(TBtreeIndexBlockHeader) Then
         begin
           {$ifdef binindex}
-            logentry('finalizing');
+            writeln('finalizing level 1 index');
           {$endif}
-          FinalizeIndexBlockn(@blocknplus1[blocknplusindex][0],blockind,blocknplusentries);
-          inc(blocknplusindex);
+          FinalizeIndexBlockN(@blockn[indexblocknr][0],blockind,blockentries); // also increasing indexblocknr
+          inc(IndexBlockNr);
         end;
-
-      inc(blocknr,indexblocknr);
-
-      indexblocknr:=blocknplusindex;
-      blockn:=copy(blocknplus1); setlength(blocknplus1,1);
       {$ifdef binindex}
-        printloopvars(5);
+        writeln('binindex: listingblocks : '+inttostr(listingblocks),' indexblocks: ',indexblocknr,' entries:',blockentries);
       {$endif}
 
-      inc(TreeDepth);
+
+      while (Indexblocknr>1) do
+        begin
+          {$ifdef binindex}
+            printloopvars(1);
+          {$endif}
+
+          blockind      :=sizeof(TBtreeIndexBlockHeader);
+          pdword(@blockn[0][4])^:=NToLE(Listingblocks);  /// init 2nd level index to first 1st level index block
+          blocknplusindex     :=0;
+          blocknplusentries   :=0;
+          if length(blocknplus1)<1 then
+            begin
+              Setlength(blocknplus1,1);
+              fillchar(blocknplus1[0][0],sizeof(blocknplus1[0]),#0);
+            end;
+
+          EntryToIndex        :=True;
+          {$ifdef binindex}
+            printloopvars(2);
+          {$endif}
+          for i:=0 to Indexblocknr-1 do
+            begin
+              Entrybytes:=ScanIndexBlock(@blockn[i][0]);
+    //          writeln('after scan ,',i, ' bytes: ',entrybytes,' blocknr:',blocknr,' indexblocknr:',indexblocknr,' to:',blocknr+i);
+              MoveIndexEntry(i,Entrybytes,blocknr+i);
+              indexStream.Write(blockn[i][0],defblocksize);
+            end;
+
+          {$ifdef binindex}
+            printloopvars(3);
+          {$endif}
+
+          If Blockind<>sizeof(TBtreeIndexBlockHeader) Then
+            begin
+              {$ifdef binindex}
+                logentry('finalizing');
+              {$endif}
+              FinalizeIndexBlockn(@blocknplus1[blocknplusindex][0],blockind,blocknplusentries);
+              inc(blocknplusindex);
+            end;
+
+          inc(blocknr,indexblocknr);
+
+          indexblocknr:=blocknplusindex;
+          blockn:=copy(blocknplus1); setlength(blocknplus1,1);
+          {$ifdef binindex}
+            printloopvars(5);
+          {$endif}
+
+          inc(TreeDepth);
+        end;
+      indexStream.Write(blockn[0][0],defblocksize);
+      inc(blocknr);
     end;
-  indexStream.Write(blockn[0][0],defblocksize);
-  inc(blocknr);
   // Fixup header.
   hdr.ident[0]:=chr($3B); hdr.ident[1]:=chr($29);
   hdr.flags          :=NToLE(word($2));           // bit $2 is always 1, bit $0400 1 if dir? (always on)
@@ -2141,7 +2345,7 @@ begin
   hdr.indexrootblock :=NToLE(dword(blocknr-1));    // Index of the root block in the file.
   hdr.unknown1       :=NToLE(dword(-1));           // always -1
   hdr.nrblock        :=NToLE(blocknr);      // Number of blocks
-  hdr.treedepth      :=NToLE(TreeDepth);    // The depth of the tree of blocks (1 if no index blocks, 2 one level of index blocks, ...)
+  hdr.treedepth      :=NToLE(word(TreeDepth));    // The depth of the tree of blocks (1 if no index blocks, 2 one level of index blocks, ...)
   hdr.nrkeywords     :=NToLE(Totalentries); // number of keywords in the file.
   hdr.codepage       :=NToLE(dword(1252));         // Windows code page identifier (usually 1252 - Windows 3.1 US (ANSI))
   hdr.lcid           :=NToLE(0);            //  ???? LCID from the HHP file.
@@ -2165,6 +2369,7 @@ begin
   PropertyStream.Free;
   MapStream.Free;
   DataStream.Free;
+  FHasKLinks:=TotalEntries>0;
 end;
 
 procedure TChmWriter.AppendBinaryTOCStream(AStream: TStream);
@@ -2187,6 +2392,7 @@ begin
 end;
 
 begin
+  AddDummyALink;
   stadd('BTree',IndexStream);
   stadd('Data', DataStream);
   stadd('Map' , MapStream);
@@ -2226,7 +2432,17 @@ begin
   FContextStream.WriteDWord(Offset);
 end;
 
-procedure TChmWriter.SetWindows(AWindowList:TObjectList);
+procedure TChmWriter.AddDummyALink;
+var stream  : TMemoryStream;
+begin
+    stream:=tmemorystream.create;
+    stream.WriteDWord(0);
+    stream.position:=0;
+    AddStreamToArchive('Property','/$WWAssociativeLinks/',stream,True);
+    stream.free;
+end;
+
+procedure TChmWriter.Setwindows(AWindowList: TObjectList);
 
 var i : integer;
     x : TCHMWindow;
@@ -2240,6 +2456,13 @@ begin
     end;
 end;
 
+procedure TChmWriter.SetMergefiles(src:TStringList);
+var i : integer;
+begin
+  FMergeFiles.Clear;
+  for i:=0 to Src.count -1 do
+      FMergefiles.add(src[i]);
+end;
 
 end.
 

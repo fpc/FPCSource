@@ -124,7 +124,7 @@ implementation
                 begin
                   parent:=tunarynode(p);
                   { skip typeconversions that don't change the node type }
-                  p:=p.actualtargetnode;
+                  p:=actualtargetnode(@p)^;
                 end;
               derefn:
                 begin
@@ -239,8 +239,8 @@ implementation
           local variables (fields, arrays etc are all initialized on creation) }
         verifyout:=
           (cs_check_var_copyout in current_settings.localswitches) and
-          ((left.actualtargetnode.nodetype<>loadn) or
-           (tloadnode(left.actualtargetnode).symtableentry.typ<>localvarsym));
+          ((actualtargetnode(@left)^.nodetype<>loadn) or
+           (tloadnode(actualtargetnode(@left)^).symtableentry.typ<>localvarsym));
 
         { in case of a non-out parameter, pass in the original value (also
           always in case of implicitpointer type, since that pointer points to

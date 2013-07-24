@@ -72,7 +72,7 @@ implementation
       aasmbase,
       cgbase,pass_2,
       procinfo,
-      cpubase,parabase,
+      cpubase,parabase,cpuinfo,
       tgobj,ncgutil,
       cgobj,hlcgobj,
       ncgbas,ncgflw,
@@ -527,16 +527,40 @@ implementation
                          else
                            hregister:=location.registerhi;
                          { load method address }
-                         reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-                         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+{$ifdef i8086}
+                         if po_far in procdef.procoptions then
+                           begin
+                             reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+                             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,href,location.register);
+                           end
+                         else
+{$endif i8086}
+                           begin
+                             reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+                             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+                           end;
                        end
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-                         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+{$ifdef i8086}
+                         if po_far in procdef.procoptions then
+                           begin
+                             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+                             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+                             href.refaddr:=addr_seg;
+                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href,GetNextReg(location.register));
+                           end
+                         else
+{$endif i8086}
+                           begin
+                             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+                             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+                           end;
                        end;
 
                      { to get methodpointers stored correctly, code and self register must be swapped on
@@ -588,12 +612,13 @@ implementation
          r64 : tregister64;
          oldflowcontrol : tflowcontrol;
       begin
+        { previously, managed types were handled in firstpass
+          newer FPCs however can identify situations when
+          assignments of managed types require no special code and the
+          value could be just copied so this could should be able also to handle
+          managed types without any special "managing code"}
+
         location_reset(location,LOC_VOID,OS_NO);
-        { managed types should be handled in firstpass }
-        if not(target_info.system in systems_garbage_collected_managed_types) and
-           (is_managed_type(left.resultdef) or
-            is_managed_type(right.resultdef)) then
-          InternalError(2012011901);
 
         otlabel:=current_procinfo.CurrTrueLabel;
         oflabel:=current_procinfo.CurrFalseLabel;
@@ -881,6 +906,37 @@ implementation
                       right.location.register64,left.location)
                   else
 {$endif cpu64bitalu}
+{$ifdef i8086}
+                  { 6-byte method pointer support for the i8086 medium and compact memory models }
+                  if (left.resultdef.typ = procvardef) and (left.resultdef.size = 6) then
+                    begin
+                      case left.location.loc of
+                        LOC_REFERENCE,LOC_CREFERENCE:
+                          begin
+                            href:=left.location.reference;
+                            { proc address }
+                            if po_far in tprocdef(right.resultdef).procoptions then
+                              begin
+                                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,right.location.register,href);
+                                inc(href.offset, 4)
+                              end
+                            else
+                              begin
+                                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,right.location.register,href);
+                                inc(href.offset, 2);
+                              end;
+                            { object self }
+                            if current_settings.x86memorymodel in x86_far_data_models then
+                              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,right.location.registerhi,href)
+                            else
+                              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,right.location.registerhi,href);
+                          end;
+                        else
+                          internalerror(2013072001);
+                      end;
+                    end
+                  else
+{$endif i8086}
                     hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,

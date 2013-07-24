@@ -72,6 +72,8 @@ type
     { comparison operations }
     procedure a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
     procedure a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
+    procedure a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel); override;
+    procedure g_flags2reg(list: tasmlist; size: TCgSize; const f: TResFlags; reg: tregister); override;
     procedure a_jmp_always(List: tasmlist; l: TAsmLabel); override;
     procedure a_jmp_name(list: tasmlist; const s: string); override;
     procedure g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef); override;
@@ -120,145 +122,11 @@ uses
   procinfo, cpupi;
 
 
-  function f_TOpCG2AsmOp(op: TOpCG; size: tcgsize): TAsmOp;
-  begin
-    if size = OS_32 then
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp := A_ADDU;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp := A_MULT;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp := A_MULTU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp := A_NEGU;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp := A_SUBU;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp := A_XOR;
-        else
-          InternalError(2007070401);
-      end{ case }
-    else
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp := A_ADDU;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp := A_MULT;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp := A_MULTU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp := A_NEGU;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp := A_SUBU;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp := A_XOR;
-        else
-          InternalError(2007010701);
-      end;{ case }
-  end;
-
-  function f_TOpCG2AsmOp_ovf(op: TOpCG; size: tcgsize): TAsmOp;
-  begin
-    if size = OS_32 then
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp_ovf := A_ADD;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp_ovf := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp_ovf := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp_ovf := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp_ovf := A_MULO;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp_ovf := A_MULOU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp_ovf := A_NEG;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp_ovf := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp_ovf := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp_ovf := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp_ovf := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp_ovf := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp_ovf := A_SUB;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp_ovf := A_XOR;
-        else
-          InternalError(2007070403);
-      end{ case }
-    else
-      case op of
-        OP_ADD:       { simple addition          }
-          f_TOpCG2AsmOp_ovf := A_ADD;
-        OP_AND:       { simple logical and       }
-          f_TOpCG2AsmOp_ovf := A_AND;
-        OP_DIV:       { simple unsigned division }
-          f_TOpCG2AsmOp_ovf := A_DIVU;
-        OP_IDIV:      { simple signed division   }
-          f_TOpCG2AsmOp_ovf := A_DIV;
-        OP_IMUL:      { simple signed multiply   }
-          f_TOpCG2AsmOp_ovf := A_MULO;
-        OP_MUL:       { simple unsigned multiply }
-          f_TOpCG2AsmOp_ovf := A_MULOU;
-        OP_NEG:       { simple negate            }
-          f_TOpCG2AsmOp_ovf := A_NEG;
-        OP_NOT:       { simple logical not       }
-          f_TOpCG2AsmOp_ovf := A_NOT;
-        OP_OR:        { simple logical or        }
-          f_TOpCG2AsmOp_ovf := A_OR;
-        OP_SAR:       { arithmetic shift-right   }
-          f_TOpCG2AsmOp_ovf := A_SRA;
-        OP_SHL:       { logical shift left       }
-          f_TOpCG2AsmOp_ovf := A_SLL;
-        OP_SHR:       { logical shift right      }
-          f_TOpCG2AsmOp_ovf := A_SRL;
-        OP_SUB:       { simple subtraction       }
-          f_TOpCG2AsmOp_ovf := A_SUB;
-        OP_XOR:       { simple exclusive or      }
-          f_TOpCG2AsmOp_ovf := A_XOR;
-        else
-          InternalError(2007010703);
-      end;{ case }
-  end;
+const
+  TOpcg2AsmOp: array[TOpCg] of TAsmOp = (
+    A_NONE,A_NONE,A_ADDU,A_AND,A_NONE,A_NONE,A_MULT,A_MULTU,A_NONE,A_NONE,
+    A_OR,A_SRAV,A_SLLV,A_SRLV,A_SUBU,A_XOR,A_NONE,A_NONE
+  );
 
 
 procedure TCGMIPS.make_simple_ref(list: tasmlist; var ref: treference);
@@ -301,6 +169,8 @@ begin
       reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment);
       if (cs_create_pic in current_settings.moduleswitches) then
         begin
+          if not (pi_needs_got in current_procinfo.flags) then
+            InternalError(2013060102);
           { For PIC global symbols offset must be handled separately.
             Otherwise (non-PIC or local symbols) offset can be encoded
             into relocation even if exceeds 16 bits. }
@@ -510,21 +380,16 @@ begin
       href.refaddr:=addr_low;
       list.concat(taicpu.op_reg_ref(A_ADDIU,NR_PIC_FUNC,href));
     end;
-  { JAL handled as macro provides delay slot and correct restoring of GP. }
-  { Doing it ourselves requires a fixup pass, because GP restore location
-    becomes known only in g_proc_entry, when all code is already generated. }
-
-  { GAS <2.21 is buggy, it doesn't add delay slot in noreorder mode. As a result,
-    the code will crash if dealing with stack frame size >32767 or if calling
-    into shared library.
-    This can be remedied by enabling instruction reordering, but then we also
-    have to emit .set macro/.set nomacro pair and exclude JAL from the
-    list of macro instructions (because noreorder is not allowed after nomacro) }
-  list.concat(taicpu.op_none(A_P_SET_MACRO));
-  list.concat(taicpu.op_none(A_P_SET_REORDER));
-  list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
-  list.concat(taicpu.op_none(A_P_SET_NOREORDER));
-  list.concat(taicpu.op_none(A_P_SET_NOMACRO));
+  list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+  { Delay slot }
+  list.concat(taicpu.op_none(A_NOP));
+  { Restore GP if in PIC mode }
+  if (cs_create_pic in current_settings.moduleswitches) then
+    begin
+      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+        InternalError(2013071001);
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
+    end;
 end;
 
 
@@ -557,22 +422,18 @@ begin
   if assigned(current_procinfo) and
      not (pi_do_call in current_procinfo.flags) then
     InternalError(2013022102);
-  // if (cs_create_pic in current_settings.moduleswitches) then
+
+  if (Reg <> NR_PIC_FUNC) then
+    list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
+  list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
+  { Delay slot }
+  list.concat(taicpu.op_none(A_NOP));
+  { Restore GP if in PIC mode }
+  if (cs_create_pic in current_settings.moduleswitches) then
     begin
-      if (Reg <> NR_PIC_FUNC) then
-        list.concat(taicpu.op_reg_reg(A_MOVE,NR_PIC_FUNC,reg));
-      { See comments in a_call_name }
-      list.concat(taicpu.op_none(A_P_SET_MACRO));
-      list.concat(taicpu.op_none(A_P_SET_REORDER));
-      list.concat(taicpu.op_reg(A_JAL,NR_PIC_FUNC));
-      list.concat(taicpu.op_none(A_P_SET_NOREORDER));
-      list.concat(taicpu.op_none(A_P_SET_NOMACRO));
-  (*  end
-  else
-    begin
-      list.concat(taicpu.op_reg(A_JALR, reg));
-      { Delay slot }
-      list.concat(taicpu.op_none(A_NOP)); *)
+      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+        InternalError(2013071002);
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
     end;
 end;
 
@@ -754,6 +615,8 @@ begin
   reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
+      if not (pi_needs_got in current_procinfo.flags) then
+        InternalError(2013060103);
       { For PIC global symbols offset must be handled separately.
         Otherwise (non-PIC or local symbols) offset can be encoded
         into relocation even if exceeds 16 bits. }
@@ -875,9 +738,10 @@ end;
 
 
 const
-  ops_mul: array[boolean] of TAsmOp = (A_MULTU,A_MULT);
   ops_add: array[boolean] of TAsmOp = (A_ADDU, A_ADD);
   ops_sub: array[boolean] of TAsmOp = (A_SUBU, A_SUB);
+  ops_slt: array[boolean] of TAsmOp = (A_SLTU, A_SLT);
+  ops_slti: array[boolean] of TAsmOp = (A_SLTIU, A_SLTI);
   ops_and: array[boolean] of TAsmOp = (A_AND, A_ANDI);
   ops_or:  array[boolean] of TAsmOp = (A_OR, A_ORI);
   ops_xor: array[boolean] of TasmOp = (A_XOR, A_XORI);
@@ -912,11 +776,12 @@ begin
 
     OP_IMUL,OP_MUL:
       begin
-        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], dst, src));
+        list.concat(taicpu.op_reg_reg(TOpcg2AsmOp[op], dst, src));
         list.concat(taicpu.op_reg(A_MFLO, dst));
       end;
   else
-    list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, dst, src));
+    a_op_reg_reg_reg(list, op, size, src, dst, dst);
+    exit;
   end;
   maybeadjustresult(list,op,size,dst);
 end;
@@ -931,9 +796,25 @@ end;
 
 
 procedure TCGMIPS.a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
+var
+  hreg: tregister;
 begin
-
-  list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, src2, src1));
+  if (TOpcg2AsmOp[op]=A_NONE) then
+    InternalError(2013070305);
+  if (op=OP_SAR) then
+    begin
+      if (size in [OS_S8,OS_S16]) then
+        begin
+          { Shift left by 16/24 bits and increase amount of right shift by same value }
+          list.concat(taicpu.op_reg_reg_const(A_SLL, dst, src2, 32-(tcgsize2size[size]*8)));
+          hreg:=GetIntRegister(list,OS_INT);
+          a_op_const_reg_reg(list,OP_ADD,OS_INT,32-(tcgsize2size[size]*8),src1,dst);
+          src1:=hreg;
+        end
+      else if not (size in [OS_32,OS_S32]) then
+        InternalError(2013070306);
+    end;
+  list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op], dst, src2, src1));
   maybeadjustresult(list,op,size,dst);
 end;
 
@@ -1005,9 +886,24 @@ begin
           end;
       end;
 
-    OP_SHL,OP_SHR,OP_SAR:
-      list.concat(taicpu.op_reg_reg_const(f_TOpCG2AsmOp_ovf(op,size),dst,src,a));
+    OP_SHL:
+      list.concat(taicpu.op_reg_reg_const(A_SLL,dst,src,a));
 
+    OP_SHR:
+      list.concat(taicpu.op_reg_reg_const(A_SRL,dst,src,a));
+
+    OP_SAR:
+      begin
+        if (size in [OS_S8,OS_S16]) then
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLL,dst,src,32-(tcgsize2size[size]*8)));
+            inc(a,32-tcgsize2size[size]*8);
+            src:=dst;
+          end
+        else if not (size in [OS_32,OS_S32]) then
+          InternalError(2013070303);
+        list.concat(taicpu.op_reg_reg_const(A_SRA,dst,src,a));
+      end;
   else
     internalerror(2007012601);
   end;
@@ -1044,7 +940,7 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        list.concat(taicpu.op_reg_reg(ops_mul[op=OP_IMUL], src2, src1));
+        list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
         list.concat(taicpu.op_reg(A_MFLO, dst));
         if setflags then
           begin
@@ -1065,7 +961,7 @@ begin
       end;
     OP_AND,OP_OR,OP_XOR:
       begin
-        list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp_ovf(op, size), dst, src2, src1));
+        list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op], dst, src2, src1));
       end;
     else
       internalerror(2007012602);
@@ -1086,8 +982,20 @@ begin
   else
     begin
       tmpreg := GetIntRegister(list,OS_INT);
-      a_load_const_reg(list,OS_INT,a,tmpreg);
-      a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
+      if (a>=simm16lo) and (a<=simm16hi) and
+        (cmp_op in [OC_LT,OC_B,OC_GTE,OC_AE]) then
+        begin
+          list.concat(taicpu.op_reg_reg_const(ops_slti[cmp_op in [OC_LT,OC_GTE]],tmpreg,reg,a));
+          if cmp_op in [OC_LT,OC_B] then
+            a_cmp_reg_reg_label(list,size,OC_NE,NR_R0,tmpreg,l)
+          else
+            a_cmp_reg_reg_label(list,size,OC_EQ,NR_R0,tmpreg,l);
+        end
+      else
+        begin
+          a_load_const_reg(list,OS_INT,a,tmpreg);
+          a_cmp_reg_reg_label(list, size, cmp_op, tmpreg, reg, l);
+        end;
     end;
 end;
 
@@ -1095,22 +1003,46 @@ const
   TOpCmp2AsmCond_z : array[OC_GT..OC_LTE] of TAsmCond=(
     C_GTZ,C_LTZ,C_GEZ,C_LEZ
   );
+  TOpCmp2AsmCond_eqne: array[topcmp] of TAsmCond = (C_NONE,
+   { eq      gt    lt    gte   lte   ne     }
+    C_NONE, C_NE, C_NE, C_EQ, C_EQ, C_NONE,
+   { be    b     ae    a }
+    C_EQ, C_NE, C_EQ, C_NE
+  );
 
 procedure TCGMIPS.a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   ai : Taicpu;
+  op: TAsmOp;
+  hreg: TRegister;
 begin
-  if ((reg1=NR_R0) or (reg2=NR_R0)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
+  if not (cmp_op in [OC_EQ,OC_NE]) then
     begin
-      if (reg2=NR_R0) then
+      if ((reg1=NR_R0) or (reg2=NR_R0)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
         begin
-          ai:=taicpu.op_reg_sym(A_BC,reg1,l);
-          ai.setcondition(inverse_cond(TOpCmp2AsmCond_z[cmp_op]));
+          if (reg2=NR_R0) then
+            begin
+              ai:=taicpu.op_reg_sym(A_BC,reg1,l);
+              ai.setcondition(TOpCmp2AsmCond_z[swap_opcmp(cmp_op)]);
+            end
+          else
+            begin
+              ai:=taicpu.op_reg_sym(A_BC,reg2,l);
+              ai.setcondition(TOpCmp2AsmCond_z[cmp_op]);
+            end;
         end
       else
         begin
-          ai:=taicpu.op_reg_sym(A_BC,reg2,l);
-          ai.setcondition(TOpCmp2AsmCond_z[cmp_op]);
+          hreg:=GetIntRegister(list,OS_INT);
+          op:=ops_slt[cmp_op in [OC_LT,OC_LTE,OC_GT,OC_GTE]];
+          if (cmp_op in [OC_LTE,OC_GT,OC_BE,OC_A]) then   { swap operands }
+            list.concat(taicpu.op_reg_reg_reg(op,hreg,reg1,reg2))
+          else
+            list.concat(taicpu.op_reg_reg_reg(op,hreg,reg2,reg1));
+          if (TOpCmp2AsmCond_eqne[cmp_op]=C_NONE) then
+            InternalError(2013051501);
+          ai:=taicpu.op_reg_reg_sym(A_BC,hreg,NR_R0,l);
+          ai.SetCondition(TOpCmp2AsmCond_eqne[cmp_op]);
         end;
     end
   else
@@ -1143,6 +1075,88 @@ begin
 end;
 
 
+procedure TCGMIPS.a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel);
+  begin
+    if f.use_const then
+      a_cmp_const_reg_label(list,OS_INT,f.cond,f.value,f.reg1,l)
+    else
+      a_cmp_reg_reg_label(list,OS_INT,f.cond,f.reg2,f.reg1,l);
+  end;
+
+
+procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags; reg: tregister);
+  var
+    left,right: tregister;
+    unsigned: boolean;
+  begin
+    if (f.cond in [OC_EQ,OC_NE]) then
+      begin
+        left:=reg;
+        if f.use_const and (f.value>=0) and (f.value<=65535) then
+          begin
+            if (f.value<>0) then
+              list.concat(taicpu.op_reg_reg_const(A_XORI,reg,f.reg1,f.value))
+            else
+              left:=f.reg1;
+          end
+        else
+          begin
+            if f.use_const then
+              begin
+                right:=GetIntRegister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,f.value,right);
+              end
+            else
+              right:=f.reg2;
+            list.concat(taicpu.op_reg_reg_reg(A_XOR,reg,f.reg1,right));
+          end;
+
+        if f.cond=OC_EQ then
+          list.concat(taicpu.op_reg_reg_const(A_SLTIU,reg,left,1))
+        else
+          list.concat(taicpu.op_reg_reg_reg(A_SLTU,reg,NR_R0,left));
+      end
+    else
+      begin
+        {
+          sle  x,a,b  -->  slt   x,b,a; xori  x,x,1    immediate not possible (or must be at left)
+          sgt  x,a,b  -->  slt   x,b,a                 likewise
+          sge  x,a,b  -->  slt   x,a,b; xori  x,x,1
+          slt  x,a,b  -->  unchanged
+        }
+
+        unsigned:=f.cond in [OC_GT,OC_LT,OC_GTE,OC_LTE];
+        if (f.cond in [OC_GTE,OC_LT,OC_B,OC_AE]) and
+          f.use_const and
+          (f.value>=simm16lo) and
+          (f.value<=simm16hi) then
+          list.Concat(taicpu.op_reg_reg_const(ops_slti[unsigned],reg,f.reg1,f.value))
+        else
+          begin
+            if f.use_const then
+              begin
+                if (f.value=0) then
+                  right:=NR_R0
+                else
+                  begin
+                   right:=GetIntRegister(list,OS_INT);
+                   a_load_const_reg(list,OS_INT,f.value,right);
+                end;
+              end
+            else
+              right:=f.reg2;
+
+            if (f.cond in [OC_LTE,OC_GT,OC_BE,OC_A]) then
+              list.Concat(taicpu.op_reg_reg_reg(ops_slt[unsigned],reg,right,f.reg1))
+            else
+              list.Concat(taicpu.op_reg_reg_reg(ops_slt[unsigned],reg,f.reg1,right));
+          end;
+        if (f.cond in [OC_LTE,OC_GTE,OC_BE,OC_AE]) then
+          list.Concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
+      end;
+  end;
+
+
 procedure TCGMIPS.g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef);
 begin
 // this is an empty procedure
@@ -1156,6 +1170,20 @@ begin
 end;
 
 { *********** entry/exit code and address loading ************ }
+
+procedure FixupOffsets(p:TObject;arg:pointer);
+var
+  sym: tabstractnormalvarsym absolute p;
+begin
+  if (tsym(p).typ=paravarsym) and
+    (sym.localloc.loc=LOC_REFERENCE) and
+    (sym.localloc.reference.base=NR_FRAME_POINTER_REG) then
+    begin
+      sym.localloc.reference.base:=NR_STACK_POINTER_REG;
+      Inc(sym.localloc.reference.offset,PLongint(arg)^);
+    end;
+end;
+
 
 procedure TCGMIPS.g_proc_entry(list: tasmlist; localsize: longint; nostackframe: boolean);
 var
@@ -1283,28 +1311,20 @@ begin
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
 
-  with TMIPSProcInfo(current_procinfo) do
-    begin
-      href.offset:=0;
-      //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-        href.base:=NR_FRAME_POINTER_REG;
+  href.base:=NR_STACK_POINTER_REG;
 
-      for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
-        if (register_used[i]) then
-          begin
-            reg:=parasupregs[i];
-            if register_offset[i]=-1 then
-              comment(V_warning,'Register parameter has offset -1 in TCGMIPS.g_proc_entry');
+  for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
+    if TMIPSProcInfo(current_procinfo).register_used[i] then
+      begin
+        reg:=parasupregs[i];
+        href.offset:=i*sizeof(aint)+LocalSize;
+        list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
+      end;
 
-            //if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-            //  href.offset:=register_offset[i]+Localsize
-            //else
-            href.offset:=register_offset[i];
-            list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
-        end;
-    end;
   list.concatList(helplist);
   helplist.Free;
+  if current_procinfo.has_nestedprocs then
+    current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@LocalSize);
 end;
 
 
@@ -1326,6 +1346,8 @@ begin
      end
    else
      begin
+       if TMIPSProcinfo(current_procinfo).save_gp_ref.offset<>0 then
+         tg.ungettemp(list,TMIPSProcinfo(current_procinfo).save_gp_ref);
        reference_reset(href,0);
        href.base:=NR_STACK_POINTER_REG;
 
@@ -1419,7 +1441,6 @@ var
     begin
       result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
          (ref.symbol=nil) and
-         (ref.alignment>=sizeof(aint)) and
          (ref.offset>=simm16lo) and (ref.offset+len<=simm16hi);
     end;
 

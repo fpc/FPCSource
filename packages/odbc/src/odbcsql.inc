@@ -811,7 +811,6 @@ const
 #define SQL_CURSOR_COMMIT_BEHAVIOR          23
 #define SQL_DATA_SOURCE_READ_ONLY           25
 #define SQL_DEFAULT_TXN_ISOLATION           26
-#define SQL_IDENTIFIER_CASE                 28
 #define SQL_MAX_COLUMN_NAME_LEN             30
 #define SQL_MAXIMUM_COLUMN_NAME_LENGTH          SQL_MAX_COLUMN_NAME_LEN
 #define SQL_MAX_CURSOR_NAME_LEN             31
@@ -828,6 +827,7 @@ const
   SQL_SERVER_NAME                     = 13;
   SQL_DBMS_NAME                       = 17;
   SQL_DBMS_VER                        = 18;
+  SQL_IDENTIFIER_CASE                 = 28;
   SQL_IDENTIFIER_QUOTE_CHAR           = 29;
   SQL_SCROLL_CONCURRENCY              = 43;
   SQL_TXN_CAPABLE                     = 46;
@@ -928,13 +928,13 @@ const
 /* SQL_GETDATA_EXTENSIONS bitmasks */
 #define SQL_GD_ANY_COLUMN                   0x00000001L
 #define SQL_GD_ANY_ORDER                    0x00000002L
-
-/* SQL_IDENTIFIER_CASE values */
-#define SQL_IC_UPPER                        1
-#define SQL_IC_LOWER                        2
-#define SQL_IC_SENSITIVE                    3
-#define SQL_IC_MIXED                        4
-
+}
+{ SQL_IDENTIFIER_CASE values }
+  SQL_IC_UPPER                       = 1;
+  SQL_IC_LOWER                       = 2;
+  SQL_IC_SENSITIVE                   = 3;
+  SQL_IC_MIXED                       = 4;
+{
 /* SQL_OJ_CAPABILITIES bitmasks */
 /* NB: this means 'outer join', not what  you may be thinking */
 

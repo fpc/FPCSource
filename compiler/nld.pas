@@ -852,7 +852,8 @@ implementation
            right:=nil;
            exit;
          end
-        else if not(target_info.system in systems_garbage_collected_managed_types) then
+        else if not(target_info.system in systems_garbage_collected_managed_types) and
+          not(is_const(left)) then
           begin
             { call helpers for pointer-sized managed types }
             if is_widestring(left.resultdef) then

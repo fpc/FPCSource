@@ -1058,11 +1058,11 @@ implementation
             begin
 {$ifdef mips}
               if (destloc.size = paraloc^.Size) and
-                 (paraloc^.Loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+                 (paraloc^.Loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
                 begin
                   unget_para(paraloc^);
                   gen_alloc_regloc(list,destloc);
-                  cg.a_loadfpu_reg_reg(list,paraloc^.Size, destloc.size, paraloc^.register, destloc.register);
+                  cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,para.alignment);
                 end
               else if (destloc.size = OS_F32) and
                  (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then

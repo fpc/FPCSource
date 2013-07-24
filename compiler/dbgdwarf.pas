@@ -2383,7 +2383,7 @@ implementation
                     else
                       begin
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.createname(sym.mangledname,offset));
+                        templist.concat(tai_const.Create_type_name(offsetabstype,sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
                       end;
                   end;
@@ -2666,7 +2666,7 @@ implementation
                 begin
                   AddConstToAbbrev(ord(DW_FORM_block));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
-                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint_unaligned(sym.value.len));
                 end;
               i:=0;
               size:=sym.value.len;
@@ -2838,13 +2838,13 @@ implementation
                  end;
                *)
                templist.concat(tai_const.create_8bit(3));
-               templist.concat(tai_const.create_pint(sym.addroffset));
+               templist.concat(tai_const.create_pint_unaligned(sym.addroffset));
                blocksize:=1+sizeof(puint);
             end;
           toasm :
             begin
               templist.concat(tai_const.create_8bit(3));
-              templist.concat(tai_const.createname(sym.mangledname,0));
+              templist.concat(tai_const.create_type_name(offsetabstype,sym.mangledname,0));
               blocksize:=1+sizeof(puint);
             end;
           tovar:

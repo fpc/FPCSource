@@ -115,6 +115,18 @@ interface
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
                   end;
               end
+{$if not defined(cpu16bitalu) and not defined(cpu8bitalu)}
+            { On targets without 8/16 bit register components, 8/16-bit operations
+              always adjust high bits of result, see 'maybeadjustresult' method in
+              respective cgcpu.pas. Therefore 8/16-bit locations are valid as larger
+              ones (except OS_S8->OS_16 which still needs high 16 bits cleared). }
+            else if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+              (tcgsize2size[(reg_cgsize(left.location.register))]=sizeof(aint)) and
+              (ressize>leftsize) and
+              (newsize in [OS_32,OS_S32,OS_16,OS_S16]) and
+              not ((newsize=OS_16) and (def_cgsize(left.resultdef)=OS_S8)) then
+              location.size:=newsize
+{$endif}
             else
               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
           end
@@ -180,7 +192,11 @@ interface
 {$if defined(POWERPC) or defined(POWERPC64)}
         resflags.cr := RS_CR0;
         resflags.flag:=F_NE;
-{$else defined(POWERPC) or defined(POWERPC64)}
+{$elseif defined(mips)}
+        resflags.reg1:=NR_NO;
+        resflags.reg2:=NR_NO;
+        resflags.cond:=OC_NONE;
+{$else}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;
 {$endif defined(POWERPC) or defined(POWERPC64)}
@@ -652,28 +668,9 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          current_asmdata.getjumplabel(l1);
-         case left.location.loc of
-            LOC_CREGISTER,LOC_REGISTER:
-              begin
-               {$ifdef cpu_uses_separate_address_registers}
-                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
-                   begin
-                     location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
-                              left.location.register,location.register);
-                   end
-                 else
-               {$endif}
-                    location.register := left.location.register;
-              end;
-            LOC_CREFERENCE,LOC_REFERENCE:
-              begin
-                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
-              end;
-            else
-              internalerror(2002032214);
-         end;
+         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,
+           left.location,location.register);
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);

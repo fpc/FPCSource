@@ -6135,7 +6135,7 @@ begin
     else begin
         if ( count < 64 ) then
         begin
-            z2 := a1 shr negCount;
+            z2 := a1 shl negCount;
             z1 := ( a0 shl negCount ) or  ( a1 shr count );
             z0 := a0 shr count;
         end
@@ -6372,7 +6372,7 @@ begin
             if ( roundNearestEven <> 0 ) and ( roundBits shl 1 = roundIncrement ) then begin
                 roundMask := roundMask or roundIncrement;
             end;
-            zSig0 := not roundMask;
+            zSig0 := zSig0 and not roundMask;
             result:=packFloatx80( zSign, zExp, zSig0 );
             exit;
         end;
@@ -6387,7 +6387,7 @@ begin
     if ( roundNearestEven <> 0 ) and ( roundBits shl 1 = roundIncrement ) then begin
         roundMask := roundMask or roundIncrement;
     end;
-    zSig0 := not roundMask;
+    zSig0 := zSig0 and not roundMask;
     if ( zSig0 = 0 ) then zExp := 0;
     result:=packFloatx80( zSign, zExp, zSig0 );
     exit;
@@ -6465,7 +6465,7 @@ begin
             zSig0 := bits64( $8000000000000000 );
         end
         else begin
-            zSig0 := not ( ord( bits64( zSig1 shl 1 ) = 0 ) and roundNearestEven );
+            zSig0 := zSig0 and not bits64( ord( bits64( zSig1 shl 1 ) = 0 ) and roundNearestEven );
         end;
     end
     else begin
@@ -6918,14 +6918,14 @@ begin
     roundingMode := softfloat_rounding_mode;
     if ( roundingMode = float_round_nearest_even ) then begin
         inc( z.low, lastBitMask shr 1 );
-        if ( ( z.low and roundBitsMask ) = 0 ) then z.low := not lastBitMask;
+        if ( ( z.low and roundBitsMask ) = 0 ) then z.low := z.low and not lastBitMask;
     end
     else if ( roundingMode <> float_round_to_zero ) then begin
         if ( extractFloatx80Sign( z ) <> 0 ) xor ( roundingMode = float_round_up ) then begin
             inc( z.low, roundBitsMask );
         end;
     end;
-    z.low := not roundBitsMask;
+    z.low := z.low and not roundBitsMask;
     if ( z.low = 0 ) then begin
         inc(z.high);
         z.low := bits64( $8000000000000000 );
@@ -7869,7 +7869,7 @@ begin
             float_raise( float_flag_overflow or float_flag_inexact );
             if (    ord( roundingMode = float_round_to_zero )
                  or ( zSign and ord( roundingMode = float_round_up ) )
-                 or ( not(zSign) and ord( roundingMode = float_round_down ) )
+                 or ( ord( zSign = 0) and ord( roundingMode = float_round_down ) )
                )<>0 then
                begin
                 result :=
@@ -7921,7 +7921,7 @@ begin
     if ( increment<>0 ) then
     begin
         add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
-        zSig1 := zSig1 and  not( ord( zSig2 + zSig2 = 0 ) and roundNearestEven );
+        zSig1 := zSig1 and not bits64( ord( zSig2 + zSig2 = 0 ) and roundNearestEven );
     end
     else begin
         if ( ( zSig0 or zSig1 ) = 0 ) then

@@ -56,6 +56,8 @@ type
 
     constructor op_reg_reg_ref(op: tasmop; _op1, _op2: tregister; const _op3: treference);
     constructor op_reg_reg_const(op: tasmop; _op1, _op2: tregister; _op3: aint);
+    { INS and EXT }
+    constructor op_reg_reg_const_const(op: tasmop; _op1,_op2: tregister; _op3,_op4: aint);
     constructor op_reg_const_reg(op: tasmop; _op1: tregister; _op2: aint; _op3: tregister);
 
     { this is for Jmp instructions }
@@ -183,6 +185,17 @@ begin
   loadreg(0, _op1);
   loadreg(1, _op2);
   loadconst(2, _op3);
+end;
+
+
+constructor taicpu.op_reg_reg_const_const(op: tasmop; _op1, _op2: tregister; _op3, _op4: aint);
+begin
+  inherited create(op);
+  ops := 4;
+  loadreg(0, _op1);
+  loadreg(1, _op2);
+  loadconst(2, _op3);
+  loadconst(3, _op4);
 end;
 
 
@@ -316,18 +329,6 @@ end;
       A_DMULTU,
       A_MFHI,
       A_MFLO,
-      A_MULTG,
-      A_DMULTG,
-      A_MULTUG,
-      A_DMULTUG,
-      A_DIVG,
-      A_DDIVG,
-      A_DIVUG,
-      A_DDIVUG,
-      A_MODG,
-      A_DMODG,
-      A_MODUG,
-      A_DMODUG,
 
       A_SLL,
       A_SRL,
@@ -397,7 +398,10 @@ end;
       A_SGTU,
       A_SLE,
       A_SLEU,
-      A_SNE];
+      A_SNE,
+      A_EXT,
+      A_INS,
+      A_MFC0];
 
       begin
         result := operand_read;

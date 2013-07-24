@@ -718,6 +718,68 @@ Unit raarmgas;
               end;
           end;
 
+
+        procedure BuildDirectRef;
+
+          function GetConstLabel(const symname: string; ofs: aint): TAsmLabel;
+            var
+              hp: tai;
+              newconst: tai_const;
+              lab: TAsmLabel;
+            begin
+              if symname<>'' then
+                newconst:=tai_const.Createname(symname,ofs)
+              else
+                newconst:=tai_const.Create_32bit(ofs);
+
+              hp:=tai(current_procinfo.aktlocaldata.First);
+              while assigned(hp) do
+                begin
+                  if hp.typ=ait_const then
+                    begin
+                      if (tai_const(hp).sym=newconst.sym) and
+                         (tai_const(hp).value=newconst.value) and
+                         assigned(hp.Previous) and
+                         (tai(hp.previous).typ=ait_label) then
+                        begin
+                          newconst.Free;
+                          result:=tai_label(hp.Previous).labsym;
+                          exit;
+                        end;
+                    end;
+
+                  hp:=tai(hp.Next);
+                end;
+
+              current_asmdata.getjumplabel(lab);
+              current_procinfo.aktlocaldata.concat(tai_align.create(4));
+              current_procinfo.aktlocaldata.concat(tai_label.create(lab));
+              current_procinfo.aktlocaldata.concat(newconst);
+              result:=lab;
+            end;
+
+          var
+            symtype: TAsmsymtype;
+            sym: string;
+            val: aint;
+          begin
+            case actasmtoken of
+              AS_INTNUM,
+              AS_ID:
+                begin
+                  BuildConstSymbolExpression(true,false,false,val,sym,symtype);
+
+                  if symtype=AT_NONE then
+                    sym:='';
+
+                  reference_reset(oper.opr.ref,4);
+                  oper.opr.ref.base:=NR_PC;
+                  oper.opr.ref.symbol:=GetConstLabel(sym,val);
+                end;
+            end;
+          end;
+
+
       var
         tempreg : tregister;
         ireg : tsuperregister;
@@ -739,6 +801,21 @@ Unit raarmgas;
             Begin
               Consume(AS_HASH);
               BuildConstantOperand(oper);
+            end;
+
+          AS_EQUAL:
+            begin
+              case actopcode of
+                A_LDRBT,A_LDRB,A_LDR,A_LDRH,A_LDRSB,A_LDRSH,A_LDRT,
+                A_LDREX,A_LDREXB,A_LDREXD,A_LDREXH:
+                  begin
+                    consume(AS_EQUAL);
+                    oper.InitRef;
+                    BuildDirectRef;
+                  end;
+              else
+                Message(asmr_e_invalid_opcode_and_operand);
+              end;
             end;
 
           (*

@@ -41,10 +41,12 @@ type
     WhereStopPos : integer;
   end;
 
+
 type
   TSQLConnection = class;
   TSQLTransaction = class;
   TCustomSQLQuery = class;
+  TCustomSQLStatement = Class;
   TSQLQuery = class;
   TSQLScript = class;
 
@@ -106,45 +108,50 @@ type
     FHostName            : string;
     FCharSet             : string;
     FRole                : String;
-
+    FStatements          : TFPList;
     function GetPort: cardinal;
-    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo;
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings : TFormatSettings;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
-    procedure SetTransaction(Value : TSQLTransaction);virtual;
-    function StrToStatementType(s : string) : TStatementType; virtual;
+    procedure SetTransaction(Value : TSQLTransaction); virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetAsSQLText(Field : TField) : string; overload; virtual;
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
-    function GetHandle : pointer; virtual; virtual;
+    function GetHandle : pointer; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
+    Procedure RegisterStatement(S : TCustomSQLStatement);
+    Procedure UnRegisterStatement(S : TCustomSQLStatement);
+
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
-    Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
-
+    function StrToStatementType(s : string) : TStatementType; virtual;
+    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); virtual; abstract;
+    procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
-    procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
-
-    procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
+    procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
+
+    Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
+
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
-    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
+
+    Property Statements : TFPList Read FStatements;
     property Port: cardinal read GetPort write SetPort;
   public
     property Handle: Pointer read GetHandle;
@@ -216,25 +223,27 @@ type
 
   TCustomSQLStatement = Class(TComponent)
   Private
-    FCheckParams: Boolean;
     FCursor : TSQLCursor;
     FDatabase: TSQLConnection;
+    FParamCheck: Boolean;
     FParams: TParams;
     FSQL: TStrings;
     FOrigSQL : String;
     FServerSQL : String;
     FTransaction: TSQLTransaction;
-    FDatasource : TDatasource;
     FParseSQL: Boolean;
+    FDataLink : TDataLink;
     procedure SetDatabase(AValue: TSQLConnection);
     procedure SetParams(AValue: TParams);
     procedure SetSQL(AValue: TStrings);
     procedure SetTransaction(AValue: TSQLTransaction);
     Function GetPrepared : Boolean;
   Protected
+    Function CreateDataLink : TDataLink; virtual;
     procedure OnChangeSQL(Sender : TObject); virtual;
-    function GetDataSource: TDatasource; Virtual;
-    procedure SetDataSource(AValue: TDatasource); virtual;
+    function GetDataSource: TDataSource; Virtual;
+    procedure SetDataSource(AValue: TDataSource); virtual;
+    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
     procedure AllocateCursor;
     procedure DeAllocateCursor;
     Function GetSchemaType : TSchemaType; virtual;
@@ -254,9 +263,9 @@ type
     Property Transaction : TSQLTransaction Read FTransaction Write SetTransaction;
     Property SQL : TStrings Read FSQL Write SetSQL;
     Property Params : TParams Read FParams Write SetParams;
-    Property Datasource : TDatasource Read GetDataSource Write SetDataSource;
+    Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
-    Property CheckParams : Boolean Read FCheckParams Write FCheckParams default true;
+    Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -271,21 +280,19 @@ type
   TSQLStatement = Class(TCustomSQLStatement)
   Published
     Property Database;
-    Property Transaction;
-    Property SQL;
+    Property DataSource;
+    Property ParamCheck;
     Property Params;
-    Property Datasource;
     Property ParseSQL;
-    Property CheckParams;
+    Property SQL;
+    Property Transaction;
   end;
 
 { TCustomSQLQuery }
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    // FCheckParams: Boolean;
     // FCursor              : TSQLCursor;
-    FParams: TParams;
     FSchemaType: TSchemaType;
 //    FSQL: TStringlist;
     FUpdateable          : boolean;
@@ -318,19 +325,19 @@ type
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
     procedure FreeFldBuffers;
-    function GetCheckParams: Boolean;
+    function GetParamCheck: Boolean;
     function GetParams: TParams;
     function GetParseSQL: Boolean;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetSQL: TStringlist;
     function GetStatementType : TStatementType;
-    procedure SetCheckParams(AValue: Boolean);
+    procedure SetParamCheck(AValue: Boolean);
+    procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetDeleteSQL(const AValue: TStringlist);
     procedure SetInsertSQL(const AValue: TStringlist);
     procedure SetParams(AValue: TParams);
     procedure SetParseSQL(AValue : Boolean);
     procedure SetSQL(const AValue: TStringlist);
-    procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
 //    procedure OnChangeSQL(Sender : TObject);
@@ -358,8 +365,8 @@ type
     Procedure SetActive (Value : Boolean); override;
     procedure SetServerFiltered(Value: Boolean); virtual;
     procedure SetServerFilterText(const Value: string); virtual;
-    Function GetDataSource : TDatasource; override;
-    Procedure SetDataSource(AValue : TDatasource);
+    Function GetDataSource : TDataSource; override;
+    Procedure SetDataSource(AValue : TDataSource);
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
@@ -415,12 +422,12 @@ type
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
     property Params : TParams read GetParams Write SetParams;
+    Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
+    property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode default upWhereKeyOnly;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
-    property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
-    Property CheckParams : Boolean Read GetCheckParams Write SetCheckParams default true;
-    Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
+    Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
     property ServerIndexDefs : TServerIndexDefs read GetServerIndexDefs;
@@ -472,10 +479,10 @@ type
     property DeleteSQL;
     property IndexDefs;
     property Params;
+    Property ParamCheck;
+    property ParseSQL;
     property UpdateMode;
     property UsePrimaryKeyAsKey;
-    property ParseSQL;
-    Property CheckParams;
     Property DataSource;
     property ServerFilter;
     property ServerFiltered;
@@ -639,7 +646,7 @@ var
 
 begin
   UnPrepare;
-  if not CheckParams then
+  if not ParamCheck then
     exit;
   if assigned(DataBase) then
     ConnOptions:=DataBase.ConnOptions
@@ -671,15 +678,19 @@ begin
     end;
 end;
 
-procedure TCustomSQLStatement.SetDataSource(AValue: TDatasource);
+procedure TCustomSQLStatement.SetDataSource(AValue: TDataSource);
 
 begin
-  if FDatasource=AValue then Exit;
-  If Assigned(FDatasource) then
-    FDatasource.RemoveFreeNotification(Self);
-  FDatasource:=AValue;
-  If Assigned(FDatasource) then
-    FDatasource.FreeNotification(Self);
+  if GetDataSource=AValue then Exit;
+  if (FDataLink=Nil) then
+    FDataLink:=CreateDataLink;
+  FDataLink.DataSource:=AValue;
+end;
+
+procedure TCustomSQLStatement.CopyParamsFromMaster(CopyBound : Boolean);
+begin
+  if Assigned(DataSource) and Assigned(DataSource.Dataset) then
+    FParams.CopyParamValuesFromDataset(DataSource.Dataset,CopyBound);
 end;
 
 procedure TCustomSQLStatement.SetParams(AValue: TParams);
@@ -711,8 +722,8 @@ end;
 
 procedure TCustomSQLStatement.DoExecute;
 begin
-  If (FParams.Count>0) and Assigned(FDatasource) then
-    ; // FMasterLink.CopyParamsFromMaster(False);
+  If (FParams.Count>0) and Assigned(DataSource) then
+    CopyParamsFromMaster(False);
   If LogEvent(detExecute) then
     Log(detExecute,FServerSQL);
   Database.Execute(FCursor,Transaction, FParams);
@@ -721,6 +732,11 @@ end;
 function TCustomSQLStatement.GetPrepared: Boolean;
 begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
+end;
+
+function TCustomSQLStatement.CreateDataLink: TDataLink;
+begin
+  Result:=TDataLink.Create;
 end;
 
 function TCustomSQLStatement.CreateParams: TParams;
@@ -756,7 +772,10 @@ begin
     If (AComponent=FTransaction) then
       FTransaction:=Nil
     else if (AComponent=FDatabase) then
+      begin
+      UnPrepare;
       FDatabase:=Nil;
+      end;
 end;
 
 constructor TCustomSQLStatement.Create(AOwner: TComponent);
@@ -765,7 +784,7 @@ begin
   FSQL:=TStringList.Create;
   TStringList(FSQL).OnChange:=@OnChangeSQL;
   FParams:=CreateParams;
-  FCheckParams:=True;
+  FParamCheck:=True;
   FParseSQL:=True;
 end;
 
@@ -774,6 +793,8 @@ begin
   UnPrepare;
   Transaction:=Nil;
   Database:=Nil;
+  DataSource:=Nil;
+  FreeAndNil(FDataLink);
   FreeAndNil(Fparams);
   FreeAndNil(FSQL);
   inherited Destroy;
@@ -812,13 +833,20 @@ procedure TCustomSQLStatement.AllocateCursor;
 
 begin
   if not assigned(FCursor) then
+    begin
+    // Do this as late as possible.
     FCursor:=Database.AllocateCursorHandle;
+    FDatabase.RegisterStatement(Self);
+    end;
 end;
 
 procedure TCustomSQLStatement.DeAllocateCursor;
 begin
   if Assigned(FCursor) and Assigned(Database) then
+    begin
     DataBase.DeAllocateCursorHandle(FCursor);
+    Database.UnRegisterStatement(Self);
+    end;
 end;
 
 procedure TCustomSQLStatement.DoPrepare;
@@ -860,8 +888,7 @@ begin
   try
     DoPrepare;
   except
-    if assigned(FCursor) then
-      DataBase.DeAllocateCursorHandle(FCursor);
+    DeAllocateCursor;
     Raise;
   end;
 end;
@@ -885,14 +912,20 @@ begin
       FreeAndNil(FCursor);
 end;
 
-function TCustomSQLStatement.GetDataSource: TDatasource;
+function TCustomSQLStatement.GetDataSource: TDataSource;
 begin
-  Result:=FDatasource;
+  if Assigned(FDataLink) then
+    Result:=FDataLink.DataSource
+  else
+    Result:=Nil;
 end;
 
 procedure TCustomSQLStatement.Unprepare;
 begin
-  if Prepared then
+  // Some SQLConnections does not support statement [un]preparation, but they have allocated local cursor(s)
+  //  so let them do cleanup f.e. cancel pending queries and/or free resultset
+  //  and also do UnRegisterStatement!
+  if assigned(FCursor) then
     DoUnprepare;
 end;
 
@@ -950,11 +983,20 @@ begin
 end;
 
 procedure TSQLConnection.DoInternalDisconnect;
+
+Var
+  I : integer;
+
 begin
+  For I:=0 to FStatements.Count-1 do
+    TCustomSQLStatement(FStatements[i]).Unprepare;
+  FStatements.Clear;
 end;
 
 destructor TSQLConnection.Destroy;
 begin
+  Connected:=False; // needed because we want to de-allocate statements
+  FreeAndNil(FStatements);
   inherited Destroy;
 end;
 
@@ -974,13 +1016,14 @@ begin
     Transaction.EndTransaction;
 end;
 
-Procedure TSQLConnection.ExecuteDirect(SQL: String);
+procedure TSQLConnection.ExecuteDirect(SQL: String);
 
 begin
   ExecuteDirect(SQL,FTransaction);
 end;
 
-Procedure TSQLConnection.ExecuteDirect(SQL: String; ATransaction : TSQLTransaction);
+procedure TSQLConnection.ExecuteDirect(SQL: String;
+  ATransaction: TSQLTransaction);
 
 var Cursor : TSQLCursor;
 
@@ -1059,6 +1102,7 @@ begin
   inherited Create(AOwner);
   FSQLFormatSettings:=DefaultSQLFormatSettings;
   FFieldNameQuoteChars:=DoubleQuotes;
+  FStatements:=TFPList.Create;
 end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
@@ -1160,6 +1204,17 @@ begin
       GlobalDBLogHook(Self,EventType,M);
       end;
     end;
+end;
+
+procedure TSQLConnection.RegisterStatement(S: TCustomSQLStatement);
+begin
+  if FStatements.IndexOf(S)=-1 then
+    FStatements.Add(S);
+end;
+
+procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
+begin
+  FStatements.Remove(S);
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
@@ -1347,7 +1402,7 @@ var ConnOptions : TConnOptions;
 
 begin
   FSchemaType:=stNoSchema;
-  if (FSQL <> nil) and CheckParams then
+  if (FSQL <> nil) and ParamCheck then
     begin
     if assigned(DataBase) then
       ConnOptions := TSQLConnection(DataBase).ConnOptions
@@ -1510,9 +1565,9 @@ begin
      TSQLConnection(Database).FreeFldBuffers(Cursor);
 end;
 
-function TCustomSQLQuery.GetCheckParams: Boolean;
+function TCustomSQLQuery.GetParamCheck: Boolean;
 begin
-  Result:=FStatement.CheckParams;
+  Result:=FStatement.ParamCheck;
 end;
 
 function TCustomSQLQuery.GetParams: TParams;
@@ -1573,18 +1628,13 @@ end;
 
 procedure TCustomSQLQuery.InternalClose;
 begin
-  if not IsReadFromPacket then
+  if assigned(Cursor) then
     begin
-    if assigned(Cursor) and Cursor.FSelectable then
+    if Cursor.FSelectable then
       FreeFldBuffers;
     // Some SQLConnections does not support statement [un]preparation,
     //  so let them do cleanup f.e. cancel pending queries and/or free resultset
     if not Prepared then FStatement.DoUnprepare;
-    end
-  else
-    begin
-    if assigned(Cursor) then
-      FStatement.DeAllocateCursor;
     end;
   if DefaultFields then
     DestroyFields;
@@ -1631,7 +1681,8 @@ begin
 end;
 *)
 
-Function TSQLConnection.GetStatementInfo(const ASQL : string; Full : Boolean; ASchema : TSchemaType) : TSQLStatementInfo;
+function TSQLConnection.GetStatementInfo(const ASQL: string; Full: Boolean;
+  ASchema: TSchemaType): TSQLStatementInfo;
 
 
 type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
@@ -1810,24 +1861,22 @@ procedure TCustomSQLQuery.InternalOpen;
 var tel, fieldc : integer;
     f           : TField;
     IndexFields : TStrings;
-    ReadFromFile: Boolean;
 begin
-  ReadFromFile:=IsReadFromPacket;
-  if ReadFromFile then
+  if IsReadFromPacket then
     begin
-    FStatement.AllocateCursor;
-    Cursor.FSelectable:=True;
-    Cursor.FStatementType:=stSelect;
+    // When we read from file there is no need for Cursor, also note that Database may not be assigned
+    //FStatement.AllocateCursor;
+    //Cursor.FSelectable:=True;
+    //Cursor.FStatementType:=stSelect;
     FUpdateable:=True;
+    BindFields(True);
     end
   else
-    Prepare;
-
-  if not Cursor.FSelectable then
-    DatabaseError(SErrNoSelectStatement,Self);
-
-  if not ReadFromFile then
     begin
+    Prepare;
+    if not Cursor.FSelectable then
+      DatabaseError(SErrNoSelectStatement,Self);
+
     // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
     // which do not allow processing multiple recordsets at a time. (Microsoft
     // calls this MARS, see bug 13241)
@@ -1869,9 +1918,7 @@ begin
       end
     else
       BindFields(True);
-    end
-  else
-    BindFields(True);
+    end;
 
   if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
     begin
@@ -1903,39 +1950,20 @@ Type
 
   TQuerySQLStatement = Class(TCustomSQLStatement)
   protected
-    FMasterLink: TMasterParamsDataLink;
     FQuery : TCustomSQLQuery;
-    function GetDataSource: TDatasource; override;
-    procedure SetDataSource(AValue: TDatasource); override;
+    Function CreateDataLink : TDataLink; override;
     Function GetSchemaType : TSchemaType; override;
     Function GetSchemaObjectName : String; override;
     Function GetSchemaPattern: String; override;
     procedure GetStatementInfo(Var ASQL: String; Full: Boolean; ASchema: TSchemaType; out Info: TSQLStatementInfo); override;
     procedure OnChangeSQL(Sender : TObject); override;
-  Public
-    destructor Destroy; override;
   end;
 
 { TQuerySQLStatement }
 
-function TQuerySQLStatement.GetDataSource: TDatasource;
+function TQuerySQLStatement.CreateDataLink: TDataLink;
 begin
-  Result:=inherited GetDataSource;
-
-end;
-
-procedure TQuerySQLStatement.SetDataSource(AValue: TDatasource);
-begin
-  inherited SetDataSource(AValue);
-  If Assigned(AValue) then
-    begin
-    AValue.FreeNotification(Self);
-    If (FMasterLink=Nil) then
-      FMasterLink:=TMasterParamsDataLink.Create(FQuery);
-    FMasterLink.Datasource:=AValue;
-    end
-  else
-    FreeAndNil(FMasterLink);
+  Result:=TMasterParamsDataLink.Create(FQuery);
 end;
 
 function TQuerySQLStatement.GetSchemaType: TSchemaType;
@@ -1981,15 +2009,9 @@ procedure TQuerySQLStatement.OnChangeSQL(Sender: TObject);
 begin
   UnPrepare;
   inherited OnChangeSQL(Sender);
-  If CheckParams and Assigned(FMasterLink) then
-    FMasterLink.RefreshParamNames;
+  If ParamCheck and Assigned(FDataLink) then
+    (FDataLink as TMasterParamsDataLink).RefreshParamNames;
   FQuery.ServerIndexDefs.Updated:=false;
-end;
-
-destructor TQuerySQLStatement.Destroy;
-begin
-  FreeAndNil(FMasterLink);
-  inherited Destroy;
 end;
 
 constructor TCustomSQLQuery.Create(AOwner : TComponent);
@@ -1999,7 +2021,6 @@ Var
 
 begin
   inherited Create(AOwner);
-  FParams := TParams.create(self);
   F:=TQuerySQLStatement.Create(Self);
   F.FQuery:=Self;
   FStatement:=F;
@@ -2034,7 +2055,6 @@ begin
   if Active then Close;
   UnPrepare;
   FreeAndNil(Fstatement);
-  FreeAndNil(FParams);
 //  FreeAndNil(FSQL);
   FreeAndNil(FInsertSQL);
   FreeAndNil(FDeleteSQL);
@@ -2297,9 +2317,9 @@ begin
     Result:=stUnknown;
 end;
 
-procedure TCustomSQLQuery.SetCheckParams(AValue: Boolean);
+procedure TCustomSQLQuery.SetParamCheck(AValue: Boolean);
 begin
-  FStatement.CheckParams:=Avalue;
+  FStatement.ParamCheck:=AValue;
 end;
 
 procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
@@ -2317,10 +2337,10 @@ begin
   FStatement.Params.Assign(AValue);
 end;
 
-procedure TCustomSQLQuery.SetDataSource(AValue: TDatasource);
+procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
 
 Var
-  DS : TDatasource;
+  DS : TDataSource;
 
 begin
   DS:=DataSource;
@@ -2330,15 +2350,15 @@ begin
       DatabaseError(SErrCircularDataSourceReferenceNotAllowed,Self);
     If Assigned(DS) then
       DS.RemoveFreeNotification(Self);
-    FStatement.Datasource:=AValue;
+    FStatement.DataSource:=AValue;
     end;
 end;
 
-function TCustomSQLQuery.GetDataSource: TDatasource;
+function TCustomSQLQuery.GetDataSource: TDataSource;
 
 begin
   If Assigned(FStatement) then
-    Result:=FStatement.Datasource
+    Result:=FStatement.DataSource
   else
     Result:=Nil;
 end;

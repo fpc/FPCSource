@@ -150,7 +150,7 @@ Type
     Procedure DoDataRowStart; virtual;
     // Override if a simple loop is not enough.
     Procedure ExportDataRow; virtual;
-    // Override to write something at row start.
+    // Override to write something at row end.
     Procedure DoDataRowEnd; virtual;
     // Called after row was exported
     Procedure DoProgress(ItemNo : Integer); Virtual;
@@ -221,8 +221,9 @@ Type
     procedure SetFileName(const AValue: String); virtual;
     // Override if some checking needs to be done prior to opening.
     Procedure CheckFileName; virtual;
-    // Use to open/close textfile. Creates a file stream.
+    // Use to open textfile. Creates a file stream.
     Procedure OpenTextFile;
+    // Use to close textfile.
     Procedure CloseTextFile;
     // Access to stream/file
     Property TextFile : Text Read FTextFile;

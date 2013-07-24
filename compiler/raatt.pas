@@ -48,6 +48,7 @@ unit raatt;
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
         AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
+        AS_EQUAL,
         {------------------ Assembler directives --------------------}
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
@@ -75,6 +76,7 @@ unit raatt;
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/','$',
         '#','{','}','[',']',
+        '=',
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
@@ -648,6 +650,13 @@ unit raatt;
              '}' :
                begin
                  actasmtoken:=AS_RSBRACKET;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
+             '=' :
+               begin
+                 actasmtoken:=AS_EQUAL;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
@@ -1518,7 +1527,18 @@ unit raatt;
                        begin
                          case sym.typ of
                            staticvarsym :
-                             hs:=tstaticvarsym(sym).mangledname;
+                             begin
+                               { we always assume in asm statements that     }
+                               { that the variable is valid.                 }
+                               tabstractvarsym(sym).varstate:=vs_readwritten;
+                               inc(tabstractvarsym(sym).refs);
+                               { variable can't be placed in a register }
+                               tabstractvarsym(sym).varregable:=vr_none;
+                               { and anything may happen with its address }
+                               tabstractvarsym(sym).addr_taken:=true;
+
+                               hs:=tstaticvarsym(sym).mangledname;
+                             end;
                            localvarsym,
                            paravarsym :
                              Message(asmr_e_no_local_or_para_allowed);

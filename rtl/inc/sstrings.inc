@@ -1113,7 +1113,6 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
 var
-  prev : ValUInt;
   base,u : byte;
   negative : boolean;
 begin
@@ -1137,9 +1136,8 @@ begin
      else
       u:=16;
      end;
-     prev := fpc_Val_UInt_Shortstr;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
+        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<fpc_val_uint_shortstr) then
       begin
         fpc_Val_UInt_Shortstr:=0;
         exit;
@@ -1155,7 +1153,8 @@ end;
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
 
-  var  u, temp, prev, maxprevvalue, maxnewvalue : qword;
+  var  u : sizeuint;
+       temp, prev, maxprevvalue, maxnewvalue : qword;
        base : byte;
        negative : boolean;
 
@@ -1211,7 +1210,7 @@ end;
 
   Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
 
-  var  u, prev: QWord;
+  var  u : sizeuint;
        base : byte;
        negative : boolean;
 
@@ -1238,9 +1237,8 @@ end;
        else
         u:=16;
        end;
-       prev := fpc_val_qword_shortstr;
        If (u>=base) or
-         ((QWord(maxqword-u) div QWord(base))<prev) then
+         ((QWord(maxqword-u) div QWord(base))<fpc_val_qword_shortstr) then
          Begin
            fpc_val_qword_shortstr := 0;
            Exit
@@ -1902,7 +1900,7 @@ end;
 function ShortCompareText(const S1, S2: shortstring): SizeInt;
 var
   c1, c2: Byte;
-  i: Integer;
+  i: SizeInt;
   L1, L2, Count: SizeInt;
   P1, P2: PChar;
 begin

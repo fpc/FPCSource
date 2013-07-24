@@ -19,6 +19,7 @@
         extern PASCALMAIN
         extern dos_psp
         extern dos_version
+        extern __Test8086
 
         extern _edata  ; defined by WLINK, indicates start of BSS
         extern _end    ; defined by WLINK, indicates end of BSS
@@ -67,6 +68,37 @@ no_bss:
         int 21h
         xchg al, ah
         mov word [dos_version], ax
+
+        ; detect CPU
+        xor bx, bx  ; 0=8086/8088/80186/80188/NEC V20/NEC V30
+        ; on pre-286 processors, bits 12..15 of the FLAGS registers are always set
+        pushf
+        pop ax
+        and ah, 0fh
+        push ax
+        popf
+        pushf
+        pop ax
+        and ah, 0f0h
+        cmp ah, 0f0h
+        je cpu_detect_done
+        ; at this point we have a 286 or higher
+        inc bx
+        ; on a true 286 in real mode, bits 12..15 are always clear
+        pushf
+        pop ax
+        or ah, 0f0h
+        push ax
+        popf
+        pushf
+        pop ax
+        and ah, 0f0h
+        jz cpu_detect_done
+        ; we have a 386+
+        inc bx
+
+cpu_detect_done:
+        mov [__Test8086], bl
 
         ; allocate max heap
         ; TODO: also support user specified heap size

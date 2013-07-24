@@ -84,9 +84,10 @@ implementation
       symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
-      pass_1,nld,ncon,nadd,nutils,
+      pass_1,nld,ncon,nadd,ncnv,nutils,
       cgutils,cgobj,hlcgobj,
-      tgobj,ncgutil,objcgutl
+      tgobj,ncgutil,objcgutl,
+      defcmp
       ;
 
 
@@ -218,14 +219,38 @@ implementation
         pd : tprocdef;
         sym : tsym;
         st : tsymtable;
+        hp : pnode;
+        hp2 : tnode;
+        extraoffset : tcgint;
       begin
-         secondpass(left);
          { assume natural alignment, except for packed records }
          if not(resultdef.typ in [recorddef,objectdef]) or
             (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+
+         { can we fold an add/sub node into the offset of the deref node? }
+         extraoffset:=0;
+         hp:=actualtargetnode(@left);
+         if (hp^.nodetype=subn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).left) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
+             replacenode(hp^,taddnode(hp^).right);
+           end;
+
+         secondpass(left);
+
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          case left.location.loc of
@@ -257,6 +282,7 @@ implementation
             else
               internalerror(200507031);
          end;
+         location.reference.offset:=location.reference.offset+extraoffset;
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
@@ -803,7 +829,7 @@ implementation
       var
          offsetdec,
          extraoffset : aint;
-         t        : tnode;
+         rightp      : pnode;
          otl,ofl  : tasmlabel;
          newsize  : tcgsize;
          mulsize,
@@ -895,6 +921,8 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
+                LOC_CREGISTER,
+                LOC_CMMREGISTER,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
@@ -981,34 +1009,26 @@ implementation
                  not is_packed_array(left.resultdef) then
                 begin
                    extraoffset:=0;
-                   if (right.nodetype=addn) then
+                   rightp:=actualtargetnode(@right);
+                   if rightp^.nodetype=addn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end
-                        else if taddnode(right).left.nodetype=ordconstn then
+                        else if taddnode(rightp^).left.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).left).value.svalue;
-                             t:=taddnode(right).right;
-                             taddnode(right).right:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).left).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).right);
                           end;
                      end
-                   else if (right.nodetype=subn) then
+                   else if rightp^.nodetype=subn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=-tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=-tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
                    inc(location.reference.offset,

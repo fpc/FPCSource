@@ -659,15 +659,17 @@ implementation
                           if is_pchar(def_from) then
                            begin
                              doconv:=tc_pchar_2_string;
-                             { prefer ansistrings because pchars can overflow shortstrings, }
-                             { but only if ansistrings are the default (JM)                 }
-                             if (is_shortstring(def_to) and
-                                 not(cs_refcountedstrings in current_settings.localswitches)) or
-                                (is_ansistring(def_to) and
-                                 (cs_refcountedstrings in current_settings.localswitches)) then
-                               eq:=te_convert_l1
+                             { prefer ansistrings/unicodestrings because pchars
+                               can overflow shortstrings; don't use l1/l2/l3
+                               because then pchar -> ansistring has the same
+                               preference as conststring -> pchar, and this
+                               breaks webtbs/tw3328.pp }
+                             if is_ansistring(def_to) then
+                               eq:=te_convert_l2
+                             else if is_wide_or_unicode_string(def_to) then
+                               eq:=te_convert_l3
                              else
-                               eq:=te_convert_l2;
+                              eq:=te_convert_l4
                            end
                           else if is_pwidechar(def_from) then
                            begin
@@ -675,6 +677,8 @@ implementation
                              if is_wide_or_unicode_string(def_to) then
                                eq:=te_convert_l1
                              else
+                               { shortstring and ansistring can both result in
+                                 data loss, so don't prefer one over the other }
                                eq:=te_convert_l3;
                            end;
                        end;

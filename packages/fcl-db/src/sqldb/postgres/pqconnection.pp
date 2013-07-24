@@ -51,7 +51,7 @@ type
   TPQConnection = class (TSQLConnection)
   private
     FConnectionPool      : array of TPQTranConnection;
-    FCursorCount         : word;
+    FCursorCount         : dword;
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
@@ -375,6 +375,7 @@ end;
 procedure TPQConnection.DoInternalDisconnect;
 var i:integer;
 begin
+  Inherited;
   for i:=0 to length(FConnectionPool)-1 do
     begin
     if assigned(FConnectionPool[i].FPGConn) then

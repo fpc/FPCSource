@@ -15,17 +15,12 @@
 {$H+}
 
 
-{$IFDEF VER2_0}
-// Sanity check
-{$UNDEF FPC_TESTGENERICS}
-{$ENDIF}
-
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
 
 
 type
    { extra types to compile with FPC }
-   HRSRC =  TFPResourceHandle {$ifndef ver2_2} deprecated {$endif};
+   HRSRC =  TFPResourceHandle deprecated;
    TComponentName = string;
    THandle = System.THandle;
 
@@ -632,6 +627,7 @@ type
     procedure SetQuoteChar(c:Char);
     procedure SetNameValueSeparator(c:Char);
     procedure WriteData(Writer: TWriter);
+    procedure DoSetTextStr(const Value: string; DoClear : Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -660,6 +656,7 @@ type
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
+    Procedure AddText(Const S : String); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
@@ -1188,7 +1185,7 @@ type
 
 
   TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
-    var Address: Pointer; var Error: Boolean) of object;
+    var Address: CodePointer; var Error: Boolean) of object;
   TSetMethodPropertyEvent = procedure(Reader: TReader; Instance: TPersistent;
     PropInfo: PPropInfo; const TheMethodName: string;
     var Handled: boolean) of object;
@@ -1237,7 +1234,7 @@ type
     function FindComponentClass(const AClassName: string): TComponentClass;
   protected
     function Error(const Message: string): Boolean; virtual;
-    function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
+    function FindMethod(ARoot: TComponent; const AMethodName: string): CodePointer; virtual;
     procedure ReadProperty(AInstance: TPersistent);
     procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
     procedure PropertyError;

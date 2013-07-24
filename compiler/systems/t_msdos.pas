@@ -87,7 +87,7 @@ procedure TExternalLinkerMsDosTLink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='tlink $RES';
+     ExeCmd[1]:='tlink $OPT $RES';
    end;
 end;
 
@@ -138,6 +138,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }
@@ -196,7 +197,7 @@ procedure TExternalLinkerMsDosALink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='alink $RES';
+     ExeCmd[1]:='alink $OPT $RES';
    end;
 end;
 
@@ -215,6 +216,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }
@@ -294,7 +296,7 @@ procedure TExternalLinkerMsDosWLink.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='wlink $RES';
+     ExeCmd[1]:='wlink $OPT $RES';
    end;
 end;
 
@@ -313,6 +315,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }

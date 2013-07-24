@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      dos heaptrc lineinfo \
+      dos heaptrc lineinfo ctypes \
       sysutils fgl classes strutils math typinfo varutils fmtbcd \
       charset cpall ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil objects

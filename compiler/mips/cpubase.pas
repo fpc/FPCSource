@@ -124,6 +124,15 @@ unit cpubase;
         'c1t','c1f'
       );
 
+    type
+      TResFlags=record
+        reg1: TRegister;
+        cond: TOpCmp;
+      case use_const: boolean of
+        False: (reg2: TRegister);
+        True: (value: aint);
+      end;
+
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
@@ -222,6 +231,7 @@ unit cpubase;
       NR_FPU_RESULT_REG = NR_F0;
       NR_MM_RESULT_REG  = NR_NO;
 
+      NR_DEFAULTFLAGS = NR_NO;
 
 {*****************************************************************************
                        GCC /ABI linking information

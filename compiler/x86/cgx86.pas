@@ -167,6 +167,8 @@ unit cgx86;
 
     function UseAVX: boolean;
 
+    function UseIncDec: boolean;
+
   implementation
 
     uses
@@ -179,6 +181,21 @@ unit cgx86;
       begin
         Result:=current_settings.fputype in fpu_avx_instructionsets;
       end;
+
+
+    { modern CPUs prefer add/sub over inc/dec because add/sub break instructions dependencies on flags
+      because they modify all flags }
+    function UseIncDec: boolean;
+      begin
+{$if defined(x86_64)}
+        Result:=cs_opt_size in current_settings.optimizerswitches;
+{$elseif defined(i386)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.cputype in [cpu_386]);
+{$elseif defined(i8086)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.cputype in [cpu_8086..cpu_386]);
+{$endif}
+      end;
+
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -1221,8 +1238,13 @@ unit cgx86;
           begin
             op:=get_scalar_mm_op(fromsize,tosize);
 
+            { MOVAPD/MOVAPS are normally faster }
+            if op=A_MOVSD then
+              op:=A_MOVAPD
+            else if op=A_MOVSS then
+              op:=A_MOVAPS
             { VMOVSD/SS is not available with two register operands }
-            if op=A_VMOVSD then
+            else if op=A_VMOVSD then
               op:=A_VMOVAPD
             else if op=A_VMOVSS then
               op:=A_VMOVAPS;
@@ -1233,12 +1255,14 @@ unit cgx86;
             else
               instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
 
-            case get_scalar_mm_op(fromsize,tosize) of
+            case op of
               A_VMOVAPD,
               A_VMOVAPS,
               A_VMOVSS,
               A_VMOVSD,
               A_VMOVQ,
+              A_MOVAPD,
+              A_MOVAPS,
               A_MOVSS,
               A_MOVSD,
               A_MOVQ:
@@ -1589,11 +1613,14 @@ unit cgx86;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) then
-              if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
-              else
-                list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+               (op in [OP_ADD,OP_SUB]) and
+               UseIncDec then
+               begin
+                 if op = OP_ADD then
+                   list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
+                 else
+                   list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+               end
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
@@ -1720,11 +1747,14 @@ unit cgx86;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) then
-              if op = OP_ADD then
-                list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
-              else
-                list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+               (op in [OP_ADD,OP_SUB]) and
+               UseIncDec then
+               begin
+                 if op = OP_ADD then
+                   list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
+                 else
+                   list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+               end
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
@@ -2311,6 +2341,22 @@ unit cgx86;
 
 
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+
+      procedure decrease_sp(a : tcgint);
+{$ifdef i8086}
+        begin
+          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,a,NR_STACK_POINTER_REG));
+        end;
+{$else i8086}
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_STACK_POINTER_REG,-a,0);
+          { normally, lea is a better choice than a sub to adjust the stack pointer }
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+        end;
+{$endif i8086}
+
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
       var
@@ -2331,7 +2377,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize-4,NR_ESP));
+                    decrease_sp(localsize-4);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,4);
@@ -2346,11 +2392,14 @@ unit cgx86;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
+                    decrease_sp(winstackpagesize-4);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
-                    list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
+                    if UseIncDec then
+                      list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI))
+                    else
+                      list.concat(Taicpu.op_const_reg(A_SUB,S_L,1,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize - 4,NR_ESP));
+                    decrease_sp(localsize mod winstackpagesize-4);
                     reference_reset_base(href,NR_ESP,localsize-4,4);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     ungetcpuregister(list,NR_EDI);
@@ -2368,7 +2417,7 @@ unit cgx86;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    list.concat(Taicpu.Op_const_reg(A_SUB,S_Q,localsize,NR_RSP));
+                    decrease_sp(localsize);
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,4);
@@ -2383,19 +2432,22 @@ unit cgx86;
                     getcpuregister(list,NR_R10);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,winstackpagesize,NR_RSP));
+                    decrease_sp(winstackpagesize);
                     reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
-                    list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
+                    if UseIncDec then
+                      list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10))
+                    else
+                      list.concat(Taicpu.op_const_reg(A_SUB,S_Q,1,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize,NR_RSP));
+                    decrease_sp(localsize mod winstackpagesize);
                     ungetcpuregister(list,NR_R10);
                  end
              end
            else
 {$endif NOTARGETWIN}
 {$endif x86_64}
-            list.concat(Taicpu.Op_const_reg(A_SUB,tcgsize2opsize[OS_ADDR],localsize,NR_STACK_POINTER_REG));
+            decrease_sp(localsize);
          end;
       end;
 

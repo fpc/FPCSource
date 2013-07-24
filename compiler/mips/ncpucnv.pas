@@ -40,7 +40,7 @@ type
     { procedure second_chararray_to_string;override; }
     { procedure second_char_to_string;override; }
     procedure second_int_to_real; override;
-    procedure second_real_to_real; override;
+    { procedure second_real_to_real; override; }
     { procedure second_cord_to_pointer;override; }
     { procedure second_proc_to_procvar;override; }
     { procedure second_bool_to_int;override; }
@@ -71,12 +71,27 @@ uses
 *****************************************************************************}
 
 function tmipseltypeconvnode.first_int_to_real: tnode;
+var
+  fname: string[19];
 begin
   { converting a 64bit integer to a float requires a helper }
   if is_64bitint(left.resultdef) or
      is_currency(left.resultdef) then
     begin
-      result:=inherited first_int_to_real;
+      { hack to avoid double division by 10000, as it's
+        already done by typecheckpass.resultdef_int_to_real }
+      if is_currency(left.resultdef) then
+        left.resultdef := s64inttype;
+      if is_signed(left.resultdef) then
+        fname := 'fpc_int64_to_double'
+      else
+        fname := 'fpc_qword_to_double';
+      result := ccallnode.createintern(fname,ccallparanode.create(
+        left,nil));
+      left:=nil;
+      if (tfloatdef(resultdef).floattype=s32real) then
+        inserttypeconv(result,s32floattype);
+      firstpass(result);
       exit;
     end
   else
@@ -103,15 +118,22 @@ end;
 
 procedure tMIPSELtypeconvnode.second_int_to_real;
 
-  procedure loadsigned;
+  procedure loadsigned(restype: tfloattype);
   begin
-    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
-    { Load memory in fpu register }
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-    tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
+    if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      { 32-bit values can be loaded directly }
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MTC1, left.location.register, location.register))
+    else
+      begin
+        { Load memory in fpu register }
+        hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
+        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+        tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
+      end;
+
     { Convert value in fpu register from integer to float }
-    case tfloatdef(resultdef).floattype of
+    case restype of
       s32real:
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_S_W, location.Register, location.Register));
       s64real:
@@ -125,13 +147,12 @@ var
   href:      treference;
   hregister: tregister;
   l1, l2:    tasmlabel;
-  ai : TaiCpu;
   addend: array[boolean] of longword;
   bigendian: boolean;
 begin
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
   if is_signed(left.resultdef) then
-    loadsigned
+    loadsigned(tfloatdef(resultdef).floattype)
   else
   begin
     current_asmdata.getdatalabel(l1);
@@ -141,16 +162,8 @@ begin
     hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
 
     { Always load into 64-bit FPU register }
-    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-    location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
-    tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
-    { Convert value in fpu register from integer to float }
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVT_D_W, location.Register, location.Register));
-
-    ai := Taicpu.op_reg_reg_sym(A_BC, hregister, NR_R0, l2);
-    ai.setCondition(C_GE);
-    current_asmdata.CurrAsmList.concat(ai);
+    loadsigned(s64real);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, hregister, l2);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }
@@ -185,32 +198,6 @@ begin
         internalerror(200410031);
     end;
   end;
-end;
-
-
-procedure tMIPSELtypeconvnode.second_real_to_real;
-const
-  conv_op: array[tfloattype, tfloattype] of tasmop = (
-    {    from:   s32      s64         s80     sc80    c64     cur    f128 }
-    { s32 }  (A_MOV_S,   A_CVT_S_D, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { s64 }  (A_CVT_D_S, A_MOV_D,   A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { s80 }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { sc80 } (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { c64 }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { cur }  (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE),
-    { f128 } (A_NONE,    A_NONE,    A_NONE, A_NONE, A_NONE, A_NONE, A_NONE)
-    );
-var
-  op: tasmop;
-begin
-  location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, False);
-  { Convert value in fpu register from integer to float }
-  op := conv_op[tfloatdef(resultdef).floattype, tfloatdef(left.resultdef).floattype];
-  if op = A_NONE then
-    internalerror(200401121);
-  location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, location.Register, left.location.Register));
 end;
 
 
@@ -297,6 +284,11 @@ begin
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
       cg.a_label(current_asmdata.CurrAsmList, hlabel);
     end;
+    LOC_FLAGS:
+    begin
+      hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      cg.g_flags2reg(current_asmdata.CurrAsmList,OS_INT,left.location.resflags,hreg1);
+    end
     else
       internalerror(10062);
   end;

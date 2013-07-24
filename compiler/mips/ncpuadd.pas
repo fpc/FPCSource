@@ -69,119 +69,54 @@ uses
                                tmipsaddnode
 *****************************************************************************}
 const
-  swapped_nodetype: array[ltn..gten] of tnodetype =
+  swapped_nodetype: array[ltn..unequaln] of tnodetype =
     //lt  lte  gt  gte
-    (gtn, gten,ltn,lten);
+    (gtn, gten,ltn,lten, equaln, unequaln);
 
-  ops: array[boolean] of tasmop = (A_SLT,A_SLTU);
-  ops_immed: array[boolean] of tasmop = (A_SLTI,A_SLTIU);
+  nodetype2opcmp: array[boolean,ltn..unequaln] of TOpCmp = (
+    (OC_LT, OC_LTE, OC_GT, OC_GTE, OC_EQ, OC_NE),
+    (OC_B,  OC_BE,  OC_A,  OC_AE,  OC_EQ, OC_NE)
+  );
 
 procedure tmipsaddnode.second_generic_cmp32(unsigned: boolean);
 var
   ntype: tnodetype;
-  tmp_left,tmp_right: TRegister;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
-  location_reset(location,LOC_REGISTER,OS_INT);
-  location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-
-  if nodetype in [equaln,unequaln] then
-    begin
-      tmp_left:=location.register;
-      { XORI needs unsigned immediate in range 0-65535 }
-      if (right.location.loc=LOC_CONSTANT) and (right.location.value>=0) and
-        (right.location.value<=65535) then
-        begin
-          if right.location.value<>0 then
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
-          else
-            tmp_left:=left.location.register;
-        end
-      else
-        begin
-          if (right.location.loc<>LOC_CONSTANT) then
-            tmp_right:=right.location.register
-          else
-            begin
-              tmp_right:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,right.location.value,tmp_right);
-            end;
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,tmp_right));
-        end;
-
-      if nodetype=equaln then
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,tmp_left,1))
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU,location.register,NR_R0,tmp_left));
-      exit;
-    end;
+  location_reset(location,LOC_FLAGS,OS_NO);
 
   ntype:=nodetype;
   if nf_swapped in flags then
     ntype:=swapped_nodetype[nodetype];
 
-  {
-    sle  x,a,b  -->  slt   x,b,a; xori  x,x,1    immediate not possible (or must be at left)
-    sgt  x,a,b  -->  slt   x,b,a                 likewise
-    sge  x,a,b  -->  slt   x,a,b; xori  x,x,1
-    slt  x,a,b  -->  unchanged
-  }
-
-  if (ntype in [gten,ltn]) and
-    (right.location.loc=LOC_CONSTANT) and
-    (right.location.value>=simm16lo) and
-    (right.location.value<=simm16hi) then
-    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(ops_immed[unsigned],location.register,left.location.register,right.location.value))
+  location.resflags.cond:=nodetype2opcmp[unsigned,ntype];
+  location.resflags.reg1:=left.location.register;
+  location.resflags.use_const:=(right.location.loc=LOC_CONSTANT);
+  if location.resflags.use_const then
+    location.resflags.value:=right.location.value
   else
-    begin
-      if (right.location.loc=LOC_CONSTANT) then
-        begin
-          if (right.location.value=0) then
-            tmp_right:=NR_R0
-          else
-            begin
-             tmp_right:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-             cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,right.location.value,tmp_right);
-          end;
-        end
-      else
-        tmp_right:=right.location.register;
-
-      if (ntype in [lten,gtn]) then
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops[unsigned],location.register,tmp_right,left.location.register))
-      else
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops[unsigned],location.register,left.location.register,tmp_right));
-    end;
-  if (ntype in [lten,gten]) then
-    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
+    location.resflags.reg2:=right.location.register;
 end;
 
 
+const
+  cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
+
 procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
-var
-  hreg: tregister;
 begin
-  hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ops[unsigned], hreg, left_reg.reghi, right_reg.reghi));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrTrueLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,current_procinfo.CurrTrueLabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg, left_reg.reglo, right_reg.reglo));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrTrueLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,current_procinfo.CurrTrueLabel);
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
 end;
 
 
 procedure tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
-var
-  hreg: TRegister;
 begin
-  hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ops[unsigned], hreg, right_reg.reghi, left_reg.reghi));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrFalseLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrTrueLabel);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, hreg, right_reg.reglo, left_reg.reglo));
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,NR_R0,hreg,current_procinfo.CurrFalseLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,current_procinfo.CurrFalseLabel);
   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
 end;
 
@@ -268,10 +203,7 @@ function tmipsaddnode.pass_1 : tnode;
         if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) then
           begin
             if (left.resultdef.typ=floatdef) or (right.resultdef.typ=floatdef) then
-              expectloc:=LOC_JUMP
-            else if ((left.resultdef.typ<>orddef) or
-              (not (torddef(left.resultdef).ordtype in [s64bit,u64bit,scurrency]))) then
-              expectloc:=LOC_REGISTER;
+              expectloc:=LOC_JUMP;
           end;
       end;
   end;

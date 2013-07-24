@@ -105,6 +105,8 @@ interface
           { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
+          { def can be put into a register if it is const/immutable }
+          function is_const_intregable : boolean;
           { generics }
           procedure initgeneric;
           { this function can be used to determine whether a def is really a
@@ -1584,7 +1586,8 @@ implementation
         result:=false;
       end;
 
-    function Tstoreddef.rtti_mangledname(rt:trttitype):string;
+
+    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
       var
         prefix : string[4];
       begin
@@ -1789,6 +1792,21 @@ implementation
 {$else x86}
        result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches);
 {$endif x86}
+     end;
+
+
+   function tstoreddef.is_const_intregable : boolean;
+     begin
+       case typ of
+         stringdef:
+           result:=tstringdef(self).stringtype in [st_ansistring,st_unicodestring,st_widestring];
+         arraydef:
+           result:=is_dynamic_array(self);
+         objectdef:
+           result:=is_interface(self);
+         else
+           result:=false;
+       end;
      end;
 
 
@@ -4641,12 +4659,14 @@ implementation
               potype_destructor:
                 s:=s+'destructor ';
               else
-                if (pno_proctypeoption in pno) and
-                   assigned(returndef) and
-                   not(is_void(returndef)) then
-                  s:=s+'function '
-                else
-                  s:=s+'procedure ';
+                if (pno_proctypeoption in pno) then
+                  begin
+                   if assigned(returndef) and
+                     not(is_void(returndef)) then
+                     s:=s+'function '
+                   else
+                     s:=s+'procedure ';
+                  end;
             end;
             if (pno_ownername in pno) and
                (owner.symtabletype in [recordsymtable,objectsymtable]) then

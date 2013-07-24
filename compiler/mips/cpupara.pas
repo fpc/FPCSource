@@ -31,8 +31,6 @@ interface
       symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
 
     const
-      MIPS_MAX_OFFSET = 20;
-
       { The value below is OK for O32 and N32 calling conventions }
       MIPS_MAX_REGISTERS_USED_IN_CALL = 6;
 
@@ -63,9 +61,6 @@ interface
     type
       tparasupregs = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of tsuperregister;
       tparasupregsused = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of boolean;
-      tparasupregsize = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of tcgsize;
-      tparasuprename = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of shortstring;
-      tparasupregsoffset = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of longint;
 
     const
 
@@ -79,6 +74,7 @@ interface
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+        function  param_use_paraloc(const cgpara: tcgpara): boolean; override;
       private
         intparareg,
         intparasize : longint;
@@ -118,6 +114,16 @@ implementation
           ((def.typ=procvardef) and not tprocvardef(def).is_addressonly);
       end;
 
+
+    function TMIPSParaManager.param_use_paraloc(const cgpara: tcgpara): boolean;
+      var
+        paraloc: pcgparalocation;
+      begin
+        paraloc:=cgpara.location;
+        if not assigned(paraloc) then
+          internalerror(200410102);
+        result:=(paraloc^.loc=LOC_REFERENCE) and (paraloc^.next=nil);
+      end;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
@@ -231,7 +237,7 @@ implementation
     procedure TMIPSParaManager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist);
       var
         paraloc      : pcgparalocation;
-        i            : integer;
+        i,j          : integer;
         hp           : tparavarsym;
         paracgsize   : tcgsize;
         paralen      : longint;
@@ -242,6 +248,7 @@ implementation
         alignment    : longint;
         tmp          : longint;
         firstparaloc : boolean;
+        reg_and_stack: boolean;
       begin
         fpparareg := 0;
         for i:=0 to paras.count-1 do
@@ -340,6 +347,9 @@ implementation
               can_use_float := false;
 
             firstparaloc:=true;
+            { Is parameter split between stack and registers? }
+            reg_and_stack:=(side=calleeside) and
+              (paralen+intparasize>16) and (intparasize<16);
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
@@ -368,11 +378,14 @@ implementation
                     paraloc^.register:=newreg(R_INTREGISTER,parasupregs[0],R_SUBWHOLE);
                     inc(intparasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));
                   end
-                { In case of po_delphi_nested_cc, the parent frame pointer
-                  is always passed on the stack. }
+                { "In case of po_delphi_nested_cc, the parent frame pointer
+                  is always passed on the stack". On other targets it is
+                  used to provide caller-side stack cleanup and prevent stackframe
+                  optimization. For MIPS this does not matter. }
                 else if (intparareg<mips_nb_used_registers) and
+                   (not reg_and_stack) {and
                    (not(vo_is_parentfp in hp.varoptions) or
-                    not(po_delphi_nested_cc in p.procoptions)) then
+                    not(po_delphi_nested_cc in p.procoptions))} then
                   begin
                     if (can_use_float) then
                       begin
@@ -418,8 +431,18 @@ implementation
                   end
                 else
                   begin
+                    if reg_and_stack then
+                      begin
+                        for j:=intparareg to mips_nb_used_registers-1 do
+                          tmipsprocinfo(current_procinfo).register_used[j]:=true;
+                        { all registers used now }
+                        intparareg:=mips_nb_used_registers;
+                      end;
                     paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=int_cgsize(paralen);
+                    if (paradef.typ=floatdef) then
+                      paraloc^.size:=int_float_cgsize(paralen)
+                    else
+                      paraloc^.size:=int_cgsize(paralen);
                     paraloc^.def:=get_paraloc_def(locdef,paralen,firstparaloc);
 
                     if side=callerside then

@@ -63,7 +63,8 @@ implementation
       aasmbase,
       symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
       htypechk,paramgr,
-      nadd,ncal,ncnv,ncon,nld,pass_1,njvmcon,
+      nadd,ncal,ncnv,ncon,nld,nutils,
+      pass_1,njvmcon,
       aasmdata,aasmcpu,pass_2,
       cgutils,hlcgobj,hlcgcpu;
 
@@ -151,7 +152,7 @@ implementation
       var
         target: tnode;
       begin
-        target:=left.actualtargetnode;
+        target:=actualtargetnode(@left)^;
         result:=
           (left.nodetype=derefn);
       end;

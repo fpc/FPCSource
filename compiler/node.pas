@@ -367,10 +367,6 @@ interface
          { does the real copying of a node }
          function dogetcopy : tnode;virtual;
 
-         { returns the real loadn/temprefn a node refers to,
-           skipping (absolute) equal type conversions        }
-         function actualtargetnode: tnode;virtual;
-
          procedure insertintolist(l : tnodelist);virtual;
          { writes a node for debugging purpose, shouldn't be called }
          { direct, because there is no test for nil, use printnode  }
@@ -949,12 +945,6 @@ implementation
          p.verbosity:=verbosity;
 {         p.list:=list; }
          result:=p;
-      end;
-
-
-    function tnode.actualtargetnode: tnode;
-      begin
-        result:=self;
       end;
 
 

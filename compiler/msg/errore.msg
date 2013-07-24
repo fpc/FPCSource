@@ -2705,7 +2705,7 @@ asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 6553
 #
 # Executing linker/assembler
 #
-# 09033 is the last used one
+# 09034 is the last used one
 #
 # BeginOfTeX
 %
@@ -2797,10 +2797,11 @@ exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
 % An error occurred resource file cannot be written.
 exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted cat command
 % The compiler did not find the file that should be expanded into linker parameters
-%\end{description}
 exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a linking failure
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
+%
+%\end{description}
 # EndOfTeX
 
 #

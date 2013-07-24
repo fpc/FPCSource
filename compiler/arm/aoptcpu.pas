@@ -420,7 +420,8 @@ Implementation
     var
       hp1: tai;
     begin
-      if (p.ops=3) and
+      if (current_settings.cputype in cpu_arm) and
+        (p.ops=3) and
         MatchOperand(p.oper[0]^, p.oper[1]^.reg) and
         GetNextInstructionUsingReg(p, hp1, p.oper[0]^.reg) and
         (not RegModifiedBetween(p.oper[0]^.reg, p, hp1)) and
@@ -499,7 +500,7 @@ Implementation
         { don't apply the optimization if the (new) index register is loaded }
         (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) and
-        not(current_settings.cputype in cpu_thumb) then
+        (current_settings.cputype in cpu_arm) then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;

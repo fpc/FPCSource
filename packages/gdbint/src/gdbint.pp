@@ -2458,6 +2458,14 @@ begin
 {$endif}
 end;
 
+procedure annotate_display_prompt;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|display_prompt|');
+{$endif}
+end;
+
+
 procedure annotate_display_begin;cdecl;public;
 begin
 {$ifdef Verbose}
