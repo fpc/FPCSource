@@ -115,40 +115,42 @@ type
     FConnOptions         : TConnOptions;
     FSQLFormatSettings : TFormatSettings;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
-    procedure SetTransaction(Value : TSQLTransaction);virtual;
-    function StrToStatementType(s : string) : TStatementType; virtual;
+    procedure SetTransaction(Value : TSQLTransaction); virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetAsSQLText(Field : TField) : string; overload; virtual;
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
-    function GetHandle : pointer; virtual; virtual;
+    function GetHandle : pointer; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
-    Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
-    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
-    Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
     Procedure RegisterStatement(S : TCustomSQLStatement);
     Procedure UnRegisterStatement(S : TCustomSQLStatement);
 
+    Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
+    function StrToStatementType(s : string) : TStatementType; virtual;
+    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); virtual; abstract;
+    procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
-    procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
-
-    procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
+    procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
+
+    Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
+
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
-    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
-    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
+
     Property Statements : TFPList Read FStatements;
     property Port: cardinal read GetPort write SetPort;
   public
@@ -221,9 +223,9 @@ type
 
   TCustomSQLStatement = Class(TComponent)
   Private
-    FParamCheck: Boolean;
     FCursor : TSQLCursor;
     FDatabase: TSQLConnection;
+    FParamCheck: Boolean;
     FParams: TParams;
     FSQL: TStrings;
     FOrigSQL : String;
@@ -239,8 +241,8 @@ type
   Protected
     Function CreateDataLink : TDataLink; virtual;
     procedure OnChangeSQL(Sender : TObject); virtual;
-    function GetDataSource: TDatasource; Virtual;
-    procedure SetDataSource(AValue: TDatasource); virtual;
+    function GetDataSource: TDataSource; Virtual;
+    procedure SetDataSource(AValue: TDataSource); virtual;
     Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
     procedure AllocateCursor;
     procedure DeAllocateCursor;
@@ -261,7 +263,7 @@ type
     Property Transaction : TSQLTransaction Read FTransaction Write SetTransaction;
     Property SQL : TStrings Read FSQL Write SetSQL;
     Property Params : TParams Read FParams Write SetParams;
-    Property Datasource : TDatasource Read GetDataSource Write SetDataSource;
+    Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
     Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
   Public
@@ -278,19 +280,18 @@ type
   TSQLStatement = Class(TCustomSQLStatement)
   Published
     Property Database;
-    Property Transaction;
-    Property SQL;
-    Property Params;
-    Property Datasource;
-    Property ParseSQL;
+    Property DataSource;
     Property ParamCheck;
+    Property Params;
+    Property ParseSQL;
+    Property SQL;
+    Property Transaction;
   end;
 
 { TCustomSQLQuery }
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    // FParamCheck: Boolean;
     // FCursor              : TSQLCursor;
     FSchemaType: TSchemaType;
 //    FSQL: TStringlist;
@@ -331,12 +332,12 @@ type
     function GetSQL: TStringlist;
     function GetStatementType : TStatementType;
     procedure SetParamCheck(AValue: Boolean);
+    procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetDeleteSQL(const AValue: TStringlist);
     procedure SetInsertSQL(const AValue: TStringlist);
     procedure SetParams(AValue: TParams);
     procedure SetParseSQL(AValue : Boolean);
     procedure SetSQL(const AValue: TStringlist);
-    procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
 //    procedure OnChangeSQL(Sender : TObject);
@@ -364,8 +365,8 @@ type
     Procedure SetActive (Value : Boolean); override;
     procedure SetServerFiltered(Value: Boolean); virtual;
     procedure SetServerFilterText(const Value: string); virtual;
-    Function GetDataSource : TDatasource; override;
-    Procedure SetDataSource(AValue : TDatasource);
+    Function GetDataSource : TDataSource; override;
+    Procedure SetDataSource(AValue : TDataSource);
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
@@ -421,12 +422,12 @@ type
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
     property Params : TParams read GetParams Write SetParams;
+    Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
+    property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode default upWhereKeyOnly;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
-    property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
-    Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
-    Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
+    Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
     property ServerIndexDefs : TServerIndexDefs read GetServerIndexDefs;
@@ -478,10 +479,10 @@ type
     property DeleteSQL;
     property IndexDefs;
     property Params;
+    Property ParamCheck;
+    property ParseSQL;
     property UpdateMode;
     property UsePrimaryKeyAsKey;
-    property ParseSQL;
-    Property ParamCheck;
     Property DataSource;
     property ServerFilter;
     property ServerFiltered;
@@ -677,11 +678,10 @@ begin
     end;
 end;
 
-procedure TCustomSQLStatement.SetDataSource(AValue: TDatasource);
-
+procedure TCustomSQLStatement.SetDataSource(AValue: TDataSource);
 
 begin
-  if GetDatasource=AValue then Exit;
+  if GetDataSource=AValue then Exit;
   if (FDataLink=Nil) then
     FDataLink:=CreateDataLink;
   FDataLink.DataSource:=AValue;
@@ -722,7 +722,7 @@ end;
 
 procedure TCustomSQLStatement.DoExecute;
 begin
-  If (FParams.Count>0) and Assigned(Datasource) then
+  If (FParams.Count>0) and Assigned(DataSource) then
     CopyParamsFromMaster(False);
   If LogEvent(detExecute) then
     Log(detExecute,FServerSQL);
@@ -912,10 +912,10 @@ begin
       FreeAndNil(FCursor);
 end;
 
-function TCustomSQLStatement.GetDataSource: TDatasource;
+function TCustomSQLStatement.GetDataSource: TDataSource;
 begin
   if Assigned(FDataLink) then
-    Result:=FDataLink.Datasource
+    Result:=FDataLink.DataSource
   else
     Result:=Nil;
 end;
@@ -2337,10 +2337,10 @@ begin
   FStatement.Params.Assign(AValue);
 end;
 
-procedure TCustomSQLQuery.SetDataSource(AValue: TDatasource);
+procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
 
 Var
-  DS : TDatasource;
+  DS : TDataSource;
 
 begin
   DS:=DataSource;
@@ -2350,15 +2350,15 @@ begin
       DatabaseError(SErrCircularDataSourceReferenceNotAllowed,Self);
     If Assigned(DS) then
       DS.RemoveFreeNotification(Self);
-    FStatement.Datasource:=AValue;
+    FStatement.DataSource:=AValue;
     end;
 end;
 
-function TCustomSQLQuery.GetDataSource: TDatasource;
+function TCustomSQLQuery.GetDataSource: TDataSource;
 
 begin
   If Assigned(FStatement) then
-    Result:=FStatement.Datasource
+    Result:=FStatement.DataSource
   else
     Result:=Nil;
 end;
