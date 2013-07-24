@@ -217,6 +217,7 @@
   { define cpumm}
   {$define cpurefshaveindexreg}
   {$define fpc_compiler_has_fixup_jmps}
+  {$define SUPPORT_GET_FRAME}
 {$endif mips}
 
 {$ifdef jvm}
