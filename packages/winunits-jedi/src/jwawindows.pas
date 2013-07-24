@@ -363,9 +363,9 @@ The list has no order!}
 {$I JwaAccCtrl.pas}
 {$I JwaAclApi.pas}
 {$I JwaSddl.pas}
-{$I JwaLmErr}
-{$I JwaLmCons}
-{$I JwaNtSecApi}
+{$I JwaLmErr.pas}
+{$I JwaLmCons.pas}
+{$I JwaNtSecApi.pas}
 {$I JwaWinCred.pas}
 {$I JwaWtsApi32.pas}
 {$I JwaWinIoctl.pas}
@@ -687,9 +687,9 @@ The list has no order!}
 {$I JwaAccCtrl.pas}
 {$I JwaAclApi.pas}
 {$I JwaSddl.pas}
-{$I JwaLmErr}
-{$I JwaLmCons}
-{$I JwaNtSecApi}
+{$I JwaLmErr.pas}
+{$I JwaLmCons.pas}
+{$I JwaNtSecApi.pas}
 {$I JwaWinCred.pas}
 {$I JwaWtsApi32.pas}
 {$I JwaWinIoctl.pas}
