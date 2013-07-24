@@ -110,7 +110,6 @@ type
     FRole                : String;
     FStatements          : TFPList;
     function GetPort: cardinal;
-    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo;
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
@@ -147,6 +146,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
+    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     Property Statements : TFPList Read FStatements;
@@ -221,7 +221,7 @@ type
 
   TCustomSQLStatement = Class(TComponent)
   Private
-    FCheckParams: Boolean;
+    FParamCheck: Boolean;
     FCursor : TSQLCursor;
     FDatabase: TSQLConnection;
     FParams: TParams;
@@ -263,7 +263,7 @@ type
     Property Params : TParams Read FParams Write SetParams;
     Property Datasource : TDatasource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
-    Property CheckParams : Boolean Read FCheckParams Write FCheckParams default true;
+    Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -283,14 +283,14 @@ type
     Property Params;
     Property Datasource;
     Property ParseSQL;
-    Property CheckParams;
+    Property ParamCheck;
   end;
 
 { TCustomSQLQuery }
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    // FCheckParams: Boolean;
+    // FParamCheck: Boolean;
     // FCursor              : TSQLCursor;
     FSchemaType: TSchemaType;
 //    FSQL: TStringlist;
@@ -324,13 +324,13 @@ type
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
     procedure FreeFldBuffers;
-    function GetCheckParams: Boolean;
+    function GetParamCheck: Boolean;
     function GetParams: TParams;
     function GetParseSQL: Boolean;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetSQL: TStringlist;
     function GetStatementType : TStatementType;
-    procedure SetCheckParams(AValue: Boolean);
+    procedure SetParamCheck(AValue: Boolean);
     procedure SetDeleteSQL(const AValue: TStringlist);
     procedure SetInsertSQL(const AValue: TStringlist);
     procedure SetParams(AValue: TParams);
@@ -425,7 +425,7 @@ type
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
-    Property CheckParams : Boolean Read GetCheckParams Write SetCheckParams default true;
+    Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
@@ -481,7 +481,7 @@ type
     property UpdateMode;
     property UsePrimaryKeyAsKey;
     property ParseSQL;
-    Property CheckParams;
+    Property ParamCheck;
     Property DataSource;
     property ServerFilter;
     property ServerFiltered;
@@ -645,7 +645,7 @@ var
 
 begin
   UnPrepare;
-  if not CheckParams then
+  if not ParamCheck then
     exit;
   if assigned(DataBase) then
     ConnOptions:=DataBase.ConnOptions
@@ -784,7 +784,7 @@ begin
   FSQL:=TStringList.Create;
   TStringList(FSQL).OnChange:=@OnChangeSQL;
   FParams:=CreateParams;
-  FCheckParams:=True;
+  FParamCheck:=True;
   FParseSQL:=True;
 end;
 
@@ -1402,7 +1402,7 @@ var ConnOptions : TConnOptions;
 
 begin
   FSchemaType:=stNoSchema;
-  if (FSQL <> nil) and CheckParams then
+  if (FSQL <> nil) and ParamCheck then
     begin
     if assigned(DataBase) then
       ConnOptions := TSQLConnection(DataBase).ConnOptions
@@ -1565,9 +1565,9 @@ begin
      TSQLConnection(Database).FreeFldBuffers(Cursor);
 end;
 
-function TCustomSQLQuery.GetCheckParams: Boolean;
+function TCustomSQLQuery.GetParamCheck: Boolean;
 begin
-  Result:=FStatement.CheckParams;
+  Result:=FStatement.ParamCheck;
 end;
 
 function TCustomSQLQuery.GetParams: TParams;
@@ -2009,7 +2009,7 @@ procedure TQuerySQLStatement.OnChangeSQL(Sender: TObject);
 begin
   UnPrepare;
   inherited OnChangeSQL(Sender);
-  If CheckParams and Assigned(FDataLink) then
+  If ParamCheck and Assigned(FDataLink) then
     (FDataLink as TMasterParamsDataLink).RefreshParamNames;
   FQuery.ServerIndexDefs.Updated:=false;
 end;
@@ -2317,9 +2317,9 @@ begin
     Result:=stUnknown;
 end;
 
-procedure TCustomSQLQuery.SetCheckParams(AValue: Boolean);
+procedure TCustomSQLQuery.SetParamCheck(AValue: Boolean);
 begin
-  FStatement.CheckParams:=Avalue;
+  FStatement.ParamCheck:=AValue;
 end;
 
 procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
