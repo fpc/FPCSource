@@ -3,27 +3,25 @@
 { e-mail: chrivers@iversen-net.dk }
 program fpcdelphi;
 
-{$mode delphi}
-
 var
   err : boolean;
 
-Function A(Const S1, S2: PAnsiChar): Integer; Overload;
+Function A(Const S2: AnsiString): Integer; Overload;
 Begin
-  writeln('pansichar overload');
+  writeln('ansistring overload');
   err:=false;
 End;
 
-Function A(Const S1, S2: AnsiString): Integer; Overload;
+Function A(Const S2: UnicodeString): Integer; Overload;
 Begin
-  writeln('ansistring overload');
+  writeln('unicodestring overload');
 End;
 
 Var
   X : PAnsiChar;
 Begin
   err:=true;
-  A(X, '');
+  A(X);
   if err then
     halt(1);
 End.
