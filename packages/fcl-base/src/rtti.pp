@@ -61,7 +61,7 @@ type
       0:  (FAsUByte: Byte);
       1:  (FAsUWord: Word);
       2:  (FAsULong: LongWord);
-      3:  (FAsObject: TObject);
+      3:  (FAsObject: Pointer);
       4:  (FAsClass: TClass);
       5:  (FAsSByte: Shortint);
       9:  (FAsDouble: Double);
@@ -78,7 +78,10 @@ type
     function GetTypeDataProp: PTypeData;
     function GetTypeInfo: PTypeInfo;
     function GetTypeKind: TTypeKind;
+    function GetIsEmpty: boolean;
   public
+    class function Empty: TValue;
+    class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
     function IsArray: boolean;
     function AsString: string;
     function AsExtended: Extended;
@@ -97,6 +100,7 @@ type
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
     property TypeInfo: PTypeInfo read GetTypeInfo;
+    property IsEmpty: boolean read GetIsEmpty;
   end;
 
   { TRttiContext }
@@ -221,7 +225,6 @@ type
     constructor create(AParent: TRttiType);
     property Visibility: TMemberVisibility read GetVisibility;
     property Parent: TRttiType read FParent;
-
   end;
 
   { TRttiProperty }
@@ -232,14 +235,20 @@ type
     FAttributesResolved: boolean;
     FAttributes: specialize TArray<TCustomAttribute>;
     function GetPropertyType: TRttiType;
+    function GetIsWritable: boolean;
+    function GetIsReadable: boolean;
+    function GetVisibility: TMemberVisibility;
   protected
     function GetName: string; override;
     function GetAttributes: specialize TArray<TCustomAttribute>; override;
   public
     constructor create(AParent: TRttiType; APropInfo: PPropInfo);
     function GetValue(Instance: pointer): TValue;
+    procedure SetValue(Instance: pointer; const AValue: TValue);
     property PropertyType: TRttiType read GetPropertyType;
-
+    property IsReadable: boolean read GetIsReadable;
+    property IsWritable: boolean read GetIsWritable;
+    property Visibility: TMemberVisibility read GetVisibility;
   end;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
@@ -291,7 +300,8 @@ type
 
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
-  SErrInvalidTypecast         = 'Invalid typecast';
+  SErrUnableToSetValueForType = 'Unable to set value for type %s';
+  SErrInvalidTypecast         = 'Invalid class typecast';
 
 var
   PoolRefCount : integer;
@@ -453,6 +463,33 @@ end;
 
 { TValue }
 
+class function TValue.Empty: TValue;
+begin
+  result.FData.FTypeInfo := nil;
+end;
+
+class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
+var
+  S: ansistring;
+begin
+  result.FData.FTypeInfo:=ATypeInfo;
+  case ATypeInfo^.Kind of
+    tkAString  : result.FData.FValueData := TValueDataIntImpl.Create(@PAnsiString(ABuffer)^[1],length(PAnsiString(ABuffer)^));
+    tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
+    tkInteger  : result.FData.FAsSInt64 := PInt64(ABuffer)^;
+    tkBool     : result.FData.FAsSInt64 := Int64(PBoolean(ABuffer)^);
+    tkFloat    : begin
+                   case GetTypeData(ATypeInfo)^.FloatType of
+                     ftCurr   : result.FData.FAsCurr := PCurrency(ABuffer)^;
+                     ftDouble : result.FData.FAsDouble := PDouble(ABuffer)^;
+                   end;
+                 end;
+  else
+    raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
+  end;
+end;
+
+
 function TValue.GetTypeDataProp: PTypeData;
 begin
   result := GetTypeData(FData.FTypeInfo);
@@ -466,6 +503,11 @@ end;
 function TValue.GetTypeKind: TTypeKind;
 begin
   result := FData.FTypeInfo^.Kind;
+end;
+
+function TValue.GetIsEmpty: boolean;
+begin
+  result := (FData.FTypeInfo=nil);
 end;
 
 function TValue.IsArray: boolean;
@@ -507,19 +549,19 @@ end;
 function TValue.AsObject: TObject;
 begin
   if IsObject then
-    result := FData.FAsObject
+    result := TObject(FData.FAsObject)
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.IsObject: boolean;
 begin
-  result := fdata.FTypeInfo^.Kind = tkObject;
+  result := fdata.FTypeInfo^.Kind = tkClass;
 end;
 
 function TValue.IsClass: boolean;
 begin
-  result := fdata.FTypeInfo^.Kind = tkClass;
+  result := false;
 end;
 
 function TValue.AsClass: TClass;
@@ -659,6 +701,22 @@ begin
   GRttiPool.GetType(FPropInfo^.PropType);
 end;
 
+function TRttiProperty.GetIsReadable: boolean;
+begin
+  result := assigned(FPropInfo^.GetProc);
+end;
+
+function TRttiProperty.GetIsWritable: boolean;
+begin
+  result := assigned(FPropInfo^.SetProc);
+end;
+
+function TRttiProperty.GetVisibility: TMemberVisibility;
+begin
+  // At this moment only pulished rtti-property-info is supported by fpc
+  result := mvPublished;
+end;
+
 function TRttiProperty.GetName: string;
 begin
   Result:=FPropInfo^.Name;
@@ -687,29 +745,61 @@ begin
 end;
 
 function TRttiProperty.GetValue(Instance: pointer): TValue;
+type
+  TGetProcIndex=function(index:longint):pointer of object;
+  TGetProc=function:pointer of object;
 var
-  S: ansistring;
+  ABuffer: pointer;
+  AMethod: TMethod;
+  AGetMethodIndex: TGetProcIndex;
+  AGetMethod: TGetProc;
+  s: string;
+  i: int64;
 begin
-  result.FData.FTypeInfo:=FPropInfo^.PropType;
-
-  case Result.FData.FTypeInfo^.Kind of
-    tkSString,
-    tkAString  : begin
-                   s := GetStrProp(TObject(Instance),FPropInfo);
-                   result.FData.FValueData := TValueDataIntImpl.Create(@s[1],length(s));
-                 end;
-    tkClass    : result.FData.FAsObject := GetObjectProp(TObject(Instance),FPropInfo);
-    tkInteger,
-    tkBool     : result.FData.FAsSInt64 := GetOrdProp(TObject(Instance),FPropInfo);
-    tkFloat    : begin
-                   case GetTypeData(FPropInfo^.PropType)^.FloatType of
-                     ftCurr   : result.FData.FAsCurr := GetFloatProp(TObject(Instance),FPropInfo);
-                     ftDouble : result.FData.FAsDouble := GetFloatProp(TObject(Instance),FPropInfo);
-                   end;
-                 end;
+  if (FPropInfo^.PropProcs) and 3 = ptfield then
+    begin
+    ABuffer := Pointer(Instance)+PtrUInt(FPropInfo^.GetProc);
+    TValue.Make(ABuffer, FPropInfo^.PropType, result);
+    end
   else
-    raise Exception.CreateFmt(SErrUnableToGetValueForType,[FPropInfo^.Name]);
-  end;
+    begin
+    case FPropinfo^.PropType^.Kind of
+      tkAString:
+        begin
+          s := GetStrProp(TObject(Instance), FPropInfo);
+          TValue.Make(@s, FPropInfo^.PropType, result);
+        end;
+      tkInteger,
+      tkInt64,
+      tkQWord,
+      tkChar,
+      tkBool,
+      tkWChar:
+        begin
+          i := GetOrdProp(TObject(Instance), FPropInfo);
+          TValue.Make(@i, FPropInfo^.PropType, result);
+        end;
+    else
+      result := TValue.Empty;
+    end
+    end;
+end;
+
+procedure TRttiProperty.SetValue(Instance: pointer; const AValue: TValue);
+begin
+  case FPropinfo^.PropType^.Kind of
+    tkAString:
+      SetStrProp(TObject(Instance), FPropInfo, AValue.AsString);
+    tkInteger,
+    tkInt64,
+    tkQWord,
+    tkChar,
+    tkBool,
+    tkWChar:
+      SetOrdProp(TObject(Instance), FPropInfo, AValue.AsOrdinal);
+  else
+    raise exception.create(SErrUnableToSetValueForType);
+  end
 end;
 
 function TRttiType.GetIsInstance: boolean;
