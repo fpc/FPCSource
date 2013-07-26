@@ -1274,7 +1274,7 @@ unit rgobj;
         end
       {Next test: is it possible and a good idea to coalesce??}
       else if ((u<first_imaginary) and adjacent_ok(u,v)) or
-              ((u>=first_imaginary) and conservative(u,v)) then
+              conservative(u,v) then
         begin
           m.moveset:=ms_coalesced_moves;  {Move coalesced!}
           coalesced_moves.insert(m);
