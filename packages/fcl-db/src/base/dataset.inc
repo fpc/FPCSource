@@ -1124,7 +1124,11 @@ begin
 {$ifdef dsdebug}
   Writeln('Recalculating buffer list size');
 {$endif}
-  ABufferCount := DefaultBufferCount;
+  if IsUniDirectional then
+    ABufferCount := 1
+  else
+    ABufferCount := DefaultBufferCount;
+
   for i := 0 to FDataSources.Count - 1 do
     for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
       begin

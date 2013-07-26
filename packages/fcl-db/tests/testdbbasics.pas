@@ -410,7 +410,7 @@ begin
     with ds do
       begin
       aDatasource.DataSet := ds;
-      open;
+      Open;
       DataEvents := '';
       Resync([rmExact]);
       if IsUniDirectional then
@@ -418,9 +418,13 @@ begin
       else
         CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
-      next;
-      CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
-      close;
+      Next;
+      if IsUniDirectional then
+        CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:-1;DataSetScrolled:1;DataSetChanged;',DataEvents)
+      else
+        CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
+      DataEvents := '';
+      Close;
       end;
   finally
     aDatasource.Free;
