@@ -66,6 +66,8 @@ interface
        { tstoreddef }
 
        tstoreddef = class(tdef)
+       private
+          _fullownerhierarchyname : pshortstring;
        protected
           typesymderef  : tderef;
           procedure fillgenericparas(symtable:tsymtable);
@@ -100,6 +102,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  OwnerHierarchyName: string; override;
+          function  fullownerhierarchyname:string;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -1532,6 +1535,7 @@ implementation
           end;
         genericparas.free;
         genconstraintdata.free;
+        stringdispose(_fullownerhierarchyname);
         inherited destroy;
       end;
 
@@ -1619,6 +1623,36 @@ implementation
             break;
           result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
         until tmp=nil;
+      end;
+
+    function tstoreddef.fullownerhierarchyname: string;
+      var
+        tmp: tdef;
+      begin
+        if assigned(_fullownerhierarchyname) then
+          begin
+            result:=_fullownerhierarchyname^;
+            exit;
+          end;
+        { the def can only reside inside structured types or
+          procedures/functions/methods }
+        tmp:=self;
+        result:='';
+        repeat
+          { can be not assigned in case of a forwarddef }
+          if not assigned(tmp.owner) then
+            break
+          else
+            tmp:=tdef(tmp.owner.defowner);
+          if not assigned(tmp) then
+            break;
+          if tmp.typ in [recorddef,objectdef] then
+            result:=tabstractrecorddef(tmp).objrealname^+'.'+result
+          else
+            if tmp.typ=procdef then
+              result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
+        until tmp=nil;
+        _fullownerhierarchyname:=stringdup(result);
       end;
 
 
